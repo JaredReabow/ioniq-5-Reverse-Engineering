@@ -1,0 +1,71 @@
+{
+  "scope": "Local package headers and ZIP central directories; not an exhaustive search of opaque payloads",
+  "packages": [
+    {
+      "package": "IONIQ5_EU",
+      "file_count": 36,
+      "header_classes": {
+        "opaque/unclassified": 22,
+        "text-like": 5,
+        "ipk boot container": 6,
+        "zip": 1,
+        "gzip": 2
+      },
+      "archives": [
+        {
+          "path": "HU/images/navi_eu/S5W_MAP_ALL_EUR_18_52_70_012_632_5.zip",
+          "entries": 1335,
+          "filename_candidates": []
+        }
+      ],
+      "opaque_ui_payloads": [
+        "AppUpgrade",
+        "HU/images/mango-rootfs.tar.gz",
+        "HU/images/navi_eu/appnavi.tar",
+        "HU/images/new_gui.tar.gz"
+      ]
+    },
+    {
+      "package": "2021_22_IONIQ_5_AU",
+      "file_count": 36,
+      "header_classes": {
+        "opaque/unclassified": 22,
+        "text-like": 5,
+        "ipk boot container": 6,
+        "zip": 1,
+        "gzip": 2
+      },
+      "archives": [
+        {
+          "path": "HU/images/navi_au/S5W_MAP_ALL_AUS_19_41_47_011_611_0.zip",
+          "entries": 374,
+          "filename_candidates": []
+        }
+      ],
+      "opaque_ui_payloads": [
+        "AppUpgrade",
+        "HU/images/mango-rootfs.tar.gz",
+        "HU/images/navi_au/appnavi.tar",
+        "HU/images/new_gui.tar.gz"
+      ]
+    }
+  ],
+  "voice_archives": [
+    {
+      "region": "vrau",
+      "members": 49,
+      "scope": "tar listing plus first 512 bytes of each regular file",
+      "elf_header_candidates": [],
+      "qml_candidates": [],
+      "local_inventory_sha256": "2585e4ad8358ec2041ddfc7133ce617e2767a6941466aeafd0c9e665826709b4"
+    },
+    {
+      "region": "vreu",
+      "members": 351,
+      "scope": "tar listing plus first 512 bytes of each regular file",
+      "elf_header_candidates": [],
+      "qml_candidates": [],
+      "local_inventory_sha256": "5267815f501d2a636ea86c1ad905a3dc99da4f22e480f238d85e88a3e862e3f7"
+    }
+  ]
+}

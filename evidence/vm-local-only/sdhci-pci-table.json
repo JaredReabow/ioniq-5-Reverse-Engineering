@@ -1,0 +1,632 @@
+[
+  {
+    "index": 0,
+    "vendor": "0x1180",
+    "device": "0x822",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d680"
+  },
+  {
+    "index": 1,
+    "vendor": "0x1180",
+    "device": "0x843",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d640"
+  },
+  {
+    "index": 2,
+    "vendor": "0x1180",
+    "device": "0xe822",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d640"
+  },
+  {
+    "index": 3,
+    "vendor": "0x1180",
+    "device": "0xe823",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d640"
+  },
+  {
+    "index": 4,
+    "vendor": "0x1524",
+    "device": "0x550",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d600"
+  },
+  {
+    "index": 5,
+    "vendor": "0x1524",
+    "device": "0x551",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d600"
+  },
+  {
+    "index": 6,
+    "vendor": "0x1524",
+    "device": "0x750",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d5c0"
+  },
+  {
+    "index": 7,
+    "vendor": "0x1524",
+    "device": "0x751",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d5c0"
+  },
+  {
+    "index": 8,
+    "vendor": "0x11ab",
+    "device": "0x4101",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d580"
+  },
+  {
+    "index": 9,
+    "vendor": "0x197b",
+    "device": "0x2381",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d240"
+  },
+  {
+    "index": 10,
+    "vendor": "0x197b",
+    "device": "0x2382",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d240"
+  },
+  {
+    "index": 11,
+    "vendor": "0x197b",
+    "device": "0x2391",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d240"
+  },
+  {
+    "index": 12,
+    "vendor": "0x197b",
+    "device": "0x2392",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d240"
+  },
+  {
+    "index": 13,
+    "vendor": "0x1148",
+    "device": "0x8000",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d200"
+  },
+  {
+    "index": 14,
+    "vendor": "0x1106",
+    "device": "0x95d0",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d1c0"
+  },
+  {
+    "index": 15,
+    "vendor": "0x10ec",
+    "device": "0x5250",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d180"
+  },
+  {
+    "index": 16,
+    "vendor": "0x8086",
+    "device": "0x8a7",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d540"
+  },
+  {
+    "index": 17,
+    "vendor": "0x8086",
+    "device": "0x807",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d500"
+  },
+  {
+    "index": 18,
+    "vendor": "0x8086",
+    "device": "0x808",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d4c0"
+  },
+  {
+    "index": 19,
+    "vendor": "0x8086",
+    "device": "0x84f",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d4c0"
+  },
+  {
+    "index": 20,
+    "vendor": "0x8086",
+    "device": "0x820",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d480"
+  },
+  {
+    "index": 21,
+    "vendor": "0x8086",
+    "device": "0x821",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d440"
+  },
+  {
+    "index": 22,
+    "vendor": "0x8086",
+    "device": "0x822",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d440"
+  },
+  {
+    "index": 23,
+    "vendor": "0x8086",
+    "device": "0x823",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d400"
+  },
+  {
+    "index": 24,
+    "vendor": "0x8086",
+    "device": "0x824",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d400"
+  },
+  {
+    "index": 25,
+    "vendor": "0x8086",
+    "device": "0x8809",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d3c0"
+  },
+  {
+    "index": 26,
+    "vendor": "0x8086",
+    "device": "0x880a",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d3c0"
+  },
+  {
+    "index": 27,
+    "vendor": "0x8086",
+    "device": "0xf14",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d380"
+  },
+  {
+    "index": 28,
+    "vendor": "0x8086",
+    "device": "0xf15",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d340"
+  },
+  {
+    "index": 29,
+    "vendor": "0x8086",
+    "device": "0xf16",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d300"
+  },
+  {
+    "index": 30,
+    "vendor": "0x8086",
+    "device": "0xf50",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d380"
+  },
+  {
+    "index": 31,
+    "vendor": "0x8086",
+    "device": "0x2294",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d380"
+  },
+  {
+    "index": 32,
+    "vendor": "0x8086",
+    "device": "0x2295",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d340"
+  },
+  {
+    "index": 33,
+    "vendor": "0x8086",
+    "device": "0x2296",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d300"
+  },
+  {
+    "index": 34,
+    "vendor": "0x8086",
+    "device": "0x8f9",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d480"
+  },
+  {
+    "index": 35,
+    "vendor": "0x8086",
+    "device": "0x8fa",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d440"
+  },
+  {
+    "index": 36,
+    "vendor": "0x8086",
+    "device": "0x8fb",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d440"
+  },
+  {
+    "index": 37,
+    "vendor": "0x8086",
+    "device": "0x8e5",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d400"
+  },
+  {
+    "index": 38,
+    "vendor": "0x8086",
+    "device": "0x8e6",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d400"
+  },
+  {
+    "index": 39,
+    "vendor": "0x8086",
+    "device": "0x1190",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d2c0"
+  },
+  {
+    "index": 40,
+    "vendor": "0x8086",
+    "device": "0x9d2b",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d380"
+  },
+  {
+    "index": 41,
+    "vendor": "0x8086",
+    "device": "0x9d2c",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d340"
+  },
+  {
+    "index": 42,
+    "vendor": "0x8086",
+    "device": "0x9d2d",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d300"
+  },
+  {
+    "index": 43,
+    "vendor": "0x8086",
+    "device": "0x19db",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d380"
+  },
+  {
+    "index": 44,
+    "vendor": "0x8086",
+    "device": "0xacc",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d380"
+  },
+  {
+    "index": 45,
+    "vendor": "0x8086",
+    "device": "0xad0",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d340"
+  },
+  {
+    "index": 46,
+    "vendor": "0x8086",
+    "device": "0xaca",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d300"
+  },
+  {
+    "index": 47,
+    "vendor": "0x8086",
+    "device": "0x1acc",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d380"
+  },
+  {
+    "index": 48,
+    "vendor": "0x8086",
+    "device": "0x1ad0",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d340"
+  },
+  {
+    "index": 49,
+    "vendor": "0x8086",
+    "device": "0x1aca",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d300"
+  },
+  {
+    "index": 50,
+    "vendor": "0x8086",
+    "device": "0x5acc",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d380"
+  },
+  {
+    "index": 51,
+    "vendor": "0x1217",
+    "device": "0x8120",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d280"
+  },
+  {
+    "index": 52,
+    "vendor": "0x1217",
+    "device": "0x8220",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d280"
+  },
+  {
+    "index": 53,
+    "vendor": "0x1217",
+    "device": "0x8221",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d280"
+  },
+  {
+    "index": 54,
+    "vendor": "0x1217",
+    "device": "0x8320",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d280"
+  },
+  {
+    "index": 55,
+    "vendor": "0x1217",
+    "device": "0x8321",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d280"
+  },
+  {
+    "index": 56,
+    "vendor": "0x1217",
+    "device": "0x8520",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d280"
+  },
+  {
+    "index": 57,
+    "vendor": "0x1217",
+    "device": "0x8420",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d280"
+  },
+  {
+    "index": 58,
+    "vendor": "0x1217",
+    "device": "0x8421",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d280"
+  },
+  {
+    "index": 59,
+    "vendor": "0x1217",
+    "device": "0x8620",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d280"
+  },
+  {
+    "index": 60,
+    "vendor": "0x1217",
+    "device": "0x8621",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0xffffffff8164d280"
+  },
+  {
+    "index": 61,
+    "vendor": "0x1022",
+    "device": "0xffffffff",
+    "subvendor": "0xffffffff",
+    "subdevice": "0xffffffff",
+    "class_": "0x80500",
+    "class_mask": "0xffff00",
+    "driver_data": "0xffffffff8164d140"
+  },
+  {
+    "index": 62,
+    "vendor": "0x0",
+    "device": "0x0",
+    "subvendor": "0x0",
+    "subdevice": "0x0",
+    "class_": "0x0",
+    "class_mask": "0x0",
+    "driver_data": "0x0"
+  }
+]

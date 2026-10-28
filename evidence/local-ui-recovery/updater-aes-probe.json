@@ -1,0 +1,364 @@
+{
+  "updater_sha256": "7b63734d60ca42648e81fcf12a9518c46077859554c050e2134dc27120e0f37c",
+  "controls": [
+    "NIST AES128-CBC KAT passed",
+    "unaligned XML/preceding-IV scan control passed"
+  ],
+  "key_candidates": [
+    {
+      "label": "updater-text-aes256",
+      "key_bytes": 32,
+      "key_sha256": "ec7b8c14b92daedfb560521c4f5728b6d6fdb310970dfbaf1d0e6b1d6c8b4f10",
+      "iv_sha256": "4c5febd3d6cc03a35275984ac4d5e2a50a2cc8d414f38c480f6a0db13aede603"
+    },
+    {
+      "label": "updater-auth-aes128",
+      "key_bytes": 16,
+      "key_sha256": "2afa87dd9c769cef13cffcc8769982205e241c3e672a30d493d7dd65122ab4e9",
+      "iv_sha256": "fdcacab4917e2e7f64d669c588ad0f96de5acb72c2973271316bf7320dec6e43"
+    }
+  ],
+  "offset_range_inclusive": [
+    0,
+    16384
+  ],
+  "plaintext_sample_bytes": 512,
+  "files": [
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/.lge.upgrade.xml",
+      "size": 17670,
+      "sample_length": 16896,
+      "sample_sha256": "90315994037d7c4174f49dbbea5818cf92a49b5ad677af20bf91e25be1f88040",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/.whatsnew.tar.gz",
+      "size": 283607,
+      "sample_length": 16896,
+      "sample_sha256": "739b5612ebb3f490b031f555799415fd2c83217fb5e6de4b16eca09c754beffc",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/AppUpgrade",
+      "size": 10803676,
+      "sample_length": 16896,
+      "sample_sha256": "455a274c1f8ec11351955f3a30b98a1dbe7860cd139cfe2aa16ec6919196194a",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/firmware/modem/au_le22/modem_au_le22.tar.gz",
+      "size": 127833765,
+      "sample_length": 16896,
+      "sample_sha256": "dbd072d500d785659f80f6c7ac5761200649587bee2a22b4d157ce74bce666b8",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/firmware/modem/eu/modem_eu.tar.gz",
+      "size": 158663566,
+      "sample_length": 16896,
+      "sample_sha256": "9098152fecf81b2fe619aa8e6825b4919cf7132cd065071c328469f1e18622e0",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/firmware/modem/eu_le22/modem_eu_le22.tar.gz",
+      "size": 347035946,
+      "sample_length": 16896,
+      "sample_sha256": "9ad67513828d788ac1257859523cf0fb2be795eb15861075fc4b17f7db3ad1be",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/firmware/update.tar.gz",
+      "size": 42117462,
+      "sample_length": 16896,
+      "sample_sha256": "0f2125f2882a1f3aa5d7b6581b59c34a510f6ce38f4451edebe6d95be2fad36d",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/iasImage",
+      "size": 6226728,
+      "sample_length": 16896,
+      "sample_sha256": "24b71a394bfcdc348b0213643e0336a3b9a0c007d1291b3b0ac43b3a19f05aae",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/iasImage_1280",
+      "size": 6226728,
+      "sample_length": 16896,
+      "sample_sha256": "18a91314b975d26359e24a36b0fd299f9137d5a5b0d8a32f0e483f95c43b4f23",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/iasImage_1920_12",
+      "size": 6226728,
+      "sample_length": 16896,
+      "sample_sha256": "4861147f2383ebca0d037f39690caad733dbf1dd8dd6ad143c240f5ee50724f6",
+      "hypotheses": 131048,
+      "hits": [
+        {
+          "key_label": "updater-auth-aes128",
+          "offset": 12267,
+          "iv_hypothesis": "file-first-block",
+          "markers": [
+            "gzip-prefix-only"
+          ],
+          "sample_sha256": "c97176a9bdaf2dd726d565cc4ac1c8d05e05c910472ebfeee349b0b77ac5b89d"
+        }
+      ]
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/iasImage_p5",
+      "size": 6226728,
+      "sample_length": 16896,
+      "sample_sha256": "26fc2059c84babb7820a267b47a154f06cf2124e5afff141ac535b521c66617f",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/iasImage_p5_1280",
+      "size": 6226728,
+      "sample_length": 16896,
+      "sample_sha256": "de562006b7041436e58c3c4870861d02701fe412de9197d5c8955a415ff14a65",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/iasImage_p5_1920_12",
+      "size": 6226728,
+      "sample_length": 16896,
+      "sample_sha256": "61f493b148279d521f2a02888969cf27866f7aa017e4d40c23b408a92c1eba08",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/mango-rootfs.tar.gz",
+      "size": 879126179,
+      "sample_length": 16896,
+      "sample_sha256": "67d749e07ce4cf3d5f705dad5552b8854f0a5170804452b6169ede27477292f5",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/mango-rwdata.tar.gz",
+      "size": 16737478,
+      "sample_length": 16896,
+      "sample_sha256": "5bf0d57f2b444428f759456f48e181a251b72b766ecb17ca6d4538644d003b2b",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/navi_eu/appnavi.tar",
+      "size": 511361060,
+      "sample_length": 16896,
+      "sample_sha256": "0d3cb3bbc5c295e528f59b17513bafe831bee06a3f08c600da81f6c8ad684262",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/new_gui.tar.gz",
+      "size": 2091942021,
+      "sample_length": 16896,
+      "sample_sha256": "9e9c238b9aabd1d6b6f2cd30754fd56ce415d7650a14eae7ae6b9756af043b05",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/vrau/mango-vr.tar.gz",
+      "size": 45277108,
+      "sample_length": 16896,
+      "sample_sha256": "a5802676764061f93710b7d0f5243b18034ccc9db0d91473b5e16100bc7c5780",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/vreu/mango-vr.tar.gz",
+      "size": 65921476,
+      "sample_length": 16896,
+      "sample_sha256": "d468c2af913897597b61df29e9c7cd9a1d89ec0e16d01d8ca58c70da68326591",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/.lge.upgrade.xml",
+      "size": 17812,
+      "sample_length": 16896,
+      "sample_sha256": "9e086718a5487fa5e8c147bfc6983d9943c4600b4ee7f93377b8b935098350f1",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/.whatsnew.tar.gz",
+      "size": 325048,
+      "sample_length": 16896,
+      "sample_sha256": "2f5bbb2923effdd1b76469bc4abd0dc66cc6f91e79c36544268fadac56400706",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/AppUpgrade",
+      "size": 10807772,
+      "sample_length": 16896,
+      "sample_sha256": "cf9ed9695ca6bdda8f91263272f9bbb86c7dceee121644fe1f748c4be69c4520",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/firmware/modem/au_le22/modem_au_le22.tar.gz",
+      "size": 127833765,
+      "sample_length": 16896,
+      "sample_sha256": "dbd072d500d785659f80f6c7ac5761200649587bee2a22b4d157ce74bce666b8",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/firmware/modem/eu/modem_eu.tar.gz",
+      "size": 158663566,
+      "sample_length": 16896,
+      "sample_sha256": "9098152fecf81b2fe619aa8e6825b4919cf7132cd065071c328469f1e18622e0",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/firmware/modem/eu_le22/modem_eu_le22.tar.gz",
+      "size": 347035946,
+      "sample_length": 16896,
+      "sample_sha256": "9ad67513828d788ac1257859523cf0fb2be795eb15861075fc4b17f7db3ad1be",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/firmware/update.tar.gz",
+      "size": 70901166,
+      "sample_length": 16896,
+      "sample_sha256": "d94738efaa9059ae85ae0dc65653c62d64aaaec441aea70406bf682281daf352",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/iasImage",
+      "size": 6226728,
+      "sample_length": 16896,
+      "sample_sha256": "733eab467faba02cbbd605c68ae782ea4b00af5da04bc6e1dff3f8d30225b49d",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/iasImage_1280",
+      "size": 6226728,
+      "sample_length": 16896,
+      "sample_sha256": "f0c1cd3a1965cf0628a7fd55ccbc6b9618bfe793fc69ff99c27eaacee0541036",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/iasImage_1920_12",
+      "size": 6226728,
+      "sample_length": 16896,
+      "sample_sha256": "6df32b056b06762f7d058faeb261bb2749bb1fb47845482f0b62cb434359533f",
+      "hypotheses": 131048,
+      "hits": [
+        {
+          "key_label": "updater-auth-aes128",
+          "offset": 12267,
+          "iv_hypothesis": "file-first-block",
+          "markers": [
+            "gzip-prefix-only"
+          ],
+          "sample_sha256": "c97176a9bdaf2dd726d565cc4ac1c8d05e05c910472ebfeee349b0b77ac5b89d"
+        }
+      ]
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/iasImage_p5",
+      "size": 6226728,
+      "sample_length": 16896,
+      "sample_sha256": "2e983aa05ad04a25867120c92873d1f22825d1bf7339e165f71e36b14917961a",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/iasImage_p5_1280",
+      "size": 6226728,
+      "sample_length": 16896,
+      "sample_sha256": "14b7c4e13766156eb9194c44184112b85b1dab23d79c9a264ef85752b5033928",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/iasImage_p5_1920_12",
+      "size": 6226728,
+      "sample_length": 16896,
+      "sample_sha256": "8e1d933ad97ea4e21f0b015b3a662c1f9c337945f3d82628c0f593685dbdd391",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/mango-rootfs.tar.gz",
+      "size": 879081099,
+      "sample_length": 16896,
+      "sample_sha256": "53edfcb74b565d6788e16e8941a1c451130197983484fceba4a1175975c4313a",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/mango-rwdata.tar.gz",
+      "size": 16613716,
+      "sample_length": 16896,
+      "sample_sha256": "cd0f6dfc146ec93ff275fffbab02335ca48b0bab2da6aa2ce7bf341f7f306461",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/navi_au/appnavi.tar",
+      "size": 513398820,
+      "sample_length": 16896,
+      "sample_sha256": "ac214971d1e729c861a3df56cc17439f455a9ea70a8a17c64d1ac0e0eec47350",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/new_gui.tar.gz",
+      "size": 2091947080,
+      "sample_length": 16896,
+      "sample_sha256": "2aff1ad9d0654e4ed9b64f6792382e25d1ef1e119bd31ac02a00017c1fe8f479",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/vrau/mango-vr.tar.gz",
+      "size": 45277108,
+      "sample_length": 16896,
+      "sample_sha256": "a5802676764061f93710b7d0f5243b18034ccc9db0d91473b5e16100bc7c5780",
+      "hypotheses": 131048,
+      "hits": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/vreu/mango-vr.tar.gz",
+      "size": 65921476,
+      "sample_length": 16896,
+      "sample_sha256": "d468c2af913897597b61df29e9c7cd9a1d89ec0e16d01d8ca58c70da68326591",
+      "hypotheses": 131048,
+      "hits": []
+    }
+  ],
+  "summary": {
+    "files": 38,
+    "hypotheses": 4979824,
+    "marker_hits": 2
+  },
+  "limitations": [
+    "Static reconstruction, not execution of the vendor updater crypto code.",
+    "Only two observed constant pairs; other updater modes and derivations remain untested.",
+    "Only CBC starts within the first 16385 bytes and four explicit IV hypotheses.",
+    "Only ipk/ELF/gzip/XML prefixes and checksum-valid ustar headers were recognized.",
+    "No hit is not proof against other keys, IVs, modes, encodings, offsets, or plaintext formats."
+  ]
+}

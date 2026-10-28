@@ -1,0 +1,84 @@
+# Hyundai Navigation Updater installer: identity, signature and IFW metadata
+#
+# Recorded 2026-10-19 (Australia/Sydney). Static inspection of an official,
+# publicly downloadable installer. The downloaded firmware package is held
+# outside Git and is inventoried separately. No binaries are stored here; only
+# text facts and checksums.
+
+## Artifact: two independent downloads of the same official endpoint
+endpoint : https://oem-setup.map-care.com/update_program_download/nau_client/crossplatform/install/NavigationUpdaterInstaller.zip
+download1: 194454209 bytes  sha256 ecbecd7d057a2f15100455ce14a3b04f4005991d90312f36ff35b2260f6c3ba7
+download2: 194454209 bytes  sha256 ecbecd7d057a2f15100455ce14a3b04f4005991d90312f36ff35b2260f6c3ba7
+identity : byte-identical
+integrity: unzip -t on both copies -> "No errors detected in compressed data"
+
+## Extracted bundle
+name      : NavigationUpdaterInstaller.app
+bundle id : com.hyundai.update.installer
+version   : 2.2.6.5 (CFBundleShortVersionString and CFBundleVersion)
+min OS    : 10.10
+arch      : Mach-O thin x86_64
+team id   : T3GEGFELBD
+cd flags  : 0x10000(runtime)
+authority : (unavailable)
+binary    : 67767328 bytes sha256 0fa193be83f58f1a...
+payload   : Resources/installer.dat 156984045 bytes sha256 953f5a8f63d8a118...
+            header "qres" (Qt binary resource)
+
+## Signature verification of unmodified extractions
+unzip extraction : codesign --verify --deep --strict -> exit 1
+                   "invalid signature (code or signature have been modified)"
+ditto extraction : codesign --verify --deep --strict -> exit 1, same message
+binary alone     : codesign --verify --strict -> exit 1, same message
+xattr            : extracted copy carries com.apple.quarantine
+Frameworks dir   : present but empty; no symlinks anywhere in the bundle
+
+Conclusion: the vendor signature fails on the archive as published. This is not
+an extraction artefact: two independent downloads are identical, directory copy
+and zip extraction both fail, and the Mach-O's own embedded signature is invalid.
+
+## Authorised local repair (scratch analysis copy only)
+The untouched original was preserved. A separate working copy under /private/tmp
+was ad-hoc re-signed and its quarantine attribute removed; only that copy changed.
+working binary   : 67749136 bytes sha256 216d392bcc573437...
+codesign -dv     : CodeDirectory flags=0x2(adhoc), Signature=adhoc, TeamIdentifier=not set
+codesign verify  : exit 0, "valid on disk / satisfies its Designated Requirement"
+xattr            : no com.apple.quarantine on the working copy
+observed result  : the repaired copy opened to the AU region selector
+
+This is a local workaround, not evidence that the vendor artifact is intact. An
+ad-hoc signature proves only that the on-disk bytes match what was re-signed; it
+discards vendor identity and must never be treated as a trusted vendor binary.
+
+## Qt Installer Framework identity and CLI (headless, offscreen platform)
+framework      : IFW 2.2.6.5, built with Qt 5.9.9
+build date     : Oct 13 2026
+framework sha1 : 3393ecb9dc872cf9249c4d1c85b8ce0c116bcf3e
+--help         : exit 0, prints IFW option list
+--version      : exit 0, prints the three lines above
+--checkupdates : exit 1, stderr "Installers cannot check for updates."
+--silentUpdate : option exists, but the binary also contains the string
+                 "Silent update not allowed."
+
+## Embedded IFW maintenance metadata (read from installer.dat strings)
+ApplicationName    : Navigation Updater
+ApplicationVersion : 2.2.6.5
+Package name       : com.hyundai.update
+DisplayName        : Navigation Updater Install Program
+Description        : Navigation Updater Maintenance Tool
+ReleaseDate        : 2026-10-14
+RequiresAdminRights: true
+TargetDir          : @ApplicationsDir@/Navigation Updater
+UpdateFile         : UncompressedSize 536521330, CompressedSize 155976970
+DownloadableArchives: package.7z, package.zip, scripts.7z, ssl.7z, content.7z
+Script             : installscript.js
+AU UI assets       : languagewidget_AU.ui, licensewidget_enAU.ui
+
+## Later acquisition outcome
+The repaired updater was subsequently installed and run. It selected Australia /
+Hyundai / 2021-23 IONIQ 5 / Standard-class Gen5W and downloaded the official
+package to `/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU`. No USB medium was
+written and no vehicle interaction occurred. Package identity, the 36-file
+inventory, manifest validation and container observations are in
+`evidence/official-package-static.md` and
+`evidence/package-metadata/official-package-inventory.txt`.

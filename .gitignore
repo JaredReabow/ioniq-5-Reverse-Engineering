@@ -1,0 +1,39 @@
+# Public repository: keep raw vehicle and third-party dumps out of Git.
+/evidence/vehicle-usb/**
+!/evidence/vehicle-usb/
+!/evidence/vehicle-usb/README.md
+/evidence/upstream/
+/evidence/child-notes/artifacts/
+/research-ledger.json
+/council/review-batch-*/
+/work/
+
+# IONIQ 5 research repository policy.
+#
+# Raw captures, firmware and personal data stay outside this public Git history.
+# Store only sanitized research findings and tests here.
+
+# --- Exact official package download exclusion ----------------------------
+/NaU/
+2021_22_IONIQ_5_AU/
+**/2021_22_IONIQ_5_AU/
+
+# --- Live credentials and private-key material ----------------------------
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+.env
+.env.*
+!.env.example
+/secrets/
+/credentials/
+
+# --- Regenerable local tooling noise --------------------------------------
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/

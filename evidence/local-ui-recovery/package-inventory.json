@@ -1,0 +1,450 @@
+[
+  {
+    "root": "/Users/researcher/Downloads/NaU/IONIQ5_EU",
+    "files": [
+      {
+        "path": ".lge.upgrade.xml",
+        "size": 17670,
+        "head_hex": "0f09218f7461aa1f178f68ad4f3d6028",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": ".whatsnew.tar.gz",
+        "size": 283607,
+        "head_hex": "fed0bf0675077a4ad9fb685641e7c34c",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "AppUpgrade",
+        "size": 10803676,
+        "head_hex": "f3e42a1019ab66f8ec97d23e916e87b5",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/firmware/frontkey/Checksum.txt",
+        "size": 76,
+        "head_hex": "4d4b42445f325f31465f30305f4e5834",
+        "classification": "text-like"
+      },
+      {
+        "path": "HU/firmware/frontkey/nx4/MKBD_2_1f_00_NX4.bin",
+        "size": 196608,
+        "head_hex": "d800ffffffffffffffffffffffffffff",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/firmware/frontkey/us4hev/MKBD_2_22_00_US4.bin",
+        "size": 196608,
+        "head_hex": "d800ffffffffffffffffffffffffffff",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/firmware/modem/au_le22/modem_au_le22.tar.gz",
+        "size": 127833765,
+        "head_hex": "e46cde1d711204e076473fb1968f49a2",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/firmware/modem/eu/modem_eu.tar.gz",
+        "size": 158663566,
+        "head_hex": "6e6169eb51d768490860523eab8cc133",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/firmware/modem/eu_le22/modem_eu_le22.tar.gz",
+        "size": 347035946,
+        "head_hex": "b0ec7561734d21dd41055ca68d80d767",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/firmware/update.tar.gz",
+        "size": 42117462,
+        "head_hex": "6312ffd8ec16cab9b9ad4b6c49569c7e",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage",
+        "size": 6226728,
+        "head_hex": "d8e3570de0d9fa5031f9cb6a7b9ca82b",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage_1280",
+        "size": 6226728,
+        "head_hex": "2f67f2057890d78677740b1240f15578",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage_1280_sub",
+        "size": 6210308,
+        "head_hex": "69706b2e0003030000000000ccbf5e00",
+        "classification": "ipk boot container"
+      },
+      {
+        "path": "HU/images/iasImage_1920_12",
+        "size": 6226728,
+        "head_hex": "1c06f405053fab754f09c2d4bf92f0cf",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage_1920_12_sub",
+        "size": 6210308,
+        "head_hex": "69706b2e0003030000000000ccbf5e00",
+        "classification": "ipk boot container"
+      },
+      {
+        "path": "HU/images/iasImage_p5",
+        "size": 6226728,
+        "head_hex": "ecb48c25ade9a87e903a2bc1b43ec5e6",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage_p5_1280",
+        "size": 6226728,
+        "head_hex": "ac80954ed694fb03ace2edd4fe6551ef",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage_p5_1280_sub",
+        "size": 6210308,
+        "head_hex": "69706b2e0003030000000000ccbf5e00",
+        "classification": "ipk boot container"
+      },
+      {
+        "path": "HU/images/iasImage_p5_1920_12",
+        "size": 6226728,
+        "head_hex": "3aa7afc7eae20c544fdb4e6f536780f3",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage_p5_1920_12_sub",
+        "size": 6210308,
+        "head_hex": "69706b2e0003030000000000ccbf5e00",
+        "classification": "ipk boot container"
+      },
+      {
+        "path": "HU/images/iasImage_p5_sub",
+        "size": 6210308,
+        "head_hex": "69706b2e0003030000000000ccbf5e00",
+        "classification": "ipk boot container"
+      },
+      {
+        "path": "HU/images/iasImage_sub",
+        "size": 6210308,
+        "head_hex": "69706b2e0003030000000000ccbf5e00",
+        "classification": "ipk boot container"
+      },
+      {
+        "path": "HU/images/mango-rootfs.tar.gz",
+        "size": 879126179,
+        "head_hex": "6b6232dc41c03f21c0275e22cb861217",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/mango-rwdata.tar.gz",
+        "size": 16737478,
+        "head_hex": "0d1453ec788aff66e07b077df923814e",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/mustwithcopy",
+        "size": 0,
+        "head_hex": "",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/navi_eu/EUR.18.52.70.012.632.5_md5.txt",
+        "size": 73,
+        "head_hex": "36656563336464353832393562316539",
+        "classification": "text-like"
+      },
+      {
+        "path": "HU/images/navi_eu/S5W_MAP_ALL_EUR_18_52_70_012_632_5.zip",
+        "size": 17916293755,
+        "head_hex": "504b0304140000000000e353255c0000",
+        "classification": "zip",
+        "zip_entry_count": 1335,
+        "zip_flagged_encrypted_count": 0,
+        "ui_or_executable_filename_candidates": []
+      },
+      {
+        "path": "HU/images/navi_eu/appnavi.tar",
+        "size": 511361060,
+        "head_hex": "824d67db44fb4a2844e07f0ccf4af4d0",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/new_gui.tar.gz",
+        "size": 2091942021,
+        "head_hex": "9d91747dd2ae25e6c959da01a5c55cee",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/vrau/mango-vr.tar.gz",
+        "size": 45277108,
+        "head_hex": "fe8e43ffb3a1957ed0c0520986659945",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/vrau/mango-vr_fixed.tar.gz",
+        "size": 570557204,
+        "head_hex": "1f8b08008c191c680003ecbd4d7023d9",
+        "classification": "gzip"
+      },
+      {
+        "path": "HU/images/vrau/md5sum.txt",
+        "size": 200,
+        "head_hex": "38666134373963393765373532623433",
+        "classification": "text-like"
+      },
+      {
+        "path": "HU/images/vreu/mango-vr.tar.gz",
+        "size": 65921476,
+        "head_hex": "19cfacba3863ae91ae286a92ed7fe7c4",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/vreu/mango-vr_fixed.tar.gz",
+        "size": 2365067377,
+        "head_hex": "1f8b0800c7f038690003ecbd4d701bd9",
+        "classification": "gzip"
+      },
+      {
+        "path": "HU/images/vreu/md5sum.txt",
+        "size": 200,
+        "head_hex": "36333033303935616438313263656630",
+        "classification": "text-like"
+      },
+      {
+        "path": "IONIQ5_EU.ver",
+        "size": 2469,
+        "head_hex": "2b7c32313339337c4e455f452e455552",
+        "classification": "text-like"
+      }
+    ]
+  },
+  {
+    "root": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU",
+    "files": [
+      {
+        "path": ".lge.upgrade.xml",
+        "size": 17812,
+        "head_hex": "5d082070498b62b3953d08db8bc5f614",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": ".whatsnew.tar.gz",
+        "size": 325048,
+        "head_hex": "5cdde7efd56b0e48aab8abcb850c8c09",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "2021_22_IONIQ_5_AU.ver",
+        "size": 2785,
+        "head_hex": "2b7c32323338397c4e455f452e415553",
+        "classification": "text-like"
+      },
+      {
+        "path": "AppUpgrade",
+        "size": 10807772,
+        "head_hex": "98b60b43ae50ac49bfdda07127518dd8",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/firmware/frontkey/Checksum.txt",
+        "size": 76,
+        "head_hex": "4d4b42445f325f31465f30305f4e5834",
+        "classification": "text-like"
+      },
+      {
+        "path": "HU/firmware/frontkey/nx4/MKBD_2_1f_00_NX4.bin",
+        "size": 196608,
+        "head_hex": "d800ffffffffffffffffffffffffffff",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/firmware/frontkey/us4hev/MKBD_2_22_00_US4.bin",
+        "size": 196608,
+        "head_hex": "d800ffffffffffffffffffffffffffff",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/firmware/modem/au_le22/modem_au_le22.tar.gz",
+        "size": 127833765,
+        "head_hex": "e46cde1d711204e076473fb1968f49a2",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/firmware/modem/eu/modem_eu.tar.gz",
+        "size": 158663566,
+        "head_hex": "6e6169eb51d768490860523eab8cc133",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/firmware/modem/eu_le22/modem_eu_le22.tar.gz",
+        "size": 347035946,
+        "head_hex": "b0ec7561734d21dd41055ca68d80d767",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/firmware/update.tar.gz",
+        "size": 70901166,
+        "head_hex": "41f66cd9350db74b25d80d3bc9cdefc8",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage",
+        "size": 6226728,
+        "head_hex": "d8e3570de0d9fa5031f9cb6a7b9ca82b",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage_1280",
+        "size": 6226728,
+        "head_hex": "2f67f2057890d78677740b1240f15578",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage_1280_sub",
+        "size": 6210308,
+        "head_hex": "69706b2e0003030000000000ccbf5e00",
+        "classification": "ipk boot container"
+      },
+      {
+        "path": "HU/images/iasImage_1920_12",
+        "size": 6226728,
+        "head_hex": "1c06f405053fab754f09c2d4bf92f0cf",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage_1920_12_sub",
+        "size": 6210308,
+        "head_hex": "69706b2e0003030000000000ccbf5e00",
+        "classification": "ipk boot container"
+      },
+      {
+        "path": "HU/images/iasImage_p5",
+        "size": 6226728,
+        "head_hex": "ecb48c25ade9a87e903a2bc1b43ec5e6",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage_p5_1280",
+        "size": 6226728,
+        "head_hex": "ac80954ed694fb03ace2edd4fe6551ef",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage_p5_1280_sub",
+        "size": 6210308,
+        "head_hex": "69706b2e0003030000000000ccbf5e00",
+        "classification": "ipk boot container"
+      },
+      {
+        "path": "HU/images/iasImage_p5_1920_12",
+        "size": 6226728,
+        "head_hex": "3aa7afc7eae20c544fdb4e6f536780f3",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/iasImage_p5_1920_12_sub",
+        "size": 6210308,
+        "head_hex": "69706b2e0003030000000000ccbf5e00",
+        "classification": "ipk boot container"
+      },
+      {
+        "path": "HU/images/iasImage_p5_sub",
+        "size": 6210308,
+        "head_hex": "69706b2e0003030000000000ccbf5e00",
+        "classification": "ipk boot container"
+      },
+      {
+        "path": "HU/images/iasImage_sub",
+        "size": 6210308,
+        "head_hex": "69706b2e0003030000000000ccbf5e00",
+        "classification": "ipk boot container"
+      },
+      {
+        "path": "HU/images/mango-rootfs.tar.gz",
+        "size": 879081099,
+        "head_hex": "3f956a43eecd01bd82adc5b47bdd8e48",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/mango-rwdata.tar.gz",
+        "size": 16613716,
+        "head_hex": "6e348bf48eee6c342327a5b3182242d7",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/mustwithcopy",
+        "size": 0,
+        "head_hex": "",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/navi_au/AUS.19.41.47.011.611.0_md5.txt",
+        "size": 73,
+        "head_hex": "36623062383036323362353635383163",
+        "classification": "text-like"
+      },
+      {
+        "path": "HU/images/navi_au/S5W_MAP_ALL_AUS_19_41_47_011_611_0.zip",
+        "size": 2176363209,
+        "head_hex": "504b0304140000000000d77b305c0000",
+        "classification": "zip",
+        "zip_entry_count": 374,
+        "zip_flagged_encrypted_count": 0,
+        "ui_or_executable_filename_candidates": []
+      },
+      {
+        "path": "HU/images/navi_au/appnavi.tar",
+        "size": 513398820,
+        "head_hex": "e2e475eecbcf8697f31beca663d0e02d",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/new_gui.tar.gz",
+        "size": 2091947080,
+        "head_hex": "7c892d4386cf860c07e734a510e205b9",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/vrau/mango-vr.tar.gz",
+        "size": 45277108,
+        "head_hex": "fe8e43ffb3a1957ed0c0520986659945",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/vrau/mango-vr_fixed.tar.gz",
+        "size": 570557204,
+        "head_hex": "1f8b08008c191c680003ecbd4d7023d9",
+        "classification": "gzip"
+      },
+      {
+        "path": "HU/images/vrau/md5sum.txt",
+        "size": 200,
+        "head_hex": "38666134373963393765373532623433",
+        "classification": "text-like"
+      },
+      {
+        "path": "HU/images/vreu/mango-vr.tar.gz",
+        "size": 65921476,
+        "head_hex": "19cfacba3863ae91ae286a92ed7fe7c4",
+        "classification": "opaque/unclassified"
+      },
+      {
+        "path": "HU/images/vreu/mango-vr_fixed.tar.gz",
+        "size": 2365067377,
+        "head_hex": "1f8b0800c7f038690003ecbd4d701bd9",
+        "classification": "gzip"
+      },
+      {
+        "path": "HU/images/vreu/md5sum.txt",
+        "size": 200,
+        "head_hex": "36333033303935616438313263656630",
+        "classification": "text-like"
+      }
+    ]
+  }
+]

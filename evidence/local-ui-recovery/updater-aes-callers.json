@@ -1,0 +1,114 @@
+[
+  {
+    "enclosing_symbol": {
+      "address": "0x00000001000380d0",
+      "name": "SceneController::setDeeplinkReceivedUrl(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>)"
+    },
+    "instruction": "100038bfd: e8 1e 45 23 00              \tcallq\t0x10026d120 <aesutils::EncryptedText::toDecrypt()>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x000000010003bd10",
+      "name": "SceneController::getDeeplinkReceivedRegion(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>)"
+    },
+    "instruction": "10003c4b4: e8 67 0c 23 00              \tcallq\t0x10026d120 <aesutils::EncryptedText::toDecrypt()>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x000000010017d530",
+      "name": "ApplicationContext::getAuthorizedLocalTime()"
+    },
+    "instruction": "10017d64b: e8 00 ec 0e 00              \tcallq\t0x10026c250 <aesutils::PlainText::toEncrypt(aesutils::eMode)>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x000000010017d530",
+      "name": "ApplicationContext::getAuthorizedLocalTime()"
+    },
+    "instruction": "10017d799: e8 82 f9 0e 00              \tcallq\t0x10026d120 <aesutils::EncryptedText::toDecrypt()>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x0000000100191d80",
+      "name": "ErrorLogRepository::parse(errorlog::ErrorLog const&)"
+    },
+    "instruction": "100192260: e8 eb 9f 0d 00              \tcallq\t0x10026c250 <aesutils::PlainText::toEncrypt(aesutils::eMode)>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x00000001002044d0",
+      "name": "VCRM::makeParams()"
+    },
+    "instruction": "100204517: e8 34 7d 06 00              \tcallq\t0x10026c250 <aesutils::PlainText::toEncrypt(aesutils::eMode)>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x00000001002044d0",
+      "name": "VCRM::makeParams()"
+    },
+    "instruction": "1002045c1: e8 8a 7c 06 00              \tcallq\t0x10026c250 <aesutils::PlainText::toEncrypt(aesutils::eMode)>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x00000001002044d0",
+      "name": "VCRM::makeParams()"
+    },
+    "instruction": "1002046c0: e8 8b 7b 06 00              \tcallq\t0x10026c250 <aesutils::PlainText::toEncrypt(aesutils::eMode)>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x0000000100213210",
+      "name": "UserDataConsentRequest::makePostParams(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>)"
+    },
+    "instruction": "100213520: e8 2b 8d 05 00              \tcallq\t0x10026c250 <aesutils::PlainText::toEncrypt(aesutils::eMode)>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x0000000100214dd0",
+      "name": "InfoRequest::makePostParams(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>)"
+    },
+    "instruction": "100214eba: e8 91 73 05 00              \tcallq\t0x10026c250 <aesutils::PlainText::toEncrypt(aesutils::eMode)>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x0000000100214dd0",
+      "name": "InfoRequest::makePostParams(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>)"
+    },
+    "instruction": "1002151cb: e8 80 70 05 00              \tcallq\t0x10026c250 <aesutils::PlainText::toEncrypt(aesutils::eMode)>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x0000000100215990",
+      "name": "InfoRequest::makeGetParams()"
+    },
+    "instruction": "100215a9b: e8 b0 67 05 00              \tcallq\t0x10026c250 <aesutils::PlainText::toEncrypt(aesutils::eMode)>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x0000000100215990",
+      "name": "InfoRequest::makeGetParams()"
+    },
+    "instruction": "100215bed: e8 5e 66 05 00              \tcallq\t0x10026c250 <aesutils::PlainText::toEncrypt(aesutils::eMode)>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x0000000100216af0",
+      "name": "DownloadCheckRequest::makePostParams(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>)"
+    },
+    "instruction": "100216bb8: e8 93 56 05 00              \tcallq\t0x10026c250 <aesutils::PlainText::toEncrypt(aesutils::eMode)>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x00000001002631d0",
+      "name": "inihelper::Value::toRead()"
+    },
+    "instruction": "100263249: e8 d2 9e 00 00              \tcallq\t0x10026d120 <aesutils::EncryptedText::toDecrypt()>"
+  },
+  {
+    "enclosing_symbol": {
+      "address": "0x0000000100263390",
+      "name": "inihelper::Value::toWrite()"
+    },
+    "instruction": "100263409: e8 42 8e 00 00              \tcallq\t0x10026c250 <aesutils::PlainText::toEncrypt(aesutils::eMode)>"
+  }
+]

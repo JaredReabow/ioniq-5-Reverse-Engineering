@@ -1,0 +1,151 @@
+test_arbitrary_target_is_reachable (test_crc32_forge.Crc32ForgeTests.test_arbitrary_target_is_reachable) ... ok
+test_no_change_when_already_matching (test_crc32_forge.Crc32ForgeTests.test_no_change_when_already_matching) ... ok
+test_preserves_crc_after_content_change (test_crc32_forge.Crc32ForgeTests.test_preserves_crc_after_content_change) ... ok
+test_rejects_offset_outside_file (test_crc32_forge.Crc32ForgeTests.test_rejects_offset_outside_file) ... ok
+test_built_images_are_structurally_clean (test_fat_harness.FatHarnessTests.test_built_images_are_structurally_clean) ... ok
+test_corpus_writes_every_case_plus_index (test_fat_harness.FatHarnessTests.test_corpus_writes_every_case_plus_index) ... ok
+test_each_case_changes_the_image (test_fat_harness.FatHarnessTests.test_each_case_changes_the_image) ... ok
+test_fat32_puts_root_in_cluster_two_and_data_at_three (test_fat_harness.FatHarnessTests.test_fat32_puts_root_in_cluster_two_and_data_at_three) ... ok
+test_file_size_recorded (test_fat_harness.FatHarnessTests.test_file_size_recorded) ... ok
+test_inspect_flags_truncation (test_fat_harness.FatHarnessTests.test_inspect_flags_truncation) ... ok
+test_specific_cases_hit_their_fields (test_fat_harness.FatHarnessTests.test_specific_cases_hit_their_fields) ... ok
+test_missing_and_unsafe_paths_are_distinct (test_harness.ArtifactTests.test_missing_and_unsafe_paths_are_distinct) ... ok
+test_stale_hash_reports_stale (test_harness.ArtifactTests.test_stale_hash_reports_stale) ... ok
+test_fingerprint_mismatch_fails_even_when_verified (test_harness.CouncilTests.test_fingerprint_mismatch_fails_even_when_verified) ... ok
+test_historical_blocked_with_verified_bytes_is_info (test_harness.CouncilTests.test_historical_blocked_with_verified_bytes_is_info) ... ok
+test_unsafe_frozen_artifact_path_fails (test_harness.CouncilTests.test_unsafe_frozen_artifact_path_fails) ... ok
+test_unusable_packet_fails (test_harness.CouncilTests.test_unusable_packet_fails) ... ok
+test_dedicated_ioniq_docs_satisfy_active_t6 (test_harness.DocsTests.test_dedicated_ioniq_docs_satisfy_active_t6) ... ok
+test_ioniq_doc_symlink_to_kona_root_is_rejected (test_harness.DocsTests.test_ioniq_doc_symlink_to_kona_root_is_rejected) ... ok
+test_kona_titled_root_docs_do_not_satisfy_active_t6 (test_harness.DocsTests.test_kona_titled_root_docs_do_not_satisfy_active_t6) ... ok
+test_ledger_declared_ioniq_paths_are_preferred (test_harness.DocsTests.test_ledger_declared_ioniq_paths_are_preferred) ... ok
+test_pending_while_t6_queued (test_harness.DocsTests.test_pending_while_t6_queued) ... ok
+test_fresh_repo_passes_then_branch_override_blocks (test_harness.GitScopeRealRepositoryTests.test_fresh_repo_passes_then_branch_override_blocks) ... ok
+test_branch_push_remote_literal_kona_url_blocks (test_harness.GitScopeTests.test_branch_push_remote_literal_kona_url_blocks) ... ok
+test_branch_push_remote_other_remote_blocks (test_harness.GitScopeTests.test_branch_push_remote_other_remote_blocks) ... ok
+test_branch_push_remote_override_blocks (test_harness.GitScopeTests.test_branch_push_remote_override_blocks) ... ok
+test_branch_pushurl_mismatch_blocks (test_harness.GitScopeTests.test_branch_pushurl_mismatch_blocks) ... ok
+test_config_failure_blocks (test_harness.GitScopeTests.test_config_failure_blocks) ... ok
+test_credentials_are_redacted_from_output (test_harness.GitScopeTests.test_credentials_are_redacted_from_output) ... ok
+test_empty_push_default_does_not_inherit_global_ioniq (test_harness.GitScopeTests.test_empty_push_default_does_not_inherit_global_ioniq) ... ok
+test_inactive_branch_other_remote_is_reported_not_blocked (test_harness.GitScopeTests.test_inactive_branch_other_remote_is_reported_not_blocked) ... ok
+test_inactive_branch_pushing_to_kona_blocks (test_harness.GitScopeTests.test_inactive_branch_pushing_to_kona_blocks) ... ok
+test_insecure_http_ioniq_remote_blocks (test_harness.GitScopeTests.test_insecure_http_ioniq_remote_blocks) ... ok
+test_ioniq_near_matches_block (test_harness.GitScopeTests.test_ioniq_near_matches_block) ... ok
+test_ioniq_pushurl_mismatch_blocks (test_harness.GitScopeTests.test_ioniq_pushurl_mismatch_blocks) ... ok
+test_kona_origin_alone_still_blocks (test_harness.GitScopeTests.test_kona_origin_alone_still_blocks) ... ok
+test_kona_origin_with_verified_ioniq_destination_passes (test_harness.GitScopeTests.test_kona_origin_with_verified_ioniq_destination_passes) ... ok
+test_not_a_repository_is_pending (test_harness.GitScopeTests.test_not_a_repository_is_pending) ... ok
+test_push_default_must_be_ioniq (test_harness.GitScopeTests.test_push_default_must_be_ioniq) ... ok
+test_push_default_naming_kona_remote_blocks (test_harness.GitScopeTests.test_push_default_naming_kona_remote_blocks) ... ok
+test_rename_from_kona_path_blocks (test_harness.GitScopeTests.test_rename_from_kona_path_blocks) ... ok
+test_ssh_remote_forms_are_accepted (test_harness.GitScopeTests.test_ssh_remote_forms_are_accepted) ... ok
+test_staged_kona_path_blocks_even_with_verified_destination (test_harness.GitScopeTests.test_staged_kona_path_blocks_even_with_verified_destination) ... ok
+test_status_failure_blocks (test_harness.GitScopeTests.test_status_failure_blocks) ... ok
+test_url_rewrite_to_kona_blocks (test_harness.GitScopeTests.test_url_rewrite_to_kona_blocks) ... ok
+test_bad_json_record_fails (test_harness.JsonTests.test_bad_json_record_fails) ... ok
+test_errors_fail (test_harness.LedgerTests.test_errors_fail) ... ok
+test_warnings_become_info (test_harness.LedgerTests.test_warnings_become_info) ... ok
+test_private_key_file_remains_prohibited (test_harness.PrivacyTests.test_private_key_file_remains_prohibited) ... ok
+test_public_noreply_address_is_info_only (test_harness.PrivacyTests.test_public_noreply_address_is_info_only) ... ok
+test_raw_archive_is_permitted_without_exposing_content (test_harness.PrivacyTests.test_raw_archive_is_permitted_without_exposing_content) ... ok
+test_secret_withheld_and_no_value_leaked (test_harness.PrivacyTests.test_secret_withheld_and_no_value_leaked) ... ok
+test_invalid_json_exits_one (test_harness.RunnerTests.test_invalid_json_exits_one) ... ok
+test_json_is_deterministic_and_clean_root_passes (test_harness.RunnerTests.test_json_is_deterministic_and_clean_root_passes) ... ok
+test_unknown_check_is_harness_error (test_harness.RunnerTests.test_unknown_check_is_harness_error) ... ok
+test_detects_payload_tampering (test_ipk_tool.IpkToolTests.test_detects_payload_tampering) ... ok
+test_detects_tag_tampering (test_ipk_tool.IpkToolTests.test_detects_tag_tampering) ... ok
+test_encoded_digestinfo_is_pkcs1_v15 (test_ipk_tool.IpkToolTests.test_encoded_digestinfo_is_pkcs1_v15) ... ok
+test_parse_fields (test_ipk_tool.IpkToolTests.test_parse_fields) ... ok
+test_rejects_non_ipk (test_ipk_tool.IpkToolTests.test_rejects_non_ipk) ... ok
+test_resign_rejects_oversized_cmdline (test_ipk_tool.IpkToolTests.test_resign_rejects_oversized_cmdline) ... ok
+test_resign_replaces_key_and_cmdline (test_ipk_tool.IpkToolTests.test_resign_replaces_key_and_cmdline) ... ok
+test_signature_verifies (test_ipk_tool.IpkToolTests.test_signature_verifies) ... ok
+test_export_is_byte_idempotent (test_ledger_export.LedgerExportTests.test_export_is_byte_idempotent) ... ok
+test_joins_and_counts (test_ledger_export.LedgerExportTests.test_joins_and_counts) ... ok
+test_one_row_per_task_artifact_pair (test_ledger_export.LedgerExportTests.test_one_row_per_task_artifact_pair) ... ok
+test_requirements_whitespace_collapsed (test_ledger_export.LedgerExportTests.test_requirements_whitespace_collapsed) ... ok
+test_task_without_artifact_still_appears (test_ledger_export.LedgerExportTests.test_task_without_artifact_still_appears) ... ok
+test_bad_width_and_zero (test_public_rsa_probe.PublicRSAProbeTests.test_bad_width_and_zero) ... ok
+test_big_endian_unaligned_at_last_possible_start (test_public_rsa_probe.PublicRSAProbeTests.test_big_endian_unaligned_at_last_possible_start) ... ok
+test_edge_ranges_merge (test_public_rsa_probe.PublicRSAProbeTests.test_edge_ranges_merge) ... ok
+test_existing_output_refused_before_reading_inputs (test_public_rsa_probe.PublicRSAProbeTests.test_existing_output_refused_before_reading_inputs) ... usage: python3 -m unittest [-h] --container CONTAINER --input INPUT
+                           [--window WINDOW] --output OUTPUT
+python3 -m unittest: error: output already exists
+ok
+test_file_offset_and_hash (test_public_rsa_probe.PublicRSAProbeTests.test_file_offset_and_hash) ... ok
+test_invalid_ranges_and_orders (test_public_rsa_probe.PublicRSAProbeTests.test_invalid_ranges_and_orders) ... ok
+test_little_endian (test_public_rsa_probe.PublicRSAProbeTests.test_little_endian) ... ok
+test_load_boot_key_checks_the_signed_bytes (test_public_rsa_probe.PublicRSAProbeTests.test_load_boot_key_checks_the_signed_bytes) ... ok
+test_non_digest_type_one_wrapped_data (test_public_rsa_probe.PublicRSAProbeTests.test_non_digest_type_one_wrapped_data) ... ok
+test_short_data (test_public_rsa_probe.PublicRSAProbeTests.test_short_data) ... ok
+test_signature_control (test_public_rsa_probe.PublicRSAProbeTests.test_signature_control) ... ok
+test_strict_padding_rejects_short_type_one_padding (test_public_rsa_probe.PublicRSAProbeTests.test_strict_padding_rejects_short_type_one_padding) ... ok
+test_strict_padding_rejects_type_two (test_public_rsa_probe.PublicRSAProbeTests.test_strict_padding_rejects_type_two) ... ok
+test_inject_adds_file_and_preserves_original (test_rootfs_patch.RootfsPatchTests.test_inject_adds_file_and_preserves_original) ... ok
+test_list_counts_members (test_rootfs_patch.RootfsPatchTests.test_list_counts_members) ... ok
+test_meta_updates_manifest_record (test_rootfs_patch.RootfsPatchTests.test_meta_updates_manifest_record) ... ok
+test_ssh_key_is_appended_with_mode_600 (test_rootfs_patch.RootfsPatchTests.test_ssh_key_is_appended_with_mode_600) ... ok
+test_decompresses_one_gzip_member_with_trailing_kernel_bytes (test_uk_fw.IpkInspectorTests.test_decompresses_one_gzip_member_with_trailing_kernel_bytes) ... ok
+test_rejects_non_ipk_input (test_uk_fw.IpkInspectorTests.test_rejects_non_ipk_input) ... ok
+test_rejects_truncated_gzip_member (test_uk_fw.IpkInspectorTests.test_rejects_truncated_gzip_member) ... ok
+test_sha256 (test_uk_fw.IpkInspectorTests.test_sha256) ... ok
+test_parse_strips_package_prefix (test_ver_manifest.VerManifestTests.test_parse_strips_package_prefix) ... ok
+test_skip_large (test_ver_manifest.VerManifestTests.test_skip_large) ... ok
+test_verify_all_ok (test_ver_manifest.VerManifestTests.test_verify_all_ok) ... ok
+test_verify_detects_mismatch (test_ver_manifest.VerManifestTests.test_verify_detects_mismatch) ... ok
+test_verify_detects_missing (test_ver_manifest.VerManifestTests.test_verify_detects_missing) ... ok
+test_extracts_validated_boot_image_without_trailer (test_vm_boot.BootImageTests.test_extracts_validated_boot_image_without_trailer) ... ok
+test_rejects_ambiguous_boot_image (test_vm_boot.BootImageTests.test_rejects_ambiguous_boot_image) ... ok
+test_rejects_mismatched_size_fields (test_vm_boot.BootImageTests.test_rejects_mismatched_size_fields) ... ok
+test_rejects_missing_boot_flag (test_vm_boot.BootImageTests.test_rejects_missing_boot_flag) ... ok
+test_rejects_non_ipk (test_vm_boot.BootImageTests.test_rejects_non_ipk) ... ok
+test_rejects_truncated_container (test_vm_boot.BootImageTests.test_rejects_truncated_container) ... ok
+test_compat_debug_interface_is_local_and_explicit (test_vm_boot.CommandTests.test_compat_debug_interface_is_local_and_explicit) ... ok
+test_ext4_features_are_an_allowlist (test_vm_boot.CommandTests.test_ext4_features_are_an_allowlist) ... ok
+test_no_initramfs_network_or_writable_base_image (test_vm_boot.CommandTests.test_no_initramfs_network_or_writable_base_image) ... ok
+test_outputs_cannot_escape_project (test_vm_boot.CommandTests.test_outputs_cannot_escape_project) ... ok
+test_bad_readback_fails_closed (test_vm_boot.DriverPatchTests.test_bad_readback_fails_closed) ... ok
+test_checks_then_writes_then_reads_back (test_vm_boot.DriverPatchTests.test_checks_then_writes_then_reads_back) ... ok
+test_table_address_and_layout (test_vm_boot.DriverPatchTests.test_table_address_and_layout) ... ok
+test_wrong_build_does_not_get_patched (test_vm_boot.DriverPatchTests.test_wrong_build_does_not_get_patched) ... ok
+test_bad_packet_checksum_rejected (test_vm_boot.ProtocolTests.test_bad_packet_checksum_rejected) ... ok
+test_closed_socket_does_not_spin (test_vm_boot.ProtocolTests.test_closed_socket_does_not_spin) ... ok
+test_decode_repeat_and_escape (test_vm_boot.ProtocolTests.test_decode_repeat_and_escape) ... ok
+test_invalid_encoding_rejected (test_vm_boot.ProtocolTests.test_invalid_encoding_rejected) ... ok
+test_packet_checksum_with_fragmented_socket (test_vm_boot.ProtocolTests.test_packet_checksum_with_fragmented_socket) ... ok
+test_executable_has_rx_load_and_nonexecuting_stack (test_vm_display.BinaryTests.test_executable_has_rx_load_and_nonexecuting_stack) ... ok
+test_executable_refuses_empty_or_oversized_code (test_vm_display.BinaryTests.test_executable_refuses_empty_or_oversized_code) ... ok
+test_extracts_only_resolved_text (test_vm_display.BinaryTests.test_extracts_only_resolved_text) ... ok
+test_refuses_allocated_data_that_would_need_a_linker (test_vm_display.BinaryTests.test_refuses_allocated_data_that_would_need_a_linker) ... ok
+test_refuses_missing_text (test_vm_display.BinaryTests.test_refuses_missing_text) ... ok
+test_refuses_relocations (test_vm_display.BinaryTests.test_refuses_relocations) ... ok
+test_refuses_truncated_sections (test_vm_display.BinaryTests.test_refuses_truncated_sections) ... ok
+test_refuses_wrong_architecture (test_vm_display.BinaryTests.test_refuses_wrong_architecture) ... ok
+test_background_and_oracle_dimensions (test_vm_display.ImageTests.test_background_and_oracle_dimensions) ... ok
+test_font_rows_are_valid (test_vm_display.ImageTests.test_font_rows_are_valid) ... ok
+test_invalid_ppm_rejected (test_vm_display.ImageTests.test_invalid_ppm_rejected) ... ok
+test_png_crc_and_pixels (test_vm_display.ImageTests.test_png_crc_and_pixels) ... ok
+test_png_invalid_dimensions_rejected (test_vm_display.ImageTests.test_png_invalid_dimensions_rejected) ... ok
+test_ppm_does_not_discard_pixel_bytes_that_are_whitespace (test_vm_display.ImageTests.test_ppm_does_not_discard_pixel_bytes_that_are_whitespace) ... ok
+test_child_input_cannot_eat_status_commands (test_vm_display.LauncherTests.test_child_input_cannot_eat_status_commands) ... ok
+test_group_preserves_command_failure (test_vm_display.LauncherTests.test_group_preserves_command_failure) ... ok
+test_qemu_display_is_fixed_and_qmp_is_unix_only (test_vm_display.LauncherTests.test_qemu_display_is_fixed_and_qmp_is_unix_only) ... ok
+test_bad_handshake_closes_stream (test_vm_display.QMPTests.test_bad_handshake_closes_stream) ... ok
+test_errors_are_not_reported_as_success (test_vm_display.QMPTests.test_errors_are_not_reported_as_success) ... ok
+test_handshake_and_events_with_ids (test_vm_display.QMPTests.test_handshake_and_events_with_ids) ... ok
+test_keyboard_command_is_virtual_not_serial_text (test_vm_display.QMPTests.test_keyboard_command_is_virtual_not_serial_text) ... ok
+test_complete_keyboard_and_pixel_sequence (test_vm_display.SmokeTests.test_complete_keyboard_and_pixel_sequence) ... ok
+test_echoed_marker_does_not_trigger_capture (test_vm_display.SmokeTests.test_echoed_marker_does_not_trigger_capture) ... ok
+test_wrong_noncenter_pixels_fail (test_vm_display.SmokeTests.test_wrong_noncenter_pixels_fail) ... ok
+
+----------------------------------------------------------------------
+Ran 137 tests in 0.981s
+
+OK
+17 cases written to /Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/test-tmp/tmpbukw8xh3/corpus
+/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/test-tmp/tmpw6u_n2b2/out/workflow-normalized.csv: 3 rows
+/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/test-tmp/tmpw6u_n2b2/out/requirements-normalized.csv: 2 rows
+/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/test-tmp/tmpw6u_n2b2/out/workflow-normalized.csv: 3 rows
+/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/test-tmp/tmpw6u_n2b2/out/requirements-normalized.csv: 2 rows
+  exports are up to date

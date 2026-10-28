@@ -1,0 +1,55 @@
+# Priority order for T-KSYM2 decompilation.
+# Trust chain
+verify_oem_signature
+keystore_ioctl
+keystore_verify
+keystore_sign
+keystore_load_key
+keystore_unload_key
+keystore_open
+keystore_register
+keystore_fill_seeds
+keystore_get_seed
+keystore_calc_clientid
+keystore_calc_clientkey
+keystore_get_ksm_keypair
+public_key_verify_signature
+verify_signature
+RSA_verify_signature
+# Module loading
+load_module
+do_init_module
+SyS_init_module
+SyS_finit_module
+SyS_delete_module
+free_module
+security_kernel_module_request
+# SMACK enforcement
+smk_write_onlycap
+smk_write_load
+smack_inode_permission
+smack_mmap_file
+smack_ptrace_access_check
+smack_privileged
+smack_file_open
+smack_bprm_set_creds
+smk_access
+# Physical memory and kernel memory exposure
+devmem_is_allowed
+mmap_mem
+read_mem
+write_mem
+open_port
+open_kcore
+read_kcore
+# kexec / reboot
+SyS_kexec_load
+kernel_kexec
+machine_kexec
+SyS_reboot
+manifest_key_verify_digest
+phys_mem_access_prot_allowed
+range_is_allowed
+xlate_dev_mem_ptr
+capable
+kimage_alloc_init

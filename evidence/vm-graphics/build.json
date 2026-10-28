@@ -1,0 +1,17 @@
+{
+  "scope": "QEMU-only diagnostic; NOT vendor UI",
+  "command": [
+    "/opt/homebrew/opt/llvm/bin/llvm-mc",
+    "-triple=x86_64-pc-linux-gnu",
+    "-filetype=obj",
+    "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/tools/uk_fw/guest/qemu_display.S",
+    "-o",
+    "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/graphics/display-build/qemu_display.o"
+  ],
+  "source_sha256": "9d946328e66cfafc7a530f89794c5d83f8aef84c53c6f0a64505106895d9063d",
+  "sha256": {
+    "qemu_display.o": "8bb9dee0e4a5fa3dc7180be6957b65dbeb6f8f7ad6ed2b8deff30fa4b4930c2f",
+    "vm-display": "d58a3f835b9f043575c997a9828bcb70c8b6255b6a19497a2e74391248d7d98c",
+    "vm-display.bgra": "1922abd3ef63d8bcacbd5297f11d16365b90fa944d1822e1273440da6edf94c2"
+  }
+}

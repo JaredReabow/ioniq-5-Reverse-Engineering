@@ -1,0 +1,13 @@
+{
+  "evidence/vm-graphics/display-blue.png": "649335c0f14ea9705d8304dc76f9b5fa979bdfbca052694b62384f634879e99c",
+  "evidence/vm-graphics/display-idle.png": "e5dc6559492007f7dd5a9f22c0488a293b1e1a4dd9c0aa7d404fd71636d4a139",
+  "evidence/vm-graphics/display-red.png": "0cd76e2a4b754255bd485ea71d1545d6e4e9d706bea3d910a393f8798ba3d32c",
+  "evidence/vm-graphics/result.json": "c57e20f85ee80c86774eb68477c3921b48540fca5bab23bc24f1c064929229a6",
+  "evidence/vm-graphics/graphics.json": "6b6310221d5e86811719ada8679e08a8ab5fac7d84dbb1584f04657fce779de2",
+  "evidence/vm-graphics/serial.log": "f976d5410cb91ee80ee40db4248eab218d56fc013bbae126166eeb7eb101ea2c",
+  "evidence/vm-graphics/display-green.png": "76c16f53af356b8910a2ba99a82774a934681d71b3dad16012ba40f3433d59a4",
+  "evidence/vm-graphics/command.json": "5130f507ad8d16e1edd50a728a30aef661889e285992bbaba3a740e45e438058",
+  "evidence/vm-graphics/patch.json": "b1af6ddc455f7d5d8e09b05de3d31858340e8b263a14b969ffcecbdea3696e53",
+  "evidence/vm-graphics/local-recovery-scan.json": "72a4536966a83c973efe45a111e434d362954d9a6820d4835158dcc4c3581d28",
+  "evidence/vm-graphics/build.json": "dfe10d36f991c840d282b6ff9100902e5825acc95f36fc25f8d5bf61bee25dd9"
+}

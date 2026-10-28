@@ -1,0 +1,266 @@
+[
+  {
+    "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/iasImage_1280_sub",
+    "size": 6210308,
+    "sha256": "55e9a31be5ca734a7af111613ae6ce83cdc579b27138c5f54700f78263056eb0",
+    "exponent": 65537,
+    "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "trailer_offset": 6209536,
+    "verification": {
+      "ok": true,
+      "pkcs1_v15_block": "0001ffffffffffffffffffffffffffff",
+      "digestinfo_present": true,
+      "digest_matches": true,
+      "signed_sha256": "0e6c016e1fe23029c8a5d61063ebcbe9e328263b5eb2b73a5e95c4796c3f0702",
+      "computed_sha256": "0e6c016e1fe23029c8a5d61063ebcbe9e328263b5eb2b73a5e95c4796c3f0702",
+      "signed_range": [
+        "0x0",
+        "0x5ec004"
+      ],
+      "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6"
+    },
+    "strict_positive_control": "strict PKCS1v1.5 SHA256 DigestInfo equals signed-range digest"
+  },
+  {
+    "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/iasImage_1920_12_sub",
+    "size": 6210308,
+    "sha256": "e4d7523ba0f77a7b659260df82968d515859b01e06738bf7cfd79bef83db8e05",
+    "exponent": 65537,
+    "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "trailer_offset": 6209536,
+    "verification": {
+      "ok": true,
+      "pkcs1_v15_block": "0001ffffffffffffffffffffffffffff",
+      "digestinfo_present": true,
+      "digest_matches": true,
+      "signed_sha256": "2a19c5161759703eab1a66da3ce7456784bbdad9f20731d075739ff48f684ccc",
+      "computed_sha256": "2a19c5161759703eab1a66da3ce7456784bbdad9f20731d075739ff48f684ccc",
+      "signed_range": [
+        "0x0",
+        "0x5ec004"
+      ],
+      "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6"
+    },
+    "strict_positive_control": "strict PKCS1v1.5 SHA256 DigestInfo equals signed-range digest"
+  },
+  {
+    "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/iasImage_p5_1280_sub",
+    "size": 6210308,
+    "sha256": "fb442a993619b17c94c95826cc425a6e04c3e947c1f9c009191dec63607acbad",
+    "exponent": 65537,
+    "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "trailer_offset": 6209536,
+    "verification": {
+      "ok": true,
+      "pkcs1_v15_block": "0001ffffffffffffffffffffffffffff",
+      "digestinfo_present": true,
+      "digest_matches": true,
+      "signed_sha256": "7a509b368573250bcdda0301db6600268d65e0f41e479daa4a32d029b0e3eef2",
+      "computed_sha256": "7a509b368573250bcdda0301db6600268d65e0f41e479daa4a32d029b0e3eef2",
+      "signed_range": [
+        "0x0",
+        "0x5ec004"
+      ],
+      "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6"
+    },
+    "strict_positive_control": "strict PKCS1v1.5 SHA256 DigestInfo equals signed-range digest"
+  },
+  {
+    "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/iasImage_p5_1920_12_sub",
+    "size": 6210308,
+    "sha256": "e4d7523ba0f77a7b659260df82968d515859b01e06738bf7cfd79bef83db8e05",
+    "exponent": 65537,
+    "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "trailer_offset": 6209536,
+    "verification": {
+      "ok": true,
+      "pkcs1_v15_block": "0001ffffffffffffffffffffffffffff",
+      "digestinfo_present": true,
+      "digest_matches": true,
+      "signed_sha256": "2a19c5161759703eab1a66da3ce7456784bbdad9f20731d075739ff48f684ccc",
+      "computed_sha256": "2a19c5161759703eab1a66da3ce7456784bbdad9f20731d075739ff48f684ccc",
+      "signed_range": [
+        "0x0",
+        "0x5ec004"
+      ],
+      "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6"
+    },
+    "strict_positive_control": "strict PKCS1v1.5 SHA256 DigestInfo equals signed-range digest"
+  },
+  {
+    "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/iasImage_p5_sub",
+    "size": 6210308,
+    "sha256": "47a6f19f395529814be3eeb7a5751815fab8d31b36fdc503ef025e65070a484f",
+    "exponent": 65537,
+    "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "trailer_offset": 6209536,
+    "verification": {
+      "ok": true,
+      "pkcs1_v15_block": "0001ffffffffffffffffffffffffffff",
+      "digestinfo_present": true,
+      "digest_matches": true,
+      "signed_sha256": "b9a898511c72990e654abeaa55e539e6e1821ed7fbc58dec2f754c73761e1f15",
+      "computed_sha256": "b9a898511c72990e654abeaa55e539e6e1821ed7fbc58dec2f754c73761e1f15",
+      "signed_range": [
+        "0x0",
+        "0x5ec004"
+      ],
+      "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6"
+    },
+    "strict_positive_control": "strict PKCS1v1.5 SHA256 DigestInfo equals signed-range digest"
+  },
+  {
+    "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/iasImage_sub",
+    "size": 6210308,
+    "sha256": "deb69570c89a37f15a92a2e07247138ab0ed83ea108141f24536db6f0f9bbc7f",
+    "exponent": 65537,
+    "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "trailer_offset": 6209536,
+    "verification": {
+      "ok": true,
+      "pkcs1_v15_block": "0001ffffffffffffffffffffffffffff",
+      "digestinfo_present": true,
+      "digest_matches": true,
+      "signed_sha256": "d13844111c9b49b8af9cbe83d351e551bf35c6d8bcb725dcb3580d972a79bb4a",
+      "computed_sha256": "d13844111c9b49b8af9cbe83d351e551bf35c6d8bcb725dcb3580d972a79bb4a",
+      "signed_range": [
+        "0x0",
+        "0x5ec004"
+      ],
+      "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6"
+    },
+    "strict_positive_control": "strict PKCS1v1.5 SHA256 DigestInfo equals signed-range digest"
+  },
+  {
+    "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/iasImage_1280_sub",
+    "size": 6210308,
+    "sha256": "7096e3c21ef98b9cc8c5403b869b81d5ace3c0949b072cc18a909e49cdbaf4a0",
+    "exponent": 65537,
+    "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "trailer_offset": 6209536,
+    "verification": {
+      "ok": true,
+      "pkcs1_v15_block": "0001ffffffffffffffffffffffffffff",
+      "digestinfo_present": true,
+      "digest_matches": true,
+      "signed_sha256": "dd1c042ff39fb8daa56d71dc0e4c8f560612d34831ca2ec0349f27df2deb9934",
+      "computed_sha256": "dd1c042ff39fb8daa56d71dc0e4c8f560612d34831ca2ec0349f27df2deb9934",
+      "signed_range": [
+        "0x0",
+        "0x5ec004"
+      ],
+      "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6"
+    },
+    "strict_positive_control": "strict PKCS1v1.5 SHA256 DigestInfo equals signed-range digest"
+  },
+  {
+    "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/iasImage_1920_12_sub",
+    "size": 6210308,
+    "sha256": "956df432fceefb47bcb100961340d6b085fc0fbcf3072f2939f8bb78e3036315",
+    "exponent": 65537,
+    "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "trailer_offset": 6209536,
+    "verification": {
+      "ok": true,
+      "pkcs1_v15_block": "0001ffffffffffffffffffffffffffff",
+      "digestinfo_present": true,
+      "digest_matches": true,
+      "signed_sha256": "56bd1929315c593083b683ec025382392219db46976d52ba58caa3dc217237aa",
+      "computed_sha256": "56bd1929315c593083b683ec025382392219db46976d52ba58caa3dc217237aa",
+      "signed_range": [
+        "0x0",
+        "0x5ec004"
+      ],
+      "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6"
+    },
+    "strict_positive_control": "strict PKCS1v1.5 SHA256 DigestInfo equals signed-range digest"
+  },
+  {
+    "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/iasImage_p5_1280_sub",
+    "size": 6210308,
+    "sha256": "8b766afe75534660e18a6bc284d5f1010dc91f1ac826b2bea3dd36f931e4a026",
+    "exponent": 65537,
+    "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "trailer_offset": 6209536,
+    "verification": {
+      "ok": true,
+      "pkcs1_v15_block": "0001ffffffffffffffffffffffffffff",
+      "digestinfo_present": true,
+      "digest_matches": true,
+      "signed_sha256": "923b3d09d9b665b1fe1f0a73ecd192e11f80622ed1a947fd86e806939980929b",
+      "computed_sha256": "923b3d09d9b665b1fe1f0a73ecd192e11f80622ed1a947fd86e806939980929b",
+      "signed_range": [
+        "0x0",
+        "0x5ec004"
+      ],
+      "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6"
+    },
+    "strict_positive_control": "strict PKCS1v1.5 SHA256 DigestInfo equals signed-range digest"
+  },
+  {
+    "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/iasImage_p5_1920_12_sub",
+    "size": 6210308,
+    "sha256": "956df432fceefb47bcb100961340d6b085fc0fbcf3072f2939f8bb78e3036315",
+    "exponent": 65537,
+    "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "trailer_offset": 6209536,
+    "verification": {
+      "ok": true,
+      "pkcs1_v15_block": "0001ffffffffffffffffffffffffffff",
+      "digestinfo_present": true,
+      "digest_matches": true,
+      "signed_sha256": "56bd1929315c593083b683ec025382392219db46976d52ba58caa3dc217237aa",
+      "computed_sha256": "56bd1929315c593083b683ec025382392219db46976d52ba58caa3dc217237aa",
+      "signed_range": [
+        "0x0",
+        "0x5ec004"
+      ],
+      "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6"
+    },
+    "strict_positive_control": "strict PKCS1v1.5 SHA256 DigestInfo equals signed-range digest"
+  },
+  {
+    "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/iasImage_p5_sub",
+    "size": 6210308,
+    "sha256": "3d9f793f36e1e94c79114210fdd17774a069ccb6831b65e3d4bdbcde5cb56242",
+    "exponent": 65537,
+    "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "trailer_offset": 6209536,
+    "verification": {
+      "ok": true,
+      "pkcs1_v15_block": "0001ffffffffffffffffffffffffffff",
+      "digestinfo_present": true,
+      "digest_matches": true,
+      "signed_sha256": "de2b6616dcc53da2717a4f6d89ed39c70befddb5f5a249288d11fdfcc0a40cef",
+      "computed_sha256": "de2b6616dcc53da2717a4f6d89ed39c70befddb5f5a249288d11fdfcc0a40cef",
+      "signed_range": [
+        "0x0",
+        "0x5ec004"
+      ],
+      "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6"
+    },
+    "strict_positive_control": "strict PKCS1v1.5 SHA256 DigestInfo equals signed-range digest"
+  },
+  {
+    "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/iasImage_sub",
+    "size": 6210308,
+    "sha256": "f8368c0ceb11428e52e512c55205eb0dc1ccfcd703946603c6e809fc12fbe7c2",
+    "exponent": 65537,
+    "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "trailer_offset": 6209536,
+    "verification": {
+      "ok": true,
+      "pkcs1_v15_block": "0001ffffffffffffffffffffffffffff",
+      "digestinfo_present": true,
+      "digest_matches": true,
+      "signed_sha256": "5a4b910aa4a6e99e36115993614fe47e921003d8d55792405838e8c9908054fc",
+      "computed_sha256": "5a4b910aa4a6e99e36115993614fe47e921003d8d55792405838e8c9908054fc",
+      "signed_range": [
+        "0x0",
+        "0x5ec004"
+      ],
+      "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6"
+    },
+    "strict_positive_control": "strict PKCS1v1.5 SHA256 DigestInfo equals signed-range digest"
+  }
+]

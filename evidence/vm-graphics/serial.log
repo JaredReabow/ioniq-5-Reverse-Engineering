@@ -1,0 +1,298 @@
+[    0.000000] Initializing cgroup subsys cpuset
+[    0.000000] Initializing cgroup subsys cpu
+[    0.000000] Initializing cgroup subsys cpuacct
+[    0.000000] Linux version 4.1.27-abl (vc.integrator fb0eafb@LGEAVSCI40) (gcc version 5.2.0 (GCC) ) #1 SMP Wed Jan 28 16:00:10 KST 2026
+[    0.000000] Command line: root=/dev/mmcblk0 rootwait rootdelay=2 rootfstype=ext4 rw init=/init console=ttyS0,115200 panic=-1 loglevel=7 ABL.oemkm=40@20000000 ABL.seed=21000000,21000040
+[    0.000000] KERNEL supported cpus:
+[    0.000000]   Intel GenuineIntel
+[    0.000000] e820: BIOS-provided physical RAM map:
+[    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
+[    0.000000] BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
+[    0.000000] BIOS-e820: [mem 0x0000000000100000-0x000000003ffdefff] usable
+[    0.000000] BIOS-e820: [mem 0x000000003ffdf000-0x000000003fffffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000b0000000-0x00000000bfffffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000fed1c000-0x00000000fed1ffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
+[    0.000000] NX (Execute Disable) protection: active
+[    0.000000] SMBIOS 2.8 present.
+[    0.000000] e820: last_pfn = 0x3ffdf max_arch_pfn = 0x400000000
+[    0.000000] PAT not supported by CPU.
+[    0.000000] found SMP MP-table at [mem 0x000f54c0-0x000f54cf] mapped at [ffff8800000f54c0]
+[    0.000000] Scanning 1 areas for low memory corruption
+[    0.000000] Using GB pages for direct mapping
+[    0.000000] init_memory_mapping: [mem 0x00000000-0x000fffff]
+[    0.000000] init_memory_mapping: [mem 0x3fc00000-0x3fdfffff]
+[    0.000000] init_memory_mapping: [mem 0x20000000-0x3fbfffff]
+[    0.000000] init_memory_mapping: [mem 0x00100000-0x1fffffff]
+[    0.000000] init_memory_mapping: [mem 0x3fe00000-0x3ffdefff]
+[    0.000000] ACPI: Early table checksum verification disabled
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
+[    0.000000]   DMA32    [mem 0x0000000001000000-0x000000003ffdefff]
+[    0.000000]   Normal   empty
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000000001000-0x000000000009efff]
+[    0.000000]   node   0: [mem 0x0000000000100000-0x000000003ffdefff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000000001000-0x000000003ffdefff]
+[    0.000000] ACPI: PM-Timer IO Port: 0x608
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0xff] dfl dfl lint[0x1])
+[    0.000000] IOAPIC[0]: apic_id 0, version 32, address 0xfec00000, GSI 0-23
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 5 global_irq 5 high level)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 10 global_irq 10 high level)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 11 global_irq 11 high level)
+[    0.000000] Using ACPI (MADT) for SMP configuration information
+[    0.000000] ACPI: HPET id: 0x8086a201 base: 0xfed00000
+[    0.000000] smpboot: Allowing 2 CPUs, 0 hotplug CPUs
+[    0.000000] e820: [mem 0x40000000-0xafffffff] available for PCI devices
+[    0.000000] clocksource refined-jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1910969940391419 ns
+[    0.000000] setup_percpu: NR_CPUS:4 nr_cpumask_bits:4 nr_cpu_ids:2 nr_node_ids:1
+[    0.000000] PERCPU: Embedded 30 pages/cpu @ffff88003fc00000 s84312 r8192 d30376 u1048576
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 257896
+[    0.000000] Kernel command line: root=/dev/mmcblk0 rootwait rootdelay=2 rootfstype=ext4 rw init=/init console=ttyS0,115200 panic=-1 loglevel=7 ABL.oemkm=40@20000000 ABL.seed=21000000,21000040
+[    0.000000] PID hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.000000] Dentry cache hash table entries: 131072 (order: 8, 1048576 bytes)
+[    0.000000] Inode-cache hash table entries: 65536 (order: 7, 524288 bytes)
+[    0.000000] xsave: enabled xstate_bv 0x1f, cntxt size 0x440 using standard form
+[    0.000000] Memory: 1017044K/1048052K available (5519K kernel code, 930K rwdata, 2980K rodata, 728K init, 736K bss, 31008K reserved, 0K cma-reserved)
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=2, Nodes=1
+[    0.000000] Hierarchical RCU implementation.
+[    0.000000] 	CONFIG_RCU_FANOUT set to non-default value of 32
+[    0.000000] 	Additional per-CPU info printed with stalls.
+[    0.000000] 	RCU restricting CPUs from NR_CPUS=4 to nr_cpu_ids=2.
+[    0.000000] RCU: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=2
+[    0.000000] NR_IRQS:4352 nr_irqs:440 16
+[    0.000000] WARNING: Persistent clock does not care.
+[    0.000000]          now.tv_sec and now.tv_nsec always set to 0.
+[    0.000000] Console: colour dummy device 80x25
+[    0.000000] console [ttyS0] enabled
+[    0.000000] clocksource hpet: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604467 ns
+[    0.000000] tsc: Fast TSC calibration using PIT
+[    0.000000] tsc: Detected 1000.054 MHz processor
+[    0.004388] Calibrating delay loop (skipped), value calculated using timer frequency.. 2000.10 BogoMIPS (lpj=1000054)
+[    0.005059] pid_max: default: 32768 minimum: 301
+[    0.005329] ACPI: Core revision 20150410
+[    0.013681] Security Framework initialized
+[    0.014649] Smack:  Initializing.
+[    0.015000] Mount-cache hash table entries: 2048 (order: 2, 16384 bytes)
+[    0.015037] Mountpoint-cache hash table entries: 2048 (order: 2, 16384 bytes)
+[    0.020416] Initializing cgroup subsys memory
+[    0.020984] Initializing cgroup subsys freezer
+[    0.021378] CPU: Physical Processor ID: 0
+[    0.021497] CPU: Processor Core ID: 0
+[    0.022000] CPU: Physical Processor ID: 0
+[    0.024095] CPU: Processor Core ID: 0
+[    0.025592] mce: CPU supports 10 MCE banks
+[    0.026070] process: using mwait in idle threads
+[    0.026335] Last level iTLB entries: 4KB 0, 2MB 0, 4MB 0
+[    0.026490] Last level dTLB entries: 4KB 0, 2MB 0, 4MB 0, 1GB 0
+[    0.028939] Freeing SMP alternatives memory: 12K (ffffffff81ba0000 - ffffffff81ba3000)
+[    0.036777] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+[    0.045000] APIC calibration not consistent with PM-Timer: 127ms instead of 100ms
+[    0.045000] APIC delta adjusted to PM-Timer: 6250040 (7955438)
+[    0.045000] smpboot: CPU0: Intel QEMU TCG CPU version 2.5+ (fam: 06, model: 06, stepping: 03)
+[    0.045175] Performance Events: Broken PMU hardware detected, using software events only.
+[    0.045614] Failed to access perfctr msr (MSR c2 is 0)
+[    0.051921] [reg_lcd_default] reg_lcd is called
+[    0.052000] [reg_lcd_boe] reg_lcd is called[reg_seperated_12] reg_lcd is called
+[    0.052148] [reg_lcd_default] reg_lcd is called[reg_lcd_boe_2nd] reg_lcd is called
+[    0.053343] NMI watchdog: disabled (cpu0): hardware events not enabled
+[    0.053574] NMI watchdog: Shutting down hard lockup detector on all cpus
+[    0.055400] x86: Booting SMP configuration:
+[    0.055578] .... node  #0, CPUs:      #1
+[    0.120351] x86: Booted up 1 node, 2 CPUs
+[    0.120613] smpboot: Total of 2 processors activated (4492.86 BogoMIPS)
+[    0.130234] devtmpfs: initialized
+[    0.136000] clocksource jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1911260446275000 ns
+[    0.137176] pinctrl core: initialized pinctrl subsystem
+[    0.141822] NET: Registered protocol family 16
+[    0.154112] cpuidle: using governor ladder
+[    0.159084] cpuidle: using governor menu
+[    0.160000] ACPI: bus type PCI registered
+[    0.160747] PCI: Using configuration type 1 for base access
+[    0.162000] mtrr: your CPUs had inconsistent fixed MTRR settings
+[    0.162028] mtrr: your CPUs had inconsistent variable MTRR settings
+[    0.162348] mtrr: your CPUs had inconsistent MTRRdefType settings
+[    0.162611] mtrr: probably your BIOS does not setup all CPUs.
+[    0.162878] mtrr: corrected configuration.
+[    0.194232] ACPI: Added _OSI(Module Device)
+[    0.194463] ACPI: Added _OSI(Processor Device)
+[    0.194636] ACPI: Added _OSI(3.0 _SCP Extensions)
+[    0.194822] ACPI: Added _OSI(Processor Aggregator Device)
+[    0.212688] ACPI: Interpreter enabled
+[    0.213248] ACPI: (supports S0 S3 S5)
+[    0.213440] ACPI: Using IOAPIC for interrupt routing
+[    0.214941] PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
+[    0.232432] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+[    0.233000] acpi PNP0A08:00: _OSC: OS supports [ASPM ClockPM Segments MSI]
+[    0.235111] acpi PNP0A08:00: _OSC: not requesting OS control; OS requires [ExtendedConfig ASPM ClockPM MSI]
+[    0.237000] PCI host bridge to bus 0000:00
+[    0.237144] pci_bus 0000:00: root bus resource [bus 00-ff]
+[    0.237465] pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7 window]
+[    0.237801] pci_bus 0000:00: root bus resource [io  0x0d00-0xffff window]
+[    0.238028] pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000bffff window]
+[    0.238322] pci_bus 0000:00: root bus resource [mem 0x40000000-0xafffffff window]
+[    0.238632] pci_bus 0000:00: root bus resource [mem 0xc0000000-0xfebfffff window]
+[    0.238960] pci_bus 0000:00: root bus resource [mem 0x100000000-0x8ffffffff window]
+[    0.245527] pci 0000:00:1f.0: quirk: [io  0x0600-0x067f] claimed by ICH6 ACPI/GPIO/TCO
+[    0.252175] ACPI: PCI Interrupt Link [LNKA] (IRQs 5 *10 11)
+[    0.252905] ACPI: PCI Interrupt Link [LNKB] (IRQs 5 *10 11)
+[    0.253134] ACPI: PCI Interrupt Link [LNKC] (IRQs 5 10 *11)
+[    0.253576] ACPI: PCI Interrupt Link [LNKD] (IRQs 5 10 *11)
+[    0.254000] ACPI: PCI Interrupt Link [LNKE] (IRQs 5 *10 11)
+[    0.254366] ACPI: PCI Interrupt Link [LNKF] (IRQs 5 *10 11)
+[    0.254916] ACPI: PCI Interrupt Link [LNKG] (IRQs 5 10 *11)
+[    0.255318] ACPI: PCI Interrupt Link [LNKH] (IRQs 5 10 *11)
+[    0.255637] ACPI: PCI Interrupt Link [GSIA] (IRQs *16)
+[    0.255897] ACPI: PCI Interrupt Link [GSIB] (IRQs *17)
+[    0.256000] ACPI: PCI Interrupt Link [GSIC] (IRQs *18)
+[    0.256097] ACPI: PCI Interrupt Link [GSID] (IRQs *19)
+[    0.256370] ACPI: PCI Interrupt Link [GSIE] (IRQs *20)
+[    0.256718] ACPI: PCI Interrupt Link [GSIF] (IRQs *21)
+[    0.256994] ACPI: PCI Interrupt Link [GSIG] (IRQs *22)
+[    0.257085] ACPI: PCI Interrupt Link [GSIH] (IRQs *23)
+[    0.261185] media: Linux media interface: v0.10
+[    0.261629] Linux video capture interface: v2.00
+[    0.262168] Advanced Linux Sound Architecture Driver Initialized.
+[    0.262476] PCI: Using ACPI for IRQ routing
+[    0.266203] NetLabel: Initializing
+[    0.266390] NetLabel:  domain hash size = 128
+[    0.266613] NetLabel:  protocols = UNLABELED CIPSOv4
+[    0.266613] NetLabel:  unlabeled traffic allowed by default
+[    0.267000] hpet0: at MMIO 0xfed00000, IRQs 2, 8, 0
+[    0.268069] hpet0: 3 comparators, 64-bit 100.000000 MHz counter
+[    0.270012] Switched to clocksource hpet
+[    0.273347] pnp: PnP ACPI init
+[    0.276151] ACPI: IRQ 4 override to edge, high
+[    0.278325] system 00:05: [mem 0xb0000000-0xbfffffff window] has been reserved
+[    0.279826] pnp: PnP ACPI: found 6 devices
+[    0.300119] [lge_touch_init] Success!!
+[    0.305492] clocksource acpi_pm: mask: 0xffffff max_cycles: 0xffffff, max_idle_ns: 2085701024 ns
+[    0.307045] NET: Registered protocol family 2
+[    0.311180] TCP established hash table entries: 8192 (order: 4, 65536 bytes)
+[    0.311843] TCP bind hash table entries: 8192 (order: 5, 131072 bytes)
+[    0.312343] TCP: Hash tables configured (established 8192 bind 8192)
+[    0.313295] UDP hash table entries: 512 (order: 2, 16384 bytes)
+[    0.313596] UDP-Lite hash table entries: 512 (order: 2, 16384 bytes)
+[    0.318712] Scanning for low memory corruption every 60 seconds
+[    0.320172] AVX2 version of gcm_enc/dec engaged.
+[    0.320403] AES CTR mode by8 optimization enabled
+[    0.322009] Apollo Lake Sideband Interface loading
+[    0.322681] abl_param: Expose ABL parameters to sysfs (/sys/kernel/abl)
+[    0.324967] futex hash table entries: 512 (order: 3, 32768 bytes)
+[    0.325971] audit: initializing netlink subsys (disabled)
+[    0.326824] audit: type=2000 audit(0.326:1): initialized
+[    0.329802] HugeTLB registered 2 MB page size, pre-allocated 0 pages
+[    0.356873] --------
+[    0.356873] keystore: keystore_init
+[    0.357189] keystore: Not checking secure boot status!
+[    0.358224] --------
+[    0.358363] keystore: keystore_init completed successfully
+[    0.359017] manifest: init Completed Successfully
+[    0.361108] Key type asymmetric registered
+[    0.361381] Asymmetric key parser 'x509' registered
+[    0.362250] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 251)
+[    0.362571] io scheduler noop registered
+[    0.362764] io scheduler deadline registered
+[    0.363649] io scheduler cfq registered (default)
+[    0.366124] input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN:00/input/input0
+[    0.366759] ACPI: Power Button [PWRF]
+[    0.367906] Serial: 8250/16550 driver, 4 ports, IRQ sharing disabled
+[    0.389710] 00:03: ttyS0 at I/O 0x3f8 (irq = 4, base_baud = 115200) is a 16550A
+[    0.394659] sdhci: Secure Digital Host Controller Interface driver
+[    0.394872] sdhci: Copyright(c) Pierre Ossman
+[    0.395366] sdhci-pci 0000:00:02.0: SDHCI controller found [1b36:0007] (rev 0)
+[    0.398688] ACPI: PCI Interrupt Link [GSIG] enabled at IRQ 22
+[    0.400968] sdhci-pci 0000:00:02.0: No vmmc regulator found
+[    0.401290] sdhci-pci 0000:00:02.0: No vqmmc regulator found
+[    0.406064] mmc0: SDHCI controller on PCI [0000:00:02.0] using ADMA
+[    0.406686] sdhci-pltfm: SDHCI platform and OF driver helper
+[    0.407300] [drm] Initialized drm 1.1.0 20060810
+[    0.427368] loop: module loaded
+[    0.428841] zram: Created 1 device(s)
+[    0.430054] lpc_ich 0000:00:1f.0: I/O space for GPIO uninitialized
+[    0.431114] CAN device driver interface
+[    0.432031] siw_touch: SW17700 driver init - v2.21b
+[    0.433512] siwmon: siw mon created - v1.00
+[    0.433601] i2c /dev entries driver
+[    0.434724] lge_lcd_driver lge_lcd_driver.0: LGE LCD driver initialization
+[    0.435079] lge_lcd_driver lge_lcd_driver.0: No Front adapter fail
+[    0.437579] MICOM I> [micom_init] Registering LGE MICOM interface driver
+[    0.438265] lge_gps_driver lge_gps_driver.0: LGE GPS driver initialization
+[    0.438779] lge_gps_driver lge_gps_driver.0: low_active: 0
+[    0.439099] lge_gps_driver lge_gps_driver.0: err: gpio_request_array() return: (-517)
+[    0.440290] gpiod_direction_output_raw: invalid GPIO
+[    0.441954] device-mapper: uevent: version 1.0.3
+[    0.444741] mmc0: new high speed SD card at address e8bb
+[    0.444953] mmc mmc0:e8bb: MMC Manufacture ID:aa
+[    0.445955] device-mapper: ioctl: 4.31.0-ioctl (2015-3-12) initialised: [upstream contact redacted]
+[    0.447029] mmcblk0: mmc0:e8bb QEMU! 256 MiB 
+[    0.447347] Netfilter messages via NETLINK v0.30.
+[    0.447949] nf_conntrack version 0.5.0 (7945 buckets, 31780 max)
+[    0.449552] ctnetlink v0.93: registering with nfnetlink.
+[    0.452606] ip_tables: (C) 2000-2006 Netfilter Core Team
+[    0.454041] arp_tables: (C) 2002 David S. Miller
+[    0.457704] NET: Registered protocol family 10
+[    0.462146] ip6_tables: (C) 2000-2006 Netfilter Core Team
+[    0.463531] can: controller area network core (rev 20120528 abi 9)
+[    0.463983] NET: Registered protocol family 29
+[    0.464395] can: raw protocol (rev 20120528)
+[    0.464637] can: broadcast manager protocol (rev 20120528 t)
+[    0.464883] can: netlink gateway (rev 20130117) max_hops=1
+[    0.470333] lge_gps_driver lge_gps_driver.0: LGE GPS driver initialization
+[    0.470731] lge_gps_driver lge_gps_driver.0: low_active: 0
+[    0.471118] lge_gps_driver lge_gps_driver.0: err: gpio_request_array() return: (-517)
+[    0.471495] gpiod_direction_output_raw: invalid GPIO
+[    0.471830] ------------[ cut here ]------------
+[    0.472072] WARNING: CPU: 0 PID: 6 at /data001/vc.integrator/__EVENT_BUILD_s5w.26ru1.251203_MASS_PRODUCT_26RU1_001_260121101627/build-mango/BUILD/work-shared/5w/kernel-source/fs/sysfs/dir.c:31 sysfs_warn_dup+0x5b/0x6b()
+[    0.473020] sysfs: cannot create duplicate filename '/devices/platform/gpio-ctl/gpio_emmc_WDT_pin'
+[    0.474236] ---[ end trace 8e6e86355af0dcb2 ]---
+[    0.474611] LGE ttyhook driver initialization
+[    0.475129] LGE ttyhook driver probe
+[    0.475434] lge_gps_driver lge_gps_driver.0: LGE GPS driver initialization
+[    0.475691] lge_gps_driver lge_gps_driver.0: low_active: 0
+[    0.475985] lge_gps_driver lge_gps_driver.0: err: gpio_request_array() return: (-517)
+[    0.476143] ALSA device list:
+[    0.476163]   No soundcards found.
+[    0.476405] gpiod_direction_output_raw: invalid GPIO
+[    0.476566] ------------[ cut here ]------------
+[    0.476699] WARNING: CPU: 0 PID: 6 at /data001/vc.integrator/__EVENT_BUILD_s5w.26ru1.251203_MASS_PRODUCT_26RU1_001_260121101627/build-mango/BUILD/work-shared/5w/kernel-source/fs/sysfs/dir.c:31 sysfs_warn_dup+0x5b/0x6b()
+[    0.477308] sysfs: cannot create duplicate filename '/devices/platform/gpio-ctl/gpio_emmc_WDT_pin'
+[    0.477570] ---[ end trace 8e6e86355af0dcb3 ]---
+[    0.480257] Waiting 2 sec before mounting root device...
+[    1.319466] tsc: Refined TSC clocksource calibration: 999.993 MHz
+[    1.319917] clocksource tsc: mask: 0xffffffffffffffff max_cycles: 0x1cd420e9bab, max_idle_ns: 881590482973 ns
+[    2.322606] Switched to clocksource tsc
+[    2.507977] EXT4-fs (mmcblk0): mounted filesystem with ordered data mode. Opts: (null)
+[    2.508436] VFS: Mounted root (ext4 filesystem) on device 179:0.
+[    2.510509] devtmpfs: mounted
+[    2.672495] Freeing unused kernel memory: 728K (ffffffff81aea000 - ffffffff81ba0000)
+[    2.673165] Write protecting the kernel read-only data: 10240k
+[    2.676696] Freeing unused kernel memory: 620K (ffff880001565000 - ffff880001600000)
+[    2.681008] Freeing unused kernel memory: 1116K (ffff8800018e9000 - ffff880001a00000)
+Linux (none) 4.1.27-abl #1 SMP Wed Jan 28 16:00:10 KST 2026 x86_64 GNU/Linux
+/dev/root / ext4 rw,noatime,data=ordered 0 0
+devtmpfs /dev devtmpfs rw,relatime,size=508528k,nr_inodes=127132,mode=755 0 0
+proc /proc proc rw,relatime 0 0
+sysfs /sys sysfs rw,relatime 0 0
+smackfs /sys/fs/smackfs smackfs rw,relatime 0 0
+IONIQ_VM_USERSPACE_READY
+sh: can't access tty; job control turned off
+ioniq-vm# [6n{
+> /bin/vm-display
+> }; rc=$?; printf '\nVM_COMMAND_END_6cf552d9c6af45bba10b39445c7da198:%s\n' "$rc
+
+"
+VM_DISPLAY_READY 800x480 BGRX32 - DIAGNOSTIC ONLY
+VM_DISPLAY_RED
+VM_DISPLAY_GREEN
+VM_DISPLAY_BLUE
+VM_DISPLAY_EXIT
+
+VM_COMMAND_END_6cf552d9c6af45bba10b39445c7da198:0
+ioniq-vm# [6n[    3.437625] lge_lcd_driver lge_lcd_driver.0: [lge_lcd_init_func] Micom didn't sent SPI data
+[    3.437625] 
+qemu-system-x86_64: terminating on signal 15 from pid 69751 (<unknown process>)

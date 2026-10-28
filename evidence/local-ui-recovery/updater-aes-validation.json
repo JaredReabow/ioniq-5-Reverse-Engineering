@@ -1,0 +1,36 @@
+{
+  "controls": [
+    "synthetic gzip decompression/bytes-equality passed"
+  ],
+  "candidates": [
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/iasImage_1920_12",
+      "key_label": "updater-auth-aes128",
+      "offset": 12267,
+      "iv_hypothesis": "file-first-block",
+      "markers": [
+        "gzip-prefix-only"
+      ],
+      "sample_sha256": "c97176a9bdaf2dd726d565cc4ac1c8d05e05c910472ebfeee349b0b77ac5b89d",
+      "gzip_flags": 198,
+      "gzip_reserved_flags_set": true,
+      "zlib_status": "rejected",
+      "reason": "Error -3 while decompressing data: unknown header flags set"
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/iasImage_1920_12",
+      "key_label": "updater-auth-aes128",
+      "offset": 12267,
+      "iv_hypothesis": "file-first-block",
+      "markers": [
+        "gzip-prefix-only"
+      ],
+      "sample_sha256": "c97176a9bdaf2dd726d565cc4ac1c8d05e05c910472ebfeee349b0b77ac5b89d",
+      "gzip_flags": 198,
+      "gzip_reserved_flags_set": true,
+      "zlib_status": "rejected",
+      "reason": "Error -3 while decompressing data: unknown header flags set"
+    }
+  ],
+  "validated_payloads": 0
+}

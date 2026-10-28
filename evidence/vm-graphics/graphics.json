@@ -1,0 +1,237 @@
+{
+  "passed": true,
+  "scope": "diagnostic pixels and virtual keyboard only",
+  "frames": [
+    {
+      "state": "idle",
+      "width": 800,
+      "height": 480,
+      "center_rgb": [
+        34,
+        68,
+        102
+      ],
+      "full_frame_verified": true,
+      "png": "display-idle.png",
+      "sha256": "e5dc6559492007f7dd5a9f22c0488a293b1e1a4dd9c0aa7d404fd71636d4a139"
+    },
+    {
+      "state": "red",
+      "width": 800,
+      "height": 480,
+      "center_rgb": [
+        194,
+        55,
+        55
+      ],
+      "full_frame_verified": true,
+      "png": "display-red.png",
+      "sha256": "0cd76e2a4b754255bd485ea71d1545d6e4e9d706bea3d910a393f8798ba3d32c"
+    },
+    {
+      "state": "green",
+      "width": 800,
+      "height": 480,
+      "center_rgb": [
+        43,
+        156,
+        111
+      ],
+      "full_frame_verified": true,
+      "png": "display-green.png",
+      "sha256": "76c16f53af356b8910a2ba99a82774a934681d71b3dad16012ba40f3433d59a4"
+    },
+    {
+      "state": "blue",
+      "width": 800,
+      "height": 480,
+      "center_rgb": [
+        50,
+        103,
+        200
+      ],
+      "full_frame_verified": true,
+      "png": "display-blue.png",
+      "sha256": "649335c0f14ea9705d8304dc76f9b5fa979bdfbca052694b62384f634879e99c"
+    }
+  ],
+  "qmp": [
+    {
+      "received": {
+        "QMP": {
+          "version": {
+            "qemu": {
+              "micro": 2,
+              "minor": 1,
+              "major": 11
+            },
+            "package": ""
+          },
+          "capabilities": [
+            "oob"
+          ]
+        }
+      }
+    },
+    {
+      "sent": {
+        "execute": "qmp_capabilities",
+        "id": 1
+      }
+    },
+    {
+      "received": {
+        "return": {},
+        "id": 1
+      }
+    },
+    {
+      "sent": {
+        "execute": "screendump",
+        "id": 2,
+        "arguments": {
+          "filename": "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/graphics/runs/1792478185392483000/display-idle.ppm",
+          "format": "ppm"
+        }
+      }
+    },
+    {
+      "received": {
+        "return": {},
+        "id": 2
+      }
+    },
+    {
+      "sent": {
+        "execute": "send-key",
+        "id": 3,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "r"
+            }
+          ],
+          "hold-time": 50
+        }
+      }
+    },
+    {
+      "received": {
+        "return": {},
+        "id": 3
+      }
+    },
+    {
+      "sent": {
+        "execute": "screendump",
+        "id": 4,
+        "arguments": {
+          "filename": "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/graphics/runs/1792478185392483000/display-red.ppm",
+          "format": "ppm"
+        }
+      }
+    },
+    {
+      "received": {
+        "return": {},
+        "id": 4
+      }
+    },
+    {
+      "sent": {
+        "execute": "send-key",
+        "id": 5,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "g"
+            }
+          ],
+          "hold-time": 50
+        }
+      }
+    },
+    {
+      "received": {
+        "return": {},
+        "id": 5
+      }
+    },
+    {
+      "sent": {
+        "execute": "screendump",
+        "id": 6,
+        "arguments": {
+          "filename": "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/graphics/runs/1792478185392483000/display-green.ppm",
+          "format": "ppm"
+        }
+      }
+    },
+    {
+      "received": {
+        "return": {},
+        "id": 6
+      }
+    },
+    {
+      "sent": {
+        "execute": "send-key",
+        "id": 7,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "b"
+            }
+          ],
+          "hold-time": 50
+        }
+      }
+    },
+    {
+      "received": {
+        "return": {},
+        "id": 7
+      }
+    },
+    {
+      "sent": {
+        "execute": "screendump",
+        "id": 8,
+        "arguments": {
+          "filename": "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/graphics/runs/1792478185392483000/display-blue.ppm",
+          "format": "ppm"
+        }
+      }
+    },
+    {
+      "received": {
+        "return": {},
+        "id": 8
+      }
+    },
+    {
+      "sent": {
+        "execute": "send-key",
+        "id": 9,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "q"
+            }
+          ],
+          "hold-time": 50
+        }
+      }
+    },
+    {
+      "received": {
+        "return": {},
+        "id": 9
+      }
+    }
+  ]
+}

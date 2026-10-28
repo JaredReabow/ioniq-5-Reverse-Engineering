@@ -1,0 +1,10 @@
+{
+  "userspace": true,
+  "root_mounted": true,
+  "command_exit_code": 0,
+  "compatibility_patch": true,
+  "timeout": false,
+  "error": null,
+  "qemu_returncode": 0,
+  "elapsed_seconds": 5.26
+}

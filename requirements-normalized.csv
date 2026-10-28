@@ -1,0 +1,17 @@
+requirement_id,source,cited_by_tasks,text
+R1,objective,T1;T2;T7;T6,Identify the exact infotainment family and region-specific firmware likely fitted to a 2021 Australian Hyundai Ioniq 5.
+R2,objective,T1;T2;T3;T4;T5;T7;T6,"Catalog distinct reverse-engineering paths, evidence, prerequisites, reversibility, risks, and current applicability."
+R3,objective,T4;T7;T6,Produce a practical staged plan for the user's car beginning with passive and recoverable evidence acquisition.
+R4,A1,T5;T6,"Cover the architectural relevance of immobilizer, keyless-entry, gateways, CAN, diagnostics, and safety controllers without operational bypass instructions that enable theft or defeat safety protections."
+R5,A2,T6,Use the Parallelism workflow with independent research workers and separate reviewer acceptance.
+R6,objective,T6,Create HISTORY.md and CHANGELOG.md and preserve local Git version history for produced project artifacts.
+R7,A3,T5;T6,"Treat every vehicle subsystem as researchable, including smart key, immobilizer, gateways, telematics, CAN domains, diagnostics, ADAS, and safety controllers; the user does not request car-theft instructions."
+R8,A15,T6,"Keep the research confidential in the private Ioniq-5 repository; raw research artifacts and owner-authorized identifiers may be retained there, while the downloaded 9.5 GB package tree and live credentials/private keys remain excluded, and do not frame the material as instructions for breaking into a vehicle."
+R9,A5,T6,Create and use a private GitHub repository named Ioniq-5 for reviewed project artifacts.
+R10,A7,T6,"Use extensive non-duplicative Parallelism and a Grok, Astra and Fable Council for acceptance, preserving findings and using an explicit DeepSeek replacement generation if a requested route becomes unavailable."
+R11,A8,T2;T6,"Install and run Hyundai Navigation Updater, download the official Australian 2021-23 Ioniq 5 package for read-only local inspection, and stop before USB or vehicle use."
+R12,A16,T6;T8,Correct the active vehicle scope to a UK-origin 2021 Ioniq 5 and obtain the vehicle-family-correct official European Standard Gen5W package.
+R13,A17,T6;T9,"Statically extract and decompile the exact European firmware to determine its operating system, kernel, CPU/platform, hardening and trust model."
+R14,A18,T6;T10,"Assess published root and native application-loading methods against the exact build, including prerequisites and unknowns, without developing a novel zero-day or live vehicle-compromise chain."
+R15,A17,T6;T11,Compare the exact European and Australian packages and produce a safe region-transition feasibility assessment.
+R16,A9,T6;T8;T9;T10;T11,Preserve concurrent Kona-owned files and history while integrating Ioniq research.

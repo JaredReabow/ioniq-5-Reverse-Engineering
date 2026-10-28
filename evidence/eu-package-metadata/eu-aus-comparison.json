@@ -1,0 +1,307 @@
+{
+  "eu_file_count": 36,
+  "aus_file_count": 36,
+  "common_path_count": 32,
+  "eu_only": [
+    "HU/images/navi_eu/EUR.18.52.70.012.632.5_md5.txt",
+    "HU/images/navi_eu/S5W_MAP_ALL_EUR_18_52_70_012_632_5.zip",
+    "HU/images/navi_eu/appnavi.tar",
+    "IONIQ5_EU.ver"
+  ],
+  "aus_only": [
+    "2021_22_IONIQ_5_AU.ver",
+    "HU/images/navi_au/AUS.19.41.47.011.611.0_md5.txt",
+    "HU/images/navi_au/S5W_MAP_ALL_AUS_19_41_47_011_611_0.zip",
+    "HU/images/navi_au/appnavi.tar"
+  ],
+  "common": [
+    {
+      "path": ".lge.upgrade.xml",
+      "eu_size": 17670,
+      "aus_size": 17812,
+      "eu_sha256": "7b6f9817d0ac67c36237dd0a08c1c9c73404bfc013d7c8f53b009c982e086c0e",
+      "aus_sha256": "93e351d95f6afc174aa3ef8bc1e3b9a078ddc653064d21c764101024c385a8bd",
+      "same_size": false,
+      "byte_identical": false
+    },
+    {
+      "path": ".whatsnew.tar.gz",
+      "eu_size": 283607,
+      "aus_size": 325048,
+      "eu_sha256": "8eaddf47091565c37125797a9651e098e3e0c25b47cad9650024248ef5f7c40b",
+      "aus_sha256": "383bf44b3d42d54ae2e77bc2323678e4acbfa90f5f9f9826549f428ddc990c8c",
+      "same_size": false,
+      "byte_identical": false
+    },
+    {
+      "path": "AppUpgrade",
+      "eu_size": 10803676,
+      "aus_size": 10807772,
+      "eu_sha256": "5355059b8793f90440bbddafcb11ac884374d6b98b95309ac693a46aa70c2eca",
+      "aus_sha256": "bb41d8e6ceb5bb0de6f1b3c547cda13d5cd202b48864e8d9982353b83ac7ff51",
+      "same_size": false,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/firmware/frontkey/Checksum.txt",
+      "eu_size": 76,
+      "aus_size": 76,
+      "eu_sha256": "1cfe9cb8667bdfcf0b80328dbbc38c30c96c102c71b84d3d92e6bf241417a04d",
+      "aus_sha256": "1cfe9cb8667bdfcf0b80328dbbc38c30c96c102c71b84d3d92e6bf241417a04d",
+      "same_size": true,
+      "byte_identical": true
+    },
+    {
+      "path": "HU/firmware/frontkey/nx4/MKBD_2_1f_00_NX4.bin",
+      "eu_size": 196608,
+      "aus_size": 196608,
+      "eu_sha256": "fc94d048d9526723c0ac729e7ec347c817b365b4f1bcda5cd4770d2d94a7461d",
+      "aus_sha256": "fc94d048d9526723c0ac729e7ec347c817b365b4f1bcda5cd4770d2d94a7461d",
+      "same_size": true,
+      "byte_identical": true
+    },
+    {
+      "path": "HU/firmware/frontkey/us4hev/MKBD_2_22_00_US4.bin",
+      "eu_size": 196608,
+      "aus_size": 196608,
+      "eu_sha256": "5e2305bc6162178a3c0219cac736cecc0fc6b72dbcad8f4825278c0c35203e32",
+      "aus_sha256": "5e2305bc6162178a3c0219cac736cecc0fc6b72dbcad8f4825278c0c35203e32",
+      "same_size": true,
+      "byte_identical": true
+    },
+    {
+      "path": "HU/firmware/modem/au_le22/modem_au_le22.tar.gz",
+      "eu_size": 127833765,
+      "aus_size": 127833765,
+      "eu_sha256": "04b5ecc63559ce68ccb86b9e576b76a30f112ebcf9c20348efd6be3b0a9113b4",
+      "aus_sha256": "3c475fbfe4d8aa8ad2746dc83e577ef7ca010b28679529d97e90f783dad21fdd",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/firmware/modem/eu/modem_eu.tar.gz",
+      "eu_size": 158663566,
+      "aus_size": 158663566,
+      "eu_sha256": "2d6444463b01d881aa5e828cae8ddb98a73a94b6944e91a6eeded5d14fdc1240",
+      "aus_sha256": "9918066ad609a5252600327d431bc4e3de5035db9a07b579c9979c16fd099ccc",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/firmware/modem/eu_le22/modem_eu_le22.tar.gz",
+      "eu_size": 347035946,
+      "aus_size": 347035946,
+      "eu_sha256": "8a34570ec25215558a3f4f2aecee5afbf0b782b808074dfc96327e9cd77ce724",
+      "aus_sha256": "4c36ecc9dda46e5685a83a49d56ad2f364b7c14ebc484e83b72981438d477bc6",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/firmware/update.tar.gz",
+      "eu_size": 42117462,
+      "aus_size": 70901166,
+      "eu_sha256": "df39e305b9de8e92011d1665adf85e418927ea542759c0e648a3169d995dac52",
+      "aus_sha256": "7d65c2e41f3bda24072a129d07dc5673b928efebf9b795191205e630944eb736",
+      "same_size": false,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/iasImage",
+      "eu_size": 6226728,
+      "aus_size": 6226728,
+      "eu_sha256": "6db0bb746722389092e60681554a3b9f1b391f8def59c65c68e764cc9d6007ce",
+      "aus_sha256": "3a4e1e48c8865fa3aa6aecc0e3452b1e60e0e8297d5d4b60bc8a7fd83921e4cd",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/iasImage_1280",
+      "eu_size": 6226728,
+      "aus_size": 6226728,
+      "eu_sha256": "c2a314bc63e1dbe1440bd87b9135210b6eea356727ba03bdecb692b61d3bce4e",
+      "aus_sha256": "886058ddc892a40e995820b27b7a61c4130a0368b36c912eddc64978711cbf96",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/iasImage_1280_sub",
+      "eu_size": 6210308,
+      "aus_size": 6210308,
+      "eu_sha256": "55e9a31be5ca734a7af111613ae6ce83cdc579b27138c5f54700f78263056eb0",
+      "aus_sha256": "7096e3c21ef98b9cc8c5403b869b81d5ace3c0949b072cc18a909e49cdbaf4a0",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/iasImage_1920_12",
+      "eu_size": 6226728,
+      "aus_size": 6226728,
+      "eu_sha256": "aaa0384e4f147ec016f019f839a06a7ed19f3a407d8b0d23070c97c8c459e0dd",
+      "aus_sha256": "66564829aabe9cd868442a27f43acad5667c0229e69bce4e2448df3da6dcf4d2",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/iasImage_1920_12_sub",
+      "eu_size": 6210308,
+      "aus_size": 6210308,
+      "eu_sha256": "e4d7523ba0f77a7b659260df82968d515859b01e06738bf7cfd79bef83db8e05",
+      "aus_sha256": "956df432fceefb47bcb100961340d6b085fc0fbcf3072f2939f8bb78e3036315",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/iasImage_p5",
+      "eu_size": 6226728,
+      "aus_size": 6226728,
+      "eu_sha256": "57ea6691a1118020bc263c1fbdba3d7e26dd0240f4c89fac380c5578708376b0",
+      "aus_sha256": "6595a107fbc2a19fa69d1b2f417f265cf7152b0dcb9ff2d89c63fe069f210a21",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/iasImage_p5_1280",
+      "eu_size": 6226728,
+      "aus_size": 6226728,
+      "eu_sha256": "7e8fd8c426c64eec197462aed53290c63e1a12aea43a5556f45acd2c90da3476",
+      "aus_sha256": "dd6c6ef6c9c0c3970eaeb06d2ab20d2d69cc586fc1843c5ed4a0dd4268608709",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/iasImage_p5_1280_sub",
+      "eu_size": 6210308,
+      "aus_size": 6210308,
+      "eu_sha256": "fb442a993619b17c94c95826cc425a6e04c3e947c1f9c009191dec63607acbad",
+      "aus_sha256": "8b766afe75534660e18a6bc284d5f1010dc91f1ac826b2bea3dd36f931e4a026",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/iasImage_p5_1920_12",
+      "eu_size": 6226728,
+      "aus_size": 6226728,
+      "eu_sha256": "7d3c4c43cee76c45518f85df2ac07cb124a7984d238d7189e6ead9e4967500f3",
+      "aus_sha256": "e8eaeaafbef7d6285f33a96f0c72d793ceb2be4b1a142e1212f1074ac4688759",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/iasImage_p5_1920_12_sub",
+      "eu_size": 6210308,
+      "aus_size": 6210308,
+      "eu_sha256": "e4d7523ba0f77a7b659260df82968d515859b01e06738bf7cfd79bef83db8e05",
+      "aus_sha256": "956df432fceefb47bcb100961340d6b085fc0fbcf3072f2939f8bb78e3036315",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/iasImage_p5_sub",
+      "eu_size": 6210308,
+      "aus_size": 6210308,
+      "eu_sha256": "47a6f19f395529814be3eeb7a5751815fab8d31b36fdc503ef025e65070a484f",
+      "aus_sha256": "3d9f793f36e1e94c79114210fdd17774a069ccb6831b65e3d4bdbcde5cb56242",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/iasImage_sub",
+      "eu_size": 6210308,
+      "aus_size": 6210308,
+      "eu_sha256": "deb69570c89a37f15a92a2e07247138ab0ed83ea108141f24536db6f0f9bbc7f",
+      "aus_sha256": "f8368c0ceb11428e52e512c55205eb0dc1ccfcd703946603c6e809fc12fbe7c2",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/mango-rootfs.tar.gz",
+      "eu_size": 879126179,
+      "aus_size": 879081099,
+      "eu_sha256": "362d9e329d970f403df4e69fece976ed6b4aaa27537e27a99e96e7796b9ad491",
+      "aus_sha256": "717690669c56b78085945e84240cbd65dc6a08c84bc693f8a0f33e7e390db415",
+      "same_size": false,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/mango-rwdata.tar.gz",
+      "eu_size": 16737478,
+      "aus_size": 16613716,
+      "eu_sha256": "ab6be7d38a7cf024141500794a4c1015ed92a58250257f72a9a07fea5e84a2d0",
+      "aus_sha256": "de090c04b2d16e45c335136b2cc61b6a01dffcdce7e27f2f8024f1a5060ac976",
+      "same_size": false,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/mustwithcopy",
+      "eu_size": 0,
+      "aus_size": 0,
+      "eu_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "aus_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "same_size": true,
+      "byte_identical": true
+    },
+    {
+      "path": "HU/images/new_gui.tar.gz",
+      "eu_size": 2091942021,
+      "aus_size": 2091947080,
+      "eu_sha256": "af292d2dffcab9f2f5225a68d35495956e9770f6ecd5a4ea255d81869489541d",
+      "aus_sha256": "2b06895ea062ab8b011dc5ce333242cedcf6f7cfb4675a9e69efee6dd5cc413d",
+      "same_size": false,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/vrau/mango-vr.tar.gz",
+      "eu_size": 45277108,
+      "aus_size": 45277108,
+      "eu_sha256": "785fda95f8c16a069e5d6aa5c7cb60a780325a8fb385489397aab1dad2575690",
+      "aus_sha256": "987b12f6cee85c5d67d7d93ff7ad0ce8318654cf2fab7a852bbe9f1fd0b0a6a1",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/vrau/mango-vr_fixed.tar.gz",
+      "eu_size": 570557204,
+      "aus_size": 570557204,
+      "eu_sha256": "1c9d5478eead8f49163f7cbd345d92f99e8525f29f017b2cc9ca45864e2dee93",
+      "aus_sha256": "1c9d5478eead8f49163f7cbd345d92f99e8525f29f017b2cc9ca45864e2dee93",
+      "same_size": true,
+      "byte_identical": true
+    },
+    {
+      "path": "HU/images/vrau/md5sum.txt",
+      "eu_size": 200,
+      "aus_size": 200,
+      "eu_sha256": "d6a46300b815f9095f0f0c4d847bb08568768db1bbe5e7cc7d98f931ed3791d4",
+      "aus_sha256": "c05d18ce824a6e5a820fd2a382d081752aaccf8a44607a92b390af20dd57133b",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/vreu/mango-vr.tar.gz",
+      "eu_size": 65921476,
+      "aus_size": 65921476,
+      "eu_sha256": "2699a197ba87d3f4e6c9ceaf4386022e1f3cb8e9cf2bca49aa245f7a7bb267df",
+      "aus_sha256": "c813dfb82b1b15e96484f89c0e697c0bed72da7784c2a1404333e88a35cf562f",
+      "same_size": true,
+      "byte_identical": false
+    },
+    {
+      "path": "HU/images/vreu/mango-vr_fixed.tar.gz",
+      "eu_size": 2365067377,
+      "aus_size": 2365067377,
+      "eu_sha256": "8ac0dc6d83b881f435c5cd5aba4801f3ec83294b4bae04632a714d4575ffb7a2",
+      "aus_sha256": "8ac0dc6d83b881f435c5cd5aba4801f3ec83294b4bae04632a714d4575ffb7a2",
+      "same_size": true,
+      "byte_identical": true
+    },
+    {
+      "path": "HU/images/vreu/md5sum.txt",
+      "eu_size": 200,
+      "aus_size": 200,
+      "eu_sha256": "e4b8ed2e591e65e2f55c7c55cee5ccd419bb2f91ebd418b030e5a6ddccadf5c8",
+      "aus_sha256": "3481b2975ec97b134c3f32e70f623362a86ef46a93ec4655ee5d899d2fd3851a",
+      "same_size": true,
+      "byte_identical": false
+    }
+  ]
+}

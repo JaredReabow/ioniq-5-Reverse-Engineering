@@ -1,0 +1,10 @@
+{
+  "evidence/vm-local-only/result-success.json": "77973a112eda127f783b65b1a5245e756a9b2de2f2c55e9c1142ac06e1bb2cc3",
+  "evidence/vm-local-only/result-unpatched.json": "e4495006642413acdc8fc485be591436277b34eccc9278f0d88d29f5764e9e47",
+  "evidence/vm-local-only/local-ui-inventory.json": "b7425cc798d86b63eb2aaa5e10abbfb6dbc487a98af06daa59d9dfcf5b2d7782",
+  "evidence/vm-local-only/serial-success.log": "99ed9ddf047905c42c94bb52d0cf35cadf19df630964deab57b2c5ad5e4ab79f",
+  "evidence/vm-local-only/ram-patch.json": "b1af6ddc455f7d5d8e09b05de3d31858340e8b263a14b969ffcecbdea3696e53",
+  "evidence/vm-local-only/sdhci-pci-table.json": "5c6a81fe6e0d498e0f58b751eb3050b9eed16d6e53c569b3ebcec08b2a7768d6",
+  "work/vm/local-only/probe-20261020-152907/serial.log": "0beff5f32dc45091be32a11e4cc1025157fb49a1ceec160395fc55ef01d8f48e",
+  "work/vm/bootable/runs/1792470946687281000/serial.log": "7861472b5471c23381e0142664b3ee69cbb50ba62aed9efda3db20ce40900365"
+}

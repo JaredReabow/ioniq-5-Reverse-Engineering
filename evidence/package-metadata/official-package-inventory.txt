@@ -1,0 +1,189 @@
+# Official Hyundai Navigation Updater package inventory
+#
+# Target: 2021-23 IONIQ 5, Standard-class Gen5W, Australia
+# Software identity: NE_E.AUS.S5W_L.001.001.260319
+# Map identity: AUS.19.41.47.011.611.0
+# Package root inspected: /Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU
+# Inspection date: 2026-10-19 (Australia/Sydney)
+#
+# Scope: read-only local inventory. No file was executed, mounted, modified, or
+# written to removable media. The package remains outside Git.
+#
+# File count: 36
+# Total bytes: 9,514,830,930 (8.861 GiB)
+# SHA-256 of the bytewise-sorted (LC_ALL=C) relative-path manifest:
+# bc3013e5fc1499612cec76777aa736e0973a0b8a337c6619aace9af5a4d9652a
+#
+# The 36 files comprise:
+#   - 5 plain-text descriptors/checksum lists
+#   - 2 front-key binaries
+#   - 3 ordinary archives (one PKZIP and two gzip/tar streams)
+#   - 6 plaintext IPK boot/kernel containers (`*_sub`)
+#   - 19 high-entropy opaque envelopes
+#   - 1 empty sentinel (`mustwithcopy`)
+#
+# Entropy is Shannon entropy in bits per byte over the first and last 1 MiB.
+# It is an observation, not proof of encryption. A 16-byte trailer is shown
+# where present; the trailer's semantics are not inferred from its value.
+#
+# Relative path | bytes | SHA-256 | file(1) observation | head/tail entropy | last 16 bytes
+| `.lge.upgrade.xml` | 17812 | `93e351d95f6afc174aa3ef8bc1e3b9a078ddc653064d21c764101024c385a8bd` | data | 7.9862 / 7.9862 | `dccba2068664487a45b0c6972e0360dc` |
+| `.whatsnew.tar.gz` | 325048 | `383bf44b3d42d54ae2e77bc2323678e4acbfa90f5f9f9826549f428ddc990c8c` | data | 7.9995 / 7.9995 | `cbcccc4da6837ea97dcec77608f62933` |
+| `2021_22_IONIQ_5_AU.ver` | 2785 | `a961b564ed4074c6a9bb4624f59c4aa48c73d4986ac20300d9b3a7163b3e3f99` | ASCII text | 5.0203 / 5.0203 | `3339363438327c3332353034387c310a` |
+| `AppUpgrade` | 10807772 | `bb41d8e6ceb5bb0de6f1b3c547cda13d5cd202b48864e8d9982353b83ac7ff51` | data; file(1) labels it OpenPGP Public Key, which is not treated as established | 7.9998 / 7.9998 | `dccba2068664487a45b0c6972e0360dc` |
+| `HU/firmware/frontkey/Checksum.txt` | 76 | `1cfe9cb8667bdfcf0b80328dbbc38c30c96c102c71b84d3d92e6bf241417a04d` | ASCII text | 4.3933 / 4.3933 | `524333323d307842434643433635440a` |
+| `HU/firmware/frontkey/nx4/MKBD_2_1f_00_NX4.bin` | 196608 | `fc94d048d9526723c0ac729e7ec347c817b365b4f1bcda5cd4770d2d94a7461d` | data; begins d8 00 ff, ends with repeated ff | 4.0653 / 4.0653 | `ffffffffffffffffffffffffffffffff` |
+| `HU/firmware/frontkey/us4hev/MKBD_2_22_00_US4.bin` | 196608 | `5e2305bc6162178a3c0219cac736cecc0fc6b72dbcad8f4825278c0c35203e32` | data; begins d8 00 ff, ends with repeated ff | 4.0388 / 4.0388 | `ffffffffffffffffffffffffffffffff` |
+| `HU/firmware/modem/au_le22/modem_au_le22.tar.gz` | 127833765 | `3c475fbfe4d8aa8ad2746dc83e577ef7ca010b28679529d97e90f783dad21fdd` | data; no gzip magic | 7.9998 / 7.9998 | `cbcccc4da6837ea97dcec77608f62933` |
+| `HU/firmware/modem/eu/modem_eu.tar.gz` | 158663566 | `9918066ad609a5252600327d431bc4e3de5035db9a07b579c9979c16fd099ccc` | data; no gzip magic | 7.9998 / 7.9998 | `c2f7bd119a1e7a32855e19c11a491d2a` |
+| `HU/firmware/modem/eu_le22/modem_eu_le22.tar.gz` | 347035946 | `4c36ecc9dda46e5685a83a49d56ad2f364b7c14ebc484e83b72981438d477bc6` | data; no gzip magic | 7.9998 / 7.9998 | `76e9a4ac9c274059ab5e179d271e32ea` |
+| `HU/firmware/update.tar.gz` | 70901166 | `7d65c2e41f3bda24072a129d07dc5673b928efebf9b795191205e630944eb736` | data; no gzip magic | 7.9998 / 7.9998 | `dccba2068664487a45b0c6972e0360dc` |
+| `HU/images/iasImage` | 6226728 | `3a4e1e48c8865fa3aa6aecc0e3452b1e60e0e8297d5d4b60bc8a7fd83921e4cd` | data; opaque | 7.9998 / 7.9998 | `f19b8dd27aff2b394e442fb7c9e001f9` |
+| `HU/images/iasImage_1280` | 6226728 | `886058ddc892a40e995820b27b7a61c4130a0368b36c912eddc64978711cbf96` | data; opaque | 7.9998 / 7.9998 | `a875ca661c8a4e2a48896378cd019577` |
+| `HU/images/iasImage_1280_sub` | 6210308 | `7096e3c21ef98b9cc8c5403b869b81d5ace3c0949b072cc18a909e49cdbaf4a0` | data; starts with `ipk.`; plaintext IPK/kernel container | 7.5010 / 5.8725 | `2af67733d70617bf9532419501000100` |
+| `HU/images/iasImage_1920_12` | 6226728 | `66564829aabe9cd868442a27f43acad5667c0229e69bce4e2448df3da6dcf4d2` | data; opaque | 7.9998 / 7.9998 | `a875ca661c8a4e2a48896378cd019577` |
+| `HU/images/iasImage_1920_12_sub` | 6210308 | `956df432fceefb47bcb100961340d6b085fc0fbcf3072f2939f8bb78e3036315` | data; starts with `ipk.`; plaintext IPK/kernel container | 7.5010 / 5.8725 | `2af67733d70617bf9532419501000100` |
+| `HU/images/iasImage_p5` | 6226728 | `6595a107fbc2a19fa69d1b2f417f265cf7152b0dcb9ff2d89c63fe069f210a21` | data; opaque | 7.9998 / 7.9998 | `a875ca661c8a4e2a48896378cd019577` |
+| `HU/images/iasImage_p5_1280` | 6226728 | `dd6c6ef6c9c0c3970eaeb06d2ab20d2d69cc586fc1843c5ed4a0dd4268608709` | data; opaque | 7.9998 / 7.9998 | `a875ca661c8a4e2a48896378cd019577` |
+| `HU/images/iasImage_p5_1280_sub` | 6210308 | `8b766afe75534660e18a6bc284d5f1010dc91f1ac826b2bea3dd36f931e4a026` | data; starts with `ipk.`; plaintext IPK/kernel container | 7.5010 / 5.8725 | `2af67733d70617bf9532419501000100` |
+| `HU/images/iasImage_p5_1920_12` | 6226728 | `e8eaeaafbef7d6285f33a96f0c72d793ceb2be4b1a142e1212f1074ac4688759` | data; opaque | 7.9998 / 7.9998 | `a875ca661c8a4e2a48896378cd019577` |
+| `HU/images/iasImage_p5_1920_12_sub` | 6210308 | `956df432fceefb47bcb100961340d6b085fc0fbcf3072f2939f8bb78e3036315` | data; starts with `ipk.`; plaintext IPK/kernel container | 7.5010 / 5.8725 | `2af67733d70617bf9532419501000100` |
+| `HU/images/iasImage_p5_sub` | 6210308 | `3d9f793f36e1e94c79114210fdd17774a069ccb6831b65e3d4bdbcde5cb56242` | data; starts with `ipk.`; plaintext IPK/kernel container | 7.5010 / 5.8726 | `2af67733d70617bf9532419501000100` |
+| `HU/images/iasImage_sub` | 6210308 | `f8368c0ceb11428e52e512c55205eb0dc1ccfcd703946603c6e809fc12fbe7c2` | data; starts with `ipk.`; plaintext IPK/kernel container | 7.5010 / 5.8725 | `2af67733d70617bf9532419501000100` |
+| `HU/images/mango-rootfs.tar.gz` | 879081099 | `717690669c56b78085945e84240cbd65dc6a08c84bc693f8a0f33e7e390db415` | data; no gzip magic | 7.9998 / 7.9998 | `a875ca661c8a4e2a48896378cd019577` |
+| `HU/images/mango-rwdata.tar.gz` | 16613716 | `de090c04b2d16e45c335136b2cc61b6a01dffcdce7e27f2f8024f1a5060ac976` | data; no gzip magic | 7.9998 / 7.9998 | `6063d951c5de02505f9c1fa70edbe717` |
+| `HU/images/mustwithcopy` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | empty | 0.0000 / 0.0000 | none |
+| `HU/images/navi_au/AUS.19.41.47.011.611.0_md5.txt` | 73 | `565b8af260b2707de06d278f1eb6b3fd6b958f6f00cc7dcb1a11cfd9d43fb41f` | ASCII text | 4.4437 / 4.4437 | `375f3031315f3631315f302e7a69700a` |
+| `HU/images/navi_au/S5W_MAP_ALL_AUS_19_41_47_011_611_0.zip` | 2176363209 | `f5414e71d4e81a4b6cd85d1d41eda5edcc0833e0743e7b1a29178bc93d576c1c` | PKZIP v2.0; first entry method=store; `unzip -t -qq` exit 0 | 7.9979 / 7.9517 | `3e25e794f40c26cc6609c44fc5d7af5e` |
+| `HU/images/navi_au/appnavi.tar` | 513398820 | `440f32546cc991bb767bb2b5ef6e01ea010eebfdf41af39b22b264889cc68e69` | data; no tar magic at offset 257 | 7.9998 / 7.9998 | `0eb9732d6b1232de4f333dcc9cd4618e` |
+| `HU/images/new_gui.tar.gz` | 2091947080 | `2b06895ea062ab8b011dc5ce333242cedcf6f7cfb4675a9e69efee6dd5cc413d` | data; no gzip magic | 7.9998 / 7.9998 | `6063d951c5de02505f9c1fa70edbe717` |
+| `HU/images/vrau/mango-vr.tar.gz` | 45277108 | `987b12f6cee85c5d67d7d93ff7ad0ce8318654cf2fab7a852bbe9f1fd0b0a6a1` | data; no gzip magic | 7.9998 / 7.9998 | `8af63150de64958bb26ce74a98175a9e` |
+| `HU/images/vrau/mango-vr_fixed.tar.gz` | 570557204 | `1c9d5478eead8f49163f7cbd345d92f99e8525f29f017b2cc9ca45864e2dee93` | gzip, timestamp Thu May 8 02:40:12 2025; uncompressed size 652823552 | 7.9756 / 7.9983 | `8bbf8b3ffe09f1bf59017bf9004ce926` |
+| `HU/images/vrau/md5sum.txt` | 200 | `c05d18ce824a6e5a820fd2a382d081752aaccf8a44607a92b390af20dd57133b` | ASCII text | 5.4236 / 5.4236 | `76725f66697865642e7461722e677a0a` |
+| `HU/images/vreu/mango-vr.tar.gz` | 65921476 | `c813dfb82b1b15e96484f89c0e697c0bed72da7784c2a1404333e88a35cf562f` | data; no gzip magic | 7.9998 / 7.9998 | `ecef7ea4d72a37707f4836a90c416c04` |
+| `HU/images/vreu/mango-vr_fixed.tar.gz` | 2365067377 | `8ac0dc6d83b881f435c5cd5aba4801f3ec83294b4bae04632a714d4575ffb7a2` | gzip, timestamp Wed Dec 10 04:02:15 2025; uncompressed size 2707097088 | 7.9917 / 7.9989 | `fcef9fffde3fff07c39b72be00065ba1` |
+| `HU/images/vreu/md5sum.txt` | 200 | `3481b2975ec97b134c3f32e70f623362a86ef46a93ec4655ee5d899d2fd3851a` | ASCII text | 5.3434 / 5.3434 | `76725f66697865642e7461722e677a0a` |
+
+# Manifest result
+#
+# `2021_22_IONIQ_5_AU.ver` contains one package identity line followed by 35
+# payload records. Each record carries a signed decimal CRC field (interpreted
+# as unsigned 32-bit) and a byte size. Streaming computation with IEEE/zlib
+# CRC-32 (`Zlib.crc32`) produced:
+#
+#   entries=35 match=35 mismatch=0
+#   declared payload bytes=9,514,828,145
+#
+# The excluded 36th file is the `.ver` file itself (2,785 bytes).
+#
+# The two front-key binaries are checked separately by
+# `HU/firmware/frontkey/Checksum.txt` with CRC-32/MPEG-2, not IEEE CRC-32:
+#
+#   MKBD_2_1F_00_NX4.BIN   CRC32=0x0E969002   observed 0x0E969002
+#   MKBD_2_22_00_US4.BIN   CRC32=0xBCFCC65D   observed 0xBCFCC65D
+#
+# CRC-32/MPEG-2 is polynomial 0x04C11DB7, initial value 0xFFFFFFFF, MSB-first,
+# no final XOR. The two values are valid; an IEEE-CRC comparison would produce
+# a spurious mismatch.
+
+# MD5 cross-checks
+#
+# Map:
+#   declared 6b0b80623b56581cae994b49c02660ce *S5W_MAP_ALL_AUS_19_41_47_011_611_0.zip
+#   observed 6b0b80623b56581cae994b49c02660ce
+#
+# Australian voice resources:
+#   declared 8fa479c97e752b43c907c7838a7856ed
+#   observed 8fa479c97e752b43c907c7838a7856ed
+#
+# European voice resources:
+#   declared 6303095ad812cef04e245a5d0aa9ac08
+#   observed 6303095ad812cef04e245a5d0aa9ac08
+
+# Archive observations
+#
+# Map ZIP:
+#   `unzip -l` summary: 374 entries (tool count), 4,267,615,968 uncompressed bytes.
+#   `unzip -t -qq`: exit 0.
+#   Entry names include DATA/COMMON/FONT, DATA/NATION/AUS/MAP, and license text.
+#
+# Voice archives:
+#   both `mango-vr_fixed.tar.gz` files pass `gzip -t`.
+#   `gzip -l` reports 652,823,552 and 2,707,097,088 uncompressed bytes.
+#   `tar -tzf` begins with `vr_fixed/LPTE/BASE/...` and lists TTS/ASR assets.
+#   The md5sum files also carry the build path fragment
+#   `__EVENT_BUILD_s5w.26ru1.251203_MASS_PRODUCT_26RU1_001_260312102711`.
+
+# IPK boot/kernel containers
+#
+# The six `*_sub` files are 6,210,308 bytes each and begin with `ipk.`:
+#
+#   00000000: 6970 6b2e 0003 0300 0000 0000 ccbf 5e00  ipk...........^.
+#   00000010: 3400 0000 ccbf 5e00 948d f042 b903 0000  4.....^....B....
+#   00000020: e048 5100 0000 0000 360e 0000 f804 0000  .HQ.....6.......
+#   00000030: 0060 0d00 726f 6f74 3d2f 6465 762f 6d6d  .`..root=/dev/mm
+#
+# Observed header observations:
+#   - magic `ipk.` at offset 0
+#   - bytes 0x04-0x07: 00 03 03 00
+#   - field at 0x10: 0x00000034, which is also the start of the command line
+#   - field at 0x0c and 0x14: 0x005EBFCC, exactly 824 bytes less than file size
+#   - field at 0x28: 0x00000E36
+#   - field at 0x2c: 0x000004F8
+#   - field at 0x30: 0x000D6000
+#
+# The command line starts at 0x34. The x86 Linux boot sector begins at 0x3F0;
+# `HdrS` appears at 0x5F2 and the x86 boot signature 55 AA at 0x5FE.
+# Build string observed at 0x3710:
+#   4.1.27-abl (vc.integrator 7a0c10c@LGEAVSCI40) #1 SMP Thu Mar 19 16:22:46 KST 2026
+#
+# Runtime-relevant strings in the same container:
+#   root=/dev/mmcblk0p3
+#   rootfstype=ext4
+#   rootwait
+#   init=/lib/systemd/esinit
+#   console=ttyS2,115200n8
+#   i915.nuclear_pageflip=1
+#   i915.enable_1920_720_mode=1
+#   i915.splash=HDMI-A-1:splash_1920x720.data:1920,720,1920,0,0,1920,720
+#   lge.lcd_res=1920,720
+#   lge.lcd_type=3
+#   x86_64
+#
+# These establish a Linux x86-64 boot image with eMMC/ext4/systemd/i915
+# strings. They are static observations, not proof of live vehicle behavior.
+
+# Opaque envelopes and fixed 16-byte trailers
+#
+# The following groups are high-entropy and share an identical final 16 bytes:
+#
+#   a875ca661c8a4e2a48896378cd019577
+#     iasImage_1280, iasImage_1920_12, iasImage_p5, iasImage_p5_1280,
+#     iasImage_p5_1920_12, mango-rootfs.tar.gz
+#
+#   dccba2068664487a45b0c6972e0360dc
+#     .lge.upgrade.xml, AppUpgrade, HU/firmware/update.tar.gz
+#
+#   cbcccc4da6837ea97dcec77608f62933
+#     .whatsnew.tar.gz, modem_au_le22.tar.gz
+#
+#   6063d951c5de02505f9c1fa70edbe717
+#     mango-rwdata.tar.gz, new_gui.tar.gz
+#
+#   The six plaintext `*_sub` IPK files share:
+#     2af67733d70617bf9532419501000100
+#
+# The remaining opaque files have unique 16-byte terminal values:
+#   iasImage                         f19b8dd27aff2b394e442fb7c9e001f9
+#   modem_eu.tar.gz                  c2f7bd119a1e7a32855e19c11a491d2a
+#   modem_eu_le22.tar.gz             76e9a4ac9c274059ab5e179d271e32ea
+#   appnavi.tar                       0eb9732d6b1232de4f333dcc9cd4618e
+#   vrau/mango-vr.tar.gz              8af63150de64958bb26ce74a98175a9e
+#   vreu/mango-vr.tar.gz              ecef7ea4d72a37707f4836a90c416c04
+#
+# The repeated trailers and near-8-bit entropy are consistent with a
+# proprietary encrypted or otherwise encoded envelope. They do not by
+# themselves establish the cipher, key, authentication mode, or trailer role.
+# `.lge.upgrade.xml` has no readable XML tag/declaration strings and
+# `.whatsnew.tar.gz` has no gzip magic despite their names, so filename
+# extensions are not container evidence.

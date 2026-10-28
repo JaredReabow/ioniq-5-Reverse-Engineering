@@ -1,0 +1,59 @@
+# Official Hyundai metadata and package identity for task T2
+#
+# Research/access date: 2026-10-18 (Australia/Sydney)
+# Package acquisition date: 2026-10-19 (Australia/Sydney)
+# Fetched with: curl 8.7.1 (see evidence/official-package-static.md)
+# Contents are public web pages, the public installer, and compact package
+# metadata. Firmware bytes, extracted trees, vehicle data, credentials and
+# secrets are outside Git. Hashes identify the exact bytes observed; live web
+# pages may change later.
+#
+# sha256                                                            bytes      role
+0fa8fe13a4aa2211cd7fb18e3049b6bddb30d5db6519c049f15d7b4e6272c33b  31049      updateNoticePopup/aiD0Sq (AU software-version table, S1)
+2cd99536921fdc6aa0c8516ce1cc5d2eaf8bfeb3cf61c9e23d3fa5a010fc4534  19471      updateNoticeList (AU notice index, S2)
+e9114f0ff6506c2341d079a1a879c885ec210cf1d0e4dbd05719b262645c7da9  30830      updateNoticeView/yNDC3y (June 2026 notice, S3)
+45ed9130f3c5b34d7e8f023cbe8f38e62cf252cda4071260efdae889e9e5830f  21064      navigationUpdate (updater download page, S17)
+8b32a907aa6193cff6dbdef56e615fd9a126b019b995bed156033a28d50c3cb0  24567      updateGuide/00 (prepare media, S20)
+1c0542f6f19d82283849c5a699748a84e99a188871a64af49adc797cd3c8c686  23447      updateGuide/03 (select vehicle and download, S21)
+aa5016f278a355ea7a6017a01371b4df28ef0b5eb9bf160478147f8d5c1d1612  28784      updateGuide/04 (in-vehicle install steps, S22)
+ecbecd7d057a2f15100455ce14a3b04f4005991d90312f36ff35b2260f6c3ba7  194454209  NavigationUpdaterInstaller.zip (macOS client installer, S18)
+
+# Official installer endpoint (from the public download page, S17/S18)
+https://oem-setup.map-care.com/update_program_download/nau_client/crossplatform/install/NavigationUpdaterInstaller.zip
+  HTTP 200  Content-Type: application/zip  Content-Length: 194454209
+  Last-Modified: Wed, 14 Oct 2026 08:37:46 GMT   (response Date: Sun, 18 Oct 2026 12:33:21 GMT)
+https://oem-setup.map-care.com/update_program_download/nau_client/crossplatform/install/NavigationUpdaterInstaller.exe
+  HTTP 200  Content-Type: application/octet-stream  Content-Length: 221655464
+  Last-Modified: Wed, 14 Oct 2026 08:38:45 GMT
+
+# Installer internals observed (static, read-only)
+NavigationUpdaterInstaller.app/Contents/MacOS/NavigationUpdaterInstaller  67767328 bytes (Mach-O, Qt)
+NavigationUpdaterInstaller.app/Contents/Resources/installer.dat         156984045 bytes (magic "qres" = Qt binary resource)
+
+# Re-verified 2026-10-19: a second independent download of the same URL is
+# byte-identical, both copies pass `unzip -t`, and the extracted bundle fails
+# `codesign --verify --deep --strict` (invalid signature). Details, including the
+# authorised ad-hoc repair and IFW CLI results, are in installer-identity.txt.
+
+# Official package acquired through the installed updater
+updater application : Navigation Updater 261.015.0.215 (com.hyundai.update)
+updater binary      : SHA-256 7b63734d60ca42648e81fcf12a9518c46077859554c050e2134dc27120e0f37c
+selection           : AU / Hyundai / 2021-23 IONIQ 5 / Standard-class Gen5W
+software version    : NE_E.AUS.S5W_L.001.001.260319
+map version         : AUS.19.41.47.011.611.0
+model string        : NEAE.S5BLN.AAU
+local package root  : /Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU
+package files       : 36
+total bytes         : 9,514,830,930
+declared payload    : 35 files / 9,514,828,145 bytes
+sorted-tree digest  : bc3013e5fc1499612cec76777aa736e0973a0b8a337c6619aace9af5a4d9652a
+manifest validation : 35/35 sizes and IEEE/zlib CRC-32 values match
+map MD5             : 6b0b80623b56581cae994b49c02660ce (declared and observed)
+voice MD5 (AU)      : 8fa479c97e752b43c907c7838a7856ed (declared and observed)
+voice MD5 (EU)      : 6303095ad812cef04e245a5d0aa9ac08 (declared and observed)
+inventory detail    : evidence/package-metadata/official-package-inventory.txt
+
+# Historical negative results that remain true
+# - no official AU HTML page publishing a package filename, size or checksum
+# - no public unauthenticated package endpoint was established
+# - no plaintext NaU service host was established from the installer binary

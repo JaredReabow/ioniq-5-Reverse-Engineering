@@ -1,0 +1,16 @@
+{
+  "evidence/local-ui-recovery/boot-public-keys.json": "a5d46eae416ea67bb6482a53169597c1fbcbcbfce2b06ea28e1315a05e49c98c",
+  "evidence/local-ui-recovery/package-inventory.json": "ec4d29679574e4d1e5fa39671edd2170f5a67cd91cc4b890f94bf0aeadd46c0b",
+  "evidence/local-ui-recovery/probe_updater_aes.py": "6c7655871fb26eb21694aef199ac8993d99b302bfbb19d563dae2ee0107dfe05",
+  "evidence/local-ui-recovery/public-rsa-edges.json": "3abb4ba3c086d6c3e77ad4b41ebbfabb193327d1033cb7404cac5e5ed7624455",
+  "evidence/local-ui-recovery/tests-all.log": "c2d935143e70701fb61130a7200eae3bae74df99b85dd028503a5ae89218827b",
+  "evidence/local-ui-recovery/updater-aes-callers.json": "40b6a38d7d4576cf776d1a86ce84e845a21aa5d4cbeaf5c559464e467d327706",
+  "evidence/local-ui-recovery/updater-aes-probe.json": "5a7a6bf263fc67ea95acd16e229c6e06a84e3317eea6e20b978b80301bb564dc",
+  "evidence/local-ui-recovery/updater-aes-validation.json": "6ffae57645a94ed9d71cc30a7bc68cce21c39fac384f93ebc4e1034b4bfeb3e3",
+  "evidence/local-ui-recovery/updater-aes.asm": "5607a0f2189dac8510c5a2c115dc0ace0140c7e7649b21367657d0def6bacb59",
+  "evidence/local-ui-recovery/updater-auth-constructor.asm": "8b3deb082adb8b2f6392b7e71ed80ae055b4f3457683f91b25eef37a7fe17f60",
+  "evidence/local-ui-recovery/updater-decrypt-function.json": "21a8180484fd58c96b62239a53c9df778bc4d20aaaaf09143e7e353575e9cd71",
+  "evidence/local-ui-recovery/updater-macho.json": "4d59ff0e1efec727b0df0d3cdfb1cf45b9ffc0ac50db17d3e6c0c778424c2d2b",
+  "evidence/local-ui-recovery/validate_updater_hits.py": "4393405cefb8510513a532a98aad7a99e550f65838bd2b3ee2c5acb31e791a1b",
+  "evidence/local-ui-recovery/vm-regressions.json": "8611d00294a9cc0b78965e498feb30e9fabc1aa8d11bef3b55487df9b33383ab"
+}

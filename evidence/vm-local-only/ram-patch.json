@@ -1,0 +1,7 @@
+{
+  "address": "0xffffffff8164d100",
+  "breakpoint": "0xffffffff81b24bac",
+  "original": "22100000ffffffffffffffffffffffff0005080000ffff0040d16481ffffffff",
+  "replacement": "361b000007000000ffffffffffffffff0005080000ffff000000000000000000",
+  "scope": "guest RAM only; removes AMD quirks for QEMU's generic controller"
+}

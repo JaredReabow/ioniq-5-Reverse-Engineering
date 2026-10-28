@@ -1,0 +1,262 @@
+{
+  "scope": "Full-byte magic scan of 14 selected opaque files; structured ELF/tar validation; gzip probes capped at 64KiB compressed and output. ZIP regular-member first 512 bytes only. No recursive extraction, no decryption, no target execution.",
+  "report_sha256": "3a9af5db10be768a82ee193750fad33ca714b08b50bd560221551007c74dc1ff",
+  "source_sha256": "51970d71b772ceaa41509384c90ec962ecac049257c7ec34187212b94a89e72e",
+  "total_opaque_bytes_scanned": 7134873011,
+  "opaque_file_count": 14,
+  "opaque_files": [
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/AppUpgrade",
+      "size": 10803676,
+      "bytes_scanned": 10803676,
+      "sha256": "5355059b8793f90440bbddafcb11ac884374d6b98b95309ac693a46aa70c2eca",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 2,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 0.02
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/.lge.upgrade.xml",
+      "size": 17670,
+      "bytes_scanned": 17670,
+      "sha256": "7b6f9817d0ac67c36237dd0a08c1c9c73404bfc013d7c8f53b009c982e086c0e",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 0,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 0.0
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/firmware/update.tar.gz",
+      "size": 42117462,
+      "bytes_scanned": 42117462,
+      "sha256": "df39e305b9de8e92011d1665adf85e418927ea542759c0e648a3169d995dac52",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 2,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 0.09
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/mango-rootfs.tar.gz",
+      "size": 879126179,
+      "bytes_scanned": 879126179,
+      "sha256": "362d9e329d970f403df4e69fece976ed6b4aaa27537e27a99e96e7796b9ad491",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 50,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 1.81
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/new_gui.tar.gz",
+      "size": 2091942021,
+      "bytes_scanned": 2091942021,
+      "sha256": "af292d2dffcab9f2f5225a68d35495956e9770f6ecd5a4ea255d81869489541d",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 125,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 4.38
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/mango-rwdata.tar.gz",
+      "size": 16737478,
+      "bytes_scanned": 16737478,
+      "sha256": "ab6be7d38a7cf024141500794a4c1015ed92a58250257f72a9a07fea5e84a2d0",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 1,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 0.04
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/navi_eu/appnavi.tar",
+      "size": 511361060,
+      "bytes_scanned": 511361060,
+      "sha256": "df9bcb76a8f9a9eb488a94f40b0dab567c2845e2a153a3b5ee4d7e25d14f93cf",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 36,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 1.08
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/AppUpgrade",
+      "size": 10807772,
+      "bytes_scanned": 10807772,
+      "sha256": "bb41d8e6ceb5bb0de6f1b3c547cda13d5cd202b48864e8d9982353b83ac7ff51",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 1,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 0.02
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/.lge.upgrade.xml",
+      "size": 17812,
+      "bytes_scanned": 17812,
+      "sha256": "93e351d95f6afc174aa3ef8bc1e3b9a078ddc653064d21c764101024c385a8bd",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 0,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 0.0
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/firmware/update.tar.gz",
+      "size": 70901166,
+      "bytes_scanned": 70901166,
+      "sha256": "7d65c2e41f3bda24072a129d07dc5673b928efebf9b795191205e630944eb736",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 2,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 0.14
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/mango-rootfs.tar.gz",
+      "size": 879081099,
+      "bytes_scanned": 879081099,
+      "sha256": "717690669c56b78085945e84240cbd65dc6a08c84bc693f8a0f33e7e390db415",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 42,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 1.92
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/new_gui.tar.gz",
+      "size": 2091947080,
+      "bytes_scanned": 2091947080,
+      "sha256": "2b06895ea062ab8b011dc5ce333242cedcf6f7cfb4675a9e69efee6dd5cc413d",
+      "raw_magic_hits": {
+        "elf": 1,
+        "gzip": 110,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 4.36
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/mango-rwdata.tar.gz",
+      "size": 16613716,
+      "bytes_scanned": 16613716,
+      "sha256": "de090c04b2d16e45c335136b2cc61b6a01dffcdce7e27f2f8024f1a5060ac976",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 0,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 0.04
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/navi_au/appnavi.tar",
+      "size": 513398820,
+      "bytes_scanned": 513398820,
+      "sha256": "440f32546cc991bb767bb2b5ef6e01ea010eebfdf41af39b22b264889cc68e69",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 36,
+        "ustar": 0
+      },
+      "candidates": [],
+      "elapsed_seconds": 1.05
+    }
+  ],
+  "controls": [
+    {
+      "path": "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/busybox",
+      "size": 1131168,
+      "bytes_scanned": 1131168,
+      "sha256": "6e123e7f3202a8c1e9b1f94d8941580a25135382b99e8d3e34fb858bba311348",
+      "raw_magic_hits": {
+        "elf": 1,
+        "gzip": 1,
+        "ustar": 2
+      },
+      "candidates": [
+        {
+          "kind": "validated_x86_64_ELF_headers",
+          "offset": 0,
+          "type": 2,
+          "machine": 62,
+          "load_segments": [
+            {
+              "offset": 0,
+              "filesz": 1119776,
+              "memsz": 1119776,
+              "flags": 5
+            },
+            {
+              "offset": 1122272,
+              "filesz": 8189,
+              "memsz": 8189,
+              "flags": 6
+            }
+          ]
+        }
+      ],
+      "elapsed_seconds": 0.0
+    },
+    {
+      "path": "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/local-only/scan-positive.xml.gz",
+      "size": 58,
+      "bytes_scanned": 58,
+      "sha256": "9704ab9a87aaed044ac1617906d978a622127ac27be727bda03c9ca1b14e9bec",
+      "raw_magic_hits": {
+        "elf": 0,
+        "gzip": 1,
+        "ustar": 0
+      },
+      "candidates": [
+        {
+          "kind": "gzip_candidate",
+          "offset": 0,
+          "member_completed_within_64KiB_caps": true,
+          "prefix_sha256": "bdfe6a59453018d98af53d8ea20a661b29266ea5d03beaee3b2780421b1f63b5",
+          "prefix_length": 47,
+          "decoded_elf_prefix": false,
+          "decoded_tar_prefix": false
+        }
+      ],
+      "elapsed_seconds": 0.0
+    }
+  ],
+  "map_zips": [
+    {
+      "path": "/Users/researcher/Downloads/NaU/IONIQ5_EU/HU/images/navi_eu/S5W_MAP_ALL_EUR_18_52_70_012_632_5.zip",
+      "regular_entries_checked": 1236,
+      "candidates": []
+    },
+    {
+      "path": "/Users/researcher/Downloads/NaU/2021_22_IONIQ_5_AU/HU/images/navi_au/S5W_MAP_ALL_AUS_19_41_47_011_611_0.zip",
+      "regular_entries_checked": 335,
+      "candidates": []
+    }
+  ]
+}

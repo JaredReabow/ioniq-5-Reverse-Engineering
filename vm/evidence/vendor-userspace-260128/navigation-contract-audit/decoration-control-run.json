@@ -1,0 +1,10 @@
+{
+  "purpose": "single-variable decoration environment control; same observer and baseline flow otherwise",
+  "baseline_sha256": "906e734012a9a9cac35aed2e9258674215b407a93cdce9e58024a2f78bf8dd9f",
+  "control_sha256": "0828cdb89ec07748a81557825034c26a331d1faed91667f35b355cd3c83546f2",
+  "observer_sha256": "bbfae649b64fce94370bd25fabf0b79e628dd34972639148528600ffab887f63",
+  "started_unix": 1793068343.377555,
+  "timeout_seconds": 900,
+  "returncode": 0,
+  "finished_unix": 1793068832.157896
+}

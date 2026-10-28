@@ -1,0 +1,1613 @@
+{
+  "files": [
+    {
+      "published": "vm/repro/init",
+      "published_sha256": "5aa90cea76d1a5144068d1b9aa8c386b43aac7f6775c9bd449d54a408c46692a",
+      "published_size": 1001,
+      "size": 1001,
+      "source": "work/vm/init",
+      "source_sha256": "5aa90cea76d1a5144068d1b9aa8c386b43aac7f6775c9bd449d54a408c46692a"
+    },
+    {
+      "published": "vm/repro/local-only/probe_boot.py",
+      "published_sha256": "f6e110c26d5ae1b5e6b437bbcedfc29be6f61d3a65b93bfe25ca3a983a0e1362",
+      "published_size": 5674,
+      "size": 5674,
+      "source": "work/vm/local-only/probe_boot.py",
+      "source_sha256": "f6e110c26d5ae1b5e6b437bbcedfc29be6f61d3a65b93bfe25ca3a983a0e1362"
+    },
+    {
+      "published": "vm/repro/local-ui-scan.py",
+      "published_sha256": "1cf43fe503c75193b8472ee277d2c89a30843ca200852a796051e558a655d5df",
+      "published_size": 7171,
+      "size": 7157,
+      "source": "work/vm/local-ui-scan.py",
+      "source_sha256": "51970d71b772ceaa41509384c90ec962ecac049257c7ec34187212b94a89e72e",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/recovery/probe_updater_aes.py",
+      "published_sha256": "6c7655871fb26eb21694aef199ac8993d99b302bfbb19d563dae2ee0107dfe05",
+      "published_size": 8732,
+      "size": 8732,
+      "source": "work/vm/recovery/probe_updater_aes.py",
+      "source_sha256": "6c7655871fb26eb21694aef199ac8993d99b302bfbb19d563dae2ee0107dfe05"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/appnavi-probe.sh",
+      "published_sha256": "45ba6ac29c81dc50947803acfc875492452d12f32cb171f6d76c76f8bcb864da",
+      "published_size": 1024,
+      "size": 1024,
+      "source": "work/vm/vendor-userspace-260128/appnavi-probe.sh",
+      "source_sha256": "45ba6ac29c81dc50947803acfc875492452d12f32cb171f6d76c76f8bcb864da"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/appnavi-render-no-appmgr-probe.sh",
+      "published_sha256": "25cc296478b289563170a3769ad18120df85300cf38269799c93421eecef6ce5",
+      "published_size": 3868,
+      "size": 3868,
+      "source": "work/vm/vendor-userspace-260128/appnavi-render-no-appmgr-probe.sh",
+      "source_sha256": "25cc296478b289563170a3769ad18120df85300cf38269799c93421eecef6ce5"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/appnavi-render-probe.sh",
+      "published_sha256": "59280f7a0dee8840a5e67562c6a47315ca875c14232e33056cfc828a16ac625f",
+      "published_size": 4088,
+      "size": 4088,
+      "source": "work/vm/vendor-userspace-260128/appnavi-render-probe.sh",
+      "source_sha256": "59280f7a0dee8840a5e67562c6a47315ca875c14232e33056cfc828a16ac625f"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/appnavi-strace-no-appmgr-probe.sh",
+      "published_sha256": "c75773f39ff8827a0d7db65c4aa8bcd1493f5c694ff577d257f00d4dd345409b",
+      "published_size": 4324,
+      "size": 4324,
+      "source": "work/vm/vendor-userspace-260128/appnavi-strace-no-appmgr-probe.sh",
+      "source_sha256": "c75773f39ff8827a0d7db65c4aa8bcd1493f5c694ff577d257f00d4dd345409b"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/appnavi-strace-probe.sh",
+      "published_sha256": "2905c4b2da8451078cc49132d4da7174ed3a3b8c64471bc47624940d6ec2f05d",
+      "published_size": 4258,
+      "size": 4258,
+      "source": "work/vm/vendor-userspace-260128/appnavi-strace-probe.sh",
+      "source_sha256": "2905c4b2da8451078cc49132d4da7174ed3a3b8c64471bc47624940d6ec2f05d"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/appnavi-valet-stub-run.sh",
+      "published_sha256": "11622ac09a71d077ee2162180c7e5b82f46e37f95961627a2148fb741120f0a7",
+      "published_size": 2134,
+      "size": 2134,
+      "source": "work/vm/vendor-userspace-260128/appnavi-valet-stub-run.sh",
+      "source_sha256": "11622ac09a71d077ee2162180c7e5b82f46e37f95961627a2148fb741120f0a7"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/appnavi-wayland-probe.sh",
+      "published_sha256": "1e3d2c870c9e91cb0f354a65d54fb123f3b96f77bb12678d36442cb81e0da43a",
+      "published_size": 2879,
+      "size": 2879,
+      "source": "work/vm/vendor-userspace-260128/appnavi-wayland-probe.sh",
+      "source_sha256": "1e3d2c870c9e91cb0f354a65d54fb123f3b96f77bb12678d36442cb81e0da43a"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-appnavi-probe.cmd",
+      "published_sha256": "aff428bb81a658b0e4d598def5e2ffe63ca22c39ae72adfc6431d527764dc8f6",
+      "published_size": 108,
+      "size": 108,
+      "source": "work/vm/vendor-userspace-260128/debugfs-appnavi-probe.cmd",
+      "source_sha256": "aff428bb81a658b0e4d598def5e2ffe63ca22c39ae72adfc6431d527764dc8f6"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-appnavi-render-no-appmgr.cmd",
+      "published_sha256": "49b2fed330095d255dd0216045f1ba46566cf72c3958b893f348769a91185e84",
+      "published_size": 159,
+      "size": 159,
+      "source": "work/vm/vendor-userspace-260128/debugfs-appnavi-render-no-appmgr.cmd",
+      "source_sha256": "49b2fed330095d255dd0216045f1ba46566cf72c3958b893f348769a91185e84"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-appnavi-render.cmd",
+      "published_sha256": "a0418d04ac7cef2471117306c1a7a784cc2e630b66ba212ba493c217edfdbb93",
+      "published_size": 240,
+      "size": 240,
+      "source": "work/vm/vendor-userspace-260128/debugfs-appnavi-render.cmd",
+      "source_sha256": "a0418d04ac7cef2471117306c1a7a784cc2e630b66ba212ba493c217edfdbb93"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-appnavi-strace-no-am.cmd",
+      "published_sha256": "fb25a2607e2cdaf9e4680b2c92ce087a7b8e2679d816e1bbe8d014a11f4e48f7",
+      "published_size": 159,
+      "size": 159,
+      "source": "work/vm/vendor-userspace-260128/debugfs-appnavi-strace-no-am.cmd",
+      "source_sha256": "fb25a2607e2cdaf9e4680b2c92ce087a7b8e2679d816e1bbe8d014a11f4e48f7"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-appnavi-strace.cmd",
+      "published_sha256": "e469646132ffaa95444a25b71bbe142559dd20ee773cf46ba8967e0ff5bb24bc",
+      "published_size": 129,
+      "size": 129,
+      "source": "work/vm/vendor-userspace-260128/debugfs-appnavi-strace.cmd",
+      "source_sha256": "e469646132ffaa95444a25b71bbe142559dd20ee773cf46ba8967e0ff5bb24bc"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-appnavi-strace2.cmd",
+      "published_sha256": "6e1aa8146c2a53fff15009dff7e8b82a0f395ba1df87d68884b1ae2cf24c766a",
+      "published_size": 157,
+      "size": 157,
+      "source": "work/vm/vendor-userspace-260128/debugfs-appnavi-strace2.cmd",
+      "source_sha256": "6e1aa8146c2a53fff15009dff7e8b82a0f395ba1df87d68884b1ae2cf24c766a"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-appnavi-wayland-probe.cmd",
+      "published_sha256": "be67ba26099b327f10ba7506e64ace7d66ebff21c83a90a7830e16214dd770fd",
+      "published_size": 132,
+      "size": 132,
+      "source": "work/vm/vendor-userspace-260128/debugfs-appnavi-wayland-probe.cmd",
+      "source_sha256": "be67ba26099b327f10ba7506e64ace7d66ebff21c83a90a7830e16214dd770fd"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-fix.cmd",
+      "published_sha256": "0decedead6e240ed2afd77507ca69e359ca6f80a27449f29b09fb36c2544fc13",
+      "published_size": 168,
+      "size": 168,
+      "source": "work/vm/vendor-userspace-260128/debugfs-fix.cmd",
+      "source_sha256": "0decedead6e240ed2afd77507ca69e359ca6f80a27449f29b09fb36c2544fc13"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-input-drag.cmd",
+      "published_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1",
+      "published_size": 145,
+      "size": 145,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-input-drag.cmd",
+      "source_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-input-popup-hide.cmd",
+      "published_sha256": "68a5bd1b84869e848f75c234453e7f944bd86c74910bc15f26a133206d1dac6f",
+      "published_size": 137,
+      "size": 137,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-input-popup-hide.cmd",
+      "source_sha256": "68a5bd1b84869e848f75c234453e7f944bd86c74910bc15f26a133206d1dac6f"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-input-probe.cmd",
+      "published_sha256": "8107873b54282612e8a6b119e740b33be88f2be0165b41d1c883cd3e3415520e",
+      "published_size": 114,
+      "size": 114,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-input-probe.cmd",
+      "source_sha256": "8107873b54282612e8a6b119e740b33be88f2be0165b41d1c883cd3e3415520e"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-qml-input-override.cmd",
+      "published_sha256": "185357734984fd5fb1f5f1d562be4b9ac2106a864301bd07f607d06eb9c490fd",
+      "published_size": 282,
+      "size": 282,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-qml-input-override.cmd",
+      "source_sha256": "185357734984fd5fb1f5f1d562be4b9ac2106a864301bd07f607d06eb9c490fd"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-wayland-mesa18.cmd",
+      "published_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1",
+      "published_size": 145,
+      "size": 145,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-wayland-mesa18.cmd",
+      "source_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-wayland-softpipe-late.cmd",
+      "published_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1",
+      "published_size": 145,
+      "size": 145,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-wayland-softpipe-late.cmd",
+      "source_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-wayland-softpipe-wait.cmd",
+      "published_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1",
+      "published_size": 145,
+      "size": 145,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-wayland-softpipe-wait.cmd",
+      "source_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-wayland-softpipe.cmd",
+      "published_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1",
+      "published_size": 145,
+      "size": 145,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-wayland-softpipe.cmd",
+      "source_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-wayland-update.cmd",
+      "published_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1",
+      "published_size": 145,
+      "size": 145,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-wayland-update.cmd",
+      "source_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-wayland-update2.cmd",
+      "published_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1",
+      "published_size": 145,
+      "size": 145,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-wayland-update2.cmd",
+      "source_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-wayland-update3.cmd",
+      "published_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1",
+      "published_size": 145,
+      "size": 145,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-wayland-update3.cmd",
+      "source_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-wayland-update4.cmd",
+      "published_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1",
+      "published_size": 145,
+      "size": 145,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-wayland-update4.cmd",
+      "source_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-wayland-update5.cmd",
+      "published_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1",
+      "published_size": 145,
+      "size": 145,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-wayland-update5.cmd",
+      "source_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-wayland-update6.cmd",
+      "published_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1",
+      "published_size": 145,
+      "size": 145,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-wayland-update6.cmd",
+      "source_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-wayland-update7.cmd",
+      "published_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1",
+      "published_size": 145,
+      "size": 145,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-wayland-update7.cmd",
+      "source_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-wayland-update8.cmd",
+      "published_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1",
+      "published_size": 145,
+      "size": 145,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-wayland-update8.cmd",
+      "source_sha256": "9735dfcf00cce82a5499fc5000af7fcae069b4536caaf358c496818951566db1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-hmi-wayland.cmd",
+      "published_sha256": "615e5478976578da02be4d0daa4d644a626553e021138d51336dd5be9328f417",
+      "published_size": 120,
+      "size": 120,
+      "source": "work/vm/vendor-userspace-260128/debugfs-hmi-wayland.cmd",
+      "source_sha256": "615e5478976578da02be4d0daa4d644a626553e021138d51336dd5be9328f417"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-init.cmd",
+      "published_sha256": "b3a013b552f74ec3f03b01dbb1a8af17b838f4405b8165421a83ef62a205e931",
+      "published_size": 87,
+      "size": 87,
+      "source": "work/vm/vendor-userspace-260128/debugfs-init.cmd",
+      "source_sha256": "b3a013b552f74ec3f03b01dbb1a8af17b838f4405b8165421a83ef62a205e931"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-ivi-fg.cmd",
+      "published_sha256": "f26726a5989764c13be79f0501e859d95773400b14023745d306ef2dd47e0e3b",
+      "published_size": 240,
+      "size": 240,
+      "source": "work/vm/vendor-userspace-260128/debugfs-ivi-fg.cmd",
+      "source_sha256": "f26726a5989764c13be79f0501e859d95773400b14023745d306ef2dd47e0e3b"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-launcher-appnavi.cmd",
+      "published_sha256": "e88869f728a15bbd61bd39559ced08195513a33e9261c843eecfdb713df32293",
+      "published_size": 135,
+      "size": 135,
+      "source": "work/vm/vendor-userspace-260128/debugfs-launcher-appnavi.cmd",
+      "source_sha256": "e88869f728a15bbd61bd39559ced08195513a33e9261c843eecfdb713df32293"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-launcher-appnavi2.cmd",
+      "published_sha256": "5491b99d63b7691ef16cfb34fa50a22bac95963936ff454f7708d157d13cc0cc",
+      "published_size": 165,
+      "size": 165,
+      "source": "work/vm/vendor-userspace-260128/debugfs-launcher-appnavi2.cmd",
+      "source_sha256": "5491b99d63b7691ef16cfb34fa50a22bac95963936ff454f7708d157d13cc0cc"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-launcher-chain-probe.cmd",
+      "published_sha256": "1d45c1380e0954c36d3bfb73ef3b39db367b12436b156b58f1a73b36c18d657d",
+      "published_size": 129,
+      "size": 129,
+      "source": "work/vm/vendor-userspace-260128/debugfs-launcher-chain-probe.cmd",
+      "source_sha256": "1d45c1380e0954c36d3bfb73ef3b39db367b12436b156b58f1a73b36c18d657d"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-launcher-short.cmd",
+      "published_sha256": "3de89e8487c6d9bda22cc04fe1f066837389be1e0a75edb6112c8934a3e71d3e",
+      "published_size": 181,
+      "size": 181,
+      "source": "work/vm/vendor-userspace-260128/debugfs-launcher-short.cmd",
+      "source_sha256": "3de89e8487c6d9bda22cc04fe1f066837389be1e0a75edb6112c8934a3e71d3e"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-probe-update.cmd",
+      "published_sha256": "3535c9df5c20ed0b4e07f226f334225e16c8323907c729f013310880a7684547",
+      "published_size": 113,
+      "size": 113,
+      "source": "work/vm/vendor-userspace-260128/debugfs-probe-update.cmd",
+      "source_sha256": "3535c9df5c20ed0b4e07f226f334225e16c8323907c729f013310880a7684547"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-probe.cmd",
+      "published_sha256": "79e3f698c42ba457f49210b14bc4d7fb9907b7c3f1a35f46fd806015f0403a67",
+      "published_size": 96,
+      "size": 96,
+      "source": "work/vm/vendor-userspace-260128/debugfs-probe.cmd",
+      "source_sha256": "79e3f698c42ba457f49210b14bc4d7fb9907b7c3f1a35f46fd806015f0403a67"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-software-egl-libstdcpp.cmd",
+      "published_sha256": "9a122cc99212fd0e821a23ac490a0aa66994a37c9e760cbcdc84293093fd73e0",
+      "published_size": 126,
+      "size": 126,
+      "source": "work/vm/vendor-userspace-260128/debugfs-software-egl-libstdcpp.cmd",
+      "source_sha256": "9a122cc99212fd0e821a23ac490a0aa66994a37c9e760cbcdc84293093fd73e0"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-software-egl-probe-update.cmd",
+      "published_sha256": "79450c33d429dee1bca8a221f2bbc52629fdf4ed03b4b4382a8ee47476e76b10",
+      "published_size": 149,
+      "size": 149,
+      "source": "work/vm/vendor-userspace-260128/debugfs-software-egl-probe-update.cmd",
+      "source_sha256": "79450c33d429dee1bca8a221f2bbc52629fdf4ed03b4b4382a8ee47476e76b10"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-software-egl-probe-update2.cmd",
+      "published_sha256": "79450c33d429dee1bca8a221f2bbc52629fdf4ed03b4b4382a8ee47476e76b10",
+      "published_size": 149,
+      "size": 149,
+      "source": "work/vm/vendor-userspace-260128/debugfs-software-egl-probe-update2.cmd",
+      "source_sha256": "79450c33d429dee1bca8a221f2bbc52629fdf4ed03b4b4382a8ee47476e76b10"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-software-egl-probe-update3.cmd",
+      "published_sha256": "79450c33d429dee1bca8a221f2bbc52629fdf4ed03b4b4382a8ee47476e76b10",
+      "published_size": 149,
+      "size": 149,
+      "source": "work/vm/vendor-userspace-260128/debugfs-software-egl-probe-update3.cmd",
+      "source_sha256": "79450c33d429dee1bca8a221f2bbc52629fdf4ed03b4b4382a8ee47476e76b10"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-software-egl-probe.cmd",
+      "published_sha256": "f7f43ad04c2e691309537ed7863a6b1b516e36309f7b8ce084e5a64eb82d5a87",
+      "published_size": 123,
+      "size": 123,
+      "source": "work/vm/vendor-userspace-260128/debugfs-software-egl-probe.cmd",
+      "source_sha256": "f7f43ad04c2e691309537ed7863a6b1b516e36309f7b8ce084e5a64eb82d5a87"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-software-egl.cmd",
+      "published_sha256": "3d8026136d28b40fc3cfd82bcb9f185678e6e6a8921678121c7e5809e7ea9968",
+      "published_size": 669,
+      "size": 669,
+      "source": "work/vm/vendor-userspace-260128/debugfs-software-egl.cmd",
+      "source_sha256": "3d8026136d28b40fc3cfd82bcb9f185678e6e6a8921678121c7e5809e7ea9968"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-software-egl18-libdrm.cmd",
+      "published_sha256": "23871a699553a8ff06af26cc8f1bcde111c219041e581d3775110dfc89ee35f3",
+      "published_size": 570,
+      "size": 570,
+      "source": "work/vm/vendor-userspace-260128/debugfs-software-egl18-libdrm.cmd",
+      "source_sha256": "23871a699553a8ff06af26cc8f1bcde111c219041e581d3775110dfc89ee35f3"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-software-egl18-probe.cmd",
+      "published_sha256": "79450c33d429dee1bca8a221f2bbc52629fdf4ed03b4b4382a8ee47476e76b10",
+      "published_size": 149,
+      "size": 149,
+      "source": "work/vm/vendor-userspace-260128/debugfs-software-egl18-probe.cmd",
+      "source_sha256": "79450c33d429dee1bca8a221f2bbc52629fdf4ed03b4b4382a8ee47476e76b10"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-software-egl18.cmd",
+      "published_sha256": "96e82bbbb0fbc162893d759a287ae8c1cdd8945fbee0e0db8da546601faa6fd6",
+      "published_size": 454,
+      "size": 454,
+      "source": "work/vm/vendor-userspace-260128/debugfs-software-egl18.cmd",
+      "source_sha256": "96e82bbbb0fbc162893d759a287ae8c1cdd8945fbee0e0db8da546601faa6fd6"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-weston-binary.cmd",
+      "published_sha256": "bf4bfa68352c69b3c090f2173a372237094e9bb6b5e94cd80a562c6ba36ebd50",
+      "published_size": 129,
+      "size": 129,
+      "source": "work/vm/vendor-userspace-260128/debugfs-weston-binary.cmd",
+      "source_sha256": "bf4bfa68352c69b3c090f2173a372237094e9bb6b5e94cd80a562c6ba36ebd50"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-weston-probe.cmd",
+      "published_sha256": "6980329f7b545cec9f123188b43a642e8aedac6142c9d0395ecd403fde68912b",
+      "published_size": 105,
+      "size": 105,
+      "source": "work/vm/vendor-userspace-260128/debugfs-weston-probe.cmd",
+      "source_sha256": "6980329f7b545cec9f123188b43a642e8aedac6142c9d0395ecd403fde68912b"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-weston-update.cmd",
+      "published_sha256": "e4344d245b1c77ee339be3f79611b5c059f70ed61cce2aa617c590aed70204ad",
+      "published_size": 125,
+      "size": 125,
+      "source": "work/vm/vendor-userspace-260128/debugfs-weston-update.cmd",
+      "source_sha256": "e4344d245b1c77ee339be3f79611b5c059f70ed61cce2aa617c590aed70204ad"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-weston-vm-fast-pointer-drag.cmd",
+      "published_sha256": "febf13b0f2530585eda84a5b7ebd244fd442a8dcfeb95e87d2dca44d4b2ecf3e",
+      "published_size": 159,
+      "size": 159,
+      "source": "work/vm/vendor-userspace-260128/debugfs-weston-vm-fast-pointer-drag.cmd",
+      "source_sha256": "febf13b0f2530585eda84a5b7ebd244fd442a8dcfeb95e87d2dca44d4b2ecf3e"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-weston-vm-input-control-log.cmd",
+      "published_sha256": "79450c33d429dee1bca8a221f2bbc52629fdf4ed03b4b4382a8ee47476e76b10",
+      "published_size": 149,
+      "size": 149,
+      "source": "work/vm/vendor-userspace-260128/debugfs-weston-vm-input-control-log.cmd",
+      "source_sha256": "79450c33d429dee1bca8a221f2bbc52629fdf4ed03b4b4382a8ee47476e76b10"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-weston-vm-input.cmd",
+      "published_sha256": "100e6e87c37adb2df52ce04abe90cf13f701679d222b857655c57e3be167f333",
+      "published_size": 285,
+      "size": 285,
+      "source": "work/vm/vendor-userspace-260128/debugfs-weston-vm-input.cmd",
+      "source_sha256": "100e6e87c37adb2df52ce04abe90cf13f701679d222b857655c57e3be167f333"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-weston-vm-pointer-drag.cmd",
+      "published_sha256": "5ea914466106aa11e4ee916b3601717cc523d4a3be232033b0d16f77882d2c45",
+      "published_size": 296,
+      "size": 296,
+      "source": "work/vm/vendor-userspace-260128/debugfs-weston-vm-pointer-drag.cmd",
+      "source_sha256": "5ea914466106aa11e4ee916b3601717cc523d4a3be232033b0d16f77882d2c45"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-weston-vm-touch-input.cmd",
+      "published_sha256": "febf13b0f2530585eda84a5b7ebd244fd442a8dcfeb95e87d2dca44d4b2ecf3e",
+      "published_size": 159,
+      "size": 159,
+      "source": "work/vm/vendor-userspace-260128/debugfs-weston-vm-touch-input.cmd",
+      "source_sha256": "febf13b0f2530585eda84a5b7ebd244fd442a8dcfeb95e87d2dca44d4b2ecf3e"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/debugfs-weston-vm-two-motion-drag.cmd",
+      "published_sha256": "5ea914466106aa11e4ee916b3601717cc523d4a3be232033b0d16f77882d2c45",
+      "published_size": 296,
+      "size": 296,
+      "source": "work/vm/vendor-userspace-260128/debugfs-weston-vm-two-motion-drag.cmd",
+      "source_sha256": "5ea914466106aa11e4ee916b3601717cc523d4a3be232033b0d16f77882d2c45"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/hmi-input-probe.sh",
+      "published_sha256": "037264b6905062a1a9517dd3d1a07095d6e6174fd51af3464ebaf072384bafd5",
+      "published_size": 6362,
+      "size": 6362,
+      "source": "work/vm/vendor-userspace-260128/hmi-input-probe.sh",
+      "source_sha256": "037264b6905062a1a9517dd3d1a07095d6e6174fd51af3464ebaf072384bafd5"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/hmi-probe.sh",
+      "published_sha256": "6eed4571f0ddb6145b1f488fda7bf2e960b72c96f51850b00a36ec5175c87ee0",
+      "published_size": 1137,
+      "size": 1137,
+      "source": "work/vm/vendor-userspace-260128/hmi-probe.sh",
+      "source_sha256": "6eed4571f0ddb6145b1f488fda7bf2e960b72c96f51850b00a36ec5175c87ee0"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/hmi-wayland-probe.sh",
+      "published_sha256": "8fed8a41ef54f8fab3fa70d4ec54da0a76fe336ab2280b7b472b35a526eca51b",
+      "published_size": 5418,
+      "size": 5418,
+      "source": "work/vm/vendor-userspace-260128/hmi-wayland-probe.sh",
+      "source_sha256": "8fed8a41ef54f8fab3fa70d4ec54da0a76fe336ab2280b7b472b35a526eca51b"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/ivi-fg-navi-build/ivi_fg_navi.S",
+      "published_sha256": "714f96fc94898df69d3b8bab44d6bb780d452b290199294c253ce7e7019876c1",
+      "published_size": 3497,
+      "size": 3497,
+      "source": "work/vm/vendor-userspace-260128/ivi-fg-navi-build/ivi_fg_navi.S",
+      "source_sha256": "714f96fc94898df69d3b8bab44d6bb780d452b290199294c253ce7e7019876c1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/ivi-fg-navi-widget-build/ivi_fg_navi_widget.S",
+      "published_sha256": "72c7cd8716e6978ee44488df2ba11d8aed2a5f1e5357a54b7d174823f60cd768",
+      "published_size": 3494,
+      "size": 3494,
+      "source": "work/vm/vendor-userspace-260128/ivi-fg-navi-widget-build/ivi_fg_navi_widget.S",
+      "source_sha256": "72c7cd8716e6978ee44488df2ba11d8aed2a5f1e5357a54b7d174823f60cd768"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/ivi-fg-navi-widget-solo-build/ivi_fg_navi_widget_solo.S",
+      "published_sha256": "91f11133605089f7550571993032f316414a7921b949174a9bcabb4462db1121",
+      "published_size": 4206,
+      "size": 4206,
+      "source": "work/vm/vendor-userspace-260128/ivi-fg-navi-widget-solo-build/ivi_fg_navi_widget_solo.S",
+      "source_sha256": "91f11133605089f7550571993032f316414a7921b949174a9bcabb4462db1121"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/ivi-link-navi-widget-build/ivi_link_navi_widget.S",
+      "published_sha256": "260bdcc726a3816af09e2859ed3b064cd66d22f5fe3f39394f1c3d95c03ef129",
+      "published_size": 3904,
+      "size": 3904,
+      "source": "work/vm/vendor-userspace-260128/ivi-link-navi-widget-build/ivi_link_navi_widget.S",
+      "source_sha256": "260bdcc726a3816af09e2859ed3b064cd66d22f5fe3f39394f1c3d95c03ef129"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/ivi-link-navi-widget-build/ivi_link_navi_widget_v2.S",
+      "published_sha256": "30c926902426dcb6af10fef1db4738fe0057c1fa95ebdf65ce5748a83bbc8af4",
+      "published_size": 4818,
+      "size": 4818,
+      "source": "work/vm/vendor-userspace-260128/ivi-link-navi-widget-build/ivi_link_navi_widget_v2.S",
+      "source_sha256": "30c926902426dcb6af10fef1db4738fe0057c1fa95ebdf65ce5748a83bbc8af4"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/launcher-appnavi-probe.sh",
+      "published_sha256": "636618bb376aa3c96ab2ad48b34ba1a4c64195e2a607b33c3be7656ce866c834",
+      "published_size": 4335,
+      "size": 4335,
+      "source": "work/vm/vendor-userspace-260128/launcher-appnavi-probe.sh",
+      "source_sha256": "636618bb376aa3c96ab2ad48b34ba1a4c64195e2a607b33c3be7656ce866c834"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/launcher-chain-probe-short.sh",
+      "published_sha256": "5dc7d8eb0ce3c0962b03eda334b684e7f5d887c8dec8c4cd23d6d38fa50f5975",
+      "published_size": 3869,
+      "size": 3869,
+      "source": "work/vm/vendor-userspace-260128/launcher-chain-probe-short.sh",
+      "source_sha256": "5dc7d8eb0ce3c0962b03eda334b684e7f5d887c8dec8c4cd23d6d38fa50f5975"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/launcher-chain-probe.sh",
+      "published_sha256": "6ad222672ba1a3063226c06c87212525cb93589486eabff03ba17281801072fb",
+      "published_size": 3773,
+      "size": 3773,
+      "source": "work/vm/vendor-userspace-260128/launcher-chain-probe.sh",
+      "source_sha256": "6ad222672ba1a3063226c06c87212525cb93589486eabff03ba17281801072fb"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/map-integration-debugfs.cmds",
+      "published_sha256": "827e9cb63756f9ec3ee4a87c0cd51c6584d0f9b34d290b50f754adcc38556f6f",
+      "published_size": 884,
+      "size": 884,
+      "source": "work/vm/vendor-userspace-260128/map-integration-debugfs.cmds",
+      "source_sha256": "827e9cb63756f9ec3ee4a87c0cd51c6584d0f9b34d290b50f754adcc38556f6f"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/AppStandbyClock-main.loader-sized-nostatus.qml",
+      "published_sha256": "a4d88847ecda0de2928d50d6e4727b43eac1feadda8e2905e73585ecd3ce6973",
+      "published_size": 5993,
+      "size": 5993,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/AppStandbyClock-main.loader-sized-nostatus.qml",
+      "source_sha256": "a4d88847ecda0de2928d50d6e4727b43eac1feadda8e2905e73585ecd3ce6973"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/AppStandbyClock-main.loader-sized.qml",
+      "published_sha256": "80af651d4f68c6912f661cacbceddba757bcde74bbc815106a3c13a26fc3eda6",
+      "published_size": 5863,
+      "size": 5863,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/AppStandbyClock-main.loader-sized.qml",
+      "source_sha256": "80af651d4f68c6912f661cacbceddba757bcde74bbc815106a3c13a26fc3eda6"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/AppStandbyClock-threaded-wrapper.sh",
+      "published_sha256": "871f83041ad1c35306128c43816fd10fc730f41c5d92abb0bf2331a9bca1fc9c",
+      "published_size": 268,
+      "size": 268,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/AppStandbyClock-threaded-wrapper.sh",
+      "source_sha256": "871f83041ad1c35306128c43816fd10fc730f41c5d92abb0bf2331a9bca1fc9c"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/QRootScreen.observe.qml",
+      "published_sha256": "adbfe632666d76f59a9ff7a4b272fb6d43ad457590d0256be80308e3d7ab90e5",
+      "published_size": 1799,
+      "size": 1799,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/QRootScreen.observe.qml",
+      "source_sha256": "adbfe632666d76f59a9ff7a4b272fb6d43ad457590d0256be80308e3d7ab90e5"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/Screen_AppStandbyClock_Confirm_Profile.input-lite-observe.qml",
+      "published_sha256": "3747664df3c722a478e66486b82ff970a2a361573c2c507c82ef87604a336789",
+      "published_size": 17691,
+      "size": 17691,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/Screen_AppStandbyClock_Confirm_Profile.input-lite-observe.qml",
+      "source_sha256": "3747664df3c722a478e66486b82ff970a2a361573c2c507c82ef87604a336789"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/Screen_AppStandbyClock_Confirm_Profile.input-observe.qml",
+      "published_sha256": "3b5e08a5869b44a4e8dba1efc1a05fab3e1948605c28f4b62041c1805010a765",
+      "published_size": 18981,
+      "size": 18981,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/Screen_AppStandbyClock_Confirm_Profile.input-observe.qml",
+      "source_sha256": "3b5e08a5869b44a4e8dba1efc1a05fab3e1948605c28f4b62041c1805010a765"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/Screen_AppStandbyClock_Confirm_Profile.observe.qml",
+      "published_sha256": "a2eb96a7ccf83668bd27abe1371b83c7e2811c2183ca9d4cbe010854b900a79a",
+      "published_size": 17487,
+      "size": 17487,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/Screen_AppStandbyClock_Confirm_Profile.observe.qml",
+      "source_sha256": "a2eb96a7ccf83668bd27abe1371b83c7e2811c2183ca9d4cbe010854b900a79a"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/Screen_AppStandbyClock_Confirm_Profile.sized-observe.qml",
+      "published_sha256": "0d16a7212704e6ebe1c385a043b0110c45bfe1f1b5fdf8ae3936e7c748351118",
+      "published_size": 17879,
+      "size": 17879,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/Screen_AppStandbyClock_Confirm_Profile.sized-observe.qml",
+      "source_sha256": "0d16a7212704e6ebe1c385a043b0110c45bfe1f1b5fdf8ae3936e7c748351118"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-authentic-standby.sh",
+      "published_sha256": "a4dc381ad8ca54ff796f2f139f0e3f8083e4bed6fe0d9b54096a7e42cc4ab15e",
+      "published_size": 5599,
+      "size": 5599,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-authentic-standby.sh",
+      "source_sha256": "a4dc381ad8ca54ff796f2f139f0e3f8083e4bed6fe0d9b54096a7e42cc4ab15e"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-foreground-control.sh",
+      "published_sha256": "c567662412c0f1a59ab682ce7e3560c96b4958a3b5f48ae8e96f091cd5799c64",
+      "published_size": 7171,
+      "size": 7171,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-foreground-control.sh",
+      "source_sha256": "c567662412c0f1a59ab682ce7e3560c96b4958a3b5f48ae8e96f091cd5799c64"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-no-strace.sh",
+      "published_sha256": "8b4e4d75505b6be3fdf4471527ae6d476cd5d048ac372e737d66b55978e27664",
+      "published_size": 5647,
+      "size": 5647,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-no-strace.sh",
+      "source_sha256": "8b4e4d75505b6be3fdf4471527ae6d476cd5d048ac372e737d66b55978e27664"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-confirm-left.sh",
+      "published_sha256": "4243714afa7113e655a7a5b3ba2a6fa3de74a8ac1942056a6e145031638009e8",
+      "published_size": 7258,
+      "size": 7258,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-confirm-left.sh",
+      "source_sha256": "4243714afa7113e655a7a5b3ba2a6fa3de74a8ac1942056a6e145031638009e8"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-assets-confirm.sh",
+      "published_sha256": "cb64a501fdf1da3f867de2df8bf6006a46e2b0ed72c9081dfe256b93603e22c6",
+      "published_size": 8758,
+      "size": 8758,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-assets-confirm.sh",
+      "source_sha256": "cb64a501fdf1da3f867de2df8bf6006a46e2b0ed72c9081dfe256b93603e22c6"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-assets-pointer-confirm.sh",
+      "published_sha256": "92b7ed027366577ae03ecd804224a865e043dac4adbd4079464e6533fc12c03b",
+      "published_size": 8768,
+      "size": 8768,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-assets-pointer-confirm.sh",
+      "source_sha256": "92b7ed027366577ae03ecd804224a865e043dac4adbd4079464e6533fc12c03b"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-assets-pointer-confirm.sh",
+      "published_sha256": "406576a375fac0eb88bdd154e5ff59b5b86a9651ca63eadcd6a69baac761c492",
+      "published_size": 8768,
+      "size": 8768,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-assets-pointer-confirm.sh",
+      "source_sha256": "406576a375fac0eb88bdd154e5ff59b5b86a9651ca63eadcd6a69baac761c492"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-input-lite-pointer-confirm.sh",
+      "published_sha256": "07820523f1321d47db8009820294f4fe9923daad6f7c7088865ccd77456ed261",
+      "published_size": 9767,
+      "size": 9767,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-input-lite-pointer-confirm.sh",
+      "source_sha256": "07820523f1321d47db8009820294f4fe9923daad6f7c7088865ccd77456ed261"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-inputobserve-pointer-confirm.sh",
+      "published_sha256": "f74f7b654754d07f84daf6afc1231d797e06026fa0a1bbe620223864f73555e9",
+      "published_size": 9491,
+      "size": 9491,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-inputobserve-pointer-confirm.sh",
+      "source_sha256": "f74f7b654754d07f84daf6afc1231d797e06026fa0a1bbe620223864f73555e9"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-inputtrace-pointer-confirm.sh",
+      "published_sha256": "50883c6e06c6f7a4feb798327e8187eab6ee9e149ccc554480b2ca324335baa7",
+      "published_size": 10405,
+      "size": 10405,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-inputtrace-pointer-confirm.sh",
+      "source_sha256": "50883c6e06c6f7a4feb798327e8187eab6ee9e149ccc554480b2ca324335baa7"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-deadline.sh",
+      "published_sha256": "906e734012a9a9cac35aed2e9258674215b407a93cdce9e58024a2f78bf8dd9f",
+      "published_size": 17646,
+      "size": 17646,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-deadline.sh",
+      "source_sha256": "906e734012a9a9cac35aed2e9258674215b407a93cdce9e58024a2f78bf8dd9f"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-eglcompat.sh",
+      "published_sha256": "99d4fceefdee495477fe661c11a809cc28f9e1924cf066b2f241dba4268a9d00",
+      "published_size": 17845,
+      "size": 17845,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-eglcompat.sh",
+      "source_sha256": "99d4fceefdee495477fe661c11a809cc28f9e1924cf066b2f241dba4268a9d00"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-liveness.sh",
+      "published_sha256": "ea99ced6e6b01a734855775de8589687c6d78c7fce53d3204525f145d3fd2583",
+      "published_size": 18330,
+      "size": 18330,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-liveness.sh",
+      "source_sha256": "ea99ced6e6b01a734855775de8589687c6d78c7fce53d3204525f145d3fd2583"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-local-liveness.sh",
+      "published_sha256": "4db54dce83a15fdc996f8de859d0c63446ff952e4189692fd0a6c9a2b01da5c8",
+      "published_size": 17895,
+      "size": 17895,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-local-liveness.sh",
+      "source_sha256": "4db54dce83a15fdc996f8de859d0c63446ff952e4189692fd0a6c9a2b01da5c8"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-ondemand.sh",
+      "published_sha256": "a72c9e1f696cdc9c77b5436be5b65ce30e7b107298f09ee649595c583544f740",
+      "published_size": 19447,
+      "size": 19447,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-ondemand.sh",
+      "source_sha256": "a72c9e1f696cdc9c77b5436be5b65ce30e7b107298f09ee649595c583544f740"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-staged.sh",
+      "published_sha256": "18d3b954f530b1f2a6f983adbd10f5233c1321ff79de24296057012012027b96",
+      "published_size": 20180,
+      "size": 20180,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-staged.sh",
+      "source_sha256": "18d3b954f530b1f2a6f983adbd10f5233c1321ff79de24296057012012027b96"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-targeted.sh",
+      "published_sha256": "44e7c937166b6708d3037dd93b514de0cdd3dcc18ad2514186afc89a6ed8e822",
+      "published_size": 17356,
+      "size": 17356,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-targeted.sh",
+      "source_sha256": "44e7c937166b6708d3037dd93b514de0cdd3dcc18ad2514186afc89a6ed8e822"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home.sh",
+      "published_sha256": "567cf5a43ff4f30d368bc89d00736623d556cb66900dc4f4f0b9df9c4253ea8c",
+      "published_size": 17795,
+      "size": 17795,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home.sh",
+      "source_sha256": "567cf5a43ff4f30d368bc89d00736623d556cb66900dc4f4f0b9df9c4253ea8c"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-settle.sh",
+      "published_sha256": "25a2ee9726d160c03b52c8dc3c5a76aaba33dd57d7d4be7ecba6f9b2f34485ae",
+      "published_size": 13075,
+      "size": 13075,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-settle.sh",
+      "source_sha256": "25a2ee9726d160c03b52c8dc3c5a76aaba33dd57d7d4be7ecba6f9b2f34485ae"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-longhome.sh",
+      "published_sha256": "b5f18ad4243efdab28441eeb6041acb8c2599aa080aa8fb71ac9c026b3b21119",
+      "published_size": 10645,
+      "size": 10645,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-longhome.sh",
+      "source_sha256": "b5f18ad4243efdab28441eeb6041acb8c2599aa080aa8fb71ac9c026b3b21119"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-pointer-confirm.sh",
+      "published_sha256": "b45af91239d59c06d2b54655b39375d5ef66a2932dea97b6f2c90ec1d2f1aee1",
+      "published_size": 9747,
+      "size": 9747,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-pointer-confirm.sh",
+      "source_sha256": "b45af91239d59c06d2b54655b39375d5ef66a2932dea97b6f2c90ec1d2f1aee1"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-postagree-home.sh",
+      "published_sha256": "b2ca47960a46afc17222950b7746c0dce2cd4cd5ed478b109c757fcc2e1ac7b3",
+      "published_size": 11765,
+      "size": 11765,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-postagree-home.sh",
+      "source_sha256": "b2ca47960a46afc17222950b7746c0dce2cd4cd5ed478b109c757fcc2e1ac7b3"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-loadersized-cont-pointer-confirm.sh",
+      "published_sha256": "cf0c1620123780c148e179cd8b08599f37b044b0e66f6554f97870d749ddf055",
+      "published_size": 10322,
+      "size": 10322,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-loadersized-cont-pointer-confirm.sh",
+      "source_sha256": "cf0c1620123780c148e179cd8b08599f37b044b0e66f6554f97870d749ddf055"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-loadersized-inputobserve-pointer-confirm.sh",
+      "published_sha256": "be00a52e4e46e58fd03948e05a486e13cbbc4f34eeb929d571c843c2f747ae62",
+      "published_size": 9752,
+      "size": 9752,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-loadersized-inputobserve-pointer-confirm.sh",
+      "source_sha256": "be00a52e4e46e58fd03948e05a486e13cbbc4f34eeb929d571c843c2f747ae62"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-loadersized-pointer-confirm.sh",
+      "published_sha256": "937df8d4e96ef20e5d45283f4d935459b5747e11ae4f16ceafb5ac1b5256bdb7",
+      "published_size": 9474,
+      "size": 9474,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-loadersized-pointer-confirm.sh",
+      "source_sha256": "937df8d4e96ef20e5d45283f4d935459b5747e11ae4f16ceafb5ac1b5256bdb7"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-loadersized-retry-pointer-confirm.sh",
+      "published_sha256": "a89b2762891e1788e9cc72b44458f3f561913057892f604e8c9aab06cda1702d",
+      "published_size": 9746,
+      "size": 9746,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-loadersized-retry-pointer-confirm.sh",
+      "source_sha256": "a89b2762891e1788e9cc72b44458f3f561913057892f604e8c9aab06cda1702d"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-loadersized-wait60-pointer-confirm.sh",
+      "published_sha256": "2cfe055a3a283c5ee174ea8f73291829c4ff30dda518f1ce79b0edb76f535e4a",
+      "published_size": 9905,
+      "size": 9905,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-loadersized-wait60-pointer-confirm.sh",
+      "source_sha256": "2cfe055a3a283c5ee174ea8f73291829c4ff30dda518f1ce79b0edb76f535e4a"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-lp2-pointer-confirm.sh",
+      "published_sha256": "e017ff0ac2533f6cf61e9a583dced4c9c404b793501ea164de68ad148abf2954",
+      "published_size": 9747,
+      "size": 9747,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-lp2-pointer-confirm.sh",
+      "source_sha256": "e017ff0ac2533f6cf61e9a583dced4c9c404b793501ea164de68ad148abf2954"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-nostatus-pointer-confirm.sh",
+      "published_sha256": "0cd40cd718d00cf10b7ad6dda039aa58963b7301bc44cb123af880f2c23a3756",
+      "published_size": 9756,
+      "size": 9756,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-nostatus-pointer-confirm.sh",
+      "source_sha256": "0cd40cd718d00cf10b7ad6dda039aa58963b7301bc44cb123af880f2c23a3756"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-observe-pointer-confirm.sh",
+      "published_sha256": "ebc85ed8599c5a2dde553f18173881582bb130d134c6d157f71507f0df6e3893",
+      "published_size": 9370,
+      "size": 9370,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-observe-pointer-confirm.sh",
+      "source_sha256": "ebc85ed8599c5a2dde553f18173881582bb130d134c6d157f71507f0df6e3893"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-priority-pointer-confirm.sh",
+      "published_sha256": "feeb61aa738602390f2d0422286fec65a6550d1d6bb468d9fc9a46c491acacf5",
+      "published_size": 10193,
+      "size": 10193,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-priority-pointer-confirm.sh",
+      "source_sha256": "feeb61aa738602390f2d0422286fec65a6550d1d6bb468d9fc9a46c491acacf5"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-qtinputobserve-pointer-confirm.sh",
+      "published_sha256": "62dcf02421002cd1cf7d2646f58775b74efa2e6a7e15eebc08e91e6f0c027d89",
+      "published_size": 9947,
+      "size": 9947,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-qtinputobserve-pointer-confirm.sh",
+      "source_sha256": "62dcf02421002cd1cf7d2646f58775b74efa2e6a7e15eebc08e91e6f0c027d89"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-quiesce-pointer-confirm.sh",
+      "published_sha256": "d0013ba0ee6de41b4d19b468a19e93e43fa159a47c4b23ac8ead56959b17f12e",
+      "published_size": 10095,
+      "size": 10095,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-quiesce-pointer-confirm.sh",
+      "source_sha256": "d0013ba0ee6de41b4d19b468a19e93e43fa159a47c4b23ac8ead56959b17f12e"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-refront-pointer-confirm.sh",
+      "published_sha256": "75ee48c0cca9f325b046a4696aa6234f0db239f1657c3ee95c07ad4a80971b8b",
+      "published_size": 9072,
+      "size": 9072,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-refront-pointer-confirm.sh",
+      "source_sha256": "75ee48c0cca9f325b046a4696aa6234f0db239f1657c3ee95c07ad4a80971b8b"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-ripsample-pointer-confirm.sh",
+      "published_sha256": "f3644f528c0c3be1f614622c35d968175cd512ae58c38e5260c799eade89ed5f",
+      "published_size": 10026,
+      "size": 10026,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-ripsample-pointer-confirm.sh",
+      "source_sha256": "f3644f528c0c3be1f614622c35d968175cd512ae58c38e5260c799eade89ed5f"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-sized-pointer-confirm.sh",
+      "published_sha256": "a40c216d6690019188c25c1513d8ae5f1dd5440ed027e96794a469b18e86fb06",
+      "published_size": 9376,
+      "size": 9376,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-sized-pointer-confirm.sh",
+      "source_sha256": "a40c216d6690019188c25c1513d8ae5f1dd5440ed027e96794a469b18e86fb06"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-sized-rootobserve-pointer-confirm.sh",
+      "published_sha256": "96a3ac858f9f47fb6a6ec07c72d785d61af2c93c926a07e2712a68a30ac5d6e3",
+      "published_size": 9491,
+      "size": 9491,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-sized-rootobserve-pointer-confirm.sh",
+      "source_sha256": "96a3ac858f9f47fb6a6ec07c72d785d61af2c93c926a07e2712a68a30ac5d6e3"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-sized-rootobserve-touch-confirm.sh",
+      "published_sha256": "f55ef68bfe1133237716e6ead91470f8f87e6462d92c137ee4291168fc40e3e4",
+      "published_size": 9481,
+      "size": 9481,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-sized-rootobserve-touch-confirm.sh",
+      "source_sha256": "f55ef68bfe1133237716e6ead91470f8f87e6462d92c137ee4291168fc40e3e4"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-standby-threaded-elf-pointer-confirm.sh",
+      "published_sha256": "b8b31b10ddeb64c375ab654a860f9c5c24b349a456abad9d8cb98a6b8c36e47a",
+      "published_size": 9979,
+      "size": 9979,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-standby-threaded-elf-pointer-confirm.sh",
+      "source_sha256": "b8b31b10ddeb64c375ab654a860f9c5c24b349a456abad9d8cb98a6b8c36e47a"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-standby-threaded-pointer-confirm.sh",
+      "published_sha256": "8e06dba2e31e1454936411c361f0ad0c56055a06592bc6737cd379998cd8755a",
+      "published_size": 9985,
+      "size": 9985,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-standby-threaded-pointer-confirm.sh",
+      "source_sha256": "8e06dba2e31e1454936411c361f0ad0c56055a06592bc6737cd379998cd8755a"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-threaded-pointer-confirm.sh",
+      "published_sha256": "004c4d47f4271301ecc88ea2676eb0fc9ad0a0116dc44327b8e0878259f4e6f7",
+      "published_size": 9755,
+      "size": 9755,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-threaded-pointer-confirm.sh",
+      "source_sha256": "004c4d47f4271301ecc88ea2676eb0fc9ad0a0116dc44327b8e0878259f4e6f7"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-vblank0-pointer-confirm.sh",
+      "published_sha256": "6102be889657a0b6d36a11a602eaa4ad1794c433372ff068d553df5014a9a629",
+      "published_size": 9802,
+      "size": 9802,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-vblank0-pointer-confirm.sh",
+      "source_sha256": "6102be889657a0b6d36a11a602eaa4ad1794c433372ff068d553df5014a9a629"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason14-confirm.sh",
+      "published_sha256": "e970e74b89fe9e48eee6d198a13196343845d54895fec4f43de2a8ce027c588f",
+      "published_size": 8472,
+      "size": 8472,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason14-confirm.sh",
+      "source_sha256": "e970e74b89fe9e48eee6d198a13196343845d54895fec4f43de2a8ce027c588f"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-standby-input.sh",
+      "published_sha256": "50cedf926e217a178dd0544dd490ee86d0b0c1ec2e1073144857b2993f587195",
+      "published_size": 7331,
+      "size": 7331,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-standby-input.sh",
+      "source_sha256": "50cedf926e217a178dd0544dd490ee86d0b0c1ec2e1073144857b2993f587195"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout120-standby1000-confirm.sh",
+      "published_sha256": "ffea681645bc49d06e833a77076501d40cd3f1a946093a5c6c33292751292b88",
+      "published_size": 8359,
+      "size": 8359,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-standby1000-confirm.sh",
+      "source_sha256": "ffea681645bc49d06e833a77076501d40cd3f1a946093a5c6c33292751292b88"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout60.sh",
+      "published_sha256": "2ec34c75acca00f3fa5b265214e5a390ec52bb60686f977108aff370efe0696f",
+      "published_size": 5889,
+      "size": 5889,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout60.sh",
+      "source_sha256": "2ec34c75acca00f3fa5b265214e5a390ec52bb60686f977108aff370efe0696f"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-timeout600-legal-reason11-llvmpipe-home-navi-home.sh",
+      "published_sha256": "e1806de07e62aa542831d72a3faca0b2e44dd6fbe60f610b63e3d3c00796eebc",
+      "published_size": 18253,
+      "size": 18253,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout600-legal-reason11-llvmpipe-home-navi-home.sh",
+      "source_sha256": "e1806de07e62aa542831d72a3faca0b2e44dd6fbe60f610b63e3d3c00796eebc"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-trace.sh",
+      "published_sha256": "331dea47560f35381d32b308d2e8dac4836b54701cdf9d5c0c229d21467e4af8",
+      "published_size": 5582,
+      "size": 5582,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-trace.sh",
+      "source_sha256": "331dea47560f35381d32b308d2e8dac4836b54701cdf9d5c0c229d21467e4af8"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-transition-control.sh",
+      "published_sha256": "8313e6a6c8172e570eb5bc1027813d3b27610a695b4f7ba3c6791f873247fff8",
+      "published_size": 7915,
+      "size": 7915,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-transition-control.sh",
+      "source_sha256": "8313e6a6c8172e570eb5bc1027813d3b27610a695b4f7ba3c6791f873247fff8"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/full-chain-transition-event302-control.sh",
+      "published_sha256": "8c6855c6ee1346c9ae3d4587cdfc341d83b5553f9bdb9b87c786cc3f3ffa11f4",
+      "published_size": 7977,
+      "size": 7977,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-transition-event302-control.sh",
+      "source_sha256": "8c6855c6ee1346c9ae3d4587cdfc341d83b5553f9bdb9b87c786cc3f3ffa11f4"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-appnavi-eglcompat.cmds",
+      "published_sha256": "c6c2b9bfc9865db81f7d589296bf7f9e9402225fa756470c5ae4d387ebc0ced3",
+      "published_size": 581,
+      "size": 567,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-appnavi-eglcompat.cmds",
+      "source_sha256": "00e3fa6dc95cfe9935cd7b04b6b91887fb3cce7442877795845c883e1aea464c",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-authentic-standby.cmds",
+      "published_sha256": "3ecf95b44aeee378b5ce258f045839fec3e77da9de4701bc3a7ff9a368e01a55",
+      "published_size": 218,
+      "size": 218,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-authentic-standby.cmds",
+      "source_sha256": "3ecf95b44aeee378b5ce258f045839fec3e77da9de4701bc3a7ff9a368e01a55"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-deadline-pie-fix.cmds",
+      "published_sha256": "5d1e8fe453b5bdeeab12556debde63f8b0fdd482ca6783a7e168ccc18e909562",
+      "published_size": 243,
+      "size": 236,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-deadline-pie-fix.cmds",
+      "source_sha256": "824266d299df8eea5d5c196b923b54ec5af605f45f0e1d3178f13ecefd949672",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-foreground-control.cmds",
+      "published_sha256": "5f98a73257c0370e7e78d2983626a6bbf2137dc9749991add24862ab0d43d045",
+      "published_size": 222,
+      "size": 222,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-foreground-control.cmds",
+      "source_sha256": "5f98a73257c0370e7e78d2983626a6bbf2137dc9749991add24862ab0d43d045"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-home-navi-deadline.cmds",
+      "published_sha256": "cbd63bff2d873f030bcfab64ed6e48991b15832912edcff31a629121e0936563",
+      "published_size": 613,
+      "size": 599,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-home-navi-deadline.cmds",
+      "source_sha256": "bba2f3d2ac138c5ea25bb3d395771ae77997b95314cf9cdbeb4d0622c9c858f4",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-home-navi-liveness.cmds",
+      "published_sha256": "09c3e38c2f53a65e409203e1cc8b6a82c612a7a29ab2deb327bf7f3731ca1bfa",
+      "published_size": 596,
+      "size": 582,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-home-navi-liveness.cmds",
+      "source_sha256": "c1d8f3932467fc06200c8f9c5ad17cb15b06c240c911657d89f9105f46ceb732",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-home-navi-local-liveness.cmds",
+      "published_sha256": "c16386c80e4c5f5ab4a4cd6b687c5ba9d1d5e46283695c64d0dc081890976717",
+      "published_size": 655,
+      "size": 641,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-home-navi-local-liveness.cmds",
+      "source_sha256": "8d1eb939d861337615e2d53907fe6dad9843b5bb7342b4de032dffb06fb95f0b",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-home-navi-ondemand-localpreload.cmds",
+      "published_sha256": "241b84c16b307e7244630c8690e786029effc6e7eb32ba22a7109a9fd629d778",
+      "published_size": 444,
+      "size": 437,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-home-navi-ondemand-localpreload.cmds",
+      "source_sha256": "b07e4f7bd1cd1b4fc847863db6a552114b5cd017e3d7fcfcea29dea505fa0441",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-home-navi-ondemand.cmds",
+      "published_sha256": "17ecf97b8d09322e2aee80a029875887d8d0850bc2496f0e22b07dcaace72996",
+      "published_size": 613,
+      "size": 599,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-home-navi-ondemand.cmds",
+      "source_sha256": "422af80a29edac265b1f893e11e489adabf3705257629284a31288908968956a",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-home-navi-staged-poll.cmds",
+      "published_sha256": "e54844aee7430105bb69090746dfef54c41cea234e961fd1c88a796e9efe4817",
+      "published_size": 436,
+      "size": 429,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-home-navi-staged-poll.cmds",
+      "source_sha256": "4ed4bcf468a150f71c477101f422dd4d3bf464eb6e2180c482e4a77d32c09f52",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-home-navi-staged-ready.cmds",
+      "published_sha256": "e54844aee7430105bb69090746dfef54c41cea234e961fd1c88a796e9efe4817",
+      "published_size": 436,
+      "size": 429,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-home-navi-staged-ready.cmds",
+      "source_sha256": "4ed4bcf468a150f71c477101f422dd4d3bf464eb6e2180c482e4a77d32c09f52",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-home-navi-staged.cmds",
+      "published_sha256": "5504522e2b843c887daa41230d8ce8648b4b92495374fc3dc2a4c615e62af586",
+      "published_size": 364,
+      "size": 357,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-home-navi-staged.cmds",
+      "source_sha256": "62da11b5709c0743c8da4e89eb2ea4eab1bea5d1e489abf18ed6c2f1d20c9137",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-home-navi-targeted.cmds",
+      "published_sha256": "05382d39670323f1a66af029379f1a58ae3b516b38d8c628fd94ac72d3737f07",
+      "published_size": 637,
+      "size": 623,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-home-navi-targeted.cmds",
+      "source_sha256": "7066748bae70f277e8510ef969ee3d678dbd15f0ac2415a22eab0a3dfcfa9e2e",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-input-lite.cmds",
+      "published_sha256": "04963bdabc3c97c3ce6dc283442e40cdcde5c7a248c95c6d31c024ab7dc8bd63",
+      "published_size": 603,
+      "size": 589,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-input-lite.cmds",
+      "source_sha256": "b788ab0cb8258f4376107bebf12b89a00e6a8bad88d354ea6231c86b9da4b2a7",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-inputobserve-pointer.cmds",
+      "published_sha256": "ce44d16042cd9dddddd19f9e9b51912654804e6550be31146979353368fd3c11",
+      "published_size": 599,
+      "size": 585,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-inputobserve-pointer.cmds",
+      "source_sha256": "df52efe49f03648d912e5fef088936a4d0cf109368f3c14c8ae56c025d761250",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-inputtrace.cmds",
+      "published_sha256": "2d236d7aac2387f54c7d1fccf708ec393b5d4cc6799950421825dfc50d06c172",
+      "published_size": 352,
+      "size": 345,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-inputtrace.cmds",
+      "source_sha256": "b48049b832b0a99e46e2428b7a0b2b56e5f9afd634f80d2833e6c990463fcfd6",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-launcher-timeout60.cmds",
+      "published_sha256": "c9ee1f9fc0ddb7decc38d2fb17b3559e474c25890d0f440c155a26fbc96c2b93",
+      "published_size": 388,
+      "size": 388,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-launcher-timeout60.cmds",
+      "source_sha256": "c9ee1f9fc0ddb7decc38d2fb17b3559e474c25890d0f440c155a26fbc96c2b93"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-legal-assets-confirm.cmds",
+      "published_sha256": "584e0c45a4ed4e156fd72e9c583523bebe8bf7dc20004725dacd2f4ec3dd031d",
+      "published_size": 289,
+      "size": 282,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-legal-assets-confirm.cmds",
+      "source_sha256": "244cc96db3be5d59dbf25e43ac30134bfcd9ee8efa63890067a94cd7f1e59bca",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-legal-assets-pointer-confirm.cmds",
+      "published_sha256": "91c0506975a73150a5a7c56a396d1e33ca12d4cf9e6f82db2c5e1226329eff18",
+      "published_size": 313,
+      "size": 306,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-legal-assets-pointer-confirm.cmds",
+      "source_sha256": "482c558d82da44e10d1cf11dc58397f4abc0c528b28bc33c9cd1cb1bdcf75c45",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-legal-reason11-assets-pointer-confirm.cmds",
+      "published_sha256": "c656ab5ef6f37713abf0ac7e5714dcc96f581053c12d3ac34dd650ebc552b5af",
+      "published_size": 340,
+      "size": 333,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-legal-reason11-assets-pointer-confirm.cmds",
+      "source_sha256": "60828df076a37dc1f7f1fd67e06c05e09f2d4cfe8d916be3d173c2c0c2e78619",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-legal-reason11-observe-pointer-confirm.cmds",
+      "published_sha256": "021b749208304b1a346f065966d135dc79a38923ab77a94f7f6aec5da317ed2c",
+      "published_size": 572,
+      "size": 558,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-legal-reason11-observe-pointer-confirm.cmds",
+      "source_sha256": "f2e688abc5bade876aa9f72b323ee666c4d94bf1861a268a46ffbae7f7046eae",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-legal-reason11-refront-pointer-confirm.cmds",
+      "published_sha256": "a8c6fdda289219ce4af2252f01bd3a460e3fd4385201136404edd85455877e6e",
+      "published_size": 343,
+      "size": 336,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-legal-reason11-refront-pointer-confirm.cmds",
+      "source_sha256": "25da357da29e19dee336bbb4178c45de7908e7677b1bb580d3218a8b786935f6",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-legal-reason11-sized-pointer-confirm.cmds",
+      "published_sha256": "132e4855494e4bdf1de2b78a2468bfa8284e1fe4b1b0221e35ff936e0877b9bb",
+      "published_size": 578,
+      "size": 564,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-legal-reason11-sized-pointer-confirm.cmds",
+      "source_sha256": "c401fb47c9f8bdc117e8621f06258841bc17b1ff367cb90b10ab815698758fee",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-legal-reason14-confirm.cmds",
+      "published_sha256": "5c89611d1323cd82df907d690ec9e64facaa2bbd23cfa23790615ff9ee0ff7f4",
+      "published_size": 295,
+      "size": 288,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-legal-reason14-confirm.cmds",
+      "source_sha256": "e1033685c1adba7e34a1325aa0d5f2cc54a3fed5a1d5f7d69b7a5aad41aa7207",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-llvmpipe-home-navi-home.cmds",
+      "published_sha256": "6bf60441e5bb32c78ae399322e47899774ed062996a259cda5d512a7ef4f9d46",
+      "published_size": 343,
+      "size": 336,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-llvmpipe-home-navi-home.cmds",
+      "source_sha256": "2ce30a502903caf349209012a5ec8c8d59a883a1d2a2e2572ae3206043aa72f8",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-llvmpipe-home-settle.cmds",
+      "published_sha256": "4cd470cf25c828094f6220264aae15e1b30541d15f7c73c7c66c81d72f4ade95",
+      "published_size": 334,
+      "size": 327,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-llvmpipe-home-settle.cmds",
+      "source_sha256": "ee0c5ef1570cd516a9387ccc0f3b42e6b244bafe6b54b28cf1f446f4ff8dfca8",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-llvmpipe-longhome.cmds",
+      "published_sha256": "e241b6017bfa262e673cc03b88383317236c208ee793dc4f59bff99b82280aa9",
+      "published_size": 325,
+      "size": 318,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-llvmpipe-longhome.cmds",
+      "source_sha256": "341d1e9658883262c66755cea32c6d6a9c06ca12a15193851b4b547430b90013",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-llvmpipe-postagree-home.cmds",
+      "published_sha256": "f69135bbac0045fd627b0dcdf851a5cde40bd6a78f4202eb388368eb96d73e04",
+      "published_size": 343,
+      "size": 336,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-llvmpipe-postagree-home.cmds",
+      "source_sha256": "d54f44467ce8424f1d5bcb4525602dd61692c3f6e8bb310d89f86192cc3f3300",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-llvmpipe.cmds",
+      "published_sha256": "579aecc516d30918f838fd6918c89e1b37f61101fb410a2c26b61e410a4f0c2a",
+      "published_size": 346,
+      "size": 339,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-llvmpipe.cmds",
+      "source_sha256": "117935baf1a694dadfb216527d801c8d2584dc95dc33917f556bc323ae24f6f6",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-loadersized-cont.cmds",
+      "published_sha256": "b3efb3845dc77906f2a1c7b47566d9d3e63224c38ebe52abb8770c5ff817dde2",
+      "published_size": 370,
+      "size": 363,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-loadersized-cont.cmds",
+      "source_sha256": "af719cdff78aa89da03844572ccc9c62c6ae86850332a17fd92e777518af7ae8",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-loadersized-inputobserve.cmds",
+      "published_sha256": "d0fe13a131676f392624beb3f9dc32619645cea8c08c80ec25ffb56cafb15b65",
+      "published_size": 394,
+      "size": 387,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-loadersized-inputobserve.cmds",
+      "source_sha256": "e29d4cd5c8394e1c2eb62ce1827dc3fc85caf90c83d5e934ee4f792b56a7332e",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-loadersized-pointer.cmds",
+      "published_sha256": "4c7b4e020476ee172105544daa701aa92da576985e4a873e20cc2a654d45affe",
+      "published_size": 558,
+      "size": 544,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-loadersized-pointer.cmds",
+      "source_sha256": "997fe73f33c34b4b7863c5812dc278fcb42e9d447ee27358641b248714d5ff0f",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-loadersized-retry-pointer.cmds",
+      "published_sha256": "2dcc1720da9ef415c0efbc4baa0d6cd3824b3242d0a5ec3c473f6f8df49ef151",
+      "published_size": 373,
+      "size": 366,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-loadersized-retry-pointer.cmds",
+      "source_sha256": "89e938f6bbe68b1908fae319c6676bef821ed58485210056f132d756fc751fa1",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-lp2.cmds",
+      "published_sha256": "62b7d10ed809f02af4810eaa69cab8122562fdfb992812f5d4cf7cceca598670",
+      "published_size": 331,
+      "size": 324,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-lp2.cmds",
+      "source_sha256": "9b0208e914017290836b6b821ff2d2db5e184b80e7348c84f4cc787165cfe9c9",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-no-strace.cmds",
+      "published_sha256": "26cef9c54459cdcd392f202a172c305da8769e333cd32bf1b50d55d93997219e",
+      "published_size": 186,
+      "size": 186,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-no-strace.cmds",
+      "source_sha256": "26cef9c54459cdcd392f202a172c305da8769e333cd32bf1b50d55d93997219e"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-nostatus.cmds",
+      "published_sha256": "b92136be0ad3e0c06ddc47ef7bb49c5970e4c39577522e6647ebc38444870680",
+      "published_size": 567,
+      "size": 553,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-nostatus.cmds",
+      "source_sha256": "e7718466fcdc759dd0afff618e7305b3e48689525169e76e3925c47aa0cd0454",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-priority.cmds",
+      "published_sha256": "fdd75b80940fe560f43c1110bba3d80c1bc6e29d129ac207b1a7cfe4ee751cd5",
+      "published_size": 346,
+      "size": 339,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-priority.cmds",
+      "source_sha256": "b94e44523871eb58d9e92df416ef951d71618ba8f09f858c9cc8faaea8cb8055",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-qtinputobserve.cmds",
+      "published_sha256": "6882584ecdf4a476e225e6334cc2c0d1e5e6a436d31ef99afe597dda28d3ab06",
+      "published_size": 539,
+      "size": 525,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-qtinputobserve.cmds",
+      "source_sha256": "54bf9575fec8841c0b470f1e971737511122f0f78b45c92d06a161ce420eeda3",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-quiesce.cmds",
+      "published_sha256": "038d3330d2dd16dd2edcd1516560bf63d3c618773b21c54489799017b28967ee",
+      "published_size": 343,
+      "size": 336,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-quiesce.cmds",
+      "source_sha256": "ca1c1789fda67dbb76738e962390e86a437c6780328bf4894054dd68159b840b",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-ripsample.cmds",
+      "published_sha256": "37efabccf4297bc32d45eb0372e2edefcb4683ef2221a78d325eb76db95ba1d3",
+      "published_size": 569,
+      "size": 555,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-ripsample.cmds",
+      "source_sha256": "a36fc04f13d72cd720d3cfa8178302f9b818e7a46a6d2402b8beb61b3f8e7a4a",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-sim-chain.cmds",
+      "published_sha256": "19952ea5253f8c70bc0bde8009cfb1c7bb7f83cb5bfc2b427bbc92c9a27ad032",
+      "published_size": 194,
+      "size": 194,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-sim-chain.cmds",
+      "source_sha256": "19952ea5253f8c70bc0bde8009cfb1c7bb7f83cb5bfc2b427bbc92c9a27ad032"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-sim-v2.cmds",
+      "published_sha256": "7e4d484f211a0acfd8a2cfe834250c02f47c64bff09c1c76d6ddb09dbf570122",
+      "published_size": 366,
+      "size": 366,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-sim-v2.cmds",
+      "source_sha256": "7e4d484f211a0acfd8a2cfe834250c02f47c64bff09c1c76d6ddb09dbf570122"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-sim.cmds",
+      "published_sha256": "94ecc5786cabc078e1606e594f66259e60bcaad323c9369f387db35629c0e490",
+      "published_size": 150,
+      "size": 150,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-sim.cmds",
+      "source_sha256": "94ecc5786cabc078e1606e594f66259e60bcaad323c9369f387db35629c0e490"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-sized-rootobserve-pointer.cmds",
+      "published_sha256": "2223be88cee0fe3a5c6472d8274a533ef2197b336d225af7334a9469f69df7f2",
+      "published_size": 548,
+      "size": 534,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-sized-rootobserve-pointer.cmds",
+      "source_sha256": "2a125a86c20fb713044498124bd7224281c9d9e70706394e8d5ff0b6ebb8a98f",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-sized-rootobserve-touch.cmds",
+      "published_sha256": "abc3e5a1b961b281fa408730f6b80567bf845a80fa903f4fab3e64681ed20505",
+      "published_size": 367,
+      "size": 360,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-sized-rootobserve-touch.cmds",
+      "source_sha256": "6d75185ca4b93570ba9da3cd75fa2218550336d1437e39a4b1e1310151dca2e5",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-standby-threaded-elf.cmds",
+      "published_sha256": "c9cc590a0db7da754e89c193fa5b4403d0f4a15373973ddcd04e761cae2483ba",
+      "published_size": 645,
+      "size": 631,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-standby-threaded-elf.cmds",
+      "source_sha256": "4ef1d8fa95cd536f440bac2c529b6bbf7cf0b01c6c760db4277026cc24e4038e",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-standby-threaded.cmds",
+      "published_sha256": "3e581671bcced2b915773c5d54c4a5464c82bde86a273cf9e87d2860287ab25f",
+      "published_size": 864,
+      "size": 843,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-standby-threaded.cmds",
+      "source_sha256": "e09a0f08f35d275467d3b46d1ef4c8d8383869e1c02a44355d180cc5ae7adc17",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-standby1000-confirm.cmds",
+      "published_sha256": "9cc236cbd0108316badcdee3abf7f5242d112f147108c7c0cdb8f8b40ccf0c06",
+      "published_size": 510,
+      "size": 496,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-standby1000-confirm.cmds",
+      "source_sha256": "3f19619fba2391887d793b51eeb537b3f317adc7c91568e712a644e502362353",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-threaded-pointer.cmds",
+      "published_sha256": "a1b0800c1d1a3fed033814e920ef7cff912ccad9c446a286f697ad513d639f98",
+      "published_size": 346,
+      "size": 339,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-threaded-pointer.cmds",
+      "source_sha256": "70e0f097ebbdf375c32ed6047b472cc0fdf7085c1659e96e79a5eda6e934abe1",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-timeout120-confirm-left.cmds",
+      "published_sha256": "05ca1ace1c5caa9b793b61eb018babdf8a4625851acfbf8d97caaa9202ae3f36",
+      "published_size": 265,
+      "size": 258,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-timeout120-confirm-left.cmds",
+      "source_sha256": "e1c5006f124123eda90ec1677b50c5f2bbee29451f13919aad2594f403df70b0",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-timeout120-standby-input.cmds",
+      "published_sha256": "fa05ba4e41e21fd8cb370036d502b954e3abe008eba68a4ef64cb7be7a001fb9",
+      "published_size": 515,
+      "size": 501,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-timeout120-standby-input.cmds",
+      "source_sha256": "a475ec8191f48da8739a14e48e808985925dfccd0231782f4155c0b07df04ee3",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-timeout600-home-navi.cmds",
+      "published_sha256": "509bd9dca4b97523cab50c49e306b3409bb965442b246168e7e6af264372a22f",
+      "published_size": 534,
+      "size": 520,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-timeout600-home-navi.cmds",
+      "source_sha256": "4df00a52bd4e70d4c1e2307eba901aef24e12eaf34d309ed86fd8cdf0d286a64",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-vblank0.cmds",
+      "published_sha256": "b692d90009b773b54ebd217582d4574119bb1681d9491d409fb4f4517bd10cf3",
+      "published_size": 343,
+      "size": 336,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-vblank0.cmds",
+      "source_sha256": "343d60887d145f31f35a4f7cc0439f299a90d54c725f48d8f2aabf471a80557f",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject-wait60-pointer.cmds",
+      "published_sha256": "bd03a0f1897e46e347361265229b6a2627128b72d6f1a0d1bf71408af1be1a48",
+      "published_size": 376,
+      "size": 369,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject-wait60-pointer.cmds",
+      "source_sha256": "b0bf12c94f775385456858b8a8983415231c16a15b86b8bde0a8f7d5cc22641a",
+      "transformation": "operator home path anonymized"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/inject.cmds",
+      "published_sha256": "3768fc6d45a1c9f068521406ae4710ee46f88532b4774e41da94a0d2fafd6ab3",
+      "published_size": 200,
+      "size": 200,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/inject.cmds",
+      "source_sha256": "3768fc6d45a1c9f068521406ae4710ee46f88532b4774e41da94a0d2fafd6ab3"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/micom-contract/ipc_observe.c",
+      "published_sha256": "9ea2d176da5c2a72a56fae035a6f4d9f4af8fc97081483f0e87023bed92ea985",
+      "published_size": 1627,
+      "size": 1627,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/ipc_observe.c",
+      "source_sha256": "9ea2d176da5c2a72a56fae035a6f4d9f4af8fc97081483f0e87023bed92ea985"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/navigation-contract-audit/capture-early-core.sh",
+      "published_sha256": "a59d5212173c444c32d65069725d8935312ef9d1520a89892a6e484c110edf45",
+      "published_size": 7623,
+      "size": 7623,
+      "source": "work/vm/vendor-userspace-260128/navigation-contract-audit/capture-early-core.sh",
+      "source_sha256": "a59d5212173c444c32d65069725d8935312ef9d1520a89892a6e484c110edf45"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/navigation-contract-audit/capture-early-ptrace.sh",
+      "published_sha256": "d0843d22830c0ae28c6a56b8df611ba7062a91b0b4dc75a74830f67e97b725a8",
+      "published_size": 7450,
+      "size": 7450,
+      "source": "work/vm/vendor-userspace-260128/navigation-contract-audit/capture-early-ptrace.sh",
+      "source_sha256": "d0843d22830c0ae28c6a56b8df611ba7062a91b0b4dc75a74830f67e97b725a8"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/navigation-contract-audit/decoration-control-baseline.sh",
+      "published_sha256": "0828cdb89ec07748a81557825034c26a331d1faed91667f35b355cd3c83546f2",
+      "published_size": 17711,
+      "size": 17711,
+      "source": "work/vm/vendor-userspace-260128/navigation-contract-audit/decoration-control-baseline.sh",
+      "source_sha256": "0828cdb89ec07748a81557825034c26a331d1faed91667f35b355cd3c83546f2"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/navigation-contract-audit/observe-decoration-control.sh",
+      "published_sha256": "bbfae649b64fce94370bd25fabf0b79e628dd34972639148528600ffab887f63",
+      "published_size": 1926,
+      "size": 1926,
+      "source": "work/vm/vendor-userspace-260128/navigation-contract-audit/observe-decoration-control.sh",
+      "source_sha256": "bbfae649b64fce94370bd25fabf0b79e628dd34972639148528600ffab887f63"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/navigation-contract-audit/observe-loaded-backend.sh",
+      "published_sha256": "4ddf1fee3a7fcb5b3fc8b0873ab0d5dac625ccfacf45a973bfab6947df279880",
+      "published_size": 1961,
+      "size": 1961,
+      "source": "work/vm/vendor-userspace-260128/navigation-contract-audit/observe-loaded-backend.sh",
+      "source_sha256": "4ddf1fee3a7fcb5b3fc8b0873ab0d5dac625ccfacf45a973bfab6947df279880"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/software-egl-probe.sh",
+      "published_sha256": "47e065f8b17bec03fc3ad198cd7ceb0a514f8099629109d187765a966746e271",
+      "published_size": 2469,
+      "size": 2469,
+      "source": "work/vm/vendor-userspace-260128/software-egl-probe.sh",
+      "source_sha256": "47e065f8b17bec03fc3ad198cd7ceb0a514f8099629109d187765a966746e271"
+    },
+    {
+      "published": "vm/repro/vendor-userspace-260128/weston-probe.sh",
+      "published_sha256": "2f7c8142616017bc284c272f8ad9456f2a487d2990a8e171e280d427e7d20369",
+      "published_size": 1794,
+      "size": 1794,
+      "source": "work/vm/vendor-userspace-260128/weston-probe.sh",
+      "source_sha256": "2f7c8142616017bc284c272f8ad9456f2a487d2990a8e171e280d427e7d20369"
+    }
+  ],
+  "schema_version": 1
+}

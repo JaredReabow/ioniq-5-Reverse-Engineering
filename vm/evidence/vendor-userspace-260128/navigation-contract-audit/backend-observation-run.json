@@ -1,0 +1,9 @@
+{
+  "observer_sha256": "4ddf1fee3a7fcb5b3fc8b0873ab0d5dac625ccfacf45a973bfab6947df279880",
+  "purpose": "observe mapped backend only; unchanged baseline guest runner; no hide fix",
+  "guest_baseline": "/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-deadline",
+  "timeout_seconds": 900,
+  "started_unix": 1793059402.9977658,
+  "returncode": 0,
+  "finished_unix": 1793059822.4974568
+}

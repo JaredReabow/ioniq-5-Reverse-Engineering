@@ -1,0 +1,3 @@
+write work/vm/vendor-userspace-260128/micom-contract/full-chain-no-strace.sh /full-chain-no-strace.sh
+set_inode_field /full-chain-no-strace.sh mode 0100755
+stat /full-chain-no-strace.sh

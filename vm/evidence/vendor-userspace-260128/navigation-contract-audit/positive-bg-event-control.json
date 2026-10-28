@@ -1,0 +1,69 @@
+{
+  "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-threaded-pointer-confirm-evidence/launcher-chain/dlt.log",
+  "sha256": "042a1d1eadad2d6156ab728c1b33630f43a3f1a12d552722a53e42a8a7169ec1",
+  "selected_ranges": [
+    [
+      4390,
+      4510
+    ],
+    [
+      5540,
+      5640
+    ]
+  ],
+  "events": [
+    {
+      "line": 4416,
+      "text": "1970/01/01 00:00:50.792257     507920 121 MANG WINM IVIS log  V 1 [[00:00:50.792]  wm_window_created - W(1926) H(753) SID(2080), AID(AppCamera) TEST(0) "
+    },
+    {
+      "line": 4445,
+      "text": "1970/01/01 00:00:50.793502     507932 136 MANG WINM IVIS log  V 1 [[00:00:50.793]  set_rect_info_in_FG - SID(2080), X(0), Y(0), W(1926), H(753)"
+    },
+    {
+      "line": 4451,
+      "text": "1970/01/01 00:00:50.793599     507933 139 MANG WINM IVIS log  V 1 [[00:00:50.793]  send_FG_info - SID(2080), DISP(1) AID(AppCamera)"
+    },
+    {
+      "line": 4489,
+      "text": "1970/01/01 00:00:50.872154     508719 145 MANG WINM IVIS log  V 1 [[00:00:50.871]  set_rect_info_in_FG - SID(2080), X(0), Y(0), W(0), H(0)"
+    },
+    {
+      "line": 4493,
+      "text": "1970/01/01 00:00:50.872230     508721 147 MANG WINM IVIS log  V 1 [[00:00:50.872]  send_BG_info - SID(2080), DISP(1) AID(AppCamera)"
+    },
+    {
+      "line": 4500,
+      "text": "1970/01/01 00:00:50.876198     508738 082 MANG AppM AppM log info V 1 [APPM_LWP[765]: slotNotifyBGInfo surface_id:2080 display:1 app_id AppCamera | time 00:00:50.873]"
+    },
+    {
+      "line": 4502,
+      "text": "1970/01/01 00:00:50.876291     508747 084 MANG AppM AppM log fatal V 1 [APPM_LWP[765]: slotNotifyBGInfo --> AppCamera!! surface_id:2080 display:1 app_id AppCamera | time 00:00:50.874]"
+    },
+    {
+      "line": 5565,
+      "text": "1970/01/01 00:01:07.188656     671858 160 MANG WINM IVIS log  V 1 [[00:01:07.185]  wm_window_created - W(1926) H(753) SID(1000), AID(AppStandbyClock) TEST(0) "
+    },
+    {
+      "line": 5597,
+      "text": "1970/01/01 00:01:07.189226     671865 176 MANG WINM IVIS log  V 1 [[00:01:07.186]  set_rect_info_in_FG - SID(1000), X(0), Y(0), W(1926), H(753)"
+    },
+    {
+      "line": 5603,
+      "text": "1970/01/01 00:01:07.189321     671867 179 MANG WINM IVIS log  V 1 [[00:01:07.186]  send_FG_info - SID(1000), DISP(1) AID(AppStandbyClock)"
+    },
+    {
+      "line": 5620,
+      "text": "1970/01/01 00:01:07.228557     672280 185 MANG WINM IVIS log  V 1 [[00:01:07.228]  set_rect_info_in_FG - SID(1000), X(0), Y(0), W(0), H(0)"
+    },
+    {
+      "line": 5624,
+      "text": "1970/01/01 00:01:07.228648     672281 187 MANG WINM IVIS log  V 1 [[00:01:07.228]  send_BG_info - SID(1000), DISP(1) AID(AppStandbyClock)"
+    },
+    {
+      "line": 5631,
+      "text": "1970/01/01 00:01:07.230491     672302 156 MANG AppM AppM log info V 1 [APPM_LWP[765]: slotNotifyBGInfo surface_id:1000 display:1 app_id AppStandbyClock | time 00:01:07.229]"
+    }
+  ],
+  "limits": "Older-run positive control; not AppNavi-specific and not a causal proof for latest failure."
+}

@@ -167,6 +167,25 @@ Use the current VM/recovery notes and C12–C14 below for those boundaries.
 
 ---
 
+## C15 — D-Bus transition result `255` is not sufficient to call the request rejected
+
+- **Was:** the immediate `/transition` out value `255` was treated as a
+  rejection/non-success result, even after the standby state changed.
+- **Now:** it is not a completion verdict in isolation. In the corroborated
+  post-agreement run, the same immediate value is followed by
+  `is_standby_agree_pressed ... result[1]`, exception-filter results zero,
+  current AppID Home `11`, authentic Home response `ret[1]`, drawing AppID
+  `11`, IVI foreground of surface `1001`, and visibly composed Home pixels.
+- **Why:** the full downstream asynchronous manager/application/IVI chain is
+  stronger evidence than the method's immediate integer.
+- **Boundary:** this does not assign an exact enum name to `255` and does not
+  prove Home↔Navigation operation. Classify each request from downstream state
+  and response evidence.
+- **Evidence:** `HANDOVER.md`, `Ioniq5-CHANGELOG.md` 0.44.0, and archive SHA-256
+  `87d81b278f8b1bb20236faedd17dda0493b49b6cfc1e0fd2f1acfe8b8d2c6f5e`.
+
+---
+
 ## Standing practice that produced these corrections
 
 1. Cross-check a symbol table against an independent table before trusting names.

@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "scope": "Visible authentic AppNavi map-widget pixels in the isolated VM experiment; not an unmodified or full launcher-chain result",
+  "run_id": "1792908755653936000",
+  "run_directory": "work/vm/vendor-userspace-260128/runs/1792908755653936000",
+  "host_log": "work/vm/vendor-userspace-260128/ivi-link-navi-widget-build/appnavi-widget-link-v2-host.log",
+  "screenshot": {
+    "path": "work/vm/vendor-userspace-260128/runs/1792908755653936000/appnavi-widget-4903-linked-v2.png",
+    "evidence_copy": "work/vm/vendor-userspace-260128/ivi-link-navi-widget-build/appnavi-widget-4903-linked-v2.png",
+    "sha256": "88e8403d808b6936181465ee512aa9e124b75ccc7dbd625a221e41e75ab8b4cb",
+    "size": 151460,
+    "width": 1920,
+    "height": 720,
+    "colors": 2151,
+    "mean_normalized": 0.029808,
+    "entropy": 0.288861,
+    "map_widget_destination": [0, 0, 836, 720],
+    "remaining_parent_region": "black",
+    "cursor_note": "The 40 pure-white pixels are the visibly captured Weston pointer cursor and match the count in the prior black-frame captures."
+  },
+  "appnavi": {
+    "authentic_original_sha256": "62d6e0b3119b99b3fe322ec3bbe03366e9f71ed40dc18b0323d2a9da0e7fa1a3",
+    "build_id": "1e0ebcdac58cb902be82f90e4df8213c3f74bafc",
+    "executed_compatibility_copy_sha256": "db2e49a80a27918ddc478d7c3e8653abd5c9019073e70aa697e4bb8518a349fe",
+    "compatibility": "exact-build VM-only zero-MSAA two-byte-site compatibility copy"
+  },
+  "vm_adaptations": [
+    "Recovered Weston exact-build composite_clipped compatibility patch",
+    "Project-local Mesa 18 softpipe",
+    "VM-only NotifyValetStatus D-Bus boolean responder returning false",
+    "VM-only IVI helper linking parent surface 3000 to map-widget surface 4903",
+    "VM-only IVI helper setting child destination to its native 836x720 and foregrounding parent 3000",
+    "Bounded authentic EU HAFP/core/RES-SKIN subset rather than the complete map archive"
+  ],
+  "surface_evidence": {
+    "app_parent": 3000,
+    "map_widget_child": 4903,
+    "map_widget_wayland_surface_object": 17,
+    "map_widget_buffer_size": [836, 720],
+    "parent_child_request": "ivi_window_manager.set_parent_child_surface(3000, 4903)",
+    "observed_child_destination": [0, 0, 836, 720],
+    "buffer_attach_damage_commit": true
+  },
+  "resource_evidence": {
+    "skin_subset_files": 11,
+    "skin_subset_total_size": 94999352,
+    "theme_image_loaded": "Data/Nation/EUR/RES/SKIN/VIT_EUR_CE_THEME_IMAGE.bin",
+    "theme_skin_loaded": "Data/Nation/EUR/RES/SKIN/VIT_EUR_CE_THEME_SIMPLENIGHT.skn",
+    "still_missing": [
+      "Data/Nation/EUR/RES/SKIN/VIT_EUR_3D_LANDMARK.hafmma",
+      "Data/Nation/EUR/RES/SKIN/DEM/VIT_AREA_DATA_HM.cad",
+      "Data/Nation/EUR/RES/SKIN/StyleKeyId.sqlite",
+      "Data/Nation/EUR/RES/SKIN/SymbolCode.sqlite",
+      "assorted /app/share/images/hmc raw PNG overlays"
+    ]
+  },
+  "controls": {
+    "prior_nearly_black_sha256": "8813d01ab91c5f5ab454d82878832f90aa09aeee549c732cb14da0145985b2a6",
+    "skin_only_capture_sha256": "8813d01ab91c5f5ab454d82878832f90aa09aeee549c732cb14da0145985b2a6",
+    "child_stretched_full_screen_capture_sha256": "2055e90168049f47cb9b971740a62ad4b5ea513882d304996f3bece77c1feda7",
+    "parent_child_link_without_child_layout_sha256": "ac5a9bd0e25e61ff5c25924ef24699b91b2ac6ecef0ef62ba8983252c180889b",
+    "hmc_asset_projection_run": "1792909413713192000",
+    "hmc_asset_projection_screenshot_sha256": "88e8403d808b6936181465ee512aa9e124b75ccc7dbd625a221e41e75ab8b4cb",
+    "hmc_asset_projection_result": "All 15 named image-load failures disappeared, but the screenshot remained byte-identical; those files do not explain the black parent region.",
+    "interpretation": "The skin subset enabled verified authentic theme loading. Visible compositor output additionally required restoring the missing 3000->4903 relationship and non-1x1 child destination in this isolated no-ApplicationManager run; this experiment does not establish that the skin subset alone caused map geometry to render."
+  },
+  "result": {
+    "navigation_engine_initialized": true,
+    "valet_dbus_call_observed": true,
+    "sigsegv_observed": false,
+    "visible_authentic_map_pixels": true,
+    "full_appnavi_ui_visible": false,
+    "full_launcher_chain": false,
+    "unmodified_appnavi": false
+  },
+  "rootfs_sha256": "66438ad85c38e200d28215e69b2096510328a0279aad3cafbafa13bc5f6dc9db"
+}

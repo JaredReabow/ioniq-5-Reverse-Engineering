@@ -1,0 +1,2 @@
+rm /appnavi-egl-no-msaa-preload.so
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/appnavi-egl-no-msaa-preload-build/appnavi-egl-no-msaa-preload.so" /appnavi-egl-no-msaa-preload.so

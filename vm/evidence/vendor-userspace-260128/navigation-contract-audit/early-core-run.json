@@ -1,0 +1,8 @@
+{
+  "purpose": "bounded early-client ELF core notes; failed decoration control; no full Navigation sequence",
+  "script_sha256": "a59d5212173c444c32d65069725d8935312ef9d1520a89892a6e484c110edf45",
+  "started_unix": 1793097079.360364,
+  "timeout_seconds": 240,
+  "returncode": 0,
+  "finished_unix": 1793097140.789077
+}

@@ -1,0 +1,4 @@
+rm /full-chain-trace.sh
+write work/vm/vendor-userspace-260128/micom-contract/full-chain-trace.sh /full-chain-trace.sh
+set_inode_field /full-chain-trace.sh mode 0100755
+stat /full-chain-trace.sh

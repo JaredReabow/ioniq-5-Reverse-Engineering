@@ -1,0 +1,6 @@
+write work/vm/vendor-userspace-260128/app-launcher-timeout-build/AppLauncher-vm-timeout60 /AppLauncher-vm-timeout60
+set_inode_field /AppLauncher-vm-timeout60 mode 0100755
+write work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout60.sh /full-chain-timeout60.sh
+set_inode_field /full-chain-timeout60.sh mode 0100755
+stat /AppLauncher-vm-timeout60
+stat /full-chain-timeout60.sh

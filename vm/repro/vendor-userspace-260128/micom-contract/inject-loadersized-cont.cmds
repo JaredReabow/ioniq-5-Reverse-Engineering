@@ -1,0 +1,2 @@
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-loadersized-cont-pointer-confirm.sh" /full-chain-timeout120-legal-reason11-loadersized-cont-pointer-confirm
+set_inode_field /full-chain-timeout120-legal-reason11-loadersized-cont-pointer-confirm mode 0100755

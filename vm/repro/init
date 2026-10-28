@@ -1,0 +1,28 @@
+#!/bin/busybox sh
+BB=/bin/busybox
+$BB mount -t proc proc /proc 2>/dev/null
+$BB mount -t sysfs sysfs /sys 2>/dev/null
+$BB mount -t devtmpfs devtmpfs /dev 2>/dev/null
+echo
+echo "=== vendor kernel, ext4 root on emulated SD ==="
+$BB uname -a
+echo "cmdline: $($BB cat /proc/cmdline)"
+echo "root device: $($BB cat /proc/cmdline | $BB tr ' ' '\n' | $BB grep '^root=')"
+$BB ls /dev/mmcblk* 2>/dev/null
+echo
+echo "--- sysctls that matter post-exploitation ---"
+for k in kexec_load_disabled randomize_va_space modules_disabled dmesg_restrict kptr_restrict; do
+    printf '  %-24s %s\n' "$k" "$($BB cat /proc/sys/kernel/$k 2>/dev/null || echo n/a)"
+done
+echo
+echo "--- SMACK ---"
+$BB ls /sys/fs/smackfs 2>/dev/null | $BB tr '\n' ' '; echo
+cat /sys/fs/smackfs/load2 2>/dev/null | $BB head -3
+echo
+echo "--- debug surfaces ---"
+for d in /proc/kcore /dev/mem /dev/kmem /sys/kernel/debug; do
+    [ -e "$d" ] && echo "  present: $d" || echo "  absent : $d"
+done
+echo
+echo "reached userspace"; poweroff -f
+exec $BB sh

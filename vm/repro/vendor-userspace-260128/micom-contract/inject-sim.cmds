@@ -1,0 +1,3 @@
+write work/vm/vendor-userspace-260128/micom-contract/micom-dbus-sim /micom-dbus-sim
+set_inode_field /micom-dbus-sim mode 0100755
+stat /micom-dbus-sim

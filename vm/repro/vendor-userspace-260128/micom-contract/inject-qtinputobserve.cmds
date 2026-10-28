@@ -1,0 +1,3 @@
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/qt-input-observe-build/qt-input-observe.so" /qt-input-observe.so
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-qtinputobserve-pointer-confirm.sh" /full-chain-timeout120-legal-reason11-qtinputobserve-pointer-confirm
+set_inode_field /full-chain-timeout120-legal-reason11-qtinputobserve-pointer-confirm mode 0100755

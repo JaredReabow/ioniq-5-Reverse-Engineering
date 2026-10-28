@@ -292,12 +292,22 @@ def adapt_sdhci(rsp: RSP) -> dict:
             "scope": "guest RAM only; removes AMD quirks for QEMU's generic controller"}
 
 
+VM_CPU_CHOICES = ("max,vendor=GenuineIntel", "max,vendor=GenuineIntel,-avx2")
+
+
 def qemu_command(workspace: Path, qemu: str, compat: bool,
-                 display: str = "none", qmp: bool = False) -> list[str]:
+                 display: str = "none", qmp: bool = False,
+                 cpu: str = VM_CPU_CHOICES[0],
+                 micom_serial: bool = False,
+                 memory_mib: int = 1024) -> list[str]:
     if display not in ("none", "cocoa"):
         raise ValueError("supported display backends: none, cocoa")
-    command = [qemu, "-machine", "q35", "-accel", "tcg", "-cpu", "max,vendor=GenuineIntel",
-               "-m", "1024", "-smp", "2", "-nic", "none",
+    if cpu not in VM_CPU_CHOICES:
+        raise ValueError("unsupported VM CPU feature profile")
+    if memory_mib < 256 or memory_mib > 8192:
+        raise ValueError("VM memory must be between 256 and 8192 MiB")
+    command = [qemu, "-machine", "q35", "-accel", "tcg", "-cpu", cpu,
+               "-m", str(memory_mib), "-smp", "2", "-nic", "none",
                "-vga", "none", "-device", "VGA,id=display0,addr=01.0",
                "-kernel", str(workspace / "bzImage")]
     for name, address in (("manifest.bin", "0x20000000"), ("seed_dev.bin", "0x21000000"),
@@ -310,6 +320,11 @@ def qemu_command(workspace: Path, qemu: str, compat: bool,
                 "console=ttyS0,115200 panic=-1 loglevel=7 "
                 "ABL.oemkm=40@20000000 ABL.seed=21000000,21000040",
                 "-display", display, "-serial", "stdio", "-monitor", "none", "-no-reboot"]
+    if micom_serial:
+        # Provide the recovered micom manager's /dev/ttyS1 hardware boundary.
+        # The backend is a project-local Unix socket captured by run(); no NIC.
+        command += ["-chardev", "socket,id=micom,path=micom.sock,server=on,wait=off",
+                    "-device", "isa-serial,chardev=micom,index=1"]
     if compat:
         command += ["-gdb", "unix:gdb.sock,server=on,wait=off", "-S"]
     if qmp:
@@ -323,9 +338,27 @@ def shell_script(command: str, end_marker: str) -> str:
     return f"{{\n{command}\n}}; rc=$?; printf '\\n{end_marker}:%s\\n' \"$rc\"\n"
 
 
+def drain_available(sock, output) -> int:
+    """Drain a nonblocking serial socket without delaying the VM loop."""
+    total = 0
+    while True:
+        try:
+            chunk = sock.recv(65536)
+        except BlockingIOError:
+            break
+        if not chunk:
+            break
+        output.write(chunk)
+        output.flush()
+        total += len(chunk)
+    return total
+
+
 def run(workspace: Path, compat: bool, command: str, timeout: float,
         interactive: bool = False, display: str = "none",
-        graphics_smoke: bool = False) -> int:
+        graphics_smoke: bool = False,
+        cpu: str = VM_CPU_CHOICES[0], micom_serial: bool = False,
+        memory_mib: int = 1024) -> int:
     workspace = project_output(workspace)
     verify_workspace(workspace)
     qemu = shutil.which("qemu-system-x86_64")
@@ -341,19 +374,23 @@ def run(workspace: Path, compat: bool, command: str, timeout: float,
         command = "/bin/vm-display"
     run_dir = workspace / "runs" / f"{time.time_ns()}"
     run_dir.mkdir(parents=True)
-    argv = qemu_command(workspace, qemu, compat, display, graphics_smoke)
+    argv = qemu_command(workspace, qemu, compat, display, graphics_smoke, cpu,
+                        micom_serial, memory_mib)
     (run_dir / "command.json").write_text(json.dumps(argv, indent=2) + "\n")
     print(f"Run artifacts: {run_dir}", flush=True)
     token = uuid.uuid4().hex
     end_marker = f"VM_COMMAND_END_{token}"
     result = {"userspace": False, "root_mounted": False, "command_exit_code": None,
-              "compatibility_patch": compat, "timeout": False, "error": None}
+              "compatibility_patch": compat, "micom_serial": micom_serial,
+              "micom_serial_bytes": 0, "timeout": False, "error": None}
     start = time.monotonic()
     sent = False
     captured = bytearray()
     proc = None
     resources = ExitStack()
     smoke = None
+    micom_sock = None
+    micom_log = None
     try:
         with (run_dir / "serial.log").open("wb") as log:
             proc = subprocess.Popen(argv, cwd=run_dir, stdin=subprocess.PIPE,
@@ -373,6 +410,18 @@ def run(workspace: Path, compat: bool, command: str, timeout: float,
                         sock.settimeout(max(.01, min(30, timeout - (time.monotonic() - start))))
                     patch = adapt_sdhci(RSP(sock))
                 (run_dir / "patch.json").write_text(json.dumps(patch, indent=2) + "\n")
+            if micom_serial:
+                for _ in range(100):
+                    if (run_dir / "micom.sock").exists():
+                        break
+                    if proc.poll() is not None:
+                        raise RuntimeError("QEMU exited before micom serial socket was ready")
+                    time.sleep(.05)
+                else:
+                    raise TimeoutError("micom serial socket deadline exceeded")
+                micom_sock = resources.enter_context(connect_unix(run_dir, "micom.sock"))
+                micom_sock.setblocking(False)
+                micom_log = resources.enter_context((run_dir / "micom-serial.bin").open("wb"))
             if graphics_smoke:
                 from vm_display import GraphicsSmoke, QMP
                 sock = resources.enter_context(connect_unix(run_dir, "qmp.sock"))
@@ -387,6 +436,8 @@ def run(workspace: Path, compat: bool, command: str, timeout: float,
                         captured.extend(chunk)
                         sys.stdout.buffer.write(chunk)
                         sys.stdout.buffer.flush()
+                    if micom_sock:
+                        result["micom_serial_bytes"] += drain_available(micom_sock, micom_log)
                     text = captured.decode("utf-8", errors="replace").replace("\r", "")
                     result["userspace"] = "\nIONIQ_VM_USERSPACE_READY\n" in text
                     result["root_mounted"] = "VFS: Mounted root (ext4 filesystem)" in text
@@ -457,6 +508,12 @@ def main(argv=None) -> int:
     boot.add_argument("--interactive", action="store_true", help="forward terminal input; Ctrl-C stops QEMU")
     boot.add_argument("--display", choices=("none", "cocoa"), default="none")
     boot.add_argument("--graphics-smoke", action="store_true", help="verify diagnostic pixels and QEMU keyboard input")
+    boot.add_argument("--cpu", choices=VM_CPU_CHOICES, default=VM_CPU_CHOICES[0],
+                      help="bounded QEMU CPU profile; -avx2 is a glibc/TCG control")
+    boot.add_argument("--micom-serial", action="store_true",
+                      help="provide /dev/ttyS1 and capture its raw traffic to a project-local socket")
+    boot.add_argument("--memory-mib", type=int, default=1024,
+                      help="guest RAM in MiB (bounded to 256..8192; default: 1024)")
     args = parser.parse_args(argv)
     try:
         if args.action == "prepare":
@@ -465,7 +522,8 @@ def main(argv=None) -> int:
         if args.graphics_smoke and args.cmd != DEFAULT_COMMAND:
             raise ValueError("--graphics-smoke supplies its own command; omit --cmd")
         return run(args.workspace, args.sdhci_compat, args.cmd, args.timeout,
-                   args.interactive, args.display, args.graphics_smoke)
+                   args.interactive, args.display, args.graphics_smoke, args.cpu,
+                   args.micom_serial, args.memory_mib)
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
         print(f"vm_boot: {exc}", file=sys.stderr)
         return 2

@@ -1,0 +1,4 @@
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/appstandby-threaded-exec-build/AppStandbyClock-threaded-exec" /AppStandbyClock-threaded-exec
+set_inode_field /AppStandbyClock-threaded-exec mode 0100755
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-standby-threaded-elf-pointer-confirm.sh" /full-chain-timeout120-legal-reason11-standby-threaded-elf-pointer-confirm
+set_inode_field /full-chain-timeout120-legal-reason11-standby-threaded-elf-pointer-confirm mode 0100755

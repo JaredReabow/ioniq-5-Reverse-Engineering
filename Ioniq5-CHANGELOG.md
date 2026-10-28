@@ -856,3 +856,501 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - Pointed the Git-scope guard and its tests at
   `JaredReabow/ioniq-5-Reverse-Engineering`.
 - Added a public entry point and clarified the publication boundary.
+
+## Imported VM milestones from the private working tree - 2026-10-28
+
+## 0.61.0 - Parallelism/Council measurement-plan checkpoint
+
+- Activated the requested Parallelism + three-seat Council workflow using inline
+  workers only. Astra-high led planning; Astra-high and two independent Sol-medium
+  seats reviewed and reconciled the same frozen package. The Council checker
+  returned `COMPLETE` for the **plan only**, with package fingerprint
+  `c59ac8a0d4ece96fd8fab5fe8a6795789697c95394d6e548a02dc8484052bbb5`
+  and packet SHA-256
+  `528649b5b337fb0b76bafd6cb9b020e572851ec33136c6d0927a5c38a12ef790`.
+- Corrected the experimental claim boundary: captured `-4` supports an invalid
+  width-derived copy count, but does not yet prove width changed during that
+  update or that the original width was `-1`. The accepted plan distinguishes
+  EGL call-site arguments from the actual resolved libc entry and requires
+  PLT/IFUNC-aware evidence before a fix.
+- DeepSeek EC-01/EC-02 did not run. The live tool rejects the required direct
+  provider route `deepseek/deepseek-v4.1-flash` as unknown; its suggestion of an
+  OpenCode route is not authorized. Parallelism and Council policy now requires
+  direct `deepseek/...` provider routes and forbids intermediary fallback. No
+  substitute model, implementation, VM run, new thread or bypass routing was
+  used. Both tasks remain blocked in the validated ledger.
+- Council suggestions require downstream contracts to record both mapped vendor
+  EGL and project Mesa identities, numerical capture caps, debugger restoration,
+  and host-owned disposable-VM termination. The scheduler still lists the prior
+  heartbeat paused; update remains impossible because the exposed API requires
+  fields it simultaneously rejects for interval schedules.
+
+## 0.60.0 - bounded fault-time stack and EGL caller
+
+- Added VM-only `ptrace_crash_observe.c`: explicit target allowlist, SEIZE rather
+  than group SIGSTOP, bounded 64-word stack/64 KiB maps and original fatal-signal
+  redelivery. Compiles statically with warnings-as-errors. Timeout/cancellation/
+  group-stop paths remain dynamically untested and are not broadly accepted.
+- Completed a short snapshot experiment with guest invalid-PID/disallowed-target
+  tests and actual Camera fault capture; 64 stack words read, SIGSEGV re-delivered.
+- Identified immediate memcpy call site in vendor EGL software put-image code.
+  Cached width-derived stride precedes an update that can change the width;
+  captured stride/count registers are -4. Original entry arguments/order remain
+  to be measured before a fix. Added qualified investigation I-001 to the
+  defensive register, not a confirmed exploitable vendor vulnerability.
+- Complete archive SHA-256:
+  `e0884a3c11582ed2b986db28f2673b7fde9297a1871f2633ad13672b2dfdeaae`.
+  Safe extraction/digest checks pass; 168 repository tests pass; base rootfs
+  independently rehashed unchanged. No new threads, commits or fabricated state;
+  no independent-model review obtained due the recorded host worker error.
+
+## 0.59.0 - focused early-client core capture
+
+- Completed a short no-NIC/snapshot early-startup experiment in 44.83 seconds,
+  capturing one 80 KiB AppCamera core with eight thread-register notes. No full
+  agreement/Navigation sequence was attempted. Verified early-client decoration
+  value is `1`; this does not validate AppNavi startup.
+- Core notes/program headers confirm SIGSEGV/SEGV_MAPERR at libc offset
+  `0x128dde`: vector-store destination lies 64 bytes below a writable mapping.
+  Fault-thread stack bytes are absent; caller/original copy length remains unknown.
+  Modified loop counter is not asserted to be an original argument.
+- Requested coredump filter `0x10` read back zero; actual stored memory coverage
+  is reported instead of assuming filter behavior. Retained validated core-note
+  report, complete archive and exact scripts. Base rootfs rehashed unchanged.
+- Archive SHA-256:
+  `10fbb21b674ab1795c5e2b52d4e04ad47611f8674c4ac5ed43d283322c24987c`.
+  Shell syntax/diff whitespace checks pass. No new thread, image mutation,
+  vulnerability classification or Navigation-success claim.
+
+## 0.58.0 - community-source reconciliation
+
+- Recorded the owner's supplied channel-summary leads in
+  `evidence/community-chat-leads.md`, explicitly not independently accessed or
+  validated. Separated known tools from new compatibility/acquisition leads.
+- Retained the tentative CV_E 220721 recollection as different-model comparison
+  evidence, not an IONIQ install/downgrade recommendation. Bounded historical
+  downloader availability by model, region, endpoint and time.
+- Added current-reading warnings to three older evidence notes whose plaintext-
+  recovery/API conclusions are superseded or too broad for current VM work.
+- Added the reported signature-blocked updater attempt as unvalidated provenance
+  for V-005, not a confirmed vulnerability. No fetching, new hardware testing,
+  firmware installation or VM run occurred from these chat leads.
+
+## 0.57.0 - 2026-10-27
+
+- Corrected the delegation explanation: inline `spawn_worker` is exposed and
+  supports model selection without new chat threads. Earlier statements that
+  only child-thread delegation existed were wrong. A useful read-only dispatch
+  requesting the configured DeepSeek route failed with host error
+  `store.runWorkerToolResult is not a function`; no worker result or runtime
+  routing was verified. Operations/handover now identify the actual blocker.
+- Executed a snapshot-only decoration-unset control, preserving all other
+  baseline flow and existing compatibility behavior. Complete archive recovered
+  and digest-verified; harness exit 0 is not feature acceptance.
+- Negative semantic result: repeated Camera/Standby crashes, agreement false,
+  AppNavi not launched, manager queries 0/0 and all screenshots remain splash.
+  The intended child value/geometry was not verified. Do not adopt this change
+  or infer a Navigation fix; early-client environment/crash observation is missing.
+- Mapped the repeated crash site to libc non-temporal vector store
+  `vmovntdq %ymm0,(%r9)` at offset `0x128dde`. Caller/length/register context is
+  unknown; this is a write fault, not proof of unsupported AVX or a vendor bug.
+  Verified canonical and both new run manifests use the same CPU/memory profile.
+- Identified a lower-overhead next capture: vendor kernel supports ELF cores,
+  while guest has no inventoried gdb/gdbserver. Proposed bounded snapshot-only
+  early-client core-note capture before writing a new sampler; not yet executed.
+  Header-only filtering will not provide a complete stack backtrace.
+- Complete archive SHA-256:
+  `648b5d30c169b2e4adaa2e8cf069742fd5b3d779b0ef1d6d7e63fead7f6910e9`.
+  Retained exact source delta, summary, logs and evidence. Base image rehashed
+  unchanged; baseline preserved, no new threads or vulnerability claim.
+
+## 0.56.0 - 2026-10-27
+
+- Ran an observation-only wrapper around the unchanged baseline launcher flow in
+  isolated QEMU snapshot mode. Completed command exit 0 without timeout; captured
+  26 AppNavi maps snapshots and allowlisted environment/mapped-file hashes.
+- Runtime maps confirm the analyzed QtWayland client and EGL plugin load. Actual
+  AppNavi environment has decoration-disable `1:1`; decoration plugin also loads.
+  Parser effect and causal impact are unverified, not a completed fix.
+- Authentic Home visibly renders before Navigation. Manager again follows
+  `11/11 → 35/11 → 11/11` with FG delivery and status 5/window 0. Final return
+  screenshot is black: manager-state return is not visible-Home acceptance.
+- Follow-up static review confirms decoration-disable is parsed as a decimal
+  scalar via QByteArray::toInt and cached, not as a colon-separated list. The
+  inherited `1:1` is malformed for this consumer; exact-library execution of the
+  parser remains untested. No environment correction has yet been applied.
+- Raw Wayland requests were not captured despite WAYLAND_DEBUG; next observe
+  actual hide/attach execution without changing behavior. Retained late cleanup-
+  vicinity Camera/Radio crash messages without calling them vulnerabilities.
+- Complete archive SHA-256:
+  `6019ec6e42cacce8a41fdc79c7dd9705487efdc0a53b741313e6b5b7aad01d84`.
+  Decode digest verified; extracted safely. Base rootfs independently rehashed
+  unchanged. All 168 tests, shell syntax check and diff whitespace check pass.
+  No new threads, image mutation, synthetic callbacks or commits.
+
+## 0.55.0 - 2026-10-27
+
+- Confirmed constructor connection of the same Qt object's visibleChanged(bool)
+  to AppNavi onVisibleChanged(bool), refining the prior signal-source uncertainty.
+- Traced recovered QtWayland false-visibility handling: explicit null-buffer
+  attach/commit occurs only when a virtual discriminator returns zero. Recovered
+  EGL plugin inherits that handler and its discriminator returns one, skipping
+  that branch. Retained disassembly, relocation evidence and exact signal strings.
+- Read-only extraction confirms current-image QtWayland library and EGL plugin
+  bytes match the analyzed originals. Runtime selection remains unverified:
+  launcher logs inspected lack backend-load identity and alternate library
+  search paths precede `/usr/lib`. Next run must first capture mapped identities
+  and hide requests without changing behavior.
+- This is not yet a guest-backend/root-cause proof. Next verify runtime library
+  selection and actual commits; explain older positive controls before
+  proposing a narrowly scoped VM adapter. No vendor state or callback fabricated,
+  no images changed, no new threads or vulnerability claims.
+
+## 0.54.0 - 2026-10-27
+
+- Host execution recovered; no QEMU/LLVM worker was found in the process check.
+  Fresh bounded shell disassembly and read-only current-image extraction passed.
+- Current-image IVI shell matches the recovered original. Surface creation
+  initializes cached size to 0/0; configure suppresses unchanged dimensions and
+  calls layout configure only after a size change. This narrows the prior
+  initial-zero hypothesis: no automatic BG event is expected solely from a
+  newly created zero-size surface through this path.
+- Positive retained controls now show Camera and Standby each configure
+  1926×753 → 0×0, then emit BG successfully and reach the manager. Retained
+  hashed event excerpts. This demonstrates an earlier working VM transport and
+  narrows the next task to AppNavi's hide/unmap/buffer-commit sequence.
+- AppNavi visibility follow-up: `onVisibleChanged(false)` sets first-hide state,
+  may send the one-shot boot notification, and calls renderer clear/swap. This
+  does not prove parent Qt-window unmapping or a null Wayland buffer commit.
+  Retained bounded disassembly; next separate the native map-screen callback
+  from the parent-window hide path.
+- Located authentic `QWindow::hide()` at `0x3362275` in AppNavi foreground
+  handling, behind base-result and screen gates. Latest PID-specific logs show
+  widget foreground activity but no matching primary-screen hide diagnostic;
+  this remains a bounded log observation, not proof of absent invocation.
+- Updated evidence and handover. No VM/image edits, new threads or vulnerability
+  claims; `git diff --check` passes.
+
+## 0.53.0 - 2026-10-26
+
+- Follow-up provenance: read-only extraction of both compositor paths from the
+  current image matches the original module digest; retained Weston log records
+  loading the `/usr/lib/weston` path. This is not a historical memory digest.
+- Shell-module follow-up commands timed out; completion is unverified. Resume
+  only after checking host/process health; do not start duplicate analysis/VM
+  runs. Existing scheduled task remains observed active, but prompt update is
+  still rejected by scheduler validation.
+- Recovered the original compositor callback's final FG/BG branch: any positive
+  width or height emits FG; BG requires both non-positive. Exact full-screen
+  dimensions are not tested, so changing 1926×753 to 1920×720 would not repair
+  that branch. No geometry fix was applied based on the prior hypothesis.
+- Hash-identified byte-identical recovered compositor copies and retained LLVM
+  disassembly. Next inspect initial configure ordering and verify guest loaded
+  module identity. Distinguish the local callback from the nearby exported
+  function despite LLVM nearest-symbol labels. No runtime experiment, image
+  mutation, synthetic BG event, new thread or vulnerability claim occurred.
+
+## 0.52.0 - 2026-10-26
+
+- Recovered exact QString-list membership after display matching; the subsequent
+  AppNavi substring check is a separate predicate. Pending global initializes
+  nonzero (`0xffffffff`), so initial zero state is not established as the cause.
+- Correlated the full retained latest DLT log: authentic AppNavi surface 3000
+  produces an FG callback received by ApplicationManager before status 5/window
+  0. The log has no BG-info or naviWindoeCreate diagnostic matches. This narrows
+  the next investigation to compositor FG/BG classification/routing.
+- Recorded 1926×753 parent geometry as an observation, not a causal conclusion;
+  decoration-disable environment is already set. Retained hashed event summary
+  and matcher disassembly; updated evidence and handover. No VM changes or new
+  runtime run; no new vulnerability claim. `git diff --check` passes.
+
+## 0.51.0 - 2026-10-26
+
+- Traced the window-setter caller into `slotNotifyBGInfo`, whose diagnostic
+  identifies surface-ID, display and app-ID inputs. The AppNavi notification
+  path additionally requires a display/string helper match, a nonzero global
+  gate, and case-sensitive `AppNavi` containment; it clears that gate afterward.
+- Recorded exact control-flow addresses and unknown matcher/global semantics
+  in the Navigation evidence note. Next trace the upstream event caller and
+  gate initialization rather than force a notification. No VM mutation or new
+  runtime acceptance is claimed; diff whitespace validation passes.
+
+## 0.50.0 - 2026-10-26
+
+- Recovered ApplicationManager's exact Qt subscription to
+  `notifyNaviLaunched(int)` and the routine producing the recorded diagnostic.
+- Identified `window[%2]` as a separately latched receiver byte (+0x20), not a
+  second boot-signal argument or a surface ID. Zero gates downstream dispatch.
+  Adjacent vendor `naviWindoeCreate` code updates the byte and replays cached
+  status (+0x1c); next trace direct caller `0x19108d` to recover its producer.
+- Retained full LLVM disassembly and bounded extracts; updated Navigation
+  evidence and handover. Status-5 enum semantics and runtime acceptance remain
+  unresolved. No flags were forced and no VM/image/thread changes occurred.
+
+## 0.49.0 - 2026-10-26
+
+- Identified original ApplicationManager by SHA-256 and mapped six matching
+  notification/interface string locations for receiver triage. No handler address
+  or enum semantics is claimed from literal strings alone.
+- Ordinary/dynamic symbol searches did not expose named handlers. REA deep
+  providers are unavailable in the current environment configuration; no tooling
+  configuration was changed. Retained raw locations and evidence limits in the
+  Navigation contract note and project-local JSON. No target execution or image
+  mutation occurred; `git diff --check` passes.
+
+## 0.48.0 - 2026-10-26
+
+- Resolved notification string references against SHA-256-identified original
+  recovered AppNavi using read-only ELF section mapping. The function first
+  calls `com.lge.avn.applauncher` `/Inform` interface
+  `com.lge.avn.applauncher.inform` method `launched(30)`, then emits
+  `/navigation_map` interface `com.lge.hkmc.avn.appnavi.naviboot` signal
+  `SendNaviBootFail(5)`. These are distinct registration/status messages.
+- Retained raw mappings in `work/vm/vendor-userspace-260128/appnavi-notification-strings.json`
+  and conclusions in `evidence/navigation-launch-status-contract.md`.
+  Located original ApplicationManager for the next receiver analysis. Enum
+  semantics, caller selection and window-state producer remain unresolved.
+- No target execution, image modification, new threads or security findings.
+
+## 0.47.0 - 2026-10-26
+
+- Reviewed existing saved AppNavi notification disassembly. This function sends
+  literal status `5` after an initial one-shot gate; it does not derive that
+  integer from engine state within the reviewed function. Exact enum semantics,
+  message identity and manager window-state producer remain unresolved.
+- Added `evidence/navigation-launch-status-contract.md` with instruction
+  addresses, bounded conclusions and next exact receiver/string-mapping work.
+  No image mutation, fresh VM run, new thread or vulnerability claim occurred.
+- Existing active scheduled-task prompt update was rejected by tool validation;
+  no successful update or replacement schedule is claimed. See operations/history.
+
+## 0.46.0 - 2026-10-26
+
+- Reconciled current progress against the existing handover, detailed changelog,
+  append-only history, corrections, Git history and security notes. Retained
+  existing milestones; no fresh firmware or VM success is claimed.
+- Backfilled the history after its 2026-10-19 cutoff with source-labelled
+  retrospective milestones, including the corrected VM boot, module-loading
+  observation, native userspace recovery, authentic Home and incomplete
+  Home↔Navigation integration.
+- Added `Ioniq5-VULNERABILITIES.md`, a separate defensive register with evidence,
+  preconditions, remediation and acceptance tests. It distinguishes previously
+  VM-verified unsigned-module loading from unvalidated keystore/trust/update
+  candidates, rejected hypotheses and third-party modification hazards.
+- Added `PROJECT-OPERATIONS.md` with the full-VM objective, current blocker,
+  append-only rules and an explicit existing-chat-only scheduled prompt draft.
+  Scheduling awaits owner confirmation of interval and active-work behavior.
+- Read-only routing inspection found the installed DeepSeek Flash builder
+  statically ready, but inference routing remains unverified. This session lacks
+  native role-selectable subagent tools; no child threads or workers were
+  created, and no model/router configuration was changed.
+- Preserved the pre-existing dirty source tree, untracked research artifacts,
+  firmware and VM images. No commits, pushes, flashes or new VM runs occurred.
+- Validation: 168 repository unit tests pass; `git diff --check` passes. Verified
+  that the history's original 6,819-byte prefix remains byte-identical.
+
+## 0.45.0 - 2026-10-26
+
+- Added a launcher-local `execve` interposer that supplies the EGL compatibility
+  preload only to AppLauncher's original signature-checked AppNavi child. It
+  does not directly launch a duplicate AppNavi and does not preload unrelated
+  vendor applications.
+- The original AppLauncher-owned AppNavi reached map-engine success, selected
+  logical `Samples: 2`, created parent surface `3000` with `AID(AppNavi)`, and
+  created child surface `4903` while AppLauncher and ApplicationManager remained
+  responsive.
+- Recovered AppNavi's exact startup decision in
+  `NimoExSLApplicationLinux::onInitializeDone()`: offset `0x33b48be` compares
+  elapsed startup with `0x59d7` (22,999 ms), and the slow path invokes
+  `SendToAppLauncherNaviLaunchedToExcute()`.
+- Added a fail-closed, sentinel-gated, executable-scoped VM timing control. It
+  validates the expected four immediate bytes and changes only the in-memory
+  startup deadline from 22,999 to 180,000 ms using the PIE load base; the signed
+  AppNavi file is unchanged. The first non-PIE-aware attempt is retained as a
+  negative control because it caused AppNavi `SIGSEGV`/restart churn.
+- With the corrected control, AppNavi completed initialization at 106,464 ms,
+  created its parent window, and entered the launch-status path only after the
+  authentic window event. This ruled out the 22,999 ms timeout ordering as the
+  sole cause of the incomplete manager transition.
+- The launch path still emitted `SendNaviBootFail(5)` and ApplicationManager
+  logged `notifyNaviLaunched[5] window[0]`. Manager state remained `35/11`, no
+  Navigation frame was foregrounded, and the authentic return request restored
+  state `11/11` plus visible Home. Full Home↔Navigation acceptance remains
+  unproven.
+- Latest runner SHA-256 is
+  `906e734012a9a9cac35aed2e9258674215b407a93cdce9e58024a2f78bf8dd9f`;
+  host-log SHA-256 is
+  `de9977d671cb203f918d878f939777c1eea330bad90dd2ca0643b6ba57c60021`;
+  complete evidence archive SHA-256 is
+  `a0e2100ca5a0eb72426db6179c88a27e34abe5928d8a364ce9f14d0e9bfd52b8`.
+- Current rootfs SHA-256 is
+  `4953a005683e009e84390bbf07d65a6a3313cc6abd692a3023e6b660066d036f`;
+  `prepare.json` matches and `e2fsck -fn` passes.
+
+## 0.44.0 - 2026-10-26
+
+- Established the first semantically corroborated authentic profile-confirm
+  path under global two-thread llvmpipe. AppStandbyClock logs
+  `confirmSkPressed()`, `onPressedButton`, `onReleased`, and
+  `HANDLER_CONFIRMSCREEN_BUTTON_CONFIRM_CLICKED` after bounded pointer input to
+  the observed enabled Confirm control.
+- Standby progresses from `14` to `12`; ApplicationManager explicitly logs
+  `is_standby_agree_pressed standbyStatus[12] result[1]`. Exception-filter
+  masks `66` and `161` both return zero, superseding the prior mask-`161`
+  result `32` seen before agreement.
+- The immediate Home-transition D-Bus out value remains `255`, but downstream
+  evidence proves it is not sufficient to classify the asynchronous request
+  as rejected: manager current AppID becomes Home `11`, Home returns `ret[1]`,
+  drawing AppID becomes `11`, and IVI foregrounds run-specific surface `1001`.
+- Added the separately named VM-only Home-settle control. It pauses only
+  ApplicationManager for 55 seconds after authentic `requestShow(APP_HOME)` so
+  the unmodified Home binary can finish its first frame without a false
+  production-liveness kill under x86 TCG software rendering, then resumes the
+  manager and repeats the authentic Home request. It does not fabricate an
+  alive reply, acceptance state, manager result, application ID, or pixels.
+- Captured visibly composed authentic Home at 1920×720. The final vehicle,
+  battery/range, and Media Off frame has SHA-256
+  `23ccd6e6002d8bceddac3a64b2c94538cb844cc9aa274b44d18ada876d2cc968`.
+- Positive evidence archive SHA-256 is
+  `87d81b278f8b1bb20236faedd17dda0493b49b6cfc1e0fd2f1acfe8b8d2c6f5e`;
+  host-log SHA-256 is
+  `2c6c7ed142cb84b7dcc5daf5a9adb01a2e86934c731ae5653efa5d0d80d93b95`.
+- Full Home↔Navigation operation remains unproven. AppNavi, data-bearing
+  micom/CAN methods, authentic persistence, and production-speed liveness
+  behavior remain separate unresolved boundaries.
+- Current rootfs SHA-256 is
+  `8a686d4bf0b278d7e99dd5d94181a58e5b5ef147bff9f99444a25d0134e16756`;
+  `prepare.json` matches and `e2fsck -fn` passes.
+
+## 0.43.0 - 2026-10-26
+
+- Reached and repeatedly foregrounded the authentic AppStandbyClock
+  profile-confirm screen with restored production ASTC assets. Runtime QML
+  observation places the enabled Confirm control at `x=471..1179`,
+  `y=621..699`; the transformed pointer point is inside it.
+- Added exact-build observational pointer-focus logging to
+  `tools/uk_fw/guest/weston_vm_input.c`. Every phase of the bounded pointer
+  gesture remains focused on the authentic AppStandbyClock PID, excluding a
+  late AppEURadio/Home client as the current routing owner.
+- Identified the authentic screen/Loader sizing defect in this VM: the loaded
+  `QRootScreen` and parent Loader resolve to `0×0` while explicit-size children
+  render outside them. A separately named VM compatibility control adds
+  `anchors.fill: parent` to both alternating Loaders and yields a complete
+  `1920×720` screen → Loader → main-root ancestry without changing the legal
+  handler or model state.
+- The Loader repair does not by itself deliver Qt Quick input. A direct
+  full-screen observational MouseArea still receives no press even though
+  Weston sends motion/down/up to the correct client.
+- Added bounded syscall and RIP observers. The QtWayland thread receives the
+  three expected Wayland input batches (`recvmsg` 20/72/24 bytes), while the
+  main GUI thread remains runnable in userland. All 32 sampled instruction
+  pointers map inside Mesa 18 `swrast_dri.so`; Qt cannot dispatch the queued
+  input while synchronous software rasterization monopolizes the GUI thread.
+- Negative VM controls—threaded render loop, `vblank_mode=0`, two softpipe
+  threads, hidden live status bar/noninteractive layers, scheduler priority,
+  temporary AppNavi quiescence, `SIGCONT`, and a 60-second post-input wait—do
+  not produce the authentic Confirm handler. None is treated as acceptance.
+- Standby remains `11`, the Home transition result remains `255`, and no legal
+  confirmation, filter-bit clearance, or normal Home↔Navigation transition is
+  claimed.
+- Current rootfs SHA-256 is
+  `32f4e81f3e637c7fc3c2b3457852b7b8473dda4f2cc0288bff11618cdda5abee`;
+  `prepare.json` matches and `e2fsck -fn` passes.
+
+## 0.42.0 - 2026-10-26
+
+- Corrected the full-chain Qt/Wayland environment: the probe no longer
+  pre-sets `QT_WAYLAND_SHELL_INTEGRATION=ivi` before authentic AppLauncher
+  appends `:ivi`. The invalid `ivi:ivi` value is gone; Qt clients load
+  `libivi.so` and log `Using the 'ivi' shell integration`.
+- Added `--micom-serial` to the offline VM harness, providing guest
+  `/dev/ttyS1` through a project-local Unix socket while retaining the no-NIC
+  boundary. The authentic micom daemon now configures 115200-baud serial and
+  registers `com.lge.car.micom`, although hardware-dependent boot-info calls
+  still do not complete.
+- Captured authentic `/Ihu` and `/Can` introspection and established the exact
+  `AskSysBootinfo() -> ay` contract. Consumer disassembly and controlled runs
+  confirm a 35-byte reply.
+- Added fail-closed VM research helper
+  `tools/uk_fw/guest/micom_dbus_sim.c`. It supplies only the exact boot-info
+  data reply, exposes evidence-derived introspection, acknowledges only exact
+  transport signatures, logs all byte-array/int32 arguments, and rejects
+  unimplemented data-bearing methods. It is not recovered firmware or a full
+  micom/CAN emulator.
+- The corrected candidate profile makes AppLauncher select HMC, vehicle code
+  `0x26`/38, Europe, 12.3-inch display, RHD, Navigation, Modem, and English
+  instead of the prior LX2/Korea fallback. Remaining zero option fields are
+  explicitly incomplete rather than claimed as an authentic Ultimate profile.
+- Full-chain run `1792936845027660000` reached concurrent authentic activity:
+  AppNavi reported engine success and created surfaces `3000` and `4903`;
+  AppHomeScreen finished QML drawing and created surface `1004`;
+  AppLauncher, ApplicationManager, and Home remained alive at the evidence
+  checkpoint.
+- Reclassified AppNavi's later `SIGTRAP`: ApplicationManager's liveness
+  watchdog explicitly executes `killall -5 AppNavi` after missed responses.
+  No spontaneous SIGSEGV/ABRT/BUS/ILL was found in that trace set.
+- Direct-launch no-`strace` control run `1792937492664474000` reproduces the
+  watchdog kill, excluding syscall tracing as the sole cause. Session-bus
+  evidence identifies the exact liveness path: AppNavi answers the first
+  `org.freedesktop.DBus.Peer.Ping` at `/navigation_map`, then fails to answer
+  eight later Pings while software-rendered startup continues.
+- Captured 301 micom calls over 34 method signatures, including exact CAN IDs,
+  masks, registration records, CPU-alive transitions, boot-complete states,
+  and DID/version writes. No CAN signals are fabricated yet; payload semantics
+  must be mapped consumer-by-consumer first.
+- The final frame remains splash. Home is still marked non-visible, AppNavi is
+  watchdog-terminated, persistence resource tables are absent, and
+  data-bearing micom/CAN transitions remain to be implemented and tested.
+- Updated the current image identity to
+  `817ca674b0e181209ca154236c9fc7d284b085caa0b045c5e4e66cd2fd081f5d`;
+  copy-on-write checkpoints and `e2fsck -fn` controls passed.
+- All 21 focused VM harness tests and all 167 repository tests pass; JSON
+  manifests parse, Python compilation succeeds, and `git diff --check` passes.
+
+## 0.41.0 - 2026-10-25
+
+- Validated native TE2/xcrypt decryption for current EU/AU packages and
+  recovered the authentic rootfs, GUI, AppNavi, updater and RW-data userspaces.
+- Booted recovered Weston/IVI with project-local Mesa 18 `softpipe`; authentic
+  `AppHomeScreen` now renders a complete 1920×720 frame, and pointer/touch
+  events reach authentic Qt/QML.
+- Recovered launcher identity for AppNavi: AppID `30`, parent IVI surface
+  `3000`, launcher path `/navi/navi/Bin/AppNavi`.
+- Added a bounded authentic EU map/core/skin subset. AppNavi reaches
+  `### Navi Engine Init Success ###`, loads the authentic theme image and
+  night skin, and renders an independently committed 836×720 map-widget
+  surface `4903`.
+- Captured the first visible authentic navigation-map pixels in run
+  `1792908755653936000`: roads, buildings, water and the vehicle marker are
+  visible at native 836×720 inside a 1920×720 compositor frame. PNG SHA-256:
+  `88e8403d808b6936181465ee512aa9e124b75ccc7dbd625a221e41e75ab8b4cb`.
+- Added exact-configuration VM helper
+  `tools/uk_fw/guest/ivi_link_navi_widget.S`, which reconstructs the missing
+  IVI relationship `3000 -> 4903`, restores the child's native destination,
+  and foregrounds the parent. This helper is not recovered firmware.
+- Preserved controls showing that skin data alone still produced the prior
+  nearly black frame, a parent/child relationship without child layout reduced
+  it to 1×1, and hiding/promoting the child full-screen produced a stretched
+  but visible map. This isolates the composition issue from map rendering.
+- The milestone remains VM-adapted: it uses an exact-build zero-MSAA AppNavi
+  compatibility copy and a one-method `NotifyValetStatus` D-Bus responder.
+  Unmodified AppNavi and the full `ApplicationManager` chain are not claimed.
+- The full chain remains blocked on missing `MICOMSTATUSMESSAGE`
+  shared-memory/semaphore state. Missing landmark/DEM/sqlite resources remain
+  logged, although they do not prevent the first map frame. Binding the
+  recovered new2.0 HMC asset tree removed all 15 named PNG-load failures but
+  left the compositor screenshot byte-identical, ruling those files out as the
+  current cause of the black parent region.
+- Reviewed the native TE2 decryptor implementation: 28 focused tests and all
+  165 repository tests pass. A real official EU `.lge.upgrade.xml` decryption
+  is byte-identical to the independently preserved recovered output.
+
+
+## 0.62.0 - public VM source and evidence publication
+
+- Added authored guest helpers, VM experiment scripts, bounded navigation
+  evidence, inspected screenshots, and provenance manifests to the separate
+  public repository. Generated disk images, recovered vendor binaries, raw
+  captures and core dumps remain local.
+- Extended the public privacy scanner to cover every tracked folder,
+  including VM source scripts and QML; retained the full local test suite.

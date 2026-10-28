@@ -639,6 +639,25 @@ class PrivacyTests(unittest.TestCase):
             result = privacy.privacy_scan(root)
             self.assertEqual(result["status"], common.STATUS_PASS)
 
+    def test_public_mode_scans_new_vm_source_folder(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            (root / "PUBLIC-RELEASE.md").write_text("public snapshot\n")
+            vm_source = root / "vm" / "repro" / "probe.qml"
+            vm_source.parent.mkdir(parents=True)
+            vm_source.write_text("contact=private.person@home-mailbox.io\n")
+            subprocess.run(
+                ["git", "-C", str(root), "add", "PUBLIC-RELEASE.md", "vm/repro/probe.qml"],
+                check=True,
+            )
+            result = privacy.privacy_scan(root)
+            self.assertEqual(result["status"], common.STATUS_FAIL)
+            self.assertIn(
+                "email-address-private-repository",
+                {item["category"] for item in result["details"]["findings"]},
+            )
+
 
 class DocsTests(unittest.TestCase):
     def _ledger(self, root: Path, state: str, write_paths=None) -> Path:

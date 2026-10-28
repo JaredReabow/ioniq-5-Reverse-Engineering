@@ -1,0 +1,8 @@
+rm /micom-dbus-sim
+write work/vm/vendor-userspace-260128/micom-contract/micom-dbus-sim-v2 /micom-dbus-sim
+set_inode_field /micom-dbus-sim mode 0100755
+rm /full-chain-trace.sh
+write work/vm/vendor-userspace-260128/micom-contract/full-chain-trace.sh /full-chain-trace.sh
+set_inode_field /full-chain-trace.sh mode 0100755
+stat /micom-dbus-sim
+stat /full-chain-trace.sh

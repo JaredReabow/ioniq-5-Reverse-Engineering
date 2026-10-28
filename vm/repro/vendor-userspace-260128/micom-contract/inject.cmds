@@ -1,0 +1,4 @@
+write micom-contract/ipc-observe /ipc-observe
+set_inode_field /ipc-observe mode 0100755
+write micom-contract/full-chain-trace.sh /full-chain-trace.sh
+set_inode_field /full-chain-trace.sh mode 0100755

@@ -16,9 +16,12 @@ TEXT_SUFFIXES = frozenset(
     {".md", ".json", ".txt", ".yaml", ".yml", ".toml", ".csv", ".tsv", ".gitignore"}
 )
 PUBLIC_TEXT_SUFFIXES = TEXT_SUFFIXES | frozenset(
-    {".py", ".sh", ".asm", ".log", ".java", ".c", ".s", ".inf", ".update"}
+    {".py", ".sh", ".asm", ".log", ".java", ".c", ".s", ".inf", ".update", ".qml", ".cmd", ".cmds"}
 )
-PUBLIC_RAW_SUFFIXES = frozenset({".zip", ".gz", ".dlt", ".dat", ".dump", ".core"})
+PUBLIC_RAW_SUFFIXES = frozenset({
+    ".zip", ".gz", ".dlt", ".dat", ".dump", ".core", ".img", ".qcow2",
+    ".vmdk", ".iso", ".bin", ".so", ".o", ".tar", ".tgz", ".xz", ".zst",
+})
 PUBLIC_PERSONAL_HOME = re.compile(r"/Users/(?!researcher/|USER/|example/)[^/\s]+/")
 PROHIBITED_SUFFIXES = frozenset(
     {
@@ -73,12 +76,12 @@ def privacy_scope_files(root: Path, *, tracked_only: bool = False) -> list[Path]
         paths = subprocess.check_output(
             ["git", "-C", str(root), "ls-files", "-z", "--cached"]
         ).decode("utf-8").split("\0")
+        # Scan the entire public index, including VM reproduction sources.
+        # A new top-level folder must not silently bypass privacy checks.
         return [
             root / path
             for path in paths
-            if path
-            and not set(Path(path).parts) & EXCLUDED_PARTS
-            and (Path(path).parent == Path(".") or Path(path).parts[0] in {"evidence", "council", "tools"})
+            if path and not set(Path(path).parts) & EXCLUDED_PARTS
         ]
     for path in sorted(root.iterdir()):
         if path.is_file():

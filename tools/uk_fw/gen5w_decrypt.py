@@ -1,32 +1,56 @@
 #!/usr/bin/env python3
-"""Harness around the unit-derived OTA decryptor.
+"""LG Gen5W TE2 OTA envelope parser/decryptor plus the historical unit-derived decryptor harness.
 
-The Gen5W OTA payloads are AES-encrypted. The only public route to plaintext is
-to run the unit's own decryptor on a PC with the key material extracted from the
-unit (`DecryptToPIPE` plus `decryption_key.der`). This tool does not implement or
-break any cipher; it orchestrates that external binary, models the container
-layout, and validates what comes back.
+Two modes are provided.
 
-Container model and the documented invocation
----------------------------------------------
-Each package appends a package-scoped **footer** (14,059 bytes for EU `260128`,
-14,315 bytes for AU `260319`) to `AppUpgrade`, `.lge.upgrade.xml` and
-`update.tar.gz`. The footer is detected here for *reporting only*: the vendor
-decryptor consumes the whole file and parses the container itself, so nothing is
-stripped before decryption.
+Native TE2 mode (``inspect`` / ``decrypt``)
+-------------------------------------------
+The opaque Gen5W payloads are AES-128-CBC envelopes with a fixed trailing
+metadata trailer. This tool parses and decrypts those envelopes **directly**
+(no unit-derived binary required) using only the evidence established for the
+validated LG TE2 container:
 
-The documented invocation, taken from the public `update_decryptor`
-`entrypoint.sh`, is:
+* trailer size             0x4024 (16,420 bytes)
+* magic/version            ``metadata[0:4]``; validated files start ``b'TE2'``
+                           and the fourth byte is an **opaque discriminator**
+                           (reported, not semantically named)
+* metadata integrity       ``SHA256(iv + metadata[36:])`` compared to
+                           ``metadata[4:36]``
+* AES final-block material ``metadata[36:52]``
+* IV                       first 16 bytes of
+                           ``SHA256((basename + signed_int32(body_size)).encode('utf-8'))``
+* body size                ``file_size - 0x4024``
+* cipher                   AES-128-CBC; the established content key is
+                           ``60a93d70f73302a63e5ed0d0ea38be22``
+
+For a body whose size is not a multiple of 16 the stored final ciphertext
+fragment is completed with ``metadata[36:36+pad_len]`` before AES decryption,
+and only the original fragment length is emitted. Metadata is never stripped
+from the input and inputs are never modified. Outputs are explicit, parent
+directories are created, existing outputs are refused unless ``--force`` is
+given, and any partial output created by a failed decrypt is removed. Body data
+is streamed in block-aligned chunks and never read wholly into memory.
+
+Historical external mode (``plan`` / ``run`` / ``verify``)
+----------------------------------------------------------
+Before the TE2 envelope was validated, decryption relied on the unit's own
+``DecryptToPIPE`` binary plus ``decryption_key.der``. That path is retained for
+compatibility only: it orchestrates an external binary, models nothing about the
+TE2 trailer, and does not apply to the native envelope handled above. The
+documented invocation, taken from the public ``update_decryptor``
+``entrypoint.sh``, is::
 
     DecryptToPIPE -d <keyfile> <input> 0 > <output>
 
-i.e. decrypt, key file, input path, a numeric mode, output on stdout. That is the
-default template below; override it with ``--template`` if your build differs.
+Override it with ``--template`` if your build differs. Safety: this mode writes
+only under ``--out`` and never modifies the package directory.
 
 Subcommands
 -----------
+    inspect   report the parsed TE2 metadata trailer (read-only)
+    decrypt   native AES-128-CBC decryption of a TE2 envelope
     plan      show the exact external commands that would run (no execution)
-    run       execute the decryptor for each payload and verify the outputs
+    run       execute the external decryptor for each payload and verify outputs
     verify    check that a decrypted directory looks like real plaintext
 
 The external command is supplied as a template so this tool makes no assumption
@@ -35,21 +59,34 @@ about the vendor binary's interface:
     --template 'DecryptToPipe --key {key} --in {input} --out {output}'
 
 Placeholders: ``{input}``, ``{output}``, ``{key}``, ``{footer}``.
-
-Safety: writes only under ``--out``; never modifies the package directory.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
-import shlex
+import os
 import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional
+
+META_SIZE = 0x4024  # 16,420-byte trailing metadata trailer
+BLOCK_SIZE = 16  # AES block size in bytes
+MAGIC = b"TE2"  # validated metadata prefix; metadata[3] is an opaque discriminator
+DEFAULT_KEY_HEX = "60a93d70f73302a63e5ed0d0ea38be22"
+DEFAULT_CHUNK_SIZE = 4 * 1024
+
+# Structural trailer regions (offsets are from the start of the trailer).
+SIGNATURE_STORE_OFFSET = 52
+SIGNATURE_STORE_END = 8228
+SIGNATURE_STORE_SIZE = SIGNATURE_STORE_END - SIGNATURE_STORE_OFFSET  # 8,176
+KEY_STORE_OFFSET = 8228
+KEY_STORE_END = META_SIZE
+KEY_STORE_SIZE = KEY_STORE_END - KEY_STORE_OFFSET  # 8,192
 
 DEFAULT_FILES = [
     "AppUpgrade",
@@ -60,7 +97,10 @@ DEFAULT_FILES = [
     "HU/images/new_gui.tar.gz",
     "HU/images/navi_eu/appnavi.tar",
 ]
-KNOWN_FOOTERS = {14059, 14315}
+
+
+class DecryptError(Exception):
+    """Raised when a native inspect/decrypt operation cannot proceed."""
 
 
 def entropy(data: bytes) -> float:
@@ -100,9 +140,9 @@ def build_plan(root: Path, out: Path, files: List[str], template: str,
         raise SystemExit(f"no payloads found under {root}")
     footer = detect_footer_size(present)
     footer_note = None
-    if footer and footer not in KNOWN_FOOTERS:
-        footer_note = (f"detected footer {footer} is not a known value "
-                       f"({sorted(KNOWN_FOOTERS)}); treat it as provisional")
+    if footer:
+        footer_note = (f"detected {footer}-byte trailing window (heuristic only; "
+                       f"the validated TE2 metadata trailer is {META_SIZE} bytes)")
     plan = {
         "root": str(root),
         "out": str(out),
@@ -175,6 +215,236 @@ def verify_dir(path: Path) -> Dict[str, object]:
     return {"root": str(path), "files": len(rows), "plaintext_like": decompressed, "rows": rows}
 
 
+# ---------------------------------------------------------------------------
+# Native TE2 parser/decryptor
+# ---------------------------------------------------------------------------
+
+def signed_int32(value: int) -> int:
+    """Two's-complement int32 view matching the public xcrypt helper."""
+    base = 1 << 32
+    value %= base
+    if value.bit_length() == 32:
+        value -= base
+    return value
+
+
+def _ascii_safe(data: bytes) -> str:
+    return "".join(chr(b) if 32 <= b < 127 else "." for b in data)
+
+
+def derive_iv(path, body_size: int) -> bytes:
+    """First 16 bytes of SHA256((basename + signed_int32(body_size)).encode('utf-8'))."""
+    basename = os.path.basename(os.fspath(path))
+    material = f"{basename}{signed_int32(body_size)}".encode("utf-8")
+    return hashlib.sha256(material).digest()[:BLOCK_SIZE]
+
+
+def parse_key(key_hex: str) -> bytes:
+    if not isinstance(key_hex, str) or not key_hex:
+        raise DecryptError("key must be a non-empty hex string")
+    try:
+        key = bytes.fromhex(key_hex)
+    except ValueError as exc:
+        raise DecryptError(f"key is not valid hexadecimal: {exc}") from exc
+    if len(key) != BLOCK_SIZE:
+        raise DecryptError(
+            f"key must be {BLOCK_SIZE} bytes (AES-128); got {len(key)} bytes")
+    return key
+
+
+def _crypto():
+    try:
+        from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+        return Cipher, algorithms, modes
+    except ImportError as exc:
+        raise DecryptError(
+            "native TE2 decryption requires the 'cryptography' package, which is "
+            "not importable in this interpreter; install it first (no network or "
+            "install action is performed by this tool).") from exc
+
+
+def _read_exact(fh, n: int) -> bytes:
+    """Read exactly n bytes or raise DecryptError on a premature end of stream."""
+    buf = bytearray()
+    while len(buf) < n:
+        chunk = fh.read(n - len(buf))
+        if not chunk:
+            raise DecryptError(
+                f"incomplete read: expected {n} bytes, got {len(buf)}")
+        buf.extend(chunk)
+    return bytes(buf)
+
+
+def _load_metadata(path, body_size: int) -> bytes:
+    with open(path, "rb") as fh:
+        fh.seek(body_size)
+        return _read_exact(fh, META_SIZE)
+
+
+def _analyze(path):
+    """Parse the trailing metadata trailer and return ``(report, metadata)``.
+
+    ``metadata`` is the raw trailer bytes, or ``None`` when the file is too
+    small or unreadable. The report always carries every field that could be
+    derived so callers can inspect a damaged envelope.
+    """
+    path = Path(path)
+    report: Dict[str, object] = {"source": str(path)}
+    try:
+        total_size = path.stat().st_size
+    except OSError as exc:
+        report["error"] = f"cannot stat input: {exc}"
+        report["magic_valid"] = False
+        report["integrity_valid"] = False
+        return report, None
+
+    report["total_size"] = total_size
+    report["metadata_size"] = META_SIZE
+    body_size = total_size - META_SIZE
+    report["body_size"] = body_size
+    if body_size <= 0:
+        report["error"] = (f"file too small to hold a TE2 envelope "
+                           f"({total_size} <= {META_SIZE} metadata bytes)")
+        report["magic_valid"] = False
+        report["integrity_valid"] = False
+        return report, None
+
+    try:
+        metadata = _load_metadata(path, body_size)
+    except (OSError, DecryptError) as exc:
+        report["error"] = f"metadata read failed: {exc}"
+        report["magic_valid"] = False
+        report["integrity_valid"] = False
+        return report, None
+
+    report["magic_hex"] = metadata[:4].hex()
+    report["magic_ascii"] = _ascii_safe(metadata[:4])
+    report["byte3"] = metadata[3]
+    report["byte3_hex"] = f"0x{metadata[3]:02x}"
+    report["magic_valid"] = metadata[:3] == MAGIC
+
+    iv = derive_iv(path, body_size)
+    report["iv"] = iv.hex()
+
+    stored = metadata[4:36]
+    report["stored_metadata_sha256"] = stored.hex()
+    computed = hashlib.sha256(iv + metadata[36:]).digest()
+    report["calculated_metadata_sha256"] = computed.hex()
+    report["integrity_valid"] = stored == computed
+
+    report["padding_hex"] = metadata[36:52].hex()
+    report["signature_store_size"] = SIGNATURE_STORE_SIZE
+    report["signature_store_sha256"] = hashlib.sha256(
+        metadata[SIGNATURE_STORE_OFFSET:SIGNATURE_STORE_END]).hexdigest()
+    report["key_store_size"] = KEY_STORE_SIZE
+    report["key_store_sha256"] = hashlib.sha256(
+        metadata[KEY_STORE_OFFSET:KEY_STORE_END]).hexdigest()
+
+    if not report["magic_valid"]:
+        report["error"] = (f"magic/version mismatch: expected prefix {MAGIC!r}, "
+                           f"got {metadata[:4]!r}")
+    elif not report["integrity_valid"]:
+        report["error"] = "metadata integrity check failed"
+    return report, metadata
+
+
+def analyze_envelope(path) -> Dict[str, object]:
+    """Return the inspect/report dictionary for a TE2 envelope (read-only)."""
+    return _analyze(path)[0]
+
+
+def _require_valid(report: Dict[str, object]) -> None:
+    if report.get("error"):
+        raise DecryptError(str(report["error"]))
+    if not report.get("magic_valid"):
+        raise DecryptError("magic/version mismatch")
+    if not report.get("integrity_valid"):
+        raise DecryptError("metadata integrity check failed")
+
+
+def decrypt_native(input_path, output_path,
+                   key_hex: str = DEFAULT_KEY_HEX,
+                   chunk_size: int = DEFAULT_CHUNK_SIZE,
+                   force: bool = False) -> Dict[str, object]:
+    """Decrypt a TE2 envelope to an explicit output path, streaming the body.
+
+    Raises ``DecryptError`` on any validation/decrypt failure and removes a
+    partially written output file in that case. Never modifies the input.
+    """
+    input_path = os.path.abspath(os.fspath(input_path))
+    output_path = os.path.abspath(os.fspath(output_path))
+    if os.path.realpath(input_path) == os.path.realpath(output_path):
+        raise DecryptError("input and output resolve to the same path")
+
+    key = parse_key(key_hex)
+    if chunk_size <= 0 or chunk_size % BLOCK_SIZE != 0:
+        raise DecryptError(
+            f"chunk size must be a positive multiple of {BLOCK_SIZE}; got {chunk_size}")
+
+    report, metadata = _analyze(input_path)
+    _require_valid(report)
+    assert metadata is not None  # guarded by _require_valid
+
+    body_size = int(report["body_size"])
+    iv = bytes.fromhex(str(report["iv"]))
+    pad_len = (BLOCK_SIZE - body_size % BLOCK_SIZE) % BLOCK_SIZE
+    pad = metadata[36:36 + pad_len]
+
+    parent = os.path.dirname(output_path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+
+    Cipher, algorithms, modes = _crypto()
+
+    try:
+        fout = open(output_path, "wb" if force else "xb")
+    except FileExistsError as exc:
+        raise DecryptError(
+            f"output already exists (use --force to overwrite): {output_path}") from exc
+    except OSError as exc:
+        raise DecryptError(f"cannot create output {output_path}: {exc}") from exc
+
+    written = 0
+    try:
+        with open(input_path, "rb") as fin:
+            decryptor = Cipher(algorithms.AES(key), modes.CBC(iv)).decryptor()
+            remaining = body_size
+            while remaining > 0:
+                want = min(chunk_size, remaining)
+                data = _read_exact(fin, want)
+                remaining -= want
+                if remaining == 0 and pad_len:
+                    plain = decryptor.update(data + pad)[:len(data)]
+                else:
+                    plain = decryptor.update(data)
+                fout.write(plain)
+                written += len(plain)
+            tail = decryptor.finalize()
+            if tail:
+                fout.write(tail)
+                written += len(tail)
+    except BaseException:
+        fout.close()
+        try:
+            os.unlink(output_path)
+        except OSError:
+            pass
+        raise
+    else:
+        fout.close()
+
+    return {
+        "input": input_path,
+        "output": output_path,
+        "total_size": report["total_size"],
+        "body_size": body_size,
+        "bytes_written": written,
+        "iv": report["iv"],
+        "padding_hex": report["padding_hex"],
+        "cipher": "AES-128-CBC",
+    }
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -196,6 +466,22 @@ def main(argv: Optional[List[str]] = None) -> int:
     p_ver.add_argument("path", type=Path)
     p_ver.add_argument("--json", action="store_true")
 
+    p_ins = sub.add_parser("inspect",
+                           help="report the parsed TE2 metadata trailer (read-only)")
+    p_ins.add_argument("input", type=Path)
+    p_ins.add_argument("--json", type=Path, help="write the JSON report to this path")
+
+    p_dec = sub.add_parser("decrypt", help="native AES-128-CBC TE2 decryption")
+    p_dec.add_argument("input", type=Path)
+    p_dec.add_argument("output", type=Path)
+    p_dec.add_argument("--key", default=DEFAULT_KEY_HEX,
+                       help="AES-128 key as hex (default: established TE2 content key)")
+    p_dec.add_argument("--chunk-size", type=int, default=DEFAULT_CHUNK_SIZE,
+                       help="read buffer in bytes; must be a positive multiple of 16")
+    p_dec.add_argument("--force", action="store_true",
+                       help="overwrite an existing output file")
+    p_dec.add_argument("--json", type=Path, help="write the JSON report to this path")
+
     args = ap.parse_args(argv)
 
     if args.cmd == "verify":
@@ -207,6 +493,26 @@ def main(argv: Optional[List[str]] = None) -> int:
                 flag = "plain" if row["plaintext_like"] else "binary/encrypted"
                 print(f"  {row['path']:50} {row['size']:>12}  H={row['entropy']:.2f}  {flag}")
             print(f"{result['plaintext_like']}/{result['files']} look like plaintext")
+        return 0
+
+    if args.cmd == "inspect":
+        report = analyze_envelope(args.input)
+        if args.json:
+            args.json.write_text(json.dumps(report, indent=2))
+        print(json.dumps(report, indent=2))
+        return 0 if (report.get("magic_valid") and report.get("integrity_valid")
+                     and "error" not in report) else 1
+
+    if args.cmd == "decrypt":
+        try:
+            result = decrypt_native(args.input, args.output, args.key,
+                                    args.chunk_size, args.force)
+        except DecryptError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        if args.json:
+            args.json.write_text(json.dumps(result, indent=2))
+        print(json.dumps(result, indent=2))
         return 0
 
     plan = build_plan(args.root, args.out, args.files or DEFAULT_FILES,

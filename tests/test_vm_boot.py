@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import struct
 import unittest
 from pathlib import Path
@@ -162,6 +163,36 @@ class CommandTests(unittest.TestCase):
         cmd = VM.qemu_command(VM.PROJECT / "work/vm/example", "qemu", True)
         self.assertEqual(cmd[cmd.index("-gdb") + 1], "unix:gdb.sock,server=on,wait=off")
         self.assertIn("-S", cmd)
+
+    def test_memory_is_explicit_and_bounded(self):
+        cmd = VM.qemu_command(VM.PROJECT / "work/vm/example", "qemu", False,
+                              memory_mib=3072)
+        self.assertEqual(cmd[cmd.index("-m") + 1], "3072")
+        for invalid in (255, 8193):
+            with self.assertRaisesRegex(ValueError, "memory"):
+                VM.qemu_command(VM.PROJECT / "work/vm/example", "qemu", False,
+                                memory_mib=invalid)
+
+    def test_micom_serial_is_project_local_and_has_no_network(self):
+        cmd = VM.qemu_command(VM.PROJECT / "work/vm/example", "qemu", False,
+                              micom_serial=True)
+        self.assertIn("socket,id=micom,path=micom.sock,server=on,wait=off", cmd)
+        self.assertIn("isa-serial,chardev=micom,index=1", cmd)
+        self.assertEqual(cmd[cmd.index("-nic") + 1], "none")
+
+    def test_micom_capture_drains_until_nonblocking_boundary(self):
+        class SerialSocket:
+            def __init__(self):
+                self.chunks = [b"abc", b"def"]
+
+            def recv(self, _count):
+                if self.chunks:
+                    return self.chunks.pop(0)
+                raise BlockingIOError
+
+        output = io.BytesIO()
+        self.assertEqual(VM.drain_available(SerialSocket(), output), 6)
+        self.assertEqual(output.getvalue(), b"abcdef")
 
     def test_ext4_features_are_an_allowlist(self):
         self.assertTrue(VM.EXT4_FEATURES.startswith("none,"))

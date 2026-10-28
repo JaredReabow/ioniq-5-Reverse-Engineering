@@ -1,0 +1,3 @@
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/appnavi-egl-no-msaa-preload-build/appnavi-egl-no-msaa-preload.so" /appnavi-egl-no-msaa-preload.so
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-eglcompat.sh" /full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-eglcompat
+set_inode_field /full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-eglcompat mode 0100755

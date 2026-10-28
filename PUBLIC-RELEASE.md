@@ -13,6 +13,12 @@ archive. Historical research notes may describe the earlier private
 workspace; those retention rules do not grant permission to publish raw
 material here.
 
+The authored VM code, experiment scripts, bounded findings and inspected
+screenshots are published under `tools/`, `tests/`, `evidence/` and `vm/`.
+The local VM work tree contains large generated disks, recovered vendor
+binaries, raw logs and core dumps. Those artifacts are represented by hashes
+and findings, not copied into this public Git history.
+
 Before every push, run `python3 tests/run_all.py` and the unit suite. Public
 mode checks tracked text for secrets, personal paths and VIN-shaped tokens,
 and rejects raw evidence paths.

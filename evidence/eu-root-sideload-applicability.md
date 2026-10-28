@@ -1,5 +1,12 @@
 # European `260128` root and application-loading applicability
 
+> **Recovery update:** later validated native TE2/xcrypt work recovered rootfs,
+> GUI, AppNavi and other userspaces. The older encrypted-userland blocker and
+> unit-derived-decryptor-only implication below are superseded for local VM work.
+> Decryption still does not prove stock-device initial execution or update/boot
+> acceptance. See current `HANDOVER.md` and `community-chat-leads.md`; no current
+> physical-unit entry or downgrade is established by the supplied chat summary.
+
 Status: published-method and exact-build static assessment. It is not an
 operational live-vehicle exploit procedure.
 

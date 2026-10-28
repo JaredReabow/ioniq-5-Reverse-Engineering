@@ -257,6 +257,18 @@
       "sha256": "88e8403d808b6936181465ee512aa9e124b75ccc7dbd625a221e41e75ab8b4cb",
       "size": 151460,
       "source": "work/vm/vendor-userspace-260128/ivi-link-navi-widget-build/appnavi-widget-4903-linked-v2.png"
+    },
+    {
+      "published": "vm/evidence/screenshots/profile-confirm.png",
+      "sha256": "a0b399e811f378b1ab394053c0f2fa67db8421b6c933b9ee758cdf7a857c8470",
+      "size": 206667,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-deadline-piefix-1536-evidence/launcher-chain/shot-after-confirm/wayland-screenshot.png"
+    },
+    {
+      "published": "vm/evidence/screenshots/navigation-attempt.png",
+      "sha256": "d617931a4f21e6e079c7ac4b2aacf7e6513e8b0310f3a3e04e3abf98ea2acf42",
+      "size": 144188,
+      "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-deadline-piefix-1536-evidence/launcher-chain/shot-navi-live-60/wayland-screenshot.png"
     }
   ],
   "schema_version": 1

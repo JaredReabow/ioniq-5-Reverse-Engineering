@@ -18,7 +18,7 @@ behavior on an unmodified vehicle head unit.
   `/Users/researcher/`. [source-manifest.json](source-manifest.json)
   records original and published SHA-256 values.
 - [Bounded evidence](evidence): 41 text summaries/disassembly excerpts and
-  two inspected screenshots, with hashes in
+  four inspected screenshots, with hashes in
   [evidence-manifest.json](evidence-manifest.json).
 - [Navigation launch-status analysis](../evidence/navigation-launch-status-contract.md)
   and [defensive findings register](../Ioniq5-VULNERABILITIES.md).

@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.63.0 - VM status, screenshots and physical-access leads
+
+- Published two further inspected screenshots under `vm/evidence/screenshots/`:
+  the authentic launcher profile/confirm screen and a navigation-window frame that
+  still shows Home. Evidence manifest re-hashed (45 entries).
+- Expanded the root README with a per-area VM status table, the mandatory run
+  configuration and the recovered ApplicationManager/window-byte contract that
+  explains why Navigation does not composite yet.
+- Added V-006/V-007/V-008 to the defensive register from a third-party advisor
+  summary: USB descriptor strings into a privileged mount script, media parsing as
+  root, and a hashed-password root serial console. All three are labelled
+  **unverified actor reports**; no code path, process identity, console device or
+  reproduction was supplied and none was validated in this session.
+- Recorded the engineering caveats that bound them: USB string descriptors are
+  UTF-16LE (metacharacters arrive NUL-interleaved) and `udev` sanitises
+  `ID_SERIAL`/`ID_MODEL`, so a vulnerable consumer would have to be custom; the
+  126-code-unit descriptor limit still admits a ~40-character payload, making
+  encoding and shell quoting rather than length the binding constraint.
+- All three require physical access; none is remote. No hardware was touched, no
+  experiment was run for this publication, and no attack tooling was built.
+- Note: entries 0.60.0–0.62.0 were previously appended at the end of this file
+  rather than in newest-first order; this entry is inserted in the documented
+  position without rewriting those historical entries.
+
 ## 0.40.0 - 2026-10-21
 
 - Reached interactive BusyBox userspace on the **VM-adapted vendor kernel**:

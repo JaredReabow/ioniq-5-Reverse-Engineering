@@ -635,3 +635,37 @@ and are superseded by corrections rather than silently rewritten.
 - 2026-10-28: Published the authored VM sources, bounded evidence and current
   technical handover in the separate public repository; local firmware images,
   extracted vendor trees, raw captures and private working records remain local.
+
+
+## 2026-10-28 — VM sources, evidence and screenshots published
+
+- Published the authored VM reproduction sources and bounded evidence under vm/,
+  with source and evidence manifests binding every published file to a SHA-256.
+- Added two further inspected screenshots: the authentic launcher profile/confirm
+  screen and a navigation-window frame that still shows Home, which is the visible
+  symptom of the unresolved Home-to-Navigation transition.
+- Expanded the root README with a per-area status table (kernel boot, userspace,
+  launcher, Home, AppNavi, compositing, audio, CAN/MICOM, persistence, input), the
+  mandatory run configuration (TCG, max,vendor=GenuineIntel, 1536 MiB, snapshot
+  disk, no NIC) and the recovered ApplicationManager/window-byte contract.
+- No new experiment was run for this publication. All screenshots and evidence
+  were already captured by earlier snapshot runs; the base rootfs hash is unchanged.
+
+## 2026-10-28 — unverified physical-access vectors recorded
+
+- Received a third-party advisor summary asserting three physical-access vectors:
+  USB descriptor strings reaching a privileged mount script; media file parsing
+  running as root; and a root serial console gated by a hashed password.
+- No logs, script excerpts, device identity, process identity, console device or
+  reproduction accompanied the claims. None was validated against the recovered
+  image. Recorded as V-006, V-007 and V-008 marked "unverified actor report" so
+  they are neither lost nor treated as established findings.
+- Caveats recorded: USB string descriptors are UTF-16LE so ASCII metacharacters
+  arrive NUL-interleaved, and udev sanitises ID_SERIAL/ID_MODEL, so a vulnerable
+  path needs a custom consumer; the 126-code-unit descriptor limit would still
+  admit a ~40 character payload, making encoding and quoting rather than length
+  the binding constraint. A hashed root console password is ordinary practice and
+  only becomes a finding if weak, reused, bypassable, or its material extractable.
+- All three require physical access; none is remote. Validation is scoped to the
+  isolated VM snapshot or offline analysis of the recovered rootfs. No experiment
+  was run against hardware and no attack tooling was built.

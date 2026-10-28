@@ -1,6 +1,6 @@
 # IONIQ 5 infotainment vulnerability and remediation register
 
-Updated: 2026-10-26. Internal defensive research; no disclosure or vendor contact is implied.
+Updated: 2026-10-28. Internal defensive research; no disclosure or vendor contact is implied.
 
 ## Scope and evidence rules
 
@@ -12,6 +12,8 @@ The `260128` package remains an official European research target, not an
 observed installed build. See `evidence/vehicle-usb/README.md`.
 
 This is a backfill from existing research, **not a new vulnerability discovery pass**. Entries distinguish verified behavior, static observations, unvalidated candidates, rejected hypotheses, and modification-created hazards. No numeric severity is assigned without reachability and impact evidence. Never infer missing security fixes from the kernel version alone. See `evidence/corrections-log.md` before relying on historical reports.
+
+**Unverified actor reports.** Entries V-006, V-007 and V-008 originate from a third-party advisor summary supplied 2026-10-28 and are **hypotheses, not observations**. No code path, process identity, console device or reproduction accompanied them, and none has been validated in the recovered image. They are recorded so the claims can be tested and so they are not rediscovered from scratch. Nothing here should be treated as established until the listed validation is performed on the isolated VM or offline against the recovered rootfs.
 
 ## V-001 — Unsigned kernel modules execute after privileged loading
 
@@ -81,6 +83,43 @@ This is a backfill from existing research, **not a new vulnerability discovery p
 - **Threat/impact boundary:** local VM application termination is established. Attacker influence, hardware reachability, arbitrary writes, code execution and persistence are not. Do not attribute a compatibility-induced failure to stock firmware without a stock-path reproduction.
 - **Remediation direction:** verify dimensions after initialization/update; reject negative/overflowing dimensions, byte counts and out-of-range rectangles; refresh cached stride when width changes. Select a scoped VM adaptation only after confirming the ordering defect; do not weaken libc checks or force manager state.
 - **Validation needed:** capture width before/after update and copy-entry arguments; test first swap, resize, zero-size hide/unhide, undecorated/decorated clients and normal positive-size buffers. Preserve existing Home/navigation controls and observe native return-to-Home pixels, not manager integers alone.
+
+## V-006 — USB descriptor strings reach a privileged mount script (candidate)
+
+- **Status:** **unverified actor report.** No code path, script, or descriptor consumer has been located in the recovered image yet. Explicitly a lead, not a finding.
+- **Source:** third-party advisor summary supplied 2026-10-28. No logs, script excerpt, device identity or reproduction were provided. Recorded here for validation, not relied upon.
+- **Claim:** a USB storage device's descriptor strings (vendor/product/serial) are passed into a mount script without authentication or sanitisation, so shell metacharacters embedded in a USB ID could be interpreted. Suggested payload class: short `cp /bin/sh` plus `chmod 4755` into a writable path.
+- **Why this is plausible but unproven:** several stock components would normally prevent it. `udev` sanitises `ID_SERIAL`/`ID_MODEL` by replacing unsafe characters with `_`; USB string descriptors are **UTF-16LE**, so ASCII metacharacters arrive as `<char> 0x00` and a naive C reader stops at the first NUL, breaking injection; `blkid`-style properties are likewise constrained. A vulnerable path therefore requires a *custom* script that reads a raw descriptor or a converted string and interpolates it unquoted into a shell command. That specific artifact has not been found.
+- **Length caveat is probably not the binding constraint:** a USB string descriptor carries at most 126 UTF-16 code units, so ~126 ASCII characters. The reported payload class is roughly 40 characters and would fit. The real constraints are encoding (UTF-16LE → NUL interleaving), any NUL-stripping or `iconv` conversion on the consumer path, and shell quoting.
+- **Preconditions:** physical USB access to the head unit at boot or on attach; a privileged mount/automount service; a descriptor consumer that both converts UTF-16 and fails to quote; success also requires that the target `/tmp` (or equivalent) is executable and not read-only-protected.
+- **Potential impact if confirmed:** unauthenticated code execution as the mount service's user, likely root, from a commodity device such as a Pi Zero configured as a USB mass-storage gadget. Persistence would depend on filesystem writability.
+- **Remediation:** never interpolate device metadata into shell command lines; pass values as separate `argv` elements or via environment; validate against an allowlist of `[A-Za-z0-9_-]`; mount by filesystem UUID only after validation; run the mount helper unprivileged with narrowly scoped mount rights; add `nodev,nosuid,noexec` to removable-media mounts.
+- **Validation needed:** locate the actual automount/mount invocation in the recovered rootfs; determine whether it reads `udev` properties (sanitised) or raw descriptors; test descriptor strings containing `;`, `` ` ``, `$()` and NUL-interleaved UTF-16 against a VM replica only; confirm whether `udev` or the kernel already blocks the path. If no custom consumer exists, close this as not applicable to the vendor image.
+- **Do not test on a vehicle.** Any USB-device experiment belongs on the isolated VM snapshot with no network.
+
+## V-007 — Media file parsing executes as root (candidate)
+
+- **Status:** **unverified actor report.** No parser, service, or privilege evidence has been examined. Not a confirmed vulnerability.
+- **Source:** third-party advisor summary supplied 2026-10-28. Stated as "runs as the root user" with the memory-corruption route described as possible but "unclear".
+- **Claim:** media file parsing (USB audio/video playback, artwork, possibly container/metadata parsing) runs with root privileges.
+- **Why this matters if true:** a parser running as root converts any memory-corruption defect in decode or metadata handling into root code execution from a file the user simply plugs in. That is a materially worse posture than the same bug in a sandboxed media service.
+- **What is not established:** which component parses the file (GStreamer plugins, a vendor media library, or the update-package parser); whether any such defect is reachable; whether a crash gives control of the instruction pointer; and whether mitigations (ASLR, NX, stack canaries, FORTIFY) are effective in this build.
+- **Preconditions:** physical or logical delivery of a crafted media file, plus a reachable memory-safety defect in a root-owned parser.
+- **Remediation:** run all media parsing under a dedicated unprivileged uid with a restricted filesystem view; apply seccomp/`no_new_privs`; keep the parser off the root-owned service if a helper split is feasible; add a hardened allocator and enable full RELRO/PIE/FORTIFY where the toolchain permits; fuzz the parser.
+- **Validation needed:** identify the parsing process from the running VM (`/proc/<pid>/status` `Uid:`), confirm effective uid, then fuzz that binary in the snapshot VM. Our isolated VM is the correct venue — a crash there is safe and reproducible; a crash on a vehicle is not.
+- **Interaction with I-001:** I-001 is a crash in a graphics copy path, not a media parser. Do not conflate them.
+
+## V-008 — Serial console running as root, password-gated (candidate)
+
+- **Status:** **unverified actor report**, and the weakest of the three: a password gate already exists.
+- **Source:** third-party advisor summary supplied 2026-10-28. Location on the board was not identified; console device, baud rate and login service were not specified.
+- **Claim:** a serial console exists on the board that provides a root login, protected by a hashed password.
+- **Why it is bounded:** a hashed-password login is normal engineering practice, not a defect. It becomes a finding only if the hash is weak or crackable, if the hash is reused from a public or default credential, if the login can be bypassed (for example via boot arguments, init override, or single-user mode), or if the hash material is extractable from an image that is otherwise distributed. The hash also implies `/etc/shadow`-equivalent material is present in the recovered rootfs, which is checkable offline.
+- **Preconditions:** physical access to UART pads or a service connector; plus either knowledge of the password, a crackable hash, or a bypass.
+- **Potential impact if the gate fails:** full root shell on the head unit, with consequences for both the vehicle owner and any party relying on the unit's isolation.
+- **Remediation:** verify the hashing algorithm and cost (reject legacy DES/MD5 crypt); ensure no default, shared or reused credential; disable or physically gate the console on production parts; where a console must remain for service, restrict it to a non-root account with an audited escalation path; treat the bootloader command line as a trusted input so `init=`/single-user override cannot bypass the gate.
+- **Validation needed:** offline only, from the recovered rootfs. Enumerate console/login configuration and the shadow-equivalent file; identify the hash algorithm and cost; check for default or duplicate credentials across builds. Do not attempt console access on a vehicle.
+- **Note on our own boot-parameter work:** this project already established control of the ABL boot parameters in the VM. That is a *research* capability on a copy, and it must not be described as a remote or unauthenticated attack on a vehicle.
 
 ## Rejected / out-of-scope items
 

@@ -1,10 +1,39 @@
 # HANDOVER — IONIQ 5 Gen5W research
 
-Updated **2026-10-27**. The recovered authentic Hyundai/LG launcher chain now
+Updated **2026-10-28**. The recovered authentic Hyundai/LG launcher chain now
 passes the standby/profile-confirm gate and visibly foregrounds authentic
 `AppHomeScreen` in the local VM. Authentic AppNavi map pixels still render
 separately. The remaining integration goal is stable Home↔Navigation operation,
 followed by stateful service/CAN/persistence reconstruction.
+
+## Current VM status — 2026-10-28
+
+| Area | State |
+| --- | --- |
+| Vendor kernel boot | Working (documented ABL boot-parameter adaptation) |
+| Recovered `260128` userspace | Working, mounted read-only |
+| Launcher standby → profile confirm | Working, authentic screen |
+| Authentic `AppHomeScreen` | Working |
+| AppNavi process + map pixels | Partial — renders into its own surface |
+| Home ↔ Navigation compositing | **Blocked** — window byte `+0x20` never latched |
+| Audio / persistence / suspend | Not started |
+| CAN / MICOM | Partial — D-Bus simulation only |
+| Input | Partial — Wayland harness, not end to end |
+
+Run configuration is mandatory: TCG, `-cpu max,vendor=GenuineIntel`, 1536 MiB,
+disk `snapshot=on`, no NIC. Four inspected screenshots are published under
+`vm/evidence/screenshots/` (profile/confirm, Home, a navigation-window frame
+still showing Home, and the AppNavi map surface). Root README carries the status
+table and the manager/window-byte explanation.
+
+Navigation remains a contract problem: `notifyNaviLaunched[5]` with window byte
+`0` returns the manager to `11/11`. Only a BG window notification updates that
+byte, and the observed runtime delivers FG only. Status `5` is not patched and no
+success callback is synthesised.
+
+Secondary open workstream: the early AppCamera/Standby EGL crash when window
+decoration is unset (`I-001`), currently a qualified mixed vendor-EGL/project-Mesa
+investigation with no stock-device exploitability claim.
 
 ## Public VM source record
 

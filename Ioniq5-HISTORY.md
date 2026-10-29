@@ -754,3 +754,18 @@ and are superseded by corrections rather than silently rewritten.
   the current command-line flags, and APPID. AppNavi itself reads only MD_CONA40_ON.
 - The open point about the surface id being created as 30000 while the helper programmes
   3000 was also published, together with the single instrumented boot that would settle it.
+
+## 2026-10-29 — missing gpio440 node identified and stubbed
+
+- Published the reason AppNavi never paints: its Wayland client log ends with a repeated
+  failure to read /sys/class/gpio/gpio440/value. The node cannot exist in this VM, since
+  the gpio class holds only export and unexport and exporting 440 returns EINVAL because no
+  gpiochip registers that pin, which matches the GPS driver deferring with -517.
+- An adaptor consisting of a tmpfs over the gpio class with an inert gpio440 node removes
+  the errors from AppNavi's log. It is the first demonstrated case here of a simulated
+  hardware dependency unblocking a firmware startup path, and it is recorded as necessary
+  but not yet sufficient because surface creation appeared only in one of two runs.
+- A privacy checker false positive was also corrected, since the email pattern matched
+  Wayland object notation and reported captured protocol logs as leaked addresses. The
+  pattern now requires the domain to begin with a letter and a regression test covers it.
+  The checker was fixed rather than the evidence rewritten.

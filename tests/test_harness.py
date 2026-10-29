@@ -580,6 +580,19 @@ class PrivacyTests(unittest.TestCase):
             self.assertNotIn(secret, rendered)
             self.assertNotIn(address, rendered)
 
+    def test_wayland_object_notation_is_not_an_email(self):
+        """Wayland debug logs use object@id.method(...); that is not an address."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "evidence").mkdir()
+            (root / "evidence" / "protocol.md").write_text(
+                "wl_surface@3.attach(wl_buffer@9, 0, 0)\n"
+                "ivi_controller@13.surface(30000)\n",
+                encoding="utf-8",
+            )
+            result = privacy.privacy_scan(root)
+            self.assertEqual(result["status"], common.STATUS_PASS)
+
     def test_public_noreply_address_is_info_only(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

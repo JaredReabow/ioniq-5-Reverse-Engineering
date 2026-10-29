@@ -137,6 +137,31 @@ itself: `MD_CONA40_ON`.
 for an id that does not exist, which would explain byte-identical screenshots even in the
 configuration believed to be working.
 
+## A missing hardware adaptor: the gpio440 node
+
+AppNavi's client log showed why it never paints. With Wayland debugging enabled it
+connects, enumerates the registry (including the ivi application global) and then stops,
+with the tail of the log a repeated read failure:
+
+```
+sh: /sys/class/gpio/gpio440/value: No such file or directory
+```
+
+That node cannot exist in this VM. `/sys/class/gpio` contains only `export` and
+`unexport`, and writing `440` to `export` returns **EINVAL** because no gpiochip
+registers that pin — consistent with the kernel log, where the GPS driver defers with
+`-517` and never acquires it. The emulated board genuinely lacks a GPIO the firmware
+expects, which is exactly the class of problem this project exists to solve.
+
+**Adaptor:** a tmpfs mounted over `/sys/class/gpio` carrying an inert `gpio440` node.
+With it, the `gpio440` errors disappear from AppNavi's log entirely — the first
+demonstrated case here of a simulated hardware dependency unblocking a firmware startup
+path.
+
+It is necessary but **not yet sufficient**: surface creation appeared in one run and not
+the next, so either a further dependency gates the render path or the timing is racy.
+That is the current frontier.
+
 ## Next steps, in cost order
 
 1. One instrumented boot with `QT_WAYLAND_SET_SURFACE_ID=3000` and no

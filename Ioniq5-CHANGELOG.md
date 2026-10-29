@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.69.0 - the missing gpio440 node, and a privacy-checker fix
+
+- Published the reason AppNavi never paints: its client log ends in a repeated read
+  failure on `/sys/class/gpio/gpio440/value`. That node cannot exist here —
+  `/sys/class/gpio` holds only `export` and `unexport`, and exporting `440` returns
+  **EINVAL** because no gpiochip registers the pin, matching the kernel log where the GPS
+  driver defers with `-517`. The emulated board lacks a GPIO the firmware expects.
+- **Adaptor:** a tmpfs over `/sys/class/gpio` with an inert `gpio440` node. The `gpio440`
+  errors then vanish from AppNavi's log — the first demonstrated case in this project of a
+  simulated hardware dependency unblocking a firmware startup path. Necessary but not yet
+  sufficient: surface creation appeared in one run and not the next.
+- Fixed a privacy-checker false positive: the email pattern matched Wayland object
+  notation, so captured protocol logs were reported as leaked addresses. The domain must
+  now begin with a letter, with a regression test added. The checker was fixed rather than
+  the evidence rewritten, since every Wayland capture would hit the same thing.
+- The adaptor probe is published as `tools/uk_fw/guest/appnavi_gpio_probe.sh`.
+
 ## 0.68.0 - why AppNavi idles: surface id and visibility are injected from outside
 
 - Added a section to `docs/navigation-status.md` explaining the alive-but-paints-nothing

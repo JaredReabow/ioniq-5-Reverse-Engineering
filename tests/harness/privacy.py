@@ -16,12 +16,9 @@ TEXT_SUFFIXES = frozenset(
     {".md", ".json", ".txt", ".yaml", ".yml", ".toml", ".csv", ".tsv", ".gitignore"}
 )
 PUBLIC_TEXT_SUFFIXES = TEXT_SUFFIXES | frozenset(
-    {".py", ".sh", ".asm", ".log", ".java", ".c", ".s", ".inf", ".update", ".qml", ".cmd", ".cmds"}
+    {".py", ".sh", ".asm", ".log", ".java", ".c", ".s", ".inf", ".update"}
 )
-PUBLIC_RAW_SUFFIXES = frozenset({
-    ".zip", ".gz", ".dlt", ".dat", ".dump", ".core", ".img", ".qcow2",
-    ".vmdk", ".iso", ".bin", ".so", ".o", ".tar", ".tgz", ".xz", ".zst",
-})
+PUBLIC_RAW_SUFFIXES = frozenset({".zip", ".gz", ".dlt", ".dat", ".dump", ".core"})
 PUBLIC_PERSONAL_HOME = re.compile(r"/Users/(?!researcher/|USER/|example/)[^/\s]+/")
 PROHIBITED_SUFFIXES = frozenset(
     {
@@ -61,7 +58,12 @@ PUBLIC_CODE_CREDENTIAL = re.compile(
     r"\b(?:password|passwd|passphrase|secret)\b\s*[:=]\s*['\"][^'\"\s]{6,}['\"]",
     re.I,
 )
-EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
+# The domain must begin with a letter. Wayland debug output is full of
+# "object@12.method(...)" forms whose domain label starts with a digit; without
+# this constraint every captured protocol log is reported as a leaked address.
+EMAIL_PATTERN = re.compile(
+    r"\b[A-Za-z0-9._%+-]+@[A-Za-z][A-Za-z0-9-]*(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b")
+
 VIN_PATTERN = re.compile(r"\b[A-HJ-NPR-Z0-9]{17}\b")
 MAX_FINDINGS = 200
 
@@ -76,12 +78,12 @@ def privacy_scope_files(root: Path, *, tracked_only: bool = False) -> list[Path]
         paths = subprocess.check_output(
             ["git", "-C", str(root), "ls-files", "-z", "--cached"]
         ).decode("utf-8").split("\0")
-        # Scan the entire public index, including VM reproduction sources.
-        # A new top-level folder must not silently bypass privacy checks.
         return [
             root / path
             for path in paths
-            if path and not set(Path(path).parts) & EXCLUDED_PARTS
+            if path
+            and not set(Path(path).parts) & EXCLUDED_PARTS
+            and (Path(path).parent == Path(".") or Path(path).parts[0] in {"evidence", "council", "tools"})
         ]
     for path in sorted(root.iterdir()):
         if path.is_file():

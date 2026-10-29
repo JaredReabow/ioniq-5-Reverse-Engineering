@@ -684,3 +684,30 @@ and are superseded by corrections rather than silently rewritten.
 - Pre-existing publication noted rather than altered: the engineering-mode entry
   sequence and PIN were already present in this tree from earlier work. Removing
   them now would not undo that exposure, so they were left in place and flagged.
+
+## 2026-10-29 — navigation status published
+
+- Published docs/navigation-status.md together with the research helpers behind it, so
+  the current Home-to-Navigation gap is documented from measurement rather than
+  inference.
+- The EGL dimension ordering is now measured on the authentic client: the surface fields
+  read -1/-1 immediately before the width cache and 1920/720 immediately after
+  swrast_update_buffers returns, on the same surface pointer. The defect is scoped to the
+  vendor's Wayland software path, because the hardware constructors are separate and do
+  not share that vtable.
+- A Qt hide is shown to be insufficient for the background notification. With the
+  weston_surface layout fixed by DWARF, the commit path stores the previous positive size
+  before the null-buffer branch zeroes the buffer-derived fields, so a genuine 0x0
+  transition is required.
+- Guest hardware breakpoints are confirmed working under TCG, with four slots, slot
+  replacement, rejected DR4/DR5, per-slot DR6 status, single step and per-thread scoping.
+  Detaching with a slot still armed leaves it live and kills the tracee, so disarm and
+  verify before detaching.
+- Two injection facts were published because they cost time to learn: the launcher
+  interposer unsets LD_PRELOAD for AppLauncher so vendor children inherit a clean
+  environment, and a musl-linked shared object will not load into the vendor glibc
+  process.
+- The remaining blocker is stated plainly: AppNavi never attaches a surface in either
+  configuration, so nothing reaches the compositor. Whether the interposer itself
+  prevents rendering is recorded as the open question, with a baseline run without it as
+  the next step.

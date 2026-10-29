@@ -69,6 +69,12 @@ rendered by the authentic binary into its own surface.
 
 ### Why Navigation does not appear yet
 
+The current state, with the measured evidence behind it, is documented in
+[docs/navigation-status.md](docs/navigation-status.md). In short: the EGL dimension
+ordering defect and the "a hide is not a background notification" result are both
+measured now, and the remaining blocker is that AppNavi never attaches a surface, so
+nothing reaches the compositor to be classified.
+
 A contract problem, not a rendering problem:
 
 - AppNavi calls launcher `launched(30)`, then separately emits

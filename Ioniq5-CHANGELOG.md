@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.65.0 - navigation status published: two questions closed, one blocker left
+
+- Added `docs/navigation-status.md` recording what is now measured about the
+  Home-to-Navigation gap, and published the research helpers behind it.
+- **EGL dimension ordering measured** on the authentic client. A hardware-breakpoint
+  observer captured vendor `libEGL` at `+0x16f16` (width `-1`, height `-1`) and
+  `+0x16f1e` (width `1920`, height `720`) on the same surface pointer, so
+  `swrast_update_buffers` populates the dimensions during the invocation while the copy
+  stride was already derived from `Width = -1`. Scoped to the Wayland **software** path:
+  the hardware constructors do not share that vtable.
+- **A Qt hide cannot produce the background notification.** DWARF fixes the
+  `weston_surface` layout, and read order in `weston_surface_commit_state` shows the
+  size block stores the previous positive size before the null-buffer branch zeroes the
+  `_from_buffer` pair. A genuine `0x0` transition is required.
+- **Guest hardware breakpoints work under TCG**, including four slots, slot
+  replacement, `DR4`/`DR5` rejection, per-slot `DR6` bits, single step and per-thread
+  scoping. One trap worth knowing: detaching with a slot still armed leaves the
+  breakpoint live and kills the tracee.
+- Two practical findings for anyone injecting into vendor apps: the launcher's
+  interposer unsets `LD_PRELOAD` for AppLauncher so children inherit a clean
+  environment, and a musl-linked `.so` will not load into the vendor's glibc process.
+- Remaining blocker stated plainly: **AppNavi never attaches a surface** in either the
+  full chain or the standalone render probe, so nothing reaches the compositor to be
+  classified. The open question is whether the interposer itself is preventing AppNavi
+  from rendering; a baseline run without it is the next step.
+
 ## 0.64.0 - disclosure reduction for the physical-access entries
 
 - Reduced V-006, V-007 and V-008 in this public tree to status entries with no

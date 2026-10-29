@@ -3,6 +3,18 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.66.0 - baseline clears the adapter; AppNavi is silent on its own
+
+- Ran the control that the published open question called for: the identical render probe
+  with **no** preload. AppNavi's log came back empty and the manager reported drawing
+  application `0`, the same as the run with the adapter loaded apart from the adapter's
+  single load record. The interposer is therefore **not** what stops AppNavi.
+- Stated with it: an empty log is **not** proof that nothing rendered. AppNavi may log to
+  DLT or a file, and the captured frame has not been inspected, so "renders silently" and
+  "never renders" both remain open.
+- `docs/navigation-status.md` updated accordingly, and the baseline probe added as
+  `tools/uk_fw/guest/appnavi_baseline_probe.sh` so the control can be reproduced.
+
 ## 0.65.0 - navigation status published: two questions closed, one blocker left
 
 - Added `docs/navigation-status.md` recording what is now measured about the

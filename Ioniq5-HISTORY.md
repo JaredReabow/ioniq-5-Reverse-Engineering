@@ -711,3 +711,16 @@ and are superseded by corrections rather than silently rewritten.
   configuration, so nothing reaches the compositor. Whether the interposer itself
   prevents rendering is recorded as the open question, with a baseline run without it as
   the next step.
+
+## 2026-10-29 — baseline clears the adapter
+
+- Ran the control the published open question called for: the identical render probe with
+  no preload. AppNavi's log came back empty and the manager reported drawing application
+  0, matching the with-adapter run apart from the adapter's single load record, so the
+  interposer is not what stops AppNavi.
+- Recorded with it that an empty log does not prove nothing rendered, since AppNavi may
+  log to DLT or a file and the captured frame had not been inspected. Rendering silently
+  and never rendering both remain open.
+- The navigation status document was updated so the published open question is replaced
+  by this result, and the baseline probe was added to the public tools so the control can
+  be reproduced.

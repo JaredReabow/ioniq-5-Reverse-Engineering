@@ -192,6 +192,26 @@ forced environment path alone does not clear it.
 Ruled out along the way: gpio440 polling (now stubbed), the preload adapter (identical
 without it), ApplicationManager presence, and the current command-line flags.
 
+## Correction: wl_drm absence is not the gate, and a working harness is known
+
+Two deductions from existing evidence change the picture recorded above.
+
+**`wl_drm` cannot be the gate.** A prior successful run
+(`work/vm/vendor-userspace-260128/runs/1792908755653936000`, retained milestone
+`screenshot.sha256 88e8403d…b8b4cb`) used the *same* `weston-headless` pixman stack, with
+**no ApplicationManager**, and reached `surface_create` for ids **3000, 30000 and 4903**
+with 26 `wl_surface.attach` calls. So a client can create ivi surfaces and attach buffers on
+this compositor without any DRM interface. The current stop is configuration-specific, not a
+missing GPU buffer path.
+
+It also settles the earlier 3000-versus-30000 puzzle: AppNavi creates **both** ids, plus
+4903/4900 for the map widget. There was never a single expected id.
+
+**A working harness exists and can be diffed.** That run executed
+`/appnavi-valet-stub-probe.sh` together with `/appnavi-valet-stub-run.sh`, both of which are
+still in the image. The gap between that harness and the current probe is therefore the
+thing to find, and it can be found by diffing rather than by further debugging.
+
 ## Next steps, in cost order
 
 1. One instrumented boot with `QT_WAYLAND_SET_SURFACE_ID=3000` and no

@@ -781,3 +781,14 @@ and are superseded by corrections rather than silently rewritten.
   variable produces a second wl_surface without reaching surface_create.
 - The forced-environment probe was added to the published tools so the result can be
   reproduced.
+
+## 2026-10-29 — wl_drm ruled out and a working harness identified
+
+- Ruled out the absent wl_drm as the gate for AppNavi's missing ivi surface. A prior run on
+  the same pixman headless compositor, without ApplicationManager, reached surface_create for
+  ids 3000, 30000 and 4903 with 26 attach calls, proving a client can create ivi surfaces and
+  attach buffers here without any DRM interface.
+- That also settles the 3000 against 30000 question: AppNavi creates both ids, plus 4903 and
+  4900 for the map widget.
+- The working harness used the valet-stub probe and runner, both still in the image, so the
+  next step is to diff that harness against the current probe to find what is missing.

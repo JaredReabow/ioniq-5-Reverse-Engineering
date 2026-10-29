@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.71.0 - wl_drm ruled out; a working harness is known; a working harness is known
+
+- Ruled out the missing `wl_drm` as the gate. A prior successful run used the same
+  `weston-headless` pixman stack with **no ApplicationManager** and reached `surface_create`
+  for ids **3000, 30000 and 4903** with 26 attach calls, so clients can create ivi surfaces
+  and attach without any DRM interface. The current stop is configuration-specific.
+- That also settles the 3000-versus-30000 puzzle: AppNavi creates **both** ids plus
+  4903/4900 for the map widget, so there was never one expected id.
+- A working harness is known and can be diffed: that run executed
+  `/appnavi-valet-stub-probe.sh` with `/appnavi-valet-stub-run.sh`, both still present in the
+  image. The next step is to diff that harness against the current probe rather than debug
+  further.
+
 ## 0.70.0 - AppNavi stops between create_surface and ivi surface_create
 
 - Located the stop precisely by counting protocol markers in AppNavi's own Wayland debug

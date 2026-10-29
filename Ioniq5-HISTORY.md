@@ -669,3 +669,18 @@ and are superseded by corrections rather than silently rewritten.
 - All three require physical access; none is remote. Validation is scoped to the
   isolated VM snapshot or offline analysis of the recovered rootfs. No experiment
   was run against hardware and no attack tooling was built.
+
+## 2026-10-29 — public disclosure reduction for the physical-access entries
+
+- Reduced V-006, V-007 and V-008 in the public tree to status entries carrying no
+  operational detail. The earlier entries here described these as unverified
+  third-party claims; offline validation has since confirmed V-006 as a genuine
+  command-construction defect reached from a privileged USB service, and reduced
+  V-007 and V-008 to configuration observations.
+- The detailed dossiers, including component names, property names, code locations
+  and reproduction notes, are retained privately pending coordinated vendor
+  contact. This public tree was checked and contains no occurrence of the affected
+  service name or property name.
+- Pre-existing publication noted rather than altered: the engineering-mode entry
+  sequence and PIN were already present in this tree from earlier work. Removing
+  them now would not undo that exposure, so they were left in place and flagged.

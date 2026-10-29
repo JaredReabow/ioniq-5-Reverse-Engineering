@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.64.0 - disclosure reduction for the physical-access entries
+
+- Reduced V-006, V-007 and V-008 in this public tree to status entries with no
+  operational detail, following triage of the third-party claims that produced
+  them. Confirmed detail remains in a private record pending coordinated vendor
+  contact.
+- Verified this public tree contains no occurrence of the affected service name,
+  the affected property name, or the command-construction mechanism.
+- Note: the engineering-mode entry sequence and PIN were already published in this
+  tree by earlier work, before this change, in
+  `evidence/owner-engineering-mode-pin-observation.md` and
+  `evidence/vehicle-usb/README.md`. That is pre-existing content and was left
+  unaltered rather than silently removed; it is flagged for the owner's decision.
+
 ## 0.63.0 - VM status, screenshots and physical-access leads
 
 - Published two further inspected screenshots under `vm/evidence/screenshots/`:

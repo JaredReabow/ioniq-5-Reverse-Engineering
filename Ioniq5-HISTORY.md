@@ -724,3 +724,20 @@ and are superseded by corrections rather than silently rewritten.
 - The navigation status document was updated so the published open question is replaced
   by this result, and the baseline probe was added to the public tools so the control can
   be reproduced.
+
+## 2026-10-29 — A/B shows AppNavi paints nothing at all
+
+- Because an empty log does not prove that nothing rendered, the previous entry's caveat
+  was tested directly with an A/B across three runs of the same probe: with the adapter,
+  without it, and with AppNavi not launched at all. The captured frame is byte-identical
+  between the baseline and the no-AppNavi control.
+- The conclusion recorded is that AppNavi renders nothing. It is alive, silent and
+  contributes no pixels, so the adapter is not implicated and the compositor contract, the
+  zero-size hold and the background notification cannot be exercised until AppNavi paints.
+- The next step was narrowed accordingly: find why AppNavi is alive but idle, starting with
+  the environment and arguments that the launcher normally supplies compared with this
+  probe's direct launch.
+- A documentation inconsistency was also corrected. An earlier hard reset in the public
+  clone discarded an uncommitted edit to the navigation status document, so the public copy
+  still described the question as open while the private copy already carried the baseline
+  result; both copies now agree.

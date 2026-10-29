@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.67.0 - A/B shows AppNavi paints nothing at all
+
+- Ran the A/B the previous entry left open, since an empty log is not proof that nothing
+  rendered. Three runs of the same probe with the captured frame compared: with the
+  adapter (AppNavi alive, 1 log line), baseline without it (AppNavi alive, 0 lines), and a
+  control with **AppNavi not launched at all**.
+- The screenshot is byte-identical (`b316a82a…0b9a83`) between the baseline and the
+  no-AppNavi control. So AppNavi renders nothing: it is alive, silent, and contributes no
+  pixels. It is not rendering anonymously, it is not rendering.
+- Conclusion recorded in `docs/navigation-status.md`: the adapter is not implicated, and
+  the compositor contract, the `0x0` hold and the BG notification cannot be exercised
+  until AppNavi paints. The next step is to find why it is alive but idle, starting with
+  the environment and arguments the launcher normally gives it.
+- Also fixes a documentation inconsistency: an earlier `git reset --hard` in the public
+  clone discarded an uncommitted doc edit, so this file still presented the question as
+  open while the private copy already carried the baseline result. Both now agree.
+
 ## 0.66.0 - baseline clears the adapter; AppNavi is silent on its own
 
 - Ran the control that the published open question called for: the identical render probe

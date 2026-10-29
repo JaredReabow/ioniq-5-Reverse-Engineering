@@ -769,3 +769,15 @@ and are superseded by corrections rather than silently rewritten.
   Wayland object notation and reported captured protocol logs as leaked addresses. The
   pattern now requires the domain to begin with a letter and a regression test covers it.
   The checker was fixed rather than the evidence rewritten.
+
+## 2026-10-29 — AppNavi's stop published
+
+- Published the precise stop point in docs/navigation-status.md, established by counting
+  protocol markers rather than transporting log text: AppNavi binds the display, enumerates
+  the registry, binds the compositor, shm and ivi application interfaces, creates a
+  wl_surface, and then never creates the ivi surface and never attaches a buffer.
+- Also published that wl_drm is entirely absent because the compositor runs headless with
+  pixman, with cause and coincidence left open, and that the forced surface-id environment
+  variable produces a second wl_surface without reaching surface_create.
+- The forced-environment probe was added to the published tools so the result can be
+  reproduced.

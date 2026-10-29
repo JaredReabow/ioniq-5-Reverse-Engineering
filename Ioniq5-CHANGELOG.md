@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.70.0 - AppNavi stops between create_surface and ivi surface_create
+
+- Located the stop precisely by counting protocol markers in AppNavi's own Wayland debug
+  log: it binds `wl_display`, enumerates 71 registry lines, binds `wl_compositor`, `wl_shm`
+  and `ivi_application`, creates a `wl_surface`, and then **never calls
+  `ivi_application.surface_create`** and never attaches or commits.
+- **`wl_drm` is absent entirely** — the compositor runs headless with pixman, so no GPU
+  buffer interface is offered. Cause or coincidence is not established.
+- `QT_WAYLAND_SET_SURFACE_ID_FORCED=1` in addition to the id yields a second `wl_surface`
+  but still zero `surface_create`, so that path alone does not clear the stop.
+- Ruled out: gpio440 polling, the preload adapter, ApplicationManager presence, and the
+  current command-line flags. The forced-env probe is published as
+  `tools/uk_fw/guest/appnavi_forced_probe.sh`.
+- Method note: marker counting is much cheaper than transporting log text over the serial
+  console and should be the default for this kind of diagnosis.
+
 ## 0.69.0 - the missing gpio440 node, and a privacy-checker fix
 
 - Published the reason AppNavi never paints: its client log ends in a repeated read

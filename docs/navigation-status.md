@@ -162,6 +162,36 @@ It is necessary but **not yet sufficient**: surface creation appeared in one run
 the next, so either a further dependency gates the render path or the timing is racy.
 That is the current frontier.
 
+## Where AppNavi actually stops
+
+Counting protocol markers in AppNavi's own Wayland debug log — far cheaper than shipping log
+text over the console — locates the stop precisely:
+
+| Marker | Count |
+| --- | --- |
+| `wl_display` | 15 |
+| `wl_registry` | 71 |
+| `wl_compositor` | 7 |
+| `wl_shm` | 11 |
+| **`wl_drm`** | **0** |
+| `ivi_application` | 7 |
+| `wl_surface` / `create_surface` | 1 / 1 |
+| **`ivi_application.surface_create`** | **0** |
+| `attach` / `commit` | 0 / 0 |
+
+So AppNavi binds the display, enumerates the registry, binds `wl_compositor`, `wl_shm` and
+`ivi_application`, creates a `wl_surface` — and then never creates the ivi surface and never
+attaches a buffer.
+
+Two things stand out. **`wl_drm` is absent entirely**: the compositor runs headless with
+pixman and offers no GPU buffer interface, and whether that causes the stop or merely
+accompanies it is not yet established. And setting `QT_WAYLAND_SET_SURFACE_ID_FORCED` in
+addition to the id produces a second `wl_surface` but still zero `surface_create`, so the
+forced environment path alone does not clear it.
+
+Ruled out along the way: gpio440 polling (now stubbed), the preload adapter (identical
+without it), ApplicationManager presence, and the current command-line flags.
+
 ## Next steps, in cost order
 
 1. One instrumented boot with `QT_WAYLAND_SET_SURFACE_ID=3000` and no

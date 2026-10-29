@@ -741,3 +741,16 @@ and are superseded by corrections rather than silently rewritten.
   clone discarded an uncommitted edit to the navigation status document, so the public copy
   still described the question as open while the private copy already carried the baseline
   result; both copies now agree.
+
+## 2026-10-29 — why AppNavi idles, published
+
+- Published the startup analysis into docs/navigation-status.md: AppNavi obtains its ivi
+  surface id only from the environment through libivi-platform-interface, which on the
+  vehicle is injected by AppLauncher together with APPID, and with the variable unset the
+  library blocks in an uncapped read-events loop rather than crashing.
+- Also published that window visibility is externally driven, arriving only as an
+  ivi_surface.visibility event for the matching surface id.
+- Ruled-out candidates were published as negative results: ApplicationManager's absence,
+  the current command-line flags, and APPID. AppNavi itself reads only MD_CONA40_ON.
+- The open point about the surface id being created as 30000 while the helper programmes
+  3000 was also published, together with the single instrumented boot that would settle it.

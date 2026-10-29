@@ -108,12 +108,40 @@ That moves the blocker one level earlier. The compositor contract, the `0x0` hol
 BG notification cannot be exercised until AppNavi actually paints, and the adapter is
 irrelevant to that.
 
+## Why AppNavi idles
+
+An analysis of the alive-but-paints-nothing state found that the missing inputs come from
+outside the process.
+
+AppNavi links `libivi-platform-interface.so.1` directly, and that library resolves its ivi
+surface **id only from the environment**, via `QT_WAYLAND_SET_SURFACE_ID` and its
+`_FORCED` and `USE_PID_FOR_SURFACE_ID` variants. On the vehicle the value is injected by
+`AppLauncher`, which also sets `APPID`. Verified here: the library is a direct `NEEDED` of
+AppNavi and contains all three variable names. With the variable unset, the library enters
+an **uncapped `blockingReadEvents` loop** waiting for an id reply — which matches the
+observed symptom exactly: alive, silent, no surface, no crash.
+
+Visibility is likewise external. `QWindow::setVisible()` is reachable only through
+`IviShellSurfacePrivate::ivi_surface_visibility()`, i.e. only on `ivi_surface.visibility`
+events, which the window manager emits only after `set_surface_visible` /
+`set_visible_for_qtwayland` for that app's id. The VM fakes this trigger with a small
+helper.
+
+Ruled out: ApplicationManager's absence (a no-AppManager run still committed a
+1920×720 buffer), every command-line flag in the current invocation, and `APPID` (read by
+AppLauncher, not by AppNavi or libivi). AppNavi reads exactly one environment variable
+itself: `MD_CONA40_ON`.
+
+**Open point, and it is significant:** the VM logs show the ivi surface created under id
+**30000** while the project's helper programmes **3000**. If real, visibility is requested
+for an id that does not exist, which would explain byte-identical screenshots even in the
+configuration believed to be working.
+
 ## Next steps, in cost order
 
-1. Establish why AppNavi is alive but paints nothing. It is not exiting, so this is
-   either a wait on something the launcher normally provides, a missing configure, or a
-   render path that never runs. Comparing the environment and arguments the launcher
-   gives AppNavi against this probe's direct launch is the cheapest first check.
+1. One instrumented boot with `QT_WAYLAND_SET_SURFACE_ID=3000` and no
+   ApplicationManager: record which id the surface actually receives, then re-drive the
+   visibility helper with *that* id. This settles the 30000-versus-3000 question directly.
 2. Once AppNavi paints, re-run the `0x0` hold and look for the BG notification.
 3. Only then decide whether a compatibility adapter is needed at all.
 

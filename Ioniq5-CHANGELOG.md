@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.68.0 - why AppNavi idles: surface id and visibility are injected from outside
+
+- Added a section to `docs/navigation-status.md` explaining the alive-but-paints-nothing
+  state. AppNavi links `libivi-platform-interface.so.1`, which resolves its ivi surface id
+  **only from the environment** via `QT_WAYLAND_SET_SURFACE_ID` and its `_FORCED` and
+  `USE_PID_FOR_SURFACE_ID` variants; on the vehicle `AppLauncher` injects that value
+  together with `APPID`. With it unset the library enters an uncapped
+  `blockingReadEvents` loop waiting for an id reply — matching the observed symptom of a
+  live, silent, surface-less process rather than a crash.
+- Visibility is external too: `QWindow::setVisible()` is only reachable from an
+  `ivi_surface.visibility` event, which the window manager emits only for that app's id.
+- Ruled out: ApplicationManager's absence, every command-line flag in the current
+  invocation, and `APPID`. AppNavi reads exactly one environment variable itself,
+  `MD_CONA40_ON`.
+- Flagged an open point: the VM logs show the surface created under id **30000** while the
+  helper programmes **3000**, so visibility may be requested for a non-existent id. Next
+  step narrowed to one instrumented boot that records the id actually received.
+
 ## 0.67.0 - A/B shows AppNavi paints nothing at all
 
 - Ran the A/B the previous entry left open, since an empty log is not proof that nothing

@@ -212,6 +212,29 @@ It also settles the earlier 3000-versus-30000 puzzle: AppNavi creates **both** i
 still in the image. The gap between that harness and the current probe is therefore the
 thing to find, and it can be found by diffing rather than by further debugging.
 
+## Correction: AppNavi does create surfaces — my earlier stop point was a measurement error
+
+The previous section concluded that AppNavi never calls `ivi_application.surface_create`,
+based on marker counts from the **client's** `WAYLAND_DEBUG` log. That conclusion is
+withdrawn. The client does not emit those requests in this build, so their absence there
+proved nothing.
+
+Counting the **compositor's** log for the same run gives the real picture:
+
+| Source | `surface_create` | `ivi_surface` | `attach` | `commit` |
+| --- | --- | --- | --- | --- |
+| client log (`WAYLAND_DEBUG`) | 0 | 0 | 0 | 0 |
+| **compositor log (`weston.log`)** | **2** | **7** | **2** | **2** |
+
+So AppNavi does create ivi surfaces, does attach, and does commit. The reproduced recipe —
+gpio440 adaptor plus the valet-status D-Bus stub plus the widget-linking helper — reaches
+rendering. The earlier "alive but paints nothing, stops before surface creation" narrative
+was an artefact of reading the wrong log, and everything downstream of it should be
+re-read with that in mind.
+
+What remains is therefore **not** surface creation but whether the frame becomes visible:
+whether visibility is requested for the surface ids that actually exist, and on which plane.
+
 ## Next steps, in cost order
 
 1. One instrumented boot with `QT_WAYLAND_SET_SURFACE_ID=3000` and no

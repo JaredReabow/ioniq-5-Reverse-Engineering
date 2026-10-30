@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.72.0 - correction: AppNavi does create surfaces; the earlier stop point was wrong
+
+- **Withdrew** the previous claim that AppNavi never calls
+  `ivi_application.surface_create`. It was based on marker counts from the client's
+  `WAYLAND_DEBUG` log, and the client does not emit those requests in this build, so their
+  absence there proved nothing.
+- Counting the **compositor** log for the same run shows `surface_create`=2,
+  `ivi_surface`=7, `attach`=2, `commit`=2. AppNavi creates ivi surfaces and attaches buffers.
+- The reproduced recipe is the one the retained milestone used: the gpio440 adaptor, the
+  valet-status D-Bus boolean stub, and the widget-linking helper in place of the plain
+  foreground helper.
+- What remains is **visibility**, not surface creation: whether a foreground/visible request
+  reaches the surface ids that actually exist, and on which plane.
+
 ## 0.71.0 - wl_drm ruled out; a working harness is known; a working harness is known
 
 - Ruled out the missing `wl_drm` as the gate. A prior successful run used the same

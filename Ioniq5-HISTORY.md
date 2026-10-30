@@ -792,3 +792,14 @@ and are superseded by corrections rather than silently rewritten.
   4900 for the map widget.
 - The working harness used the valet-stub probe and runner, both still in the image, so the
   next step is to diff that harness against the current probe to find what is missing.
+
+## 2026-10-29 — correction: AppNavi does create surfaces
+
+- Withdrew the earlier published claim that AppNavi never calls ivi_application.surface_create.
+  It rested on marker counts from the client Wayland debug log, which does not emit those
+  requests in this build, so their absence there proved nothing.
+- Compositor-log counts for the same run show two surface creations, seven ivi surface
+  references, and attach and commit calls, so AppNavi does render.
+- The reproduction uses the gpio440 adaptor, the valet-status D-Bus boolean stub and the
+  widget-linking helper, matching the retained milestone. The open question becomes
+  visibility rather than surface creation.

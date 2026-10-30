@@ -337,6 +337,47 @@ ingredients.
 the valet-status D-Bus boolean stub, and the widget/visibility helper — and see whether the
 manager then latches the navigation window.
 
+## Physical HID: mouse moves nothing, keyboard ignored
+
+Reported behaviour: plugging a mouse shows a pointer that never moves; a keyboard is ignored
+entirely. This is not a missing driver. The stack accepts the devices and then has nowhere to
+deliver them.
+
+**What is present.** `/etc/xdg/weston/weston_1920.ini` selects `backend=ias-backend.so` and
+`shell=ivi-shell.so`, and contains **no `[input]` section at all**. The backend is capable:
+`ias-backend.so` imports `weston_seat_init_pointer`, `weston_seat_init_keyboard`,
+`weston_seat_init_touch`, `notify_motion`, `notify_key`, `notify_button`, `libinput` and
+`libevdev`. Udev is stock apart from a Hyundai rule that only symlinks the i2c touchscreen to
+`input/touch`.
+
+**What is missing.** `ivi-shell.so` contains **no pointer or keyboard focus implementation** —
+no `weston_pointer_set_focus`, no `wl_pointer` or `wl_keyboard` handling of any kind. The only
+keyboard logic in the window manager is about the on-screen keyboard *surface*:
+`is_keyboard_surface`, `check_and_show_keyboard`, `set_keyboard_surface_layout`. That is a
+virtual keyboard, not physical keys.
+
+**Why the pointer appears but never moves.** The backend creates a pointer seat when a mouse is
+added, and weston renders the cursor — but moving the cursor and giving surfaces pointer focus
+is *shell* work, which desktop-shell does and ivi-shell does not. The cursor is drawn once and
+stays where it was placed; clicks have no focused surface to land on.
+
+**Why the keyboard is silent.** No keyboard focus is ever assigned to a surface, so key events
+are consumed by the compositor and dropped. The caps-lock LED briefly changing on plug-in is
+the kernel's LED state on device open, not evidence that keys are being read.
+
+**Conclusion.** The vendor's IVI shell is touch-first by design: it manages surfaces and planes,
+not user input. Physical HID reaches Linux and the compositor and stops there. Hardware keys on
+a real vehicle do not come through this path at all — they arrive via the vehicle bus.
+
+**Consequence for this project.** Input must be simulated at the **touch** layer, which is what
+the GUI does accept, rather than by presenting a mouse or keyboard. That is already the
+direction of the `weston_vm_input` and `qt_input_observe` helpers.
+
+**How to confirm in the VM.** Run the same `weston` + `ivi-shell` combination, attach a synthetic
+pointer, and observe that the backend reports the device while no client receives
+`wl_pointer.enter` and the cursor never moves. That is a short experiment with the existing
+input helpers, and it would convert the symbol-level conclusion above into a runtime fact.
+
 ## Next steps, in cost order
 
 1. One instrumented boot with `QT_WAYLAND_SET_SURFACE_ID=3000` and no

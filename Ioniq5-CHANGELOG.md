@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.77.0 - physical HID is dropped by the shell, not by a driver
+
+- Explained the reported mouse and keyboard behaviour from the firmware rather than by guessing.
+  `weston_1920.ini` has **no `[input]` section**, and `ias-backend.so` fully supports pointer,
+  keyboard and touch (`weston_seat_init_pointer`/`_keyboard`/`_touch`, `notify_motion`,
+  `notify_key`, libinput + libevdev). Udev is stock apart from a touchscreen symlink rule.
+- The gap is `ivi-shell.so`: it contains **no pointer or keyboard focus implementation at all**.
+  The only keyboard logic in the window manager concerns the on-screen keyboard surface.
+- So the cursor appears because the backend creates a pointer seat and weston draws the cursor,
+  but moving it and granting pointer focus is shell work that ivi-shell does not do. Keys are
+  consumed by the compositor with no focus surface and dropped. The caps-lock flicker on plug-in
+  is LED state on device open, not key handling.
+- Consequence recorded: input must be simulated at the **touch** layer, which the GUI accepts,
+  rather than by presenting a mouse or keyboard. That is already where the project's
+  `weston_vm_input` and `qt_input_observe` helpers point.
+
 ## 0.76.0 - correction: visibility is granted, and the harness has no ApplicationManager
 
 - **Withdrew** the "zero visibility events" claim. It came from counting the string

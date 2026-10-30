@@ -846,3 +846,15 @@ and are superseded by corrections rather than silently rewritten.
   remaining gap is integration into the full launcher chain rather than rendering itself.
 - Next: carry the gpio440 adaptor, the valet-status D-Bus boolean stub and the widget visibility
   helper into the full chain and observe whether the manager latches the navigation window.
+
+## 2026-10-29 — physical HID is dropped by the shell
+
+- Explained the reported mouse and keyboard behaviour from the firmware. The weston configuration
+  selects ias-backend with ivi-shell and has no input section; the backend supports pointer,
+  keyboard and touch fully, and udev is stock apart from a touchscreen symlink rule.
+- ivi-shell contains no pointer or keyboard focus implementation, so the cursor is drawn by
+  virtue of a pointer seat existing but is never moved and never focuses a surface, and keys are
+  dropped for lack of a focus surface. The caps-lock LED change on plug-in is device-open LED
+  state rather than key handling.
+- Input therefore has to be simulated at the touch layer, which is where the project's input
+  helpers already aim.

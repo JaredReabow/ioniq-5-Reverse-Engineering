@@ -3,6 +3,21 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.73.0 - visibility requests are plentiful; the surface id does not match
+
+- Counted visibility markers in the compositor log for the valet-stub run:
+  `set_surface_visible`=16, `set_visible_for_qtwayland`=16, `request_fg`=8,
+  `set_surface_layout`=16 — and **`ivi_surface_visibility` events = 0**.
+- The only surface id the compositor logs as created is **30000**, while the helper
+  programmes visibility for **3000**. So the requests are issued correctly but never bind to
+  a surface that exists, which is consistent with the manager still reporting drawing
+  application `0`.
+- This turns the 3000-versus-30000 puzzle from a suspicion into the leading explanation,
+  supported now by an event count rather than inference.
+- Next: establish the mapping between the environment value and the created id (one run with
+  a different value makes it plain), then either point the helper at the id that exists or
+  make AppNavi create the id the helper expects.
+
 ## 0.72.0 - correction: AppNavi does create surfaces; the earlier stop point was wrong
 
 - **Withdrew** the previous claim that AppNavi never calls

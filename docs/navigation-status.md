@@ -235,6 +235,34 @@ re-read with that in mind.
 What remains is therefore **not** surface creation but whether the frame becomes visible:
 whether visibility is requested for the surface ids that actually exist, and on which plane.
 
+## Visibility: the requests are correct, the id is not
+
+Counting visibility markers in the compositor log for the valet-stub run:
+
+| Marker | Count |
+| --- | --- |
+| `surface_create` | 2 |
+| `ivi_surface` | 7 |
+| `set_surface_visible` | **16** |
+| `set_visible_for_qtwayland` | **16** |
+| `request_fg` | **8** |
+| `set_surface_layout` | 16 |
+| **`ivi_surface_visibility` events** | **0** |
+| surface id actually logged as created | **30000** |
+
+So visibility is not being neglected: the helper issues sixteen `set_surface_visible` and
+sixteen `set_visible_for_qtwayland` calls across eight iterations, plus eight foreground
+requests. Nothing is missing on the request side.
+
+What is missing is the **binding**: not one `ivi_surface.visibility` event is emitted, and
+the only surface id the compositor logs as created is **30000**, while the helper programmes
+visibility for **3000**. The foreground requests therefore never resolve to the surface that
+exists, which is exactly consistent with the manager continuing to report drawing
+application `0`.
+
+This converts the 3000-versus-30000 puzzle from a suspicion into the leading explanation,
+now supported by the visibility event count rather than inference.
+
 ## Next steps, in cost order
 
 1. One instrumented boot with `QT_WAYLAND_SET_SURFACE_ID=3000` and no

@@ -803,3 +803,14 @@ and are superseded by corrections rather than silently rewritten.
 - The reproduction uses the gpio440 adaptor, the valet-status D-Bus boolean stub and the
   widget-linking helper, matching the retained milestone. The open question becomes
   visibility rather than surface creation.
+
+## 2026-10-29 — visibility requests issued but never bound to a surface
+
+- Compositor-log counts during the valet-stub run show sixteen set_surface_visible and sixteen
+  set_visible_for_qtwayland calls, eight foreground requests and sixteen layout calls, but
+  zero ivi_surface_visibility events.
+- The only surface id logged as created is 30000 while the helper programmes visibility for
+  3000, so the requests never bind to a surface that exists, matching the manager reporting
+  drawing application 0.
+- The id discrepancy is therefore the leading explanation, supported by the event count. Next
+  step is to establish the environment-to-id mapping and align the two.

@@ -834,3 +834,15 @@ and are superseded by corrections rather than silently rewritten.
 - Candidates recorded in cost order: requests not reaching the owning window-manager instance,
   whose log has been empty; visibility requiring a later state change; or 30000 not being the
   parent surface. Next step is to confirm the helper connects and its first request is accepted.
+
+## 2026-10-29 — correction: visibility is granted
+
+- Withdrew the published claim that no visibility events are emitted. The compositor logs
+  ivi_surface@7.visibility(1) twice; the earlier zero came from searching a different string.
+  This is the second marker-string error in this investigation and both are recorded.
+- Also noted that the harness runs without an ApplicationManager, so its empty manager query
+  proves nothing, and that the retained milestone screenshot shows genuine map pixels.
+- The standalone harness therefore already reaches visible authentic AppNavi rendering, and the
+  remaining gap is integration into the full launcher chain rather than rendering itself.
+- Next: carry the gpio440 adaptor, the valet-status D-Bus boolean stub and the widget visibility
+  helper into the full chain and observe whether the manager latches the navigation window.

@@ -304,6 +304,39 @@ for this surface. Candidates, in cost order:
 The next cheap discriminator is (1): confirm the helper actually connects and its requests are
 accepted, by capturing its own output and the compositor's response to its first call.
 
+### Correction 2: visibility IS granted, and this harness has no ApplicationManager
+
+Counting `ivi_surface_visibility` returned zero, and I read that as "no visibility events".
+Wrong again, and for the same reason as before: the wrong string. The compositor's own log
+contains
+
+```
+[  5408.381]  -> ivi_surface@7.visibility(1)
+[  5409.602] ivi_surface@7.visibility(1)
+```
+
+i.e. the surface **is** made visible, twice, with value 1.
+
+Two further facts matter as much:
+
+- This harness deliberately runs **no ApplicationManager** (it is the "no-appmgr" probe). Its
+  manager query therefore returns nothing, and an empty answer here says nothing about the
+  manager's view. The "manager reports drawing application 0" observation came from a
+  *different* configuration.
+- The retained milestone screenshot from this same family of runs shows **genuine map pixels**.
+
+So the standalone harness already reaches visible authentic AppNavi rendering. The number that
+was supposed to prove failure was an artefact of my own grep, twice over.
+
+**What this changes:** the remaining gap is not rendering, not surfaces, not visibility and not
+the surface id. It is **integration**: the full launcher chain starts AppNavi through
+AppLauncher with different environment and ordering, and does not reproduce this harness's
+ingredients.
+
+**Next step:** carry this harness's three essentials into the full chain — the gpio440 adaptor,
+the valet-status D-Bus boolean stub, and the widget/visibility helper — and see whether the
+manager then latches the navigation window.
+
 ## Next steps, in cost order
 
 1. One instrumented boot with `QT_WAYLAND_SET_SURFACE_ID=3000` and no

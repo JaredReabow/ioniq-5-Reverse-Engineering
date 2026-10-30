@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.76.0 - correction: visibility is granted, and the harness has no ApplicationManager
+
+- **Withdrew** the "zero visibility events" claim. It came from counting the string
+  `ivi_surface_visibility`, but the compositor logs `ivi_surface@7.visibility(1)` — twice. The
+  surface **is** made visible. That is the second time a wrong marker string inverted a
+  conclusion in this investigation, and both are now recorded as such.
+- Also recorded: this harness deliberately runs **no ApplicationManager**, so its empty manager
+  query proves nothing about the manager's view. The "drawing application 0" observation came
+  from a different configuration.
+- With the retained milestone screenshot showing genuine map pixels, the standalone harness
+  already reaches visible authentic AppNavi rendering.
+- **Therefore the remaining gap is integration, not rendering.** The full launcher chain starts
+  AppNavi through AppLauncher with different environment and ordering and does not reproduce
+  this harness's ingredients.
+- Next: carry the three essentials into the full chain — gpio440 adaptor, valet-status D-Bus
+  boolean stub, and the widget/visibility helper — and see whether the manager latches the
+  navigation window.
+
 ## 0.75.0 - retargeting the helper to 30000 does not produce visibility either
 
 - Rebuilt the widget-linking helper with parent id 30000 instead of 3000 and ran it through the

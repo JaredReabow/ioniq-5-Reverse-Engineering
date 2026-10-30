@@ -814,3 +814,23 @@ and are superseded by corrections rather than silently rewritten.
   drawing application 0.
 - The id discrepancy is therefore the leading explanation, supported by the event count. Next
   step is to establish the environment-to-id mapping and align the two.
+
+## 2026-10-29 — surface id fixed at 30000 regardless of the environment value
+
+- A run with QT_WAYLAND_SET_SURFACE_ID set to 0 still produced surface id 30000, identical to
+  the run with 3000, so the variable does not determine the id in this path.
+- Together with the visibility marker counts this closes the diagnosis: AppNavi creates 30000
+  and attaches buffers, the helper programmes visibility for 3000, and sixteen visibility
+  requests yield zero visibility events.
+- The fix is to address the id that exists, by rebuilding the widget-linking helper with
+  parent 30000 rather than trying to make the client create 3000.
+
+## 2026-10-29 — retargeting the helper to 30000 does not produce visibility
+
+- The widget-linking helper was rebuilt with parent id 30000 and run through the same harness.
+  Visibility request counts were unchanged and ivi_surface.visibility events remained zero.
+- Addressing the id that exists is therefore necessary but not sufficient; some further
+  condition governs whether the window manager emits a visibility event for this surface.
+- Candidates recorded in cost order: requests not reaching the owning window-manager instance,
+  whose log has been empty; visibility requiring a later state change; or 30000 not being the
+  parent surface. Next step is to confirm the helper connects and its first request is accepted.

@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 0.75.0 - retargeting the helper to 30000 does not produce visibility either
+
+- Rebuilt the widget-linking helper with parent id 30000 instead of 3000 and ran it through the
+  same harness. `set_surface_visible`=16 and `request_fg`=8 as before, and
+  **`ivi_surface.visibility` events still 0**.
+- So addressing the id that exists is **necessary but not sufficient**. The mismatch was real,
+  but it does not on its own produce visibility, so at least one further condition governs
+  whether the window manager emits a visibility event.
+- Candidates recorded in cost order: the helper's requests not reaching the same window-manager
+  instance that owns the surface (its log has been empty, which is suspicious); visibility
+  requiring a further state change such as a later commit or a layout change; or 30000 not
+  being the parent surface the helper should address at all.
+- Next discriminator: confirm the helper actually connects and its first request is accepted,
+  by capturing its output and the compositor's response.
+
+## 0.74.0 - the surface id is fixed at 30000; the helper addresses 3000
+
+- Settled the id question with one run: `QT_WAYLAND_SET_SURFACE_ID=0` still produces surface
+  id **30000**, the same as with `3000`. The environment variable does not control the id in
+  this path.
+- So the mismatch is not a configuration slip on our side. AppNavi creates 30000 regardless,
+  the helper programmes visibility for 3000, and sixteen visibility requests therefore
+  produce zero `ivi_surface.visibility` events.
+- **The fix follows directly:** address the id that exists. Rebuilding the widget-linking
+  helper with parent 30000 is cheaper than establishing where 30000 originates and making it
+  configurable.
+- This closes the diagnosis of the visibility blocker: surfaces are created, buffers are
+  attached, requests are issued, and the only thing wrong is the identifier.
+
 ## 0.73.0 - visibility requests are plentiful; the surface id does not match
 
 - Counted visibility markers in the compositor log for the valet-stub run:

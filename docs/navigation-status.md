@@ -263,6 +263,47 @@ application `0`.
 This converts the 3000-versus-30000 puzzle from a suspicion into the leading explanation,
 now supported by the visibility event count rather than inference.
 
+### The environment value does not control the surface id
+
+One run settles it. Launching AppNavi with `QT_WAYLAND_SET_SURFACE_ID=0` still produces a
+surface with id **30000**:
+
+| `QT_WAYLAND_SET_SURFACE_ID` | surface id created |
+| --- | --- |
+| `3000` | **30000** |
+| `0` | **30000** |
+
+So the variable does not determine the id in this path at all; 30000 is what the client
+creates regardless. The helper, meanwhile, programmes visibility for 3000. The mismatch is
+therefore not a configuration slip on our side but a hard difference between what AppNavi
+creates and what the helper addresses, and it fully explains why sixteen visibility requests
+produce zero visibility events.
+
+**The fix is to address the id that exists.** Either rebuild the widget-linking helper with
+parent 30000, or establish where 30000 comes from and make it configurable. Rebuilding the
+helper is the cheaper of the two and follows directly from this measurement.
+
+### Retargeting the helper to 30000 did not fix it either
+
+The widget-linking helper was rebuilt with parent id 30000 instead of 3000 and run through the
+same harness. Result: `set_surface_visible`=16 and `request_fg`=8 as before, and
+**`ivi_surface.visibility` events still 0**.
+
+So addressing the id that exists is **necessary but not sufficient**. The hypothesis is not
+disproven — the mismatch was real — but on its own it does not produce visibility, which
+means at least one more condition governs whether the window manager emits a visibility event
+for this surface. Candidates, in cost order:
+
+1. The helper's requests are not reaching the same `ivi_window_manager` instance that owns the
+   surface (its log has been empty on these runs, which is suspicious in itself).
+2. Visibility is emitted only after a further state change on the surface — a later commit, a
+   layout change on the plane, or a `set_surface_visible` after the first buffer arrives.
+3. The 30000 the compositor logs is not the parent surface the helper should address, and the
+   real parent id is simply not being logged.
+
+The next cheap discriminator is (1): confirm the helper actually connects and its requests are
+accepted, by capturing its own output and the compositor's response to its first call.
+
 ## Next steps, in cost order
 
 1. One instrumented boot with `QT_WAYLAND_SET_SURFACE_ID=3000` and no

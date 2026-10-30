@@ -1,6 +1,6 @@
 # IONIQ 5 infotainment vulnerability and remediation register
 
-Updated: 2026-10-28. Internal defensive research; no disclosure or vendor contact is implied.
+Updated: 2026-10-30. Internal defensive research; no disclosure or vendor contact is implied.
 
 ## Scope and evidence rules
 
@@ -92,23 +92,29 @@ coordinated vendor contact.
 
 ## V-006 — Privileged USB handling contains a command-construction defect
 
-- **Status:** statically confirmed; runtime exploitation not demonstrated.
+- **Status:** confirmed: complete static call chain verified at instruction
+  level, and **root command execution demonstrated end-to-end in the project
+  QEMU research harness** (guest vendor `usb-automount` + vendor udev, root
+  marker created from an injected device-supplied string, 2026-10-30). Not
+  tested on physical hardware.
 - **Disclosure status:** technical detail is withheld from this public tree pending
   coordinated vendor contact. Recorded here as a status entry only.
 - **Summary:** reviewing the removable-media handling in the recovered userspace
   identified a code path where device-supplied identification data reaches a shell
   command construction without shell-safe handling. A device presenting the
   relevant interface type can therefore influence a command that runs in a
-  privileged service context.
-- **Preconditions:** physical access to a USB port plus a suitably configured
-  device interface. This is not a remote or unauthenticated network vector.
+  privileged service context. The affected property, the upstream sanitizer's
+  actual character policy, and the shipped service configuration have each been
+  verified at instruction level in the research tree (withheld here).
+- **Preconditions:** physical access to a configured USB port plus a suitably
+  configured device descriptor. This is not a remote or unauthenticated network
+  vector.
 - **Remediation direction:** eliminate shell invocation on this path entirely,
   construct the helper command from a fixed argument vector, treat device-supplied
   strings as untrusted data rather than command text, and reduce the privilege of
   the device-handling service to the minimum required for mounting.
-- **Validation still needed:** dynamic confirmation in an isolated VM, and a
-  determination of whether production configuration reaches the affected service
-  with the assumed privileges.
+- **Validation still needed:** confirmation on the installed owner build
+  (research package `260128` only) — deliberately not performed on hardware.
 
 ## V-007 — Media parsing runs without privilege separation
 
@@ -126,15 +132,123 @@ coordinated vendor contact.
 ## V-008 — Serial console is available and password-gated
 
 - **Status:** shipped configuration; unresolved as a vulnerability.
-- **Summary:** a serial console login is present on this build, guarded by a
-  password. The password storage uses a sound modern hashing scheme; no bypass was
-  found.
-- **Why it is recorded:** it is a physical-access path to the unit that exists by
-  design. It becomes a finding only if the credential is weak, shared or
-  bypassable, which has not been established.
-- **Remediation direction:** confirm the production configuration disables the
-  console by default, that any maintenance credential is unique per unit, and that
-  the console cannot be re-enabled by an unauthenticated state change.
+- **Summary:** a serial console login is present on this build and the boot
+  script enables it by default on every boot (a marker file is created
+  unconditionally; only a specific driver module parameter removes the console
+  device). The runtime account file it installs grants the superuser account a
+  login shell. The console is guarded by a password; the password storage uses
+  a sound modern hashing scheme and no default value was recovered.
+- **Why it is recorded:** it is a physical-access path to the unit that exists
+  by design and by default. It becomes a finding only if the credential is
+  weak, shared or bypassable, which has not been established.
+- **Remediation direction:** disable the console by default in production
+  builds, make the secure mode the default rather than the exception, and
+  ensure any maintenance credential is unique per unit and cannot be
+  re-enabled by an unauthenticated state change.
+
+## V-009 — Application launcher can start binaries without invoking signature verification
+
+- **Status:** statically confirmed control-flow defect; details withheld.
+- **Disclosure status:** technical detail withheld from this public tree
+  pending coordinated vendor contact; recorded as a status entry only.
+- **Summary:** the navigation/application launcher's dispatcher selects between
+  verified and unverified launch paths using an internal state value; on the
+  unverified path the target binary is started without the signature routine
+  ever executing, and on the verified path a failed check does not stop the
+  launch. Verification key material is also read from a world-accessible
+  runtime location rather than a protected store.
+- **Preconditions:** write access to the application/navi media path, e.g. an
+  SD/USB medium or a prior local foothold; alone this is a defense-in-depth
+  failure against replacement of first-party applications.
+- **Remediation direction:** make verification non-bypassable and
+  unconditional, treat verification failure as terminal for the launch, keep
+  trust anchors on read-only authenticated media, and pin key material.
+- **Validation still needed:** end-to-end demonstration of a replacement
+  binary launching under production state values on a unit.
+
+## V-010 — Engineering-mode keypad credential derives from static unsalted digests
+
+- **Status:** statically confirmed (machine-code verified); credential values
+  withheld from this public tree.
+- **Summary:** the engineering/dealer menu gate reduces to hashing the entered
+  code with a single unsalted modern hash and comparing against two baked
+  digest constants. At least one digest corresponds to a vendor default code
+  that is identical across the build (no per-unit salt or derivation was
+  found). Lockout logic is client-side rate limiting only.
+- **Preconditions:** physical access to the screen/keypad. Impact class is
+  unauthorized diagnostic control (device variant, partition selection,
+  update/test triggers), not demonstrated direct code execution.
+- **Remediation direction:** remove static default codes, bind credentials
+  per unit to a protected secret, enforce lockout server-side, and reduce the
+  privileged actions reachable from the menu.
+- **Validation needed on a unit:** confirm the menu actually reaches
+  partition/update controls on the owner build, and determine whether the
+  second digest is a per-dealer code.
+
+## V-011 — Marker files under world-writable runtime paths trigger privileged actions
+
+- **Status:** configuration observation; candidates, each individually
+  unvalidated.
+- **Summary:** several enabled systemd path units watch marker files under the
+  world-writable runtime directory and start root services, change firewall
+  posture, or force a reboot when a marker appears; at least one forced-reboot
+  trigger is reachable by any local process creating a zero-length file
+  (local denial of service class). Related service code was observed
+  containing command-execution templates with unvalidated substitution inputs
+  (follow-up taint tracing required). A diagnostic network-port relaxation is
+  gated only by one such marker.
+- **Why it is recorded:** cheap local amplification surfaces; they are also
+  persistence candidates for a modified unit.
+- **Remediation direction:** move trigger state to root-owned authenticated
+  locations; require an authenticated request for privileged actions; audit
+  command-execution templates for unvalidated substitution inputs.
+- **Validation needed:** per-unit-file reachability on a running unit, and
+  taint traces for the command templates before any of these is promoted to
+  a vulnerability.
+
+## V-012 — Privileged services import environment files from a world-writable location
+
+- **Status:** configuration defect confirmed in the shipped unit files;
+  exploitation chain not demonstrated.
+- **Summary:** more than ten enabled root-level services read their process
+  environment from a fixed, predictable file under the world-writable runtime
+  directory, which a support script also rewrites at boot with no ownership
+  or permission protection. The environment-file format accepts arbitrary
+  variables, including dynamic-loader overrides, so a low-privilege local
+  process that writes this file can inject loader settings that take effect
+  inside privileged processes when they next start. Mandatory-access labels
+  observed in the image do not block the related service-to-unlabeled-process
+  access.
+- **Preconditions:** any local code execution (any application or the
+  USB-facing services), plus a privileged service restart within the session.
+- **Remediation direction:** keep service environment state in root-owned
+  protected paths with restrictive modes, validate loader-variable
+  allowlists, and run loader overrides inert for privileged services.
+- **Validation needed:** confirm on a running unit which local subjects can
+  write the file, and the practical restart triggers for each service.
+
+## V-013 — Software-update signature trust anchor is stored unprotected
+
+- **Status:** configuration defect confirmed in the recovered image; the
+  swap scenario itself not demonstrated.
+- **Summary:** the verified update pipeline was reconstructed end-to-end in
+  the research tree: an update manifest from the USB path is cryptographically
+  verified before any payload is unpacked or written, which is sound design.
+  However, the verification public key is an ordinary file in an
+  application-share directory on the read-write root filesystem rather than a
+  protected store, and multiple update clients reference the same file. A
+  privileged local write primitive can therefore replace the trust anchor and
+  cause all future updates — wired and over-the-air paths — to accept
+  packages signed by a substitute key. Encryption of update payloads is
+  separate from and does not substitute for this anchor's protection.
+- **Preconditions:** an existing privileged local write primitive; not a
+  standalone remote or physical-USB-only attack.
+- **Remediation direction:** keep trust anchors read-only or
+  integrity-attested (verified boot measurements, read-only partition, or MAC
+  confinement with explicit authorization), bind them per-unit, and make
+  anchor changes an authenticated, logged event.
+- **Validation needed:** runtime mount/label state of the anchor path on a
+  unit, and per-client behavior when the anchor changes mid-session.
 
 ## Rejected / out-of-scope items
 

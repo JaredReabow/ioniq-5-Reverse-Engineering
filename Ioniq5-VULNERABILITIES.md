@@ -2,6 +2,30 @@
 
 Updated: 2026-11-03. Internal defensive research; no disclosure or vendor contact is implied.
 
+## Duplicate entries after the repository combination
+
+The two lineages were written independently and, unsurprisingly, found some of the same things. Six imported entries
+describe findings that already existed here under different numbers. Each is marked **DUPLICATE of V-0NN** in its heading
+and carries a note saying it is corroborating detail rather than a second finding; **both bodies are retained** so no
+evidence is lost.
+
+| Imported | Canonical | Finding |
+|---|---|---|
+| V-037 | **V-006** | MTP shell-construction defect |
+| V-038 | **V-007** | media-parsing separation gap |
+| V-039 | **V-008** | serial-console configuration |
+| V-040 | **V-028** | launcher verifier bypass |
+| V-044 | **V-034** | update trust-anchor placement |
+| I-002 | **I-001** | EGL copy-path defect |
+
+**Genuinely new findings imported from the parallel lineage** — not duplicated anywhere here: **V-041** (engineering-mode
+keypad credential derives from static unsalted digests), **V-042** (world-writable marker files drive privileged systemd
+actions) and **V-043** (privileged services import environment files from a world-writable path — the mechanism behind the
+chain noted under V-036, which previously had no entry of its own).
+
+So the register holds **44 numbered findings of which 6 are duplicates**, i.e. **38 distinct**, plus `H-001`. When citing a
+count, use the distinct figure.
+
 ## Numbering and provenance
 
 This register is edited by more than one workstream, and entries have been appended concurrently. Two
@@ -1047,9 +1071,11 @@ vulnerability is claimed, and this test does not move either entry.
   (silent rejection path, no direct branch to the validity block, stripped binary) recorded so the next attempt starts
   where this one stopped rather than at the beginning.
 
-## V-037 — Privileged USB handling contains a command-construction defect
+## V-037 — Privileged USB handling contains a command-construction defect (DUPLICATE of V-006 — retained, see note)
 
 (Imported from the parallel repository, where this was numbered V-006.)
+
+> **Same finding as V-006.** This import describes the MTP shell-construction defect from the parallel lineage. Both bodies are kept so no evidence is lost, but they are **one finding, not two** — cite V-006 as canonical and treat this entry as corroborating detail. Counts in this register include it; the distinct-finding count excludes it.
 
 - **Status:** confirmed: complete static call chain verified at instruction
   level, and **root command execution demonstrated end-to-end in the project
@@ -1075,9 +1101,11 @@ vulnerability is claimed, and this test does not move either entry.
 - **Validation still needed:** confirmation on the installed owner build
   (research package `260128` only) — deliberately not performed on hardware.
 
-## V-038 — Media parsing runs without privilege separation
+## V-038 — Media parsing runs without privilege separation (DUPLICATE of V-007 — retained, see note)
 
 (Imported from the parallel repository, where this was numbered V-007.)
+
+> **Same finding as V-007.** This import describes the media-parsing separation gap from the parallel lineage. Both bodies are kept so no evidence is lost, but they are **one finding, not two** — cite V-007 as canonical and treat this entry as corroborating detail. Counts in this register include it; the distinct-finding count excludes it.
 
 - **Status:** configuration observation; information-class only, not a
   vulnerability.
@@ -1090,9 +1118,11 @@ vulnerability is claimed, and this test does not move either entry.
 - **Remediation direction:** run media parsing under a dedicated unprivileged
   identity with restricted filesystem and network access.
 
-## V-039 — Serial console is available and password-gated
+## V-039 — Serial console is available and password-gated (DUPLICATE of V-008 — retained, see note)
 
 (Imported from the parallel repository, where this was numbered V-008.)
+
+> **Same finding as V-008.** This import describes the serial-console configuration from the parallel lineage. Both bodies are kept so no evidence is lost, but they are **one finding, not two** — cite V-008 as canonical and treat this entry as corroborating detail. Counts in this register include it; the distinct-finding count excludes it.
 
 - **Status:** shipped configuration; unresolved as a vulnerability.
 - **Summary:** a serial console login is present on this build and the boot
@@ -1109,9 +1139,11 @@ vulnerability is claimed, and this test does not move either entry.
   ensure any maintenance credential is unique per unit and cannot be
   re-enabled by an unauthenticated state change.
 
-## V-040 — Application launcher can start binaries without invoking signature verification
+## V-040 — Application launcher can start binaries without invoking signature verification (DUPLICATE of V-028 — retained, see note)
 
 (Imported from the parallel repository, where this was numbered V-009.)
+
+> **Same finding as V-028.** This import describes the launcher verifier bypass from the parallel lineage. Both bodies are kept so no evidence is lost, but they are **one finding, not two** — cite V-028 as canonical and treat this entry as corroborating detail. Counts in this register include it; the distinct-finding count excludes it.
 
 - **Status:** statically confirmed control-flow defect; details withheld.
 - **Disclosure status:** technical detail withheld from this public tree
@@ -1198,9 +1230,11 @@ vulnerability is claimed, and this test does not move either entry.
 - **Validation needed:** confirm on a running unit which local subjects can
   write the file, and the practical restart triggers for each service.
 
-## V-044 — Software-update signature trust anchor is stored unprotected
+## V-044 — Software-update signature trust anchor is stored unprotected (DUPLICATE of V-034 — retained, see note)
 
 (Imported from the parallel repository, where this was numbered V-013.)
+
+> **Same finding as V-034.** This import describes the update trust-anchor placement from the parallel lineage. Both bodies are kept so no evidence is lost, but they are **one finding, not two** — cite V-034 as canonical and treat this entry as corroborating detail. Counts in this register include it; the distinct-finding count excludes it.
 
 - **Status:** configuration defect confirmed in the recovered image; the
   swap scenario itself not demonstrated.
@@ -1223,9 +1257,11 @@ vulnerability is claimed, and this test does not move either entry.
 - **Validation needed:** runtime mount/label state of the anchor path on a
   unit, and per-client behavior when the anchor changes mid-session.
 
-## I-002 — EGL software-rendering copy bounds investigation
+## I-002 — EGL software-rendering copy bounds investigation (DUPLICATE of I-001 — retained, see note)
 
 (Imported from the parallel repository, where this was numbered I-001.)
+
+> **Same finding as I-001.** This import describes the EGL copy-path ordering defect from the parallel lineage. Both bodies are kept so no evidence is lost, but they are **one finding, not two** — cite I-001 as canonical and treat this entry as corroborating detail. Counts in this register include it; the distinct-finding count excludes it.
 
 - **Status:** reproducible VM crash and instruction/caller evidence; **not a confirmed exploitable vendor vulnerability**. No severity/CVE claim.
 - **Affected observed stack:** original recovered vendor `/usr/lib/libEGL.so.1.0.0` (SHA-256 `0c373e50d1a4700c2161628c2a2b61a25a9b5abbcd7bb52ccc763cf5020e3d53`) with the project's non-stock Mesa 18 software DRI module. Decoration-unset control triggers early Camera/Standby crashes; stock Intel-driver applicability is untested.

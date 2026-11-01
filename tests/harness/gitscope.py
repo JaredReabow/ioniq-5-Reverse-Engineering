@@ -6,7 +6,9 @@ to block an Ioniq push. This public snapshot uses its own ``origin`` and an
 explicit ``ioniq`` remote. An Ioniq push is allowed only when the
 configuration proves an explicit destination:
 
-* an ``ioniq`` remote whose every URL is exactly ``JaredReabow/ioniq-5-Reverse-Engineering``;
+* an ``ioniq`` remote whose every URL is exactly one of the two names of the
+  Ioniq repository, ``JaredReabow/Ioniq-5`` (this checkout's remotes) or
+  ``JaredReabow/ioniq-5-Reverse-Engineering`` (the renamed public lineage);
 * ``remote.pushDefault`` set to ``ioniq``;
 * no branch ``pushRemote``/push URL and no URL rewrite rule that redirects the
   push to another repository;
@@ -28,7 +30,14 @@ from . import common
 KONA_PREFIX = "kona_research"
 IONIQ_REMOTE = "ioniq"
 IONIQ_OWNER = "jaredreabow"
-IONIQ_REPO = "ioniq-5-reverse-engineering"
+# The Ioniq repository answers to two names for the same destination. This
+# checkout's ``origin`` and ``ioniq`` remotes use the original ``Ioniq-5``
+# name; the parallel public lineage pushed to the renamed
+# ``ioniq-5-Reverse-Engineering``. GitHub redirects the old name to the new
+# one, so both name the same repository and either is a valid push target.
+IONIQ_REPO = "ioniq-5"
+IONIQ_REPO_RENAMED = "ioniq-5-reverse-engineering"
+IONIQ_REPOS = frozenset({IONIQ_REPO, IONIQ_REPO_RENAMED})
 GITHUB_HOSTS = frozenset({"github.com", "www.github.com"})
 INSECURE_SCHEMES = frozenset({"http", "git"})
 
@@ -135,12 +144,12 @@ def gitscope_repo_identity(url: str | None) -> tuple[str, str, str] | None:
 
 
 def gitscope_is_ioniq_repo(url: str | None) -> bool:
-    """True only for the exact ``JaredReabow/ioniq-5-Reverse-Engineering`` GitHub repository."""
+    """True only for the Ioniq GitHub repository under either of its names."""
     identity = gitscope_repo_identity(url)
     if identity is None:
         return False
     host, owner, repo = identity
-    return host in GITHUB_HOSTS and owner == IONIQ_OWNER and repo == IONIQ_REPO
+    return host in GITHUB_HOSTS and owner == IONIQ_OWNER and repo in IONIQ_REPOS
 
 
 def gitscope_is_kona_remote(url: str | None) -> bool:
@@ -364,7 +373,8 @@ def gitscope_check(root: Path, *, runner=None) -> dict:
                 "code": "missing-ioniq-remote",
                 "message": (
                     "no explicit 'ioniq' remote; configure one that targets "
-                    "JaredReabow/ioniq-5-Reverse-Engineering before an Ioniq push"
+                    "JaredReabow/Ioniq-5 (or the renamed "
+                    "JaredReabow/ioniq-5-Reverse-Engineering) before an Ioniq push"
                 ),
             }
         )
@@ -373,7 +383,10 @@ def gitscope_check(root: Path, *, runner=None) -> dict:
             destination_reasons.append(
                 {
                     "code": "ioniq-remote-mismatch",
-                    "message": "remote.ioniq.url is not exactly JaredReabow/ioniq-5-Reverse-Engineering",
+                    "message": (
+                        "remote.ioniq.url is not exactly JaredReabow/Ioniq-5 "
+                        "or JaredReabow/ioniq-5-Reverse-Engineering"
+                    ),
                     "url": gitscope_sanitize_url(url),
                 }
             )
@@ -403,7 +416,10 @@ def gitscope_check(root: Path, *, runner=None) -> dict:
             destination_reasons.append(
                 {
                     "code": "ioniq-pushurl-mismatch",
-                    "message": "remote.ioniq.pushurl is not exactly JaredReabow/ioniq-5-Reverse-Engineering",
+                    "message": (
+                        "remote.ioniq.pushurl is not exactly JaredReabow/Ioniq-5 "
+                        "or JaredReabow/ioniq-5-Reverse-Engineering"
+                    ),
                     "url": gitscope_sanitize_url(url),
                     "effective": gitscope_sanitize_url(effective),
                 }

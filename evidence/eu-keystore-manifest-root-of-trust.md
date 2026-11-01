@@ -14,8 +14,10 @@ a construct looked suspicious.
    `sscanf("%x@%x")`. The public matching source registers that list through
    `__setup("ABL.", setup_abl_params)`, so the full kernel-command-line form is
    `ABL.oemkm=<size>@<physical-address>`, not bare `oemkm=`.
+   <!-- disagreement: the parallel repository recorded the parameter as bare `oemkm=` (`oemkm=<size>@<physical-address>`) against the same address and the same `strcmp("oemkm")`. Both forms are preserved; adjudication needs the `__setup` expansion confirmed against the exact image. -->
 2. Bounds-check the size using `size - 1 <= 0x3ffffff`, accepting
    `1 .. 0x4000000` bytes inclusive (64 MiB).
+   <!-- disagreement: the parallel repository stated the accepted range as `1 .. 0x3ffffff` (64 MiB); this analysis derives `1 .. 0x4000000` inclusive from `size - 1 <= 0x3ffffff`. Both bounds are preserved. -->
 3. `__kmalloc(size)` then `memcpy_from_ph(dest, phys, size)` — a direct copy out
    of physical memory through the direct map.
 4. Validate a small header: word 0 must equal `0xe`; the byte at `+0x13` and
@@ -56,6 +58,8 @@ two different stages.
   words: `requested[i] == (allowed[i] & requested[i])`. A key with an all-ones
   mask authorises every usage; a restrictive mask does not.
 
+<!-- disagreement: the parallel repository concluded from the same code that "the OEM public key is not in the root filesystem and not in the kernel image" and that "anything at that address that parses becomes the trusted key set", whereas this analysis finds only that the manifest supplies digest/usage policy and that absent certificate bytes are not proven. Both readings are retained in full. -->
+
 The boot manifest does not directly populate the keyring with certificate
 objects. Matching public source shows that it carries public-key hashes and
 usage permissions; a self-signed X.509 certificate is admitted as trusted only
@@ -86,6 +90,7 @@ Strengths:
   Its source of record and storage protection are unknown. Gaining root after
   this copy does **not** by itself rewrite the retained policy without a separate
   kernel-memory or reboot-handoff primitive.
+  <!-- disagreement: the parallel repository stated this more strongly — that the key material sitting outside the writable filesystem means root on the rootfs does not let an attacker substitute the OEM key at all, and called that a meaningful hardening choice. This analysis stops at "does not by itself rewrite the retained policy". Both are preserved. -->
 - The keyring is created with root credentials at boot, and lookups require an
   asymmetric key with both validate and verify operations.
 - Usage bits restrict what a key may be used for, subject to the mask baked into
@@ -145,3 +150,43 @@ Decompiled functions under `work/eu-260128/decomp/decompiled/`:
 `manifest_init`, `get_apl_manifest_offsets`, `memcpy_from_ph`,
 `manifest_key_verify_digest`, `verify_x509_cert_against_manifest_keyring`,
 `check_usage_bits`, `keystore_backup`, `keystore_get_ksm_key`, `keystore_ioctl`.
+
+#### From the parallel repository
+
+##### # Keystore root of trust: `.manifest_keyring` and the `oemkm` parameter
+
+The parallel copy titled this document as above rather than `... and the `ABL.oemkm` handoff`, and described the same recovered functions with the following wording and claims. None of it is deleted here; where it conflicts with the corrected analysis above, an inline `<!-- disagreement: ... -->` marker names the conflict.
+
+##### Boot-time chain (parallel wording)
+
+`get_apl_manifest_offsets(&size, &phys)` scans the kernel parameter list for a parameter named **`oemkm`** and parses its value with `sscanf("%x@%x")` — i.e. the form `oemkm=<size>@<physical-address>`.
+
+Bounds-check the size (`1 .. 0x3ffffff`, 64 MiB).
+
+`get_apl_manifest_offsets` (`0xffffffff8105986e`) is explicit: it iterates `params_list`, `strcmp`s against the literal `"oemkm"`, and requires exactly two hex conversions. If the parameter is absent it returns `-0x3d` (ENODATA) and no keyring is created.
+
+##### Where the key material lives (parallel wording)
+
+So the OEM public key is **not** in the root filesystem and **not** in the kernel image. It lives in a firmware-provided physical-memory region, and only the location is passed to the kernel.
+
+##### Assessment (parallel wording)
+
+- The key material is outside the writable filesystem, so gaining root on the rootfs does **not** let an attacker substitute the OEM key. This is a meaningful hardening choice.
+- Usage bits restrict what a key may be used for, subject to the mask baked into the manifest.
+
+##### Design observation (parallel wording)
+
+- The root of trust is a **command-line-supplied physical address** whose contents are trusted implicitly. `manifest_init` validates only a tiny header (type word, three zero fields). The manifest blob itself is not signed or measured, so *anything* at that address that parses becomes the trusted key set.
+- Consequence: whoever controls the `oemkm=` parameter controls the OEM keyring. Under the stock boot chain that is the boot loader, which is not attacker controlled. But the parameter is a single injection point, and it is not covered by the `ipk.` container signature (the container's command line does not contain it; the loader adds it afterwards).
+- `CONFIG_KEXEC=y` is present. Post-root, `kexec` can boot a kernel with an arbitrary `oemkm=` pointing at a prepared page, which would install a substituted keyring for that boot. This requires `CAP_SYS_BOOT` and honours `kexec_load_disabled`, and it does not survive a cold boot. It is a research direction, not a persistence mechanism.
+
+##### What this means for custom firmware (parallel wording)
+
+1. **Root on the rootfs does not grant signing capability.** The OEM private key is not on the device; the public key is pinned in firmware memory; the rootfs holds neither.
+2. **Signature bypass must therefore be a userland decision**, which is exactly what CVE-2023-26244/26245/26246 describe (`AppDMClient`, `AppUpgrade`), and what `update-patcher` implements.
+3. **The `oemkm=` parameter is the highest-leverage single point** if the boot loader can be influenced at all. It is the only place where the trusted key set is chosen, and the choice is a plain-text command-line value.
+4. Persistence after a clean boot still requires either patching the installed rootfs (and surviving official updates) or modifying a signed boot stage.
+
+##### Open questions and artifacts (parallel wording)
+
+The parallel copy carried the same four open questions (overriding `oemkm=`, firmware-descriptor protection of the manifest region, the shipped usage-bit mask, and `kexec_load_disabled`) and the same decompiled-function artifact list.

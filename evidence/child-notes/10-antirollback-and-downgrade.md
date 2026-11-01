@@ -337,3 +337,87 @@ touching a signed package's integrity.
 - Whether `260128` still contains the `211214` Chimaera version-check bypass
   (unverified; the manifest-swap primitive is independent of that and relies
   only on the documented `>=` semantics).
+
+#### From the parallel repository
+
+The parallel lineage states the rollback conclusion more strongly: a single
+userland comparison is treated as the platform's *only* rollback control. Those
+statements are preserved verbatim below.
+
+##### Executive-summary items as written in the parallel version
+
+1. The Gen5W_L anti-rollback control is a **single userland version-string
+   comparison** performed by `AppSetup` after decrypting the package's
+   `.lge.upgrade.xml` with `DecryptToPipe`. The public `wideopen` wiki states
+   the gate verbatim: *"It will read the version from the file and then begin
+   an upgrade given the version is greater than or equal to the current version
+   of the HU."*
+2. The check is **per-package, not per-file**. Individual payload archives carry
+   CRC-32 entries in the plaintext `.ver` manifest (no version gating and no
+   signature), so the manifest's version string is the only rollback gate.
+
+6. Nothing public demonstrates a *monotonic anti-rollback counter* (fuse/OTP) on
+   this variant. Rollback protection is software-only and lives in the update
+   application, consistent with CVE-2023-26245 ("modified AppUpgrade … bypass
+   the version check … newer, older, or customized").
+
+<!-- disagreement: item 1 of the parallel version calls the version-string comparison "The Gen5W_L anti-rollback control ... a **single userland version-string comparison**" and item 2 says the manifest version string "is the only rollback gate", while the newer text calls it "the publicly documented Gen5W_L **userspace rollback gate**" and qualifies "the only rollback gate *in that documented userspace flow*", adding that loader, fuse/OTP and boot-stage rollback policy remain unknown. Item 6 of the parallel version says "Nothing public demonstrates a *monotonic anti-rollback counter* ... Rollback protection is software-only and lives in the update application", while the newer item 6 says the same absence is not proof and keeps loader/fuse controls unknown. Both statements are kept. -->
+
+##### Section 1.2 implications as written in the parallel version
+
+- The rollback gate is *one* comparison in userland. There is no stated
+  monotonic counter, no per-file version check, and no bootloader-side
+  anti-rollback in the documented flow.
+
+<!-- disagreement: the parallel version says there is "no bootloader-side anti-rollback in the documented flow"; the newer text says there is no *public evidence here* of one and that "absence from the documented flow is not proof those stages do not exist". Both statements are kept. -->
+
+##### Table row 8 as written in the parallel version
+
+| 8 | **Anti-rollback counter** | No public evidence of a monotonic fuse/OTP counter on `S5W_L`; rollback protection is the userland string compare only. | absence in wiki + CVE-2023-26245 wording |
+
+<!-- disagreement: the parallel row asserts rollback protection "is the userland string compare only"; the newer row says the userspace comparison "cannot be called the only platform rollback control until loader/boot state is audited". Both rows are kept. -->
+
+##### Section 1.5 as written in the parallel version
+
+### 1.5 Can a signed-but-older official package be installed?
+
+**Yes, on this Linux path — with the manifest-swap primitive.** An older
+official package is still encrypted with the device key (so it decrypts
+normally), and its payload files are accepted because the version gate reads
+only the substituted newer manifest. This is the project's own downgrade
+procedure, and it requires no key material and no re-signing.
+
+<!-- disagreement: the parallel answer is an affirmative "**Yes, on this Linux path — with the manifest-swap primitive.**" The newer answer limits this to "Public prior work says yes for the tested Linux userspace flow" and notes it does not prove this exact build's later boot/slot acceptance or exclude loader/fuse rollback policy. Both statements are kept. -->
+
+##### Blocker 4 and the closing net statement, as written in the parallel version
+
+4. **Boot-chain anti-rollback / partition signature rejection** after the
+   write. The kernel does OEM-key verification (`oemkm`/keystore, see
+   `eu-keystore-manifest-root-of-trust.md`) but that verifies signatures of
+   boot/update artifacts, not a rollback counter; an *older official* artifact
+   is still vendor-signed and should verify.
+
+Net: downgrade of an official older build is a **version-check bypass, not a
+signature bypass**. The signature/crypto chain stays intact; only the version
+gating is defeated.
+
+<!-- disagreement: the parallel blocker 4 says the kernel OEM verifier checks signatures of "boot/update artifacts" and that an older official artifact "should verify"; the newer text says the reviewed kernel verifier serves narrow keystore backup/migration consumers and is not the boot/update artifact verifier, so vendor signing is "relevant but not sufficient". The parallel net statement additionally frames the primitive as a pure "version-check bypass, not a signature bypass". Both statements are kept. -->
+
+- Parallel parameter name: the parallel version writes the loader-supplied
+  manifest parameter as `oemkm=` (both in the `/proc/cmdline` capture row and in
+  the UART boot-log capture row) where the newer text writes `ABL.oemkm=`.
+  <!-- disagreement: `oemkm=` vs `ABL.oemkm=` for the loader-supplied kernel parameter; both spellings retained. -->
+
+##### Parallel `oemkm` capture rows (verbatim)
+
+Files-to-read row (parallel version):
+
+```
+| `/proc/cmdline` | Confirm `root=` partition and `oemkm=` presence (trust anchor is loader-supplied). |
+```
+
+Boot-log capture row (parallel version):
+
+```
+  bootloader slot selection, any anti-rollback/fuse messages, `oemkm=` injection.
+```

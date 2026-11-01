@@ -16,6 +16,7 @@ operational live-vehicle exploit procedure.
 | Engineering/dealer UI | Diagnostic UI | UI access alone is not root or code execution. |
 | `update_decryptor` | Extract encrypted update content | Downstream tool requiring a unit-derived `DecryptToPIPE` and key material not shipped publicly. |
 | `update-patcher` | Persistent modified-update workflow | Post-compromise mechanism requiring prior execution and a decrypted rootfs. Recovered FUMO has a marker-controlled `Unencryption` mode on the NE-style `-un:0` route, but complete package acceptance and owner applicability remain unproven; SCOMO production startup ignores the marker. |
+<!-- disagreement: the parallel repository listed "acceptance of unencrypted updates" among this mechanism's requirements as if established, while this analysis records that complete package acceptance is unproven and that only the FUMO `-un:0` route honours the marker. Both are preserved; see `#### From the parallel repository` below. -->
 | Gen5W Wi-Fi/SSH loop | Post-root access | Requires an already-installed replacement/main-loop mechanism. |
 | CVE-2023-26243 through CVE-2023-26246 | Key disclosure and update signature/version-check bypasses | Demonstrated on `AE_E_PE_EUR.S5W_L001.001.211214`; patch status on `NE_E.EUR.S5W_L.001.001.260128` remains unknown. |
 | NEMESIS | Android/TCC803x root chain | Not directly applicable to this Linux/x86-64 package. |
@@ -46,3 +47,9 @@ stages—initial execution, privilege transition, persistence and recoverable
 boot/update trust—and records defensive audit surfaces without implementing a
 zero-day, bypass, modified image or live procedure.
 
+
+#### From the parallel repository
+
+The parallel copy of this document is otherwise identical: same heading, same table, same rows and same verdicts. The only differing cell is `update-patcher`, which the parallel copy stated as:
+
+| `update-patcher` | Persistent modified update | Post-compromise mechanism requiring prior execution, decrypted rootfs and acceptance of unencrypted updates. |

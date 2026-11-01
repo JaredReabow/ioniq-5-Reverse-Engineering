@@ -230,3 +230,47 @@ their own exact-code checks.
 9. **No DCCP/SCTP/BT is asserted from the task statement**, not re-verified from
    the recovered `.config`. If any of those are actually built as modules they
    would re-activate CVE-2017-8824, CVE-2017-1000410, CVE-2017-1000251/2.
+
+#### From the parallel repository
+
+The parallel lineage recorded the same 4.1.27 gap analysis by upstream fix
+version, before exact vendor-binary checks were available. Its version-derived
+verdicts are preserved verbatim below. Rows that are identical in both lineages
+(CVE-2017-9242, CVE-2017-9074, CVE-2016-8399, CVE-2020-14386) are not repeated.
+
+##### Local / socket-reachable rows as written in the parallel version
+
+| CVE | Subsystem | Fixed-in 4.1.x | Else fixed-in | Reachability | Privilege | 4.1.x ChangeLog evidence |
+|---|---|---|---|---|---|---|
+| CVE-2016-5195 | **Dirty COW** — `get_user_pages` FOLL_WRITE race → write to read-only file maps → unprivileged root | **4.1.35** | (4.8.3 / 4.4.23 upstream) | LOCAL | none | 4.1.35 "mm: remove gup_flags FOLL_WRITE games from __get_user_pages()" (upstream 19be0eaffa3a) |
+| CVE-2017-1000364 | "Stack Clash" — stack guard-page bypass | **4.1.42** | (4.12) | LOCAL | none | 4.1.42 "mm: larger stack guard gap, between vmas" (1be7107fbe18) |
+| CVE-2017-1000112 | UDP/UFO `__ip_append_data` / `__ip6_append_data` frag-length inconsistency → OOB write | **4.1.44** | (4.13) | LOCAL (send UDP w/ MSG_MORE; no cap) | none | 4.1.44 "ipv4: Should use consistent conditional judgement for ip fragment…" + ipv6 twin (e4c5e13aa45c); not CVE-tagged in changelog |
+| CVE-2016-8655 | AF_PACKET TPACKET_V3 `packet_set_ring` race → UAF | **4.1.37** | — | LOCAL | CAP_NET_RAW | 4.1.37 "packet: fix race condition in packet_set_ring" (84ac7260236a) |
+| CVE-2017-1000111 | AF_PACKET `PACKET_RESERVE` race (analog of 8655) | — | 4.12 / 4.4.x / 4.9.x | LOCAL | CAP_NET_RAW | not in 4.1 |
+
+<!-- disagreement: the parallel table implies Dirty COW (CVE-2016-5195), Stack Clash (CVE-2017-1000364), CVE-2016-8655 and CVE-2017-1000111 are live 4.1.27 gaps. The table above records that the recovered 260128 vendor binary carries the FOLL_COW/dirty-PTE backport, the vm_start_gap/1 MiB stack guard, and both AF_PACKET socket-locking fixes, so those four version-derived gaps are rejected for the recovered image. Both readings are kept: the parallel rows remain the base-version expectation, and the newer rows are the exact-code result. For CVE-2017-1000112 the two versions also differ on privilege: the parallel row says "none", while the newer row says none for the syscall but the published root setup needs unprivileged user namespaces, which CONFIG_USER_NS=n blocks. -->
+
+##### Parallel closing ranking for post-execution escalations
+
+Then, once *any* local code execution exists (app / compromised userland
+service), the top local escalations that a 4.1.27 device is missing are, in
+order: **CVE-2016-5195 (Dirty COW → root)** (fixed 4.1.35),
+**CVE-2017-1000364 (Stack Clash)** (fixed 4.1.42),
+**CVE-2016-8655 / CVE-2017-1000111 (AF_PACKET UAF → root, needs CAP_NET_RAW)**.
+
+This ordering is retained as the pre-analysis expectation. It is superseded for
+the recovered image by the three-part ranking above (V-013/CVE-2017-15265,
+CVE-2018-1000004, CVE-2017-1000112) and by the explicit rejection list
+(CVE-2016-0728, CVE-2016-5195, CVE-2016-8655, CVE-2017-0861, CVE-2017-1000111,
+generic CVE-2017-1000364).
+
+<!-- disagreement: the parallel version lists CVE-2017-0861 as an open "ALSA pcm UAF (4.1.49)" entry in the follow-up CVE list, while the newer text marks the exact open-mutex fix present and the CVE rejected. Both statements are kept. -->
+
+##### Parallel ALSA entries in the follow-up CVE list (verbatim)
+
+ALSA entries (parallel version):
+
+```
+CVE-2017-0861 (ALSA pcm UAF, 4.1.49), CVE-2017-15265 (ALSA seq race, 4.1.46),
+CVE-2018-1000004 (ALSA seq pool, 4.1.51), CVE-2017-5753 (Spectre-class KVM
+```

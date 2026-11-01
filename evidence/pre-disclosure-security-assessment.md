@@ -49,6 +49,7 @@ word `0xe` and three zero fields) before creating a trusted-only
 `.manifest_keyring` with root credentials. Matching public source shows that the
 blob supplies public-key digest/usage admission policy; it does not itself
 insert certificate objects into the ring.
+<!-- disagreement: the parallel repository recorded the parameter as bare `oemkm=` / `oemkm=<size>@<physical-address>`; this revision, backed by `__setup("ABL.", setup_abl_params)`, records `ABL.oemkm=`. Both forms are preserved. -->
 
 The parameter is absent from all six packaged command lines, so the boot loader
 supplies it.
@@ -56,12 +57,14 @@ supplies it.
 **Design observation:** this kernel init path receives a plain-text address and
 does not authenticate or measure the copied manifest before using its policy.
 Whether the preceding loader authenticates or measures the handoff is unknown.
+<!-- disagreement: the parallel repository asserted flatly that "the manifest is not self-signed or measured", with no loader-stage qualification. Both are preserved. -->
 
 **Why it may not matter:** attacker control of the boot loader has not been demonstrated. The
 **packaged** kernel command line is covered by the `ipk.` container signature,
 but `ABL.oemkm=` is absent from that command line and added later; no evidence
 currently establishes equivalent signature coverage for the loader-added value
 or physical-memory blob.
+<!-- disagreement: the parallel repository treated the `ipk.` container signature as covering the kernel command line that carries the trust root, without noting that the loader-added parameter sits outside the packaged command line. Both readings are preserved. -->
 
 **Would become disclosable if:** a stock unit could be booted with an
 attacker-chosen `ABL.oemkm=` value (e.g. via `kexec` before the sysctl is set, or an
@@ -110,6 +113,7 @@ Recorded so a report is not padded with noise:
   the reviewed keystore ioctl staging boundary showed no length/allocation
   mismatch, but `manifest_init` now has separately documented conditional OOB-read
   and invalid-interior-free candidates;
+  <!-- disagreement: the parallel repository stated that the reviewed trust-chain and keystore code showed no memory-safety defect at all, which excludes the manifest_init findings recorded here. Both are preserved. -->
 - the OTA cipher is sound for its purpose: no ECB, no keystream reuse, no
   plaintext-equality oracle across builds, no offline break;
 - the packages are complete and manifest-consistent: 35/35 files, zero unlisted,
@@ -129,3 +133,19 @@ Recorded so a report is not padded with noise:
 
 No vendor contact has been made. No advisory has been written. This file is an
 input to a decision that belongs to the device owner, not to this agent.
+
+#### From the parallel repository
+
+The parallel copy reached the same six-item structure and the same verdicts, but stated finding 2 more favourably and with the uncorrected parameter form. Its wording:
+
+> `manifest_init` scans kernel parameters for **`oemkm`**, parses `oemkm=<size>@<physical-address>`, copies the blob out of physical memory, and validates only four header fields (a type word `0xe` and three zero fields) before building `.manifest_keyring` with root credentials.
+
+> **Design observation:** the root of trust is a plain-text address whose contents are implicitly trusted; the manifest is not self-signed or measured.
+
+> **Why it may not matter:** the boot loader is not attacker-controlled, and the kernel command line is covered by the `ipk.` container signature.
+
+> **Would become disclosable if:** a stock unit could be booted with an attacker-chosen `oemkm=` value (e.g. via `kexec` before the sysctl is set, or an alternate command-line source) such that a substituted keyring were accepted.
+
+Its "not a finding" list also stated that the reviewed trust-chain and keystore code showed no memory-safety defect at all:
+
+- the kernel is fully symbolised (64,923, cross-validated against `__ksymtab`) and the reviewed trust-chain and keystore code showed no memory-safety defect;

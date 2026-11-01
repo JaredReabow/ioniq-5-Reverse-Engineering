@@ -120,3 +120,14 @@ None of this opens the unit. It narrows the search:
 - `https://gitlab.com/g4933/gen5w/navi_extended/-/issues/2`, `/3`, `/4`
 - `https://gitlab.com/g4933/gen5w/update_fetcher/-/issues/1`, `/2`
 - Direct HTTP probes, 2026-10-19
+
+#### From the parallel repository
+
+The parallel lineage's version of this note is a strict subset of the text above:
+its only delta is the absence of the "Current-reading warning" block (the note
+that native decryption later recovered userspace, that the API probes describe
+only those endpoints/times, and that `community-chat-leads.md` reports divergent
+historical-download access and no demonstrated downgrade). Every claim, table row
+and citation in the parallel version also appears above.
+
+<!-- disagreement: none found — the parallel version carries no fact that the text above lacks; its statements about absent plaintext motivating the source review are qualified, not contradicted, by the newer warning. -->

@@ -36,6 +36,78 @@ and are not modified by IONIQ work.
   VCU, BMS/HV, HVAC, camera/audio, and network domains.
 
 ## 2026-10-19
+- Repaired and ran the official Hyundai Navigation Updater on macOS, moved an
+  off-screen updater window back onto the primary display, and downloaded the
+  official Australian 2021-23 IONIQ 5 package for read-only inspection.
+- Confirmed the package identity: 36 files, 9,514,830,930 bytes, 35 manifest
+  payload records, all sizes and IEEE/zlib CRC-32 values matching, a verified
+  Australian map, two verified voice-resource MD5 values, and both front-key
+  CRC-32/MPEG-2 values matching. The sorted-tree SHA-256 is
+  `bc3013e5fc1499612cec76777aa736e0973a0b8a337c6619aace9af5a4d9652a`.
+- Recorded that nineteen package files are high-entropy opaque envelopes, that
+  six `*_sub` files are plaintext x86-64 Linux 4.1.27 IPK containers, and that
+  no decryption, USB write, or vehicle action occurred.
+- Accepted T2 after an independent review reproduced the inventory, digest,
+  manifest records, MD5 values, and archive format checks.
+- Accepted T7: `hmg_nemesis` is a real Android/TCC803x root path but is not an
+  applicable method for this Linux `S5W_L` family; its Gate 4 and recovery
+  limitations are transferable, its operational mechanism is not.
+- Accepted the Council generation 10 review of frozen batch 8, fingerprint
+  `9c410e07d2a130c967ac567f5e32788731c909ca2e2c684fc856fc8c3080198b`, with
+  Astra, a labelled DeepSeek V4.1 Flash Grok replacement, and a labelled
+  DeepSeek V4 Flash Vision Fable replacement all returning COMPLETE.
+- Completed the T6 integration draft: `Ioniq5-research-plan.md` traces R1-R11
+  to accepted evidence, covers every named vehicle subsystem, defines Phases
+  0-8 with exit criteria, closes the T6 portion of ASTRA-G7-S01 through a
+  four-part Gate 4 conjunction, and separates physical restoration from
+  persistent software-state coverage.
+- Added dedicated IONIQ history and changelog documents plus a root
+  `.gitignore` that excludes firmware, package and extraction trees, dumps,
+  captures, credentials, identifiers, and personal-data workspaces while
+  retaining text evidence.
+- Recorded that no live vehicle entry, diagnostic session, USB write, firmware
+  flash, or actuation was performed. T6 review, staged-content verification,
+  commit, and push to the private `Ioniq-5` repository remain coordinator
+  actions.
+- Revised the private-repository retention policy at the owner's request:
+  firmware, extracted analysis trees, captures, device-specific dumps, vehicle
+  identifiers, and analysis workspaces may now be deliberately committed. The
+  downloaded 9.5 GB official package tree and live credentials/private keys
+  remain excluded, and Kona-owned paths remain outside Ioniq commits.
+- Corrected the active vehicle scope to the owner's UK-origin 2021 IONIQ 5 and
+  selected the official European Standard Gen5W package
+  `NE_E.EUR.S5W_L.001.001.260128`; retained the Australian package as comparison
+  evidence rather than rewriting the earlier accepted record.
+- Verified all 17 completed European payloads against their manifest CRC-32
+  values and recorded the interrupted map-download state without deleting the
+  11 GB cache.
+- Repaired, ad-hoc signed and registered an isolated Navigation Updater copy,
+  resumed the existing European cache through LaunchServices, and observed it
+  rewrite interrupted segments and advance through new parts beyond `.z964`.
+- Recovered all 64,923 kallsyms entries from the exact European x86-64 Linux
+  4.1.27 kernel. Applied 25,068 names in Ghidra and decompiled 48 priority
+  security functions, including the LG keystore and OEM-signature chain.
+- Assessed published Gen5W root/application-loading methods against build
+  `260128`. No public stock-to-root path is presently confirmed; published
+  persistence, decryption and SSH components require prior execution.
+- Added the interim EU/AUS byte comparison and region-transition gates. The
+  Australian package is not established as a safe cross-region install.
+- Completed the official European package: all 35 payload sizes and signed
+  CRC-32 values match, the map and both voice MD5 sidecars match, and the
+  36-file SHA-256 inventory digest is
+  `f06752ea7cbf296ef7d7d7482f5ba96a3349161fc7ad0d60b36b042f62ef5b51`.
+- Completed the EU/AUS file matrix: six of 32 common paths are byte-identical,
+  nineteen are equal-size but byte-different, seven differ in size and bytes,
+  and four paths are region-specific to each package.
+- Confirmed that corresponding EU and AUS boot targets use the same x86-64
+  Linux 4.1.27 kernel configuration but different kernel and signed-container
+  bytes and different January/March 2026 build dates.
+- Added a defensive custom-firmware and privileged-access feasibility report.
+  It documents prerequisites, trust boundaries, published-method applicability
+  and candidate audit surfaces without implementing an exploit, bypass,
+  modified image, flash procedure or live vehicle action.
+
+### (other lineage, same date)
 
 - Repaired and ran the official Hyundai Navigation Updater on macOS, moved an
   off-screen updater window back onto the primary display, and downloaded the
@@ -108,6 +180,14 @@ and are not modified by IONIQ work.
   and candidate audit surfaces without implementing an exploit, bypass,
   modified image, flash procedure or live vehicle action.
 
+- 2026-10-28: Prepared a public-safe snapshot by removing the owner USB exports and upstream raw diagnostic dump from reachable Git history, anonymizing local user paths, and retaining only sanitized firmware findings. Publication remains gated on GitHub server-side cleanup of previously cached raw commits.
+
+- 2026-10-28: Prepared an independent public repository from that sanitized
+  snapshot with a fresh Git history. The earlier private repository and its
+  unresolved historical objects remain separate. The public push is subject
+  to the public privacy and Git-scope harness.
+
+## VM continuation history imported from the private working tree
 
 ## 2026-10-26 — retrospective backfill and continuation contract
 
@@ -609,6 +689,20 @@ and are superseded by corrections rather than silently rewritten.
 
 
 ## 2026-10-27 — direct DeepSeek provider policy correction
+- Owner clarified that all DeepSeek workers must use the direct DeepSeek API
+  provider, not OpenCode. Updated Parallelism and Council skills, protocols,
+  README, installation guidance and invocation metadata to require provider-
+  qualified `deepseek/...` routes and fail closed instead of using OpenCode,
+  OpenRouter, Codex Router or another intermediary fallback.
+- Corrected the current project checkpoint: the earlier OpenCode no-key result is
+  historical route probing, not the authorized worker route. The live worker
+  tool previously rejected `deepseek/deepseek-v4.1-flash` as unknown. EC-01 and
+  EC-02 remain blocked pending an exposed/authenticated direct DeepSeek model.
+- Parallelism unit tests: 148 pass. Council unit tests: 93 pass. Both packaging
+  validators reached their external validation step but failed because PyYAML is
+  absent from that validator environment; no package was installed to bypass it.
+
+### (other lineage, same date)
 
 - Owner clarified that all DeepSeek workers must use the direct DeepSeek API
   provider, not OpenCode. Updated Parallelism and Council skills, protocols,
@@ -623,9 +717,24 @@ and are superseded by corrections rather than silently rewritten.
   validators reached their external validation step but failed because PyYAML is
   absent from that validator environment; no package was installed to bypass it.
 
+- 2026-10-28: Published the authored VM sources, bounded evidence and current
+  technical handover in the separate public repository; local firmware images,
+  extracted vendor trees, raw captures and private working records remain local.
+
+## 2026-10-28 — VM sources, evidence and screenshots published
+- Published the authored VM reproduction sources and bounded evidence under vm/,
+  with source and evidence manifests binding every published file to a SHA-256.
+- Added two further inspected screenshots: the authentic launcher profile/confirm
+  screen and a navigation-window frame that still shows Home, which is the visible
+  symptom of the unresolved Home-to-Navigation transition.
+- Expanded the root README with a per-area status table (kernel boot, userspace,
+  launcher, Home, AppNavi, compositing, audio, CAN/MICOM, persistence, input), the
+  mandatory run configuration (TCG, max,vendor=GenuineIntel, 1536 MiB, snapshot
+  disk, no NIC) and the recovered ApplicationManager/window-byte contract.
+- No new experiment was run for this publication. All screenshots and evidence
+  were already captured by earlier snapshot runs; the base rootfs hash is unchanged.
 
 ## 2026-10-28 — unverified physical-access vectors recorded
-
 - Received a third-party advisor summary asserting three physical-access vectors:
   USB descriptor strings reaching a privileged mount script; media file parsing
   running as root; and a root serial console gated by a hashed password.
@@ -645,6 +754,24 @@ and are superseded by corrections rather than silently rewritten.
   scoped to the isolated VM snapshot or offline analysis of the recovered rootfs.
   No experiment was run against hardware.
 
+### (other lineage, same date)
+
+- Received a third-party advisor summary asserting three physical-access vectors:
+  USB descriptor strings reaching a privileged mount script; media file parsing
+  running as root; and a root serial console gated by a hashed password.
+- No logs, script excerpts, device identity, process identity, console device or
+  reproduction accompanied the claims. None was validated against the recovered
+  image. Recorded as V-006, V-007 and V-008 marked "unverified actor report" so
+  they are neither lost nor treated as established findings.
+- Caveats recorded: USB string descriptors are UTF-16LE so ASCII metacharacters
+  arrive NUL-interleaved, and udev sanitises ID_SERIAL/ID_MODEL, so a vulnerable
+  path needs a custom consumer; the 126-code-unit descriptor limit would still
+  admit a ~40 character payload, making encoding and quoting rather than length
+  the binding constraint. A hashed root console password is ordinary practice and
+  only becomes a finding if weak, reused, bypassable, or its material extractable.
+- All three require physical access; none is remote. Validation is scoped to the
+  isolated VM snapshot or offline analysis of the recovered rootfs. No experiment
+  was run against hardware and no attack tooling was built.
 
 ## 2026-10-28 — advisor claims validated offline against the recovered rootfs
 
@@ -1218,8 +1345,59 @@ and are superseded by corrections rather than silently rewritten.
 - docs/navigation-status.md was updated in both repositories so the published open
   question is replaced by this baseline result.
 
-## 2026-10-29 — A/B shows AppNavi paints nothing at all
+## 2026-10-29 — public disclosure reduction for the physical-access entries
+- Reduced V-006, V-007 and V-008 in the public tree to status entries carrying no
+  operational detail. The earlier entries here described these as unverified
+  third-party claims; offline validation has since confirmed V-006 as a genuine
+  command-construction defect reached from a privileged USB service, and reduced
+  V-007 and V-008 to configuration observations.
+- The detailed dossiers, including component names, property names, code locations
+  and reproduction notes, are retained privately pending coordinated vendor
+  contact. This public tree was checked and contains no occurrence of the affected
+  service name or property name.
+- Pre-existing publication noted rather than altered: the engineering-mode entry
+  sequence and PIN were already present in this tree from earlier work. Removing
+  them now would not undo that exposure, so they were left in place and flagged.
 
+## 2026-10-29 — navigation status published
+- Published docs/navigation-status.md together with the research helpers behind it, so
+  the current Home-to-Navigation gap is documented from measurement rather than
+  inference.
+- The EGL dimension ordering is now measured on the authentic client: the surface fields
+  read -1/-1 immediately before the width cache and 1920/720 immediately after
+  swrast_update_buffers returns, on the same surface pointer. The defect is scoped to the
+  vendor's Wayland software path, because the hardware constructors are separate and do
+  not share that vtable.
+- A Qt hide is shown to be insufficient for the background notification. With the
+  weston_surface layout fixed by DWARF, the commit path stores the previous positive size
+  before the null-buffer branch zeroes the buffer-derived fields, so a genuine 0x0
+  transition is required.
+- Guest hardware breakpoints are confirmed working under TCG, with four slots, slot
+  replacement, rejected DR4/DR5, per-slot DR6 status, single step and per-thread scoping.
+  Detaching with a slot still armed leaves it live and kills the tracee, so disarm and
+  verify before detaching.
+- Two injection facts were published because they cost time to learn: the launcher
+  interposer unsets LD_PRELOAD for AppLauncher so vendor children inherit a clean
+  environment, and a musl-linked shared object will not load into the vendor glibc
+  process.
+- The remaining blocker is stated plainly: AppNavi never attaches a surface in either
+  configuration, so nothing reaches the compositor. Whether the interposer itself
+  prevents rendering is recorded as the open question, with a baseline run without it as
+  the next step.
+
+## 2026-10-29 — baseline clears the adapter
+- Ran the control the published open question called for: the identical render probe with
+  no preload. AppNavi's log came back empty and the manager reported drawing application
+  0, matching the with-adapter run apart from the adapter's single load record, so the
+  interposer is not what stops AppNavi.
+- Recorded with it that an empty log does not prove nothing rendered, since AppNavi may
+  log to DLT or a file and the captured frame had not been inspected. Rendering silently
+  and never rendering both remain open.
+- The navigation status document was updated so the published open question is replaced
+  by this result, and the baseline probe was added to the public tools so the control can
+  be reproduced.
+
+## 2026-10-29 — A/B shows AppNavi paints nothing at all
 - Tested the previous entry's caveat with an A/B across three runs of the same probe: with
   the adapter, without it, and with AppNavi not launched at all. The captured frame is
   byte-identical between the baseline and the no-AppNavi control.
@@ -1233,6 +1411,23 @@ and are superseded by corrections rather than silently rewritten.
   public clone discarded an uncommitted edit to the navigation status document, so the
   public copy still described the question as open while this copy already carried the
   baseline result. Both now agree.
+
+### (other lineage, same date)
+
+- Because an empty log does not prove that nothing rendered, the previous entry's caveat
+  was tested directly with an A/B across three runs of the same probe: with the adapter,
+  without it, and with AppNavi not launched at all. The captured frame is byte-identical
+  between the baseline and the no-AppNavi control.
+- The conclusion recorded is that AppNavi renders nothing. It is alive, silent and
+  contributes no pixels, so the adapter is not implicated and the compositor contract, the
+  zero-size hold and the background notification cannot be exercised until AppNavi paints.
+- The next step was narrowed accordingly: find why AppNavi is alive but idle, starting with
+  the environment and arguments that the launcher normally supplies compared with this
+  probe's direct launch.
+- A documentation inconsistency was also corrected. An earlier hard reset in the public
+  clone discarded an uncommitted edit to the navigation status document, so the public copy
+  still described the question as open while the private copy already carried the baseline
+  result; both copies now agree.
 
 ## 2026-10-29 — why AppNavi idles: surface id and visibility are injected from outside
 
@@ -1320,8 +1515,54 @@ and are superseded by corrections rather than silently rewritten.
   current probe rather than continue debugging, since the delta between them is what is
   missing.
 
-## 2026-10-29 — correction: AppNavi does create surfaces
+## 2026-10-29 — why AppNavi idles, published
+- Published the startup analysis into docs/navigation-status.md: AppNavi obtains its ivi
+  surface id only from the environment through libivi-platform-interface, which on the
+  vehicle is injected by AppLauncher together with APPID, and with the variable unset the
+  library blocks in an uncapped read-events loop rather than crashing.
+- Also published that window visibility is externally driven, arriving only as an
+  ivi_surface.visibility event for the matching surface id.
+- Ruled-out candidates were published as negative results: ApplicationManager's absence,
+  the current command-line flags, and APPID. AppNavi itself reads only MD_CONA40_ON.
+- The open point about the surface id being created as 30000 while the helper programmes
+  3000 was also published, together with the single instrumented boot that would settle it.
 
+## 2026-10-29 — missing gpio440 node identified and stubbed
+- Published the reason AppNavi never paints: its Wayland client log ends with a repeated
+  failure to read /sys/class/gpio/gpio440/value. The node cannot exist in this VM, since
+  the gpio class holds only export and unexport and exporting 440 returns EINVAL because no
+  gpiochip registers that pin, which matches the GPS driver deferring with -517.
+- An adaptor consisting of a tmpfs over the gpio class with an inert gpio440 node removes
+  the errors from AppNavi's log. It is the first demonstrated case here of a simulated
+  hardware dependency unblocking a firmware startup path, and it is recorded as necessary
+  but not yet sufficient because surface creation appeared only in one of two runs.
+- A privacy checker false positive was also corrected, since the email pattern matched
+  Wayland object notation and reported captured protocol logs as leaked addresses. The
+  pattern now requires the domain to begin with a letter and a regression test covers it.
+  The checker was fixed rather than the evidence rewritten.
+
+## 2026-10-29 — AppNavi's stop published
+- Published the precise stop point in docs/navigation-status.md, established by counting
+  protocol markers rather than transporting log text: AppNavi binds the display, enumerates
+  the registry, binds the compositor, shm and ivi application interfaces, creates a
+  wl_surface, and then never creates the ivi surface and never attaches a buffer.
+- Also published that wl_drm is entirely absent because the compositor runs headless with
+  pixman, with cause and coincidence left open, and that the forced surface-id environment
+  variable produces a second wl_surface without reaching surface_create.
+- The forced-environment probe was added to the published tools so the result can be
+  reproduced.
+
+## 2026-10-29 — wl_drm ruled out and a working harness identified
+- Ruled out the absent wl_drm as the gate for AppNavi's missing ivi surface. A prior run on
+  the same pixman headless compositor, without ApplicationManager, reached surface_create for
+  ids 3000, 30000 and 4903 with 26 attach calls, proving a client can create ivi surfaces and
+  attach buffers here without any DRM interface.
+- That also settles the 3000 against 30000 question: AppNavi creates both ids, plus 4903 and
+  4900 for the map widget.
+- The working harness used the valet-stub probe and runner, both still in the image, so the
+  next step is to diff that harness against the current probe to find what is missing.
+
+## 2026-10-29 — correction: AppNavi does create surfaces
 - Withdrew the earlier conclusion that AppNavi never creates its ivi surface. That conclusion
   came from counting markers in the client's Wayland debug log, but the client does not emit
   those requests in this build, so their absence there was never evidence.
@@ -1333,8 +1574,18 @@ and are superseded by corrections rather than silently rewritten.
 - The open question therefore moves from surface creation to visibility: whether a foreground
   request reaches the surface ids that exist and on which plane.
 
-## 2026-10-29 — visibility requests issued but never bound to a surface
+### (other lineage, same date)
 
+- Withdrew the earlier published claim that AppNavi never calls ivi_application.surface_create.
+  It rested on marker counts from the client Wayland debug log, which does not emit those
+  requests in this build, so their absence there proved nothing.
+- Compositor-log counts for the same run show two surface creations, seven ivi surface
+  references, and attach and commit calls, so AppNavi does render.
+- The reproduction uses the gpio440 adaptor, the valet-status D-Bus boolean stub and the
+  widget-linking helper, matching the retained milestone. The open question becomes
+  visibility rather than surface creation.
+
+## 2026-10-29 — visibility requests issued but never bound to a surface
 - Counted visibility markers in the compositor log during the valet-stub run: sixteen
   set_surface_visible calls, sixteen set_visible_for_qtwayland calls, eight foreground
   requests and sixteen layout calls, but zero ivi_surface_visibility events.
@@ -1345,6 +1596,17 @@ and are superseded by corrections rather than silently rewritten.
   explanation, now backed by the visibility event count rather than by inference.
 - The next step is to establish how the environment value maps to the created id, then either
   point the helper at the id that exists or make AppNavi create the id the helper expects.
+
+### (other lineage, same date)
+
+- Compositor-log counts during the valet-stub run show sixteen set_surface_visible and sixteen
+  set_visible_for_qtwayland calls, eight foreground requests and sixteen layout calls, but
+  zero ivi_surface_visibility events.
+- The only surface id logged as created is 30000 while the helper programmes visibility for
+  3000, so the requests never bind to a surface that exists, matching the manager reporting
+  drawing application 0.
+- The id discrepancy is therefore the leading explanation, supported by the event count. Next
+  step is to establish the environment-to-id mapping and align the two.
 
 ## 2026-10-29 — surface id fixed at 30000 regardless of the environment variable
 
@@ -1358,8 +1620,16 @@ and are superseded by corrections rather than silently rewritten.
   parent 30000, which is cheaper than establishing where 30000 originates and making it
   configurable.
 
-## 2026-10-29 — retargeting the helper to 30000 does not produce visibility
+## 2026-10-29 — surface id fixed at 30000 regardless of the environment value
+- A run with QT_WAYLAND_SET_SURFACE_ID set to 0 still produced surface id 30000, identical to
+  the run with 3000, so the variable does not determine the id in this path.
+- Together with the visibility marker counts this closes the diagnosis: AppNavi creates 30000
+  and attaches buffers, the helper programmes visibility for 3000, and sixteen visibility
+  requests yield zero visibility events.
+- The fix is to address the id that exists, by rebuilding the widget-linking helper with
+  parent 30000 rather than trying to make the client create 3000.
 
+## 2026-10-29 — retargeting the helper to 30000 does not produce visibility
 - Rebuilt the widget-linking helper with parent id 30000 and ran it through the same harness.
   The visibility request counts were unchanged at sixteen set_surface_visible and eight
   foreground requests, and ivi_surface.visibility events remained at zero.
@@ -1372,6 +1642,38 @@ and are superseded by corrections rather than silently rewritten.
   not being the parent surface at all.
 - The next discriminator is to confirm the helper connects and its first request is accepted,
   by capturing both its output and the compositor's response.
+
+### (other lineage, same date)
+
+- The widget-linking helper was rebuilt with parent id 30000 and run through the same harness.
+  Visibility request counts were unchanged and ivi_surface.visibility events remained zero.
+- Addressing the id that exists is therefore necessary but not sufficient; some further
+  condition governs whether the window manager emits a visibility event for this surface.
+- Candidates recorded in cost order: requests not reaching the owning window-manager instance,
+  whose log has been empty; visibility requiring a later state change; or 30000 not being the
+  parent surface. Next step is to confirm the helper connects and its first request is accepted.
+
+## 2026-10-29 — correction: visibility is granted
+- Withdrew the published claim that no visibility events are emitted. The compositor logs
+  ivi_surface@7.visibility(1) twice; the earlier zero came from searching a different string.
+  This is the second marker-string error in this investigation and both are recorded.
+- Also noted that the harness runs without an ApplicationManager, so its empty manager query
+  proves nothing, and that the retained milestone screenshot shows genuine map pixels.
+- The standalone harness therefore already reaches visible authentic AppNavi rendering, and the
+  remaining gap is integration into the full launcher chain rather than rendering itself.
+- Next: carry the gpio440 adaptor, the valet-status D-Bus boolean stub and the widget visibility
+  helper into the full chain and observe whether the manager latches the navigation window.
+
+## 2026-10-29 — physical HID is dropped by the shell
+- Explained the reported mouse and keyboard behaviour from the firmware. The weston configuration
+  selects ias-backend with ivi-shell and has no input section; the backend supports pointer,
+  keyboard and touch fully, and udev is stock apart from a touchscreen symlink rule.
+- ivi-shell contains no pointer or keyboard focus implementation, so the cursor is drawn by
+  virtue of a pointer seat existing but is never moved and never focuses a surface, and keys are
+  dropped for lack of a focus surface. The caps-lock LED change on plug-in is device-open LED
+  state rather than key handling.
+- Input therefore has to be simulated at the touch layer, which is where the project's input
+  helpers already aim.
 
 ## 2026-10-29 — correction: visibility is granted and the harness has no ApplicationManager
 

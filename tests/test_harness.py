@@ -251,7 +251,11 @@ class CouncilTests(unittest.TestCase):
             self.assertIn("hard_problem_codes", result["details"]["packages"][0])
 
 
-IONIQ_REPO_URL = "https://github.com/JaredReabow/ioniq-5-Reverse-Engineering.git"
+# This checkout's `origin` and `ioniq` remotes use the repository's original name.
+IONIQ_REPO_URL = "https://github.com/JaredReabow/Ioniq-5.git"
+# Same repository under the name used by the parallel public lineage; GitHub
+# redirects one name to the other, so the guard accepts both.
+IONIQ_REPO_URL_OTHER_LINEAGE = "https://github.com/JaredReabow/ioniq-5-Reverse-Engineering.git"
 KONA_REPO_URL = "https://github.com/JaredReabow/kona-EV.git"
 
 
@@ -352,6 +356,25 @@ class GitScopeTests(unittest.TestCase):
 
     def test_ioniq_near_matches_block(self):
         near_matches = (
+            "https://github.com/JaredReabow/Ioniq-5-fork.git",
+            "https://github.com/JaredReabow/ioniq5.git",
+            "https://github.com/someone-else/Ioniq-5.git",
+            "https://gitlab.com/JaredReabow/Ioniq-5.git",
+            "git@github.com:JaredReabow/Ioniq-5.git.extra",
+        )
+        for url in near_matches:
+            with self.subTest(url=url):
+                runner = git_runner(
+                    origin=KONA_REPO_URL,
+                    config=verified_git_config(**{"remote.ioniq.url": url}),
+                )
+                result = gitscope.gitscope_check(Path("/tmp/repo"), runner=runner)
+                self.assertEqual(result["status"], common.STATUS_BLOCKED)
+                self.assertIn("ioniq-remote-mismatch", self.codes(result))
+
+    def test_ioniq_near_matches_block_other_lineage(self):
+        # From the parallel public repository lineage (renamed destination).
+        near_matches = (
             "https://github.com/JaredReabow/ioniq-5-Reverse-Engineering-fork.git",
             "https://github.com/JaredReabow/ioniq5.git",
             "https://github.com/someone-else/Ioniq-5.git",
@@ -372,6 +395,18 @@ class GitScopeTests(unittest.TestCase):
         runner = git_runner(
             origin=KONA_REPO_URL,
             config=verified_git_config(
+                **{"remote.ioniq.url": "http://github.com/JaredReabow/Ioniq-5.git"}
+            ),
+        )
+        result = gitscope.gitscope_check(Path("/tmp/repo"), runner=runner)
+        self.assertEqual(result["status"], common.STATUS_BLOCKED)
+        self.assertIn("insecure-ioniq-remote", self.codes(result))
+
+    def test_insecure_http_ioniq_remote_blocks_other_lineage(self):
+        # From the parallel public repository lineage (renamed destination).
+        runner = git_runner(
+            origin=KONA_REPO_URL,
+            config=verified_git_config(
                 **{"remote.ioniq.url": "http://github.com/JaredReabow/ioniq-5-Reverse-Engineering.git"}
             ),
         )
@@ -380,6 +415,24 @@ class GitScopeTests(unittest.TestCase):
         self.assertIn("insecure-ioniq-remote", self.codes(result))
 
     def test_ssh_remote_forms_are_accepted(self):
+        for url in (
+            "git@github.com:JaredReabow/Ioniq-5.git",
+            "ssh://git@github.com/JaredReabow/Ioniq-5.git",
+            "https://github.com/JaredReabow/Ioniq-5",
+        ):
+            with self.subTest(url=url):
+                runner = git_runner(
+                    origin=KONA_REPO_URL,
+                    config=verified_git_config(**{"remote.ioniq.url": url}),
+                )
+                result = gitscope.gitscope_check(Path("/tmp/repo"), runner=runner)
+                self.assertEqual(result["status"], common.STATUS_PASS)
+                self.assertEqual(
+                    result["details"]["verified_destination"]["url"], url
+                )
+
+    def test_ssh_remote_forms_are_accepted_other_lineage(self):
+        # From the parallel public repository lineage (renamed destination).
         for url in (
             "git@github.com:JaredReabow/ioniq-5-Reverse-Engineering.git",
             "ssh://git@github.com/JaredReabow/ioniq-5-Reverse-Engineering.git",
@@ -483,6 +536,24 @@ class GitScopeTests(unittest.TestCase):
             config=verified_git_config(
                 **{
                     "url.https://github.com/JaredReabow/kona-EV.git.pushInsteadOf": (
+                        "https://github.com/JaredReabow/Ioniq-5"
+                    ),
+                }
+            ),
+        )
+        result = gitscope.gitscope_check(Path("/tmp/repo"), runner=runner)
+        self.assertEqual(result["status"], common.STATUS_BLOCKED)
+        self.assertIn("url-rewrite-redirect", self.codes(result))
+
+    def test_url_rewrite_to_kona_blocks_other_lineage(self):
+        # From the parallel public repository lineage (renamed destination).
+        # The rewrite rule matches that lineage's remote URL, so it is set here.
+        runner = git_runner(
+            origin=KONA_REPO_URL,
+            config=verified_git_config(
+                **{
+                    "remote.ioniq.url": IONIQ_REPO_URL_OTHER_LINEAGE,
+                    "url.https://github.com/JaredReabow/kona-EV.git.pushInsteadOf": (
                         "https://github.com/JaredReabow/ioniq-5-Reverse-Engineering"
                     ),
                 }
@@ -493,6 +564,23 @@ class GitScopeTests(unittest.TestCase):
         self.assertIn("url-rewrite-redirect", self.codes(result))
 
     def test_credentials_are_redacted_from_output(self):
+        secret = "ghp_SUPERSECRETTOKEN"
+        url = f"https://x-access-token:{secret}@github.com/JaredReabow/Ioniq-5.git"
+        runner = git_runner(
+            origin=KONA_REPO_URL,
+            config=verified_git_config(**{"remote.ioniq.url": url}),
+        )
+        result = gitscope.gitscope_check(Path("/tmp/repo"), runner=runner)
+        self.assertEqual(result["status"], common.STATUS_PASS)
+        rendered = json.dumps(result)
+        self.assertNotIn(secret, rendered)
+        self.assertEqual(
+            result["details"]["verified_destination"]["url"],
+            "https://<redacted>@github.com/JaredReabow/Ioniq-5.git",
+        )
+
+    def test_credentials_are_redacted_from_output_other_lineage(self):
+        # From the parallel public repository lineage (renamed destination).
         secret = "ghp_SUPERSECRETTOKEN"
         url = f"https://x-access-token:{secret}@github.com/JaredReabow/ioniq-5-Reverse-Engineering.git"
         runner = git_runner(

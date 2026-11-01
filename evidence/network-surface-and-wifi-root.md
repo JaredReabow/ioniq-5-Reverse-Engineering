@@ -201,6 +201,7 @@ Wi-Fi-to-root. See
 2. The IP the unit hands out or receives, and the subnet.
 3. Output of `net_surface.py --target <ip> --authorised` only after an isolated,
    owner-controlled bench network is available.
+   <!-- disagreement: the parallel repository asked for this run without the isolated-bench precondition. Both phrasings are preserved. -->
 4. Passive interface/IPv4/IPv6/ConnMan state and benign DHCP/RA capture before
    any malformed input is considered; acquire the installed libc hash alongside
    `connmand` before applying V-016's exact fortify conclusion.
@@ -217,3 +218,17 @@ Keep the unit on an isolated AP or VLAN with no route to other networks. Do not
 scan or test any address you do not own. A network finding on this unit is a
 research result; treat any working chain as disclosure-bound rather than as a
 tool to distribute.
+
+#### From the parallel repository
+
+The parallel copy of this document contained the same sections, the same mode/indicator/service tables, the same precondition list, the same exact-build contributions and the same safety note. Its status line read:
+
+> Status: research plan for the owner's Gen5W AVN on an isolated bench network. Scope is a single owned unit. No vehicle is connected. This document records what a network route to root would require; it is not an exploit and contains no payload, credential attack, or procedure against a third-party network.
+
+Its closing request list was shorter:
+
+1. Is the unit's Wi-Fi in AP/hotspot mode, client mode, or dealer mode?
+2. The IP the unit hands out or receives, and the subnet.
+3. Output of `net_surface.py --target <ip> --authorised`.
+4. Whether any dealer/engineering Wi-Fi menu is reachable on the unit UI.
+5. The installed build shown on the version screen.

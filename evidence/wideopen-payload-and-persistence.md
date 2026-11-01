@@ -181,6 +181,7 @@ and they are the concrete form of the bypass described in the public docs:
 | `AppEngineerMode_PinCodeKeypad.qml` | `enterMenu == 21` → `enterMenu`; `enterMenu == 11` → `enterMenu` (PIN check removed) |
 | every `*.qml` | `checkSOPVersion() ===` → `checkSOPVersion() !==`; the no-space variant too; `: AppEngineerModeEngine.checkSOPVersion()` → `: false` |
 | `/usr/sbin/dropbear` | symlink to `dropbearmulti` if absent; recovered EU `260128` also lacks the `dropbearmulti` target, socket unit, and host-key chain, so this edit alone cannot restore SSH |
+<!-- disagreement: the parallel repository listed only "symlink to `dropbearmulti` if absent", presenting the edit as sufficient; this analysis finds the target absent and the edit alone unable to restore SSH. Both are preserved. -->
 | `/etc/systemd/system/` | install `wideopen.service` + `multi-user.target.wants` symlink |
 
 Repack, exactly:
@@ -208,3 +209,9 @@ it should mirror: the `*.DS_Store` exclusion.
 Unchanged: you need one successful install of a replacement `AppNavi`, or a
 patched rootfs, before any of this runs. The scripts assume that execution
 already exists.
+
+#### From the parallel repository
+
+The parallel copy of this document is otherwise identical — same sections, same patch table, same repack procedure. The only differing cell is the `/usr/sbin/dropbear` row, which the parallel copy stated as:
+
+| `/usr/sbin/dropbear` | symlink to `dropbearmulti` if absent |

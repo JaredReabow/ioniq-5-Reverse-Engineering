@@ -48,6 +48,8 @@ Flag files in `/update` include `disableEncryptionUpdate`, `activeNaviPath`,
 
 ## Publicly described A/B recovery
 
+<!-- disagreement: the parallel repository headed this section "A/B recovery — the important safety fact" and asserted consequences this document no longer treats as proven: that rollback from a bench console substantially reduces brick risk, and that the two recovered roots are the A/B pair rather than display variants. Both readings are preserved; see `#### From the parallel repository`. -->
+
 The public model says the filesystem is written to an **inactive** partition and
 that `/etc/fstab` is changed at the end. This is useful recovery guidance, not a
 proven property of the owner's installed build. Before relying on it, a
@@ -60,6 +62,8 @@ Recovered boot-container signature evidence is documented in
 image trust must not be conflated.
 
 ## `disableEncryptionUpdate`: public claim and recovered correction
+
+<!-- disagreement: the parallel repository stated without qualification that an existing `/update/disableEncryptionUpdate` makes `AppUpgrade` perform an unencrypted update with no decryption attempted and with the `.lge.upgrade.xml` version check still running. Exact recovered code makes that claim route-specific (FUMO only; SCOMO startup ignores the marker). Both statements are preserved. -->
 
 Public tooling describes the marker as selecting an unencrypted update while
 retaining a `.lge.upgrade.xml` version check. Exact recovered code makes that
@@ -125,6 +129,7 @@ Earlier interpretation of `mmcblk0p3` and `mmcblk0p5` as a proven A/B pair was
 too strong: command-line/path presence is compatible with multiple hardware or
 slot layouts. Effective target selection must be recovered from the selected
 updater and observed passively on a disconnected bench.
+<!-- disagreement: the parallel repository concluded the opposite — that the two recovered roots are the A/B pair and the same device family's two system partitions — and treated that as a correction. Both conclusions are preserved. -->
 
 ## What this changes for the plan
 
@@ -135,9 +140,11 @@ updater and observed passively on a disconnected bench.
 2. **The reported version check is a userspace anti-rollback candidate.** No
    kernel rollback counter was found in the recovered configuration or symbols,
    but the exact compare and any other eligibility controls remain unresolved.
+   <!-- disagreement: the parallel repository called the version check "the real anti-rollback control" outright. Both are preserved. -->
 3. **A/B is a recovery hypothesis to verify, not permission to flash.** Slot,
    target, boot-selection, health, and mark-good behavior must be established
    before an active experiment.
+   <!-- disagreement: the parallel repository called A/B "a genuine recovery route ... the single most useful safety fact discovered so far". Both are preserved. -->
 4. **Key extraction remains a pivot.** Everything downstream — decryption, patching,
    custom firmware — depends on obtaining `DecryptToPIPE` and
    `decryption_key.der`, and the only documented route to those needs code
@@ -162,3 +169,52 @@ updater and observed passively on a disconnected bench.
 - `gitlab.com/g4933/wideopen` wiki: `Software/Update_Process`, `Software/Network`,
   `Unit/Pinouts`, `Hardware/lowlevel`
 - `g4933.gitlab.io/wideopen` landing page
+
+#### From the parallel repository
+
+The parallel copy of this document covered the same public operating model but stated several points as established facts rather than as route-specific corrections. Those passages are preserved verbatim below; the inline `<!-- disagreement: ... -->` markers above name each conflict.
+
+##### Documented update flow
+
+1. On USB insertion, **`AppSetup`** scans the USB root for `.lge.upgrade.xml`.
+2. It invokes **`DecryptToPipe`** — a binary outside `AppUpgrade` — to decrypt that file.
+3. It reads the version and proceeds only if it is **greater than or equal to** the installed version.
+4. `AppUpgrade` copies the USB `AppUpgrade` into `/update/usb/` and hands control to that copy.
+5. The new `AppUpgrade` performs three independent operations: filesystem (checksum → decrypt → extract → copy to the inactive partition), maps (`appnavi.tar`, `naviX.tar` into `/navi/` or `/navi2/`), and firmware (`frontkey`, `modem_{REGION}.tar.gz`, `update.tar.gz`).
+6. On completion it updates `activeNaviPath` / `activeResourcePath`, clears the `/update` flag files, rewrites `/etc/fstab`, and reboots.
+7. The previous partition and navigation directory are left as a fallback.
+
+##### A/B recovery — the important safety fact
+
+The filesystem is written to the **inactive** partition and the switch happens by rewriting `/etc/fstab` at the end. Consequences:
+
+- A modified rootfs that fails to boot can be rolled back by restoring `fstab` (or by selecting the previous partition) **from a bench console**.
+- This substantially reduces the brick risk of a rootfs modification, provided the console or storage is reachable.
+- A write that corrupts the *bootloader* or the active boot image is a different matter: the boot container is RSA-signed (see `evidence/eu-boot-container-signature.md`), so a bad boot image is rejected rather than rolled back.
+
+The parallel copy also recorded that "the two roots in the recovered command line are therefore the A/B pair, not just display variants" and that "`p3` and `p5` are the two system partitions of the same device family", presented as a correction to an earlier display-variant reading.
+
+##### `disableEncryptionUpdate`
+
+If `/update/disableEncryptionUpdate` exists, `AppUpgrade` performs an **unencrypted** update:
+
+- no decryption is attempted, so the package must be entirely plaintext;
+- **the version check via `.lge.upgrade.xml` still runs**;
+- the upgrade is otherwise identical.
+
+The public patcher creates that file by running a shell script, which itself requires pre-existing code execution.
+
+##### Cross-reference with the static findings (parallel table)
+
+| Public statement | Static confirmation |
+|---|---|
+| Version check happens in the upgrader | Consistent: the kernel verifies *manifests* using `.manifest_keyring`; it does not compare firmware versions |
+| `DecryptToPipe` is a separate binary | Consistent with the kernel providing keystore primitives while the OTA format is userland-owned |
+| Update writes to an inactive partition | Consistent with the recovered command line exposing two roots (`mmcblk0p3` for 1280 units, `mmcblk0p5` for 1920/p5) |
+| `frontkey` is unencrypted | Confirmed: the `MKBD_*.bin` files are plaintext Renesas RL78 firmware |
+| `.lge.upgrade.xml` is decrypted by `DecryptToPipe` | Confirmed: the file has entropy 8.0 in the package |
+
+##### Plan items 2 and 3 (parallel wording)
+
+2. **The version check is userland and is the real anti-rollback control.** No kernel rollback counter was found in the recovered configuration or symbols.
+3. **A/B gives a genuine recovery route** for rootfs experiments, which is the single most useful safety fact discovered so far.

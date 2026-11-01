@@ -235,3 +235,76 @@ step's evidence; do not skip the key backup.
 - OEM key manifest: firmware-provided, located by `ABL.oemkm=<size>@<phys>`.
 - Update-package acceptance is decided in userland; the reviewed kernel OEM verifier has narrow keystore backup/migration consumers, while boot-container and loader trust are separate stages.
 - Rootfs AES-encrypted; no offline key recovery.
+
+#### From the parallel repository
+
+The parallel lineage describes the same bench sequence with a smaller passive
+capture set and different trust wording. Everything unique to it is retained
+below.
+
+<!-- disagreement: the parallel version names the loader-supplied kernel parameter `oemkm=<size>@<phys>` (and asks the operator to record "the exact `oemkm=` value"), while this version names it `ABL.oemkm=<size>@<phys>`. Both names are kept; a human should confirm the literal token emitted by the boot loader. -->
+
+- Parallel wording: boot-loader manifest parameter `oemkm=<size>@<phys>`
+  ("OEM key manifest: firmware-provided, located by `oemkm=<size>@<phys>`").
+
+<!-- disagreement: the parallel version says "Firmware trust is a userland decision; the kernel only verifies manifests." This version says update-package acceptance is decided in userland while the reviewed kernel OEM verifier has narrow keystore backup/migration consumers, with boot-container and loader trust as separate stages. Both statements are kept. -->
+
+<!-- disagreement: the parallel version documents SSH persistence as adding keys to /etc/dropbear/authorized_keys, running the shipped publickey installer and relaxing the dropbear@.service condition. This version records that this is not sufficient on recovered EU 260128 because the server/multi-call executable, socket unit, host-key service/key and enable links are absent. Both statements are kept: the parallel steps are the community description, the newer text is the recovered-image finding. -->
+
+- Parallel SSH persistence sequence (community description): add keys to
+  `/etc/dropbear/authorized_keys`, run the shipped public-key installer, and
+  relax the `dropbear@.service` condition — recorded here as documentation of
+  what the community material claims, not as a verified bench step.
+
+- Parallel passive-capture set (superseded by Phase 1A above but not withdrawn):
+  `boot.log`, the exact loader-supplied manifest parameter value, and, for the
+  `/update` partition, `activeNaviPath`, `activeResourcePath`,
+  `updateVersionInfo` and `system_update_completed` only. The newer Phase 1A
+  bundle additionally covers `disableEncryptionUpdate`,
+  `disableNaviMapSignatureCheck_20230207`, `force_launch`, the completion
+  markers, uid/gid/SMACK state, unit activation, listener state, hashes and PTY
+  metadata.
+
+##### Parallel phase-1 record and known-going-in lines (verbatim)
+
+Record line (parallel version):
+
+```
+Record: boot loader banner, whether autoboot is interruptible, `oemkm=` presence,
+the `esinit` handoff, and the login prompt. The command line recovered from the
+```
+
+Package/boot-loader note (parallel version):
+
+```
+package does **not** contain `oemkm=`; the boot loader appends it. Capture it.
+
+If a boot loader prompt appears, stop and record `printenv` before changing
+anything.
+
+Evidence to keep: `boot.log`, a note of the exact `oemkm=` value observed.
+```
+
+/update flag capture (parallel version):
+
+```
+(`activeNaviPath`, `activeResourcePath`, `updateVersionInfo`,
+`system_update_completed`) to identify which of `mmcblk0p3` / `mmcblk0p5` is
+currently active.
+```
+
+SSH persistence paragraph (parallel version):
+
+```
+keep every future official update patched. The SSH persistence path is to add
+keys to `/etc/dropbear/authorized_keys`, run the shipped publickey installer and
+relax the `dropbear@.service` condition. Record each step's evidence; do not skip
+the key backup.
+```
+
+What is already known going in (parallel version):
+
+```
+- OEM key manifest: firmware-provided, located by `oemkm=<size>@<phys>`.
+- Firmware trust is a userland decision; the kernel only verifies manifests.
+```

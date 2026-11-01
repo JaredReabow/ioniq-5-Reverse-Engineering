@@ -3353,6 +3353,15 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - Added the authentic launcher profile/confirm screen and a navigation-window
   frame that still shows Home to the inspected screenshots there.
 
+### (other lineage, same version)
+
+- Added authored guest helpers, VM experiment scripts, bounded navigation
+  evidence, inspected screenshots, and provenance manifests to the separate
+  public repository. Generated disk images, recovered vendor binaries, raw
+  captures and core dumps remain local.
+- Extended the public privacy scanner to cover every tracked folder,
+  including VM source scripts and QML; retained the full local test suite.
+
 ## 0.91.0 - AppNavi stops between create_surface and ivi surface_create
 
 - With the gpio440 adaptor in place, counted protocol markers in AppNavi's own
@@ -3667,6 +3676,24 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - No Intel hardware is needed for the remaining authorised work: the navigation
   `0x0` adapter, services, audio, CAN/MICOM and persistence all run in the VM.
 
+## 0.77.0 - physical HID is dropped by the shell, not by a driver
+
+### (other lineage, same version)
+
+- Explained the reported mouse and keyboard behaviour from the firmware rather than by guessing.
+  `weston_1920.ini` has **no `[input]` section**, and `ias-backend.so` fully supports pointer,
+  keyboard and touch (`weston_seat_init_pointer`/`_keyboard`/`_touch`, `notify_motion`,
+  `notify_key`, libinput + libevdev). Udev is stock apart from a touchscreen symlink rule.
+- The gap is `ivi-shell.so`: it contains **no pointer or keyboard focus implementation at all**.
+  The only keyboard logic in the window manager concerns the on-screen keyboard surface.
+- So the cursor appears because the backend creates a pointer seat and weston draws the cursor,
+  but moving it and granting pointer focus is shell work that ivi-shell does not do. Keys are
+  consumed by the compositor with no focus surface and dropped. The caps-lock flicker on plug-in
+  is LED state on device open, not key handling.
+- Consequence recorded: input must be simulated at the **touch** layer, which the GUI accepts,
+  rather than by presenting a mouse or keyboard. That is already where the project's
+  `weston_vm_input` and `qt_input_observe` helpers point.
+
 ## 0.76.0 - null-buffer question resolved: hide does not produce BG
 
 - Settled the outstanding navigation question with DWARF rather than inference.
@@ -3686,6 +3713,26 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - Two method notes: the DWARF dump needed `llvm-dwarfdump`
   with a byte-window scan, and several of my earlier greps silently matched nothing
   because `objdump` separates columns with tabs, not spaces.
+
+## 0.76.0 - correction: visibility is granted, and the harness has no ApplicationManager
+
+### (other lineage, same version)
+
+- **Withdrew** the "zero visibility events" claim. It came from counting the string
+  `ivi_surface_visibility`, but the compositor logs `ivi_surface@7.visibility(1)` — twice. The
+  surface **is** made visible. That is the second time a wrong marker string inverted a
+  conclusion in this investigation, and both are now recorded as such.
+- Also recorded: this harness deliberately runs **no ApplicationManager**, so its empty manager
+  query proves nothing about the manager's view. The "drawing application 0" observation came
+  from a different configuration.
+- With the retained milestone screenshot showing genuine map pixels, the standalone harness
+  already reaches visible authentic AppNavi rendering.
+- **Therefore the remaining gap is integration, not rendering.** The full launcher chain starts
+  AppNavi through AppLauncher with different environment and ordering and does not reproduce
+  this harness's ingredients.
+- Next: carry the three essentials into the full chain — gpio440 adaptor, valet-status D-Bus
+  boolean stub, and the widget/visibility helper — and see whether the manager latches the
+  navigation window.
 
 ## 0.75.0 - authentic measurement: dimensions are -1 then 1920x720
 
@@ -3713,6 +3760,23 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
   visible before its graphics libraries load — and is now handled by a bounded
   `--wait-module-ms` poll.
 
+## 0.75.0 - retargeting the helper to 30000 does not produce visibility either
+
+### (other lineage, same version)
+
+- Rebuilt the widget-linking helper with parent id 30000 instead of 3000 and ran it through the
+  same harness. `set_surface_visible`=16 and `request_fg`=8 as before, and
+  **`ivi_surface.visibility` events still 0**.
+- So addressing the id that exists is **necessary but not sufficient**. The mismatch was real,
+  but it does not on its own produce visibility, so at least one further condition governs
+  whether the window manager emits a visibility event.
+- Candidates recorded in cost order: the helper's requests not reaching the same window-manager
+  instance that owns the surface (its log has been empty, which is suspicious); visibility
+  requiring a further state change such as a later commit or a layout change; or 30000 not
+  being the parent surface the helper should address at all.
+- Next discriminator: confirm the helper actually connects and its first request is accepted,
+  by capturing its output and the compositor's response.
+
 ## 0.74.0 - observer gains field capture; three validation cases pass
 
 - Added the increment the ledger recorded next for EC-03: **int32 field capture at
@@ -3734,6 +3798,22 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - Defect found and fixed during the increment: an unused `field_regs` global that
   `-Werror` rejected, removed rather than silenced.
 
+## 0.74.0 - the surface id is fixed at 30000; the helper addresses 3000
+
+### (other lineage, same version)
+
+- Settled the id question with one run: `QT_WAYLAND_SET_SURFACE_ID=0` still produces surface
+  id **30000**, the same as with `3000`. The environment variable does not control the id in
+  this path.
+- So the mismatch is not a configuration slip on our side. AppNavi creates 30000 regardless,
+  the helper programmes visibility for 3000, and sixteen visibility requests therefore
+  produce zero `ivi_surface.visibility` events.
+- **The fix follows directly:** address the id that exists. Rebuilding the widget-linking
+  helper with parent 30000 is cheaper than establishing where 30000 originates and making it
+  configurable.
+- This closes the diagnosis of the visibility blocker: surfaces are created, buffers are
+  attached, requests are issued, and the only thing wrong is the identifier.
+
 ## 0.73.0 - second skill bundle pulled, policy re-applied mechanically
 
 - Pulled `AiSkills-Council-Astra-Medium-or-Sol-XHigh.zip` and installed it over both
@@ -3752,6 +3832,23 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
   `tests/support.py`, `tests/test_workflow.py` and `templates/ledger.example.json`.
   Those are test fixtures and an example, not policy statements, and editing them
   risks breaking assertions that bind to the literal.
+
+## 0.73.0 - visibility requests are plentiful; the surface id does not match
+
+### (other lineage, same version)
+
+- Counted visibility markers in the compositor log for the valet-stub run:
+  `set_surface_visible`=16, `set_visible_for_qtwayland`=16, `request_fg`=8,
+  `set_surface_layout`=16 — and **`ivi_surface_visibility` events = 0**.
+- The only surface id the compositor logs as created is **30000**, while the helper
+  programmes visibility for **3000**. So the requests are issued correctly but never bind to
+  a surface that exists, which is consistent with the manager still reporting drawing
+  application `0`.
+- This turns the 3000-versus-30000 puzzle from a suspicion into the leading explanation,
+  supported now by an event count rather than inference.
+- Next: establish the mapping between the environment value and the created id (one run with
+  a different value makes it plain), then either point the helper at the id that exists or
+  make AppNavi create the id the helper expects.
 
 ## 0.72.0 - skills updated, disclosure reduced, EC-03 minimal core working
 
@@ -3791,6 +3888,22 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
   vendor libEGL observation points, surface field capture and the resolved-copy-entry
   stage were not exercised.
 
+## 0.72.0 - correction: AppNavi does create surfaces; the earlier stop point was wrong
+
+### (other lineage, same version)
+
+- **Withdrew** the previous claim that AppNavi never calls
+  `ivi_application.surface_create`. It was based on marker counts from the client's
+  `WAYLAND_DEBUG` log, and the client does not emit those requests in this build, so their
+  absence there proved nothing.
+- Counting the **compositor** log for the same run shows `surface_create`=2,
+  `ivi_surface`=7, `attach`=2, `commit`=2. AppNavi creates ivi surfaces and attaches buffers.
+- The reproduced recipe is the one the retained milestone used: the gpio440 adaptor, the
+  valet-status D-Bus boolean stub, and the widget-linking helper in place of the plain
+  foreground helper.
+- What remains is **visibility**, not surface creation: whether a foreground/visible request
+  reaches the surface ids that actually exist, and on which plane.
+
 ## 0.71.0 - null-buffer BG question narrowed, with a reversed inference
 
 - Returned to the main navigation workstream (independent of the EC-02 gate) to
@@ -3814,6 +3927,21 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
   listings were retained and the analysis completed by the coordinator. No rootfs
   file was modified and no VM was booted.
 
+## 0.71.0 - wl_drm ruled out; a working harness is known; a working harness is known
+
+### (other lineage, same version)
+
+- Ruled out the missing `wl_drm` as the gate. A prior successful run used the same
+  `weston-headless` pixman stack with **no ApplicationManager** and reached `surface_create`
+  for ids **3000, 30000 and 4903** with 26 attach calls, so clients can create ivi surfaces
+  and attach without any DRM interface. The current stop is configuration-specific.
+- That also settles the 3000-versus-30000 puzzle: AppNavi creates **both** ids plus
+  4903/4900 for the map widget, so there was never one expected id.
+- A working harness is known and can be diffed: that run executed
+  `/appnavi-valet-stub-probe.sh` with `/appnavi-valet-stub-run.sh`, both still present in the
+  image. The next step is to diff that harness against the current probe rather than debug
+  further.
+
 ## 0.70.0 - capability matrix complete: per-thread scoping verified
 
 - Closed the last open capability item. Debug registers are **per thread**: after
@@ -3833,6 +3961,24 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - Newly stated bounds: only execute breakpoints were tested; data read/write
   watchpoints were not, and behaviour with many threads or `PTRACE_O_TRACECLONE`
   was not examined.
+
+## 0.70.0 - AppNavi stops between create_surface and ivi surface_create
+
+### (other lineage, same version)
+
+- Located the stop precisely by counting protocol markers in AppNavi's own Wayland debug
+  log: it binds `wl_display`, enumerates 71 registry lines, binds `wl_compositor`, `wl_shm`
+  and `ivi_application`, creates a `wl_surface`, and then **never calls
+  `ivi_application.surface_create`** and never attaches or commits.
+- **`wl_drm` is absent entirely** — the compositor runs headless with pixman, so no GPU
+  buffer interface is offered. Cause or coincidence is not established.
+- `QT_WAYLAND_SET_SURFACE_ID_FORCED=1` in addition to the id yields a second `wl_surface`
+  but still zero `surface_create`, so that path alone does not clear the stop.
+- Ruled out: gpio440 polling, the preload adapter, ApplicationManager presence, and the
+  current command-line flags. The forced-env probe is published as
+  `tools/uk_fw/guest/appnavi_forced_probe.sh`.
+- Method note: marker counting is much cheaper than transporting log text over the serial
+  console and should be the default for this kind of diagnosis.
 
 ## 0.69.0 - DR6 attribution verified; transcript IV claim corroborated
 
@@ -3854,6 +4000,25 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
   transcript now records the precise semantics rather than leaving it as a lead.
 - No VM image was modified and no vendor binary was executed beyond the earlier
   observation runs; the probe continues to use a synthetic tracee.
+
+## 0.69.0 - the missing gpio440 node, and a privacy-checker fix
+
+### (other lineage, same version)
+
+- Published the reason AppNavi never paints: its client log ends in a repeated read
+  failure on `/sys/class/gpio/gpio440/value`. That node cannot exist here —
+  `/sys/class/gpio` holds only `export` and `unexport`, and exporting `440` returns
+  **EINVAL** because no gpiochip registers the pin, matching the kernel log where the GPS
+  driver defers with `-517`. The emulated board lacks a GPIO the firmware expects.
+- **Adaptor:** a tmpfs over `/sys/class/gpio` with an inert `gpio440` node. The `gpio440`
+  errors then vanish from AppNavi's log — the first demonstrated case in this project of a
+  simulated hardware dependency unblocking a firmware startup path. Necessary but not yet
+  sufficient: surface creation appeared in one run and not the next.
+- Fixed a privacy-checker false positive: the email pattern matched Wayland object
+  notation, so captured protocol logs were reported as leaked addresses. The domain must
+  now begin with a letter, with a regression test added. The checker was fixed rather than
+  the evidence rewritten, since every Wayland capture would hit the same thing.
+- The adaptor probe is published as `tools/uk_fw/guest/appnavi_gpio_probe.sh`.
 
 ## 0.68.0 - community chat transcribed into evidence
 
@@ -3879,6 +4044,26 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
   claimed VM digest and a partial key-like string, so `PUBLIC-RELEASE.md` applies
   before any mirroring to the public repository.
 
+## 0.68.0 - why AppNavi idles: surface id and visibility are injected from outside
+
+### (other lineage, same version)
+
+- Added a section to `docs/navigation-status.md` explaining the alive-but-paints-nothing
+  state. AppNavi links `libivi-platform-interface.so.1`, which resolves its ivi surface id
+  **only from the environment** via `QT_WAYLAND_SET_SURFACE_ID` and its `_FORCED` and
+  `USE_PID_FOR_SURFACE_ID` variants; on the vehicle `AppLauncher` injects that value
+  together with `APPID`. With it unset the library enters an uncapped
+  `blockingReadEvents` loop waiting for an id reply — matching the observed symptom of a
+  live, silent, surface-less process rather than a crash.
+- Visibility is external too: `QWindow::setVisible()` is only reachable from an
+  `ivi_surface.visibility` event, which the window manager emits only for that app's id.
+- Ruled out: ApplicationManager's absence, every command-line flag in the current
+  invocation, and `APPID`. AppNavi reads exactly one environment variable itself,
+  `MD_CONA40_ON`.
+- Flagged an open point: the VM logs show the surface created under id **30000** while the
+  helper programmes **3000**, so visibility may be requested for a non-existent id. Next
+  step narrowed to one instrumented boot that records the id actually received.
+
 ## 0.67.0 - detach discipline measured; four-slot behaviour verified
 
 - Extended the capability probe to the four behaviours round 1 left unexercised.
@@ -3901,6 +4086,25 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - Bounds held: synthetic tracee at user addresses, no vendor observation point;
   per-TID scoping and `DR6` semantics beyond `B0` remain unexercised.
 
+## 0.67.0 - A/B shows AppNavi paints nothing at all
+
+### (other lineage, same version)
+
+- Ran the A/B the previous entry left open, since an empty log is not proof that nothing
+  rendered. Three runs of the same probe with the captured frame compared: with the
+  adapter (AppNavi alive, 1 log line), baseline without it (AppNavi alive, 0 lines), and a
+  control with **AppNavi not launched at all**.
+- The screenshot is byte-identical (`b316a82a…0b9a83`) between the baseline and the
+  no-AppNavi control. So AppNavi renders nothing: it is alive, silent, and contributes no
+  pixels. It is not rendering anonymously, it is not rendering.
+- Conclusion recorded in `docs/navigation-status.md`: the adapter is not implicated, and
+  the compositor contract, the `0x0` hold and the BG notification cannot be exercised
+  until AppNavi paints. The next step is to find why it is alive but idle, starting with
+  the environment and arguments the launcher normally gives it.
+- Also fixes a documentation inconsistency: an earlier `git reset --hard` in the public
+  clone discarded an uncommitted doc edit, so this file still presented the question as
+  open while the private copy already carried the baseline result. Both now agree.
+
 ## 0.66.0 - guest hardware breakpoints proven under TCG
 
 - Resolved the single load-bearing unknown behind EC-02 by measurement rather than
@@ -3921,6 +4125,20 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
   libEGL observation points; four-slot capacity, slot replacement, `DR6` semantics
   beyond `B0`, and detach-time teardown remain unexercised. No vendor binary was
   executed and no navigation state was claimed.
+
+## 0.66.0 - baseline clears the adapter; AppNavi is silent on its own
+
+### (other lineage, same version)
+
+- Ran the control that the published open question called for: the identical render probe
+  with **no** preload. AppNavi's log came back empty and the manager reported drawing
+  application `0`, the same as the run with the adapter loaded apart from the adapter's
+  single load record. The interposer is therefore **not** what stops AppNavi.
+- Stated with it: an empty log is **not** proof that nothing rendered. AppNavi may log to
+  DLT or a file, and the captured frame has not been inspected, so "renders silently" and
+  "never renders" both remain open.
+- `docs/navigation-status.md` updated accordingly, and the baseline probe added as
+  `tools/uk_fw/guest/appnavi_baseline_probe.sh` so the control can be reproduced.
 
 ## 0.65.0 - EC-02 blocked by over-specification; rescope recommended
 
@@ -3946,6 +4164,34 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - EC-03 remains gated. No VM boot, no target execution, no fixture run and no
   measured EGL claim. Ledger validates; artifacts re-hashed.
 
+## 0.65.0 - navigation status published: two questions closed, one blocker left
+
+### (other lineage, same version)
+
+- Added `docs/navigation-status.md` recording what is now measured about the
+  Home-to-Navigation gap, and published the research helpers behind it.
+- **EGL dimension ordering measured** on the authentic client. A hardware-breakpoint
+  observer captured vendor `libEGL` at `+0x16f16` (width `-1`, height `-1`) and
+  `+0x16f1e` (width `1920`, height `720`) on the same surface pointer, so
+  `swrast_update_buffers` populates the dimensions during the invocation while the copy
+  stride was already derived from `Width = -1`. Scoped to the Wayland **software** path:
+  the hardware constructors do not share that vtable.
+- **A Qt hide cannot produce the background notification.** DWARF fixes the
+  `weston_surface` layout, and read order in `weston_surface_commit_state` shows the
+  size block stores the previous positive size before the null-buffer branch zeroes the
+  `_from_buffer` pair. A genuine `0x0` transition is required.
+- **Guest hardware breakpoints work under TCG**, including four slots, slot
+  replacement, `DR4`/`DR5` rejection, per-slot `DR6` bits, single step and per-thread
+  scoping. One trap worth knowing: detaching with a slot still armed leaves the
+  breakpoint live and kills the tracee.
+- Two practical findings for anyone injecting into vendor apps: the launcher's
+  interposer unsets `LD_PRELOAD` for AppLauncher so children inherit a clean
+  environment, and a musl-linked `.so` will not load into the vendor's glibc process.
+- Remaining blocker stated plainly: **AppNavi never attaches a surface** in either the
+  full chain or the standalone render probe, so nothing reaches the compositor to be
+  classified. The open question is whether the interposer itself is preventing AppNavi
+  from rendering; a baseline run without it is the next step.
+
 ## 0.64.0 - advisor claims validated: one confirmed root command injection
 
 - Validated the three 2026-10-28 advisor claims offline against the recovered
@@ -3970,6 +4216,22 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - Fable returned no output on two attempts, so Astra performed the triage and is
   attributed. All evidence is static; no VM boot and no hardware contact.
 
+## 0.64.0 - disclosure reduction for the physical-access entries
+
+### (other lineage, same version)
+
+- Reduced V-006, V-007 and V-008 in this public tree to status entries with no
+  operational detail, following triage of the third-party claims that produced
+  them. Confirmed detail remains in a private record pending coordinated vendor
+  contact.
+- Verified this public tree contains no occurrence of the affected service name,
+  the affected property name, or the command-construction mechanism.
+- Note: the engineering-mode entry sequence and PIN were already published in this
+  tree by earlier work, before this change, in
+  `evidence/owner-engineering-mode-pin-observation.md` and
+  `evidence/vehicle-usb/README.md`. That is pre-existing content and was left
+  unaltered rather than silently removed; it is flagged for the owner's decision.
+
 ## 0.63.0 - unverified physical-access vectors logged
 
 - Added V-006/V-007/V-008 to the defensive register from a third-party advisor
@@ -3987,6 +4249,42 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - All three require physical access; none is remote. Validation is scoped to the
   isolated VM snapshot or offline analysis of the recovered rootfs. No hardware
   was touched and no attack tooling was built.
+
+## 0.63.0 - VM status, screenshots and physical-access leads
+
+### (other lineage, same version)
+
+- Published two further inspected screenshots under `vm/evidence/screenshots/`:
+  the authentic launcher profile/confirm screen and a navigation-window frame that
+  still shows Home. Evidence manifest re-hashed (45 entries).
+- Expanded the root README with a per-area VM status table, the mandatory run
+  configuration and the recovered ApplicationManager/window-byte contract that
+  explains why Navigation does not composite yet.
+- Added V-006/V-007/V-008 to the defensive register from a third-party advisor
+  summary: USB descriptor strings into a privileged mount script, media parsing as
+  root, and a hashed-password root serial console. All three are labelled
+  **unverified actor reports**; no code path, process identity, console device or
+  reproduction was supplied and none was validated in this session.
+- Recorded the engineering caveats that bound them: USB string descriptors are
+  UTF-16LE (metacharacters arrive NUL-interleaved) and `udev` sanitises
+  `ID_SERIAL`/`ID_MODEL`, so a vulnerable consumer would have to be custom; the
+  126-code-unit descriptor limit still admits a ~40-character payload, making
+  encoding and shell quoting rather than length the binding constraint.
+- All three require physical access; none is remote. No hardware was touched, no
+  experiment was run for this publication, and no attack tooling was built.
+- Note: entries 0.60.0–0.62.0 were previously appended at the end of this file
+  rather than in newest-first order; this entry is inserted in the documented
+  position without rewriting those historical entries.
+
+## Public repository snapshot - 2026-10-28
+
+- Initialized a fresh public Git history from the sanitized tree so earlier
+  private commits are absent from this repository.
+- Pointed the Git-scope guard and its tests at
+  `JaredReabow/ioniq-5-Reverse-Engineering`.
+- Added a public entry point and clarified the publication boundary.
+
+## Imported VM milestones from the private working tree - 2026-10-28
 
 ## 0.61.0 - Parallelism/Council measurement-plan checkpoint
 
@@ -4572,6 +4870,29 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
   under `python3.13`.
 - No exploit, key, decryption or device action is included.
 
+### (other lineage, same version)
+
+- Extracted the exact boot-parameter contract by decompiling
+  `get_apl_seed_offsets` and reading `keystore_fill_seeds`. The two parameters use
+  **different separators**: `oemkm=<hex size>@<hex phys>` and
+  `seed=<hex phys>,<hex phys>`. `keystore_fill_seeds` copies two **64-byte** seeds
+  out of physical memory (device → `sec_seed`, user → keystore state) and then
+  **zeroes both source regions**; an absent device seed is fatal, an absent user
+  seed is tolerated.
+- Derived a minimal manifest blob that satisfies `manifest_init`'s validation:
+  0x40 bytes, word 0 = `0xE`, byte `0x13` = 0, words 5 and 6 = 0, word 1 =
+  end-of-entries offset.
+- **Tested it and it did not work.** With both parameters supplied and the blobs
+  loaded via QEMU `-device loader`, the kernel still reports both missing, even
+  though it prints the command line verbatim. `params_list` is an empty
+  `LIST_HEAD` at `0xffffffff81a1e330` and stock `unknown_bootoption` never
+  populates it, so the vendor's collection hook is elsewhere and has not been
+  located. Recorded so the next attempt starts from that point.
+- Recorded an environment fault: Homebrew Python 3.14 became unusable mid-session
+  (`posix_spawn` error) and `python3` now resolves to it; all tools still run
+  under `/opt/homebrew/bin/python3.13`.
+- No exploit, key, decryption or device action is included.
+
 ## 0.36.0 - 2026-10-19
 
 - Added `tools/uk_fw/fat_harness.py`: a from-scratch FAT16/FAT32 image builder,
@@ -4592,6 +4913,31 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
   configuration from end user prevents continuing". It refuses to run rather than
   degrading. This confirms the internal ABL-list entry `oemkm` (external
   command-line form `ABL.oemkm=`) is mandatory at runtime and names the second
+  required input (device/user seed material).
+- Recovered the internal build provenance from a surviving path string:
+  `26RU1_001`, built 2026-01-21, branch tag `s5w.26ru1.251203`, kernel source at
+  `security/keystore/seed.c`.
+- No exploit, key, decryption or device action is included.
+
+### (other lineage, same version)
+
+- Added `tools/uk_fw/fat_harness.py`: a from-scratch FAT16/FAT32 image builder,
+  independent inspector, and 17-case semantic corruption corpus targeting the
+  checks a filesystem driver must perform. Images were validated by mounting them
+  on macOS, which reads and executes their contents correctly. Seven unit tests.
+- Added `tools/uk_fw/vm_boot.py` and **got the vendor kernel booting under
+  QEMU 11.1.2**: `4.1.27-abl #1`, built 2026-01-28, initialising SMP, ACPI, PCI,
+  serial console and an ext4 root on an emulated SD card.
+- Two obstacles solved and documented: the `ipk.` payload is a bzImage at offset
+  **1008** (protocol 2.13, `setup_sects` 30), and this kernel **cannot use an
+  initramfs** because `CONFIG_BLK_DEV_INITRD` is not set — no VIRTIO, no built-in
+  ATA/SCSI, no NFS root. The only bootable root is ext4 on an SD card, which also
+  mirrors the real unit's `mmcblk0`.
+- **Discovered a boot-time anti-tamper**: without its parameters the kernel prints
+  `keystore: d/u-seed info missing in cmdline`, `manifest: Key manifest info
+  missing in cmdline` and panics with a vendor-modified message, "Invalid
+  configuration from end user prevents continuing". It refuses to run rather than
+  degrading. This confirms `oemkm` is mandatory at runtime and names the second
   required input (device/user seed material).
 - Recovered the internal build provenance from a surviving path string:
   `26RU1_001`, built 2026-01-21, branch tag `s5w.26ru1.251203`, kernel source at
@@ -4681,6 +5027,23 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - It records four candidate issues with explicit confidence levels — CRC-32 as the
   declared manifest integrity value (confirmed mechanism, unproven impact), the
   external `ABL.oemkm=` command-line trust-policy handoff (confirmed format), the absent capability check in
+  `keystore_open` (confirmed), and the boot container's embedded modulus
+  (confirmed structure, unproven pinning) — and states for each what evidence
+  would make it disclosable.
+- It explicitly separates the **modification-created** root runner from vendor
+  defects, so a report is not padded with an artefact of the mod itself.
+- It records what was established as *not* vulnerable, so the assessment is not
+  one-sided.
+- No exploit, key, decryption or device action is included.
+
+### (other lineage, same version)
+
+- Added `evidence/pre-disclosure-security-assessment.md` in place of a further
+  exploitation pass. It is an **internal assessment, not a disclosure**: no vendor
+  was contacted and nothing was published.
+- It records four candidate issues with explicit confidence levels — CRC-32 as the
+  declared manifest integrity value (confirmed mechanism, unproven impact), the
+  `oemkm=` command-line trust root (confirmed), the absent capability check in
   `keystore_open` (confirmed), and the boot container's embedded modulus
   (confirmed structure, unproven pinning) — and states for each what evidence
   would make it disclosable.
@@ -4919,6 +5282,29 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - Recorded that no reviewed public evidence establishes whether this variant
   has a monotonic anti-rollback counter (fuse/OTP). CVE-2023-26245 covers the
   software userspace version gate; loader/fuse controls remain unknown.
+- No exploit, OEM key, decryption or device action is included.
+
+### (other lineage, same version)
+
+- **Corrected the previous conclusion that downgrade is blocked.** The
+  anti-rollback analysis (child note 10) separates the two siblings: on the
+  **Linux `S5W_L`** path the version gate is a single userland string comparison
+  in `AppSetup`, evaluated after `DecryptToPipe` handles `.lge.upgrade.xml`, and
+  the public `navi_extended` FAQ documents a substitution method — older official
+  payloads paired with the **latest** `.lge.upgrade.xml` for the same vehicle, so
+  a genuine signed newer manifest satisfies the `>=` check while older content is
+  written. On the **Android Gen5W** sibling the `update_info` inside
+  `system_package` is signed and binds the package, which is why the EV6 report
+  was rejected even with corrected `.ver` CRCs.
+- Recorded the three remaining obstacles on the Linux path, none of which are
+  cryptographic: (a) the feed — the update API currently returns 503, so older
+  packages cannot be enumerated; (b) distance — the entry precondition is a
+  pre-November-2021 build, five years of package-format change away from
+  `260128`; (c) the method is documented against 2021–2022 packages and is
+  unconfirmed on 2026 packages.
+- Recorded that no monotonic anti-rollback counter (fuse/OTP) is publicly
+  demonstrated for this variant, so rollback protection is software-only, matching
+  CVE-2023-26245.
 - No exploit, OEM key, decryption or device action is included.
 
 ## 0.18.0 - 2026-10-19
@@ -5240,6 +5626,212 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - No exploit, payload, credential attack, flash procedure, or live-vehicle
   action is included.
 
+### (other lineage, same version)
+
+- Recovered the documented Gen5W operating model from the public
+  `g4933/wideopen` wiki and `g4933/gen5w` projects, which fills the gap that the
+  encrypted userland was hiding.
+- Recorded the update flow: `AppSetup` reads `.lge.upgrade.xml`, decrypts it with
+  `DecryptToPipe`, and proceeds only when the version is **greater than or equal
+  to** the installed version; `AppUpgrade` then performs filesystem, map and
+  firmware stages and finally rewrites `/etc/fstab`.
+- Corrected an earlier interpretation: the two roots in the recovered command
+  line (`mmcblk0p3`, `mmcblk0p5`) are the **A/B system partitions**, not merely
+  display variants. A rootfs write goes to the inactive partition, so a failed
+  rootfs experiment is recoverable by restoring `fstab`, while a bad boot image
+  is rejected by the signed container rather than rolled back.
+- Recorded `disableEncryptionUpdate` semantics: it disables decryption only; the
+  `.lge.upgrade.xml` version check still runs.
+- Recorded the public entry preconditions (`navi_extended` as a replacement
+  `AppNavi` installed through Engineering Mode, requiring an unpatched build and
+  therefore a downgrade on newer units) and the documented SSH persistence path
+  (`/etc/dropbear/authorized_keys`, publickey installer, relaxed
+  `dropbear@.service` condition).
+- Identified the first gate for the public path: whether `260128` still offers
+  "Update AppNavi from USB", and whether any rollback counter exists outside
+  `AppUpgrade` (none found in the recovered kernel configuration or symbols).
+- Updated `evidence/bench-runbook.md` with the A/B recovery path, the downgrade
+  gate and the persistence procedure.
+- No exploit, OEM key, decryption or device action is included.
+
+
+- Added `tools/uk_fw/bench_assess.py`, a read-only orchestrator that runs the
+  serial capture, network surface, rootfs survey and boot-container inspection in
+  a fixed safe order and writes a single `report.json` plus per-step artifacts.
+  Steps are independent and skipped steps are recorded explicitly.
+- Verified the orchestrator offline: the image step reports `signature_ok=True`
+  and the OEM modulus digest for the packaged container.
+- Added `evidence/bench-runbook.md`, the phased operating procedure from physical
+  preparation through disclosure, with read-first gates and the exact commands for
+  each tool.
+- No exploit, OEM key, decryption or device action is included.
+
+
+- Recovered the keystore root of trust. `manifest_init` (boot initcall)
+  `strcmp`s the kernel parameter **`oemkm`**, parses `oemkm=<size>@<phys>` with
+  `sscanf("%x@%x")`, copies a 64 MiB-bounded blob out of physical memory via
+  `memcpy_from_ph`, validates only a four-field header (type word `0xe`), then
+  creates `.manifest_keyring` with `prepare_kernel_cred(0)` **root credentials**.
+- Established that `oemkm=` is **absent from all six packaged command lines**, so
+  the boot loader places the manifest and injects the parameter. The OEM key is
+  therefore not in the root filesystem and not in the kernel image.
+- Consequence recorded: root on the rootfs does **not** grant signing capability.
+  The OEM public key is firmware-pinned; a signature bypass must be a userland
+  decision, matching CVE-2023-26244/26245/26246 and the `update-patcher` approach.
+- Recorded a design observation: the manifest blob is trusted implicitly and its
+  location is a plain command-line value not covered by the `ipk.` container
+  signature. Whoever controls `oemkm=` controls the trusted key set. With
+  `CONFIG_KEXEC=y` this is a research direction post-root, not a persistence path.
+- Verified **`check_usage_bits`** is a clean four-word subset test
+  (`requested == allowed & requested`); a key with an all-ones mask authorises
+  every usage.
+- Studied **`keystore_backup`**: it gates key export on an OEM signature over a
+  user-supplied 136-byte blob, then encrypts the 64-byte client key material to
+  the host key and signs the result; the key material is hexdumped under dynamic
+  debug before being zeroed.
+- Tested a suspected uninitialised-copy defect in **`keystore_get_ksm_key`** at
+  instruction level and **rejected it**: the buffer is `[68-byte private][136-byte
+  public]`, the code zeroes the private half and returns the public half.
+- Subagent research completed: daemon version-fingerprinting triage (dnsmasq,
+  hostapd/wpa_supplicant, miniupnpd, dropbear, BusyBox) and SMACK device-access
+  analysis. The SMACK note establishes that `/dev` is devtmpfs, so an unlabelled
+  node defaults to the `*` label, which combined with the absence of a capability
+  check in `keystore_open` makes `/dev/keystore` reachability purely a
+  mode-plus-label question once the rootfs is decrypted.
+- No exploit, OEM key, decryption or device action is included.
+
+
+- Added `tools/uk_fw/ver_manifest.py` and verified both official packages end to
+  end against their own manifests: EU `NE_E.EUR.S5W_L.001.001.260128` and AU
+  `NE_E.AUS.S5W_L.001.001.260319` each report 33/35 files matching size and
+  signed CRC-32, **0 mismatches, 0 missing**, with the two files larger than
+  2 GB skipped (EU map archive and EU `mango-vr_fixed.tar.gz`).
+- Documented the manifest path convention: the record carries the directory in
+  the Windows-style field and the filename separately, and the package name
+  prefix must be stripped before resolving against a package root.
+- Added unit tests: `tests/test_ipk_tool.py` (8 tests covering parsing, signature
+  verification, payload tampering, tag tampering, non-`ipk.` rejection,
+  re-signing and oversized command-line rejection) and
+  `tests/test_ver_manifest.py` (5 tests covering prefix stripping, clean
+  verification, mismatches, missing files and large-file skipping). 13 tests
+  pass.
+- No exploit, OEM key, decryption or device action is included.
+
+
+- Fully characterised the plaintext `ipk.` boot container. Field `0x018` is a
+  constant format/build id, **not** a checksum: it is identical across all six
+  `iasImage*_sub` variants whose command lines differ. Earlier zlib and
+  CRC-32/MPEG-2 checksum hypotheses were wrong for that reason.
+- Established that the six variants differ by only 261–274 bytes (command line,
+  one byte at `0x46`, and the trailer), i.e. one kernel serves 1280, 1920/12 and
+  p5 layouts.
+- Recovered and verified the container signature: **RSA-2048, PKCS#1 v1.5,
+  SHA-256**, signed over `[0, hdr+total+4)` = header + payload + 4-byte variant
+  tag. `pow(sig, 65537, n)` yields the expected DigestInfo block and the trailing
+  digest matches. OEM modulus SHA-256
+  `227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6`.
+- Established that this modulus appears **only** in the six containers and is
+  **absent from the kernel image**, so any pinning lives in the boot loader or
+  the encrypted main `iasImage`. Whether trust is pinned or self-referential
+  cannot be decided offline and is the highest-value bench question.
+- Added `tools/uk_fw/ipk_tool.py` with `info`, `verify`, `extract` and
+  `resign`. Verified end-to-end: the OEM image verifies, and a modified
+  `init=/bin/sh` image re-signed with a generated test key verifies under the new
+  modulus. `resign` produces a correctly formed container for an acceptance
+  experiment; it does not defeat OEM verification.
+- Added `tools/uk_fw/bench_serial.py` driving the recovered `ttyS2` 115200 8N1
+  console (capture, send, port enumeration) so the boot log can be recorded the
+  moment the unit is available.
+- Dispatched four research subagents: kernel 4.1.27 backport gap, daemon
+  version-fingerprint triage, USB gadget/iAP2 protocol surface, and SMACK device
+  access.
+- No exploit, OEM key, decryption, simulated boot on a vehicle, or device action
+  is included.
+
+
+- Repaired kallsyms recovery for the exact EU kernel. `tools/uk_fw/kallsyms_extract.py`
+  fails on this image; three defects were identified: false-positive
+  `kallsyms_num_syms`, an odd-aligned marker array, and — most seriously — an
+  address-array start taken at the first kernel-range pointer, which mispaired
+  **every** symbol by 204 entries while still producing plausible prologues.
+- Added `tools/uk_fw/kallsyms_structural.py`, which derives the layout
+  structurally and recovers 64,923 symbols in 0.3 s.
+- Cross-validated the recovered table against the independent `__ksymtab`
+  export table: 4,369 of 4,375 exports match exactly with zero residual
+  mismatches. Corrected layout: addresses `0x89f158`, num_syms `0x91de30`,
+  names `0x91de38`, markers `0x9dedc8`, token table `0x9df5b8`, index `0x9df940`.
+- Because the mispairing was silent, prior Ghidra naming derived from a
+  run-start extraction is recorded as unverified and was re-derived. The
+  corrected import renamed 25,033 functions and decompiled 41 priority
+  functions.
+- Established the trust-chain anatomy: `verify_oem_signature` SHA-256s the
+  input, then `manifest_key_verify_digest` performs a `manifest_keyring` lookup,
+  parses 16 usage-bit bytes from the key description, and calls the asymmetric
+  verify op. It is reachable only from `keystore_backup` and
+  `keystore_generate_mkey` and is not exported, so **firmware trust is decided
+  in userland**, consistent with CVE-2023-26244/26245/26246.
+- Reviewed the 26-ioctl `/dev/keystore` boundary. It is defensively written:
+  a `size < 0x319` gate against a 0x318-byte staging area ending at the canary,
+  overflow-checked user pointers, matching allocation and copy lengths, and
+  post-dispatch zeroing. No memory-safety defect was found in the reviewed set
+  — a bounded negative result, not proof of absence. A hypothesis about
+  uninitialised tail fields in `TEST_VERIFY_ECC_SIGNATURE` was tested and
+  rejected (decoded size 0x120 covers the offsets read).
+- Recorded that `keystore_open` performs no capability check, so access depends
+  on the device-node mode and SMACK label, which remain inside the encrypted
+  rootfs. `keystore_verify` and `keystore_register` are exported.
+- Confirmed the EU map ZIP is plaintext (1,335 entries) but data-only, that the
+  VR package is plaintext TTS/ASR data with no executables, and that the map
+  package ships a Gladman Rijndael licence — a hint at the AES implementation
+  family, not a key.
+- Re-stamped `ART-T6-CHANGELOG` after this documentation update. The frozen T6
+  acceptance is therefore stale and requires re-review; this entry records the
+  change rather than concealing it.
+- No exploit, key, decryption, modified image, flash procedure, or device
+  action is included.
+
+
+- Established that the official `260128` userland is soundly encrypted: entropy
+  ~8.00 per envelope, no keystream reuse between files, and no plaintext magic
+  in any encrypted payload. Confirmed the manifest checksum is `zlib.crc32`
+  against the plaintext `Checksum.txt`.
+- Recovered the complete kernel command line from the plaintext
+  `iasImage*_sub` containers: serial console `ttyS2` at 115200 8N1, early console
+  at MMIO `0xfc000000`, `init=/lib/systemd/esinit`, dual root (`p3`/`p5`),
+  Intel DRCFG USB0 mux, `ramoops` at `0x50000000`, and Intel Broxton platform.
+- Integrated the public Gen5W prior art (`laralbir` EU standard Gen5W and the
+  `gitlab.com/g4933/gen5w` tool group): the `navi_extended` → `DecryptToPIPE` +
+  `decryption_key.der` → `update_decryptor` → `update-patcher` chain.
+- Recorded the two MASS_PRODUCT Engineering Mode gates (SOP check plus QML PIN
+  `21`/`11`) and the published alternative routes (UART, GDS, older build).
+- Recorded the published ciphertext-level structure: re-sealed 16,417-byte
+  modem trailers, stable container prefixes (14,048 / 14,122 / 640 / 112 bytes),
+  and which payloads changed functionally between `251204` and `260128`.
+- Confirmed `mango-vr_fixed.tar.gz` is real gzip but TTS/ASR data only (49
+  entries in the AU package, no executables); frontkey MCUs are Renesas RL78.
+- Added `evidence/known-exploits-and-cve-survey.md`,
+  `evidence/gen5w-public-exploit-ecosystem.md`, `evidence/bench-hardware-root-path.md`,
+  and `evidence/network-surface-and-wifi-root.md`, plus four child-thread notes.
+- Reinforced the scope boundary: no exploit, decryptor key, modified image,
+  flash procedure, or live-vehicle action is included.
+
+
+- Recorded the active target as an AVN bench unit removed from the vehicle, and
+  scoped research to that unit with no vehicle connected.
+- Added `tools/uk_fw/dump_survey.py`, a read-only survey of a rootfs dump or
+  ext4 image covering accounts, setuid/setgid, file capabilities, SMACK
+  policy, systemd units, boot command line, debug surfaces, persistence paths
+  and world-writable files.
+- Added `tools/uk_fw/net_surface.py`, a TCP surface mapper with banner, HTTP,
+  TLS-certificate, SSDP and mDNS discovery for an owned bench unit.
+- Added `evidence/bench-hardware-root-path.md` with the UART / bootloader /
+  storage / software ladder, the interface survey checklist, and the Gate 4
+  recovery preconditions applied at bench scale.
+- Added `evidence/network-surface-and-wifi-root.md` mapping Wi-Fi exposure
+  modes, service-to-vulnerability classes, and the evidence each class needs.
+- No exploit, payload, credential attack, flash procedure, or live-vehicle
+  action is included.
+
 ## 0.5.1 - 2026-10-19
 
 - Consolidated every IONIQ-owned research artifact, evidence file, Council
@@ -5323,3 +5915,14 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
   assessment.
 - Established the rule that the car's installed build is read before method
   selection and that published-family evidence is not installed-car evidence.
+
+### (other lineage, same version)
+
+- Initialized the dedicated IONIQ 5 research history and changelog.
+- Recorded accepted T1 identity, T3 method catalogue, T4 passive and hardware
+  route map, T5 trust-boundary and subsystem map, and T7 NEMESIS compatibility
+  assessment.
+- Established the rule that the car's installed build is read before method
+  selection and that published-family evidence is not installed-car evidence.
+
+- Prepared a public release snapshot: removed raw owner and upstream diagnostic exports, removed full-text third-party artifacts, anonymized local paths, and added a sanitized owner USB finding note. Public visibility awaits cached-history cleanup.

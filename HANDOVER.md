@@ -6,6 +6,12 @@ passes the standby/profile-confirm gate and visibly foregrounds authentic
 separately. The remaining integration goal is stable Home↔Navigation operation,
 followed by stateful service/CAN/persistence reconstruction.
 
+#### From the parallel repository
+
+The parallel repository last stamped this handover **2026-10-28** with the same
+opening paragraph. Every section it carries is present below; the newer dated
+checkpoints from this lineage stay first, as they are the later findings.
+
 ## AppFUMO `decryptionFile` producer-provenance checkpoint — 2026-11-08
 
 - Analysis began at requested HEAD
@@ -1400,6 +1406,74 @@ skips it. Verify guest library/plugin identity and selected backend before
 proposing a scoped hide adapter. This is static evidence, not a proven fix.
 See the Navigation contract note for addresses, hashed correlation and limits.
 
+## Current VM status — 2026-10-28
+
+| Area | State |
+| --- | --- |
+| Vendor kernel boot | Working (documented ABL boot-parameter adaptation) |
+| Recovered `260128` userspace | Working, mounted read-only |
+| Launcher standby → profile confirm | Working, authentic screen |
+| Authentic `AppHomeScreen` | Working |
+| AppNavi process + map pixels | Partial — renders into its own surface |
+| Home ↔ Navigation compositing | **Blocked** — window byte `+0x20` never latched |
+| Audio / persistence / suspend | Not started |
+| CAN / MICOM | Partial — D-Bus simulation only |
+| Input | Partial — Wayland harness, not end to end |
+
+Run configuration is mandatory: TCG, `-cpu max,vendor=GenuineIntel`, 1536 MiB,
+disk `snapshot=on`, no NIC. Four inspected screenshots are published under
+`vm/evidence/screenshots/` (profile/confirm, Home, a navigation-window frame
+still showing Home, and the AppNavi map surface). Root README carries the status
+table and the manager/window-byte explanation.
+
+Navigation remains a contract problem: `notifyNaviLaunched[5]` with window byte
+`0` returns the manager to `11/11`. Only a BG window notification updates that
+byte, and the observed runtime delivers FG only. Status `5` is not patched and no
+success callback is synthesised.
+
+Secondary open workstream: the early AppCamera/Standby EGL crash when window
+decoration is unset (`I-001`), currently a qualified mixed vendor-EGL/project-Mesa
+investigation with no stock-device exploitability claim.
+
+## Public VM source record
+
+The authored guest helpers and experiment scripts are copied under `vm/repro/`;
+bounded output summaries and two inspected screenshots are under `vm/evidence/`.
+Original `work/vm/` references below name local generated artifacts; see
+`vm/README.md` for the published mapping and excluded disk images,
+recovered vendor binaries, raw logs and core dumps. Older dated sections
+remain historical evidence and may have been superseded by later findings.
+
+## Navigation and VM findings
+
+Bounded static continuation: `evidence/navigation-launch-status-contract.md`
+records that the saved launch-status function sends literal `5` under a one-shot
+gate rather than calculating it from the engine result. Exact strings are now
+resolved: launcher `launched(30)` precedes a separate AppNavi
+`com.lge.hkmc.avn.appnavi.naviboot.SendNaviBootFail(5)` signal at
+`/navigation_map`. Enum semantics and the producer of manager window `0` remain
+unresolved. Receiver disassembly now identifies `window` as a separately latched
+byte at receiver +0x20, gating downstream status handling. The adjacent vendor
+`naviWindoeCreate` path updates it and replays cached status. Next trace its
+caller at `0x19108d`, not patch the flag or substitute surface ID 3000. That
+caller is now identified as the BG-info path. Latest retained DLT positively
+shows AppNavi **FG** delivery, but zero BG-info diagnostic matches; the latch
+remains zero. Its pending global initially equals `0xffffffff`, not zero. Next
+trace initial configure lifecycle. Original compositor classification is now
+recovered: **any positive dimension selects FG; BG requires both dimensions
+non-positive**. Therefore changing 1926×753 to 1920×720 would not fix this
+branch. Current image compositor and shell modules match recovered originals.
+Shell size cache starts 0/0 and suppresses unchanged configure calls, so an
+initial zero-size surface does not automatically emit BG. Next compare a retained
+positive BG lifecycle against AppNavi hide/unmap behavior; do not synthesize BG
+or force the latch. Current-image/path hashes are not historical memory digests.
+Constructor wiring now confirms AppNavi's callback is the same Qt object's
+`visibleChanged(bool)`. Recovered QtWayland hide code has a conditional null-buffer
+commit; the recovered EGL client plugin's virtual discriminator returns 1 and
+skips it. Verify guest library/plugin identity and selected backend before
+proposing a scoped hide adapter. This is static evidence, not a proven fix.
+See the Navigation contract note for addresses, hashed correlation and limits.
+
 ## Newly supplied community leads
 
 `evidence/community-chat-leads.md` reconciles the owner's summary of two Linux
@@ -1814,6 +1888,13 @@ under `work/ui-recovery/`, `work/kbuild/`, `work/envelope-20261021/`; full runbo
 
 ## Historical next useful work (superseded by recovered/decrypted userspace)
 
+#### From the parallel repository
+
+The parallel repository carries these same bullets under the heading
+`## Next useful work`. No prose differs between the two lineages in this
+section; only the title, and the path substitutions recorded in the
+sections above, where raw user paths are replaced by placeholders.
+
 - **Acquire the plaintext vendor rootfs or the per-update key.** This is now the
   single blocker for both goals. Any read access unblocks it: an engineering-mode
   shell, an `mmcblk0p3`/`p5` + navi dump, or the `/tmp/<32hex>` `DecryptToPIPE` key.
@@ -1844,6 +1925,15 @@ self-signed image, or hardware flashing has been demonstrated here.
 ## Public visibility follow-up — 2026-10-28
 
 The sanitized `main` is `ea3fb24fb3af398963ebf17febbef392bb8bd6c3` on the verified `JaredReabow/Ioniq-5` remote. Current remote tree has no owner USB export, upstream raw dump, or frozen Council packet paths; the repository remains private. GitHub still resolves old raw commits `e98e2c8cd1fe477c735907b12c4c0b25976d19c4` and `692eccd380f3a791d800bb6c0ac6dc621af2585a` by SHA. GitHub Support ticket [#4916475](https://help.github.com/ticket/personal/0/4916475) requests server-side cached-view and object cleanup for both. Once GitHub confirms cleanup, verify both old commit IDs no longer resolve, rerun the public harness and unit suite, recheck the explicit remote tree and visibility, then make this same repository public and read back `PUBLIC`. Preserve the existing uncommitted local research and ignored private raw files; do not merge the old Git history into the sanitized branch.
+
+## Security research session — 2026-10-30
+
+- **V-006 dynamically confirmed in VM**: `work/vm/vendor-mtp` boots the vendor rootfs in the QEMU harness (EHCI `ich9-usb-ehci1`; vendor `xhci_pci` oopses on QEMU xHCI at `xhci_toggle_dis_perr_det` — use EHCI) with vendor udevd+dbus+`usb-automount`; guest needs esinit's `passwd.legacy -> /tmp/passwd` copy for dbus `messagebus` user. A `usb_device` add event with `ID_SERIAL_SHORT="pwn;id>/tmp/VM-PWNED"` + `ID_USB_INTERFACES=":060101:"` produced root code execution (`/tmp/VM-PWNED` = `uid=0(root)`, owner root; run `runs/mtp-1793362887`, evidence `serial-evidence-pwned.log`). Injection slot is **ID_SERIAL_SHORT (iSerialNumber)**, NOT ID_FS_LABEL — earlier notes corrected; full dossier `work/firmware-decrypted/V006-EXPLOIT.md`.
+- Register extended (sanitized): V-006 status updated to VM-confirmed; V-008 clarified (console enabled by default every boot); new V-009 (launcher fail-open state gate), V-010 (engineering keypad static unsalted SHA-256 digests, values withheld), V-011 (world-writable marker files -> path units incl. forced reboot), V-012 (11 root services `EnvironmentFile=/tmp/session_appmgr.env` -> LD_PRELOAD class).
+- Negative results (OBS): ApplicationManager `killall %1` not injectable (static table, int keys; `SUBAGENT-KILLALL-TAINT.md`); MediaBrowser popen = addr2line crash reporter; iAP2Service system() fixed `ifconfig ncm0 up`; udev `%k`/`%p` RUN+= injection not established (structured names); zero SUID/SGID; extraction-fidelity verified (4 analyzed files byte-identical to tar members via `cmp`).
+- Root `shadow.Global` SHA-512 (salt `I6C6apC0ue`): no default candidate matched; community leads (xakcop LV2) are Android-platform, not applicable.
+- **Update pipeline ordering CLOSED (OBS)** in `AppUpgrade.full.asm`: USB update = stage `MAINCONFIG.json` from USB zip -> `signFileVerify` (@0x54934, `updatedecrypt.cpp`) RSA-verifies against **`/app/share/AppUpgrade/teruten5_pub.key`** (bare DER RSA-2048, plain file on rw `/app`, shared with `AppScomoDM`/`AppDMClient`) -> only then `tar` extract -> `.lge.upgrade.xml` readConfiguration (per-file TE2 detect, `isKeyExist` -> TXE `fileDecryption` or legacy `getKeyFile` + `DecryptToPIPE | dd bs=512`) -> `HashCheck` (its "non-encryption!!" string is a log outcome, not a bypass switch). Unsigned packages abort ("The integrity check has not been confirmed.") -> legit USB path is signature-gated; anchor-swap = persistence layer (new sanitized register entry **V-013**). AppUpgrade's `unzip/cp/tar` helpers are Qt argv-style (no system/popen/posix_spawn imports) -> no injection there (INF).
+- Notes: `work/firmware-decrypted/SUBAGENT-FINDINGS.md` §2/§5-8 all closed except on-hardware validation; `SUBAGENT-SURFACE.md` §7 is the top new lead. No commits made (user commits manually).
 
 ## VM bring-up session — 2026-10-31
 

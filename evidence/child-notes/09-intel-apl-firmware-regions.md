@@ -348,3 +348,69 @@ For each bench unit, record:
 8. **Provenance:** programmer model + voltage setting, tool versions
    (`flashrom --version`, `ifdtool --version`, `MEAnalyzer` version), date, and
    operator, so the dump is reproducible and attributable.
+
+#### From the parallel repository
+
+The parallel lineage stated the `ABL.oemkm` handoff question more strongly, naming
+eMMC as excluded and SPI NOR as the source of record. Those statements are kept
+verbatim below.
+
+##### Platform paragraph as written in the parallel version
+
+The vendor key manifest (`oemkm=<size>@<phys-addr>`) is *not* on the eMMC — it is
+handed to the kernel as a physical address and copied out of a firmware-provided
+DRAM region at boot (see `eu-keystore-manifest-root-of-trust.md`).
+
+<!-- disagreement: the parallel version says the vendor key manifest "is *not* on the eMMC" and is "copied out of a firmware-provided DRAM region at boot", and names the parameter `oemkm=<size>@<phys-addr>`. The newer text says the manifest reaches the kernel through `ABL.oemkm=<size>@<phys-addr>` from a bootloader-populated DRAM region, with its source of record and storage medium *not established*. Both statements are kept: eMMC exclusion is asserted by one lineage and unproven by the other, and the parameter name differs (`oemkm` vs `ABL.oemkm`). -->
+
+##### Why SPI matters (parallel version)
+
+**Why SPI matters for the `oemkm` question.** The manifest's *runtime* location
+is a reserved DRAM page populated by the boot loader. Its *source of record* is a
+flash-resident artifact (BIOS/UEFI NVRAM, a dedicated OEM region, or CSME/PTT).
+Reading the SPI NOR and the descriptor is the only way to see where that source
+lives and whether it is write-protected.
+
+<!-- disagreement: the parallel version calls the manifest's source of record "a flash-resident artifact" and says reading SPI NOR and the descriptor "is the only way" to see where the source lives and whether it is write-protected. The newer text treats SPI firmware/NVRAM as only one plausible source, leaves eMMC, another controller and generated boot state possible, and notes a read-only SPI acquisition "cannot be assumed to contain the source". Both statements are kept. -->
+
+##### Section 1.3 as written in the parallel version
+
+### 1.3 Where the `oemkm` source most likely lives
+
+The boot loader reads the key manifest from somewhere and copies it into reserved
+DRAM, then appends `oemkm=<size>@<phys>`. Candidate sources, in rough order of
+likelihood on an automotive LGE board:
+
+None of these are on the eMMC, which matches the static finding that the packaged
+command line and filesystem do not contain the manifest.
+
+The four candidate sources above (BIOS-region UEFI variables, dedicated BIOS-region
+OEM area, platform data/EC region, CSME PTT/fTPM) are unchanged and remain the
+candidate list; only the certainty of their location and the eMMC exclusion
+differ between lineages.
+
+<!-- disagreement: the parallel version concludes "None of these are on the eMMC, which matches the static finding that the packaged command line and filesystem do not contain the manifest." The newer text says the same non-containment finding "does not exclude an unsearched eMMC partition, encrypted storage, another controller, or generation during boot". Both statements are kept. -->
+
+- Parallel acquisition step wording for the boot-log cross-check: capture the
+  bootloader/kernel log line for `oemkm=<size>@<phys-addr>` (serial console or
+  `dmesg`/`/proc/cmdline`) and `cat /proc/iomem` reserved ranges, to correlate the
+  runtime manifest address against the flash-resident source found in steps 5-6.
+  The newer text uses `ABL.oemkm=` and allows that the source may remain
+  unresolved if no candidate region contains it.
+
+##### Parallel capture-step wording (verbatim)
+
+Step 5 (parallel version):
+
+```
+   enumerate UEFI variable names/guids (candidate `oemkm` source).
+6. **ME region:** `MEAnalyzer` report (CSME version, `$FPT` partitions, MFS
+```
+
+Step 7 (parallel version):
+
+```
+   `oemkm=<size>@<phys-addr>` parameter (serial console or `dmesg`/`/proc/cmdline`)
+   and `cat /proc/iomem` reserved ranges, to correlate the runtime manifest
+   address against the flash-resident source found in steps 5–6.
+```

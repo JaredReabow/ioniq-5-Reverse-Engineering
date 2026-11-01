@@ -162,3 +162,19 @@ work/eu-260128/kallsyms_apply.tsv   Ghidra format
 work/eu-260128/kallsyms_layout.json
 work/eu-260128/decomp/              41 decompiled functions + call graph
 ```
+
+#### From the parallel repository
+
+The parallel lineage stated the reachability conclusion in absolute terms and
+drew a stronger inference about why no kernel bypass is needed. Both statements
+are preserved verbatim here.
+
+> Firmware/update trust is decided in **userland** (`AppUpgrade`,
+> `AppDMClient`, `.lge.upgrade.xml` handling). The kernel keystore supplies
+> primitives and protects key backup/migration, and is not the place where a
+> modified update package is accepted or rejected.
+
+> This is consistent with CVE-2023-26244/26245/26246, which target userland
+> binaries, and it explains why no kernel signature bypass would be required.
+
+<!-- disagreement: the parallel version says "Firmware/update trust is decided in **userland**" without qualification and concludes "no kernel signature bypass would be required". The newer text narrows the demonstrated decision to update-package acceptance, keeps boot-container signatures, loader policy, slot selection and boot-time acceptance as separate stages, and says the CVE consistency "does not imply that every firmware or boot-trust decision is userland-only". Both statements are kept. -->

@@ -510,7 +510,7 @@ def run(workspace: Path, compat: bool, command: str, timeout: float,
                         script = shell_script(command, end_marker)
                         proc.stdin.write(script.encode()); proc.stdin.flush()
                         sent = True
-                    if interactive and select.select([sys.stdin], [], [], 0)[0]:
+                    if interactive and sent and select.select([sys.stdin], [], [], 0)[0]:
                         line = sys.stdin.readline()
                         if not line:
                             break

@@ -675,3 +675,31 @@ Use the current VM/recovery notes and C12–C14 below for those boundaries.
 
 Items C8 and C9 were never vulnerabilities; they are kept here because a reader
 who finds the earlier reasoning in a draft should know it was tested and failed.
+
+#### From the parallel repository
+
+The parallel lineage carries the same entries C1-C15 plus the standing-practice
+tail, and stops there; C16 onward above are additions from this lineage. Its C4
+entry is the only entry whose wording differs, and it is preserved verbatim.
+
+## C4 — Downgrade is not blocked
+
+- **Was:** the `>=` version check blocks downgrade on the Linux path.
+- **Now:** the version gate is a single userland comparison, and the public
+  `navi_extended` FAQ documents substitution — older official payloads paired
+  with the **latest** `.lge.upgrade.xml` for the same vehicle, so a genuine signed
+  newer manifest satisfies the check. The Android sibling differs: its signed
+  `update_info` binds the package, which is why the EV6 report failed.
+- **Why:** child note 10 plus the tracker evidence.
+- **Caveat:** three non-cryptographic obstacles remain (feed, target build,
+  unconfirmed on 2026 packages).
+
+<!-- disagreement: the parallel C4 says "the version gate is a single userland comparison" and that "three non-cryptographic obstacles remain (feed, target build, unconfirmed on 2026 packages)", while the newer C4 says "the documented userspace version gate is a string comparison" and lists "feed, target build, unconfirmed behavior on 2026 packages, and unaudited loader/fuse rollback policy". Both statements are kept; the newer caveat is a superset, but the parallel "single userland comparison" phrasing is retained because it is the stronger claim. -->
+
+Note on lineage coverage: entries C16-C41 above (V-006 sanitizer boundaries,
+`MS_NODEV`/Tuxera special nodes, Dirty COW and AF_PACKET backports, Stack Clash
+guard gap, keyring, ALSA sequencer/timer follow-ups, ASF layout, BusyBox
+provenance, TPACKET arithmetic, FUMO marker/mode/force-launch evidence, mq_notify,
+USB-MIDI, SysV/socket/IPC, timerfd, AF_UNIX peek, PTY pgrp, mremap, vmacache and
+the AppLauncher D-Bus route) exist only in this lineage and were added after the
+parallel repository's last entry.

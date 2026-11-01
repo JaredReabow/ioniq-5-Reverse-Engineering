@@ -845,3 +845,13 @@ scale from section 2, not these type codes.
   There is no other normalization.
 - SHA-256 (body, as defined above): 1f4cbee015752d7153148b04fca433fabebb838d8af55d120ee342a2c641c925
 
+#### From the parallel repository
+
+The parallel lineage's method inventory is byte-identical to the table above
+except for row M6. Its M6 wording is preserved verbatim here.
+
+| Method | Mechanism | Source | Date | Platform | Version | Requirements | Evidence class | Result claimed | Limits |
+|---|---|---|---|---|---|---|---|---|---|
+| M6 | Linux Gen5W OTA decryption and patched rootfs persistence | S4, S5 repositories; S11 analysis | 2022-02-14 / 2026-06-30 | `S5W_L` Linux/mango | `S5W_L` builds incl. 251204/260128 | Device-extracted decryptor and key; decrypted rootfs; prior M5 execution | B / C | L3-L4 | Persists across official OTA via unencrypted-update flag | Active tooling; S11's validation is synthetic, not a car run |
+
+<!-- disagreement: the parallel M6 row claims the modified rootfs "Persists across official OTA via unencrypted-update flag", while the newer row narrows this to "Publicly claimed persistence through an unencrypted-update flag" and adds that exact recovered FUMO has the marker mode on the NE-style `-un:0` route, SCOMO production startup ignores it, and complete package acceptance remains unproven. Both rows are kept. -->

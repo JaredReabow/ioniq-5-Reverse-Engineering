@@ -38,6 +38,7 @@ but exact recovered AppSetup does **not** perform the reviewed decryption or
 version comparison; it initiates an app-ID-300 transition. The exact owner and
 order of descriptor discovery, `DecryptToPIPE`, version/model checks, and
 handoff remain unresolved. See `evidence/appupgrade-update-trust.md`.
+<!-- disagreement: the parallel repository treated the ~3.5 KB unique content as consistent with `AppSetup` decrypting this file first, reading the version from it, and only then handing over to `AppUpgrade`. Exact recovered AppSetup does not perform that decryption or comparison. Both claims are preserved for adjudication. -->
 
 ## Entropy profile
 
@@ -92,7 +93,8 @@ What remains unproven is whether the upgrader relies on those CRC values, and
 whether a modified payload can still be decrypted and a footer still verified.
 Because the `.ver` CRC is computed over **ciphertext**, an attacker without the
 key still cannot produce a payload that decrypts to anything useful. Even if the
-CRC hypothesis holds, it is at most a **post-execution** mechanism. Exact
+CRC hypothesis holds, it is at most a **post-execution** mechanism.
+<!-- disagreement: the parallel repository framed it as useful for persistence once the `disableEncryptionUpdate` path is established; this analysis records that exact recovered code makes the marker route-specific (FUMO `-un:0` only; SCOMO production/penetration startup ignores it), so no such path is established. Both framings are preserved. --> Exact
 recovered code further constrains the marker: it selects FUMO's zero-valued
 `Unencryption` mode on a `-un:0`/non-`-un:1` route, while recovered SCOMO
 production/penetration startup ignores it. Neither mode proves payload
@@ -138,3 +140,15 @@ even on the 17 GB map archive.
 2. Identify the shared suffix's content and processing before assigning it a
    descriptor schema or signature algorithm.
 3. Current work is local-only; device acceptance remains unobserved.
+
+#### From the parallel repository
+
+The parallel copy of this document is structurally identical — same tables, same footer lengths and digests, same entropy profile, same CRC-forgery demonstration, same tool and next-evidence list. Two passages differ and are retained here.
+
+##### Descriptor handling (parallel wording)
+
+`.lge.upgrade.xml` is therefore almost entirely footer: only ~3.5 KB is its own encrypted content. That is consistent with the documented behaviour — `AppSetup` decrypts this file first, reads the version from it, and only then hands over to `AppUpgrade`.
+
+##### Consequence of the CRC hypothesis (parallel wording)
+
+So even if the CRC hypothesis holds, it is a **post-execution** mechanism — useful for persistence after the `disableEncryptionUpdate` path is established, not a route to first execution.

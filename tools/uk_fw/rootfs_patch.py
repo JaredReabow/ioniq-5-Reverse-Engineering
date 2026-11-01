@@ -3,17 +3,26 @@
 
 Context
 -------
-Public tooling documents a plaintext update mode. Exact recovered `260128`
-analysis (`evidence/appupgrade-update-trust.md`) constrains it: the outer wrapper
-selects FUMO unless exact `-un:1` selects SCOMO, and only the FUMO startup path
-maps `/update/disableEncryptionUpdate` to its zero-valued "Unencryption" mode.
-The recovered SCOMO production/penetration path explicitly ignores that marker.
-Neither route establishes that version, model, signature, digest, write, slot,
-boot, or health checks are absent.
+Public tooling documents a plaintext update mode
+(`evidence/gen5w-public-operating-model.md`), and the exact recovered `260128`
+analysis (`evidence/appupgrade-update-trust.md`) constrains it. The public
+operating model shows two update paths:
+
+  * normal: payloads are AES-encrypted and decrypted by the unit's
+    `DecryptToPipe` before extraction;
+  * unchecked: if `/update/disableEncryptionUpdate` exists, `AppUpgrade` performs
+    **no decryption** and expects an entirely plaintext package. The
+    `.lge.upgrade.xml` version check still runs.
+
+The recovered wrapper selects FUMO unless exact `-un:1` selects SCOMO, and only
+the FUMO startup path maps `/update/disableEncryptionUpdate` to its zero-valued
+"Unencryption" mode. The recovered SCOMO production/penetration path explicitly
+ignores that marker. Neither route establishes that version, model, signature,
+digest, write, slot, boot, or health checks are absent.
 
 This tool only builds the plaintext rootfs archive used by the public workflow.
 It takes a decrypted `mango-rootfs.tar.gz`, injects files (a systemd unit, SSH
-authorised keys, an application), and repacks in the documented format:
+authorised keys, an application), and repacks in the format the upgrader expects:
 
     tar --format=ustar --numeric-owner -cf - ./ | gzip
 
@@ -22,8 +31,9 @@ rebuilt file, and optionally rewrites a copy of the manifest.
 
 It does **not** encrypt, does not produce a signed package, and does not write to
 the unit. Using the result would still require the target to select the FUMO
-route and pass every independent eligibility, authentication, integrity,
-installation, boot, and health check.
+route, to accept unencrypted updates, and to pass every independent eligibility,
+authentication, integrity, installation, boot, and health check (its own version
+check included).
 
 Usage
 -----

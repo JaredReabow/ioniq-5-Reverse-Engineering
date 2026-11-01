@@ -396,3 +396,100 @@ the public KOFFEE report confirms it needs code execution first, then reaches
 - `evidence/bench-hardware-root-path.md`
 - `evidence/network-surface-and-wifi-root.md`
 - `evidence/child-notes/01…04`
+
+#### From the parallel repository
+
+The parallel lineage ranked the same attack surface before the EU payloads were
+recovered. Its ranking, its component table and its remaining notes are
+preserved below, with every conflict against the recovered-evidence ranking
+above marked for adjudication.
+
+<!-- disagreement: the parallel version says every interesting code path lives inside AES-encrypted payloads and that analysis "is impossible without the unit-derived DecryptToPIPE + decryption_key.der". This document says the EU 260128 payloads were recovered and the authentic userspace now boots in the isolated VM. Both statements are kept: the encrypted-only claim describes the pre-recovery state, and the recovered-payload claim does not establish installed-device parity. -->
+
+##### Status and former blocking dependency (parallel version)
+
+Status: synthesis of this session's static work plus four completed subagent
+surveys. No device interaction. This ranks the routes that remain open and names
+the single dependency that blocks all of them.
+
+## The blocking dependency
+
+Every interesting code path — `AppUpgrade`, `AppDMClient`, `.lge.upgrade.xml`,
+the update parser, the Wi-Fi daemons, the USB gadget stack, Android Auto and
+CarPlay — lives inside AES-encrypted payloads (entropy 8.00, no keystream reuse,
+no known plaintext). Analysis of those components is impossible without the
+unit-derived `DecryptToPIPE` + `decryption_key.der`. This is a cryptographic
+dependency, not an effort limit.
+
+##### Wi-Fi remote — component CVEs, version-gated (parallel ranking)
+
+### 2. Wi-Fi remote — component CVEs, version-gated
+
+No public Wi-Fi-to-root exists for Gen5W_L. The realistic classes are old
+daemons whose exact versions are encrypted. Survey totals (2015–2020):
+dnsmasq 15, hostapd 26, wpa_supplicant 30, dropbear 12, BusyBox 24, miniupnpd 9,
+OpenSSL 95.
+
+| Candidate | Component | Type | Reachable when |
+|---|---|---|---|
+| CVE-2017-14491 | dnsmasq | heap overflow, DNS response | unit runs DHCP/DNS in AP mode |
+| CVE-2017-14493 | dnsmasq | stack overflow, DHCPv6 | same |
+| CVE-2016-2148 | BusyBox `udhcpc` | heap overflow, OPTION_6RD | unit joins a hostile AP as client |
+| CVE-2015-1863 | wpa_supplicant | heap overflow, SSID in P2P frames | radio range |
+| CVE-2016-6309 | OpenSSL 1.1.0 | TLS state-machine UAF | any TLS listener |
+
+Triage requires version strings; `tools/uk_fw/net_surface.py` captures them.
+
+<!-- disagreement: the parallel table lists CVE-2015-1863 (wpa_supplicant heap overflow via SSID in P2P frames) as reachable at radio range, while the ranking above records that exact review of the shipped wpa_supplicant rejects CVE-2015-1863 (the p2p_add_device() SSID copy is length-gated at 32) and CVE-2021-27803. The parallel table also lists CVE-2016-6309 against OpenSSL 1.1.0, while the recovered RPM inventory records openssl-1.0.2k-r0. The dnsmasq rows (CVE-2017-14491/14493) are likewise in tension with the note above that ConnMan's --nodnsproxy removes older DNS-proxy routes even when package-age matching suggests them. -->
+
+##### USB gadget / iAP2 / CarPlay — needs plaintext (parallel ranking)
+
+### 3. USB gadget / iAP2 / CarPlay — needs plaintext
+
+Kernel config enables `USB_F_IAP2`, `USB_U_IAP2`, `USB_G_SERIAL`,
+`GADGETFS`, `USB_F_MASS_STORAGE`, `USB_DWC3` dual-role. These are modules, so the
+code is in the encrypted rootfs. iAP2 is a bounded, length-prefixed protocol
+parser — a classic memory-safety target, but auditable only after decryption.
+Note: `CONFIG_LGE_CARPLAY=y` in the kernel, yet no `carplay` symbols exist in
+`vmlinux`, so the parsing is userland.
+
+<!-- disagreement: the parallel version says the iAP2/USB gadget modules are only auditable after decryption and that the device-node mode and label are "inside the encrypted rootfs"; the ranking above records that the userspace has been recovered and that iAP2 is now an exact-code review target with no finding yet established. -->
+
+##### Kernel — analysed, and not the weak link (parallel ranking)
+
+### 4. Kernel — analysed, and not the weak link
+
+- **Firmware acceptance is a userland decision.** A kernel signature bypass is
+  not required to install a modified package.
+
+
+
+<!-- disagreement: the parallel version states flatly that "Firmware acceptance is a userland decision" and that a kernel signature bypass is not required to install a modified package, and it titles the kernel section "not the weak link". The ranking above and evidence/eu-kernel-symbol-recovery-and-trust-chain.md narrow userland acceptance to update packages, keeping boot-container signatures, loader policy, slot selection and boot-time acceptance as separate unresolved stages, and the ranking above additionally lists conditional post-execution kernel candidates (V-030/CVE-2017-6001 highest priority) that make the kernel non-trivial after local execution. Both statements are kept. The parallel section's remaining bullets (symbols recovered, trust chain, /dev/keystore review, built-in reachable code) are identical to item 9 above and are not repeated here. -->
+
+##### Decisive next evidence (parallel version, pre-recovery ordering)
+
+1. UART capture at `ttyS2`, 115200 8N1 (command line recovered from the
+   plaintext `ipk.` header; early console at MMIO `0xfc000000`).
+2. Engineering Mode state on the unit: does the SOP gate fire, and does PIN
+   `21` reach the menu?
+3. Unit-derived `DecryptToPIPE` + `decryption_key.der` → decrypt
+   `mango-rootfs.tar.gz`.
+4. With plaintext: `tools/uk_fw/dump_survey.py` on the extracted rootfs, then
+   component version triage and USB/iAP2 parser audit.
+
+
+These four parallel steps are retained as the physical-bench ordering. They are
+compatible with, but not superseded by, the eight-item ordering above: UART
+capture at `ttyS2` and Engineering Mode state remain the first physical actions,
+while the decryptor step is already satisfied offline for EU `260128`.
+
+##### Parallel section numbering (for cross-reference)
+
+### 1. USB storage via AppNavi replacement — highest yield
+### 2. Wi-Fi remote — component CVEs, version-gated
+### 3. USB gadget / iAP2 / CarPlay — needs plaintext
+### 4. Kernel — analysed, and not the weak link
+### 5. MICOM / CAN — post-exploitation
+
+Sections 1 and 5 have the same bodies as items 5 and 10 above; only their rank
+numbers and the item 1 "highest yield" verdict differ.

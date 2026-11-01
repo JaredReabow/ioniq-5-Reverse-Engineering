@@ -133,3 +133,77 @@ boot, or health acceptance.
 The `navi_extended` release binaries are the fastest way to learn the exact
 `AppNavi` interface, but GitLab returned HTTP 429 (rate limit) during this
 session. Worth retrying later with a lower request rate.
+
+#### From the parallel repository
+
+The parallel lineage describes the `disableEncryptionUpdate` path as an
+**unchecked** path and treats the build problem as crypto-plus-acceptance. Its
+statement of both update paths, its prerequisites and its safety ordering are
+preserved verbatim below.
+
+##### Status and the two update paths (parallel version)
+
+Status: implementation of the documented `disableEncryptionUpdate` path, with the
+format constraints taken from the public `update-patcher` README and the
+operating model in `evidence/gen5w-public-operating-model.md`. Offline only.
+
+| Path | Payloads | Decryption | Version check |
+|---|---|---|---|
+| Normal | AES-encrypted envelopes | `DecryptToPipe` on the unit | `.lge.upgrade.xml`, `>=` current |
+| Unchecked | **plaintext** | none | `.lge.upgrade.xml`, `>=` current |
+
+The unchecked path is selected by the presence of `/update/disableEncryptionUpdate`
+on the unit. It removes the cipher, not the version gate. That is why the
+custom-firmware problem decomposes into two independent problems:
+
+1. **crypto** — solved by obtaining the unit's key material, or bypassed entirely
+   by the unchecked path;
+2. **acceptance** — the version gate plus whatever binds the manifest to the
+   payload, which is the part still in question.
+
+<!-- disagreement: the parallel version calls the marker-selected route the "Unchecked" path and says it "removes the cipher, not the version gate", decomposing the problem into (1) crypto and (2) acceptance. The newer text records that the recovered outer AppUpgrade selects FUMO vs SCOMO by AppLauncher's model argument, that the FUMO mode byte is a real plaintext-mode selector on the NE-style `-un:0` route but "is not accurately called an **unchecked** path", and that exact code does not establish that the marker removes version, model/region, package signature, payload digest, target, write, slot, boot or health checks. Both statements are kept. -->
+
+##### Repackaging and tool behaviour (parallel version)
+
+Shared by both lineages: `tools/uk_fw/rootfs_patch.py` enforces
+`--format=ustar` plus `--numeric-owner`, stages the tree in a temporary
+directory, and never modifies the input package.
+
+- Parallel verification claim (verbatim):
+
+```
+Verified end to end on synthetic packages; four unit tests cover injection,
+key appending with the right mode, manifest rewriting and size reporting.
+```
+
+<!-- disagreement: the parallel version reports four unit tests; the newer text reports twelve, adding archive traversal/link/duplicate rejection, injection-destination confinement, hard-link alias protection, read-only directory handling, numeric ownership/mode/mtime preservation and original-input preservation. Both counts are kept as reported. -->
+
+##### What still has to be true, as written in the parallel version
+
+1. `/update/disableEncryptionUpdate` exists on the unit — this requires code
+   execution first, which is the same entry problem as before.
+2. The `.lge.upgrade.xml` version is `>=` the installed version. Reusing the
+   manifest from the current official package satisfies this if the manifest is
+   not bound to the payload contents (see `evidence/community-field-evidence.md`
+   for the evidence on both sides of that question).
+3. Any package-level descriptor still verifies. The 14,059-byte footer
+   (`evidence/eu-ota-container-structure.md`) is the likely binding, and its
+   contents are encrypted.
+4. The unit's own integrity check of the decrypted payload — unknown.
+
+<!-- disagreement: the parallel prerequisite 3 calls the 14,059-byte footer "the likely binding" whose "contents are encrypted", and prerequisite 2 allows reusing the current official manifest to satisfy the version check. The newer text says the shared high-entropy suffix "is observed structure, not an established descriptor or signature schema", that the public `>=` description has not been bound to a responsible recovered function, and that reusing a manifest does not prove acceptance. Both statements are kept. -->
+
+##### Safety ordering (parallel version)
+
+- Take a full dump of both A/B system partitions first. The update writes to the
+  inactive partition and switches `/etc/fstab`, so a rootfs failure is
+  recoverable from a console; a boot-image failure is not.
+
+##### Honest status (parallel version)
+
+This closes the *build* half of custom firmware: given a decrypted rootfs, a
+modified, correctly formatted package can be produced and its manifest values
+computed. It does not close the *acceptance* half, which depends on the footer
+descriptor and on the entry precondition.
+
+<!-- disagreement: the parallel status says this "closes the *build* half of custom firmware" and that only "the *acceptance* half" remains, depending on the footer descriptor and the entry precondition. The newer text says it closes "only the archive-construction portion" and enumerates route selection, eligibility, authentication, installation, boot and health as still open. Both statements are kept. -->

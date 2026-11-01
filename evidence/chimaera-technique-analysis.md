@@ -123,3 +123,13 @@ this programme are: AES-CBC-compatible entropy profile, deterministic
 package-level footer, absence of ECB, and a `.ver` manifest whose integrity value
 is CRC-32 (proven forgeable, but computed over ciphertext, so post-execution
 only).
+
+#### From the parallel repository
+
+The parallel lineage's version of this note is a strict subset of the text above:
+its only delta is the absence of the "Exact recovered verifier cross-check"
+section (the `0x11fe20` parser, the `file_size - 0x4024` read, the `TER`/`TE2`
+suffix recognition and the `-404`/`-403` results). Every claim, table and citation
+in the parallel version also appears above, so nothing needs to be appended.
+
+<!-- disagreement: none found — the parallel version carries no fact that the text above lacks; it predates the exact verifier cross-check and does not contradict it. -->

@@ -23,6 +23,10 @@ keypad credential derives from static unsalted digests), **V-042** (world-writab
 actions) and **V-043** (privileged services import environment files from a world-writable path — the mechanism behind the
 chain noted under V-036, which previously had no entry of its own).
 
+**One duplicate carries a superseded claim.** V-037's status line still says root execution was demonstrated; **V-006's
+measurement supersedes it** (the payload is rewritten to underscores by udev's allow-list before it reaches the sink), and a
+reconciliation note sits inside V-037 rather than its text being deleted. Anyone quoting severity must read V-006, not V-037.
+
 So the register holds **47 numbered entries** — 44 `V-`, 2 `I-` and 1 `H-` — of which **6 are duplicates**, leaving **41
 distinct findings** (39 `V-`, `I-001`, `H-001`). When citing a count, use the distinct figure; the 47 includes corroborating
 duplicates and should not be quoted as the number of separate issues found.
@@ -1077,6 +1081,23 @@ vulnerability is claimed, and this test does not move either entry.
 (Imported from the parallel repository, where this was numbered V-006.)
 
 > **Same finding as V-006.** This import describes the MTP shell-construction defect from the parallel lineage. Both bodies are kept so no evidence is lost, but they are **one finding, not two** — cite V-006 as canonical and treat this entry as corroborating detail. Counts in this register include it; the distinct-finding count excludes it.
+
+> **Status contradiction, resolved against this entry.** The status line above claims *"root command execution
+> demonstrated end-to-end in the project QEMU research harness"*. **V-006's measurement supersedes that claim**, and the
+> two cannot both hold of the same code path:
+>
+> - Re-running the exact payload named here — `usb-mtp` with `serial=pwn;id>/tmp/VM-PWNED`, which presents the required
+>   `060101` PTP interface — delivers the payload intact on the wire but udev hands `usb-automount`
+>   **`ID_SERIAL_SHORT=pwn_id__tmp_VM-PWNED`**: `;`, `>` and `/` each become `_`. **No marker file is created.**
+> - The allow-list responsible (`#+-.:=@_` plus alphanumerics) is present in **both** `systemd-udevd` and `libudev` and was
+>   confirmed dynamically, not merely read.
+> - The most consistent explanation for the original result is a **synthetic udev event or a directly injected
+>   `ID_SERIAL_SHORT`**, which bypasses `builtin_usb_id` entirely. A physical USB device cannot do that, so the
+>   demonstration is a harness artefact rather than a device-reachable path.
+>
+> The **source defect** in both entries — an unquoted `sprintf` into `system()` — is real and should be fixed regardless;
+> what does not survive is the *reachability* claim. Cite **V-006** for status and this entry only for the shared
+> mechanism description.
 
 - **Status:** confirmed: complete static call chain verified at instruction
   level, and **root command execution demonstrated end-to-end in the project

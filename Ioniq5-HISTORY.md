@@ -3816,3 +3816,11 @@ and are superseded by corrections rather than silently rewritten.
   is real, and it is not the finding I was looking for.
 - The application had not started when the frame was taken, so the screenshot is the splash again. An identical image after a
   meaningful change is the easiest thing in this work to misread as confirmation.
+
+## 2026-10-31 — a two-minute delay is a result too
+
+- With our own service answering, the application still arrives and registers — just much later. That reframes the
+  substitution from "does it help" to "it changes timing", which is the kind of observation that only comes from running the
+  longer window.
+- The frame still was not captured, and I am recording the required window size rather than pretending the earlier attempt
+  counted.

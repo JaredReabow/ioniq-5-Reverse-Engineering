@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.24.0 - with our service the app starts, but 125 seconds later
+
+- Longer window (160 s) with `micom-service` substituted. `AppHomeScreen` **does** start and register — `PID : 983`,
+  `[REGISTERED] registeredFromNativeApp AppId[11][AppHomeScreen]` — but at **`00:02:38`**, i.e. **~155 s, against ~30 s with the
+  simulator**. `method not implemented` errors remain at **0**.
+- So the substitution does not break the chain; it **delays** it by roughly two minutes. That is a specific, measurable
+  behavioural difference and the first thing this experiment has produced: the settings answers change the launcher's timing
+  rather than preventing startup.
+- **The capture was still not reached** — the run ended at 170 s, before the screenshooter step, so there is again no frame for
+  the content question. The experiment remains inconclusive on content while being informative on timing.
+- Next run needs **≥220 s** so `AppHomeScreen` has time to paint after registering at ~155 s. Recording the requirement rather
+  than repeating a window that is known to be too short.
+
 ## 2.23.0 - service substitution works technically; the app had not started yet
 
 - Ran the published chain with `/usr/bin/micom-service` substituted for `/micom-dbus-sim`. The substitution is effective:

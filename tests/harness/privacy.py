@@ -16,7 +16,7 @@ TEXT_SUFFIXES = frozenset(
     {".md", ".json", ".txt", ".yaml", ".yml", ".toml", ".csv", ".tsv", ".gitignore"}
 )
 PUBLIC_TEXT_SUFFIXES = TEXT_SUFFIXES | frozenset(
-    {".py", ".sh", ".asm", ".log", ".java", ".c", ".s", ".inf", ".update"}
+    {".py", ".sh", ".asm", ".log", ".java", ".c", ".s", ".inf", ".update", ".qml", ".js", ".conf"}
 )
 PUBLIC_RAW_SUFFIXES = frozenset({".zip", ".gz", ".dlt", ".dat", ".dump", ".core"})
 PUBLIC_PERSONAL_HOME = re.compile(r"/Users/(?!researcher/|USER/|example/)[^/\s]+/")
@@ -83,12 +83,12 @@ def privacy_scope_files(root: Path, *, tracked_only: bool = False) -> list[Path]
             for path in paths
             if path
             and not set(Path(path).parts) & EXCLUDED_PARTS
-            and (Path(path).parent == Path(".") or Path(path).parts[0] in {"evidence", "council", "tools"})
+            and (Path(path).parent == Path(".") or Path(path).parts[0] in {"evidence", "council", "tools", "vm"})
         ]
     for path in sorted(root.iterdir()):
         if path.is_file():
             files.append(path)
-    for name in ("evidence", "council", "tools"):
+    for name in ("evidence", "council", "tools", "vm"):
         directory = root / name
         if directory.is_dir():
             files.extend(sorted(item for item in directory.rglob("*") if item.is_file()))

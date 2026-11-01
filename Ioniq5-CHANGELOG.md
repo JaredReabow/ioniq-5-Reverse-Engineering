@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.27.0 - diagnosed: the splash is never dismissed, and the app's own diagnostics are discarded
+
+Consulted `codex-router/gpt-6-astra` (the config's default model) and `claude-subscription/claude-opus-5-5` for independent
+diagnoses. Both ranked the causes and both corrected an inference of mine; their reasoning was then tested, and three findings
+came out of it.
+
+- **The launcher throws away the app's diagnostics.** `readlink /proc/<AppHomeScreen>/fd/1` and `/fd/2` both resolve to
+  **`/dev/null`**. So every QML, EGL and QSG message the app emits is discarded — which is why none of them ever appeared, and
+  why "capture full app stderr" is impossible without an alternative channel. Captured instead through
+  `strace -f -e trace=write -s 200` on the chain, which sees the buffers before they are dropped.
+- **The app is alive and working, but late.** At `00:02:30` it is emitting widget traffic:
+  `[FTL] [ virtual bool WeatherWidget::sendEventToWidget(Event) ] AW_REQUEST_LOAD_QML`. So the QML scene is *requested* around
+  two and a half minutes in, not failing. Under `softpipe` with `QV4_FORCE_INTERPRETER=1` at 1920×720 that latency is expected.
+- **The splash is never dismissed.** Captures at **185 s and 230 s are byte-identical to the 75 s splash** (177,691 bytes) while
+  the app is alive (`pid 854`). So the compositor is still showing `/tmp/front_lcd.png` and the app's content, when it arrives,
+  is either beneath it or the dismissal signal never comes.
+- **Both models' correction is accepted:** the decorations are drawn **client-side by Qt**, not by ivi-shell, and the blank
+  white area is `QQuickWindow`'s **default clear colour** — meaning the app's GL context and buffer commits most likely work and
+  the fault is content or layer ordering, not buffer transport. My earlier reading that the decorated window proved IVI
+  participation was wrong.
+- **Next step is specific:** find what dismisses the splash — the launcher displays `front_lcd.png`, so removal is presumably
+  gated on an appbase readiness signal. `draw`/`show_window_fg` on `com.lge.avn.appmanager.appbase` is the candidate, and the
+  cheap test is to issue it explicitly while the splash is up and re-capture.
+
 ## 2.26.0 - three captures across one chain: splash, black, decorated blank
 
 - Captured at named stages of a live chain run, which is the only method that works (post-hoc capture races the teardown):

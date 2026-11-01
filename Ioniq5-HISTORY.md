@@ -3838,3 +3838,14 @@ and are superseded by corrections rather than silently rewritten.
   useful: the compositor works at every step, and the application never paints.
 - That is the cleanest description of the VM gap produced all session, and it came from capturing at the right moments rather
   than from any new tooling.
+
+## 2026-10-31 — asking two stronger models, then testing what they said
+
+- Astra and Opus 5.5 were reachable after all, via the model catalogue rather than a tool description. Both ranked causes, and
+  both corrected me on the same point: the decorations are Qt client-side and the white area is the default clear colour, so the
+  client is very likely committing frames.
+- Testing that produced the real answers. The launcher sends the app's stdout and stderr to /dev/null, which is why no QML or
+  EGL error was ever visible; strace saw the buffers instead and showed the app alive and requesting QML loads at two and a half
+  minutes. And the splash is simply never dismissed — identical frames at 185 and 230 seconds.
+- So the failure is not the display stack. It is a splash that nothing removes, and an app whose messages are being discarded.
+  Both are specific, and neither would have been found by another round of screenshotting.

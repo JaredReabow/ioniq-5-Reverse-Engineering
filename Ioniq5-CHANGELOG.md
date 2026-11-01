@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.04.0 - the two repositories are combined, with neither history discarded
+
+- The two repositories shared **no merge base**: this one 228 commits ahead, the other 19 ahead in its own right. They are
+  now combined by a merge commit whose **parents are both mains** (`03afb2f`, parents `496a89d` and `ebacec0`), so **each
+  repository fast-forwards onto it and neither history loses a commit**. Both remotes sit at `03afb2f`; 251 commits are
+  reachable from it.
+- **39 paths conflicted** as add/add, which is what unrelated histories produce — every file differing between the two sides
+  is a conflict because there is no common ancestor to merge against. Each was resolved to the **more recently modified
+  side**: 9 took the other repository's version (`PUBLIC-RELEASE.md`, `tests/harness/gitscope.py`, `tests/test_harness.py`,
+  `tests/README.md` and five `tools/uk_fw/guest/appnavi_*` probe scripts) and 30 took this one.
+- **Nothing was deleted.** Every losing version remains retrievable from the parent commits, both of which are ancestors of
+  the merge. Files unique to either side were carried in unchanged by the automatic merge — verified by presence checks on
+  both this session's artefacts (`vnbuf_shim.c`, `micom_service.c`, `docs/vm/05-…png`) and the other lineage's
+  (`evidence/appfumo-shell-command-boundary.md`, `docs/agent-work/appfumo-shell-boundary/PLAN.md`,
+  `tools/uk_fw/guest/appnavi_valet_probe.sh`).
+- Also committed the payload-variant cycling in `micom_service.c`, which the earlier oracle work had left uncommitted.
+
 ## 2.03.0 - README refreshed with VM images; work published to both repositories
 
 - **README** gained a "Latest bring-up — 2026-10-31" section: what now works (authentic multi-user boot, our Weston backend

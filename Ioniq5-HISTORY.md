@@ -3275,3 +3275,12 @@ and are superseded by corrections rather than silently rewritten.
 - Publishing to the second repository required a judgement: it shares no history with this one and is nineteen commits
   ahead in its own right, so a main push would have destroyed work. A branch is the reversible option, and reversible is
   what an unasked-for force-push is not.
+
+## 2026-10-31 — combining two histories without erasing either
+
+- The repositories had no common ancestor, so the only honest way to join them was a merge commit with both mains as
+  parents: each side fast-forwards onto it and neither loses a commit. That is the difference between combining and
+  overwriting.
+- Thirty-nine files had to be chosen between because unrelated histories make every difference a conflict. Newest-won, with
+  the losing versions still reachable from the parents, and presence checks run afterwards on artefacts from both sides
+  rather than trusting the merge to have done the right thing.

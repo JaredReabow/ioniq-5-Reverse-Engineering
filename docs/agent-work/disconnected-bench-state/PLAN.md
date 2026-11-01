@@ -51,9 +51,14 @@ The parser treats all input as data.
 ## Acceptance criteria
 
 - generated script passes a static forbidden-token audit and `sh -n`;
-- it covers identity, processes/effective SMACK labels, unit activation,
-  listeners/interfaces, passive Wi-Fi/P2P state, oFono state, local Bluetooth
-  registration, Dropbear completeness, A/B flags, and exact binary hashes;
+- it covers identity, process credentials/capability masks/effective SMACK
+  labels, parent relationships, optional no-new-privileges and required seccomp
+  state, unit activation, listeners/interfaces, passive Wi-Fi/P2P state, oFono
+  state, local Bluetooth registration, Dropbear completeness, A/B flags, and
+  exact binary hashes;
+- it records metadata, hashes, `SMACK64`, and `SMACK64EXEC` state for the stock
+  direct-transition anchor, shell/interpreter chain, dynamic loader, fixed
+  `date` candidates, and the relabel/setup scripts without executing them;
 - parser handles hex-framed output, `bench_serial.py` timestamp prefixes,
   duplicate sections, incomplete captures, command/file absence, forged-marker
   text, size limits, and adversarial text;

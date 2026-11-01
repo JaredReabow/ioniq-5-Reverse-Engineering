@@ -1,7 +1,7 @@
 # Disconnected bench state bundle checkpoint
 
-Status: implemented, extended for FUMO relaunch and update-source policy state,
-and locally re-reviewed on 2026-11-03.
+Status: implemented, extended for FUMO relaunch, update-source policy state,
+and process capability/persistence-gate capture; locally validated on 2026-11-08.
 
 ## Completed
 
@@ -37,6 +37,20 @@ and locally re-reviewed on 2026-11-03.
     derives `facts.smack_xattrs` without reading staged file content;
   - records process real/effective/saved/filesystem uid/gid values and
     supplementary groups separately from the legacy real-id process summary;
+  - records parent PID, inheritable/permitted/effective/bounding and optional
+    ambient capability sets, optional `NoNewPrivs`, and `Seccomp` from one
+    bounded status parse per observed process; Linux v4.1 does not expose
+    `NoNewPrivs` in `/proc/PID/status`, so absence is recorded as unavailable
+    rather than failing collection; the host report decodes Linux v4.1 capability
+    names through `CAP_AUDIT_READ` and preserves unknown bits;
+  - records read-only `kexec_load_disabled`, `modules_disabled`,
+    `dmesg_restrict`, and `mmap_min_addr` values when exposed;
+  - adds systemd, `esinit`, AppLauncher.sh, the update anchor, the stock relabel
+    and SMACK setup scripts, `/bin/sh` and Bash, both loader pathnames, and fixed
+    `/bin/date`/`/usr/bin/date` candidates to the passive hash/metadata set;
+  - adds launcher-chain/systemd/relabel/SMACK-setup/anchor/interpreter/loader/
+    fixed-command/`/tmp` `SMACK64` and `SMACK64EXEC` queries, without executing
+    any recovered target or candidate utility;
   - extends static auditing to reject bare or path-qualified xattr, ownership and
     mode mutation utilities plus mutating `attr`/`setfattr` options;
   - distinguishes absent from unreadable/read-error state and fails the terminal
@@ -82,6 +96,20 @@ py_compile: PASS
 The update-source policy extension includes focused tests for absent paths and
 attributes, unavailable providers, query failures, malformed/successful labels,
 complete process credential parsing, and bare/path-qualified mutation rejection.
+The capability extension adds synthetic parser coverage for known, absent,
+unknown, and malformed capability fields. Focused validation passed `25 tests,
+20 subtests`; the complete suite passed `876 tests, 351661 subtests` in
+`122.06s`. The emitted probe was 25,651 bytes with SHA-256
+`5fc8ed5d80073ef8aa19fa3a82505d97db1e06baef33320c9c0aad94127d7c6b` at
+that checkpoint.
+
+The 2026-11-09 direct-chain evidence extension adds the anchor's complete
+interpreter/loader objects, fixed `date` candidates, and relabel/setup scripts to
+metadata/hash/xattr capture. Focused collector validation remains `25 passed, 20
+subtests passed`; combined collector/readiness validation passed `40 tests, 22
+subtests`, and the complete suite passed `906 tests, 351663 subtests` in
+`127.79s`. The current emitted probe is 26,125 bytes with SHA-256
+`ffecb19856528e01cf2ad81812d339e32913176094446b78f65714605babde8c`.
 No physical unit, target network, radio, modem, firmware update, recovered
 executable, or active exploit input was used.
 
@@ -98,6 +126,16 @@ executable, or active exploit input was used.
 - Independent implementation review ran on the current selected model and
   returned two correction rounds; acceptance is based on the corrected diff and
   local regression evidence, not on route self-report.
+
+## 2026-11-08 routing note
+
+The requested `openrouter/claude-fable-5.1` native-subagent route remains
+unavailable because it is not advertised with `multi_agent_version=v2`.
+DeepSeek Flash also remains absent from the native catalogue. No substitute
+model was used and no private target detail was sent externally. This bounded
+read-only collector extension was completed locally rather than stalling the
+offline research; it has focused local validation but no fresh independent
+acceptance.
 
 ## Next exact actions
 

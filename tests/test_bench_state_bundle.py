@@ -70,11 +70,39 @@ class BenchStateBundleTests(unittest.TestCase):
         for process_name in ("AppLauncher", "AppDMClient", "AppScomoDM", "AppUpgrade"):
             self.assertIn(process_name, script)
         self.assertIn('record process-credentials "$P_PID|$P_UID|$P_EUID|$P_SUID|$P_FSUID|$P_GID|$P_EGID|$P_SGID|$P_FSGID|$P_GROUPS"', script)
+        self.assertIn('record process-security "$P_PID|$P_PPID|$P_CAP_INH|$P_CAP_PRM|$P_CAP_EFF|$P_CAP_BND|$P_CAP_AMB|$P_NO_NEW_PRIVS|$P_SECCOMP"', script)
+        for status_name in (
+            '"PPid:"',
+            '"CapInh:"',
+            '"CapPrm:"',
+            '"CapEff:"',
+            '"CapBnd:"',
+            '"CapAmb:"',
+            '"NoNewPrivs:"',
+            '"Seccomp:"',
+        ):
+            self.assertIn(status_name, script)
+        for sysctl_name in (
+            "kernel/kexec_load_disabled",
+            "kernel/modules_disabled",
+            "kernel/dmesg_restrict",
+            "vm/mmap_min_addr",
+        ):
+            self.assertIn(sysctl_name, script)
         for update_path in (
             "/bin/busybox",
             "/usr/bin/unzip",
             "/usr/bin/unzip64",
+            "/bin/sh",
+            "/bin/bash",
+            "/lib/ld-linux-x86-64.so.2",
+            "/lib/ld-2.25.so",
+            "/bin/date",
+            "/usr/bin/date",
+            "/lib/systemd/systemd",
+            "/lib/systemd/esinit",
             "/app/bin/AppLauncher",
+            "/app/bin/AppLauncher.sh",
             "/app/bin/AppDMClient",
             "/app/bin/AppScomoDM",
             "/app/bin/AppUpgrade",
@@ -82,6 +110,10 @@ class BenchStateBundleTests(unittest.TestCase):
             "/app/bin/CarOption.csv",
             "/app/share/AppUpgrade/DecryptToPIPE",
             "/app/share/AppUpgrade/teruten5_pub.key",
+            "/etc/update_start_5w.sh.ori",
+            "/etc/smack-relabel-ro.sh",
+            "/etc/smack_setup.sh",
+            "/etc/smack_setup_recovery.sh",
             "/update",
             "/update/usb",
             "/update/sysroot",
@@ -122,9 +154,23 @@ class BenchStateBundleTests(unittest.TestCase):
             "/update/usb/bin",
             "/update/usb/bin/AppUpgrade",
             "/update/usb/bin/.lge.upgrade.xml",
+            "/app/bin/AppLauncher",
+            "/app/bin/AppLauncher.sh",
             "/app/bin/AppDMClient",
             "/app/bin/AppUpgrade",
             "/app/share/AppUpgrade/teruten5_pub.key",
+            "/etc/update_start_5w.sh.ori",
+            "/etc/smack-relabel-ro.sh",
+            "/etc/smack_setup.sh",
+            "/etc/smack_setup_recovery.sh",
+            "/bin/sh",
+            "/bin/bash",
+            "/lib/ld-linux-x86-64.so.2",
+            "/lib/ld-2.25.so",
+            "/bin/date",
+            "/usr/bin/date",
+            "/lib/systemd/systemd",
+            "/tmp",
         )
         smack_path_loop = next(
             line for line in script.splitlines() if line.startswith("for SX_PATH in ")
@@ -152,6 +198,33 @@ class BenchStateBundleTests(unittest.TestCase):
         self.assertNotRegex(script, r"\b(?:setfattr|chsmack|chattr)\b")
         self.assertNotRegex(script, r"\battr\b[^\n]*(?:\s-s\b|\s-r\b|--set\b|--remove\b)")
         self.assertNotIn("[ ! -r \"$SX_PATH\" ]", smack_helper)
+
+    def test_process_security_awk_accepts_linux_v41_optional_field_absence(self) -> None:
+        awk_program = MODULE.PROBE_SCRIPT.split("P_SECURITY_FIELDS=$(awk '\n", 1)[1].split(
+            "\n    ' \"$P_DIR/status\"", 1
+        )[0]
+        status = """Name:\ttest
+PPid:\t1
+CapInh:\t0000000000000000
+CapPrm:\t0000003fffffffff
+CapEff:\t0000003fffffffff
+CapBnd:\t0000003fffffffff
+Seccomp:\t0
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            status_path = Path(tmp) / "status"
+            status_path.write_text(status, encoding="ascii")
+            proc = subprocess.run(
+                ["awk", awk_program, str(status_path)],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(
+            proc.stdout.strip(),
+            "1|0000000000000000|0000003fffffffff|0000003fffffffff|0000003fffffffff|unavailable|unavailable|0",
+        )
 
     def test_smack_xattr_helper_records_success_absence_and_fail_closed_errors(self) -> None:
         preamble = MODULE.PROBE_SCRIPT.split("if ! has_command od", 1)[0]
@@ -753,7 +826,15 @@ wpa_cli p2p_find
                         "process-credentials",
                         "12|100|101|102|103|200|201|202|203|4 5 44",
                     ),
+                    (
+                        "process-security",
+                        "12|1|0000000000000000|0000000000200000|0000000000200000|0000003fffffffff|unavailable|unavailable|0",
+                    ),
                     ("process-path", "12|/usr/local/bin:/usr/bin:/bin"),
+                ],
+                "identity": [
+                    ("security-sysctl", "kernel/kexec_load_disabled|0"),
+                    ("security-sysctl", "kernel/modules_disabled|1"),
                 ],
                 "units": [("unit", "vbtd.service|LoadState=loaded;ActiveState=active;")],
                 "interfaces": [
@@ -786,14 +867,45 @@ wpa_cli p2p_find
             },
         )
         self.assertEqual(
+            report["facts"]["process_security"]["12"],
+            {
+                "ppid": 1,
+                "cap_inheritable": {"hex": "0000000000000000", "value": 0, "names": []},
+                "cap_permitted": {"hex": "0000000000200000", "value": 1 << 21, "names": ["CAP_SYS_ADMIN"]},
+                "cap_effective": {"hex": "0000000000200000", "value": 1 << 21, "names": ["CAP_SYS_ADMIN"]},
+                "cap_bounding": {
+                    "hex": "0000003fffffffff",
+                    "value": 0x3FFFFFFFFF,
+                    "names": list(MODULE.CAPABILITY_NAMES),
+                },
+                "cap_ambient": None,
+                "no_new_privs": None,
+                "seccomp": 0,
+            },
+        )
+        self.assertEqual(
             report["facts"]["process_paths"]["12"],
             "/usr/local/bin:/usr/bin:/bin",
+        )
+        self.assertEqual(
+            report["facts"]["security_sysctls"],
+            {"kernel/kexec_load_disabled": 0, "kernel/modules_disabled": 1},
         )
         self.assertEqual(report["facts"]["units"]["vbtd.service"], "LoadState=loaded;ActiveState=active;")
         self.assertEqual(report["facts"]["interfaces"][0]["name"], "wlan0")
         self.assertEqual(report["facts"]["interfaces"][0]["ifindex"], 3)
         self.assertEqual(report["facts"]["hashes"]["/tmp/vbtd"], "a" * 64)
         self.assertEqual(report["facts"]["listeners"], ["tcp LISTEN 0 5 0.0.0.0:22"])
+
+    def test_capability_decoder_preserves_unknown_and_malformed_values(self) -> None:
+        decoded = MODULE._decode_capability_set("8000000000000001")
+        assert decoded is not None
+        self.assertEqual(decoded["names"], ["CAP_CHOWN", "CAP_63"])
+        self.assertEqual(MODULE._decode_capability_set("unavailable"), None)
+        self.assertEqual(
+            MODULE._decode_capability_set("not-hex"),
+            {"hex": "not-hex", "malformed": True, "names": []},
+        )
 
     def test_incomplete_and_duplicate_sections_are_reported(self) -> None:
         capture = (

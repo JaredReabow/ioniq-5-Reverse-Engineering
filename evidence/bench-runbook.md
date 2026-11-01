@@ -52,13 +52,22 @@ host:
   --json work/bench/state.json
 "$PY" tools/uk_fw/bench_candidate_triage.py work/bench/state.json \
   > work/bench/kernel-candidate-triage.json
+"$PY" tools/uk_fw/bench_root_readiness.py work/bench/state.json \
+  -o work/bench/root-readiness.json
 ```
 
 This single capture records installed hashes, process uid/gid and effective
 SMACK labels, real/effective/saved/filesystem uid/gid values, supplementary
-groups, unit activation, listeners, interfaces, passive Wi-Fi/P2P state,
-oFono device/unit state, local Bluetooth SDP/profile state, Dropbear chain
-completeness, and A/B/update flags. Update-specific records include the live
+groups, parent PIDs, inheritable/permitted/effective/bounding/ambient capability
+sets, optional `NoNewPrivs`, `Seccomp`, unit activation, listeners, interfaces, passive
+Wi-Fi/P2P state, oFono device/unit state, local Bluetooth SDP/profile state,
+Dropbear chain completeness, and A/B/update flags. It also records the exposed
+read-only values of `kexec_load_disabled`, `modules_disabled`,
+`dmesg_restrict`, and `mmap_min_addr`. `/proc/PID/status` does not expose
+securebits, so those remain a separate observation rather than being inferred
+from capability masks. Linux v4.1 also does not normally expose `NoNewPrivs` in
+that file; the collector records it as unavailable unless a vendor backport
+provides it. Update-specific records include the live
 command lines for AppLauncher/AppDMClient/AppScomoDM/AppUpgrade and hashes for
 BusyBox, both unzip providers, those applications, `CarOption.csv`,
 `DecryptToPIPE`, and `teruten5_pub.key`. For V-028 it also records
@@ -70,8 +79,15 @@ completion markers; metadata for `/update`, `/update/usb`, `/update/sysroot`,
 `/update/usb/upgrade`, and `/update/usb/bin`; and metadata/hashes for staged
 AppUpgrade/XML and `/tmp/AppUpgrade`. Read-only `getfattr` listing/value queries
 record `SMACK64` and `SMACK64EXEC` state for the update namespace, staged
-updater/XML, installed AppDMClient/AppUpgrade, and the persistent public key.
-Provider absence, path absence, attribute absence, query failure, malformed
+updater/XML, installed AppLauncher/AppLauncher.sh/AppDMClient/AppUpgrade,
+systemd, `/tmp`, the relabel/setup scripts, the direct-transition anchor,
+`/bin/sh`/Bash, the dynamic-loader link and target, fixed `date` candidates, and
+the persistent public key. The hash/metadata set includes those same
+interpreter/loader/command/policy objects plus systemd, `esinit`, and
+AppLauncher.sh. Symlinks remain explicit metadata records even though hashing
+follows their current targets. These reads do not establish which `date` object a
+non-default runtime `PATH` would select. Provider absence, path absence,
+attribute absence, query failure, malformed
 output, and successful labels remain separate records. It passively records
 `/dev/ptmx`, `/dev/pts`, and
 `/dev/pts/ptmx` metadata—including device major/minor numbers—plus
@@ -86,8 +102,12 @@ Missing commands/files remain explicit records. Unreadable files, failed
 reads/metadata queries/passive commands, and malformed hash output set a
 nonzero terminal collection status; an incomplete or nonzero terminal marker
 makes the JSON incomplete rather than silently treating a failed or truncated
-serial capture as authoritative. Do not replace
-this generated probe with an arbitrary script under the same filename.
+serial capture as authoritative. The root-readiness assessor validates that
+canonical report and keeps the configured label-transition gates separate from
+capability possession, credential commitment, complete interpreter loading,
+effective override, root, and persistence. Even a fully passing passive report
+is not evidence that the anchor was invoked. Do not replace this generated probe
+with an arbitrary script under the same filename.
 
 ## Phase 2 — network surface (only if the unit reaches a network)
 

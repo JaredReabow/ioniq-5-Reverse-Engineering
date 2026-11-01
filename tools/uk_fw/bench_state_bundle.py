@@ -47,6 +47,46 @@ EXPECTED_SECTIONS = (
     "hashes",
     "complete",
 )
+CAPABILITY_NAMES = (
+    "CAP_CHOWN",
+    "CAP_DAC_OVERRIDE",
+    "CAP_DAC_READ_SEARCH",
+    "CAP_FOWNER",
+    "CAP_FSETID",
+    "CAP_KILL",
+    "CAP_SETGID",
+    "CAP_SETUID",
+    "CAP_SETPCAP",
+    "CAP_LINUX_IMMUTABLE",
+    "CAP_NET_BIND_SERVICE",
+    "CAP_NET_BROADCAST",
+    "CAP_NET_ADMIN",
+    "CAP_NET_RAW",
+    "CAP_IPC_LOCK",
+    "CAP_IPC_OWNER",
+    "CAP_SYS_MODULE",
+    "CAP_SYS_RAWIO",
+    "CAP_SYS_CHROOT",
+    "CAP_SYS_PTRACE",
+    "CAP_SYS_PACCT",
+    "CAP_SYS_ADMIN",
+    "CAP_SYS_BOOT",
+    "CAP_SYS_NICE",
+    "CAP_SYS_RESOURCE",
+    "CAP_SYS_TIME",
+    "CAP_SYS_TTY_CONFIG",
+    "CAP_MKNOD",
+    "CAP_LEASE",
+    "CAP_AUDIT_WRITE",
+    "CAP_AUDIT_CONTROL",
+    "CAP_SETFCAP",
+    "CAP_MAC_OVERRIDE",
+    "CAP_MAC_ADMIN",
+    "CAP_SYSLOG",
+    "CAP_WAKE_ALARM",
+    "CAP_BLOCK_SUSPEND",
+    "CAP_AUDIT_READ",
+)
 SERIAL_PREFIX_RE = re.compile(r"^\[[0-9:.]+\]\s?")
 ANSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 BEGIN_RE = re.compile(r"^@@IONIQ_BENCH_STATE_V1\|BEGIN\|([a-z0-9_-]+)@@$")
@@ -480,6 +520,20 @@ if [ "$RS_STATE" = present ]; then
         *) record perf-event-paranoid "$I_PERF_VALUE" ;;
     esac
 fi
+for I_SYSCTL in kernel/kexec_load_disabled kernel/modules_disabled kernel/dmesg_restrict vm/mmap_min_addr
+ do
+    read_scalar security-sysctl "/proc/sys/$I_SYSCTL"
+    if [ "$RS_STATE" = present ]; then
+        I_SYSCTL_VALUE=$RS_VALUE
+        case "$I_SYSCTL_VALUE" in
+            ''|*[!0-9]*)
+                record malformed-scalar "security-sysctl|$I_SYSCTL|$I_SYSCTL_VALUE"
+                COLLECT_FAILURE=1
+                ;;
+            *) record security-sysctl "$I_SYSCTL|$I_SYSCTL_VALUE" ;;
+        esac
+    fi
+ done
 read_scalar kernel-cmdline /proc/cmdline
 if [ "$RS_STATE" = present ]; then
     I_CMDLINE=$RS_VALUE
@@ -573,6 +627,55 @@ do
         continue
     fi
     record process-credentials "$P_PID|$P_UID|$P_EUID|$P_SUID|$P_FSUID|$P_GID|$P_EGID|$P_SGID|$P_FSGID|$P_GROUPS"
+    P_SECURITY_FIELDS=$(awk '
+        $1 == "PPid:" { ppid=$2 }
+        $1 == "CapInh:" { capinh=$2 }
+        $1 == "CapPrm:" { capprm=$2 }
+        $1 == "CapEff:" { capeff=$2 }
+        $1 == "CapBnd:" { capbnd=$2 }
+        $1 == "CapAmb:" { capamb=$2 }
+        $1 == "NoNewPrivs:" { nonewprivs=$2 }
+        $1 == "Seccomp:" { seccomp=$2 }
+        END {
+            if (ppid == "" || capinh == "" || capprm == "" || capeff == "" || capbnd == "" || seccomp == "") exit 2
+            if (capamb == "") capamb="unavailable"
+            if (nonewprivs == "") nonewprivs="unavailable"
+            print ppid "|" capinh "|" capprm "|" capeff "|" capbnd "|" capamb "|" nonewprivs "|" seccomp
+        }
+    ' "$P_DIR/status" 2>/dev/null)
+    P_SECURITY_STATUS=$?
+    P_SECURITY_REST=$P_SECURITY_FIELDS
+    P_PPID=${P_SECURITY_REST%%|*}; P_SECURITY_REST=${P_SECURITY_REST#*|}
+    P_CAP_INH=${P_SECURITY_REST%%|*}; P_SECURITY_REST=${P_SECURITY_REST#*|}
+    P_CAP_PRM=${P_SECURITY_REST%%|*}; P_SECURITY_REST=${P_SECURITY_REST#*|}
+    P_CAP_EFF=${P_SECURITY_REST%%|*}; P_SECURITY_REST=${P_SECURITY_REST#*|}
+    P_CAP_BND=${P_SECURITY_REST%%|*}; P_SECURITY_REST=${P_SECURITY_REST#*|}
+    P_CAP_AMB=${P_SECURITY_REST%%|*}; P_SECURITY_REST=${P_SECURITY_REST#*|}
+    P_NO_NEW_PRIVS=${P_SECURITY_REST%%|*}
+    P_SECCOMP=${P_SECURITY_REST#*|}
+    P_SECURITY_VALID=1
+    for P_NUMBER in "$P_PPID" "$P_SECCOMP"
+    do
+        case "$P_NUMBER" in ''|*[!0-9]*) P_SECURITY_VALID=0 ;; esac
+    done
+    if [ "$P_NO_NEW_PRIVS" != unavailable ]; then
+        case "$P_NO_NEW_PRIVS" in ''|*[!0-9]*) P_SECURITY_VALID=0 ;; esac
+    fi
+    for P_CAP_VALUE in "$P_CAP_INH" "$P_CAP_PRM" "$P_CAP_EFF" "$P_CAP_BND"
+    do
+        case "$P_CAP_VALUE" in ''|*[!0-9a-fA-F]*) P_SECURITY_VALID=0 ;; esac
+        [ "${#P_CAP_VALUE}" -le 16 ] || P_SECURITY_VALID=0
+    done
+    if [ "$P_CAP_AMB" != unavailable ]; then
+        case "$P_CAP_AMB" in ''|*[!0-9a-fA-F]*) P_SECURITY_VALID=0 ;; esac
+        [ "${#P_CAP_AMB}" -le 16 ] || P_SECURITY_VALID=0
+    fi
+    if [ "$P_SECURITY_STATUS" -ne 0 ] || [ "$P_SECURITY_VALID" -ne 1 ]; then
+        record process-read-error "$P_PID|security-parse|status=$P_SECURITY_STATUS|valid=$P_SECURITY_VALID"
+        COLLECT_FAILURE=1
+    else
+        record process-security "$P_PID|$P_PPID|$P_CAP_INH|$P_CAP_PRM|$P_CAP_EFF|$P_CAP_BND|$P_CAP_AMB|$P_NO_NEW_PRIVS|$P_SECCOMP"
+    fi
     read_scalar process-comm "$P_DIR/comm"
     P_COMM=$RS_VALUE
     if [ "$RS_STATE" != present ]; then
@@ -618,7 +721,7 @@ capture_file smack-mounts /proc/mounts
 capture_file smack-rule /sys/fs/smackfs/load2
 capture_file smack-onlycap /sys/fs/smackfs/onlycap
 capture_file smack-ambient /sys/fs/smackfs/ambient
-for SX_PATH in /update /update/usb /update/usb/bin /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /app/bin/AppDMClient /app/bin/AppUpgrade /app/share/AppUpgrade/teruten5_pub.key
+for SX_PATH in /update /update/usb /update/usb/bin /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppUpgrade /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /tmp
  do
     for SX_NAME in SMACK64 SMACK64EXEC
     do
@@ -718,11 +821,11 @@ for S_DIR in /update /update/usb /update/sysroot /update/usb/upgrade /update/usb
 end_section storage 0
 
 begin_section hashes
-for H_META in /bin/busybox /usr/bin/unzip /usr/bin/unzip64 /app/bin/AppLauncher /app/bin/AppDMClient /app/bin/AppScomoDM /app/bin/AppUpgrade /app/bin/NaviUpdateApp /app/bin/CarOption.csv /app/share/AppUpgrade/DecryptToPIPE /app/share/AppUpgrade/teruten5_pub.key /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /tmp/AppUpgrade
+for H_META in /bin/busybox /usr/bin/unzip /usr/bin/unzip64 /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /lib/systemd/esinit /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppScomoDM /app/bin/AppUpgrade /app/bin/NaviUpdateApp /app/bin/CarOption.csv /app/share/AppUpgrade/DecryptToPIPE /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /tmp/AppUpgrade
  do
     file_meta "$H_META"
  done
-for H_TARGET in /usr/sbin/connmand /usr/sbin/ofonod /usr/sbin/wpa_supplicant /app/bin/supplicantmanager /app/bin/vbtd /tmp/vbtd /lib/systemd/system/vbtd.service /etc/setup_bt_patchram.sh /usr/sbin/dropbear /usr/sbin/dropbearmulti /bin/busybox /usr/bin/unzip /usr/bin/unzip64 /app/bin/AppLauncher /app/bin/AppDMClient /app/bin/AppScomoDM /app/bin/AppUpgrade /app/bin/NaviUpdateApp /app/bin/CarOption.csv /app/share/AppUpgrade/AppUpgrade /app/share/AppUpgrade/DecryptToPIPE /app/share/AppUpgrade/teruten5_pub.key /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /tmp/AppUpgrade /lib/modules/4.1.27-abl/kernel/sound/core/seq/snd-seq.ko /lib/modules/4.1.27-abl/kernel/net/unix/unix.ko
+for H_TARGET in /usr/sbin/connmand /usr/sbin/ofonod /usr/sbin/wpa_supplicant /app/bin/supplicantmanager /app/bin/vbtd /tmp/vbtd /lib/systemd/system/vbtd.service /etc/setup_bt_patchram.sh /usr/sbin/dropbear /usr/sbin/dropbearmulti /bin/busybox /usr/bin/unzip /usr/bin/unzip64 /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /lib/systemd/esinit /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppScomoDM /app/bin/AppUpgrade /app/bin/NaviUpdateApp /app/bin/CarOption.csv /app/share/AppUpgrade/AppUpgrade /app/share/AppUpgrade/DecryptToPIPE /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /tmp/AppUpgrade /lib/modules/4.1.27-abl/kernel/sound/core/seq/snd-seq.ko /lib/modules/4.1.27-abl/kernel/net/unix/unix.ko
  do
     hash_file "$H_TARGET"
  done
@@ -806,13 +909,35 @@ def _split_fields(value: str, count: int) -> list[str]:
     return parts
 
 
+def _decode_capability_set(value: str) -> dict[str, Any] | None:
+    if value == "unavailable":
+        return None
+    if not re.fullmatch(r"[0-9A-Fa-f]{1,16}", value):
+        return {"hex": value, "malformed": True, "names": []}
+    bits = int(value, 16)
+    names = [
+        CAPABILITY_NAMES[bit] if bit < len(CAPABILITY_NAMES) else f"CAP_{bit}"
+        for bit in range(bits.bit_length())
+        if bits & (1 << bit)
+    ]
+    return {"hex": value.lower(), "value": bits, "names": names}
+
+
+def _decode_optional_decimal(value: str) -> int | str | None:
+    if value == "unavailable":
+        return None
+    return int(value) if value.isdigit() else value
+
+
 def _derive_facts(sections: Iterable[dict[str, Any]]) -> dict[str, Any]:
     facts: dict[str, Any] = {
         "hashes": {},
         "units": {},
         "processes": [],
         "process_credentials": {},
+        "process_security": {},
         "process_paths": {},
+        "security_sysctls": {},
         "interfaces": [],
         "files": {},
         "update_flags": [],
@@ -877,9 +1002,36 @@ def _derive_facts(sections: Iterable[dict[str, Any]]) -> dict[str, Any]:
                         for group in groups.split()
                     ],
                 }
+            elif key == "process-security":
+                (
+                    pid,
+                    ppid,
+                    cap_inheritable,
+                    cap_permitted,
+                    cap_effective,
+                    cap_bounding,
+                    cap_ambient,
+                    no_new_privs,
+                    seccomp,
+                ) = _split_fields(value, 9)
+                facts["process_security"][pid] = {
+                    "ppid": int(ppid) if ppid.isdigit() else ppid,
+                    "cap_inheritable": _decode_capability_set(cap_inheritable),
+                    "cap_permitted": _decode_capability_set(cap_permitted),
+                    "cap_effective": _decode_capability_set(cap_effective),
+                    "cap_bounding": _decode_capability_set(cap_bounding),
+                    "cap_ambient": _decode_capability_set(cap_ambient),
+                    "no_new_privs": _decode_optional_decimal(no_new_privs),
+                    "seccomp": _decode_optional_decimal(seccomp),
+                }
             elif key == "process-path":
                 pid, path = _split_fields(value, 2)
                 facts["process_paths"][pid] = path
+            elif key == "security-sysctl":
+                name, setting = _split_fields(value, 2)
+                facts["security_sysctls"][name] = (
+                    int(setting) if setting.isdigit() else setting
+                )
             elif key == "interface":
                 name, operstate, carrier, kind, ifindex, iflink, driver = _split_fields(value, 7)
                 facts["interfaces"].append(

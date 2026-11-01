@@ -4,8 +4,20 @@ This repository contains sanitized IONIQ 5 research findings, tools, and tests. 
 
 The owner USB evidence established installed infotainment software `NE_E.EUR.S5W_L.001.001.250604` and head-unit model `NEAE.S5BLC.AEU`; see [sanitized findings](evidence/vehicle-usb/README.md). No live vehicle action, firmware writing, or flashing was performed for this release.
 
-The execution-free [AppFUMO boot-activation boundary](evidence/appfumo-boot-activation-boundary.md)
-binds local completion/reset and recovery request construction plus a streamed
-canonical-rootfs inventory. It does not establish request execution, slot
-activation, mark-good, boot counters, rollback, persistent slot selection, or
-external MICOM/ABL/bootloader behavior.
+The execution-free FUMO trust-chain work now covers three linked boundaries:
+
+- [parameterized verifier provenance](evidence/appfumo-parameterized-verifier-provenance.md)
+  for the nested controller-resource route;
+- [partition-write integrity](evidence/appfumo-partition-write-integrity.md),
+  including pre-write source checking, pathname reopen, non-hash mode, and the
+  absence of direct cryptographic readback in the reviewed completion route;
+- [boot activation](evidence/appfumo-boot-activation-boundary.md), binding local
+  reset/recovery request construction and a streamed canonical-rootfs inventory.
+
+These results do not establish accepted modified content, request execution,
+slot activation, mark-good, boot counters, rollback, persistent slot selection,
+root, persistence, or external MICOM/ABL/bootloader behavior.
+
+The formerly parallel repository histories have been combined through merge
+ancestry rather than replacement. The same reviewed combined branch and README
+are published to both repositories so neither lineage's work is discarded.

@@ -203,14 +203,39 @@ VM control lives in `tools/uk_fw/vm_boot.py`; boot-contract details are in
 Snapshot mode with no networking is a hard requirement: runs must not mutate the
 base image or reach the network.
 
-## Exact-static AppFUMO boot boundary
+## Exact-static update-trust and boot boundaries
 
-The execution-free [boot-activation boundary assessment](evidence/appfumo-boot-activation-boundary.md)
-binds the completion QML and Qt dispatch chain to a local asynchronous reset
-request, separately maps reboot-system and recovery requests, and streams the
-canonical rootfs inventory. None of those requests carries a slot identifier or
-proves hardware action; inactive-slot activation, mark-good, counters, rollback,
-and persistent slot choice remain outside the reviewed ELF/rootfs evidence.
+Recent execution-free work has advanced three adjacent parts of the recovered
+FUMO updater without running it or constructing update material:
+
+- [Parameterized verifier provenance](evidence/appfumo-parameterized-verifier-provenance.md)
+  resolves two formerly unknown direct verifier operands as one nested
+  controller-resource route. Verification and transformation reuse a pathname
+  value but independently reopen it, so same-object and same-byte continuity
+  remain unproved.
+- [Partition-write integrity](evidence/appfumo-partition-write-integrity.md)
+  maps the source-integrity gate, its non-hash mode, inactive-target selection,
+  and the write-completion boundary. Source verification is pre-write; no
+  cryptographic readback of final inactive-partition bytes was found in the
+  reviewed direct route.
+- [Boot-activation boundary](evidence/appfumo-boot-activation-boundary.md)
+  binds the completion QML and Qt dispatch chain to a local asynchronous reset
+  request, separately maps reboot-system and recovery requests, and streams the
+  canonical rootfs inventory. None of those requests carries a slot identifier
+  or proves hardware action.
+
+Together these results narrow the remaining boundary to runtime pathname
+immutability and external MICOM/ABL/bootloader behavior. They do not establish
+an accepted modified update, inactive-slot activation, mark-good, rollback,
+root access, or persistence.
+
+## Combined repository history
+
+The two previously parallel public repositories now share the same combined
+history. Their original lineages remain reachable through the merge ancestry;
+no branch was squashed or replaced to perform the combination. This README
+retains the highlights and evidence links from both bodies of work, and the
+same reviewed combined commit is published to both repository remotes.
 
 ## Validation
 

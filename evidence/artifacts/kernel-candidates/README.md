@@ -323,6 +323,17 @@ reject the CVE-specific unlocked UAF-read premise. SHA-256:
 `8ba8682107ee2ca3347354e018865d8e1967c5f4`; SHA-256:
 `35c7a6a530095ed0424987d820e46db341a250820ed88ce1b1a89ec30acabd67`.
 
+`kernel-sock-buffer-force-cve-2016-9793.asm` retains complete
+embedded-kallsyms-bounded `sock_setsockopt` machine code. Both forced buffer
+routes gate on exact `capable(CAP_NET_ADMIN)`, then join send/receive sequences
+that double the input-derived value, use signed `cmovle` minimum selection, and
+store only after that clamp. These effects reject the CVE-specific negative
+socket-buffer premise. SHA-256:
+`3911ee771afb2f215013d3bdef4ef93ed2e7fd4b08b96a08d8cb1ebb7433c5df`.
+`cve-2016-9793-fix.patch` is upstream commit
+`b98b0bc8c431e3ceb4b26b0dfc8db509518fb290`; SHA-256:
+`620453e77616829f5c311793f02ae9f519dcedcbcda757c4878727e47fe42876`.
+
 `kernel-assoc-array-cve-2016-7914.asm` retains complete embedded-kallsyms-bounded
 `assoc_array_insert` and `__key_link_begin` machine code. In the inlined
 terminal-node loop, metadata-tagged node/shortcut slots branch around the

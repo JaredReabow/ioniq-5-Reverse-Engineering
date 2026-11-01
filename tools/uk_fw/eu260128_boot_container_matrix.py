@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify the complete EU 260128 iasImage filename and signature matrix."""
 from __future__ import annotations
-import argparse,hashlib,json,os,stat,struct,subprocess,sys
+import argparse,hashlib,json,os,stat,struct,subprocess,sys,threading
 from pathlib import Path
 SCHEMA="eu260128-boot-container-matrix/v1";VERSION="1.0.0";META=0x4024;KEY=bytes.fromhex("60a93d70f73302a63e5ed0d0ea38be22");MAX=7_000_000
 MOD_HASH="227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6"
@@ -53,6 +53,39 @@ def decrypt_te2(name:str,raw:bytes)->tuple[bytes,dict]:
  dec=Cipher(algorithms.AES(KEY),modes.CBC(iv)).decryptor();plain=(dec.update(ciphertext)+dec.finalize())[:len(body)]
  return plain,{"metadata_discriminator":meta[3],"iv":iv.hex(),"metadata_integrity":True,"body_size":len(body)}
 def u32(b,o):return struct.unpack_from("<I",b,o)[0]
+def lz4_decode(data:bytes)->tuple[int,bytes,bytes]:
+ """Drain stdin/stdout concurrently; Python 3.13/macOS pipe IO can deadlock otherwise."""
+ try:p=subprocess.Popen(["lz4","-d","-c"],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+ except OSError as e:raise Failure(f"host lz4 unavailable: {e}") from e
+ out=[];err=[];total=[0];problem=[]
+ def feed():
+  try:
+   assert p.stdin is not None;p.stdin.write(data)
+  except BrokenPipeError:pass
+  except OSError as e:problem.append(f"lz4 stdin failure: {e}")
+  finally:
+   if p.stdin is not None:
+    try:p.stdin.close()
+    except OSError:pass
+ def drain(stream,dst,bounded):
+  try:
+   while True:
+    c=stream.read(1<<20)
+    if not c:break
+    if bounded:
+     total[0]+=len(c)
+     if total[0]<=16398377:dst.append(c)
+    elif sum(map(len,dst))<=65536:dst.append(c)
+  except OSError as e:problem.append(f"lz4 pipe read failure: {e}")
+ threads=[threading.Thread(target=feed),threading.Thread(target=drain,args=(p.stdout,out,True)),threading.Thread(target=drain,args=(p.stderr,err,False))]
+ for t in threads:t.start()
+ try:rc=p.wait(timeout=30)
+ except subprocess.TimeoutExpired:
+  p.kill();p.wait();problem.append("host lz4 timed out");rc=p.returncode
+ for t in threads:t.join(timeout=5)
+ if any(t.is_alive() for t in threads):problem.append("host lz4 pipe thread did not terminate")
+ if problem:raise Failure(problem[0])
+ return rc,b"".join(out),b"".join(err)
 def parse_ipk(name:str,b:bytes,root:str,console:bool)->dict:
  if len(b)!=6210308 or b[:4]!=b"ipk.":raise Failure(f"ipk identity drift: {name}")
  version,reserved,total,hdr,dup,bid,clen=struct.unpack_from("<7I",b,4)
@@ -74,12 +107,11 @@ def parse_ipk(name:str,b:bytes,root:str,console:bool)->dict:
  if not em.startswith(b"\0\1") or sep<10 or em[2:sep]!=b"\xff"*(sep-2) or em[sep+1:]!=DI_PREFIX+digest:raise Failure(f"RSA signature failure: {name}")
  lz4off=b.find(b"\x02\x21\x4c\x18")
  if lz4off<0:raise Failure(f"legacy LZ4 stream absent: {name}")
- try:proc=subprocess.run(["lz4","-d","-c"],input=b[lz4off:],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=30,check=False)
- except (OSError,subprocess.TimeoutExpired) as e:raise Failure(f"host lz4 unavailable or timed out: {e}") from e
+ _,decoded,_=lz4_decode(b[lz4off:])
  # The stream is followed by signed-container trailer bytes, so stock lz4 may
  # return nonzero after emitting the complete frame. Bind the emitted bytes.
- if len(proc.stdout)!=16398376 or hashlib.sha256(proc.stdout).hexdigest()!="f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b":raise Failure(f"decompressed kernel identity mismatch: {name}")
- return {"ipk_size":len(b),"version":version,"total_field":total,"header_size":hdr,"build_id":bid,"command_line_length":clen,"root_target":root,"serial_console":console,"signed_end":base+4,"signed_sha256":digest.hex(),"signature":"RSA-2048 PKCS#1 v1.5 SHA-256","modulus_sha256":MOD_HASH,"legacy_lz4_offset":lz4off,"decompressed_kernel_size":len(proc.stdout),"decompressed_kernel_sha256":"f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b"}
+ if len(decoded)!=16398376 or hashlib.sha256(decoded).hexdigest()!="f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b":raise Failure(f"decompressed kernel identity mismatch: {name}")
+ return {"ipk_size":len(b),"version":version,"total_field":total,"header_size":hdr,"build_id":bid,"command_line_length":clen,"root_target":root,"serial_console":console,"signed_end":base+4,"signed_sha256":digest.hex(),"signature":"RSA-2048 PKCS#1 v1.5 SHA-256","modulus_sha256":MOD_HASH,"legacy_lz4_offset":lz4off,"decompressed_kernel_size":len(decoded),"decompressed_kernel_sha256":"f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b"}
 def analyze(d:Path)->dict:
  try:entries=list(os.scandir(d))
  except OSError as e:raise Failure(f"cannot scan input directory: {e}") from e

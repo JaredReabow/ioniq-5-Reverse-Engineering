@@ -264,7 +264,7 @@
   "tool": {
     "bound_helpers": {
       "elf": "c0edbbe93df218192f315437132764549453e78f7a93fec350540637312a1e82",
-      "matrix": "af2b37b8d5dca602edff12bb801ed3cba02c361c243d300e173ebd5b0d4c1e20"
+      "matrix": "59be28fe371384560f20e8fe2568a6367a64338e7f5e7b8dc1183de85dfd7ade"
     },
     "name": "decrypttopipe-output-integrity",
     "version": "1.0.0"

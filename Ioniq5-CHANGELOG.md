@@ -3,6 +3,17 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.07.0 - full suite green: 782 tests, 351,486 subtests
+
+- Installed the missing test dependencies in a **virtual environment** rather than against the system interpreter, because
+  Homebrew's Python is externally managed (PEP 668) and refuses a direct install. Needed: **`pytest`** and **`cryptography`**.
+- With those present the five previously-erroring modules run and **pass**: `test_asf_stream_probe`, `test_gen5w_decrypt`,
+  `test_ipk_tool`, `test_public_rsa_probe`, `test_appfumo_usb_pathname_model` — **78 tests**, all green. These are exactly the
+  modules that came from the parallel lineage, so this also verifies the merged code inherited from it.
+- **Whole suite: 782 passed, 351,486 subtests passed**, no failures and no errors.
+- The exact commands and the expected result are now in `tests/README.md`, along with the note that those five modules import
+  `pytest` directly and therefore appear as import errors under plain `unittest discover` — a dependency gap, not a defect.
+
 ## 2.06.0 - privacy scan widened to vm/ and QML; the suite is green
 
 - Fixed the failure carried over from the parallel lineage, which had **two** causes rather than one:

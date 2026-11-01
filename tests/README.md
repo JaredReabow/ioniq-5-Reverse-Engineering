@@ -101,3 +101,21 @@ defective package or fingerprint mismatch fails.
 ## Public snapshot mode
 
 When `PUBLIC-RELEASE.md` exists, the private ledger and frozen Council packets are excluded. The runner marks those checks `info`, validates the published history and changelog directly, and applies stricter public privacy checks. This is not a validation of the original private acceptance hashes.
+
+## Running the full suite
+
+The suite needs **`pytest`** and **`cryptography`**. Homebrew's Python is externally managed (PEP 668), so install
+them in a virtual environment rather than against the system interpreter:
+
+```sh
+python3.13 -m venv /tmp/ptvenv
+/tmp/ptvenv/bin/pip install pytest cryptography
+/tmp/ptvenv/bin/python -m pytest tests -q
+```
+
+Expected result on a healthy checkout: **782 passed, 351,486 subtests passed**.
+
+Five modules (`test_asf_stream_probe`, `test_gen5w_decrypt`, `test_ipk_tool`, `test_public_rsa_probe`,
+`test_appfumo_usb_pathname_model`) import `pytest` directly, so with `unittest discover` alone they fail to
+import and report as errors rather than being skipped. That is a missing dependency, not a defect in the code
+under test — all five tool modules are present and pass once the dependencies exist.

@@ -3606,3 +3606,11 @@ and are superseded by corrections rather than silently rewritten.
   looked like a fix and changed nothing.
 - The remaining five suite errors are a missing pytest, not a merge defect — the tool modules are present on both sides. That
   distinction matters because the instinct is to attribute every red test to the merge.
+
+## 2026-10-31 — the suite is green, and the inherited code is verified by it
+
+- Five modules had been reporting as errors for want of pytest and cryptography. In a virtual environment they run, and all
+  seventy-eight of their tests pass — which also proves the code that came across from the parallel lineage actually works
+  rather than merely existing.
+- Recording the commands and the expected count matters more than the number itself: a red suite that is red for a missing
+  dependency trains people to ignore it.

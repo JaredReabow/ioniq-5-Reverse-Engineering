@@ -3,6 +3,16 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.16.0 - register evidence integrity: 101 cited paths, all present
+
+- Checked every repo-relative path the register cites in backticks — the evidence each finding points at — after the
+  combination, since a merged tree can silently lose files that entries still reference.
+- **101 cited paths, 101 present, 0 dangling.** So every claim in the register still points at material that exists in this
+  tree; nothing was orphaned by the merge, and the duplicate importer did not carry references to files that did not come with
+  it.
+- This was worth checking rather than assuming: the merge resolved 39 conflicted files by content, and the imported entries
+  referenced `evidence/` material from the other lineage. All of it arrived.
+
 ## 2.15.0 - a contradictory severity claim between duplicate entries, reconciled
 
 - Combining the lineages put **two different statuses for the same finding** into one register. **V-037** (imported,

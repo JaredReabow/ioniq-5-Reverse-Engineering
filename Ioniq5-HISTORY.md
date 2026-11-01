@@ -3677,3 +3677,10 @@ and are superseded by corrections rather than silently rewritten.
 - Resolving it meant keeping both texts and putting the reconciliation where a reader would hit it, because deleting the
   imported claim would have hidden that it was ever made. The defect is real; the reachability is not; the register now says
   both, in the right order.
+
+## 2026-10-31 — checking the citations survive the merge
+
+- A register whose entries point at files that no longer exist is worse than one with fewer entries, so every cited path was
+  resolved after the combination. All one hundred and one are present.
+- That closes the merge: content combined, duplicates marked, the contradictory severity reconciled, the count corrected
+  against grep, and the citations verified.

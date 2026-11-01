@@ -1,0 +1,272 @@
+{
+  "appfumo": {
+    "build_id": "863a8730e66a1c5245a1bf458fe2554adee0351a",
+    "numeric_offset": 0,
+    "pipeline_template": "%1 -d %2 %3 0 | ",
+    "sha256": "464a87646153213ce1f405743a10cff78eb90c203b619f983002358ca74ef0e7"
+  },
+  "boot_sources": [
+    {
+      "fallback_offset": null,
+      "name": "iasImage",
+      "parser_classification": "te2_decrypt",
+      "source_sha256": "6db0bb746722389092e60681554a3b9f1b391f8def59c65c68e764cc9d6007ce",
+      "te2_wrapped": true,
+      "trailer_prefix_hex": "54453209"
+    },
+    {
+      "fallback_offset": null,
+      "name": "iasImage_1280",
+      "parser_classification": "te2_decrypt",
+      "source_sha256": "c2a314bc63e1dbe1440bd87b9135210b6eea356727ba03bdecb692b61d3bce4e",
+      "te2_wrapped": true,
+      "trailer_prefix_hex": "54453209"
+    },
+    {
+      "fallback_offset": 0,
+      "name": "iasImage_1280_sub",
+      "parser_classification": "minus404_magic",
+      "source_sha256": "55e9a31be5ca734a7af111613ae6ce83cdc579b27138c5f54700f78263056eb0",
+      "te2_wrapped": false,
+      "trailer_prefix_hex": "ff010021"
+    },
+    {
+      "fallback_offset": null,
+      "name": "iasImage_1920_12",
+      "parser_classification": "te2_decrypt",
+      "source_sha256": "aaa0384e4f147ec016f019f839a06a7ed19f3a407d8b0d23070c97c8c459e0dd",
+      "te2_wrapped": true,
+      "trailer_prefix_hex": "54453209"
+    },
+    {
+      "fallback_offset": 0,
+      "name": "iasImage_1920_12_sub",
+      "parser_classification": "minus404_magic",
+      "source_sha256": "e4d7523ba0f77a7b659260df82968d515859b01e06738bf7cfd79bef83db8e05",
+      "te2_wrapped": false,
+      "trailer_prefix_hex": "ff010021"
+    },
+    {
+      "fallback_offset": null,
+      "name": "iasImage_p5",
+      "parser_classification": "te2_decrypt",
+      "source_sha256": "57ea6691a1118020bc263c1fbdba3d7e26dd0240f4c89fac380c5578708376b0",
+      "te2_wrapped": true,
+      "trailer_prefix_hex": "54453209"
+    },
+    {
+      "fallback_offset": null,
+      "name": "iasImage_p5_1280",
+      "parser_classification": "te2_decrypt",
+      "source_sha256": "7e8fd8c426c64eec197462aed53290c63e1a12aea43a5556f45acd2c90da3476",
+      "te2_wrapped": true,
+      "trailer_prefix_hex": "54453209"
+    },
+    {
+      "fallback_offset": 0,
+      "name": "iasImage_p5_1280_sub",
+      "parser_classification": "minus404_magic",
+      "source_sha256": "fb442a993619b17c94c95826cc425a6e04c3e947c1f9c009191dec63607acbad",
+      "te2_wrapped": false,
+      "trailer_prefix_hex": "ff010021"
+    },
+    {
+      "fallback_offset": null,
+      "name": "iasImage_p5_1920_12",
+      "parser_classification": "te2_decrypt",
+      "source_sha256": "7d3c4c43cee76c45518f85df2ac07cb124a7984d238d7189e6ead9e4967500f3",
+      "te2_wrapped": true,
+      "trailer_prefix_hex": "544532e0"
+    },
+    {
+      "fallback_offset": 0,
+      "name": "iasImage_p5_1920_12_sub",
+      "parser_classification": "minus404_magic",
+      "source_sha256": "e4d7523ba0f77a7b659260df82968d515859b01e06738bf7cfd79bef83db8e05",
+      "te2_wrapped": false,
+      "trailer_prefix_hex": "ff010021"
+    },
+    {
+      "fallback_offset": 0,
+      "name": "iasImage_p5_sub",
+      "parser_classification": "minus404_magic",
+      "source_sha256": "47a6f19f395529814be3eeb7a5751815fab8d31b36fdc503ef025e65070a484f",
+      "te2_wrapped": false,
+      "trailer_prefix_hex": "ff010021"
+    },
+    {
+      "fallback_offset": 0,
+      "name": "iasImage_sub",
+      "parser_classification": "minus404_magic",
+      "source_sha256": "deb69570c89a37f15a92a2e07247138ab0ed83ea108141f24536db6f0f9bbc7f",
+      "te2_wrapped": false,
+      "trailer_prefix_hex": "ff010021"
+    }
+  ],
+  "conclusions": {
+    "appfumo_pipeline_proves_complete_dd_input": false,
+    "boot_acceptance_or_persistence_proved": false,
+    "decrypt_or_write_failure_propagates_to_process_exit": false,
+    "final_boot_partition_bytes_or_durability_proved": false,
+    "plaintext_sub_pass_through_route_present": true,
+    "process_zero_exit_proves_complete_output": false
+  },
+  "decrypttopipe": {
+    "build_id": "4303e27a93f0acfb308146a5d034dafbffa064d0",
+    "direct_calls": {
+      "decrypt_stdout_write": {
+        "site": 33659,
+        "target": 32720
+      },
+      "fallback_fclose": {
+        "site": 33874,
+        "target": 32576
+      },
+      "fallback_fopen": {
+        "site": 33786,
+        "target": 32672
+      },
+      "fallback_fread": {
+        "site": 33861,
+        "target": 32448
+      },
+      "fallback_fseek": {
+        "site": 33807,
+        "target": 32128
+      },
+      "fallback_stdout_write": {
+        "site": 33835,
+        "target": 32720
+      },
+      "main_load_key": {
+        "site": 33128,
+        "target": 40528
+      },
+      "main_parse_offset": {
+        "site": 33137,
+        "target": 33904
+      },
+      "main_stream": {
+        "site": 33156,
+        "target": 33488
+      },
+      "stream_parse_envelope": {
+        "site": 33576,
+        "target": 36992
+      }
+    },
+    "instruction_anchors": {
+      "decrypt_write_negative_only": {
+        "sha256": "efcf65a1928dc637704f3238b8565c67beb77a6091e2c3cb38fa483189f35313",
+        "size": 30,
+        "va": 33639
+      },
+      "main_dispatch_and_zero_return": {
+        "sha256": "ac13478a66bc1a14a160287bcc3592fc1ca74566f6b4bd32fb7b662ccd5448dc",
+        "size": 109,
+        "va": 33061
+      },
+      "minus404_store": {
+        "sha256": "a1db01a8f3341c9df9041ca828fceaa161270d89b3a4840f8a04edbfa3c9c54c",
+        "size": 26,
+        "va": 37238
+      },
+      "numeric_offset_parser": {
+        "sha256": "3d927dc00e57ae2e74e91b4510a7c29c208dea156d01ec81676ae06c2a0b328e",
+        "size": 118,
+        "va": 33904
+      },
+      "plaintext_fallback_negative_only": {
+        "sha256": "e882cb62110742b007615b398490adcf34c45fc50554b4cc6f62317e6cd220cb",
+        "size": 103,
+        "va": 33776
+      },
+      "stream_result_classification": {
+        "sha256": "0f9ec6ee9a39f546af991f7f99d9a689d162afe0cba838fcef60e79e0a601f38",
+        "size": 27,
+        "va": 33576
+      },
+      "te2_or_minus404_parser": {
+        "sha256": "e86a8825675782b43ba1d2282ebbfdd99bfa00e9f380c5e5b4515e720243c7d5",
+        "size": 267,
+        "va": 37111
+      }
+    },
+    "ranges": {
+      "decrypt_reader": {
+        "end_exclusive": 39118,
+        "sha256": "478b4d9d1b05488240c1273ab8d87d21fd0d547a457f9abf82c9a5e9db16003a",
+        "start": 38224
+      },
+      "envelope_parser": {
+        "end_exclusive": 38222,
+        "sha256": "d7236fde765b031f0753e4937417a0dabc3d85fb04277d493224ea1345d2bd49",
+        "start": 36992
+      },
+      "key_loader": {
+        "end_exclusive": 40692,
+        "sha256": "9f4932d4d87704a33c5b03bbdb531a73ad30a8c9d94aa9301371eb6d2dab000c",
+        "start": 40528
+      },
+      "main": {
+        "end_exclusive": 33175,
+        "sha256": "ef61feff42227530a048d72745fff99f0c8b1daff0613a31edb8ed471cfb0aee",
+        "start": 33040
+      },
+      "offset_parser": {
+        "end_exclusive": 34031,
+        "sha256": "bad26422eb28d5a4c77b84843e397baf2702b4520b68b11d8464060b1837ef53",
+        "start": 33904
+      },
+      "stream": {
+        "end_exclusive": 33889,
+        "sha256": "c0809b306973e00197084b5ee5b9a5bba9547ab198d247a10c9feed5ae15c62b",
+        "start": 33488
+      },
+      "stream_close": {
+        "end_exclusive": 40428,
+        "sha256": "062a0d3dcef9b90129000bfa27511e53ad9e04e1908c113625e983ed0953120b",
+        "start": 40272
+      }
+    },
+    "sha256": "e3110811e83701368e638947e6d8887f59321707e70f6288adf0790090d929c0",
+    "size": 559192
+  },
+  "exact_static": {
+    "all_sub_images_select_minus404_fallback": true,
+    "decrypt_write_rejects_only_negative": true,
+    "fallback_write_rejects_only_negative": true,
+    "main_exit_status_after_stream_call": 0,
+    "minus404_fallback_copies_from_offset_zero": true,
+    "normal_images_select_te2_path": true,
+    "other_parser_errors_can_emit_no_output": true,
+    "short_nonnegative_write_is_fully_accounted": false
+  },
+  "limitations": [
+    "Static classification proves branch selection for the exact package bytes; no target helper or pipeline was executed.",
+    "A pass-through route and zero offset do not prove complete stdout delivery because short nonnegative writes are not retried.",
+    "The surrounding AppFUMO helper discards pclose status, and this process itself returns zero after stream failures.",
+    "No conclusion establishes final partition bytes, boot selection, external key acceptance, health, mark-good, rollback, root, or persistence."
+  ],
+  "rootfs": {
+    "member": {
+      "canonical_name": "app/share/AppUpgrade/DecryptToPIPE",
+      "gid": 0,
+      "mode": "0755",
+      "sha256": "e3110811e83701368e638947e6d8887f59321707e70f6288adf0790090d929c0",
+      "size": 559192,
+      "uid": 0
+    },
+    "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+    "size": 879109759
+  },
+  "schema": "decrypttopipe-output-integrity/v1",
+  "tool": {
+    "bound_helpers": {
+      "elf": "c0edbbe93df218192f315437132764549453e78f7a93fec350540637312a1e82",
+      "matrix": "af2b37b8d5dca602edff12bb801ed3cba02c361c243d300e173ebd5b0d4c1e20"
+    },
+    "name": "decrypttopipe-output-integrity",
+    "version": "1.0.0"
+  }
+}

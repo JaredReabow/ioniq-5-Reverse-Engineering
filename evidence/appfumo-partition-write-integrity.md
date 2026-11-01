@@ -31,12 +31,16 @@ object binds the verifier's bytes to the writer's bytes. Exact same-object,
 same-byte, transformed-output, and final-partition identity remain unknown.
 
 The static map and active/inactive helper functions are present and hash-bound.
-The writer finds a selected record by field `+0x20` and consumes target field
-`+0x28`; image-backed and clone branches are distinct. The exact end-to-end
-assignment from a particular inactive-helper return object into the selected
-runtime record instance is not closed by the reviewed instructions, so the
-report marks that link unknown. No operational device mapping is published.
-Bootloader activation and mark-good are separate and unresolved.
+The writer finds a selected runtime record by field `+0x20`; image-backed and
+clone branches are distinct. A later exact-static pass corrects and closes the
+previously unknown target sublink: the selected runtime record's `+0x20`
+selector is mapped to an index, and the root branch uses that index to copy a
+separate static partition record whose `+0x28` field contains the populated
+inactive target. Active root `/dev/mmcblk0p3` maps to inactive root
+`/dev/mmcblk0p5`, and vice versa. See
+[`appfumo-inactive-partition-continuity.md`](appfumo-inactive-partition-continuity.md).
+This does not close source-byte continuity, write success, final-partition
+integrity, bootloader activation, or mark-good.
 
 The process-completion handler, fstab-state updater, and finalization FDEs have
 no direct call or jump to any inventoried file-signature/source-hash target
@@ -129,7 +133,7 @@ reaches it.
 | package source vs transformed/final partition | no binding proved |
 | image-backed vs clone | distinct writer branches |
 | process completion vs cryptographic readback | distinct; completion is not readback authentication |
-| inactive target vs bootloader activation | target selection machinery present; exact runtime-record assignment incomplete; activation/mark-good unknown |
+| inactive target vs bootloader activation | later exact-static pass closes selector/index/static inactive-target continuity; activation/mark-good remain unknown |
 | destination re-verification | no direct edge to the five inventoried helpers in the three reviewed post-write FDEs; broader absence unknown |
 | write/update success | unknown |
 | boot acceptance, root, persistence | all unknown |

@@ -1,0 +1,98 @@
+{
+  "schema": "appfumo-inactive-partition-continuity/v1",
+  "tool": "appfumo-inactive-partition-continuity",
+  "tool_version": "1.0.0",
+  "input": {
+    "size": 5066264,
+    "sha256": "464a87646153213ce1f405743a10cff78eb90c203b619f983002358ca74ef0e7",
+    "build_id": "863a8730e66a1c5245a1bf458fe2554adee0351a"
+  },
+  "instruction_ranges": [
+    {
+      "name": "inactive_name_lookup",
+      "raw_va_start": "0xa14c0",
+      "raw_va_end": "0xa1b70",
+      "sha256": "ad0654c7471238d57b3fc2dc6156b24bdc4680f219f7b133f009971c35ecbf77"
+    },
+    {
+      "name": "selected_table_population",
+      "raw_va_start": "0xa1b70",
+      "raw_va_end": "0xa2480",
+      "sha256": "8624adf53ae9e2c22f300d35f9294ca70bbaba9d9149098f9bd0a6a2047cd08f"
+    },
+    {
+      "name": "selected_record_copy",
+      "raw_va_start": "0xa0d50",
+      "raw_va_end": "0xa0dc3",
+      "sha256": "2d0d8c8e1c6e36890ada9d34ba5d759526b8520a271d898465b24f94faf6f6fe"
+    },
+    {
+      "name": "selector_to_index",
+      "raw_va_start": "0xbfb20",
+      "raw_va_end": "0xc0130",
+      "sha256": "2e49a19b7df4868438cf722178bc8ce994db3c80c4edac66363d944a3239ea69"
+    },
+    {
+      "name": "writer_selection_head",
+      "raw_va_start": "0xc541a",
+      "raw_va_end": "0xc556f",
+      "sha256": "fbb72522bdca54beec75b0f0a94eafe24b62fd2b9c51169a36c9d513f319c43f"
+    },
+    {
+      "name": "writer_jump_dispatch",
+      "raw_va_start": "0xc608d",
+      "raw_va_end": "0xc60c4",
+      "sha256": "74dbec9794d4197ecdd6666adf7225b03faeaa38b1c8b49e9670bfabb7377256"
+    },
+    {
+      "name": "root_target_construction",
+      "raw_va_start": "0xc765b",
+      "raw_va_end": "0xc792c",
+      "sha256": "5a3bb6ba1dd0c8e357d00d96f0649f4ea2c8d5b04531c4cea668c7f790b787b4"
+    }
+  ],
+  "inactive_partition_rows": [
+    {
+      "active_root": "/dev/mmcblk0p3",
+      "inactive_root": "/dev/mmcblk0p5",
+      "app": null,
+      "inactive_vr": "/dev/mmcblk0p7",
+      "inactive_boot": "/dev/mmcblk0p2",
+      "vrfix": "/dev/mmcblk0p17",
+      "uninterpreted_companion_fields": [
+        "/dev/mmcblk0p6",
+        null,
+        "/dev/mmcblk0p1",
+        "/dev/mmcblk0p17"
+      ]
+    },
+    {
+      "active_root": "/dev/mmcblk0p5",
+      "inactive_root": "/dev/mmcblk0p3",
+      "app": null,
+      "inactive_vr": "/dev/mmcblk0p6",
+      "inactive_boot": "/dev/mmcblk0p1",
+      "vrfix": "/dev/mmcblk0p17",
+      "uninterpreted_companion_fields": [
+        "/dev/mmcblk0p7",
+        null,
+        "/dev/mmcblk0p2",
+        "/dev/mmcblk0p17"
+      ]
+    }
+  ],
+  "bounded_conclusion": {
+    "status": "exact_static_selector_to_inactive_target_continuity",
+    "established": [
+      "The selected update record's +0x20 selector is mapped to an index before writer dispatch.",
+      "The root writer branch reuses index 1 when copying the selected inactive-partition record.",
+      "The same slot predicate selects the record table that population previously updated.",
+      "Active root /dev/mmcblk0p3 maps to inactive root /dev/mmcblk0p5 and vice versa."
+    ],
+    "not_established": [
+      "same-object or same-byte continuity between authentication and writer pathname reopen",
+      "successful partition write or final inactive-partition integrity",
+      "persistent slot activation, boot acceptance, mark-good, rollback, root, or persistence"
+    ]
+  }
+}

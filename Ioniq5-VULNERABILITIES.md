@@ -991,6 +991,19 @@ vulnerability is claimed, and this test does not move either entry.
 - **Two side-findings worth keeping for VM fidelity, independent of this bug:** the client expects a **second MMC device**
   (`/dev/mmcblk1p1`) that the projection does not provide, and a **`/Data` resource table** under
   `mnt-wt/Settings/shared_public` — matching the `/Data` item already ranked in the HMI gap analysis.
+- **`pszSrc` is `QSharedMemory::data()` — the question collapses to one attach.** The disassembly answers it directly:
+
+  `25a31c: movq 0x40(%rbx),%rdi` · `callq QSharedMemory::lock` · `testb %al,%al` · `je 0x25a308` (retry after `usleep 0x2710`)
+  `25a329: movq 0x40(%rbx),%rdi` · `callq QSharedMemory::data` · `testq %rax,%rax` · `je 0x25a440` (the `pszSrc NULL` log)
+
+  So `pszSrc` is literally `data()` on the client's **own** `QSharedMemory` member at `rbx+0x40`; there is **no third-party
+  provider** to find. `pszSrc NULL` means that object is **not attached**. Everything the earlier hypotheses looked for was a
+  stand-in for this one fact.
+- **Both attach strategies were tested against that finding.** Creating the region with `ihu-shim` (file *and* SysV segment)
+  removes `attach fail` but leaves `data()` NULL; creating **only the key file** and leaving the segment absent restores
+  `attach fail` and still leaves `data()` NULL. So `ApplicationManager` fails to obtain this shared memory whether or not the
+  region already exists — which points at the **attach call itself** (key derivation, size, or permissions), not at anything
+  missing from the environment.
 - **Hand-off state for V-036, complete:** reachability, interface construction and shared-memory mechanisms excluded by
   measurement; reply content confirmed as the blocker; three plausible payloads rejected against a live client; the oracle
   for testing further candidates exists and is documented; and the static anchors are listed with the specific difficulty

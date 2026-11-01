@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.10.0 - `pszSrc` identified: it is `QSharedMemory::data()`, and there is no third-party provider
+
+- The disassembly settles what the last several rounds were guessing at. The `pszSrc NULL` path is:
+
+  `movq 0x40(%rbx),%rdi` → `QSharedMemory::lock` (retry loop via `usleep 0x2710` on failure) → `QSharedMemory::data` →
+  `testq %rax,%rax` → `je 0x25a440`.
+
+  `pszSrc` is `data()` on the client's **own** `QSharedMemory` at `rbx+0x40`. There is no external provider to locate, and
+  every hypothesis this thread chased was a proxy for "that object is not attached".
+- **Both strategies tested against that:** creating the region with `ihu-shim` (file + segment) removes `attach fail` but
+  leaves `data()` NULL; creating **only the key file** and leaving the segment absent restores `attach fail` and still leaves
+  `data()` NULL. So the client cannot attach this object **either way**, which localises the fault to the attach itself —
+  key derivation, size, or permissions — rather than to anything missing from the environment.
+- That is a genuine narrowing produced by disassembly rather than by another experiment, and it is where this thread hands
+  over: the next step is the `QSharedMemory::attach` call site in `ApplicationManager` and the exact key/size it passes.
+
 ## 2.09.0 - missing /Data inputs excluded; two VM-fidelity gaps recorded
 
 - Swept the client's `ENOENT` calls for anything beyond the qipc noise and found it looking for

@@ -3629,3 +3629,11 @@ and are superseded by corrections rather than silently rewritten.
 - The sweep did produce two facts worth having on their own: the client wants a second MMC device, and it wants the /Data
   resource table. Both are fidelity gaps in the projection rather than bugs in the client.
 - The remaining question is inside one function, and no further external experiment will reach it.
+
+## 2026-10-31 — the answer was in four instructions
+
+- Reading the branch that prints the NULL message showed what it actually tests: data() on the client's own shared-memory
+  object. No external provider exists, and every theory I pursued was a stand-in for that simple fact.
+- Both environment strategies then failed against it, which is the useful form of a negative: it localises the fault to the
+  attach call rather than to the world around it.
+- This should have been the second thing I did, not the twentieth. Disassembly costs minutes; the experiments cost rounds.

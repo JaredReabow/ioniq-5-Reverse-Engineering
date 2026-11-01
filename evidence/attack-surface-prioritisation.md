@@ -192,6 +192,30 @@ V-028 corrects a literal-path-only negative. Exact `com.lge.avn.applauncher` Req
 
 This does not yet outrank V-014 as a physical entry because it starts after local code execution. It is stronger than the V-012 service-restart amplifier if its runtime gates hold: the private session bus defaults to the daemon's uid, many HMI applications/services are configured uid zero but SMACK-separated, and effective bus/socket/target labels remain unobserved. Prioritize passive installed hash, service/unit state, AppLauncher/caller uid and labels, `/tmp/session_appmgr{,.env}` metadata, and target-path execute access; leave service-name ownership and Request registration unknown because the probe does not connect to the bus. Do not send a launch request on the owner unit. See `evidence/applauncher-dbus-launch-bypass.md`.
 
+### 8.55. Direct stock `App::*` to `Privileged` SMACK transition — configured candidate, runtime gates open
+
+The canonical relabel contract assigns ordinary access label floor `_` and
+`SMACK64EXEC=Privileged` to `/etc/update_start_5w.sh.ori`, while setup writes
+`Privileged` to `smackfs/onlycap`. All 27 canonical `App::* -> _` policy rules
+grant both read and execute. Linux v4.1 first checks the caller's current label
+against the inode's ordinary access label, then selects the execute label in
+proposed credentials; script-interpreter preparation preserves it and the ELF
+loader later commits it. This yields a direct configured transition candidate
+that does not depend on V-028, AppLauncher, or session-bus delivery.
+
+This is not a UID escalation or demonstrated effective SMACK override.
+Installed xattrs/policy, DAC and mount admission, source UID/capability masks,
+securebits, unsafe-exec state, complete interpreter loading, and the resulting
+credentials remain unobserved. `onlycap=Privileged` supplies label eligibility at
+`smack_privileged()` call sites only; the task must still possess the applicable
+effective capability. The stock script also has an environment-sensitive
+unqualified command lookup, but runtime environment influence and successful
+command execution are unknown. No payload, alternate pathname, target execution,
+label change, update, flash, or persistence action was produced. The
+independently accepted tool-version-`1.3.0` report is SHA-256
+`c4cfa148c93a437ce3eb87656c6d7458e4c7b3869c9270be33c28df5933b46cf`.
+See `evidence/smack-privileged-exec-chain.md`.
+
 ### 8.6. AppDMClient update source identity — exact static boundary, runtime substitution unknown
 
 V-031 establishes that the recovered AppDMClient verifier contract carries only

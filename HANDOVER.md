@@ -12,6 +12,39 @@ The parallel repository last stamped this handover **2026-10-28** with the same
 opening paragraph. Every section it carries is present below; the newer dated
 checkpoints from this lineage stay first, as they are the later findings.
 
+## Direct SMACK `Privileged` exec-transition checkpoint — 2026-11-09
+
+- A strict canonical-policy audit found 27 distinct `App::* -> _` rules and all
+  grant both read and execute. The stock relabel contract assigns ordinary
+  label `_` and `SMACK64EXEC=Privileged` to
+  `/etc/update_start_5w.sh.ori`; setup writes `Privileged` to `onlycap`.
+- Linux v4.1 checks the pre-transition task label against the inode's ordinary
+  access label, separately performs read admission during open, then places the
+  execute label in proposed credentials. Script-interpreter preparation
+  preserves that selected label; the ELF loader commits it before all later
+  loader work has necessarily completed.
+- This supports a direct configured `App::* -> Privileged` transition candidate
+  independent of V-028 and the session bus. It is not a UID escalation:
+  capability masks remain separate, and `onlycap=Privileged` supplies eligibility
+  at `smack_privileged()` call sites only when the task also has the applicable
+  effective capability.
+- Exact Bash/glibc identities establish secure-loader removal of named dangerous
+  variables, UID/GID-based Bash privileged-mode semantics, ordinary environment
+  import, guarded environment-function import, and PATH-based lookup. The stock
+  anchor does not reset PATH and performs an unqualified lookup, but runtime
+  environment influence and command execution remain unobserved.
+- Added `tools/uk_fw/smack_privileged_exec_chain.py` version `1.3.0`, focused
+  tests, `evidence/smack-privileged-exec-chain.md`, and deterministic report
+  SHA-256 `c4cfa148c93a437ce3eb87656c6d7458e4c7b3869c9270be33c28df5933b46cf`.
+  The first independent review required explicit alias/link/special-node tests
+  and analyzer-owned archive/descriptor helpers. The second required a
+  hash-bound x86-64 `EXTRA_UNSECURE_ENVVARS` definition and explicit single-dot
+  archive coverage. Both rounds were remediated; a third fresh, strictly
+  read-only review returned `ACCEPTED` with no P0–P2 findings. Focused validation
+  passes 15 tests; the complete suite passes 891 tests and 351661 subtests. No
+  target execution, payload, D-Bus request, label change, update, flash, or
+  persistence action occurred.
+
 ## AppFUMO `decryptionFile` producer-provenance checkpoint — 2026-11-08
 
 - Analysis began at requested HEAD

@@ -1,0 +1,264 @@
+{
+  "assessment": {
+    "configured_direct_app_to_onlycap_label_transition_candidate": true,
+    "configured_smack_override_eligibility_after_transition": true,
+    "configured_uid_escalation": false,
+    "effective_smack_override_established": false,
+    "operational_payload_emitted": false,
+    "runtime_root_or_persistence_demonstrated": false
+  },
+  "bash": {
+    "build_id": "bbe47288a3fee7f0979fed1eb2794e5596f33113",
+    "dynamic_loader": {
+      "role": "canonical-glibc-2.25-loader",
+      "sha256": "0dfa16d8b5c9b35fb161a6f5dab48e7b267531ecf8ec3bf3ac74de61ce2ad99e",
+      "size": 149184
+    },
+    "elf_interpreter": "/lib/ld-linux-x86-64.so.2",
+    "embedded_version_role": "GNU-bash-3.2.57-release",
+    "named_secure_environment_interfaces_present": [],
+    "sha256": "783a69b9b27fae5da3fa93e441467160d6e760f3a79048a4dd02d98b571ad0aa",
+    "size": 946216
+  },
+  "configured_labels": {
+    "anchor_access_label": "_",
+    "anchor_exec_label": "Privileged",
+    "anchor_interpreter": "/bin/sh",
+    "anchor_resets_path": false,
+    "appupgrade_exec_label": "App::upgrade",
+    "onlycap_label": "Privileged",
+    "unqualified_lookup_before_argument_exit": "date"
+  },
+  "limits": [
+    "Canonical archive configuration is not owner-unit runtime state.",
+    "The ordinary inode access label and pre-transition subject control read/execute admission; SMACK64EXEC does not authorize opening the file.",
+    "Execute-label transition changes the SMACK task label, not UID, capabilities, mount flags, or bytes.",
+    "Credential commitment is not synonymous with complete successful ELF loading; later loader work can still fail.",
+    "Named interface/string evidence in the exact bash binary is bounded corroboration; hash-bound public source supplies the semantic model.",
+    "Environment influence, function-import relevance, PATH influence, and a suitable executable object are runtime preconditions, not static facts.",
+    "onlycap does not change Linux capability masks; it gates smack_privileged() call sites by current SMACK label.",
+    "No update authentication, partition write, slot activation, boot acceptance, mark-good, rollback, or recovery result is established."
+  ],
+  "policy": {
+    "all_enumerated_app_floor_rules_allow_read_and_execute": true,
+    "app_domain_floor_execute_rule_count": 27,
+    "app_domain_floor_execute_subjects": [
+      "App::bluetooth",
+      "App::camera",
+      "App::connman",
+      "App::crypto",
+      "App::dlt",
+      "App::engineermode",
+      "App::euradio",
+      "App::home",
+      "App::locationmanager",
+      "App::logextractor",
+      "App::manager",
+      "App::mediaplayer",
+      "App::micommanager",
+      "App::mpautotest",
+      "App::navi",
+      "App::projection",
+      "App::setup",
+      "App::standbyclock",
+      "App::tms",
+      "App::updaterDab",
+      "App::updaterGPS",
+      "App::upgrade",
+      "App::usb-automount",
+      "App::usbautomount",
+      "App::userprofilemanager",
+      "App::vh",
+      "App::watchdogd"
+    ],
+    "rule_count": 636
+  },
+  "public_sources": {
+    "bash_findcmd": {
+      "anchor_count": 2,
+      "sha256": "8fa6dc160579ac75027d0b67b7e6c625619a7a2016fced68a729a50973316dad"
+    },
+    "bash_shell": {
+      "anchor_count": 3,
+      "sha256": "e2a1b14881a0803aab6ee3bdce4ede3bff6c115dd220ad1ab335ca04303123d0"
+    },
+    "bash_variables": {
+      "anchor_count": 5,
+      "sha256": "9b82ffc4313cdb63d626179f27d8ab94c4794d653f987930c1823ee77e7d8360"
+    },
+    "binfmt_elf": {
+      "anchor_count": 2,
+      "sha256": "7c0d0c032a53f725f127d2d6977eb484be7e6e24f64858b639dc5db75725bf43"
+    },
+    "binfmt_script": {
+      "anchor_count": 4,
+      "sha256": "07942e13ede294115fb307cb2817d35f00fb813dca23030c97ba59dd98313030"
+    },
+    "commoncap": {
+      "anchor_count": 3,
+      "sha256": "bf00df2e6cdeaf72e033dfaeaf60425a165c1c7bfa32627139930aedd9097255"
+    },
+    "exec": {
+      "anchor_count": 4,
+      "sha256": "f60f64215f6081b09c81a22a6f1f6dd93503d0bb7f17da3609e0bcb6d9e2e5cb"
+    },
+    "glibc_extra_unsecvars": {
+      "anchor_count": 2,
+      "sha256": "cadb9cfad08f1372f87a8f3fccd8e8f49382fc0fd8b5043f48b30a3adf7f226a"
+    },
+    "glibc_rtld": {
+      "anchor_count": 6,
+      "sha256": "909759872684237c9d8c93bfa71acd1bfd50f44aa68175c71e59692d3cda3aa3"
+    },
+    "glibc_unsecvars": {
+      "anchor_count": 3,
+      "sha256": "8c9d4b40d34e1fc443900fdc0eb499ff0b0632ed8d39a0f9f2a7a79c37a09451"
+    },
+    "smack_header": {
+      "anchor_count": 2,
+      "sha256": "1877a14e27c28440195e702e0ff69cbe367bff01ee8ba5e037666b0974d45e53"
+    },
+    "smack_lsm": {
+      "anchor_count": 9,
+      "sha256": "78d4ce7d6f9849aefa6c2882edcff2d72cf8e1372c97c55fb678b66494101a3e"
+    }
+  },
+  "rootfs": {
+    "inventory_sha256": "c85bc4b1b12bc4704c3aea30489bac99c10cb2211f80d94f48f3e1e22fd7a94c",
+    "member_count": 66836,
+    "policy_member_count": 27,
+    "policy_normalized_sha256": "4aa679165cca01d53993082df802bbaec29ee1fcaf42eda9f014951653a08f1a",
+    "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+    "size": 879109759
+  },
+  "runtime_unknowns": {
+    "anchor_access_label_is_floor": null,
+    "anchor_exec_label_is_privileged": null,
+    "anchor_exec_reaches_credential_commit": null,
+    "anchor_interpreter_completes_loading": null,
+    "caller_controls_or_influences_environment": null,
+    "caller_controls_or_influences_path": null,
+    "environment_function_import_is_runtime_relevant": null,
+    "installed_artifact_identity_matches": null,
+    "path_resolves_an_executable_object_before_stock_utility": null,
+    "pathname_traversal_and_mount_exec_checks_allow_anchor": null,
+    "policy_loaded": null,
+    "posttransition_smack_privileged_mac_override_succeeds": null,
+    "pretransition_read_and_execute_admission_succeeds": null,
+    "resolved_object_access_and_exec_labels": null,
+    "resulting_task_uid_capabilities_and_label": null,
+    "source_capability_sets_include_mac_override_and_admin": null,
+    "source_is_not_unsafely_ptraced_or_fs_shared": null,
+    "source_no_new_privs_is_clear": null,
+    "source_securebits_preserve_root_capability_semantics": null,
+    "source_task_label_is_enumerated_app_domain": null,
+    "source_uid_is_zero": null,
+    "unqualified_command_exec_succeeds": null,
+    "update_or_boot_acceptance": null,
+    "useful_writable_persistence_anchor_exists": null
+  },
+  "schema_version": 2,
+  "selected_members": [
+    {
+      "gid": 0,
+      "kind": "regular",
+      "mode": "0755",
+      "role": "app-bin-AppUpgrade",
+      "sha256": "5295c6e4c41fb9c03760cf006c58b66fcd11aeb4e6e889af6e31b062549b6df0",
+      "size": 10787256,
+      "uid": 0
+    },
+    {
+      "gid": 0,
+      "kind": "regular",
+      "mode": "0755",
+      "role": "bin-bash",
+      "sha256": "783a69b9b27fae5da3fa93e441467160d6e760f3a79048a4dd02d98b571ad0aa",
+      "size": 946216,
+      "uid": 0
+    },
+    {
+      "gid": 0,
+      "kind": "symlink",
+      "mode": "0777",
+      "role": "bin-sh",
+      "target": "/bin/bash",
+      "uid": 0
+    },
+    {
+      "gid": 0,
+      "kind": "regular",
+      "mode": "0700",
+      "role": "etc-smack-relabel-ro.sh",
+      "sha256": "8275625764c30b6e82d99e5fdf887038261f97e9f0ef5a36da8faa743a35a15f",
+      "size": 6206,
+      "uid": 0
+    },
+    {
+      "gid": 0,
+      "kind": "regular",
+      "mode": "0700",
+      "role": "etc-smack_setup.sh",
+      "sha256": "847af53be34d0e325c738a4ae26d11f7ed69b940cf2aa53d27e3b422e8a8ebb6",
+      "size": 7603,
+      "uid": 0
+    },
+    {
+      "gid": 0,
+      "kind": "regular",
+      "mode": "0700",
+      "role": "etc-update_start_5w.sh.ori",
+      "sha256": "06c3ab7e24b082c24a81299f0627245c0281bc5d519005cd921c13707eb5e838",
+      "size": 3933,
+      "uid": 0
+    },
+    {
+      "gid": 0,
+      "kind": "regular",
+      "mode": "0755",
+      "role": "lib-ld-2.25.so",
+      "sha256": "0dfa16d8b5c9b35fb161a6f5dab48e7b267531ecf8ec3bf3ac74de61ce2ad99e",
+      "size": 149184,
+      "uid": 0
+    },
+    {
+      "gid": 0,
+      "kind": "symlink",
+      "mode": "0777",
+      "role": "lib-ld-linux-x86-64.so.2",
+      "target": "ld-2.25.so",
+      "uid": 0
+    }
+  ],
+  "static_chain": {
+    "anchor_mode": "0700",
+    "anchor_performs_unqualified_lookup_without_resetting_path": true,
+    "bash_command_lookup_uses_path_variable": true,
+    "bash_imports_ordinary_environment_variables_when_uid_gid_match": true,
+    "bash_privileged_mode_predicate_uses_uid_gid_mismatch": true,
+    "bash_source_allows_environment_function_import_when_uid_gid_match": true,
+    "committed_anchor_task_label": "Privileged",
+    "credential_commit_can_precede_late_elf_loader_failure": true,
+    "dac_requires_uid_zero_or_equivalent_access": true,
+    "elf_credential_commit_applies_selected_task_label": true,
+    "exec_transition_label_does_not_authorize_open": true,
+    "glibc_secure_mode_removes_named_unsecure_variables_but_not_path": true,
+    "initial_subject_role": "enumerated-App-domain-task",
+    "interpreter_second_prepare_preserves_prepared_smack_label": true,
+    "onlycap_is_a_smack_call_site_gate_not_a_capability_mask": true,
+    "onlycap_label_matches_after_transition": true,
+    "ordinary_read_and_execute_permission_from_every_enumerated_app_domain": true,
+    "pretransition_subject_and_inode_access_label_control_open_admission": true,
+    "same_uid_label_transition_triggers_bash_uid_gid_privileged_mode": false,
+    "script_first_prepare_selects_exec_label_in_proposed_credentials": true,
+    "smack_override_still_requires_effective_capability": true,
+    "smack_secureexec_predicted": true,
+    "target_inode_access_label": "_",
+    "target_inode_exec_label": "Privileged",
+    "v028_or_session_bus_required_for_this_transition": false
+  },
+  "tool": {
+    "name": "smack-privileged-exec-chain",
+    "version": "1.3.0"
+  }
+}

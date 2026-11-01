@@ -5,6 +5,29 @@ reports supporting update-path assessments. Original firmware and recovered
 executables remain ignored under `work/`; retained files must not contain target
 payloads, bypasses, private operator paths, or executable target material.
 
+## AppDMClient AppUpgrade launch routing
+
+- [`appdmclient-appupgrade-launch-routing-manifest.json`](appdmclient-appupgrade-launch-routing-manifest.json):
+  strict canonical-rootfs/member, exact ELF/Build-ID/LLVM, complete
+  instruction/FDE, selected FDE, complete direct-caller, machine-anchor, and
+  literal-role expectations (SHA-256
+  `61f3c6327bfeb521df2970f9fd281f828c0bd11ee219fc1ba98b5f29be53bf62`);
+- [`appdmclient-appupgrade-launch-routing-report.json`](appdmclient-appupgrade-launch-routing-report.json):
+  normalized deterministic report with static path roles and runtime facts
+  retained as unknown (SHA-256
+  `7584e9a7f4107f451bd690e05babefb60f6d20928ab27c5eb3efe4eb310b2449`).
+
+The launch proxy builds logical `(int, QString, QString)` arguments in that
+order. Its complete direct inventory has four app-ID-300 callers. In the
+staging terminal split, marker presence selects the source-root-derived
+AppUpgrade path; marker absence selects the fixed staged path only if the local
+ELF/executable helper succeeds. The provisional stack-slot interpretation is
+corrected: slot `0x8` is the staged destination, while slot `0x0` is the
+source-root-derived executable. D-Bus delivery, AppLauncher dispatch, process
+creation, execution, update acceptance, partition writes, boot acceptance,
+root, and persistence remain unknown. Assessment:
+[`../../appdmclient-appupgrade-launch-routing.md`](../../appdmclient-appupgrade-launch-routing.md).
+
 ## AppFUMO wildcard D-Bus recovery-signal boundary
 
 - [`appfumo-dbus-recovery-signal-boundary-exact-static.txt`](appfumo-dbus-recovery-signal-boundary-exact-static.txt):

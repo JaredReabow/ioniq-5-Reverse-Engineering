@@ -1,0 +1,180 @@
+{
+  "artifact": {
+    "build_id": "b2dbcc5231f444d8f1dd68eb7a2376323ce805df",
+    "role": "canonical-rootfs-AppDMClient",
+    "sha256": "9a1fb796d7ac24fcce71c16e3dbee9306c888f43e705ee081f41b7d473978bd0",
+    "size": 2226072
+  },
+  "classification": {
+    "root_or_persistence_established": false,
+    "runtime_delivery_or_execution_established": false,
+    "static_launch_message_construction": true,
+    "static_terminal_path_selection": true
+  },
+  "rootfs": {
+    "role": "canonical-EU-260128-rootfs",
+    "selected_member": "app/bin/AppDMClient",
+    "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+    "size": 879109759
+  },
+  "runtime_observations": {
+    "app_launcher_argv_selected": null,
+    "app_process_created_or_reused": null,
+    "boot_accepted": null,
+    "child_exec_succeeded": null,
+    "effective_child_credentials_or_label": null,
+    "launcher_service_owned": null,
+    "message_accepted_or_delivered": null,
+    "partition_written": null,
+    "persistence": null,
+    "qprocess_start_accepted": null,
+    "request_object_registered": null,
+    "session_bus_reachable": null,
+    "update_accepted": null
+  },
+  "schema_version": 1,
+  "static_contract": {
+    "direct_callers": [
+      {
+        "app_id": 300,
+        "call_site": "0x71a0a",
+        "first_qstring_role": "fixed-AppUpgrade-name",
+        "owner_fde": [
+          "0x712c0",
+          "0x71c53"
+        ],
+        "second_qstring_role": "staged-AppUpgrade-path",
+        "static_predicates": [
+          "object-byte-0xe2-nonzero",
+          "staged-path-validator-true"
+        ]
+      },
+      {
+        "app_id": 300,
+        "call_site": "0x818f6",
+        "first_qstring_role": "fixed-AppUpgrade-name",
+        "owner_fde": [
+          "0x7ff60",
+          "0x830e4"
+        ],
+        "second_qstring_role": "staged-AppUpgrade-path",
+        "static_predicates": [
+          "common-staging-gates",
+          "source-root-marker-absent",
+          "staged-path-validator-true"
+        ]
+      },
+      {
+        "app_id": 300,
+        "call_site": "0x8201d",
+        "first_qstring_role": "fixed-AppUpgrade-name",
+        "owner_fde": [
+          "0x7ff60",
+          "0x830e4"
+        ],
+        "second_qstring_role": "source-root-derived-AppUpgrade-path",
+        "static_predicates": [
+          "common-staging-gates",
+          "source-root-marker-present"
+        ]
+      },
+      {
+        "app_id": 300,
+        "call_site": "0x8817e",
+        "first_qstring_role": "fixed-AppUpgrade-name",
+        "owner_fde": [
+          "0x87400",
+          "0x886e7"
+        ],
+        "second_qstring_role": "staged-AppUpgrade-path",
+        "static_predicates": [
+          "ext-units-path-present",
+          "route-helper-false",
+          "object-bytes-0x161-and-0x160-zero",
+          "staged-path-validator-true"
+        ]
+      }
+    ],
+    "launch_proxy": {
+      "abi": "x86-64-sysv-hidden-return-plus-interface-plus-logical-arguments",
+      "async_call_site": "0x8c199",
+      "fde": [
+        "0x8c0c0",
+        "0x8c2ab"
+      ],
+      "logical_argument_types": [
+        "int",
+        "QString",
+        "QString"
+      ],
+      "method_literal_sha256": "31f8a27be1e96aef51f67cb2636c97edf86bcdb90531275cc41bddaab0563244",
+      "method_role": "launcher-request-method",
+      "return_handling": "construct-hidden-pending-reply-result-assign-pending-call-return-result-address",
+      "variant_order_matches_logical_order": true,
+      "variant_type_tags": [
+        2,
+        10,
+        10
+      ]
+    },
+    "literal_bindings": [
+      {
+        "role": "launch-method",
+        "sha256": "31f8a27be1e96aef51f67cb2636c97edf86bcdb90531275cc41bddaab0563244"
+      },
+      {
+        "role": "launch-name",
+        "sha256": "4b3bf0b1b7c02a14e8c1147970f88231aa8c620572f6fabb126598b61fd2b603"
+      },
+      {
+        "role": "route-marker-template",
+        "sha256": "179e8b7cdf9d3645d65a9597ad4bb7cbf8bc2d61a0cdb361e15b2e606e410cca"
+      },
+      {
+        "role": "source-executable-template",
+        "sha256": "e98a78c50a22c84635963676b1d11f0641fcf63ac1f1f7ca45b628cec4d93acd"
+      },
+      {
+        "role": "staged-base",
+        "sha256": "2fbcee00000ed0073f8aa8a408fe6c9402c57a3c7ef2f4ede89ccaa88e3d9f60"
+      }
+    ],
+    "staging_path_bindings": {
+      "normal_and_exception_cleanup_cover_both_locals": true,
+      "source_executable_local": "stack-slot-0x0-built-as-source-root-plus-AppUpgrade",
+      "source_root_argument": "logical-first-QString-in-rsi-copied-to-r13",
+      "stack_slot_0x8_is_source_root": false,
+      "staged_executable_local": "stack-slot-0x8-built-as-fixed-staged-base-plus-AppUpgrade"
+    },
+    "staging_terminal_selection": {
+      "common_source_executable_existence_gate": true,
+      "marker_absent": {
+        "validator_false_request": null,
+        "validator_fde": [
+          "0x70b50",
+          "0x712b9"
+        ],
+        "validator_requires": [
+          "path-exists",
+          "read-open",
+          "four-byte-ELF-magic",
+          "executable-bit-test"
+        ],
+        "validator_true_executable_role": "staged-AppUpgrade-path",
+        "validator_true_request_call_site": "0x818f6"
+      },
+      "marker_present": {
+        "executable_role": "source-root-derived-AppUpgrade-path",
+        "final_local_elf_and_executable_helper_gate": false,
+        "request_call_site": "0x8201d"
+      },
+      "route_marker_role": "source-root-HU-images-start-marker",
+      "staged_executable_existence_is_common_gate": false,
+      "staged_existence_true_adds_permission_handling": true
+    }
+  },
+  "tool": {
+    "name": "appdmclient-appupgrade-launch-routing",
+    "version": "1.0.1"
+  }
+}

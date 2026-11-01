@@ -1,0 +1,365 @@
+{
+  "schema": "appfumo-postwrite-finalization/v1",
+  "tool": "appfumo-postwrite-finalization",
+  "tool_version": "1.0.0",
+  "input": {
+    "size": 5066264,
+    "sha256": "464a87646153213ce1f405743a10cff78eb90c203b619f983002358ca74ef0e7",
+    "build_id": "863a8730e66a1c5245a1bf458fe2554adee0351a"
+  },
+  "instruction_ranges": [
+    {
+      "name": "modify_fstab_full",
+      "raw_va_start": "0xd0c80",
+      "raw_va_end": "0xd1e6c",
+      "sha256": "5ce33f0f105ae05a4fb5233057de700e363c370c703a53d0e6d6f2e6e54117f3"
+    },
+    {
+      "name": "finish_full",
+      "raw_va_start": "0xd1e70",
+      "raw_va_end": "0xd327f",
+      "sha256": "2150baafb8f774f82688f367176a9ee66519a0b0a8e34d53829b639dc22c5254"
+    },
+    {
+      "name": "finish_mount_and_finalizer",
+      "raw_va_start": "0xd1eb0",
+      "raw_va_end": "0xd240d",
+      "sha256": "b1ad6dc19da279bfb680977f027d9212066440af06d8d1c225de83722cec083b"
+    },
+    {
+      "name": "finish_progress_and_maintenance",
+      "raw_va_start": "0xd240d",
+      "raw_va_end": "0xd2c32",
+      "sha256": "f417ac7155200fff5d4b9a25724e57e8c9c42d4328ea58593c8f9f6cc0c4630b"
+    },
+    {
+      "name": "finish_finalizer_failure_branch",
+      "raw_va_start": "0xd2c08",
+      "raw_va_end": "0xd2c32",
+      "sha256": "d1192dcd7d4d63e3a965c677167f9166268cb3bb403ebdbc8f53d750187e3acc"
+    },
+    {
+      "name": "finish_progress_100",
+      "raw_va_start": "0xd2a49",
+      "raw_va_end": "0xd2b0a",
+      "sha256": "59a0821919eb2db05656120fe37ca7391354a6f58c1af9a3a7ea06e71c95678b"
+    }
+  ],
+  "literal_anchors": {
+    "root_selector": {
+      "raw_va": "0x21ffa7",
+      "value": "root"
+    },
+    "vr_selector": {
+      "raw_va": "0x21648e",
+      "value": "vr"
+    },
+    "foldervr_selector": {
+      "raw_va": "0x2163a0",
+      "value": "foldervr"
+    },
+    "fstab": {
+      "raw_va": "0x21a92c",
+      "value": "/mnt/root/etc/fstab"
+    },
+    "fstab_emmc": {
+      "raw_va": "0x21a8f6",
+      "value": "/mnt/root/etc/fstab_emmc"
+    },
+    "fstab_emmc_fde": {
+      "raw_va": "0x21a90f",
+      "value": "/mnt/root/etc/fstab_emmc_fde"
+    },
+    "mount_probe": {
+      "raw_va": "0x21a140",
+      "value": "mount | grep /mnt/root | awk '{print $1}'"
+    },
+    "mount_program": {
+      "raw_va": "0x21e79e",
+      "value": "mount"
+    },
+    "mount_type": {
+      "raw_va": "0x211123",
+      "value": "ext4"
+    },
+    "mount_type_option": {
+      "raw_va": "0x21a96f",
+      "value": "-t"
+    },
+    "root_mountpoint": {
+      "raw_va": "0x216476",
+      "value": "/rw_data/mnt/root"
+    },
+    "app_mountpoint": {
+      "raw_va": "0x21a8b0",
+      "value": "/rw_data/mnt/app"
+    },
+    "vr_mountpoint": {
+      "raw_va": "0x21649e",
+      "value": "/rw_data/mnt/vr"
+    },
+    "fstrim_program": {
+      "raw_va": "0x210e66",
+      "value": "/sbin/fstrim"
+    },
+    "resume_marker": {
+      "raw_va": "0x21a361",
+      "value": "/update/resumeBlockNumber"
+    },
+    "temporary_resume_marker": {
+      "raw_va": "0x21a3ab",
+      "value": "/tmp/resume_mode_block_number"
+    },
+    "complete_message": {
+      "raw_va": "0x21a988",
+      "value": "System Update Complete!!"
+    },
+    "complete_domain": {
+      "raw_va": "0x21a9a1",
+      "value": "System"
+    }
+  },
+  "direct_calls": [
+    {
+      "name": "contains_root",
+      "raw_va": "0xd0cc4",
+      "target_raw_va": "0xbe1a0"
+    },
+    {
+      "name": "contains_vr",
+      "raw_va": "0xd0ce8",
+      "target_raw_va": "0xbe1a0"
+    },
+    {
+      "name": "contains_foldervr",
+      "raw_va": "0xd0d0d",
+      "target_raw_va": "0xbe1a0"
+    },
+    {
+      "name": "active_vr_path_foldervr_branch",
+      "raw_va": "0xd0dbf",
+      "target_raw_va": "0xa0e10"
+    },
+    {
+      "name": "inactive_vr_path_foldervr_branch",
+      "raw_va": "0xd0dfb",
+      "target_raw_va": "0xa14c0"
+    },
+    {
+      "name": "active_vr_path_vr_branch",
+      "raw_va": "0xd0f0c",
+      "target_raw_va": "0xa0e10"
+    },
+    {
+      "name": "inactive_vr_path_vr_branch",
+      "raw_va": "0xd0f48",
+      "target_raw_va": "0xa14c0"
+    },
+    {
+      "name": "fstab_replace",
+      "raw_va": "0xd1286",
+      "target_raw_va": "0x231e0"
+    },
+    {
+      "name": "fstab_write",
+      "raw_va": "0xd12ff",
+      "target_raw_va": "0x231c0"
+    },
+    {
+      "name": "fstab_flush",
+      "raw_va": "0xd1365",
+      "target_raw_va": "0x246d0"
+    },
+    {
+      "name": "fstab_fsync",
+      "raw_va": "0xd1374",
+      "target_raw_va": "0x23840"
+    },
+    {
+      "name": "fstab_close",
+      "raw_va": "0xd137c",
+      "target_raw_va": "0x22020"
+    },
+    {
+      "name": "fstab_emmc_replace",
+      "raw_va": "0xd15d9",
+      "target_raw_va": "0x231e0"
+    },
+    {
+      "name": "fstab_emmc_write",
+      "raw_va": "0xd165a",
+      "target_raw_va": "0x231c0"
+    },
+    {
+      "name": "fstab_emmc_flush",
+      "raw_va": "0xd16c8",
+      "target_raw_va": "0x246d0"
+    },
+    {
+      "name": "fstab_emmc_fsync",
+      "raw_va": "0xd16d7",
+      "target_raw_va": "0x23840"
+    },
+    {
+      "name": "fstab_emmc_close",
+      "raw_va": "0xd16df",
+      "target_raw_va": "0x22020"
+    },
+    {
+      "name": "fstab_emmc_fde_replace",
+      "raw_va": "0xd19b4",
+      "target_raw_va": "0x231e0"
+    },
+    {
+      "name": "fstab_emmc_fde_write",
+      "raw_va": "0xd1a37",
+      "target_raw_va": "0x231c0"
+    },
+    {
+      "name": "fstab_emmc_fde_flush",
+      "raw_va": "0xd1a9d",
+      "target_raw_va": "0x246d0"
+    },
+    {
+      "name": "fstab_emmc_fde_fsync",
+      "raw_va": "0xd1aac",
+      "target_raw_va": "0x23840"
+    },
+    {
+      "name": "fstab_emmc_fde_close",
+      "raw_va": "0xd1ab4",
+      "target_raw_va": "0x22020"
+    },
+    {
+      "name": "sync",
+      "raw_va": "0xd1eb0",
+      "target_raw_va": "0x23420"
+    },
+    {
+      "name": "inactive_root_path",
+      "raw_va": "0xd1f47",
+      "target_raw_va": "0xa14c0"
+    },
+    {
+      "name": "compare_mounted_device",
+      "raw_va": "0xd1fd0",
+      "target_raw_va": "0x22090"
+    },
+    {
+      "name": "mount_process",
+      "raw_va": "0xd22e4",
+      "target_raw_va": "0x13bba0"
+    },
+    {
+      "name": "modify_fstab",
+      "raw_va": "0xd2400",
+      "target_raw_va": "0xd0c80"
+    },
+    {
+      "name": "progress_99",
+      "raw_va": "0xd246a",
+      "target_raw_va": "0x168570"
+    },
+    {
+      "name": "fdisk_start",
+      "raw_va": "0xd2514",
+      "target_raw_va": "0x23670"
+    },
+    {
+      "name": "fdisk_wait",
+      "raw_va": "0xd2541",
+      "target_raw_va": "0x22e90"
+    },
+    {
+      "name": "root_fstrim_process",
+      "raw_va": "0xd28ea",
+      "target_raw_va": "0x13bfd0"
+    },
+    {
+      "name": "root_unmount",
+      "raw_va": "0xd2920",
+      "target_raw_va": "0x245e0"
+    },
+    {
+      "name": "app_fstrim_process",
+      "raw_va": "0xd29ce",
+      "target_raw_va": "0x13bfd0"
+    },
+    {
+      "name": "app_unmount",
+      "raw_va": "0xd2a04",
+      "target_raw_va": "0x245e0"
+    },
+    {
+      "name": "remove_resume_marker",
+      "raw_va": "0xd2a6b",
+      "target_raw_va": "0x13feb0"
+    },
+    {
+      "name": "remove_temporary_resume_marker",
+      "raw_va": "0xd2a9a",
+      "target_raw_va": "0x13feb0"
+    },
+    {
+      "name": "progress_100",
+      "raw_va": "0xd2aeb",
+      "target_raw_va": "0x168570"
+    },
+    {
+      "name": "vr_fstrim_process",
+      "raw_va": "0xd2bb9",
+      "target_raw_va": "0x13bfd0"
+    },
+    {
+      "name": "vr_unmount",
+      "raw_va": "0xd2bef",
+      "target_raw_va": "0x245e0"
+    }
+  ],
+  "finish_dispatch": {
+    "vtable_slot_raw_va": "0x6ce350",
+    "relocation_type": "R_X86_64_RELATIVE",
+    "finish_raw_va": "0xd1e70"
+  },
+  "fstab_rewrite": {
+    "admission": "root is selected and either foldervr or vr is selected",
+    "selected_vr_variant": "foldervr when present, otherwise vr",
+    "direction": "replace the selected VR variant's active partition pathname with its inactive partition pathname",
+    "candidate_files": [
+      "/mnt/root/etc/fstab_emmc",
+      "/mnt/root/etc/fstab_emmc_fde",
+      "/mnt/root/etc/fstab"
+    ],
+    "durability_sequence": "QString replace, QIODevice write, QFileDevice flush, fsync(handle), close",
+    "scope": "VR pathname maintenance inside the mounted inactive root; not a root-slot selector update"
+  },
+  "finish_flow": {
+    "ordered_observations": [
+      "a mode-byte/object-state guard can return before the main maintenance path",
+      "after that guard, sync and a one-second sleep precede post-write finalization",
+      "the inactive root pathname is derived and compared with the device mounted at /mnt/root",
+      "the inactive root is mounted for maintenance when that comparison does not match",
+      "the fstab rewrite helper is called before progress value 99",
+      "a false fstab-helper result stores the eventual false return value and rejoins immediately before progress value 99",
+      "root, app and selected VR mountpoints have bounded fstrim and unmount maintenance paths",
+      "resumeBlockNumber marker paths are removed on the shared normal tail after optional selected-VR maintenance",
+      "the normal tail reports progress value 100 and then returns the stored result byte"
+    ],
+    "failure_boundary": "A fstab-helper failure does not itself prevent the progress-99 path. If later processing reaches the normal tail, progress 100 can be reported while finish still returns false."
+  },
+  "bounded_conclusion": {
+    "status": "exact_static_postwrite_finalization_boundary",
+    "established": [
+      "The virtual finish implementation resolves and maintains the inactive root after partition writing.",
+      "Its fstab helper rewrites active-to-inactive VR pathname references in the inactive root and flushes/fsyncs each opened configuration file.",
+      "Completion progress is not equivalent to a true finish return: the finalizer-failure path preserves false while rejoining completion processing.",
+      "The reviewed finalizer performs mount, fstab, trim, unmount and resume-marker maintenance; these are not a demonstrated persistent root-slot activation primitive."
+    ],
+    "not_established": [
+      "runtime invocation or successful mounting, replacement, flushing, trimming, unmounting, or marker removal",
+      "same-object or same-byte continuity from authentication through final partition bytes",
+      "final partition integrity or successful partition-write confirmation",
+      "persistent boot-slot selection, MICOM or ABL acceptance, health, mark-good, rollback, root, or persistence"
+    ]
+  }
+}

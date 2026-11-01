@@ -3,6 +3,76 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.18.0 - the VM renders vendor graphics: Hyundai splash captured at 1920x720
+
+- Captured a **real frame from the running VM** using the image's own `/usr/libexec/weston-screenshooter`:
+  **177,691-byte PNG at 1920×720** showing the **Hyundai boot splash**, with `AppHomeScreen` alive (`pid 808`, then `pid 849`
+  on a second run).
+- That image (`docs/vm/07-home-screen-live-2026-10-31.png`) is the vendor's own
+  `/app/share/SplashScreen/8bit_booting_2022NEWHMC_NA_NA_1920.png` linked to `/tmp/front_lcd.png` by the chain, painted by
+  the vendor compositor through `weston-headless` with **`ivi-shell.so`**.
+- **This settles the earlier black-frame conclusion.** The stack paints vendor artwork; what was black in this session was
+  my own configuration (custom `ias-backend-soft` + `ias-shell`), not a vendor inability. That earlier entry is superseded.
+- A second capture at 155 s is byte-identical (same 177,691 bytes), so the compositor is still on the splash layer at that
+  point rather than on home tiles. The remaining question is therefore **the transition out of the splash**, not whether
+  anything renders.
+- README updated with the capture and the four decisive chain details (`ivi-shell.so`; `/opt/software-egl18` +
+  `softpipe`; `QT_WAYLAND_SHELL_INTEGRATION` unset; `passwd.legacy` plus `xuser`/`byungsu`).
+
+## 2.18.1 - AppNavi has two authentic Qt hide producers
+
+- Completed the recovered AppNavi direct-call inventory for `QWindow::hide()`.
+  There are exactly two direct calls: `0x3362275` in Linux `onForeground` and
+  `0x3365140` in Linux `dispatchNotifyEvent`.
+- Bound the foreground branch: the direct Linux hide requires a true base
+  result, then screen ID 1, 2, or 4 and a false foreground argument.
+- Bound the second architecture end to end. A bounded Gen5/platform branch in
+  `ExSLScreen::onForeground` creates type-`0x103` with the requested Boolean and
+  queues it to the same screen; Linux `dispatchNotifyEvent` calls hide for zero
+  and show for nonzero.
+- Correlated saved ordering: the first false-visibility callback follows Weston
+  FG and precedes accepted status 5/window 0, but also precedes every retained
+  `setForegroundStatus`/Linux-screen foreground diagnostic in that launch
+  interval. No retained primary false call or direct-hide diagnostic identifies
+  the runtime producer.
+- Revised acceptance: passive evidence must distinguish the direct foreground
+  hide from type-`0x103` event handling before following threaded
+  `WM_Obscure → doneCurrent → EGL invalidation → BG`. No guest or target was
+  executed, no event was synthesized, and no image, manager state, commit, or
+  remote history was modified.
+
+## 2.18.0 - Navigation surface 3000 and basic/threaded hide contract resolved
+
+- Bound AppNavi's primary window from `NimoExSLScreenLinux` construction through
+  `QQuickView`, `QQuickWindowPrivate::init`, and
+  `QSGRenderLoop::windowSurfaceType()` to Qt OpenGL/EGL. Independent launcher and
+  compositor records bind that window to IVI surface `3000`; the earlier Shm/Egl
+  class ambiguity is closed.
+- Bound `QQuickWindow::hideEvent` to render-loop virtual slot `+0x68`. The
+  retained integrated Home→Navigation runs under diagnosis force
+  `QSG_RENDER_LOOP=basic`; recovered basic vtable
+  relocation `0x60fd48` resolves to `0x178730`, whose ordinary hide behavior
+  stops at `fireAboutToStop()` and does not call `doneCurrent`, invalidate EGL,
+  or detach the Wayland buffer.
+- Bound the separate threaded route. Threaded relocation `0x61dfc0` resolves to
+  `0x1802a0`; the exposed-window `WM_Obscure` path calls `doneCurrent`. Recovered
+  QtGui and Wayland EGL edges continue through platform context `0x6aa0` and
+  `QWaylandEglWindow` relocation `0x20d630 → 0x82c0`, where the vendor routine
+  destroys the EGL surface, attaches null, commits, and flushes.
+- Corrected the harness interpretation: forcing the basic loop is a semantic
+  change that omits the EGL invalidation route capable of producing AppNavi BG
+  and ApplicationManager's window-latch replay. This explains the retained
+  false-visibility/no-BG behavior without fabricating a callback.
+- Corrected Home-return provenance. The retained return was explicitly requested
+  by event `302`, reason `322`; it was not an autonomous Navigation
+  loading/fallback timeout. Status `5` remains the receiver's accepted value;
+  window `0` remains the local callback gate.
+- Runtime completion remains open: no integrated threaded run yet proves
+  `WM_Obscure → doneCurrent → EGL invalidation`, AppNavi BG, setter input `1`,
+  cached-status replay, map/menu callbacks, current/drawing ID `30`, or valid
+  Navigation composition. No guest execution, synthetic BG/FG, forced latch,
+  image change, commit, or push was performed for this static classification.
+
 ## 2.17.0 - BREAKTHROUGH: the parallel lineage's published chain runs here, with AppHomeScreen live
 
 - Ran `vm/repro/…/full-chain-authentic-standby.sh` — the parallel lineage's own reproduction script, merged into this repo
@@ -39,14 +109,17 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - The latest saved runs therefore already carry the receiver's accepted status;
   they fail to produce the authentic AppNavi BG/first-hide/unmap event needed to
   set the separate window latch. FG and a rendered surface remain insufficient.
-- The inspected routines do not directly return to Home ID 11; that observed
-  fallback is a separate path still requiring attribution. Static positive-path
-  reachability does not prove a completed 35→30 transition or composition.
+- The inspected routines do not directly return to Home ID 11. The retained
+  return was explicitly requested with event `302`, reason `322`; it was not an
+  autonomous fallback. Static positive-path reachability does not prove a
+  completed 35→30 transition or composition.
 - Bound the recovered QtWayland hide discriminator to `windowType()`. Unlike
   public v5.4.1's unconditional detach, the recovered client explicitly commits
   a null buffer only when `windowType()==Shm` (zero). The recovered Shm method
   returns 0; the mapped EGL plugin's corresponding method returns 1 and skips
-  that detach. Visibility false alone therefore does not unmap an Egl instance.
+  that detach. Version 2.18.0 closes the then-open primary-class and render-loop
+  questions: surface 3000 is OpenGL/EGL, basic hide stops before invalidation,
+  and threaded `doneCurrent` reaches the recovered null-attachment routine.
 - Added exact-static consumer and hide-backend records under
   `evidence/artifacts/application-candidates/` and updated the navigation
   contract and handover. No guest or target execution, message injection,

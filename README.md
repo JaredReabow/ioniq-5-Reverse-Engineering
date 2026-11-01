@@ -318,7 +318,26 @@ Register entry **V-036** records this, with the elimination list and the anchors
 Because the client commits surfaces but never attaches a buffer, the HMI frame itself is black. That is
 recorded honestly rather than cropped out — the control image is the evidence that the compositor renders.
 
-| Compositor control (`weston-simple-shm`) | Current HMI frame |
+### Vendor graphics rendered in the VM
+
+Running the reproduction chain published in `vm/repro/` (`full-chain-authentic-standby.sh`) produces a live
+`AppHomeScreen` and a compositor that paints **vendor artwork at 1920×720**. Captured from the running VM with the
+image's own `/usr/libexec/weston-screenshooter`:
+
+![Vendor splash rendered in the VM](docs/vm/07-home-screen-live-2026-10-31.png)
+
+That is the Hyundai boot splash (`/app/share/SplashScreen/8bit_booting_2022NEWHMC_NA_NA_1920.png`, linked to
+`/tmp/front_lcd.png` by the chain), rendered by the vendor compositor through `weston-headless` with `ivi-shell.so`.
+The same run had `AppHomeScreen` alive (`pid 849`) and the launcher dispatching; at 155 s the compositor is still
+showing this splash layer rather than home tiles, so the next question is the transition out of it, not whether the
+stack can paint.
+
+Four details of that chain were decisive and none were guessable: `ivi-shell.so` rather than `ias-shell`,
+software EGL from `/opt/software-egl18` with `GALLIUM_DRIVER=softpipe`, `QT_WAYLAND_SHELL_INTEGRATION` unset
+(AppLauncher appends `:ivi`, producing the invalid `ivi:ivi`), and `/etc/passwd.legacy` copied to `/tmp/passwd` with the
+`xuser` and `byungsu` accounts added.
+
+| Compositor control (`weston-simple-shm`) | Current HMI frame from this session's own chain |
 | --- | --- |
 | ![Compositor control](docs/vm/05-compositor-control-2026-10-31.png) | ![HMI frame](docs/vm/06-hmi-frame-2026-10-31.png) |
 | Test pattern rendered by the vendor compositor through our backend — **173 distinct colours**, proving the whole path from backend to framebuffer works. | `AppHomeScreen` running with its surfaces mapped: uniformly black because no buffer is ever attached. `initMicomShareMem() -> pszSrc NULL` is why the launcher's dispatch never completes. |

@@ -3685,6 +3685,35 @@ and are superseded by corrections rather than silently rewritten.
 - That closes the merge: content combined, duplicates marked, the contradictory severity reconciled, the count corrected
   against grep, and the citations verified.
 
+## 2026-11-07 — the harness removed the EGL hide transition it needed
+
+- The primary Navigation window is no longer an unknown Shm/Egl instance.
+  AppNavi constructs a QQuickView, Qt Quick requests an OpenGL surface, and the
+  launcher/compositor bind it to surface 3000. That makes the recovered Wayland
+  EGL path—not the common Shm detach branch—the relevant backend.
+- The decisive difference was in the harness environment. The retained
+  integrated Home→Navigation runs that exhibited the blocker forced Qt Quick's
+  basic render loop. Exact vtable binding shows basic hide only fires
+  `aboutToStop`; it does not release
+  the GL context or invalidate the EGL surface. The authentic false-visibility
+  log was real, but the expected null attachment could not follow through that
+  selected route.
+- The threaded path has the missing static chain. Its obscure event calls
+  `QOpenGLContext::doneCurrent()`, the recovered Wayland EGL context invokes
+  `QWaylandEglWindow::invalidateSurface`, and the vendor implementation destroys
+  the EGL surface then attaches null and commits. That is precisely the route
+  capable of producing the zero-size/BG notification that replays cached status
+  5 through ApplicationManager.
+- This explains the retained basic-loop behavior without inventing BG or a
+  success callback. It is not runtime acceptance: an integrated threaded run has
+  not yet shown the obscure event, backend invalidation, BG, latch replay,
+  Navigation ID 30, or valid composition, and the mixed graphics stack remains
+  an explicit boundary.
+- A second correction removes a false narrative from the old sequence. The
+  return to Home was requested by the harness with event 302/reason 322; it was
+  not an autonomous Navigation loading/fallback timeout. The status consumer
+  itself still has no direct Home-ID-11 edge.
+
 ## 2026-11-02 — status 5 was not the failure value
 
 - Corrected an interpretation that the sender's `SendNaviBootFail` name had left
@@ -3714,3 +3743,35 @@ and are superseded by corrections rather than silently rewritten.
   vendor appends to, and two extra passwd entries. None of them were discoverable by reasoning about the failure.
 - The lesson is uncomfortable and worth keeping: after the merge, I searched this repository for clues about the blockers and
   found the contract document, but I did not read the reproduction script that had already fixed them.
+
+## 2026-11-08 — the first hide was not waiting where the logs made us look
+
+- The next action had been framed as finding the primary
+  `onForeground(false,...)` call. That was incomplete. The exact AppNavi direct-
+  call inventory has two Qt window hides, not one: the foreground override and a
+  type-`0x103` visibility-event handler.
+- The base foreground method can create that same visibility event on a bounded
+  Gen5/platform branch, and the Linux event handler maps zero to hide and
+  nonzero to show. This recovers an authentic queued route without inventing a
+  compositor notification or manager callback.
+- Saved ordering changed the runtime question. The false-visibility callback
+  appears immediately after compositor FG and before accepted status 5, while
+  every retained Linux-screen foreground diagnostic arrives more than two
+  seconds later. The later screen-6/9/10 calls cannot identify the earlier
+  callback's producer.
+- The evidence still stops at the right boundary: absent event-handler
+  diagnostics and possible dropped logs mean neither hide call is proved at
+  runtime. A future observation must distinguish them, then follow the real
+  threaded EGL invalidation and BG sequence. No VM run or event synthesis was
+  used to close the static architecture.
+
+## 2026-10-31 — the screen is not black after all
+
+- A real 1920x720 frame came out of the VM: the Hyundai splash, painted by the vendor compositor. For most of this session I
+  had been recording "the client never attaches a buffer" as a vendor defect, when the actual cause was my own backend and
+  shell choice.
+- The correction matters more than the image. It means the emulation stack is further along than the records said a day ago,
+  and that the honest description of the remaining gap is "the compositor stays on the splash layer" rather than "nothing
+  draws".
+- Second capture byte-identical at 155 seconds, which is the useful kind of duplicate: it says the splash is stable, not that
+  the capture failed.

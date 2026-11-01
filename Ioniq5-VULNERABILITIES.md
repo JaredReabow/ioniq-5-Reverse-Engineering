@@ -464,7 +464,7 @@ bring-up defect. That question is open.
 - **Remediation:** backport `c8bcd9c5be24fb9e6132e97da5a35e55a83e36b9` or equivalent consistent session-field locking/reference ownership; validate only on a disposable instrumented kernel.
 - **Evidence:** `evidence/vendor-kernel-tty-session-cve-2020-29660.md`; focused instructions `evidence/artifacts/kernel-candidates/kernel-tty-session-cve-2020-29660.asm`; Boolean-only model `tools/uk_fw/tty_session_lock_model.py`.
 
-## V-028 — AppLauncher D-Bus caller path reaches root execution (RUNTIME EXEC DEMONSTRATED IN VM)
+## V-028 — AppLauncher D-Bus caller path reaches root execution (RUNTIME DEMONSTRATED; NOT AN UNPRIVILEGED ESCALATION)
 
 - **Status:** exact recovered AppLauncher exports session-bus `launch(appid, appname, applocation, ...)` methods. The runtime `applocation` reaches the AppProcess program field; the dispatcher sets byte `+0x1c`; and that byte selects a route to a `QProcess::start` call site without either identified verifier call. No D-Bus request, executable, target launch, credential/label transition, trust-anchor write, update, or persistence action was created.
 - **Component:** `/app/bin/AppLauncher`, SHA-256 `c8d6d56bc254ad0731e81f40bd83aa9b3be6b49bcbd8efb291157a06c4a84268`, Build ID `0452df1033bd1bbae15727a83d4d56576d8b9444`; x86-64 `ET_DYN`.
@@ -493,10 +493,25 @@ Two things this does and does not establish, kept separate:
 - **Established:** a caller-supplied `applocation` reaches `QProcess::start` and executes with **uid 0**. The method does not
   validate that the path is a registered application, and it does not refuse a path that does not exist — an earlier run
   against a **missing** path also returned success, so the return value alone never indicates whether anything ran.
-- **Not established:** privilege *escalation from an unprivileged subject*. In this test the caller was the root shell that
-  also started the chain, so this demonstrates the code path, not the boundary crossing. Whether a non-root local process can
-  reach the same bus is a policy question about the session bus (`EXTERNAL` auth, no explicit user connection rule) that has
-  **not** been tested, and the severity of this entry depends on it entirely.
+- **Escalation from an unprivileged subject is now excluded by measurement.** Repeating the test as **uid 1000** — dropping
+  privileges with a purpose-built `setuid` helper, since the image ships no `su`, `sudo` or `setpriv` — the bus refuses even a
+  trivial call:
+
+  `as-uid: now uid=1000` → `Failed to open connection to "session" message bus: Did not receive a reply … the message bus
+  security policy blocked the reply`
+
+  `GetId` fails, and so does the `request.launch` call; the marker file is never created. A non-root local process therefore
+  cannot reach this bus at all in the shipped configuration, so **this is not an unprivileged local escalation vector as
+  configured**.
+
+- **What V-028 therefore is:** a genuine absence of path validation in a root D-Bus service, reachable by any client that
+  shares the launcher's uid — i.e. the HMI's own processes and anything that can reach that session bus as root. That matches
+  exactly the boundary the parallel lineage's entry (V-040) described independently: *"relevant to same-uid, SMACK-separated
+  HMI code"*. Two separate investigations arrived at the same conclusion by different routes.
+
+- **Severity framing:** the defect is worth fixing — a caller-supplied path must not reach `QProcess::start` as root, and the
+  method must not return success for a path it did not launch — but its exploitation requires an existing foothold at the
+  launcher's privilege level rather than being reachable from an unprivileged user.
 
 The working method is `request.launch` with `(int32 appid, string appname, string applocation)`; the `launch` method
 previously introspected is a different entry point and produced no execution in four attempts.

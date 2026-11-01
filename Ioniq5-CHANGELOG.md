@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.21.0 - V-028's escalation boundary tested: uid 1000 cannot reach the bus
+
+- Re-ran the experiment as **uid 1000**, dropping privileges with a purpose-built `setuid` helper because the image ships no
+  `su`, `sudo` or `setpriv`. Result: the session bus **refuses the connection outright** —
+
+  `as-uid: now uid=1000` → `Failed to open connection to "session" message bus: Did not receive a reply … the message bus
+  security policy blocked the reply`
+
+  `GetId` fails, `request.launch` fails, and the marker is never created.
+- **So V-028 is not an unprivileged local escalation vector as configured.** It remains a real defect: a caller-supplied path
+  reaches `QProcess::start` as root with no validation, and the method returns success even when nothing launched. Its
+  exploitation requires a foothold at the launcher's uid — the HMI's own processes — rather than a non-root user.
+- **Independent agreement:** this is exactly the boundary the parallel lineage's entry (V-040) stated separately — *"relevant
+  to same-uid, SMACK-separated HMI code"*. Two investigations reached it by different routes, which is the strongest form of
+  confirmation available here.
+- Entry retitled to carry the boundary: **runtime demonstrated, not an unprivileged escalation.**
+
 ## 2.20.0 - V-028 runtime-confirmed: a caller-supplied path executes as root
 
 - **The launcher's D-Bus `request.launch` executed an arbitrary caller-supplied path as root.** Using the published

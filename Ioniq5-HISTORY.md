@@ -3792,3 +3792,12 @@ and are superseded by corrections rather than silently rewritten.
   policy, and it stays open until that is tested.
 - Worth noting the contrast with V-037, where a claim of demonstrated root execution turned out to rest on a harness artefact.
   The difference is that this one was reproduced from a clean state, with the evidence being a file the target process wrote.
+
+## 2026-10-31 — confirming the capability and then its limit
+
+- The root execution is real: a caller-supplied path runs as uid zero. The next question was whether anyone who is not already
+  root could trigger it, and the answer is no — the session bus will not even answer a uid-1000 client.
+- What remains on the record is the difference between "a genuine defect" and "an exploitable one". The missing validation is
+  worth fixing regardless; what does not survive is the idea that it lifts an unprivileged user to root.
+- Notably the parallel lineage had reached the same boundary independently, which is more reassuring than my own measurement
+  alone.

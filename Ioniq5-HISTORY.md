@@ -3669,3 +3669,11 @@ and are superseded by corrections rather than silently rewritten.
   rounds without ever getting its own number.
 - I also caught myself writing a summary count from memory rather than counting, and corrected it against grep before
   committing. A register's headline number is the part most likely to be quoted out of context.
+
+## 2026-10-31 — the merge put two verdicts on one bug
+
+- Duplicate entries were easy enough to mark. Duplicate entries that disagree about whether the bug is exploitable are a
+  different problem, and that is what V-037 and V-006 were doing side by side.
+- Resolving it meant keeping both texts and putting the reconciliation where a reader would hit it, because deleting the
+  imported claim would have hidden that it was ever made. The defect is real; the reachability is not; the register now says
+  both, in the right order.

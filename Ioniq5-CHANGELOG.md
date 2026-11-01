@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.15.0 - a contradictory severity claim between duplicate entries, reconciled
+
+- Combining the lineages put **two different statuses for the same finding** into one register. **V-037** (imported,
+  duplicate of V-006) says *"root command execution demonstrated end-to-end in the project QEMU research harness"*, while
+  **V-006** records descriptor injection as **blocked**.
+- **V-006's measurement supersedes it**, and the reasons are recorded inside V-037 rather than its text being deleted:
+  - re-running the exact payload through a real descriptor (`usb-mtp`, `serial=pwn;id>/tmp/VM-PWNED`, with the required
+    `060101` interface) delivers it intact on the wire, but udev hands `usb-automount`
+    **`ID_SERIAL_SHORT=pwn_id__tmp_VM-PWNED`** — `;`, `>` and `/` each rewritten — and **no marker file appears**;
+  - the allow-list doing it (`#+-.:=@_` plus alphanumerics) exists in **both** `systemd-udevd` and `libudev` and was
+    confirmed dynamically;
+  - the original result is therefore most consistent with a **synthetic event or injected `ID_SERIAL_SHORT`**, which
+    bypasses `builtin_usb_id` — something a physical device cannot do.
+- The **source defect stands** in both entries (unquoted `sprintf` into `system()`); the **reachability claim does not**.
+  The register's duplicate table now says explicitly that severity must be read from **V-006**, not V-037.
+- This is the most consequential defect the combination could have produced: a number that reads as a demonstrated root
+  exploit sitting next to a measurement that says it is not reachable.
+
 ## 2.14.0 - the combination created six duplicate findings; now marked
 
 - Importing the parallel lineage's entries produced **duplicates** of findings this register already had, because the two

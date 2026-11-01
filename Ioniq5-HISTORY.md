@@ -3644,3 +3644,10 @@ and are superseded by corrections rather than silently rewritten.
   size-8 region first. With the region supplied, both succeed and the log's own error counter reads zero.
 - The remaining NULL therefore belongs to a third handle rather than to anything I could create, inspect or mount. That is
   the narrowest this has been, and it came from reading four call sites rather than from another evening of experiments.
+
+## 2026-10-31 — knowing where the snippets stop helping
+
+- The last structural theory — that the NULL handle is a copy of an attached one — is dead: there is no copy constructor
+  imported at all, so each handle carries its own key and the third one simply has not been attributed yet.
+- That is the right place to stop this line. Three rounds of call-site reading each narrowed the question without closing it,
+  and the difference between "one more grep" and "an hour in a constructor" is worth naming rather than ignoring.

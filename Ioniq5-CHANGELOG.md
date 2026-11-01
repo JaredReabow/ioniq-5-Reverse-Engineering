@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.12.0 - the NULL handle is keyed separately; the sweep stops here
+
+- Checked the last structural explanation: is the `rbx+0x40` object a **copy** of an attached handle? It is not.
+  `ApplicationManager` imports **no `QSharedMemory` copy constructor** — only `(QObject*)` and `(const QString&, QObject*)` —
+  and the key-taking constructor has exactly **one** call site (`0x1c4a58`, in the helper used by the
+  `APPLICATIONMANAGER_INFORMATION` path).
+- So the third object is constructed with **its own key**, which this sweep did not attribute. That eliminates the copy/detach
+  explanation and leaves a single, bounded disassembly task: read `MicomInterfaceM`'s constructor and enumerate its
+  `QSharedMemory` members and keys.
+- **Stopping here deliberately.** Snippet-level disassembly has stopped producing answers — the last three rounds each found
+  one more call site and each narrowed the question without closing it. The record now states exactly what is known, what was
+  excluded, and what the next reader must do, rather than continuing to spend rounds on diminishing returns.
+
 ## 2.11.0 - both shared-memory keys identified; the NULL is a third handle
 
 - The disassembly names them. `initBootInfo` is `QSharedMemory` keyed **`MICOM_STATUS_MESSAGE`**, `attach()` only, no

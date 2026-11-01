@@ -1021,6 +1021,17 @@ vulnerability is claimed, and this test does not move either entry.
   So the object whose `data()` returns NULL at `rbx+0x40` is **not** either of the two named handles: it is a **third**
   handle, or one of these after the `QSharedMemory::detach` at `0x25a42c` on an earlier failure path. That is the next
   thing to pin down, and it is now a question about one member offset rather than about the environment.
+- **The NULL handle is keyed separately, not copied.** `ApplicationManager` imports no `QSharedMemory` copy constructor —
+  only `QSharedMemory(QObject*)` and `QSharedMemory(const QString&, QObject*)` — and there is exactly **one** call site of the
+  key-taking constructor (at `0x1c4a58`, inside the helper reached from the `APPLICATIONMANAGER_INFORMATION` path). So every
+  handle is constructed with its own key, and the object at `rbx+0x40` must have a key of its own that this sweep did not
+  attribute. It is therefore **not** a re-used or detached copy of either identified region, which eliminates the last
+  structural explanation available without reading the constructor of `MicomInterfaceM`.
+- **Where my leverage ends, stated plainly.** Three named objects are now in play, two of them fully identified and both
+  attaching successfully in the VM; the third is a member offset with no key yet attributed. Finding it requires sustained
+  reading of `MicomInterfaceM`'s constructor and its `QSharedMemory` members — work that is bounded and mechanical, but that
+  snippet-level disassembly has stopped yielding. The register records this as the boundary of what was established, not as
+  an open mystery with a plausible story attached.
 - **Hand-off state for V-036, complete:** reachability, interface construction and shared-memory mechanisms excluded by
   measurement; reply content confirmed as the blocker; three plausible payloads rejected against a live client; the oracle
   for testing further candidates exists and is documented; and the static anchors are listed with the specific difficulty

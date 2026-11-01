@@ -3831,3 +3831,10 @@ and are superseded by corrections rather than silently rewritten.
   never going to work, and the empty screenshot directory made that plain.
 - Both captures I do have came from external screenshooter calls against a live chain. That is the method, and it is now
   written down rather than rediscovered.
+
+## 2026-10-31 — three frames, one sentence
+
+- Splash, then black, then a decorated empty window, captured at three stages of one run. Together they say something simple and
+  useful: the compositor works at every step, and the application never paints.
+- That is the cleanest description of the VM gap produced all session, and it came from capturing at the right moments rather
+  than from any new tooling.

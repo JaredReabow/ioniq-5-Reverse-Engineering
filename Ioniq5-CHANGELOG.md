@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.26.0 - three captures across one chain: splash, black, decorated blank
+
+- Captured at named stages of a live chain run, which is the only method that works (post-hoc capture races the teardown):
+
+  | stage | frame | size | content |
+  |---|---|---|---|
+  | ~75 s | `docs/vm/07-…` | 177,691 B | **Hyundai splash** — vendor artwork, painted by the vendor compositor |
+  | ~130 s | `docs/vm/09-…` | 4,117 B | **pure black** — the splash has gone and nothing has replaced it |
+  | ~155 s | `docs/vm/08-…` | 6,836 B | **decorated client window**, blank white content |
+
+- That sequence is a complete statement of the remaining problem: the compositor transitions between layers correctly, clears to black
+  between them, and presents a mapped, decorated window — and **the application paints nothing into it** at any captured stage,
+  with `AppHomeScreen` alive throughout (`pid 972` in the 130 s run).
+- So the VM goal is now bounded by exactly one question: why a running, registered `AppHomeScreen` produces no content, when the
+  compositor beneath it demonstrably paints vendor assets. Capture method and stage timing are settled and written down.
+- No claim that the answer is close; the three frames say what works and what does not, and nothing more.
+
 ## 2.25.0 - why the frames stopped arriving: the chain tears itself down
 
 - Read the chain script's tail properly. After its last stage it **kills the launcher, ApplicationManager, AppHomeScreen,

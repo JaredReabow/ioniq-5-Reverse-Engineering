@@ -3659,3 +3659,13 @@ and are superseded by corrections rather than silently rewritten.
   otherwise.
 - Nine rounds of exclusion produced a precise description of a vendor defect and no workaround. That is a legitimate outcome
   and it is written as one, with the facts retained and the speculation kept out.
+
+## 2026-10-31 — combining found the same bug twice, which is what independent work looks like
+
+- Six of the imported entries described findings this lineage already had. That is not an error by either side; it is what
+  happens when two teams look at the same firmware. Marking them as duplicates with both bodies kept is the honest handling:
+  the corroboration is worth something, and the evidence does not disappear.
+- Three imports were genuinely new, including the environment-file mechanism that had been described inside another entry for
+  rounds without ever getting its own number.
+- I also caught myself writing a summary count from memory rather than counting, and corrected it against grep before
+  committing. A register's headline number is the part most likely to be quoted out of context.

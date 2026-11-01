@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.14.0 - the combination created six duplicate findings; now marked
+
+- Importing the parallel lineage's entries produced **duplicates** of findings this register already had, because the two
+  lineages independently found the same issues: **V-037/V-006** (MTP shell construction), **V-038/V-007** (media parsing),
+  **V-039/V-008** (serial console), **V-040/V-028** (launcher verifier bypass), **V-044/V-034** (update trust anchor) and
+  **I-002/I-001** (EGL copy path).
+- Each imported entry is now marked **DUPLICATE** in its heading with a note naming the canonical entry, and **both bodies are
+  retained** so no evidence is lost. A consolidation table sits above the scope notes.
+- **Genuinely new from the parallel lineage**, and not duplicated anywhere here: **V-041** (engineering-mode keypad credential
+  from static unsalted digests), **V-042** (world-writable marker files driving privileged systemd actions) and **V-043**
+  (privileged services import `EnvironmentFile` from a world-writable path — the mechanism behind the V-036 chain, which until
+  now had no register entry of its own).
+- **Corrected the count after checking it**: the register holds **47 numbered entries** (44 `V-`, 2 `I-`, 1 `H-`), of which 6
+  are duplicates, i.e. **41 distinct findings**. My first draft of that sentence said 44/38 and was wrong — arithmetic in a
+  register is the kind of thing that gets quoted, so it was verified against `grep -c` rather than written from memory.
+
 ## 2.13.0 - all four regions created; the shared-memory line of enquiry closes
 
 - The trace enumerates exactly what the client touches: **four** names — `APPLICATIONMANAGERINFORMATION`,

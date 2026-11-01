@@ -23,8 +23,9 @@ keypad credential derives from static unsalted digests), **V-042** (world-writab
 actions) and **V-043** (privileged services import environment files from a world-writable path — the mechanism behind the
 chain noted under V-036, which previously had no entry of its own).
 
-So the register holds **44 numbered findings of which 6 are duplicates**, i.e. **38 distinct**, plus `H-001`. When citing a
-count, use the distinct figure.
+So the register holds **47 numbered entries** — 44 `V-`, 2 `I-` and 1 `H-` — of which **6 are duplicates**, leaving **41
+distinct findings** (39 `V-`, `I-001`, `H-001`). When citing a count, use the distinct figure; the 47 includes corroborating
+duplicates and should not be quoted as the number of separate issues found.
 
 ## Numbering and provenance
 

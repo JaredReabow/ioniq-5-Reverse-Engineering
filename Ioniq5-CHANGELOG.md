@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.06.0 - privacy scan widened to vm/ and QML; the suite is green
+
+- Fixed the failure carried over from the parallel lineage, which had **two** causes rather than one:
+  1. the public-mode scope was `{"evidence", "council", "tools"}` — **`vm/` was never scanned**, so a source file under
+     `vm/` could not be flagged;
+  2. `PUBLIC_TEXT_SUFFIXES` omitted **`.qml`, `.js` and `.conf`**, so even once in scope a QML file was skipped as non-text.
+- Both are now fixed: the guard inspects the **vendor's own UI language** (QML) and the `vm/` tree. `tests.test_harness`
+  passes **54/54**.
+- **Full suite: 696 tests run, 691 pass.** The five errors are **`ModuleNotFoundError: No module named 'pytest'`** — those
+  five test modules import pytest, which is not installed in this environment. Recorded as an environment gap, not merge
+  damage: all five corresponding tool modules (`asf_stream_probe`, `appfumo_usb_pathname_model`, `gen5w_decrypt`,
+  `ipk_tool`, `public_rsa_probe`) are present and identical in both lineages.
+
 ## 2.05.0 - both lineages combined semantically, not sacrificed
 
 - The previous merge resolved 39 add/add conflicts by taking the newer side per file, which **discarded content** — the

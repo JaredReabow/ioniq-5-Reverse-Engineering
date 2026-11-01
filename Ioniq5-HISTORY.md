@@ -3598,3 +3598,11 @@ and are superseded by corrections rather than silently rewritten.
   winner is how a register stops being a record.
 - Two things were deliberately not merged and are written down: the parallel rootfs patch internals, because ours is a
   safety superset, and a failing privacy test that fails identically in both lineages.
+
+## 2026-10-31 — the failing test had two causes, not one
+
+- The inherited failure looked like a single scope omission. It was two: vm/ was outside the scan, and .qml was outside the
+  text suffixes, so a QML file would have been skipped even with the directory in scope. Fixing only the first would have
+  looked like a fix and changed nothing.
+- The remaining five suite errors are a missing pytest, not a merge defect — the tool modules are present on both sides. That
+  distinction matters because the instinct is to attribute every red test to the merge.

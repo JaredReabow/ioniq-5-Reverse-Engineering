@@ -1,0 +1,124 @@
+AppDMClient -> AppFUMO priority-mode bridge: exact-static record
+schema: 1
+
+Canonical identities
+- rootfs size: 879109759
+- rootfs sha256: 423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84
+- rootfs member count: 66836
+- rootfs normalized inventory sha256: c85bc4b1b12bc4704c3aea30489bac99c10cb2211f80d94f48f3e1e22fd7a94c
+- AppDMClient size: 2226072
+- AppDMClient sha256: 9a1fb796d7ac24fcce71c16e3dbee9306c888f43e705ee081f41b7d473978bd0
+- AppDMClient Build ID: b2dbcc5231f444d8f1dd68eb7a2376323ce805df
+- outer AppUpgrade size: 10787256
+- outer AppUpgrade sha256: 5295c6e4c41fb9c03760cf006c58b66fcd11aeb4e6e889af6e31b062549b6df0
+- selected embedded ELF outer offset: 0x5721c8
+- selected embedded ELF structural extent: 5066264
+- selected embedded ELF sha256: 464a87646153213ce1f405743a10cff78eb90c203b619f983002358ca74ef0e7
+- selected embedded ELF Build ID: 863a8730e66a1c5245a1bf458fe2554adee0351a
+- trailing container bytes included: false
+- session configuration size: 3382
+- session configuration sha256: c5999ae1f226935ce2b10b19d060874194b7cc87cdc318dd63ce265acbba0119
+
+LLVM identity and complete inventories
+- LLVM version: Homebrew LLVM version 23.1.3
+- llvm-objdump size: 813808
+- llvm-objdump sha256: 7b04d723638c0793efbd31b99b2389f36ceb8c803bdc1008e43ea7525958376f
+- llvm-readelf size: 1805104
+- llvm-readelf sha256: 80a1f8ffc44c5a1e4dbeaa5c409cd98a01cb2fa73e1ccc2eeb22a3b7ee2e1cb0
+- AppDMClient instruction count: 321113
+- AppDMClient instruction sha256: 77c0187fc865feaf9ce6bac45ef22d6e3eef29981637190fdf1d225c6928a39d
+- AppDMClient FDE count: 2418
+- AppDMClient FDE sha256: 48598865977ec790c555d4441e15c0ec7501d4999d5f66070d70b686f94c4301
+- AppFUMO instruction count: 470739
+- AppFUMO instruction sha256: 693dce0d89faabeea30512fe0a696a733e9bdd64fd7be7379dba98a44d2dc0c8
+- AppFUMO FDE count: 3789
+- AppFUMO FDE sha256: 2c71813a3f098f8f949c6acee1080c0147df182e589f8b8b576798ce4807eb07
+
+Selected FDEs
+- AppDMClient signal sender: [0x4f1c0,0x4f58a)
+- AppDMClient source checker: [0x67e30,0x69144)
+- AppDMClient source staging: [0x7ff60,0x830e4)
+- AppDMClient mounted-source callback: [0x84700,0x84e2d)
+- AppDMClient state-notification sender: [0x85340,0x85a90)
+- AppDMClient generated row dispatch: [0x108bd0,0x10a075)
+- AppFUMO session subscription setup: [0xe2c30,0xe3296)
+- AppFUMO generated row dispatch: [0x16df80,0x16efe4)
+- AppFUMO priority-mode consumer: [0x10f4a0,0x10fa30)
+- AppFUMO readiness predicate: [0xfed10,0xff280)
+- AppFUMO news-copy function: [0x101110,0x104c1b)
+
+Corrected subscription classification
+- corrected subscription call: 0xe308b
+- corrected service filter: empty
+- corrected path filter: empty
+- corrected interface filter: fixed
+- corrected member filter: fixed
+- corrected filter class: wildcard-service-and-path-fixed-interface-and-member
+- superseded call: 0xe2fc5
+- superseded call class: unrelated fixed-service-path-interface-and-member subscription
+- corrected and superseded member bytes distinct: true
+
+Normalized literal identities
+- emitter path: length 44, sha256 d305d63db117b4b60be6077f39031751a909cedbf626ca361a1a67079858c7b7
+- emitter interface: length 43, sha256 35b9b701c51a53cd99d064f5e36c4a53866b0d6640547064fe8b984497867c5f
+- receiver interface: length 43, sha256 35b9b701c51a53cd99d064f5e36c4a53866b0d6640547064fe8b984497867c5f
+- emitter member: length 14, sha256 3fc391aa95b1e4284d7516044213fd4f4023e344be926a9e60ac56de59f00bee
+- receiver member: length 14, sha256 3fc391aa95b1e4284d7516044213fd4f4023e344be926a9e60ac56de59f00bee
+- receiver slot: length 42, sha256 61fc6535d3dfdcc8af344bce4ead49208990ea2f19d1270ded620c7078ae68e1
+- unrelated member: length 12, sha256 77133564e5ec58831fb59ebd90b920210dd739b65ab378722433238ec6819bd0
+- fixed hidden archive basename: length 16, sha256 325a645d8bfce45689ff9e26fa85872acb4941c9f657a54056df38951330255f
+- two-part path template: length 5, sha256 7727f1bdfd8ff22a6969747d5178aa88490a830f578264596ca539b88cdc9d5c
+- interface bytes equal cross-binary: true
+- member bytes equal cross-binary: true
+
+Direct-transfer inventories
+- signal-sender direct calls: 0x685e7, 0x8573f, 0x8595f, 0x109766
+- source-checker direct calls: 0x8079d
+- priority-mode consumer direct calls: 0x16e6da
+- readiness-predicate direct calls: 0x10f8a2, 0x114a5e, 0x1244cf, 0x16e587
+- news-copy direct calls: 0x10f995, 0x1244fd, 0x16e59f
+- news-copy direct jumps: 0x104c4c
+
+Bounded continuity
+- mounted callback first QString -> object field +0x128: bound
+- mounted callback source -> staging call 0x849a7: bound
+- staging copied source -> checker call 0x8079d: bound
+- checker accepted-state source -> sender second QString at 0x685e7: bound
+- checker version -> sender first QString at 0x685e7: bound
+- state-notification calls 0x8573f and 0x8595f use empty QString values: bound
+- generated sender row -> sender body at 0x109766: bound
+- sender session-bus acquisition and signal send: bound
+- corrected wildcard-service/path subscription -> generated receiver row: bound
+- generated receiver row -> body 0x10f4a0: bound
+- status -> global 0x6d4fb8: bound
+- version -> global 0x6d4fb0: bound
+- source path -> global 0x6d4fa8: bound
+- accepted mode -> readiness predicate 0xfed10: bound
+- nonzero readiness -> conditional news-copy call 0x10f995: bound
+- accepted news-copy package base -> global 0x6d4fa8: bound
+- archive class -> package-base plus fixed hidden archive basename: bound
+- alternate local request is a news-copy call: false
+
+Canonical session-bus boundary
+- bus type: session
+- listener class: Unix temporary-directory listener
+- authentication declaration: EXTERNAL
+- default send/receive/own policy: allow
+- session policy directory present: true
+- session policy regular member count: 0
+- optional local include present: false
+- policy permission proves socket reachability: false
+- empty service/path filters authenticate sender: false
+- interface/member matching authenticates sender: false
+
+Retained identities
+- manifest sha256: 9a3b105a9e5e7bacb3f179f5162b1dfb860caf1cebce2a45c1709e5266f9bc24
+- retained report sha256: 3a6fce587a17d0787ec75d863b46d66844295660af4b7fc58b095b68aa09d1d9
+
+Scope
+- runtime same-bus participation, socket reachability, sender identity, signal delivery,
+  slot execution, readiness success, and copy success: unknown
+- sender control, authentication success, command success, code execution, root,
+  partition write, boot acceptance, and persistence: not established
+- recovered target execution: none
+- bus contact or message creation/sending: none

@@ -1,0 +1,234 @@
+{
+  "artifacts": {
+    "appdmclient": {
+      "build_id": "b2dbcc5231f444d8f1dd68eb7a2376323ce805df",
+      "sha256": "9a1fb796d7ac24fcce71c16e3dbee9306c888f43e705ee081f41b7d473978bd0",
+      "size": 2226072
+    },
+    "appfumo": {
+      "build_id": "863a8730e66a1c5245a1bf458fe2554adee0351a",
+      "sha256": "464a87646153213ce1f405743a10cff78eb90c203b619f983002358ca74ef0e7",
+      "size": 5066264
+    },
+    "embedded_selection": {
+      "outer_offset": "0x5721c8",
+      "structural_extent": 5066264,
+      "trailing_container_bytes_included": false
+    },
+    "outer_appupgrade": {
+      "sha256": "5295c6e4c41fb9c03760cf006c58b66fcd11aeb4e6e889af6e31b062549b6df0",
+      "size": 10787256
+    },
+    "rootfs": {
+      "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+      "size": 879109759
+    }
+  },
+  "bridge": {
+    "accepted_copy_package_base_is_source_path_global": true,
+    "accepted_mode_readiness_is_checked": true,
+    "alternate_local_request_is_copy_call": false,
+    "archive_class": "package-base-plus-fixed-hidden-news-archive-basename",
+    "checker_selected_call_uses_fixed_accepted_state": true,
+    "checker_source_is_sender_second_string": true,
+    "checker_version_is_sender_first_string": true,
+    "consumer_argument_order": [
+      "status",
+      "version",
+      "source-path"
+    ],
+    "copy_call_is_conditional_on_readiness": true,
+    "generated_receiver_row": 69,
+    "mounted_callback_copies_first_string_to_object_field": true,
+    "mounted_callback_object_field_offset": "0x128",
+    "mounted_callback_passes_source_to_staging": true,
+    "receiver_interface_filter_fixed": true,
+    "receiver_member_filter_fixed": true,
+    "receiver_path_filter_empty": true,
+    "receiver_service_filter_empty": true,
+    "sender_argument_order": [
+      "status",
+      "version",
+      "source-path"
+    ],
+    "sender_calls_signal_send": true,
+    "sender_uses_session_bus": true,
+    "source_path_global": "0x6d4fa8",
+    "staging_passes_copied_source_to_checker": true,
+    "state_notification_calls_use_empty_strings": true,
+    "status_global": "0x6d4fb8",
+    "version_global": "0x6d4fb0"
+  },
+  "exact_static": {
+    "complete_inventories": {
+      "appdmclient": {
+        "fde_count": 2418,
+        "fde_sha256": "48598865977ec790c555d4441e15c0ec7501d4999d5f66070d70b686f94c4301",
+        "instruction_count": 321113,
+        "instruction_sha256": "77c0187fc865feaf9ce6bac45ef22d6e3eef29981637190fdf1d225c6928a39d"
+      },
+      "appfumo": {
+        "fde_count": 3789,
+        "fde_sha256": "2c71813a3f098f8f949c6acee1080c0147df182e589f8b8b576798ce4807eb07",
+        "instruction_count": 470739,
+        "instruction_sha256": "693dce0d89faabeea30512fe0a696a733e9bdd64fd7be7379dba98a44d2dc0c8"
+      }
+    },
+    "corrected_receiver_filter_class": "wildcard-service-and-path-fixed-interface-and-member",
+    "corrected_subscription_call": "0xe308b",
+    "interface_bytes_equal_cross_binary": true,
+    "literal_bindings": {
+      "emitter-interface": {
+        "length": 43,
+        "sha256": "35b9b701c51a53cd99d064f5e36c4a53866b0d6640547064fe8b984497867c5f"
+      },
+      "emitter-member": {
+        "length": 14,
+        "sha256": "3fc391aa95b1e4284d7516044213fd4f4023e344be926a9e60ac56de59f00bee"
+      },
+      "emitter-path": {
+        "length": 44,
+        "sha256": "d305d63db117b4b60be6077f39031751a909cedbf626ca361a1a67079858c7b7"
+      },
+      "news-archive-basename": {
+        "length": 16,
+        "sha256": "325a645d8bfce45689ff9e26fa85872acb4941c9f657a54056df38951330255f"
+      },
+      "receiver-interface": {
+        "length": 43,
+        "sha256": "35b9b701c51a53cd99d064f5e36c4a53866b0d6640547064fe8b984497867c5f"
+      },
+      "receiver-member": {
+        "length": 14,
+        "sha256": "3fc391aa95b1e4284d7516044213fd4f4023e344be926a9e60ac56de59f00bee"
+      },
+      "receiver-slot": {
+        "length": 42,
+        "sha256": "61fc6535d3dfdcc8af344bce4ead49208990ea2f19d1270ded620c7078ae68e1"
+      },
+      "two-part-path-template": {
+        "length": 5,
+        "sha256": "7727f1bdfd8ff22a6969747d5178aa88490a830f578264596ca539b88cdc9d5c"
+      },
+      "unrelated-interface": {
+        "length": 27,
+        "sha256": "0e2d96122831ba520c89b632aae0e8ee0815d754d2698aec2267a039739e86d8"
+      },
+      "unrelated-member": {
+        "length": 12,
+        "sha256": "77133564e5ec58831fb59ebd90b920210dd739b65ab378722433238ec6819bd0"
+      },
+      "unrelated-path": {
+        "length": 12,
+        "sha256": "f8eefd5b1adcc4c838fec8d7ec14aa9fd60bb8a1cc94f656376f070ae35a9d2c"
+      },
+      "unrelated-service": {
+        "length": 30,
+        "sha256": "4061c7b1c2db6d0b28e36b4b94b94934af1ea5183f5d867cad24a506abbb3013"
+      }
+    },
+    "llvm_version": "Homebrew LLVM version 23.1.3",
+    "manifest_sha256": "9a3b105a9e5e7bacb3f179f5162b1dfb860caf1cebce2a45c1709e5266f9bc24",
+    "member_bytes_equal_cross_binary": true,
+    "selected_fdes": {
+      "appdmclient:generated-row-dispatch": {
+        "end_exclusive": "0x10a075",
+        "start": "0x108bd0"
+      },
+      "appdmclient:mounted-source-callback": {
+        "end_exclusive": "0x84e2d",
+        "start": "0x84700"
+      },
+      "appdmclient:signal-sender": {
+        "end_exclusive": "0x4f58a",
+        "start": "0x4f1c0"
+      },
+      "appdmclient:source-checker": {
+        "end_exclusive": "0x69144",
+        "start": "0x67e30"
+      },
+      "appdmclient:source-staging": {
+        "end_exclusive": "0x830e4",
+        "start": "0x7ff60"
+      },
+      "appdmclient:state-notification-sender": {
+        "end_exclusive": "0x85a90",
+        "start": "0x85340"
+      },
+      "appfumo:generated-row-dispatch": {
+        "end_exclusive": "0x16efe4",
+        "start": "0x16df80"
+      },
+      "appfumo:news-copy": {
+        "end_exclusive": "0x104c1b",
+        "start": "0x101110"
+      },
+      "appfumo:priority-mode-consumer": {
+        "end_exclusive": "0x10fa30",
+        "start": "0x10f4a0"
+      },
+      "appfumo:readiness-predicate": {
+        "end_exclusive": "0xff280",
+        "start": "0xfed10"
+      },
+      "appfumo:session-subscription-setup": {
+        "end_exclusive": "0xe3296",
+        "start": "0xe2c30"
+      }
+    },
+    "sender_direct_call_vas": [
+      "0x685e7",
+      "0x8573f",
+      "0x8595f",
+      "0x109766"
+    ],
+    "superseded_member_distinct": true,
+    "superseded_receiver_filter_class": "fixed-service-path-interface-and-member",
+    "superseded_subscription_call": "0xe2fc5"
+  },
+  "runtime": {
+    "copy_success": null,
+    "readiness_success": null,
+    "same_bus_participation": null,
+    "sender_identity": null,
+    "signal_delivery": null,
+    "slot_execution": null,
+    "socket_reachability": null
+  },
+  "schema_version": 1,
+  "scope": {
+    "authentication_success_established": false,
+    "boot_acceptance_established": false,
+    "bus_contacted": false,
+    "code_execution_established": false,
+    "copy_success_established": false,
+    "partition_write_established": false,
+    "persistence_established": false,
+    "recovered_target_executed": false,
+    "root_established": false,
+    "runtime_delivery_established": false,
+    "sender_control_established": false,
+    "signal_or_method_created_or_sent": false,
+    "static_pathname_value_continuity_established": true
+  },
+  "session_bus_boundary": {
+    "authentication": "EXTERNAL",
+    "bus_type": "session",
+    "default_own_permission": "allow",
+    "default_receive_permission": "allow",
+    "default_send_permission": "allow",
+    "empty_service_and_path_authenticate_sender": false,
+    "included_policy_directory": true,
+    "interface_and_member_authenticate_sender": false,
+    "listener_class": "unix-temporary-directory",
+    "local_override_present": false,
+    "optional_local_include": true,
+    "policy_permission_is_socket_reachability": false,
+    "session_policy_directory_present": true,
+    "session_policy_regular_member_count": 0
+  },
+  "tool": {
+    "name": "appdmclient-appfumo-priority-mode-bridge",
+    "version": "1.0.0"
+  }
+}

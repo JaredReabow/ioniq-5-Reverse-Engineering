@@ -1,0 +1,1021 @@
+{
+  "artifacts": {
+    "appdmclient": {
+      "build_id": "b2dbcc5231f444d8f1dd68eb7a2376323ce805df",
+      "sha256": "9a1fb796d7ac24fcce71c16e3dbee9306c888f43e705ee081f41b7d473978bd0",
+      "size": 2226072
+    },
+    "appfumo": {
+      "build_id": "863a8730e66a1c5245a1bf458fe2554adee0351a",
+      "sha256": "464a87646153213ce1f405743a10cff78eb90c203b619f983002358ca74ef0e7",
+      "size": 5066264
+    },
+    "outer_appupgrade": {
+      "sha256": "5295c6e4c41fb9c03760cf006c58b66fcd11aeb4e6e889af6e31b062549b6df0",
+      "size": 10787256
+    },
+    "rootfs": {
+      "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+      "size": 879109759
+    },
+    "session_config": {
+      "mode": 420,
+      "sha256": "c5999ae1f226935ce2b10b19d060874194b7cc87cdc318dd63ce265acbba0119",
+      "size": 3382
+    }
+  },
+  "expected": {
+    "anchors": [
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movl",
+        "operands": "$0xe, %esi",
+        "va": 324336
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "leaq",
+        "operands": "0x124902(%rip), %rdi    # 0x173bfe",
+        "va": 324341
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movl",
+        "operands": "$0x2b, %esi",
+        "va": 324353
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "leaq",
+        "operands": "0x123763(%rip), %rdi    # 0x172a70",
+        "va": 324358
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movl",
+        "operands": "$0x2c, %esi",
+        "va": 324375
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "leaq",
+        "operands": "0x126d38(%rip), %rdi    # 0x176060",
+        "va": 324385
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "callq",
+        "operands": "0x1c710 <_ZN12QDBusMessage12createSignalERK7QStringS2_S2_@plt>",
+        "va": 324424
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movl",
+        "operands": "0xc(%rsp), %esi",
+        "va": 324541
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "callq",
+        "operands": "0x1b650 <_ZN12QDBusMessagelsERK8QVariant@plt>",
+        "va": 324559
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "callq",
+        "operands": "0x1b650 <_ZN12QDBusMessagelsERK8QVariant@plt>",
+        "va": 324570
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "callq",
+        "operands": "0x1b650 <_ZN12QDBusMessagelsERK8QVariant@plt>",
+        "va": 324581
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "callq",
+        "operands": "0x1afb0 <_ZN15QDBusConnection10sessionBusEv@plt>",
+        "va": 324618
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "callq",
+        "operands": "0x1bf70 <_ZNK15QDBusConnection4sendERK12QDBusMessage@plt>",
+        "va": 324629
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "%rbx, %rcx",
+        "va": 427481
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "%rbp, %rdx",
+        "va": 427484
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movl",
+        "operands": "$0x1, %esi",
+        "va": 427487
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "callq",
+        "operands": "0x4f1c0 <.text+0x32010>",
+        "va": 427495
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "%rbx, %rsi",
+        "va": 526231
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "%r15, %rdi",
+        "va": 526234
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "callq",
+        "operands": "0x67e30 <.text+0x4ac80>",
+        "va": 526237
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "cmpl",
+        "operands": "$0x1, %r12d",
+        "va": 542836
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "0x8(%rsp), %rax",
+        "va": 542936
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "%r14, %rsi",
+        "va": 542941
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "leaq",
+        "operands": "0x128(%rax), %rdi",
+        "va": 542944
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "callq",
+        "operands": "0x1ca30 <_ZN7QStringaSERKS_@plt>",
+        "va": 542958
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "(%r14), %rax",
+        "va": 543107
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "%rax, 0x80(%rsp)",
+        "va": 543112
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "0x8(%rsp), %rdi",
+        "va": 543135
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "%r13, %rsi",
+        "va": 543140
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "callq",
+        "operands": "0x7ff60 <.text+0x62db0>",
+        "va": 543143
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movl",
+        "operands": "$0xffffffff, %esi       # imm = 0xFFFFFFFF",
+        "va": 546578
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "xorl",
+        "operands": "%edi, %edi",
+        "va": 546583
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movl",
+        "operands": "$0xffffffff, %esi       # imm = 0xFFFFFFFF",
+        "va": 546590
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "xorl",
+        "operands": "%edi, %edi",
+        "va": 546595
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "%r12, %rcx",
+        "va": 546607
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "%rbx, %rdx",
+        "va": 546610
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movl",
+        "operands": "%ebp, %esi",
+        "va": 546613
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "callq",
+        "operands": "0x4f1c0 <.text+0x32010>",
+        "va": 546623
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movl",
+        "operands": "$0xffffffff, %esi       # imm = 0xFFFFFFFF",
+        "va": 547122
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "xorl",
+        "operands": "%edi, %edi",
+        "va": 547127
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movl",
+        "operands": "$0xffffffff, %esi       # imm = 0xFFFFFFFF",
+        "va": 547134
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "xorl",
+        "operands": "%edi, %edi",
+        "va": 547139
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "%r12, %rcx",
+        "va": 547151
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "%rbx, %rdx",
+        "va": 547154
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "xorl",
+        "operands": "%esi, %esi",
+        "va": 547157
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "callq",
+        "operands": "0x4f1c0 <.text+0x32010>",
+        "va": 547167
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "0x18(%rcx), %rax",
+        "va": 1087255
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "0x10(%rbx), %rax",
+        "va": 1087283
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "0x8(%rbx), %rax",
+        "va": 1087311
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "%r12, %rcx",
+        "va": 1087326
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movq",
+        "operands": "%r13, %rdx",
+        "va": 1087329
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "movl",
+        "operands": "(%rax), %esi",
+        "va": 1087332
+      },
+      {
+        "binary": "appdmclient",
+        "mnemonic": "callq",
+        "operands": "0x4f1c0 <.text+0x32010>",
+        "va": 1087334
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "callq",
+        "operands": "0x22060 <_ZN15QDBusConnection10sessionBusEv@plt>",
+        "va": 928858
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movl",
+        "operands": "$0xc, %esi",
+        "va": 929610
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x13be8b(%rip), %rdi    # 0x21ede8",
+        "va": 929622
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movl",
+        "operands": "$0x1b, %esi",
+        "va": 929634
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%rax, -0x40(%rbp)",
+        "va": 929639
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movl",
+        "operands": "$0xc, %esi",
+        "va": 929655
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x13b739(%rip), %rdi    # 0x21e6c0",
+        "va": 929664
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movl",
+        "operands": "$0x1e, %esi",
+        "va": 929676
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x135a3c(%rip), %rdi    # 0x2189d8",
+        "va": 929685
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%r13, %rsi",
+        "va": 929717
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%r14, %rdi",
+        "va": 929720
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "callq",
+        "operands": "0x23240 <_ZN15QDBusConnection7connectERK7QStringS2_S2_S2_P7QObjectPKc@plt>",
+        "va": 929733
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%rax, -0x90(%rbp)",
+        "va": 929840
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x13b6a5(%rip), %rdi    # 0x21e6e3",
+        "va": 929847
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%rax, -0x40(%rbp)",
+        "va": 929864
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x1318fd(%rip), %rdi    # 0x214950",
+        "va": 929868
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%r15, %r9",
+        "va": 929887
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%rbx, %r8",
+        "va": 929890
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%r12, %rdx",
+        "va": 929893
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%rax, -0x50(%rbp)",
+        "va": 929896
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%r13, %rsi",
+        "va": 929904
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%r14, %rdi",
+        "va": 929907
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x5f161d(%rip), %rax    # 0x6d46a0 <_ZN10QArrayData11shared_nullE>",
+        "va": 929916
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%rax, -0x60(%rbp)",
+        "va": 929923
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "callq",
+        "operands": "0x23240 <_ZN15QDBusConnection7connectERK7QStringS2_S2_S2_P7QObjectPKc@plt>",
+        "va": 929931
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%rdi, (%rsp)",
+        "va": 1043769
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x10ce1f(%rip), %rdi    # 0x20bb63",
+        "va": 1043773
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movl",
+        "operands": "0x5d61ae(%rip), %eax    # 0x6d4fb8 <_ZN9QListData11shared_nullE+0x758>",
+        "va": 1043972
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "cmpl",
+        "operands": "$0x1, %eax",
+        "va": 1044003
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x30(%rsp), %rax",
+        "va": 1044696
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x5d5ec4(%rip), %rsi    # 0x6d4fa8 <_ZN9QListData11shared_nullE+0x748>",
+        "va": 1044701
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%rax, %rdi",
+        "va": 1044708
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "callq",
+        "operands": "0x24010 <_ZN7QStringaSERKS_@plt>",
+        "va": 1044715
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "cmpl",
+        "operands": "$0x1, 0x5d3e7d(%rip)    # 0x6d4fb8 <_ZN9QListData11shared_nullE+0x758>",
+        "va": 1052980
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "je",
+        "operands": "0x102c90 <.text+0xde460>",
+        "va": 1053007
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x3e0(%rsp), %rbx",
+        "va": 1054043
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x10a5f9(%rip), %rsi    # 0x20bb63",
+        "va": 1054051
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x108753(%rip), %rsi    # 0x209cd4",
+        "va": 1054074
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "0x60(%rsp), %rdx",
+        "va": 1054089
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "callq",
+        "operands": "0x22c30 <_ZNK7QString3argERKS_i5QChar@plt>",
+        "va": 1054116
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "callq",
+        "operands": "0x22c30 <_ZNK7QString3argERKS_i5QChar@plt>",
+        "va": 1054157
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x140(%rsp), %rdi",
+        "va": 1059984
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x5d2309(%rip), %rsi    # 0x6d4fa8 <_ZN9QListData11shared_nullE+0x748>",
+        "va": 1059992
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "callq",
+        "operands": "0x24010 <_ZN7QStringaSERKS_@plt>",
+        "va": 1060004
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%rdi, %r15",
+        "va": 1111206
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%rdx, %r14",
+        "va": 1111211
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%rcx, %r13",
+        "va": 1111216
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movl",
+        "operands": "%esi, %ebx",
+        "va": 1111222
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movl",
+        "operands": "%ebx, 0x5c5997(%rip)    # 0x6d4fb8 <_ZN9QListData11shared_nullE+0x758>",
+        "va": 1111579
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x5c5988(%rip), %rdi    # 0x6d4fb0 <_ZN9QListData11shared_nullE+0x750>",
+        "va": 1111585
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "callq",
+        "operands": "0x24010 <_ZN7QStringaSERKS_@plt>",
+        "va": 1111592
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "leaq",
+        "operands": "0x5c5974(%rip), %rdi    # 0x6d4fa8 <_ZN9QListData11shared_nullE+0x748>",
+        "va": 1111597
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%r13, %rsi",
+        "va": 1111604
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "callq",
+        "operands": "0x24010 <_ZN7QStringaSERKS_@plt>",
+        "va": 1111607
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movl",
+        "operands": "0x218(%r15), %ebx",
+        "va": 1111672
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "cmpl",
+        "operands": "$0x2c08, %ebx           # imm = 0x2C08",
+        "va": 1111679
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "callq",
+        "operands": "0xfed10 <.text+0xda4e0>",
+        "va": 1112226
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "testb",
+        "operands": "%al, %al",
+        "va": 1112231
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "jne",
+        "operands": "0x10f970 <.text+0xeb140>",
+        "va": 1112233
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "callq",
+        "operands": "0x55c60 <.text+0x31430>",
+        "va": 1112432
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%r15, %rdi",
+        "va": 1112466
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "callq",
+        "operands": "0x101110 <.text+0xdc8e0>",
+        "va": 1112469
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "0x18(%rcx), %rdx",
+        "va": 1500780
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "0x10(%rbx), %rdx",
+        "va": 1500829
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "0x8(%rbx), %rax",
+        "va": 1500878
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%rbp, %rcx",
+        "va": 1500882
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movq",
+        "operands": "%r12, %rdx",
+        "va": 1500885
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "movl",
+        "operands": "(%rax), %esi",
+        "va": 1500888
+      },
+      {
+        "binary": "appfumo",
+        "mnemonic": "callq",
+        "operands": "0x10f4a0 <.text+0xeac70>",
+        "va": 1500890
+      }
+    ],
+    "direct_transfers": [
+      {
+        "binary": "appdmclient",
+        "call_vas": [
+          427495,
+          546623,
+          547167,
+          1087334
+        ],
+        "jump_vas": [],
+        "target": 324032
+      },
+      {
+        "binary": "appdmclient",
+        "call_vas": [
+          526237
+        ],
+        "jump_vas": [],
+        "target": 425520
+      },
+      {
+        "binary": "appdmclient",
+        "call_vas": [
+          537147,
+          540687,
+          543143,
+          543900,
+          544142,
+          544990,
+          550924,
+          551107,
+          552844,
+          553877,
+          555096,
+          557811
+        ],
+        "jump_vas": [],
+        "target": 524128
+      },
+      {
+        "binary": "appfumo",
+        "call_vas": [
+          1112226,
+          1133150,
+          1197263,
+          1500551
+        ],
+        "jump_vas": [],
+        "target": 1043728
+      },
+      {
+        "binary": "appfumo",
+        "call_vas": [
+          1112469,
+          1197309,
+          1500575
+        ],
+        "jump_vas": [
+          1068108
+        ],
+        "target": 1052944
+      },
+      {
+        "binary": "appfumo",
+        "call_vas": [
+          1500890
+        ],
+        "jump_vas": [],
+        "target": 1111200
+      }
+    ],
+    "embedded": {
+      "build_id": "863a8730e66a1c5245a1bf458fe2554adee0351a",
+      "outer_offset": 5710280,
+      "structural_extent": 5066264
+    },
+    "fdes": [
+      {
+        "binary": "appdmclient",
+        "end_exclusive": 1089653,
+        "role": "generated-row-dispatch",
+        "start": 1084368
+      },
+      {
+        "binary": "appdmclient",
+        "end_exclusive": 544301,
+        "role": "mounted-source-callback",
+        "start": 542464
+      },
+      {
+        "binary": "appdmclient",
+        "end_exclusive": 325002,
+        "role": "signal-sender",
+        "start": 324032
+      },
+      {
+        "binary": "appdmclient",
+        "end_exclusive": 430404,
+        "role": "source-checker",
+        "start": 425520
+      },
+      {
+        "binary": "appdmclient",
+        "end_exclusive": 536804,
+        "role": "source-staging",
+        "start": 524128
+      },
+      {
+        "binary": "appdmclient",
+        "end_exclusive": 547472,
+        "role": "state-notification-sender",
+        "start": 545600
+      },
+      {
+        "binary": "appfumo",
+        "end_exclusive": 1503204,
+        "role": "generated-row-dispatch",
+        "start": 1499008
+      },
+      {
+        "binary": "appfumo",
+        "end_exclusive": 1068059,
+        "role": "news-copy",
+        "start": 1052944
+      },
+      {
+        "binary": "appfumo",
+        "end_exclusive": 1112624,
+        "role": "priority-mode-consumer",
+        "start": 1111200
+      },
+      {
+        "binary": "appfumo",
+        "end_exclusive": 1045120,
+        "role": "readiness-predicate",
+        "start": 1043728
+      },
+      {
+        "binary": "appfumo",
+        "end_exclusive": 930454,
+        "role": "session-subscription-setup",
+        "start": 928816
+      }
+    ],
+    "literals": [
+      {
+        "binary": "appdmclient",
+        "length": 43,
+        "role": "emitter-interface",
+        "sha256": "35b9b701c51a53cd99d064f5e36c4a53866b0d6640547064fe8b984497867c5f",
+        "va": 1518192
+      },
+      {
+        "binary": "appdmclient",
+        "length": 14,
+        "role": "emitter-member",
+        "sha256": "3fc391aa95b1e4284d7516044213fd4f4023e344be926a9e60ac56de59f00bee",
+        "va": 1522686
+      },
+      {
+        "binary": "appdmclient",
+        "length": 44,
+        "role": "emitter-path",
+        "sha256": "d305d63db117b4b60be6077f39031751a909cedbf626ca361a1a67079858c7b7",
+        "va": 1532000
+      },
+      {
+        "binary": "appfumo",
+        "length": 16,
+        "role": "news-archive-basename",
+        "sha256": "325a645d8bfce45689ff9e26fa85872acb4941c9f657a54056df38951330255f",
+        "va": 2145123
+      },
+      {
+        "binary": "appfumo",
+        "length": 43,
+        "role": "receiver-interface",
+        "sha256": "35b9b701c51a53cd99d064f5e36c4a53866b0d6640547064fe8b984497867c5f",
+        "va": 2181456
+      },
+      {
+        "binary": "appfumo",
+        "length": 14,
+        "role": "receiver-member",
+        "sha256": "3fc391aa95b1e4284d7516044213fd4f4023e344be926a9e60ac56de59f00bee",
+        "va": 2221795
+      },
+      {
+        "binary": "appfumo",
+        "length": 42,
+        "role": "receiver-slot",
+        "sha256": "61fc6535d3dfdcc8af344bce4ead49208990ea2f19d1270ded620c7078ae68e1",
+        "va": 2258288
+      },
+      {
+        "binary": "appfumo",
+        "length": 5,
+        "role": "two-part-path-template",
+        "sha256": "7727f1bdfd8ff22a6969747d5178aa88490a830f578264596ca539b88cdc9d5c",
+        "va": 2137300
+      },
+      {
+        "binary": "appfumo",
+        "length": 27,
+        "role": "unrelated-interface",
+        "sha256": "0e2d96122831ba520c89b632aae0e8ee0815d754d2698aec2267a039739e86d8",
+        "va": 2221732
+      },
+      {
+        "binary": "appfumo",
+        "length": 12,
+        "role": "unrelated-member",
+        "sha256": "77133564e5ec58831fb59ebd90b920210dd739b65ab378722433238ec6819bd0",
+        "va": 2223592
+      },
+      {
+        "binary": "appfumo",
+        "length": 12,
+        "role": "unrelated-path",
+        "sha256": "f8eefd5b1adcc4c838fec8d7ec14aa9fd60bb8a1cc94f656376f070ae35a9d2c",
+        "va": 2221760
+      },
+      {
+        "binary": "appfumo",
+        "length": 30,
+        "role": "unrelated-service",
+        "sha256": "4061c7b1c2db6d0b28e36b4b94b94934af1ea5183f5d867cad24a506abbb3013",
+        "va": 2197976
+      }
+    ],
+    "rootfs": {
+      "inventory_sha256": "c85bc4b1b12bc4704c3aea30489bac99c10cb2211f80d94f48f3e1e22fd7a94c",
+      "member_count": 66836,
+      "session_d_child_count": 0,
+      "session_local_present": false
+    }
+  },
+  "llvm": {
+    "binaries": {
+      "appdmclient": {
+        "fde_count": 2418,
+        "fde_sha256": "48598865977ec790c555d4441e15c0ec7501d4999d5f66070d70b686f94c4301",
+        "instruction_count": 321113,
+        "instruction_sha256": "77c0187fc865feaf9ce6bac45ef22d6e3eef29981637190fdf1d225c6928a39d"
+      },
+      "appfumo": {
+        "fde_count": 3789,
+        "fde_sha256": "2c71813a3f098f8f949c6acee1080c0147df182e589f8b8b576798ce4807eb07",
+        "instruction_count": 470739,
+        "instruction_sha256": "693dce0d89faabeea30512fe0a696a733e9bdd64fd7be7379dba98a44d2dc0c8"
+      }
+    },
+    "objdump_sha256": "7b04d723638c0793efbd31b99b2389f36ceb8c803bdc1008e43ea7525958376f",
+    "objdump_size": 813808,
+    "readelf_sha256": "80a1f8ffc44c5a1e4dbeaa5c409cd98a01cb2fa73e1ccc2eeb22a3b7ee2e1cb0",
+    "readelf_size": 1805104,
+    "version": "Homebrew LLVM version 23.1.3"
+  },
+  "schema_version": 1
+}

@@ -203,6 +203,15 @@ VM control lives in `tools/uk_fw/vm_boot.py`; boot-contract details are in
 Snapshot mode with no networking is a hard requirement: runs must not mutate the
 base image or reach the network.
 
+## Exact-static AppFUMO boot boundary
+
+The execution-free [boot-activation boundary assessment](evidence/appfumo-boot-activation-boundary.md)
+binds the completion QML and Qt dispatch chain to a local asynchronous reset
+request, separately maps reboot-system and recovery requests, and streams the
+canonical rootfs inventory. None of those requests carries a slot identifier or
+proves hardware action; inactive-slot activation, mark-good, counters, rollback,
+and persistent slot choice remain outside the reviewed ELF/rootfs evidence.
+
 ## Validation
 
 ```sh

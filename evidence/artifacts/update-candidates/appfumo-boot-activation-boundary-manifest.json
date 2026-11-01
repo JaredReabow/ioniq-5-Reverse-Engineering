@@ -1,0 +1,603 @@
+{
+  "artifacts": {
+    "elf": {
+      "build_id": "863a8730e66a1c5245a1bf458fe2554adee0351a",
+      "sha256": "464a87646153213ce1f405743a10cff78eb90c203b619f983002358ca74ef0e7",
+      "size": 5066264
+    },
+    "rootfs": {
+      "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+      "size": 879109759
+    }
+  },
+  "expected": {
+    "anchors": [
+      {
+        "sha256": "c3953669532dab72bed76ea73fc664e4453e2548c885dc12e33906356c483524",
+        "va": 913751
+      },
+      {
+        "sha256": "17963e3a5e38a18f4a7f9c283dfd9700fe93a076453df4782b98522704dd34ea",
+        "va": 913763
+      },
+      {
+        "sha256": "6fe4d69077b26e361577d6f0ace45a55109da3d9d91ab0ca624efa99de54db50",
+        "va": 913797
+      },
+      {
+        "sha256": "61e5cd62a7de16502b5048e5cc4d801f84dde447e35189a1b90dd9c6883e2700",
+        "va": 928115
+      },
+      {
+        "sha256": "f587e377b918fe0a88d07ca64dd727a253aeec3b9980b425057f213515efa916",
+        "va": 928139
+      },
+      {
+        "sha256": "37ea5a3228cc16b326d7badd542f81bbaf37d7ac92d250fa35401aa38a0b8930",
+        "va": 928223
+      },
+      {
+        "sha256": "ffd018d128fc787ce382e4d60735e86e6995500a3036502e749786667f633086",
+        "va": 948427
+      },
+      {
+        "sha256": "73e708a3a4f1889790863b6534c05dd2221725aab91d11dfba493ac49cf1d469",
+        "va": 948575
+      },
+      {
+        "sha256": "b0394cf4acece6c4e0d6ed867d12e3f423222c55ccbfb64d7ee433cc7c5e6836",
+        "va": 948753
+      },
+      {
+        "sha256": "457ddacd0f9f8acf379217ff3a6df5f7ae970afe969d9f880a882b5a2b3b09fc",
+        "va": 948794
+      },
+      {
+        "sha256": "567b13a024fcbb83a07466302df049dd079d98267913a8705bc88206f09f45ab",
+        "va": 948799
+      },
+      {
+        "sha256": "255df06a9d7108799cb93ef638b7721a100b64793db8f16a207075d9c260779c",
+        "va": 949058
+      },
+      {
+        "sha256": "ed5622f24c4551a4a702108dc9da3cdd5e0963840c499ba27627d8f18e9ff384",
+        "va": 949706
+      },
+      {
+        "sha256": "5b832fb7f53010e651078ee560cb954cd7a84a18dac55d7d1cf4a5ed1edc51ef",
+        "va": 953490
+      },
+      {
+        "sha256": "6a21e9ae44ba7ee0e8a59efb9505530dfb6b2dc4aa439bad115a202dced24249",
+        "va": 953687
+      },
+      {
+        "sha256": "73cb0811df45ca3d07fcbb88138365a2b67d398356ccc8adce03b65d21bfb968",
+        "va": 953815
+      },
+      {
+        "sha256": "a2237430a866703990363001daba197e580e7f765a43b5416c87e18923256905",
+        "va": 953960
+      },
+      {
+        "sha256": "adcab9c45b7138f428d5c36c064a0e44c67b35c7144a46e1420927ee68167d0c",
+        "va": 954009
+      },
+      {
+        "sha256": "b176425dc39ac376a5c87622496e2bc8a81c17794e8cd171e97bdc9d78a7f262",
+        "va": 977705
+      },
+      {
+        "sha256": "eed0ff3c5e99510878e49f0f96613b3bba8b6d5aa36473d88a4973fb48cb0adb",
+        "va": 977833
+      },
+      {
+        "sha256": "a3d8bd18b2fe912decfab3afc1dbbbecd3926fc862c53775b840e0d580b78beb",
+        "va": 977978
+      },
+      {
+        "sha256": "51bf783ed0058c15bbdd05130e5e15d20ce520f053b68f49f29ce212e35cf6f2",
+        "va": 978018
+      },
+      {
+        "sha256": "8a9cd60c321c2aa312d3d8af9a41480d2bbf17498d9dc16cb0a869572b03b657",
+        "va": 978065
+      },
+      {
+        "sha256": "4c5eab36a81be22672f3d1dedd762155536fedc0c85b23479d593454c30f0044",
+        "va": 978083
+      },
+      {
+        "sha256": "2ea3f5627890aca3afb214226fc408ab36b5f60d55bf8a50c7c9198293c42dbf",
+        "va": 978371
+      },
+      {
+        "sha256": "1b05c4c8ab578dcb9ff2e49c25b51e822b72a0bd349fcbfc905c7086cb6cf389",
+        "va": 1123110
+      },
+      {
+        "sha256": "f56e145fb6879ed29298715d62e4da0894d1c6a0c9d48a8e97c3f2c5cc026775",
+        "va": 1123159
+      },
+      {
+        "sha256": "51b2555f29613d53233400ffd5d281fe54f24b30431b1a56c55221d46df5f3ee",
+        "va": 1123453
+      },
+      {
+        "sha256": "5fe47030d0b9025505efa3cd9e6db67c32d4f8924f1e80ffa43d3940692fc58c",
+        "va": 1123469
+      },
+      {
+        "sha256": "0b4c86723f4f7a28a2fb51d5bece8aa57677a59a1efe49a36012aff3c8a42553",
+        "va": 1123827
+      },
+      {
+        "sha256": "514f19ef6a0f48e85d8d10d452a67451926ef733b2310b14f54b4c659af5e529",
+        "va": 1123841
+      },
+      {
+        "sha256": "beafd81af4a16aa06159c75bca0145495ca56b22a91684bf88d4262a72712cdb",
+        "va": 1123885
+      },
+      {
+        "sha256": "ec607b4b4777d8f71de851a17e82ebd86cb4ae4d10a115a3bcabba682538489e",
+        "va": 1123908
+      },
+      {
+        "sha256": "7a36a5ed9d69e875497e3e34a8600a4ba774d99c52dfbf6c2e3a3c79cc556764",
+        "va": 1123913
+      },
+      {
+        "sha256": "5c9d986ba9e394c2c625cc1018c8f22c905cd937fa66e57c3d798f1434c2d286",
+        "va": 1123921
+      },
+      {
+        "sha256": "8346972e75b21d80afa72e4a20cc7b8816d16531c4cba3304735da0033eb2c98",
+        "va": 1123926
+      },
+      {
+        "sha256": "8b31ea209d24d190d54df13a542e58cecc79a5077cf7f45066e7a24166a83054",
+        "va": 1124414
+      },
+      {
+        "sha256": "bd73191e8b8504d026f4fe636b07bd3615eb87f6d90706fcafa600cfc973fd0a",
+        "va": 1175698
+      },
+      {
+        "sha256": "0403315db807632c3ee2304e85131accb6f2c7d82ad0227e4ee61641af4526a4",
+        "va": 1175836
+      },
+      {
+        "sha256": "4afd00b1b85fdf7b85f30f68ae0ae7823de487da8aa4a20da490735816e796b4",
+        "va": 1264920
+      },
+      {
+        "sha256": "46736e1ea0034e4983275a9769ba4f64f5699f1f3235d90884f3ac56aa2c3b3d",
+        "va": 1264928
+      },
+      {
+        "sha256": "771f728a94cd4e8ae05ca30a2f4af727c307db83672cbc654ba8232fe5840e31",
+        "va": 1269235
+      },
+      {
+        "sha256": "3bd56e7b535e4a1ad196354b3439999d613a3d841771f75bff3f39d9acf46141",
+        "va": 1269247
+      },
+      {
+        "sha256": "52dc1d63c8b92161ad3147e838213291ef1cb8ca6fb521aa85b331e2da1dc0b2",
+        "va": 1269293
+      },
+      {
+        "sha256": "63b8f98cde0350767bcfadd0f8563878aa0294323303ddec041c61ab192420c5",
+        "va": 1334685
+      },
+      {
+        "sha256": "fb3cd7f5d4c36dfbe5ff7cd2b2c84af9aee770041c7a43e13610f46da922ab53",
+        "va": 1334833
+      },
+      {
+        "sha256": "cb6d2dc1a626d0ef3f78dfdad1ac1f0e929fc5cb304fd2d20ecd8b3127568caa",
+        "va": 1335023
+      },
+      {
+        "sha256": "9b6cfb2a2c2ebe9ccaf28a8d885b0d0094171391d16db1a2770e81f74e0fa963",
+        "va": 1335064
+      },
+      {
+        "sha256": "4ce59c0256ca2c6c3ae0d5ab011ba80eb28f1f9589f75811de261b41ec9b51e6",
+        "va": 1335069
+      },
+      {
+        "sha256": "3c50e27cddbf928af8c47720e483825d2b1d35c66942f8ebaf7448d22b472680",
+        "va": 1335356
+      },
+      {
+        "sha256": "f3f1ef1402d16927197e1f5be74f3744a8a45aa45c0b736205ebb1a547db05ad",
+        "va": 1336169
+      },
+      {
+        "sha256": "0dfead362d54b28301854463600ed634ad7c8a03eb20f8ea6e8bc01179801bf6",
+        "va": 1337036
+      },
+      {
+        "sha256": "f70b0eca8d4227dfe6fc3fce9f5d40f19a725732d476e3f8e75cc14bc40a3049",
+        "va": 1496158
+      },
+      {
+        "sha256": "de02320dfad8fc9476f0b9ab99f6e3e148892b40ce8808993edc93c190feb40c",
+        "va": 1496600
+      },
+      {
+        "sha256": "f6dd3c3439ac9078681ecbc8a34b7719c6cbeebe96a81eb49339adf31fb54273",
+        "va": 1496611
+      },
+      {
+        "sha256": "5d0086333513ab5865b85598f96ef6e6a4baccb1544476af010198611260cfb5",
+        "va": 1505584
+      }
+    ],
+    "blobs": [
+      {
+        "length": 1788,
+        "role": "completion-qml-resource",
+        "sha256": "ce7f267b467bb97a69eddddef1b10536b7f909c64b62ab6b4dcd05f5d4bbccb1",
+        "va": 4178822
+      },
+      {
+        "length": 13,
+        "role": "completion-qml-active-timer",
+        "sha256": "47e2d5db7b616cbf463cff2449c27153e2e62b55e8877a8569bd31a548f9fc83",
+        "va": 4179985
+      },
+      {
+        "length": 21,
+        "role": "completion-qml-zero-count-gate",
+        "sha256": "76eabde5e7dda16bd82aefd22c758df6585f189c70197495be0b5c8fc83c4016",
+        "va": 4180150
+      },
+      {
+        "length": 24,
+        "role": "completion-qml-active-reboot-expression",
+        "sha256": "060b68b40338e88acddecea7aa4bccafbf70e88c128b596e24de885e448b6afe",
+        "va": 4180222
+      }
+    ],
+    "direct_transfers": [
+      {
+        "call_vas": [
+          1505584
+        ],
+        "jump_vas": [],
+        "target": 1264864
+      },
+      {
+        "call_vas": [
+          1264920
+        ],
+        "jump_vas": [],
+        "target": 1336960
+      },
+      {
+        "call_vas": [],
+        "jump_vas": [
+          1337036
+        ],
+        "target": 1334432
+      },
+      {
+        "call_vas": [
+          1206320
+        ],
+        "jump_vas": [],
+        "target": 927632
+      },
+      {
+        "call_vas": [
+          1183846
+        ],
+        "jump_vas": [
+          953490
+        ],
+        "target": 948240
+      },
+      {
+        "call_vas": [
+          1501185
+        ],
+        "jump_vas": [],
+        "target": 953376
+      },
+      {
+        "call_vas": [],
+        "jump_vas": [
+          1175836
+        ],
+        "target": 953616
+      },
+      {
+        "call_vas": [],
+        "jump_vas": [],
+        "target": 977664
+      },
+      {
+        "call_vas": [
+          1202570
+        ],
+        "jump_vas": [],
+        "target": 1123024
+      },
+      {
+        "call_vas": [
+          1501430
+        ],
+        "jump_vas": [],
+        "target": 1175648
+      }
+    ],
+    "fdes": [
+      {
+        "end_exclusive": 915116,
+        "role": "update-view-constructor",
+        "start": 912016
+      },
+      {
+        "end_exclusive": 1497773,
+        "role": "update-view-meta-dispatch",
+        "start": 1496112
+      },
+      {
+        "end_exclusive": 1269670,
+        "role": "controller-constructor",
+        "start": 1268352
+      },
+      {
+        "end_exclusive": 1505971,
+        "role": "controller-meta-dispatch",
+        "start": 1504544
+      },
+      {
+        "end_exclusive": 1265017,
+        "role": "controller-reboot",
+        "start": 1264864
+      },
+      {
+        "end_exclusive": 1337105,
+        "role": "reset-wrapper",
+        "start": 1336960
+      },
+      {
+        "end_exclusive": 1336958,
+        "role": "reset-core",
+        "start": 1334432
+      },
+      {
+        "end_exclusive": 928811,
+        "role": "engine-dbus-subscriptions",
+        "start": 927632
+      },
+      {
+        "end_exclusive": 953606,
+        "role": "reboot-system",
+        "start": 953376
+      },
+      {
+        "end_exclusive": 950241,
+        "role": "reboot-system-core",
+        "start": 948240
+      },
+      {
+        "end_exclusive": 1175977,
+        "role": "recovery-mode-slot",
+        "start": 1175648
+      },
+      {
+        "end_exclusive": 954492,
+        "role": "set-recovery-mode",
+        "start": 953616
+      },
+      {
+        "end_exclusive": 978704,
+        "role": "ask-system-boot-info",
+        "start": 977664
+      },
+      {
+        "end_exclusive": 1124952,
+        "role": "get-booting-type",
+        "start": 1123024
+      }
+    ],
+    "literals": [
+      {
+        "length": 14,
+        "role": "update-view-start-signal-primary",
+        "sha256": "b1bbc045dac27d146b7a7d313529132c745417c50b39a5d35176cf57526a98d4",
+        "va": 2220384
+      },
+      {
+        "length": 16,
+        "role": "qml-reboot-signal",
+        "sha256": "f4f489657d134ceb485d3da668a460c64cde6494f4fab3bdfdfe58f09d55b699",
+        "va": 2220432
+      },
+      {
+        "length": 9,
+        "role": "controller-reboot-slot",
+        "sha256": "248f58f7d56dbf8d7b323966a01fb5b23b15ca77df0dd34104ac92268236777f",
+        "va": 2274848
+      },
+      {
+        "length": 14,
+        "role": "update-view-start-signal-secondary",
+        "sha256": "b1bbc045dac27d146b7a7d313529132c745417c50b39a5d35176cf57526a98d4",
+        "va": 2274896
+      },
+      {
+        "length": 23,
+        "role": "recovery-notification",
+        "sha256": "15f77bc4e3fc16792c9c0915a80b0276606cdc0995ec431614d42096ac91b762",
+        "va": 2221584
+      },
+      {
+        "length": 29,
+        "role": "recovery-slot",
+        "sha256": "7bac66793c29e5d146b03baeda34118afe6113537c169cd5b2b650257eb32e21",
+        "va": 2257752
+      },
+      {
+        "length": 20,
+        "role": "reset-request-method",
+        "sha256": "0a545c9fb72856ba96c02c428d6e6b054baa94d963d692981afd34444ae5d8d5",
+        "va": 2222907
+      },
+      {
+        "length": 15,
+        "role": "recovery-request-method",
+        "sha256": "190ebf94d721349033b86728ecdf1256e5c965f61dc7c6929317431153a2d9f9",
+        "va": 2223184
+      },
+      {
+        "length": 14,
+        "role": "boot-info-request-method",
+        "sha256": "382c9d0ef84e4a302c1c8cdc6401d111203439bdd22ab4ceac65a96eae9c970d",
+        "va": 2223740
+      },
+      {
+        "length": 20,
+        "role": "micom-status-shared-memory-key",
+        "sha256": "797e057da11f165af57173e928649acf33be15b97d586efeb9d2c46d45beb509",
+        "va": 2227746
+      },
+      {
+        "length": 141,
+        "role": "reset-operational-fallback-redacted",
+        "sha256": "7756f43912b181b58444fba371d61ddd3d436255188f545cf8dbb4db399df1a8",
+        "va": 2233544
+      },
+      {
+        "length": 21,
+        "role": "normalized-endpoint-service",
+        "sha256": "4d1d2f5d27522a35e3812ae4690003ef45c5a7981bb58a77afc5346b1537be41",
+        "va": 2183795
+      },
+      {
+        "length": 4,
+        "role": "normalized-endpoint-path",
+        "sha256": "7528a374c607b7182b872cb3c5cc28e6e8854f979ef299f6672a49a0f4c591d7",
+        "va": 2183817
+      },
+      {
+        "length": 17,
+        "role": "normalized-endpoint-interface",
+        "sha256": "6683f6e55e9762dbeb2d0ef2c5a343ebf6454c5bad9d67b0e38757346863b1c9",
+        "va": 2183822
+      }
+    ],
+    "rootfs": {
+      "absent_basenames": [
+        "fw_setenv",
+        "abctl",
+        "grub",
+        "systemd-bless-boot",
+        "mark-good",
+        "bootcount"
+      ],
+      "inventory_sha256": "c85bc4b1b12bc4704c3aea30489bac99c10cb2211f80d94f48f3e1e22fd7a94c",
+      "member_count": 66836,
+      "selected_members": [
+        {
+          "mode": 448,
+          "name": "./etc/update_start_5w.sh",
+          "role": "update-start-dispatch",
+          "sha256": "cf609d880e1ba17433ab825d1db34fc00eabe215f01fca78bba8615dfbd02687",
+          "size": 6362,
+          "type": "regular"
+        },
+        {
+          "mode": 448,
+          "name": "./etc/update_start_5w.sh.ori",
+          "role": "update-start-labeler",
+          "sha256": "06c3ab7e24b082c24a81299f0627245c0281bc5d519005cd921c13707eb5e838",
+          "size": 3933,
+          "type": "regular"
+        },
+        {
+          "mode": 420,
+          "name": "./lib/systemd/system/systemd-fsck-root.service",
+          "role": "root-fsck-service",
+          "sha256": "d74cd06304cf2e1d60be751e60c3d3a986b3d96adfcb78820f96c599d461f289",
+          "size": 574,
+          "type": "regular"
+        },
+        {
+          "mode": 493,
+          "name": "./lib/systemd/systemd-fsck",
+          "role": "root-fsck-helper",
+          "sha256": "a7f52c84d202b7a57c51c35fd03f7afb6935df641654a7d605c32a1e299bc50a",
+          "size": 315312,
+          "type": "regular"
+        },
+        {
+          "mode": 493,
+          "name": "./lib/systemd/system-generators/systemd-system-update-generator",
+          "role": "generic-system-update-generator",
+          "sha256": "d464f3e39d9bedf952bb68e0c3ae7be6bfd8c26a5a5a52cbbc00371f06e8b3e3",
+          "size": 31288,
+          "type": "regular"
+        },
+        {
+          "mode": 493,
+          "name": "./lib/systemd/systemd-update-done",
+          "role": "generic-system-update-done",
+          "sha256": "36440e0f9d526438816318ebb9bd42c6da1edc6a73fa5f8fcce3df9debb90e26",
+          "size": 31264,
+          "type": "regular"
+        },
+        {
+          "mode": 420,
+          "name": "./lib/systemd/system/system-update.target",
+          "role": "generic-system-update-target",
+          "sha256": "367fcbca9da06777525a785d1b2da82ab026eaeb249a7d79befec3481cf81049",
+          "size": 585,
+          "type": "regular"
+        },
+        {
+          "mode": 420,
+          "name": "./lib/systemd/system/systemd-update-done.service",
+          "role": "generic-system-update-done-service",
+          "sha256": "995c0015ccd6153d86cd10808e2c71b808cbb98679591064ebaccc1b2732622e",
+          "size": 630,
+          "type": "regular"
+        },
+        {
+          "mode": 493,
+          "name": "./usr/bin/bootctl",
+          "role": "generic-boot-control-tool",
+          "sha256": "cb413b469bd6fdfbaeaf2371318b8dcaf6302cd6d9a388be1e400aac884c3aa2",
+          "size": 72232,
+          "type": "regular"
+        },
+        {
+          "mode": 493,
+          "name": "./usr/bin/fastboot",
+          "role": "generic-flashing-tool",
+          "sha256": "8b08effcf38c780dc8930dbe08adada81b10c6687cb63b7f24367fe5ed7e2ed0",
+          "size": 100616,
+          "type": "regular"
+        }
+      ]
+    }
+  },
+  "llvm": {
+    "fde_count": 3789,
+    "fde_sha256": "2c71813a3f098f8f949c6acee1080c0147df182e589f8b8b576798ce4807eb07",
+    "instruction_count": 470739,
+    "instruction_sha256": "693dce0d89faabeea30512fe0a696a733e9bdd64fd7be7379dba98a44d2dc0c8",
+    "objdump_sha256": "7b04d723638c0793efbd31b99b2389f36ceb8c803bdc1008e43ea7525958376f",
+    "objdump_size": 813808,
+    "readelf_sha256": "80a1f8ffc44c5a1e4dbeaa5c409cd98a01cb2fa73e1ccc2eeb22a3b7ee2e1cb0",
+    "readelf_size": 1805104,
+    "version": "Homebrew LLVM version 23.1.3"
+  },
+  "schema_version": 1
+}

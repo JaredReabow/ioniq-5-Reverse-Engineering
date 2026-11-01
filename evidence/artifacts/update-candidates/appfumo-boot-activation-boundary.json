@@ -1,0 +1,342 @@
+{
+  "artifacts": {
+    "elf": {
+      "build_id": "863a8730e66a1c5245a1bf458fe2554adee0351a",
+      "sha256": "464a87646153213ce1f405743a10cff78eb90c203b619f983002358ca74ef0e7",
+      "size": 5066264
+    },
+    "rootfs": {
+      "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+      "size": 879109759
+    }
+  },
+  "boot_information": {
+    "additional_shared_status_fields_parsed": true,
+    "ask_call_mode": "block-with-gui",
+    "ask_request_argument_count": 0,
+    "ask_timeout_milliseconds": 1000,
+    "booting_type_direct_selector_offsets": [
+      0,
+      2
+    ],
+    "booting_type_enum_meaning": null,
+    "reply_first_argument_converted_to_byte_array": true,
+    "reply_minimum_length_for_status": 27,
+    "returned_status_offset": 26,
+    "shared_memory_copy_size": 35,
+    "shared_memory_freshness_or_atomicity": null,
+    "shared_memory_key_role": "micom-status-message",
+    "shared_memory_lock_copy_unlock_detach_bound": true,
+    "shared_memory_producer": null,
+    "shared_memory_requested_size": 35,
+    "short_or_missing_reply_status": 0,
+    "status_enum_meaning": null
+  },
+  "boundary": {
+    "boot_acceptance": null,
+    "boot_counter_update_visible": false,
+    "boot_slot_change": null,
+    "external_abl_or_bootloader_boundary_remains": true,
+    "external_micom_boundary_remains": true,
+    "inactive_slot_activation_visible": false,
+    "installed_runtime_identity_or_reachability": null,
+    "mark_good_visible": false,
+    "persistent_slot_choice_visible": false,
+    "reset_or_recovery_request_proves_action": false,
+    "rollback_behavior": null,
+    "rollback_programming_visible": false
+  },
+  "completion_to_reset": {
+    "completion_qml_active_timer_emits_reboot_clicked": true,
+    "controller_meta_dispatch_reaches_reboot": true,
+    "controller_reboot_local_method_index": 12,
+    "controller_reboot_reaches_reset_wrapper": true,
+    "operational_fallback_present_but_redacted": true,
+    "qml_signal_to_update_view_signal_connected": true,
+    "qml_to_update_view_connection_type": "auto",
+    "reset_argument_byte_count": 1,
+    "reset_argument_normalized_role": "reset-request",
+    "reset_argument_type": "byte-array",
+    "reset_send_is_asynchronous": true,
+    "reset_wrapper_tail_reaches_reset_core": true,
+    "send_acceptance_proves_remote_action": false,
+    "send_false_enters_bounded_retry_flow": true,
+    "send_status_observed": true,
+    "slot_identifier_present": false,
+    "terminal_send_false_reaches_redacted_fallback": true,
+    "update_view_dispatch_action": "activate-signal",
+    "update_view_start_signal_local_index": 0,
+    "update_view_start_signal_to_controller_reboot_slot_connected": true,
+    "update_view_to_controller_connection_type": "auto"
+  },
+  "evidence": {
+    "direct_transfers": {
+      "0x1122d0": {
+        "calls": [
+          "0x12598a"
+        ],
+        "jumps": []
+      },
+      "0x11f060": {
+        "calls": [
+          "0x16e8f6"
+        ],
+        "jumps": []
+      },
+      "0x134ce0": {
+        "calls": [
+          "0x16f930"
+        ],
+        "jumps": []
+      },
+      "0x145ca0": {
+        "calls": [],
+        "jumps": [
+          "0x1466cc"
+        ]
+      },
+      "0x146680": {
+        "calls": [
+          "0x134d18"
+        ],
+        "jumps": []
+      },
+      "0xe2790": {
+        "calls": [
+          "0x126830"
+        ],
+        "jumps": []
+      },
+      "0xe7810": {
+        "calls": [
+          "0x121066"
+        ],
+        "jumps": [
+          "0xe8c92"
+        ]
+      },
+      "0xe8c20": {
+        "calls": [
+          "0x16e801"
+        ],
+        "jumps": []
+      },
+      "0xe8d10": {
+        "calls": [],
+        "jumps": [
+          "0x11f11c"
+        ]
+      },
+      "0xeeb00": {
+        "calls": [],
+        "jumps": []
+      }
+    },
+    "fde_count": 3789,
+    "fde_sha256": "2c71813a3f098f8f949c6acee1080c0147df182e589f8b8b576798ce4807eb07",
+    "instruction_count": 470739,
+    "instruction_sha256": "693dce0d89faabeea30512fe0a696a733e9bdd64fd7be7379dba98a44d2dc0c8",
+    "literal_roles": [
+      "update-view-start-signal-primary",
+      "qml-reboot-signal",
+      "controller-reboot-slot",
+      "update-view-start-signal-secondary",
+      "recovery-notification",
+      "recovery-slot",
+      "reset-request-method",
+      "recovery-request-method",
+      "boot-info-request-method",
+      "micom-status-shared-memory-key",
+      "reset-operational-fallback-redacted",
+      "normalized-endpoint-service",
+      "normalized-endpoint-path",
+      "normalized-endpoint-interface"
+    ],
+    "llvm_version": "Homebrew LLVM version 23.1.3",
+    "manifest_sha256": "ffb452bc2f0a012935b0b0e7b44a808dca1a76e6ae8a169af30fbed08cd8d4c5",
+    "selected_fdes": {
+      "ask-system-boot-info": {
+        "end_exclusive": "0xeef10",
+        "start": "0xeeb00"
+      },
+      "controller-constructor": {
+        "end_exclusive": "0x135fa6",
+        "start": "0x135a80"
+      },
+      "controller-meta-dispatch": {
+        "end_exclusive": "0x16fab3",
+        "start": "0x16f520"
+      },
+      "controller-reboot": {
+        "end_exclusive": "0x134d79",
+        "start": "0x134ce0"
+      },
+      "engine-dbus-subscriptions": {
+        "end_exclusive": "0xe2c2b",
+        "start": "0xe2790"
+      },
+      "get-booting-type": {
+        "end_exclusive": "0x112a58",
+        "start": "0x1122d0"
+      },
+      "reboot-system": {
+        "end_exclusive": "0xe8d06",
+        "start": "0xe8c20"
+      },
+      "reboot-system-core": {
+        "end_exclusive": "0xe7fe1",
+        "start": "0xe7810"
+      },
+      "recovery-mode-slot": {
+        "end_exclusive": "0x11f1a9",
+        "start": "0x11f060"
+      },
+      "reset-core": {
+        "end_exclusive": "0x14667e",
+        "start": "0x145ca0"
+      },
+      "reset-wrapper": {
+        "end_exclusive": "0x146711",
+        "start": "0x146680"
+      },
+      "set-recovery-mode": {
+        "end_exclusive": "0xe907c",
+        "start": "0xe8d10"
+      },
+      "update-view-constructor": {
+        "end_exclusive": "0xdf6ac",
+        "start": "0xdea90"
+      },
+      "update-view-meta-dispatch": {
+        "end_exclusive": "0x16daad",
+        "start": "0x16d430"
+      }
+    }
+  },
+  "recovery_mode": {
+    "fixed_interface_and_member_values_redacted": true,
+    "nonempty_payload_last_byte_gate": "normalized-recovery-request",
+    "remote_action_proved": false,
+    "request_argument_byte_count": 1,
+    "request_argument_normalized_role": "recovery-request",
+    "request_argument_type": "byte-array",
+    "request_send_is_asynchronous": true,
+    "send_status_controls_flow": false,
+    "sender_service_and_path_are_wildcards": true,
+    "slot_identifier_present": false,
+    "slot_signature": "normalized-byte-array-slot",
+    "slot_tail_reaches_set_recovery_mode": true,
+    "state_gates_precede_request": true,
+    "system_bus_notification_connection_bound": true
+  },
+  "rootfs_audit": {
+    "absence_scope": "exact-basename-only",
+    "exact_name_absence": [
+      "fw_setenv",
+      "abctl",
+      "grub",
+      "systemd-bless-boot",
+      "mark-good",
+      "bootcount"
+    ],
+    "generic_boot_control_tool_installed": true,
+    "generic_components_bound_to_appfumo_flow": false,
+    "generic_flashing_tool_installed": true,
+    "generic_system_update_components_installed": true,
+    "inventory_sha256": "c85bc4b1b12bc4704c3aea30489bac99c10cb2211f80d94f48f3e1e22fd7a94c",
+    "member_count": 66836,
+    "root_fsck_observation_scope": "current-root-device",
+    "selected_members": {
+      "generic-boot-control-tool": {
+        "mode": "0755",
+        "sha256": "cb413b469bd6fdfbaeaf2371318b8dcaf6302cd6d9a388be1e400aac884c3aa2",
+        "size": 72232,
+        "type": "regular"
+      },
+      "generic-flashing-tool": {
+        "mode": "0755",
+        "sha256": "8b08effcf38c780dc8930dbe08adada81b10c6687cb63b7f24367fe5ed7e2ed0",
+        "size": 100616,
+        "type": "regular"
+      },
+      "generic-system-update-done": {
+        "mode": "0755",
+        "sha256": "36440e0f9d526438816318ebb9bd42c6da1edc6a73fa5f8fcce3df9debb90e26",
+        "size": 31264,
+        "type": "regular"
+      },
+      "generic-system-update-done-service": {
+        "mode": "0644",
+        "sha256": "995c0015ccd6153d86cd10808e2c71b808cbb98679591064ebaccc1b2732622e",
+        "size": 630,
+        "type": "regular"
+      },
+      "generic-system-update-generator": {
+        "mode": "0755",
+        "sha256": "d464f3e39d9bedf952bb68e0c3ae7be6bfd8c26a5a5a52cbbc00371f06e8b3e3",
+        "size": 31288,
+        "type": "regular"
+      },
+      "generic-system-update-target": {
+        "mode": "0644",
+        "sha256": "367fcbca9da06777525a785d1b2da82ab026eaeb249a7d79befec3481cf81049",
+        "size": 585,
+        "type": "regular"
+      },
+      "root-fsck-helper": {
+        "mode": "0755",
+        "sha256": "a7f52c84d202b7a57c51c35fd03f7afb6935df641654a7d605c32a1e299bc50a",
+        "size": 315312,
+        "type": "regular"
+      },
+      "root-fsck-service": {
+        "mode": "0644",
+        "sha256": "d74cd06304cf2e1d60be751e60c3d3a986b3d96adfcb78820f96c599d461f289",
+        "size": 574,
+        "type": "regular"
+      },
+      "update-start-dispatch": {
+        "mode": "0700",
+        "sha256": "cf609d880e1ba17433ab825d1db34fc00eabe215f01fca78bba8615dfbd02687",
+        "size": 6362,
+        "type": "regular"
+      },
+      "update-start-labeler": {
+        "mode": "0700",
+        "sha256": "06c3ab7e24b082c24a81299f0627245c0281bc5d519005cd921c13707eb5e838",
+        "size": 3933,
+        "type": "regular"
+      }
+    },
+    "update_start_scripts_classification": "label-management-only"
+  },
+  "schema_version": 1,
+  "scope": {
+    "callable_dbus_coordinates_emitted": false,
+    "canonical_rootfs_streamed": true,
+    "exact_static_direct_coverage": true,
+    "operational_fallback_command_emitted": false,
+    "operator_paths_emitted": false,
+    "proprietary_binary_bytes_emitted": false,
+    "serial_bytes_emitted": false,
+    "target_code_executed": false,
+    "target_instructions_emitted": false
+  },
+  "separate_reboot_system": {
+    "argument_byte_count": 1,
+    "argument_normalized_role": "reset-request",
+    "argument_type": "byte-array",
+    "meta_dispatch_reaches_reboot_system": true,
+    "remote_action_proved": false,
+    "send_false_enters_bounded_retry_flow": true,
+    "send_is_asynchronous": true,
+    "send_status_observed": true,
+    "slot_identifier_present": false,
+    "terminal_send_false_reaches_redacted_fallback": true,
+    "wrapper_tail_reaches_separate_reset_core": true
+  },
+  "tool": {
+    "name": "appfumo-boot-activation-boundary",
+    "version": "1.0.0"
+  }
+}

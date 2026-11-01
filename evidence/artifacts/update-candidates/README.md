@@ -5,6 +5,33 @@ reports supporting update-path assessments. Original firmware and recovered
 executables remain ignored under `work/`; retained files must not contain target
 payloads, bypasses, private operator paths, or executable target material.
 
+## AppFUMO boot-activation boundary
+
+- [`appfumo-boot-activation-boundary-exact-static.txt`](appfumo-boot-activation-boundary-exact-static.txt):
+  selected FDE ranges, complete direct transfers, machine/literal/resource
+  hashes, and canonical rootfs member identities, without target instructions,
+  raw bytes, callable endpoint coordinates, serial bytes, or fallback text
+  (SHA-256
+  `216d5d271b1d6aa4a83916eecbbeddc04f65a12504cbdb421529739c6aa4e7e6`);
+- [`appfumo-boot-activation-boundary-manifest.json`](appfumo-boot-activation-boundary-manifest.json):
+  strict ELF/Build-ID/rootfs/LLVM, complete instruction/FDE, direct-transfer,
+  anchor, literal/resource, selected-member, and full tar-inventory expectations
+  (SHA-256
+  `ffb452bc2f0a012935b0b0e7b44a808dca1a76e6ae8a169af30fbed08cd8d4c5`);
+- [`appfumo-boot-activation-boundary.json`](appfumo-boot-activation-boundary.json):
+  normalized deterministic report (SHA-256
+  `0f1100d80b7197ed0c1fdcee48ef25f171423b4b00253b11ecdd6f1424e04196`).
+
+The completion timer's QML signal, view signal relay, controller slot dispatch,
+reset wrapper, and reset core form a closed local static chain. Reboot-system
+and recovery are bound separately. Their asynchronous request arguments carry
+no slot identifier and do not prove external action. The canonical rootfs
+contains generic update, boot-control, and flashing components, but no reviewed
+edge binds them to this AppFUMO flow. Slot activation, mark-good, counters,
+rollback, persistent choice, and external MICOM/ABL/bootloader behavior remain
+unresolved. Assessment:
+[`../../appfumo-boot-activation-boundary.md`](../../appfumo-boot-activation-boundary.md).
+
 ## AppFUMO PartitionUpdater integrity and target selection
 
 - [`appfumo-partition-write-integrity-exact-static.asm`](appfumo-partition-write-integrity-exact-static.asm):

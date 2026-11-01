@@ -3801,3 +3801,11 @@ and are superseded by corrections rather than silently rewritten.
   worth fixing regardless; what does not survive is the idea that it lifts an unprivileged user to root.
 - Notably the parallel lineage had reached the same boundary independently, which is more reassuring than my own measurement
   alone.
+
+## 2026-10-31 — the app is alive and registered, and the simulator is refusing questions
+
+- AppHomeScreen registers with the launcher as a live app, so the failure is not that it never arrives; it arrives and then
+  paints nothing.
+- The launcher's log also shows the chain's MICOM simulator rejecting the settings asks outright, while this project's own
+  service answers them. That is the first concrete candidate for the blank content that is not another layer of the display
+  stack, and it is a one-line substitution to test.

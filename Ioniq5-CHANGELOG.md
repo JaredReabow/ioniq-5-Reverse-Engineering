@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.22.0 - the app registers; the simulator's unimplemented methods are the next lever
+
+- Read the launcher's own log from the working chain. `AppHomeScreen` starts **and registers** with the launcher:
+
+  `m_AppProcess->start(/app/bin/AppHomeScreen) PID[804]` →
+  `[REGISTERED] registeredFromNativeApp AppId[11][AppHomeScreen] onDemand[0] groupNum[2]`
+
+  So the application reaches the launcher's appbase and is tracked as a live app. Window mapping is therefore working at the
+  application-manager level; what does not happen is content being painted.
+- **The chain's MICOM simulator refuses calls that this project's own service implements.** The launcher logs, repeatedly:
+
+  `askCustomSetting Error Reply = method not implemented by micom research simulator`
+  `askSettingInfoValue Error Reply = method not implemented by micom research simulator`
+
+  `micom-dbus-sim` answers `AskSysBootinfo` (which is enough to boot the chain) but not the settings asks, whereas
+  `micom-service` here answers `AskCustomSetting` and `AskSettingInfoValue` with sized payloads. Those failures are a plausible
+  cause of an app that initialises, registers, and then paints nothing.
+- **Next experiment is therefore concrete:** run the published chain but substitute `micom-service` for `micom-dbus-sim`, so
+  the settings asks are answered rather than rejected, and re-capture. That is a one-line change to the chain and it tests
+  whether the blank content is a consequence of unanswered settings.
+
 ## 2.21.0 - V-028's escalation boundary tested: uid 1000 cannot reach the bus
 
 - Re-ran the experiment as **uid 1000**, dropping privileges with a purpose-built `setuid` helper because the image ships no

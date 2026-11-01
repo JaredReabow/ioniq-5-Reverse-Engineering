@@ -1,0 +1,450 @@
+{
+  "artifacts": {
+    "appfumo": {
+      "build_id": "863a8730e66a1c5245a1bf458fe2554adee0351a",
+      "sha256": "464a87646153213ce1f405743a10cff78eb90c203b619f983002358ca74ef0e7",
+      "size": 5066264
+    },
+    "canonical_rootfs": {
+      "inventory_sha256": "c85bc4b1b12bc4704c3aea30489bac99c10cb2211f80d94f48f3e1e22fd7a94c",
+      "member_count": 66836,
+      "selected_member": {
+        "gid": 0,
+        "mode": "0755",
+        "role": "early_userspace_initialization",
+        "sha256": "9f39947ec144322b29c0366bb681f0452ae3696139589bc2f4a2f05bf44afa52",
+        "size": 17894,
+        "type": "regular",
+        "uid": 0
+      },
+      "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+      "size": 879109759
+    }
+  },
+  "conclusions": {
+    "abl_or_micom_accepted_image": null,
+    "boot_health_or_mark_good_completed": null,
+    "boot_image_authenticated_after_staging": null,
+    "boot_partition_write_succeeded": null,
+    "copy_helper_proves_destination_byte_identity": false,
+    "copy_helper_success_requires_equal_final_sizes": true,
+    "inactive_root_record_to_boot_filename_pairing": true,
+    "normal_and_sub_companion_staging_paths_present": true,
+    "persistent_boot_target_selected": null,
+    "rollback_behavior_established": false,
+    "root_or_persistence_established": false,
+    "staged_boot_image_payload_present_in_recovered_package": null,
+    "staging_copy_succeeded": null
+  },
+  "exact_static": {
+    "copy_helper": {
+      "destination_content_digest_or_signature": false,
+      "destination_content_readback": false,
+      "flush_return_checked": false,
+      "fsync_return_checked": false,
+      "immediate_write_result_check": "negative-only",
+      "post_close_source_destination_size_equality_required": true,
+      "range": {
+        "end_exclusive": 1317672,
+        "sha256": "88d727d519722aeb8f621abcf4db6ba5eb730203fdeb9fe44d813cd84b018a85",
+        "start": 1315824
+      },
+      "requested_write_length_loaded_from_buffer_length": true,
+      "source_permissions_applied_to_destination_and_success_required": true,
+      "source_read_all_buffer_passed_to_destination_write": true,
+      "stable_source_destination_inode_identity": false
+    },
+    "early_userspace_repair": {
+      "active_cmdline_probe": "ABL.bdev pairing marker",
+      "commented_boot_mode_mapping": {
+        "CLI": 1,
+        "ELK": 0,
+        "PLK1": 2,
+        "PLK2": 3,
+        "runtime_effect": false
+      },
+      "exact_selector_or_mark_good_token_absence": [
+        "fw_setenv",
+        "abctl",
+        "systemd-bless-boot",
+        "mark-good",
+        "bootcount"
+      ],
+      "probe_is_persistent_selector": false,
+      "probe_is_post_boot_observation": true,
+      "probe_true_repair_direction": "boot partition 2 image to boot partition 1 image",
+      "semantic_anchor_count": 9,
+      "semantic_anchors": [
+        {
+          "offset": 8656,
+          "sha256": "d1209adeb46d6db30824147dc4856b227575b69b2738f5982830fe5c4398c108",
+          "size": 36
+        },
+        {
+          "offset": 8713,
+          "sha256": "13f3a4decc931d243615aafe1cc11c9c8a1f11b2cdd5db2955effd35c02ad16b",
+          "size": 100
+        },
+        {
+          "offset": 8979,
+          "sha256": "b1a2ab0d5f579758b50ac954b3894e11641359efe878620ee727ae83bf55db87",
+          "size": 53
+        },
+        {
+          "offset": 9329,
+          "sha256": "dc66f94dda6482b87a83945155213d2394dc782653084008d6dbe2a66c8edb42",
+          "size": 111
+        },
+        {
+          "offset": 9842,
+          "sha256": "bc872c4cade9a9bf87dde0d987e0a0bf5c9327d07bb68598193787dbecfe244a",
+          "size": 157
+        },
+        {
+          "offset": 10125,
+          "sha256": "0e4d7095096bed649b78ce40bd6aedbf32ffa8e31ae9dd32965dd58992aaa1be",
+          "size": 53
+        },
+        {
+          "offset": 10444,
+          "sha256": "6bfff4db4c5e2ddf95a20381e5414989a69c278d91c1b9fd984d0d903664911b",
+          "size": 32
+        },
+        {
+          "offset": 10523,
+          "sha256": "2531eccf152507da1ed670c5b4d591343d1b65d2b1f3febc39ecb89becb15045",
+          "size": 32
+        },
+        {
+          "offset": 10603,
+          "sha256": "ba0b0bce953bbdc806ed1b95b4ef322b61e65c65c00f4fc4d9c7c5df2139a401",
+          "size": 41
+        }
+      ],
+      "splash_error_repair_direction": "boot partition 1 image to boot partition 2 image"
+    },
+    "machine_evidence": {
+      "direct_calls": {
+        "copy_close_destination": {
+          "site": 1316800,
+          "target": 139296
+        },
+        "copy_close_source": {
+          "site": 1316792,
+          "target": 139296
+        },
+        "copy_destination_size": {
+          "site": 1316849,
+          "target": 139072
+        },
+        "copy_flush": {
+          "site": 1316574,
+          "target": 149200
+        },
+        "copy_fsync": {
+          "site": 1316589,
+          "target": 145472
+        },
+        "copy_handle": {
+          "site": 1316582,
+          "target": 149328
+        },
+        "copy_read_all": {
+          "site": 1316515,
+          "target": 147712
+        },
+        "copy_set_permissions": {
+          "site": 1317125,
+          "target": 143856
+        },
+        "copy_source_size": {
+          "site": 1316827,
+          "target": 139072
+        },
+        "copy_write_buffer": {
+          "site": 1316546,
+          "target": 143808
+        },
+        "preparation_stage_boot_images": {
+          "site": 699073,
+          "target": 667376
+        },
+        "selector_record_copy_index_1": {
+          "site": 664800,
+          "target": 658768
+        },
+        "staging_copy_normal": {
+          "site": 668528,
+          "target": 1315824
+        },
+        "staging_copy_sub": {
+          "site": 670062,
+          "target": 1315824
+        },
+        "staging_select_filename": {
+          "site": 667829,
+          "target": 664704
+        }
+      },
+      "instruction_anchors": {
+        "copy_close_reopen_size_compare": {
+          "sha256": "9b593ab8f2c8fefbffd3a677d414125da751391c39e184e39ac7dc4c633ca956",
+          "size": 98,
+          "va": 1316789
+        },
+        "copy_ignored_flush_fsync_results": {
+          "sha256": "ec86f56fbc078d19e04bf4ca8ad2c6e8988b6fa3a61a6866b9983d4418a3e38b",
+          "size": 23,
+          "va": 1316571
+        },
+        "copy_negative_write_failure_test": {
+          "sha256": "a9def645fe5304f5352a786c470e22c730c2de24cf08fafc68a170f45445dabf",
+          "size": 9,
+          "va": 1316562
+        },
+        "copy_permissions_success_gate": {
+          "sha256": "75789af9b80f98cd1abe9e5f278acb9781bcab69a2ca4644bcb4c2bb5bd50a18",
+          "size": 32,
+          "va": 1317112
+        },
+        "copy_post_close_size_compare": {
+          "sha256": "f09f0984ce26dff70d28b41feebf7d6e66b486665ba14af1436f8c41700396b4",
+          "size": 13,
+          "va": 1316874
+        },
+        "copy_read_buffer_to_write": {
+          "sha256": "c95b1a31dcd0f6a2294d760ffc08281bd99ebfc904adc92dc6c4d0feb7692679",
+          "size": 50,
+          "va": 1316501
+        },
+        "copy_requested_length_from_buffer": {
+          "sha256": "975061e18384a81fc1b0afbdde92b7b4b4db947206e786fc9e85e83364129b3e",
+          "size": 10,
+          "va": 1316536
+        },
+        "preparation_staging_result_capture": {
+          "sha256": "ab26ef2691e32fd013f6b3f659121b70c8ea55b386f6c9faa5cb9eece942bef7",
+          "size": 15,
+          "va": 699073
+        },
+        "selector_p3_display_mode_dispatch": {
+          "sha256": "3dfb69e04d25c6c654418fe7344bc0572e7c37cc55da5d8dbf0252d47de7fa3b",
+          "size": 32,
+          "va": 664979
+        },
+        "selector_p5_display_mode_dispatch": {
+          "sha256": "8c16165e76736f5a01727bd6a6d18141cd8333f7197567aca78d25a8f5deb494",
+          "size": 28,
+          "va": 665438
+        },
+        "selector_p7_display_mode_dispatch": {
+          "sha256": "346e3cc50d16c9d2c587eb9007cbc1aa6c727e6632c699a2e775f765e6c47ab2",
+          "size": 28,
+          "va": 665932
+        },
+        "staging_normal_sub_existence_gates": {
+          "sha256": "b86eded84d34db41c4a34d4b6c0cd914e3a83148338f3f0885b91809940249a6",
+          "size": 57,
+          "va": 667977
+        },
+        "staging_normal_then_sub_gate": {
+          "sha256": "c9a2c434cf4f09cefd8bba7aff315935438ed3ab62b87aa883c3515cb7bd963f",
+          "size": 16,
+          "va": 668658
+        }
+      },
+      "literals": {
+        "p3_1280": {
+          "va": 2188201,
+          "value": "iasImage_1280"
+        },
+        "p3_1920_12": {
+          "va": 2188215,
+          "value": "iasImage_1920_12"
+        },
+        "p3_default": {
+          "va": 2284339,
+          "value": "iasImage"
+        },
+        "p5_1280": {
+          "va": 2188244,
+          "value": "iasImage_p5_1280"
+        },
+        "p5_1920_12": {
+          "va": 2188261,
+          "value": "iasImage_p5_1920_12"
+        },
+        "p5_default": {
+          "va": 2188232,
+          "value": "iasImage_p5"
+        },
+        "p7_1280": {
+          "va": 2188293,
+          "value": "iasImage_p7_1280"
+        },
+        "p7_1920_12": {
+          "va": 2188310,
+          "value": "iasImage_p7_1920_12"
+        },
+        "p7_default": {
+          "va": 2188281,
+          "value": "iasImage_p7"
+        },
+        "root_p3": {
+          "va": 2167036,
+          "value": "/dev/mmcblk0p3"
+        },
+        "root_p5": {
+          "va": 2167080,
+          "value": "/dev/mmcblk0p5"
+        },
+        "root_p7": {
+          "va": 2167095,
+          "value": "/dev/mmcblk0p7"
+        },
+        "source_suffix": {
+          "va": 2145222,
+          "value": "/HU/images"
+        },
+        "staging_root": {
+          "va": 2175222,
+          "value": "/tmp/update/usb"
+        },
+        "staging_suffix": {
+          "va": 2190994,
+          "value": "/bootImage"
+        },
+        "sub_suffix": {
+          "va": 2284357,
+          "value": "_sub"
+        }
+      },
+      "ranges": {
+        "boot_filename_selector": {
+          "end_exclusive": 666647,
+          "sha256": "b0c155bb9f8b81ca5bba4035166690ea44d959277d75bbaf66e3633126905b57",
+          "start": 664704
+        },
+        "boot_image_staging": {
+          "end_exclusive": 671363,
+          "sha256": "40971ac6025a7c7e8fbfbeacb6143809789dcfb408b517c55f278d9e7e1bf42b",
+          "start": 667376
+        },
+        "copy_helper": {
+          "end_exclusive": 1317672,
+          "sha256": "88d727d519722aeb8f621abcf4db6ba5eb730203fdeb9fe44d813cd84b018a85",
+          "start": 1315824
+        },
+        "staging_caller_context": {
+          "end_exclusive": 699168,
+          "sha256": "c790649c7d91ad51a243705e3a3d73337c0eac6179eac8e8c75c495666846618",
+          "start": 699008
+        }
+      }
+    },
+    "root_target_display_filename_matrix": [
+      {
+        "display_mode": 3,
+        "selected_root_target": "/dev/mmcblk0p3",
+        "staged_basename": "iasImage"
+      },
+      {
+        "display_mode": 1,
+        "selected_root_target": "/dev/mmcblk0p3",
+        "staged_basename": "iasImage_1280"
+      },
+      {
+        "display_mode": 2,
+        "selected_root_target": "/dev/mmcblk0p3",
+        "staged_basename": "iasImage_1920_12"
+      },
+      {
+        "display_mode": 4,
+        "selected_root_target": "/dev/mmcblk0p3",
+        "staged_basename": "iasImage_1920_12"
+      },
+      {
+        "display_mode": 3,
+        "selected_root_target": "/dev/mmcblk0p5",
+        "staged_basename": "iasImage_p5"
+      },
+      {
+        "display_mode": 1,
+        "selected_root_target": "/dev/mmcblk0p5",
+        "staged_basename": "iasImage_p5_1280"
+      },
+      {
+        "display_mode": 2,
+        "selected_root_target": "/dev/mmcblk0p5",
+        "staged_basename": "iasImage_p5_1920_12"
+      },
+      {
+        "display_mode": 4,
+        "selected_root_target": "/dev/mmcblk0p5",
+        "staged_basename": "iasImage_p5_1920_12"
+      },
+      {
+        "display_mode": 3,
+        "selected_root_target": "/dev/mmcblk0p7",
+        "staged_basename": "iasImage_p7"
+      },
+      {
+        "display_mode": 1,
+        "selected_root_target": "/dev/mmcblk0p7",
+        "staged_basename": "iasImage_p7_1280"
+      },
+      {
+        "display_mode": 2,
+        "selected_root_target": "/dev/mmcblk0p7",
+        "staged_basename": "iasImage_p7_1920_12"
+      },
+      {
+        "display_mode": 4,
+        "selected_root_target": "/dev/mmcblk0p7",
+        "staged_basename": "iasImage_p7_1920_12"
+      }
+    ],
+    "selector": {
+      "copied_partition_record_index": 1,
+      "range": {
+        "end_exclusive": 666647,
+        "sha256": "b0c155bb9f8b81ca5bba4035166690ea44d959277d75bbaf66e3633126905b57",
+        "start": 664704
+      },
+      "supported_display_modes": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "target_field_offset": 40,
+      "unsupported_display_mode_result": "empty string"
+    },
+    "staging": {
+      "destination_role": "temporary update boot-image directory",
+      "normal_and_sub_use_same_copy_helper": true,
+      "preparation_call_site_bound": true,
+      "range": {
+        "end_exclusive": 671363,
+        "sha256": "40971ac6025a7c7e8fbfbeacb6143809789dcfb408b517c55f278d9e7e1bf42b",
+        "start": 667376
+      },
+      "requires_selected_normal_source_name": true,
+      "requires_selected_sub_companion_source_name": true,
+      "source_role": "package-base plus HU image directory"
+    }
+  },
+  "limitations": [
+    "The filename matrix binds selected inactive-root targets to candidate boot-image names; it does not inspect the named image contents.",
+    "The copy helper passes one in-memory source buffer to a destination write and later compares sizes, but performs no destination-byte readback, digest, or signature verification.",
+    "Static call sites do not establish successful source existence checks, copy, flush, fsync, permission change, or durable storage effects.",
+    "The active early-userspace command-line probe observes the boot already in progress and drives repair copying; it is not a demonstrated persistent selector.",
+    "The PLK/ABL.boot mapping is present only in comments and is not executable evidence.",
+    "No boot-image payload presence, boot-partition activation, reset, ABL/MICOM acceptance, health decision, mark-good action, rollback, root, or persistence is established."
+  ],
+  "schema": "appfumo-boot-image-pairing/v1",
+  "tool": {
+    "name": "appfumo-boot-image-pairing",
+    "version": "1.0.0"
+  }
+}

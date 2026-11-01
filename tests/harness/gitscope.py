@@ -1,11 +1,12 @@
 """Read-only Git scope guard against pushing Ioniq work to the Kona repository.
 
-The shared checkout keeps the Kona repository as ``origin`` so fetch and
-tracking keep working for the parallel Kona project. A Kona fetch origin is
-therefore not, by itself, a reason to block an Ioniq push. An Ioniq push is
-allowed only when the configuration proves an explicit destination:
+The older shared checkout can keep the Kona repository as ``origin`` for
+fetch and tracking. A Kona fetch origin is therefore not, by itself, a reason
+to block an Ioniq push. This public snapshot uses its own ``origin`` and an
+explicit ``ioniq`` remote. An Ioniq push is allowed only when the
+configuration proves an explicit destination:
 
-* an ``ioniq`` remote whose every URL is exactly ``JaredReabow/Ioniq-5``;
+* an ``ioniq`` remote whose every URL is exactly ``JaredReabow/ioniq-5-Reverse-Engineering``;
 * ``remote.pushDefault`` set to ``ioniq``;
 * no branch ``pushRemote``/push URL and no URL rewrite rule that redirects the
   push to another repository;
@@ -27,7 +28,7 @@ from . import common
 KONA_PREFIX = "kona_research"
 IONIQ_REMOTE = "ioniq"
 IONIQ_OWNER = "jaredreabow"
-IONIQ_REPO = "ioniq-5"
+IONIQ_REPO = "ioniq-5-reverse-engineering"
 GITHUB_HOSTS = frozenset({"github.com", "www.github.com"})
 INSECURE_SCHEMES = frozenset({"http", "git"})
 
@@ -134,7 +135,7 @@ def gitscope_repo_identity(url: str | None) -> tuple[str, str, str] | None:
 
 
 def gitscope_is_ioniq_repo(url: str | None) -> bool:
-    """True only for the exact ``JaredReabow/Ioniq-5`` GitHub repository."""
+    """True only for the exact ``JaredReabow/ioniq-5-Reverse-Engineering`` GitHub repository."""
     identity = gitscope_repo_identity(url)
     if identity is None:
         return False
@@ -363,7 +364,7 @@ def gitscope_check(root: Path, *, runner=None) -> dict:
                 "code": "missing-ioniq-remote",
                 "message": (
                     "no explicit 'ioniq' remote; configure one that targets "
-                    "JaredReabow/Ioniq-5 before an Ioniq push"
+                    "JaredReabow/ioniq-5-Reverse-Engineering before an Ioniq push"
                 ),
             }
         )
@@ -372,7 +373,7 @@ def gitscope_check(root: Path, *, runner=None) -> dict:
             destination_reasons.append(
                 {
                     "code": "ioniq-remote-mismatch",
-                    "message": "remote.ioniq.url is not exactly JaredReabow/Ioniq-5",
+                    "message": "remote.ioniq.url is not exactly JaredReabow/ioniq-5-Reverse-Engineering",
                     "url": gitscope_sanitize_url(url),
                 }
             )
@@ -402,7 +403,7 @@ def gitscope_check(root: Path, *, runner=None) -> dict:
             destination_reasons.append(
                 {
                     "code": "ioniq-pushurl-mismatch",
-                    "message": "remote.ioniq.pushurl is not exactly JaredReabow/Ioniq-5",
+                    "message": "remote.ioniq.pushurl is not exactly JaredReabow/ioniq-5-Reverse-Engineering",
                     "url": gitscope_sanitize_url(url),
                     "effective": gitscope_sanitize_url(effective),
                 }

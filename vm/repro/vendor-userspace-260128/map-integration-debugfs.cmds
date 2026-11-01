@@ -1,0 +1,11 @@
+mkdir /navi/Data
+mkdir /navi/Data/Nation
+mkdir /navi/Data/Nation/EUR
+mkdir /navi/Data/Nation/EUR/MAP
+mkdir /navi/Data/Nation/EUR/SEARCH
+write work/vm/vendor-userspace-260128/map-minimal/Data/Nation/EUR/MapDataVersion.bin /navi/Data/Nation/EUR/MapDataVersion.bin
+write work/vm/vendor-userspace-260128/map-minimal/Data/Nation/EUR/MAP/MAPVERSION.bin /navi/Data/Nation/EUR/MAP/MAPVERSION.bin
+write work/vm/vendor-userspace-260128/map-minimal/Data/Nation/EUR/MAP/NATIONINFO.bin /navi/Data/Nation/EUR/MAP/NATIONINFO.bin
+write work/vm/vendor-userspace-260128/map-minimal/Data/Nation/EUR/MAP/SDMODULE.bin /navi/Data/Nation/EUR/MAP/SDMODULE.bin
+write work/vm/vendor-userspace-260128/map-minimal/Data/Nation/EUR/SEARCH/EVInfo.json /navi/Data/Nation/EUR/SEARCH/EVInfo.json
+write work/vm/vendor-userspace-260128/map-minimal/Data/Nation/EUR/MAP/VIT_EUR.hafp /navi/Data/Nation/EUR/MAP/VIT_EUR.hafp

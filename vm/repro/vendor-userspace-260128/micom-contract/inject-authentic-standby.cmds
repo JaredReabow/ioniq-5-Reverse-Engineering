@@ -1,0 +1,3 @@
+write work/vm/vendor-userspace-260128/micom-contract/full-chain-authentic-standby.sh /full-chain-authentic-standby.sh
+set_inode_field /full-chain-authentic-standby.sh mode 0100755
+stat /full-chain-authentic-standby.sh

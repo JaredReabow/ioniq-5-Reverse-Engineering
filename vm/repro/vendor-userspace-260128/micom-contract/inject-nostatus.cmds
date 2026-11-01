@@ -1,0 +1,3 @@
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/micom-contract/AppStandbyClock-main.loader-sized-nostatus.qml" /AppStandbyClock-main.loader-sized-nostatus.qml
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-nostatus-pointer-confirm.sh" /full-chain-timeout120-legal-reason11-nostatus-pointer-confirm
+set_inode_field /full-chain-timeout120-legal-reason11-nostatus-pointer-confirm mode 0100755

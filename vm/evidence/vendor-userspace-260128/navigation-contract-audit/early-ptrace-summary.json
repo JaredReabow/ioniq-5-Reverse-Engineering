@@ -1,0 +1,60 @@
+{
+  "archive_sha256": "e0884a3c11582ed2b986db28f2673b7fde9297a1871f2633ad13672b2dfdeaae",
+  "host_log_sha256": "45b07d1dd3f87b00cb306e1d56f3253beccbb819eea239df105b7a887daab86a",
+  "negative_tests_pass": true,
+  "fault_text": "work/vm/vendor-userspace-260128/navigation-contract-audit/early-ptrace-evidence/launcher-chain/core-observe/ptrace-fault.txt",
+  "stack_words": 64,
+  "original_signal_redelivered": true,
+  "executable_pointer_candidates": [
+    {
+      "stack_address": "0x7ffe6d0cb378",
+      "value": "0x7f2f56f1ef8e",
+      "file_offset": "0x16f8e",
+      "path": "/usr/lib/libEGL.so.1.0.0"
+    },
+    {
+      "stack_address": "0x7ffe6d0cb3e8",
+      "value": "0x7f2f56f1f1c1",
+      "file_offset": "0x171c1",
+      "path": "/usr/lib/libEGL.so.1.0.0"
+    },
+    {
+      "stack_address": "0x7ffe6d0cb428",
+      "value": "0x7f2f55d71556",
+      "file_offset": "0x47f556",
+      "path": "/opt/software-egl18/dri/swrast_dri.so"
+    },
+    {
+      "stack_address": "0x7ffe6d0cb448",
+      "value": "0x7f2f55d71e5e",
+      "file_offset": "0x47fe5e",
+      "path": "/opt/software-egl18/dri/swrast_dri.so"
+    },
+    {
+      "stack_address": "0x7ffe6d0cb468",
+      "value": "0x7f2f56f1cbc6",
+      "file_offset": "0x14bc6",
+      "path": "/usr/lib/libEGL.so.1.0.0"
+    },
+    {
+      "stack_address": "0x7ffe6d0cb488",
+      "value": "0x7f2f56f10d4d",
+      "file_offset": "0x8d4d",
+      "path": "/usr/lib/libEGL.so.1.0.0"
+    },
+    {
+      "stack_address": "0x7ffe6d0cb4c8",
+      "value": "0x7f2f5733cb28",
+      "file_offset": "0x7b28",
+      "path": "/usr/lib/qt5/plugins/wayland-graphics-integration-client/libwayland-egl.so"
+    },
+    {
+      "stack_address": "0x7ffe6d0cb558",
+      "value": "0x7f2f6117f3e8",
+      "file_offset": "0x1af3e8",
+      "path": "/usr/lib/libQt5Quick.so.5.4.1"
+    }
+  ],
+  "limits": "Stack pointers matched executable mappings; not unwound frames or confirmed call chain. Main thread only. Ptrace adds timing overhead.",
+  "base_rootfs_sha256_after": "4953a005683e009e84390bbf07d65a6a3313cc6abd692a3023e6b660066d036f"
+}

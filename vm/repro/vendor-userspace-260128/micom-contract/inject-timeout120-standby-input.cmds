@@ -1,0 +1,4 @@
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/app-launcher-timeout-build/AppLauncher-vm-timeout120" /AppLauncher-vm-timeout120
+set_inode_field /AppLauncher-vm-timeout120 mode 0100755
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-standby-input.sh" /full-chain-timeout120-standby-input
+set_inode_field /full-chain-timeout120-standby-input mode 0100755

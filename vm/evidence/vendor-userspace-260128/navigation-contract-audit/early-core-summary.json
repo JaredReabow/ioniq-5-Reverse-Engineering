@@ -1,0 +1,4771 @@
+{
+  "archive_sha256": "10fbb21b674ab1795c5e2b52d4e04ad47611f8674c4ac5ed43d283322c24987c",
+  "host_log_sha256": "6428ecabee28e6667437488044f28f72cb0e23ea51937310ce235bac4ea41f6d",
+  "cores": [
+    {
+      "path": "work/vm/vendor-userspace-260128/navigation-contract-audit/early-core-evidence/launcher-chain/core-observe/core.AppCamera.834",
+      "sha256": "3f32e2fb4c11b9b94365577fdf6f2fef29bc9f88152c50eead23b96edba9425b",
+      "size": 81920,
+      "phnum": 387,
+      "threads": [
+        {
+          "tid": 834,
+          "current_signal": 11,
+          "registers": {
+            "r15": "0x82d0678e80",
+            "r14": "0xfffffffffffffffc",
+            "r13": "0xfffffffffffffffc",
+            "r12": "0x40",
+            "rbp": "0x7ffc3e931100",
+            "rbx": "0x1",
+            "r11": "0x7f811695efdc",
+            "r10": "0x82d0678e20",
+            "r9": "0x7f811695efc0",
+            "r8": "0x1c",
+            "rax": "0x7f811695f000",
+            "rcx": "0x82d0678dc0",
+            "rdx": "0xffffffffffffff60",
+            "rsi": "0x82d0678e80",
+            "rdi": "0x7f811695f000",
+            "orig_rax": "0xffffffffffffffff",
+            "rip": "0x7f8133258dde",
+            "cs": "0x33",
+            "eflags": "0x10286",
+            "rsp": "0x7ffc3e931098",
+            "ss": "0x2b",
+            "fs_base": "0x7f8136f3e740",
+            "gs_base": "0x0",
+            "ds": "0x0",
+            "es": "0x0",
+            "fs": "0x0",
+            "gs": "0x0"
+          }
+        },
+        {
+          "tid": 848,
+          "current_signal": 11,
+          "registers": {
+            "r15": "0x7f8133ea91a0",
+            "r14": "0x0",
+            "r13": "0x7f812d4c4de0",
+            "r12": "0x0",
+            "rbp": "0x7f8133ea9188",
+            "rbx": "0x7f8133ea9160",
+            "r11": "0x246",
+            "r10": "0x0",
+            "r9": "0xca",
+            "r8": "0x0",
+            "rax": "0xfffffffffffffe00",
+            "rcx": "0x7f8133a7058f",
+            "rdx": "0x0",
+            "rsi": "0x80",
+            "rdi": "0x7f8133ea9188",
+            "orig_rax": "0xca",
+            "rip": "0x7f8133a7058f",
+            "cs": "0x33",
+            "eflags": "0x246",
+            "rsp": "0x7f812d4c4d90",
+            "ss": "0x2b",
+            "fs_base": "0x7f812d4c5700",
+            "gs_base": "0x0",
+            "ds": "0x0",
+            "es": "0x0",
+            "fs": "0x0",
+            "gs": "0x0"
+          }
+        },
+        {
+          "tid": 849,
+          "current_signal": 11,
+          "registers": {
+            "r15": "0x0",
+            "r14": "0x7f812c32bc50",
+            "r13": "0x82cff9c980",
+            "r12": "0x82cffa1940",
+            "rbp": "0x7f812c32bbb0",
+            "rbx": "0x7f81240013f0",
+            "r11": "0x293",
+            "r10": "0x18",
+            "r9": "0x1",
+            "r8": "0x0",
+            "rax": "0xfffffffffffffdfc",
+            "rcx": "0x7f813320f4ed",
+            "rdx": "0xffffffff",
+            "rsi": "0x1",
+            "rdi": "0x7f812c32bbb0",
+            "orig_rax": "0x7",
+            "rip": "0x7f813320f4ed",
+            "cs": "0x33",
+            "eflags": "0x293",
+            "rsp": "0x7f812c32bba0",
+            "ss": "0x2b",
+            "fs_base": "0x7f812c32c700",
+            "gs_base": "0x0",
+            "ds": "0x0",
+            "es": "0x0",
+            "fs": "0x0",
+            "gs": "0x0"
+          }
+        },
+        {
+          "tid": 892,
+          "current_signal": 11,
+          "registers": {
+            "r15": "0x2",
+            "r14": "0x1",
+            "r13": "0x7f81366e308c",
+            "r12": "0x7f81366e30f0",
+            "rbp": "0x82d011e590",
+            "rbx": "0x7f811ed3a668",
+            "r11": "0x293",
+            "r10": "0x17f3c6242d7092",
+            "r9": "0x7f811ed39200",
+            "r8": "0x0",
+            "rax": "0xfffffffffffffdfc",
+            "rcx": "0x7f813320f4ed",
+            "rdx": "0xffffffff",
+            "rsi": "0x2",
+            "rdi": "0x7f81366e3084",
+            "orig_rax": "0x7",
+            "rip": "0x7f813320f4ed",
+            "cs": "0x33",
+            "eflags": "0x293",
+            "rsp": "0x7f811ed39860",
+            "ss": "0x2b",
+            "fs_base": "0x7f811ed3a700",
+            "gs_base": "0x0",
+            "ds": "0x0",
+            "es": "0x0",
+            "fs": "0x0",
+            "gs": "0x0"
+          }
+        },
+        {
+          "tid": 847,
+          "current_signal": 11,
+          "registers": {
+            "r15": "0x0",
+            "r14": "0x0",
+            "r13": "0x7f812dcc5e60",
+            "r12": "0x82cff921e0",
+            "rbp": "0x0",
+            "rbx": "0x7f8133ea6d88",
+            "r11": "0x293",
+            "r10": "0x0",
+            "r9": "0x7f812dcc6700",
+            "r8": "0x0",
+            "rax": "0xfffffffffffffe00",
+            "rcx": "0x7f8133a73aed",
+            "rdx": "0x2728",
+            "rsi": "0x82cff921e0",
+            "rdi": "0x3",
+            "orig_rax": "0x0",
+            "rip": "0x7f8133a73aed",
+            "cs": "0x33",
+            "eflags": "0x293",
+            "rsp": "0x7f812dcc5e10",
+            "ss": "0x2b",
+            "fs_base": "0x7f812dcc6700",
+            "gs_base": "0x0",
+            "ds": "0x0",
+            "es": "0x0",
+            "fs": "0x0",
+            "gs": "0x0"
+          }
+        },
+        {
+          "tid": 878,
+          "current_signal": 11,
+          "registers": {
+            "r15": "0x82cfffefa8",
+            "r14": "0x7",
+            "r13": "0x7f8128bede10",
+            "r12": "0x0",
+            "rbp": "0x82cfffeffc",
+            "rbx": "0x82cfffefd0",
+            "r11": "0x246",
+            "r10": "0x0",
+            "r9": "0x82cffff030",
+            "r8": "0x0",
+            "rax": "0xfffffffffffffe00",
+            "rcx": "0x7f8133a7058f",
+            "rdx": "0x0",
+            "rsi": "0x80",
+            "rdi": "0x82cfffeffc",
+            "orig_rax": "0xca",
+            "rip": "0x7f8133a7058f",
+            "cs": "0x33",
+            "eflags": "0x246",
+            "rsp": "0x7f8128beddc0",
+            "ss": "0x2b",
+            "fs_base": "0x7f8128bee700",
+            "gs_base": "0x0",
+            "ds": "0x0",
+            "es": "0x0",
+            "fs": "0x0",
+            "gs": "0x0"
+          }
+        },
+        {
+          "tid": 880,
+          "current_signal": 11,
+          "registers": {
+            "r15": "0x82cffff108",
+            "r14": "0x7",
+            "r13": "0x7f812053be10",
+            "r12": "0x0",
+            "rbp": "0x82cffff15c",
+            "rbx": "0x82cffff130",
+            "r11": "0x246",
+            "r10": "0x0",
+            "r9": "0x82d0000590",
+            "r8": "0x0",
+            "rax": "0xfffffffffffffe00",
+            "rcx": "0x7f8133a7058f",
+            "rdx": "0x0",
+            "rsi": "0x80",
+            "rdi": "0x82cffff15c",
+            "orig_rax": "0xca",
+            "rip": "0x7f8133a7058f",
+            "cs": "0x33",
+            "eflags": "0x246",
+            "rsp": "0x7f812053bdc0",
+            "ss": "0x2b",
+            "fs_base": "0x7f812053c700",
+            "gs_base": "0x0",
+            "ds": "0x0",
+            "es": "0x0",
+            "fs": "0x0",
+            "gs": "0x0"
+          }
+        },
+        {
+          "tid": 882,
+          "current_signal": 11,
+          "registers": {
+            "r15": "0x7f8118000d08",
+            "r14": "0x0",
+            "r13": "0x7f8118000f98",
+            "r12": "0x7f8118000d08",
+            "rbp": "0x7f8118000a78",
+            "rbx": "0x7f8118000a78",
+            "r11": "0x293",
+            "r10": "0x7f8118000f98",
+            "r9": "0x5c12",
+            "r8": "0x0",
+            "rax": "0xfffffffffffffdfe",
+            "rcx": "0x7f8133211353",
+            "rdx": "0x7f8118000d08",
+            "rsi": "0x7f8118000a78",
+            "rdi": "0x10",
+            "orig_rax": "0x17",
+            "rip": "0x7f8133211353",
+            "cs": "0x33",
+            "eflags": "0x293",
+            "rsp": "0x7f811fd3abd0",
+            "ss": "0x2b",
+            "fs_base": "0x7f811fd3b700",
+            "gs_base": "0x0",
+            "ds": "0x0",
+            "es": "0x0",
+            "fs": "0x0",
+            "gs": "0x0"
+          }
+        }
+      ],
+      "siginfo": [
+        {
+          "signo": 11,
+          "errno": 0,
+          "code": 1,
+          "fault_address": "0x7f811695efc0"
+        }
+      ],
+      "mapped_files": [
+        {
+          "start": "0x82ce6ac000",
+          "end": "0x82ce81e000",
+          "file_offset": "0x0",
+          "path": "/app/bin/AppCamera"
+        },
+        {
+          "start": "0x82cea1d000",
+          "end": "0x82cea22000",
+          "file_offset": "0x171000",
+          "path": "/app/bin/AppCamera"
+        },
+        {
+          "start": "0x82cea22000",
+          "end": "0x82cea23000",
+          "file_offset": "0x176000",
+          "path": "/app/bin/AppCamera"
+        },
+        {
+          "start": "0x7f811695f000",
+          "end": "0x7f8116ea5000",
+          "file_offset": "0x0",
+          "path": "/run/user/root/mesa-shared-YXLlq1 (deleted)"
+        },
+        {
+          "start": "0x7f81178a5000",
+          "end": "0x7f811798e000",
+          "file_offset": "0x0",
+          "path": "/app/plugins/CCSSportsWidget/libCCSSportsWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f811798e000",
+          "end": "0x7f8117b8d000",
+          "file_offset": "0xe9000",
+          "path": "/app/plugins/CCSSportsWidget/libCCSSportsWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f8117b8d000",
+          "end": "0x7f8117b91000",
+          "file_offset": "0xe8000",
+          "path": "/app/plugins/CCSSportsWidget/libCCSSportsWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f8117b91000",
+          "end": "0x7f8117b92000",
+          "file_offset": "0xec000",
+          "path": "/app/plugins/CCSSportsWidget/libCCSSportsWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f8117b94000",
+          "end": "0x7f8117bbd000",
+          "file_offset": "0x0",
+          "path": "/app/plugins/CallWidget/libCallWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f8117bbd000",
+          "end": "0x7f8117dbd000",
+          "file_offset": "0x29000",
+          "path": "/app/plugins/CallWidget/libCallWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f8117dbd000",
+          "end": "0x7f8117dbe000",
+          "file_offset": "0x29000",
+          "path": "/app/plugins/CallWidget/libCallWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f8117dbe000",
+          "end": "0x7f8117dbf000",
+          "file_offset": "0x2a000",
+          "path": "/app/plugins/CallWidget/libCallWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f8117dbf000",
+          "end": "0x7f8117dfe000",
+          "file_offset": "0x0",
+          "path": "/app/plugins/CalendarWidget/libCalendarWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f8117dfe000",
+          "end": "0x7f8117ffd000",
+          "file_offset": "0x3f000",
+          "path": "/app/plugins/CalendarWidget/libCalendarWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f8117ffd000",
+          "end": "0x7f8117fff000",
+          "file_offset": "0x3e000",
+          "path": "/app/plugins/CalendarWidget/libCalendarWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f8117fff000",
+          "end": "0x7f8118000000",
+          "file_offset": "0x40000",
+          "path": "/app/plugins/CalendarWidget/libCalendarWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f811c1ee000",
+          "end": "0x7f811c219000",
+          "file_offset": "0x0",
+          "path": "/app/plugins/BTAudioWidget/libBTAudioWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f811c219000",
+          "end": "0x7f811c419000",
+          "file_offset": "0x2b000",
+          "path": "/app/plugins/BTAudioWidget/libBTAudioWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f811c419000",
+          "end": "0x7f811c41a000",
+          "file_offset": "0x2b000",
+          "path": "/app/plugins/BTAudioWidget/libBTAudioWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f811c41a000",
+          "end": "0x7f811c41b000",
+          "file_offset": "0x2c000",
+          "path": "/app/plugins/BTAudioWidget/libBTAudioWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f811c41b000",
+          "end": "0x7f811c433000",
+          "file_offset": "0x0",
+          "path": "/app/plugins/AVOffWidget/libAVOffWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f811c433000",
+          "end": "0x7f811c633000",
+          "file_offset": "0x18000",
+          "path": "/app/plugins/AVOffWidget/libAVOffWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f811c633000",
+          "end": "0x7f811c634000",
+          "file_offset": "0x18000",
+          "path": "/app/plugins/AVOffWidget/libAVOffWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f811c634000",
+          "end": "0x7f811c635000",
+          "file_offset": "0x19000",
+          "path": "/app/plugins/AVOffWidget/libAVOffWidget.so.1.0.0"
+        },
+        {
+          "start": "0x7f811c635000",
+          "end": "0x7f811c675000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libQt5Xml.so.5.4.1"
+        },
+        {
+          "start": "0x7f811c675000",
+          "end": "0x7f811c874000",
+          "file_offset": "0x40000",
+          "path": "/usr/lib/libQt5Xml.so.5.4.1"
+        },
+        {
+          "start": "0x7f811c874000",
+          "end": "0x7f811c876000",
+          "file_offset": "0x3f000",
+          "path": "/usr/lib/libQt5Xml.so.5.4.1"
+        },
+        {
+          "start": "0x7f811c876000",
+          "end": "0x7f811c877000",
+          "file_offset": "0x41000",
+          "path": "/usr/lib/libQt5Xml.so.5.4.1"
+        },
+        {
+          "start": "0x7f811c877000",
+          "end": "0x7f811c94b000",
+          "file_offset": "0x0",
+          "path": "/app/share/AssistantWindow/lib/libAssistantWindow.so.1.0.0"
+        },
+        {
+          "start": "0x7f811c94b000",
+          "end": "0x7f811cb4b000",
+          "file_offset": "0xd4000",
+          "path": "/app/share/AssistantWindow/lib/libAssistantWindow.so.1.0.0"
+        },
+        {
+          "start": "0x7f811cb4b000",
+          "end": "0x7f811cb4e000",
+          "file_offset": "0xd4000",
+          "path": "/app/share/AssistantWindow/lib/libAssistantWindow.so.1.0.0"
+        },
+        {
+          "start": "0x7f811cb4e000",
+          "end": "0x7f811cb4f000",
+          "file_offset": "0xd7000",
+          "path": "/app/share/AssistantWindow/lib/libAssistantWindow.so.1.0.0"
+        },
+        {
+          "start": "0x7f811cb50000",
+          "end": "0x7f811cb70000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libivi-platform-interface.so.1.0.0"
+        },
+        {
+          "start": "0x7f811cb70000",
+          "end": "0x7f811cd70000",
+          "file_offset": "0x20000",
+          "path": "/usr/lib/libivi-platform-interface.so.1.0.0"
+        },
+        {
+          "start": "0x7f811cd70000",
+          "end": "0x7f811cd73000",
+          "file_offset": "0x20000",
+          "path": "/usr/lib/libivi-platform-interface.so.1.0.0"
+        },
+        {
+          "start": "0x7f811cd73000",
+          "end": "0x7f811cd74000",
+          "file_offset": "0x23000",
+          "path": "/usr/lib/libivi-platform-interface.so.1.0.0"
+        },
+        {
+          "start": "0x7f811cd74000",
+          "end": "0x7f811cd76000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/qt5/plugins/wayland-shell-integration/libivi.so"
+        },
+        {
+          "start": "0x7f811cd76000",
+          "end": "0x7f811cf75000",
+          "file_offset": "0x2000",
+          "path": "/usr/lib/qt5/plugins/wayland-shell-integration/libivi.so"
+        },
+        {
+          "start": "0x7f811cf75000",
+          "end": "0x7f811cf76000",
+          "file_offset": "0x1000",
+          "path": "/usr/lib/qt5/plugins/wayland-shell-integration/libivi.so"
+        },
+        {
+          "start": "0x7f811cf76000",
+          "end": "0x7f811cf77000",
+          "file_offset": "0x2000",
+          "path": "/usr/lib/qt5/plugins/wayland-shell-integration/libivi.so"
+        },
+        {
+          "start": "0x7f811cf77000",
+          "end": "0x7f811d241000",
+          "file_offset": "0x0",
+          "path": "/app/share/fonts/New_HD2.1_Medium.ttf"
+        },
+        {
+          "start": "0x7f811d241000",
+          "end": "0x7f811d27e000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libjpeg.so.9.1.0"
+        },
+        {
+          "start": "0x7f811d27e000",
+          "end": "0x7f811d47e000",
+          "file_offset": "0x3d000",
+          "path": "/usr/lib/libjpeg.so.9.1.0"
+        },
+        {
+          "start": "0x7f811d47e000",
+          "end": "0x7f811d47f000",
+          "file_offset": "0x3d000",
+          "path": "/usr/lib/libjpeg.so.9.1.0"
+        },
+        {
+          "start": "0x7f811d47f000",
+          "end": "0x7f811d480000",
+          "file_offset": "0x3e000",
+          "path": "/usr/lib/libjpeg.so.9.1.0"
+        },
+        {
+          "start": "0x7f811d480000",
+          "end": "0x7f811d48a000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/qt5/plugins/imageformats/libqjpeg.so"
+        },
+        {
+          "start": "0x7f811d48a000",
+          "end": "0x7f811d68a000",
+          "file_offset": "0xa000",
+          "path": "/usr/lib/qt5/plugins/imageformats/libqjpeg.so"
+        },
+        {
+          "start": "0x7f811d68a000",
+          "end": "0x7f811d68b000",
+          "file_offset": "0xa000",
+          "path": "/usr/lib/qt5/plugins/imageformats/libqjpeg.so"
+        },
+        {
+          "start": "0x7f811d68b000",
+          "end": "0x7f811d68c000",
+          "file_offset": "0xb000",
+          "path": "/usr/lib/qt5/plugins/imageformats/libqjpeg.so"
+        },
+        {
+          "start": "0x7f811d68c000",
+          "end": "0x7f811d693000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/qt5/plugins/imageformats/libqico.so"
+        },
+        {
+          "start": "0x7f811d693000",
+          "end": "0x7f811d892000",
+          "file_offset": "0x7000",
+          "path": "/usr/lib/qt5/plugins/imageformats/libqico.so"
+        },
+        {
+          "start": "0x7f811d892000",
+          "end": "0x7f811d893000",
+          "file_offset": "0x6000",
+          "path": "/usr/lib/qt5/plugins/imageformats/libqico.so"
+        },
+        {
+          "start": "0x7f811d893000",
+          "end": "0x7f811d894000",
+          "file_offset": "0x7000",
+          "path": "/usr/lib/qt5/plugins/imageformats/libqico.so"
+        },
+        {
+          "start": "0x7f811d894000",
+          "end": "0x7f811d89a000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/qt5/plugins/imageformats/libqgif.so"
+        },
+        {
+          "start": "0x7f811d89a000",
+          "end": "0x7f811da9a000",
+          "file_offset": "0x6000",
+          "path": "/usr/lib/qt5/plugins/imageformats/libqgif.so"
+        },
+        {
+          "start": "0x7f811da9a000",
+          "end": "0x7f811da9b000",
+          "file_offset": "0x6000",
+          "path": "/usr/lib/qt5/plugins/imageformats/libqgif.so"
+        },
+        {
+          "start": "0x7f811da9b000",
+          "end": "0x7f811da9c000",
+          "file_offset": "0x7000",
+          "path": "/usr/lib/qt5/plugins/imageformats/libqgif.so"
+        },
+        {
+          "start": "0x7f811da9c000",
+          "end": "0x7f811dd6b000",
+          "file_offset": "0x0",
+          "path": "/app/share/fonts/New_HD2.1_Regular.ttf"
+        },
+        {
+          "start": "0x7f811dd6b000",
+          "end": "0x7f811dd6d000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/qt5/qml/QtQuick.2/libqtquick2plugin.so"
+        },
+        {
+          "start": "0x7f811dd6d000",
+          "end": "0x7f811df6c000",
+          "file_offset": "0x2000",
+          "path": "/usr/lib/qt5/qml/QtQuick.2/libqtquick2plugin.so"
+        },
+        {
+          "start": "0x7f811df6c000",
+          "end": "0x7f811df6d000",
+          "file_offset": "0x1000",
+          "path": "/usr/lib/qt5/qml/QtQuick.2/libqtquick2plugin.so"
+        },
+        {
+          "start": "0x7f811df6d000",
+          "end": "0x7f811df6e000",
+          "file_offset": "0x2000",
+          "path": "/usr/lib/qt5/qml/QtQuick.2/libqtquick2plugin.so"
+        },
+        {
+          "start": "0x7f811df6e000",
+          "end": "0x7f811df80000",
+          "file_offset": "0x0",
+          "path": "/lib/libresolv-2.25.so"
+        },
+        {
+          "start": "0x7f811df80000",
+          "end": "0x7f811e180000",
+          "file_offset": "0x12000",
+          "path": "/lib/libresolv-2.25.so"
+        },
+        {
+          "start": "0x7f811e180000",
+          "end": "0x7f811e181000",
+          "file_offset": "0x12000",
+          "path": "/lib/libresolv-2.25.so"
+        },
+        {
+          "start": "0x7f811e181000",
+          "end": "0x7f811e182000",
+          "file_offset": "0x13000",
+          "path": "/lib/libresolv-2.25.so"
+        },
+        {
+          "start": "0x7f811e184000",
+          "end": "0x7f811e332000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libgio-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f811e332000",
+          "end": "0x7f811e531000",
+          "file_offset": "0x1ae000",
+          "path": "/usr/lib/libgio-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f811e531000",
+          "end": "0x7f811e537000",
+          "file_offset": "0x1ad000",
+          "path": "/usr/lib/libgio-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f811e537000",
+          "end": "0x7f811e538000",
+          "file_offset": "0x1b3000",
+          "path": "/usr/lib/libgio-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f812053d000",
+          "end": "0x7f8123bf9000",
+          "file_offset": "0x0",
+          "path": "/opt/software-egl18/lib/libLLVM-6.0.so.1"
+        },
+        {
+          "start": "0x7f8123bf9000",
+          "end": "0x7f8123bfa000",
+          "file_offset": "0x36bc000",
+          "path": "/opt/software-egl18/lib/libLLVM-6.0.so.1"
+        },
+        {
+          "start": "0x7f8123bfa000",
+          "end": "0x7f8123f6b000",
+          "file_offset": "0x36bc000",
+          "path": "/opt/software-egl18/lib/libLLVM-6.0.so.1"
+        },
+        {
+          "start": "0x7f8123f6b000",
+          "end": "0x7f8123fa5000",
+          "file_offset": "0x3a2d000",
+          "path": "/opt/software-egl18/lib/libLLVM-6.0.so.1"
+        },
+        {
+          "start": "0x7f81281c4000",
+          "end": "0x7f81281e9000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libpers_common.so.0.1.1"
+        },
+        {
+          "start": "0x7f81281e9000",
+          "end": "0x7f81283e8000",
+          "file_offset": "0x25000",
+          "path": "/usr/lib/libpers_common.so.0.1.1"
+        },
+        {
+          "start": "0x7f81283e8000",
+          "end": "0x7f81283ea000",
+          "file_offset": "0x24000",
+          "path": "/usr/lib/libpers_common.so.0.1.1"
+        },
+        {
+          "start": "0x7f81283ea000",
+          "end": "0x7f81283eb000",
+          "file_offset": "0x26000",
+          "path": "/usr/lib/libpers_common.so.0.1.1"
+        },
+        {
+          "start": "0x7f8128bef000",
+          "end": "0x7f8128c02000",
+          "file_offset": "0x0",
+          "path": "/opt/software-egl/lib/libbsd.so.0"
+        },
+        {
+          "start": "0x7f8128c02000",
+          "end": "0x7f8128e02000",
+          "file_offset": "0x13000",
+          "path": "/opt/software-egl/lib/libbsd.so.0"
+        },
+        {
+          "start": "0x7f8128e02000",
+          "end": "0x7f8128e03000",
+          "file_offset": "0x13000",
+          "path": "/opt/software-egl/lib/libbsd.so.0"
+        },
+        {
+          "start": "0x7f8128e03000",
+          "end": "0x7f8128e04000",
+          "file_offset": "0x14000",
+          "path": "/opt/software-egl/lib/libbsd.so.0"
+        },
+        {
+          "start": "0x7f8128e05000",
+          "end": "0x7f8128e2d000",
+          "file_offset": "0x0",
+          "path": "/lib/libncurses.so.5.9"
+        },
+        {
+          "start": "0x7f8128e2d000",
+          "end": "0x7f812902d000",
+          "file_offset": "0x28000",
+          "path": "/lib/libncurses.so.5.9"
+        },
+        {
+          "start": "0x7f812902d000",
+          "end": "0x7f812902e000",
+          "file_offset": "0x28000",
+          "path": "/lib/libncurses.so.5.9"
+        },
+        {
+          "start": "0x7f812902e000",
+          "end": "0x7f812902f000",
+          "file_offset": "0x29000",
+          "path": "/lib/libncurses.so.5.9"
+        },
+        {
+          "start": "0x7f812902f000",
+          "end": "0x7f8129056000",
+          "file_offset": "0x0",
+          "path": "/lib/libtinfo.so.5.9"
+        },
+        {
+          "start": "0x7f8129056000",
+          "end": "0x7f8129256000",
+          "file_offset": "0x27000",
+          "path": "/lib/libtinfo.so.5.9"
+        },
+        {
+          "start": "0x7f8129256000",
+          "end": "0x7f812925a000",
+          "file_offset": "0x27000",
+          "path": "/lib/libtinfo.so.5.9"
+        },
+        {
+          "start": "0x7f812925a000",
+          "end": "0x7f812925b000",
+          "file_offset": "0x2b000",
+          "path": "/lib/libtinfo.so.5.9"
+        },
+        {
+          "start": "0x7f812925b000",
+          "end": "0x7f812928c000",
+          "file_offset": "0x0",
+          "path": "/opt/software-egl/lib/libedit.so.2"
+        },
+        {
+          "start": "0x7f812928c000",
+          "end": "0x7f812948c000",
+          "file_offset": "0x31000",
+          "path": "/opt/software-egl/lib/libedit.so.2"
+        },
+        {
+          "start": "0x7f812948c000",
+          "end": "0x7f812948e000",
+          "file_offset": "0x31000",
+          "path": "/opt/software-egl/lib/libedit.so.2"
+        },
+        {
+          "start": "0x7f812948e000",
+          "end": "0x7f812948f000",
+          "file_offset": "0x33000",
+          "path": "/opt/software-egl/lib/libedit.so.2"
+        },
+        {
+          "start": "0x7f8129493000",
+          "end": "0x7f81294ad000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libelf-0.168.so"
+        },
+        {
+          "start": "0x7f81294ad000",
+          "end": "0x7f81296ac000",
+          "file_offset": "0x1a000",
+          "path": "/usr/lib/libelf-0.168.so"
+        },
+        {
+          "start": "0x7f81296ac000",
+          "end": "0x7f81296ad000",
+          "file_offset": "0x19000",
+          "path": "/usr/lib/libelf-0.168.so"
+        },
+        {
+          "start": "0x7f81296ad000",
+          "end": "0x7f81296ae000",
+          "file_offset": "0x1a000",
+          "path": "/usr/lib/libelf-0.168.so"
+        },
+        {
+          "start": "0x7f81296ae000",
+          "end": "0x7f81296b6000",
+          "file_offset": "0x0",
+          "path": "/opt/software-egl18/lib/libdrm_amdgpu.so.1"
+        },
+        {
+          "start": "0x7f81296b6000",
+          "end": "0x7f81298b5000",
+          "file_offset": "0x8000",
+          "path": "/opt/software-egl18/lib/libdrm_amdgpu.so.1"
+        },
+        {
+          "start": "0x7f81298b5000",
+          "end": "0x7f81298b6000",
+          "file_offset": "0x7000",
+          "path": "/opt/software-egl18/lib/libdrm_amdgpu.so.1"
+        },
+        {
+          "start": "0x7f81298b6000",
+          "end": "0x7f81298b7000",
+          "file_offset": "0x8000",
+          "path": "/opt/software-egl18/lib/libdrm_amdgpu.so.1"
+        },
+        {
+          "start": "0x7f81298b7000",
+          "end": "0x7f81298c2000",
+          "file_offset": "0x0",
+          "path": "/opt/software-egl18/lib/libdrm_radeon.so.1"
+        },
+        {
+          "start": "0x7f81298c2000",
+          "end": "0x7f8129ac1000",
+          "file_offset": "0xb000",
+          "path": "/opt/software-egl18/lib/libdrm_radeon.so.1"
+        },
+        {
+          "start": "0x7f8129ac1000",
+          "end": "0x7f8129ac2000",
+          "file_offset": "0xa000",
+          "path": "/opt/software-egl18/lib/libdrm_radeon.so.1"
+        },
+        {
+          "start": "0x7f8129ac2000",
+          "end": "0x7f8129ac3000",
+          "file_offset": "0xb000",
+          "path": "/opt/software-egl18/lib/libdrm_radeon.so.1"
+        },
+        {
+          "start": "0x7f8129ac3000",
+          "end": "0x7f8129aca000",
+          "file_offset": "0x0",
+          "path": "/opt/software-egl18/lib/libdrm_nouveau.so.2"
+        },
+        {
+          "start": "0x7f8129aca000",
+          "end": "0x7f8129cc9000",
+          "file_offset": "0x7000",
+          "path": "/opt/software-egl18/lib/libdrm_nouveau.so.2"
+        },
+        {
+          "start": "0x7f8129cc9000",
+          "end": "0x7f8129cca000",
+          "file_offset": "0x6000",
+          "path": "/opt/software-egl18/lib/libdrm_nouveau.so.2"
+        },
+        {
+          "start": "0x7f8129cca000",
+          "end": "0x7f8129ccb000",
+          "file_offset": "0x7000",
+          "path": "/opt/software-egl18/lib/libdrm_nouveau.so.2"
+        },
+        {
+          "start": "0x7f8129ccb000",
+          "end": "0x7f8129cd9000",
+          "file_offset": "0x0",
+          "path": "/opt/software-egl/lib/libsensors.so.4"
+        },
+        {
+          "start": "0x7f8129cd9000",
+          "end": "0x7f8129ed8000",
+          "file_offset": "0xe000",
+          "path": "/opt/software-egl/lib/libsensors.so.4"
+        },
+        {
+          "start": "0x7f8129ed8000",
+          "end": "0x7f8129ed9000",
+          "file_offset": "0xd000",
+          "path": "/opt/software-egl/lib/libsensors.so.4"
+        },
+        {
+          "start": "0x7f8129ed9000",
+          "end": "0x7f8129eda000",
+          "file_offset": "0xe000",
+          "path": "/opt/software-egl/lib/libsensors.so.4"
+        },
+        {
+          "start": "0x7f8129eda000",
+          "end": "0x7f812aa3b000",
+          "file_offset": "0x0",
+          "path": "/opt/software-egl18/dri/swrast_dri.so"
+        },
+        {
+          "start": "0x7f812aa3b000",
+          "end": "0x7f812ac3b000",
+          "file_offset": "0xb61000",
+          "path": "/opt/software-egl18/dri/swrast_dri.so"
+        },
+        {
+          "start": "0x7f812ac3b000",
+          "end": "0x7f812ac9d000",
+          "file_offset": "0xb61000",
+          "path": "/opt/software-egl18/dri/swrast_dri.so"
+        },
+        {
+          "start": "0x7f812ac9d000",
+          "end": "0x7f812aca6000",
+          "file_offset": "0xbc3000",
+          "path": "/opt/software-egl18/dri/swrast_dri.so"
+        },
+        {
+          "start": "0x7f812ae9f000",
+          "end": "0x7f812aeca000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libexpat.so.1.6.2"
+        },
+        {
+          "start": "0x7f812aeca000",
+          "end": "0x7f812b0c9000",
+          "file_offset": "0x2b000",
+          "path": "/usr/lib/libexpat.so.1.6.2"
+        },
+        {
+          "start": "0x7f812b0c9000",
+          "end": "0x7f812b0cc000",
+          "file_offset": "0x2a000",
+          "path": "/usr/lib/libexpat.so.1.6.2"
+        },
+        {
+          "start": "0x7f812b0cc000",
+          "end": "0x7f812b0cd000",
+          "file_offset": "0x2d000",
+          "path": "/usr/lib/libexpat.so.1.6.2"
+        },
+        {
+          "start": "0x7f812b0cd000",
+          "end": "0x7f812b0df000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libwayland-server.so.0.1.0"
+        },
+        {
+          "start": "0x7f812b0df000",
+          "end": "0x7f812b2de000",
+          "file_offset": "0x12000",
+          "path": "/usr/lib/libwayland-server.so.0.1.0"
+        },
+        {
+          "start": "0x7f812b2de000",
+          "end": "0x7f812b2e0000",
+          "file_offset": "0x11000",
+          "path": "/usr/lib/libwayland-server.so.0.1.0"
+        },
+        {
+          "start": "0x7f812b2e0000",
+          "end": "0x7f812b2e1000",
+          "file_offset": "0x13000",
+          "path": "/usr/lib/libwayland-server.so.0.1.0"
+        },
+        {
+          "start": "0x7f812b2e1000",
+          "end": "0x7f812b2ee000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libgbm.so.1.0.0"
+        },
+        {
+          "start": "0x7f812b2ee000",
+          "end": "0x7f812b4ee000",
+          "file_offset": "0xd000",
+          "path": "/usr/lib/libgbm.so.1.0.0"
+        },
+        {
+          "start": "0x7f812b4ee000",
+          "end": "0x7f812b4ef000",
+          "file_offset": "0xd000",
+          "path": "/usr/lib/libgbm.so.1.0.0"
+        },
+        {
+          "start": "0x7f812b4ef000",
+          "end": "0x7f812b4f0000",
+          "file_offset": "0xe000",
+          "path": "/usr/lib/libgbm.so.1.0.0"
+        },
+        {
+          "start": "0x7f812b4f0000",
+          "end": "0x7f812b519000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libEGL.so.1.0.0"
+        },
+        {
+          "start": "0x7f812b519000",
+          "end": "0x7f812b719000",
+          "file_offset": "0x29000",
+          "path": "/usr/lib/libEGL.so.1.0.0"
+        },
+        {
+          "start": "0x7f812b719000",
+          "end": "0x7f812b71a000",
+          "file_offset": "0x29000",
+          "path": "/usr/lib/libEGL.so.1.0.0"
+        },
+        {
+          "start": "0x7f812b71a000",
+          "end": "0x7f812b71b000",
+          "file_offset": "0x2a000",
+          "path": "/usr/lib/libEGL.so.1.0.0"
+        },
+        {
+          "start": "0x7f812b71b000",
+          "end": "0x7f812b71c000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libwayland-egl.so.1.0.0"
+        },
+        {
+          "start": "0x7f812b71c000",
+          "end": "0x7f812b91b000",
+          "file_offset": "0x1000",
+          "path": "/usr/lib/libwayland-egl.so.1.0.0"
+        },
+        {
+          "start": "0x7f812b91b000",
+          "end": "0x7f812b91c000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libwayland-egl.so.1.0.0"
+        },
+        {
+          "start": "0x7f812b91c000",
+          "end": "0x7f812b91d000",
+          "file_offset": "0x1000",
+          "path": "/usr/lib/libwayland-egl.so.1.0.0"
+        },
+        {
+          "start": "0x7f812b91d000",
+          "end": "0x7f812b92a000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/qt5/plugins/wayland-graphics-integration-client/libwayland-egl.so"
+        },
+        {
+          "start": "0x7f812b92a000",
+          "end": "0x7f812bb2a000",
+          "file_offset": "0xd000",
+          "path": "/usr/lib/qt5/plugins/wayland-graphics-integration-client/libwayland-egl.so"
+        },
+        {
+          "start": "0x7f812bb2a000",
+          "end": "0x7f812bb2b000",
+          "file_offset": "0xd000",
+          "path": "/usr/lib/qt5/plugins/wayland-graphics-integration-client/libwayland-egl.so"
+        },
+        {
+          "start": "0x7f812bb2b000",
+          "end": "0x7f812bb2c000",
+          "file_offset": "0xe000",
+          "path": "/usr/lib/qt5/plugins/wayland-graphics-integration-client/libwayland-egl.so"
+        },
+        {
+          "start": "0x7f812c32d000",
+          "end": "0x7f812c331000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libwayland-cursor.so.0.0.0"
+        },
+        {
+          "start": "0x7f812c331000",
+          "end": "0x7f812c530000",
+          "file_offset": "0x4000",
+          "path": "/usr/lib/libwayland-cursor.so.0.0.0"
+        },
+        {
+          "start": "0x7f812c530000",
+          "end": "0x7f812c531000",
+          "file_offset": "0x3000",
+          "path": "/usr/lib/libwayland-cursor.so.0.0.0"
+        },
+        {
+          "start": "0x7f812c531000",
+          "end": "0x7f812c535000",
+          "file_offset": "0x4000",
+          "path": "/usr/lib/libwayland-cursor.so.0.0.0"
+        },
+        {
+          "start": "0x7f812c535000",
+          "end": "0x7f812c576000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libxkbcommon.so.0.0.0"
+        },
+        {
+          "start": "0x7f812c576000",
+          "end": "0x7f812c775000",
+          "file_offset": "0x41000",
+          "path": "/usr/lib/libxkbcommon.so.0.0.0"
+        },
+        {
+          "start": "0x7f812c775000",
+          "end": "0x7f812c777000",
+          "file_offset": "0x40000",
+          "path": "/usr/lib/libxkbcommon.so.0.0.0"
+        },
+        {
+          "start": "0x7f812c777000",
+          "end": "0x7f812c778000",
+          "file_offset": "0x42000",
+          "path": "/usr/lib/libxkbcommon.so.0.0.0"
+        },
+        {
+          "start": "0x7f812c778000",
+          "end": "0x7f812c8b3000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libQt5WaylandClient.so.5.4.1"
+        },
+        {
+          "start": "0x7f812c8b3000",
+          "end": "0x7f812cab2000",
+          "file_offset": "0x13b000",
+          "path": "/usr/lib/libQt5WaylandClient.so.5.4.1"
+        },
+        {
+          "start": "0x7f812cab2000",
+          "end": "0x7f812cac1000",
+          "file_offset": "0x13a000",
+          "path": "/usr/lib/libQt5WaylandClient.so.5.4.1"
+        },
+        {
+          "start": "0x7f812cac1000",
+          "end": "0x7f812cac2000",
+          "file_offset": "0x149000",
+          "path": "/usr/lib/libQt5WaylandClient.so.5.4.1"
+        },
+        {
+          "start": "0x7f812cac2000",
+          "end": "0x7f812cac4000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/qt5/plugins/platforms/libqwayland-generic.so"
+        },
+        {
+          "start": "0x7f812cac4000",
+          "end": "0x7f812ccc3000",
+          "file_offset": "0x2000",
+          "path": "/usr/lib/qt5/plugins/platforms/libqwayland-generic.so"
+        },
+        {
+          "start": "0x7f812ccc3000",
+          "end": "0x7f812ccc4000",
+          "file_offset": "0x1000",
+          "path": "/usr/lib/qt5/plugins/platforms/libqwayland-generic.so"
+        },
+        {
+          "start": "0x7f812ccc4000",
+          "end": "0x7f812ccc5000",
+          "file_offset": "0x2000",
+          "path": "/usr/lib/qt5/plugins/platforms/libqwayland-generic.so"
+        },
+        {
+          "start": "0x7f812dcc7000",
+          "end": "0x7f812f5c8000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libicudata.so.58.2"
+        },
+        {
+          "start": "0x7f812f5c8000",
+          "end": "0x7f812f7c7000",
+          "file_offset": "0x1901000",
+          "path": "/usr/lib/libicudata.so.58.2"
+        },
+        {
+          "start": "0x7f812f7c7000",
+          "end": "0x7f812f7c8000",
+          "file_offset": "0x1900000",
+          "path": "/usr/lib/libicudata.so.58.2"
+        },
+        {
+          "start": "0x7f812f7c8000",
+          "end": "0x7f812f7c9000",
+          "file_offset": "0x1901000",
+          "path": "/usr/lib/libicudata.so.58.2"
+        },
+        {
+          "start": "0x7f812f7c9000",
+          "end": "0x7f812f86f000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libfreetype.so.6.14.0"
+        },
+        {
+          "start": "0x7f812f86f000",
+          "end": "0x7f812fa6e000",
+          "file_offset": "0xa6000",
+          "path": "/usr/lib/libfreetype.so.6.14.0"
+        },
+        {
+          "start": "0x7f812fa6e000",
+          "end": "0x7f812fa75000",
+          "file_offset": "0xa5000",
+          "path": "/usr/lib/libfreetype.so.6.14.0"
+        },
+        {
+          "start": "0x7f812fa75000",
+          "end": "0x7f812fa76000",
+          "file_offset": "0xac000",
+          "path": "/usr/lib/libfreetype.so.6.14.0"
+        },
+        {
+          "start": "0x7f812fa76000",
+          "end": "0x7f812fcc7000",
+          "file_offset": "0x0",
+          "path": "/lib/libcrypto.so.1.0.2"
+        },
+        {
+          "start": "0x7f812fcc7000",
+          "end": "0x7f812fec7000",
+          "file_offset": "0x251000",
+          "path": "/lib/libcrypto.so.1.0.2"
+        },
+        {
+          "start": "0x7f812fec7000",
+          "end": "0x7f812fee7000",
+          "file_offset": "0x251000",
+          "path": "/lib/libcrypto.so.1.0.2"
+        },
+        {
+          "start": "0x7f812fee7000",
+          "end": "0x7f812fef2000",
+          "file_offset": "0x271000",
+          "path": "/lib/libcrypto.so.1.0.2"
+        },
+        {
+          "start": "0x7f812fef6000",
+          "end": "0x7f812ff5d000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libssl.so.1.0.2"
+        },
+        {
+          "start": "0x7f812ff5d000",
+          "end": "0x7f813015c000",
+          "file_offset": "0x67000",
+          "path": "/usr/lib/libssl.so.1.0.2"
+        },
+        {
+          "start": "0x7f813015c000",
+          "end": "0x7f8130161000",
+          "file_offset": "0x66000",
+          "path": "/usr/lib/libssl.so.1.0.2"
+        },
+        {
+          "start": "0x7f8130161000",
+          "end": "0x7f8130167000",
+          "file_offset": "0x6b000",
+          "path": "/usr/lib/libssl.so.1.0.2"
+        },
+        {
+          "start": "0x7f8130167000",
+          "end": "0x7f8130193000",
+          "file_offset": "0x0",
+          "path": "/opt/software-egl18/lib/libglapi.so.0"
+        },
+        {
+          "start": "0x7f8130193000",
+          "end": "0x7f8130392000",
+          "file_offset": "0x2c000",
+          "path": "/opt/software-egl18/lib/libglapi.so.0"
+        },
+        {
+          "start": "0x7f8130392000",
+          "end": "0x7f8130396000",
+          "file_offset": "0x2b000",
+          "path": "/opt/software-egl18/lib/libglapi.so.0"
+        },
+        {
+          "start": "0x7f8130396000",
+          "end": "0x7f8130397000",
+          "file_offset": "0x2f000",
+          "path": "/opt/software-egl18/lib/libglapi.so.0"
+        },
+        {
+          "start": "0x7f8130398000",
+          "end": "0x7f81303a8000",
+          "file_offset": "0x0",
+          "path": "/opt/software-egl18/lib/libdrm.so.2"
+        },
+        {
+          "start": "0x7f81303a8000",
+          "end": "0x7f81305a7000",
+          "file_offset": "0x10000",
+          "path": "/opt/software-egl18/lib/libdrm.so.2"
+        },
+        {
+          "start": "0x7f81305a7000",
+          "end": "0x7f81305a8000",
+          "file_offset": "0xf000",
+          "path": "/opt/software-egl18/lib/libdrm.so.2"
+        },
+        {
+          "start": "0x7f81305a8000",
+          "end": "0x7f81305a9000",
+          "file_offset": "0x10000",
+          "path": "/opt/software-egl18/lib/libdrm.so.2"
+        },
+        {
+          "start": "0x7f81305a9000",
+          "end": "0x7f81305e5000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libpcre16.so.0.2.11"
+        },
+        {
+          "start": "0x7f81305e5000",
+          "end": "0x7f81307e4000",
+          "file_offset": "0x3c000",
+          "path": "/usr/lib/libpcre16.so.0.2.11"
+        },
+        {
+          "start": "0x7f81307e4000",
+          "end": "0x7f81307e5000",
+          "file_offset": "0x3b000",
+          "path": "/usr/lib/libpcre16.so.0.2.11"
+        },
+        {
+          "start": "0x7f81307e5000",
+          "end": "0x7f81307e6000",
+          "file_offset": "0x3c000",
+          "path": "/usr/lib/libpcre16.so.0.2.11"
+        },
+        {
+          "start": "0x7f81307e6000",
+          "end": "0x7f813099a000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libicuuc.so.58.2"
+        },
+        {
+          "start": "0x7f813099a000",
+          "end": "0x7f8130b9a000",
+          "file_offset": "0x1b4000",
+          "path": "/usr/lib/libicuuc.so.58.2"
+        },
+        {
+          "start": "0x7f8130b9a000",
+          "end": "0x7f8130bac000",
+          "file_offset": "0x1b4000",
+          "path": "/usr/lib/libicuuc.so.58.2"
+        },
+        {
+          "start": "0x7f8130bac000",
+          "end": "0x7f8130bad000",
+          "file_offset": "0x1c6000",
+          "path": "/usr/lib/libicuuc.so.58.2"
+        },
+        {
+          "start": "0x7f8130bae000",
+          "end": "0x7f8130e4a000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libicui18n.so.58.2"
+        },
+        {
+          "start": "0x7f8130e4a000",
+          "end": "0x7f8131049000",
+          "file_offset": "0x29c000",
+          "path": "/usr/lib/libicui18n.so.58.2"
+        },
+        {
+          "start": "0x7f8131049000",
+          "end": "0x7f8131057000",
+          "file_offset": "0x29b000",
+          "path": "/usr/lib/libicui18n.so.58.2"
+        },
+        {
+          "start": "0x7f8131057000",
+          "end": "0x7f8131058000",
+          "file_offset": "0x2a9000",
+          "path": "/usr/lib/libicui18n.so.58.2"
+        },
+        {
+          "start": "0x7f8131058000",
+          "end": "0x7f8131170000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libharfbuzz.so.0.20900.0"
+        },
+        {
+          "start": "0x7f8131170000",
+          "end": "0x7f8131370000",
+          "file_offset": "0x118000",
+          "path": "/usr/lib/libharfbuzz.so.0.20900.0"
+        },
+        {
+          "start": "0x7f8131370000",
+          "end": "0x7f8131371000",
+          "file_offset": "0x118000",
+          "path": "/usr/lib/libharfbuzz.so.0.20900.0"
+        },
+        {
+          "start": "0x7f8131371000",
+          "end": "0x7f8131372000",
+          "file_offset": "0x119000",
+          "path": "/usr/lib/libharfbuzz.so.0.20900.0"
+        },
+        {
+          "start": "0x7f8131372000",
+          "end": "0x7f81313a9000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libpng16.so.16.32.0"
+        },
+        {
+          "start": "0x7f81313a9000",
+          "end": "0x7f81315a9000",
+          "file_offset": "0x37000",
+          "path": "/usr/lib/libpng16.so.16.32.0"
+        },
+        {
+          "start": "0x7f81315a9000",
+          "end": "0x7f81315aa000",
+          "file_offset": "0x37000",
+          "path": "/usr/lib/libpng16.so.16.32.0"
+        },
+        {
+          "start": "0x7f81315aa000",
+          "end": "0x7f81315ab000",
+          "file_offset": "0x38000",
+          "path": "/usr/lib/libpng16.so.16.32.0"
+        },
+        {
+          "start": "0x7f81315ab000",
+          "end": "0x7f813170d000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libQt5Network.so.5.4.1"
+        },
+        {
+          "start": "0x7f813170d000",
+          "end": "0x7f813190d000",
+          "file_offset": "0x162000",
+          "path": "/usr/lib/libQt5Network.so.5.4.1"
+        },
+        {
+          "start": "0x7f813190d000",
+          "end": "0x7f8131914000",
+          "file_offset": "0x162000",
+          "path": "/usr/lib/libQt5Network.so.5.4.1"
+        },
+        {
+          "start": "0x7f8131914000",
+          "end": "0x7f8131915000",
+          "file_offset": "0x169000",
+          "path": "/usr/lib/libQt5Network.so.5.4.1"
+        },
+        {
+          "start": "0x7f8131915000",
+          "end": "0x7f8131a25000",
+          "file_offset": "0x0",
+          "path": "/lib/libm-2.25.so"
+        },
+        {
+          "start": "0x7f8131a25000",
+          "end": "0x7f8131c25000",
+          "file_offset": "0x110000",
+          "path": "/lib/libm-2.25.so"
+        },
+        {
+          "start": "0x7f8131c25000",
+          "end": "0x7f8131c26000",
+          "file_offset": "0x110000",
+          "path": "/lib/libm-2.25.so"
+        },
+        {
+          "start": "0x7f8131c26000",
+          "end": "0x7f8131c27000",
+          "file_offset": "0x111000",
+          "path": "/lib/libm-2.25.so"
+        },
+        {
+          "start": "0x7f8131c27000",
+          "end": "0x7f8131c6a000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libpcre.so.1.2.11"
+        },
+        {
+          "start": "0x7f8131c6a000",
+          "end": "0x7f8131e69000",
+          "file_offset": "0x43000",
+          "path": "/usr/lib/libpcre.so.1.2.11"
+        },
+        {
+          "start": "0x7f8131e69000",
+          "end": "0x7f8131e6a000",
+          "file_offset": "0x42000",
+          "path": "/usr/lib/libpcre.so.1.2.11"
+        },
+        {
+          "start": "0x7f8131e6a000",
+          "end": "0x7f8131e6b000",
+          "file_offset": "0x43000",
+          "path": "/usr/lib/libpcre.so.1.2.11"
+        },
+        {
+          "start": "0x7f8131e6b000",
+          "end": "0x7f8131e6e000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libgmodule-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f8131e6e000",
+          "end": "0x7f813206d000",
+          "file_offset": "0x3000",
+          "path": "/usr/lib/libgmodule-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f813206d000",
+          "end": "0x7f813206e000",
+          "file_offset": "0x2000",
+          "path": "/usr/lib/libgmodule-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f813206e000",
+          "end": "0x7f813206f000",
+          "file_offset": "0x3000",
+          "path": "/usr/lib/libgmodule-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f813206f000",
+          "end": "0x7f8132077000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libffi.so.6.0.4"
+        },
+        {
+          "start": "0x7f8132077000",
+          "end": "0x7f8132276000",
+          "file_offset": "0x8000",
+          "path": "/usr/lib/libffi.so.6.0.4"
+        },
+        {
+          "start": "0x7f8132276000",
+          "end": "0x7f8132277000",
+          "file_offset": "0x7000",
+          "path": "/usr/lib/libffi.so.6.0.4"
+        },
+        {
+          "start": "0x7f8132277000",
+          "end": "0x7f8132278000",
+          "file_offset": "0x8000",
+          "path": "/usr/lib/libffi.so.6.0.4"
+        },
+        {
+          "start": "0x7f8132278000",
+          "end": "0x7f813227b000",
+          "file_offset": "0x0",
+          "path": "/lib/libdl-2.25.so"
+        },
+        {
+          "start": "0x7f813227b000",
+          "end": "0x7f813247a000",
+          "file_offset": "0x3000",
+          "path": "/lib/libdl-2.25.so"
+        },
+        {
+          "start": "0x7f813247a000",
+          "end": "0x7f813247b000",
+          "file_offset": "0x2000",
+          "path": "/lib/libdl-2.25.so"
+        },
+        {
+          "start": "0x7f813247b000",
+          "end": "0x7f813247c000",
+          "file_offset": "0x3000",
+          "path": "/lib/libdl-2.25.so"
+        },
+        {
+          "start": "0x7f813247c000",
+          "end": "0x7f81324cd000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libdbus-1.so.3.8.13"
+        },
+        {
+          "start": "0x7f81324cd000",
+          "end": "0x7f81326cd000",
+          "file_offset": "0x51000",
+          "path": "/usr/lib/libdbus-1.so.3.8.13"
+        },
+        {
+          "start": "0x7f81326cd000",
+          "end": "0x7f81326ce000",
+          "file_offset": "0x51000",
+          "path": "/usr/lib/libdbus-1.so.3.8.13"
+        },
+        {
+          "start": "0x7f81326ce000",
+          "end": "0x7f81326cf000",
+          "file_offset": "0x52000",
+          "path": "/usr/lib/libdbus-1.so.3.8.13"
+        },
+        {
+          "start": "0x7f81326cf000",
+          "end": "0x7f81326e7000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libz.so.1.2.13"
+        },
+        {
+          "start": "0x7f81326e7000",
+          "end": "0x7f81328e6000",
+          "file_offset": "0x18000",
+          "path": "/usr/lib/libz.so.1.2.13"
+        },
+        {
+          "start": "0x7f81328e6000",
+          "end": "0x7f81328e7000",
+          "file_offset": "0x17000",
+          "path": "/usr/lib/libz.so.1.2.13"
+        },
+        {
+          "start": "0x7f81328e7000",
+          "end": "0x7f81328e8000",
+          "file_offset": "0x18000",
+          "path": "/usr/lib/libz.so.1.2.13"
+        },
+        {
+          "start": "0x7f81328e8000",
+          "end": "0x7f81328ef000",
+          "file_offset": "0x0",
+          "path": "/lib/librt-2.25.so"
+        },
+        {
+          "start": "0x7f81328ef000",
+          "end": "0x7f8132aee000",
+          "file_offset": "0x7000",
+          "path": "/lib/librt-2.25.so"
+        },
+        {
+          "start": "0x7f8132aee000",
+          "end": "0x7f8132aef000",
+          "file_offset": "0x6000",
+          "path": "/lib/librt-2.25.so"
+        },
+        {
+          "start": "0x7f8132aef000",
+          "end": "0x7f8132af0000",
+          "file_offset": "0x7000",
+          "path": "/lib/librt-2.25.so"
+        },
+        {
+          "start": "0x7f8132af0000",
+          "end": "0x7f8132af7000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libGLESv2.so.2.0.0"
+        },
+        {
+          "start": "0x7f8132af7000",
+          "end": "0x7f8132cf6000",
+          "file_offset": "0x7000",
+          "path": "/usr/lib/libGLESv2.so.2.0.0"
+        },
+        {
+          "start": "0x7f8132cf6000",
+          "end": "0x7f8132cf7000",
+          "file_offset": "0x6000",
+          "path": "/usr/lib/libGLESv2.so.2.0.0"
+        },
+        {
+          "start": "0x7f8132cf7000",
+          "end": "0x7f8132cf8000",
+          "file_offset": "0x7000",
+          "path": "/usr/lib/libGLESv2.so.2.0.0"
+        },
+        {
+          "start": "0x7f8132cf8000",
+          "end": "0x7f8132d1f000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/liblz4.so.1.9.3"
+        },
+        {
+          "start": "0x7f8132d1f000",
+          "end": "0x7f8132f1e000",
+          "file_offset": "0x27000",
+          "path": "/usr/lib/liblz4.so.1.9.3"
+        },
+        {
+          "start": "0x7f8132f1e000",
+          "end": "0x7f8132f1f000",
+          "file_offset": "0x26000",
+          "path": "/usr/lib/liblz4.so.1.9.3"
+        },
+        {
+          "start": "0x7f8132f1f000",
+          "end": "0x7f8132f20000",
+          "file_offset": "0x27000",
+          "path": "/usr/lib/liblz4.so.1.9.3"
+        },
+        {
+          "start": "0x7f8132f20000",
+          "end": "0x7f8132f2d000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libwayland-client.so.0.3.0"
+        },
+        {
+          "start": "0x7f8132f2d000",
+          "end": "0x7f813312d000",
+          "file_offset": "0xd000",
+          "path": "/usr/lib/libwayland-client.so.0.3.0"
+        },
+        {
+          "start": "0x7f813312d000",
+          "end": "0x7f813312f000",
+          "file_offset": "0xd000",
+          "path": "/usr/lib/libwayland-client.so.0.3.0"
+        },
+        {
+          "start": "0x7f813312f000",
+          "end": "0x7f8133130000",
+          "file_offset": "0xf000",
+          "path": "/usr/lib/libwayland-client.so.0.3.0"
+        },
+        {
+          "start": "0x7f8133130000",
+          "end": "0x7f81332c6000",
+          "file_offset": "0x0",
+          "path": "/lib/libc-2.25.so"
+        },
+        {
+          "start": "0x7f81332c6000",
+          "end": "0x7f81334c5000",
+          "file_offset": "0x196000",
+          "path": "/lib/libc-2.25.so"
+        },
+        {
+          "start": "0x7f81334c5000",
+          "end": "0x7f81334c9000",
+          "file_offset": "0x195000",
+          "path": "/lib/libc-2.25.so"
+        },
+        {
+          "start": "0x7f81334c9000",
+          "end": "0x7f81334cb000",
+          "file_offset": "0x199000",
+          "path": "/lib/libc-2.25.so"
+        },
+        {
+          "start": "0x7f81334cf000",
+          "end": "0x7f81334e0000",
+          "file_offset": "0x0",
+          "path": "/lib/libgcc_s.so.1"
+        },
+        {
+          "start": "0x7f81334e0000",
+          "end": "0x7f81336e0000",
+          "file_offset": "0x11000",
+          "path": "/lib/libgcc_s.so.1"
+        },
+        {
+          "start": "0x7f81336e0000",
+          "end": "0x7f81336e1000",
+          "file_offset": "0x11000",
+          "path": "/lib/libgcc_s.so.1"
+        },
+        {
+          "start": "0x7f81336e1000",
+          "end": "0x7f8133853000",
+          "file_offset": "0x0",
+          "path": "/opt/software-egl/lib/libstdc++.so.6"
+        },
+        {
+          "start": "0x7f8133853000",
+          "end": "0x7f8133a53000",
+          "file_offset": "0x172000",
+          "path": "/opt/software-egl/lib/libstdc++.so.6"
+        },
+        {
+          "start": "0x7f8133a53000",
+          "end": "0x7f8133a5d000",
+          "file_offset": "0x172000",
+          "path": "/opt/software-egl/lib/libstdc++.so.6"
+        },
+        {
+          "start": "0x7f8133a5d000",
+          "end": "0x7f8133a5f000",
+          "file_offset": "0x17c000",
+          "path": "/opt/software-egl/lib/libstdc++.so.6"
+        },
+        {
+          "start": "0x7f8133a63000",
+          "end": "0x7f8133a7c000",
+          "file_offset": "0x0",
+          "path": "/lib/libpthread-2.25.so"
+        },
+        {
+          "start": "0x7f8133a7c000",
+          "end": "0x7f8133c7b000",
+          "file_offset": "0x19000",
+          "path": "/lib/libpthread-2.25.so"
+        },
+        {
+          "start": "0x7f8133c7b000",
+          "end": "0x7f8133c7c000",
+          "file_offset": "0x18000",
+          "path": "/lib/libpthread-2.25.so"
+        },
+        {
+          "start": "0x7f8133c7c000",
+          "end": "0x7f8133c7d000",
+          "file_offset": "0x19000",
+          "path": "/lib/libpthread-2.25.so"
+        },
+        {
+          "start": "0x7f8133c81000",
+          "end": "0x7f8133ca3000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libdlt.so.2.17.0"
+        },
+        {
+          "start": "0x7f8133ca3000",
+          "end": "0x7f8133ea2000",
+          "file_offset": "0x22000",
+          "path": "/usr/lib/libdlt.so.2.17.0"
+        },
+        {
+          "start": "0x7f8133ea2000",
+          "end": "0x7f8133ea3000",
+          "file_offset": "0x21000",
+          "path": "/usr/lib/libdlt.so.2.17.0"
+        },
+        {
+          "start": "0x7f8133ea3000",
+          "end": "0x7f8133ea5000",
+          "file_offset": "0x22000",
+          "path": "/usr/lib/libdlt.so.2.17.0"
+        },
+        {
+          "start": "0x7f8133eaa000",
+          "end": "0x7f813438f000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libQt5Core.so.5.4.1"
+        },
+        {
+          "start": "0x7f813438f000",
+          "end": "0x7f813458e000",
+          "file_offset": "0x4e5000",
+          "path": "/usr/lib/libQt5Core.so.5.4.1"
+        },
+        {
+          "start": "0x7f813458e000",
+          "end": "0x7f8134598000",
+          "file_offset": "0x4e4000",
+          "path": "/usr/lib/libQt5Core.so.5.4.1"
+        },
+        {
+          "start": "0x7f8134598000",
+          "end": "0x7f8134599000",
+          "file_offset": "0x4ee000",
+          "path": "/usr/lib/libQt5Core.so.5.4.1"
+        },
+        {
+          "start": "0x7f813459c000",
+          "end": "0x7f8134625000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libQt5DBus.so.5.4.1"
+        },
+        {
+          "start": "0x7f8134625000",
+          "end": "0x7f8134824000",
+          "file_offset": "0x89000",
+          "path": "/usr/lib/libQt5DBus.so.5.4.1"
+        },
+        {
+          "start": "0x7f8134824000",
+          "end": "0x7f8134826000",
+          "file_offset": "0x88000",
+          "path": "/usr/lib/libQt5DBus.so.5.4.1"
+        },
+        {
+          "start": "0x7f8134826000",
+          "end": "0x7f8134827000",
+          "file_offset": "0x8a000",
+          "path": "/usr/lib/libQt5DBus.so.5.4.1"
+        },
+        {
+          "start": "0x7f8134827000",
+          "end": "0x7f8134c62000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libQt5Qml.so.5.4.1"
+        },
+        {
+          "start": "0x7f8134c62000",
+          "end": "0x7f8134e61000",
+          "file_offset": "0x43b000",
+          "path": "/usr/lib/libQt5Qml.so.5.4.1"
+        },
+        {
+          "start": "0x7f8134e61000",
+          "end": "0x7f8134e76000",
+          "file_offset": "0x43a000",
+          "path": "/usr/lib/libQt5Qml.so.5.4.1"
+        },
+        {
+          "start": "0x7f8134e76000",
+          "end": "0x7f8134e7a000",
+          "file_offset": "0x44f000",
+          "path": "/usr/lib/libQt5Qml.so.5.4.1"
+        },
+        {
+          "start": "0x7f8134e7d000",
+          "end": "0x7f8135399000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libQt5Gui.so.5.4.1"
+        },
+        {
+          "start": "0x7f8135399000",
+          "end": "0x7f8135599000",
+          "file_offset": "0x51c000",
+          "path": "/usr/lib/libQt5Gui.so.5.4.1"
+        },
+        {
+          "start": "0x7f8135599000",
+          "end": "0x7f81355af000",
+          "file_offset": "0x51c000",
+          "path": "/usr/lib/libQt5Gui.so.5.4.1"
+        },
+        {
+          "start": "0x7f81355af000",
+          "end": "0x7f81355b6000",
+          "file_offset": "0x532000",
+          "path": "/usr/lib/libQt5Gui.so.5.4.1"
+        },
+        {
+          "start": "0x7f81355b8000",
+          "end": "0x7f81359c1000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libQt5Quick.so.5.4.1"
+        },
+        {
+          "start": "0x7f81359c1000",
+          "end": "0x7f8135bc1000",
+          "file_offset": "0x409000",
+          "path": "/usr/lib/libQt5Quick.so.5.4.1"
+        },
+        {
+          "start": "0x7f8135bc1000",
+          "end": "0x7f8135be3000",
+          "file_offset": "0x409000",
+          "path": "/usr/lib/libQt5Quick.so.5.4.1"
+        },
+        {
+          "start": "0x7f8135be3000",
+          "end": "0x7f8135be4000",
+          "file_offset": "0x42b000",
+          "path": "/usr/lib/libQt5Quick.so.5.4.1"
+        },
+        {
+          "start": "0x7f8135be5000",
+          "end": "0x7f8135d09000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libglib-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f8135d09000",
+          "end": "0x7f8135f09000",
+          "file_offset": "0x124000",
+          "path": "/usr/lib/libglib-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f8135f09000",
+          "end": "0x7f8135f0a000",
+          "file_offset": "0x124000",
+          "path": "/usr/lib/libglib-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f8135f0a000",
+          "end": "0x7f8135f0b000",
+          "file_offset": "0x125000",
+          "path": "/usr/lib/libglib-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f8135f0b000",
+          "end": "0x7f8135f69000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libgobject-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f8135f69000",
+          "end": "0x7f8136168000",
+          "file_offset": "0x5e000",
+          "path": "/usr/lib/libgobject-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f8136168000",
+          "end": "0x7f813616a000",
+          "file_offset": "0x5d000",
+          "path": "/usr/lib/libgobject-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f813616a000",
+          "end": "0x7f813616b000",
+          "file_offset": "0x5f000",
+          "path": "/usr/lib/libgobject-2.0.so.0.4400.1"
+        },
+        {
+          "start": "0x7f813616b000",
+          "end": "0x7f81362a6000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libgstreamer-1.0.so.0.803.0"
+        },
+        {
+          "start": "0x7f81362a6000",
+          "end": "0x7f81364a5000",
+          "file_offset": "0x13b000",
+          "path": "/usr/lib/libgstreamer-1.0.so.0.803.0"
+        },
+        {
+          "start": "0x7f81364a5000",
+          "end": "0x7f81364ac000",
+          "file_offset": "0x13a000",
+          "path": "/usr/lib/libgstreamer-1.0.so.0.803.0"
+        },
+        {
+          "start": "0x7f81364ac000",
+          "end": "0x7f81364ad000",
+          "file_offset": "0x141000",
+          "path": "/usr/lib/libgstreamer-1.0.so.0.803.0"
+        },
+        {
+          "start": "0x7f81364af000",
+          "end": "0x7f81364d2000",
+          "file_offset": "0x0",
+          "path": "/usr/lib/libpersistence_client_library.so.7.1.1"
+        },
+        {
+          "start": "0x7f81364d2000",
+          "end": "0x7f81366d2000",
+          "file_offset": "0x23000",
+          "path": "/usr/lib/libpersistence_client_library.so.7.1.1"
+        },
+        {
+          "start": "0x7f81366d2000",
+          "end": "0x7f81366d3000",
+          "file_offset": "0x23000",
+          "path": "/usr/lib/libpersistence_client_library.so.7.1.1"
+        },
+        {
+          "start": "0x7f81366d3000",
+          "end": "0x7f81366d5000",
+          "file_offset": "0x24000",
+          "path": "/usr/lib/libpersistence_client_library.so.7.1.1"
+        },
+        {
+          "start": "0x7f81366e6000",
+          "end": "0x7f813670f000",
+          "file_offset": "0x0",
+          "path": "/app/lib/libImageProvider.so.1.0.0"
+        },
+        {
+          "start": "0x7f813670f000",
+          "end": "0x7f813690e000",
+          "file_offset": "0x29000",
+          "path": "/app/lib/libImageProvider.so.1.0.0"
+        },
+        {
+          "start": "0x7f813690e000",
+          "end": "0x7f8136910000",
+          "file_offset": "0x28000",
+          "path": "/app/lib/libImageProvider.so.1.0.0"
+        },
+        {
+          "start": "0x7f8136910000",
+          "end": "0x7f8136911000",
+          "file_offset": "0x2a000",
+          "path": "/app/lib/libImageProvider.so.1.0.0"
+        },
+        {
+          "start": "0x7f8136911000",
+          "end": "0x7f8136928000",
+          "file_offset": "0x0",
+          "path": "/app/lib/libBigInfo.so.1.0.0"
+        },
+        {
+          "start": "0x7f8136928000",
+          "end": "0x7f8136b28000",
+          "file_offset": "0x17000",
+          "path": "/app/lib/libBigInfo.so.1.0.0"
+        },
+        {
+          "start": "0x7f8136b28000",
+          "end": "0x7f8136b29000",
+          "file_offset": "0x17000",
+          "path": "/app/lib/libBigInfo.so.1.0.0"
+        },
+        {
+          "start": "0x7f8136b29000",
+          "end": "0x7f8136b2a000",
+          "file_offset": "0x18000",
+          "path": "/app/lib/libBigInfo.so.1.0.0"
+        },
+        {
+          "start": "0x7f8136b2a000",
+          "end": "0x7f8136b2f000",
+          "file_offset": "0x0",
+          "path": "/app/lib/libivi-window-manager-api.so.1.0.0"
+        },
+        {
+          "start": "0x7f8136b2f000",
+          "end": "0x7f8136d2f000",
+          "file_offset": "0x5000",
+          "path": "/app/lib/libivi-window-manager-api.so.1.0.0"
+        },
+        {
+          "start": "0x7f8136d2f000",
+          "end": "0x7f8136d30000",
+          "file_offset": "0x5000",
+          "path": "/app/lib/libivi-window-manager-api.so.1.0.0"
+        },
+        {
+          "start": "0x7f8136d30000",
+          "end": "0x7f8136d31000",
+          "file_offset": "0x6000",
+          "path": "/app/lib/libivi-window-manager-api.so.1.0.0"
+        },
+        {
+          "start": "0x7f8136d31000",
+          "end": "0x7f8136d54000",
+          "file_offset": "0x0",
+          "path": "/lib/ld-2.25.so"
+        },
+        {
+          "start": "0x7f8136d78000",
+          "end": "0x7f8136d7f000",
+          "file_offset": "0x0",
+          "path": "/app/plugins/CCSSportsWidget/localization/qm/Translations_en_GB.qm"
+        },
+        {
+          "start": "0x7f8136d80000",
+          "end": "0x7f8136d84000",
+          "file_offset": "0x0",
+          "path": "/app/plugins/CalendarWidget/localization/qm/Translations_en_GB.qm"
+        },
+        {
+          "start": "0x7f8136d84000",
+          "end": "0x7f8136d85000",
+          "file_offset": "0x0",
+          "path": "/app/plugins/AVOffWidget/localization/qm/translation_en_AU.qm"
+        },
+        {
+          "start": "0x7f8136d85000",
+          "end": "0x7f8136d86000",
+          "file_offset": "0x0",
+          "path": "/app/share/AssistantWindow/localization/qm/Translation_en_GB.qm"
+        },
+        {
+          "start": "0x7f8136eae000",
+          "end": "0x7f8136eaf000",
+          "file_offset": "0x0",
+          "path": "/SYSV51120650 (deleted)"
+        },
+        {
+          "start": "0x7f8136eaf000",
+          "end": "0x7f8136eb0000",
+          "file_offset": "0x0",
+          "path": "/etc/pclCustomLibConfigFile.cfg"
+        },
+        {
+          "start": "0x7f8136eb0000",
+          "end": "0x7f8136eb1000",
+          "file_offset": "0x0",
+          "path": "/SYSV511200af (deleted)"
+        },
+        {
+          "start": "0x7f8136f39000",
+          "end": "0x7f8136f3e000",
+          "file_offset": "0x0",
+          "path": "/run/user/root/weston-shared-4UXTeJ (deleted)"
+        },
+        {
+          "start": "0x7f8136f53000",
+          "end": "0x7f8136f54000",
+          "file_offset": "0x22000",
+          "path": "/lib/ld-2.25.so"
+        },
+        {
+          "start": "0x7f8136f54000",
+          "end": "0x7f8136f55000",
+          "file_offset": "0x23000",
+          "path": "/lib/ld-2.25.so"
+        }
+      ],
+      "notes": [
+        {
+          "name": "CORE",
+          "type": "0x1",
+          "size": 336
+        },
+        {
+          "name": "CORE",
+          "type": "0x3",
+          "size": 136
+        },
+        {
+          "name": "CORE",
+          "type": "0x53494749",
+          "size": 128
+        },
+        {
+          "name": "CORE",
+          "type": "0x6",
+          "size": 304
+        },
+        {
+          "name": "CORE",
+          "type": "0x46494c45",
+          "size": 19232
+        },
+        {
+          "name": "CORE",
+          "type": "0x2",
+          "size": 512
+        },
+        {
+          "name": "LINUX",
+          "type": "0x202",
+          "size": 1088
+        },
+        {
+          "name": "CORE",
+          "type": "0x1",
+          "size": 336
+        },
+        {
+          "name": "CORE",
+          "type": "0x2",
+          "size": 512
+        },
+        {
+          "name": "LINUX",
+          "type": "0x202",
+          "size": 1088
+        },
+        {
+          "name": "CORE",
+          "type": "0x1",
+          "size": 336
+        },
+        {
+          "name": "CORE",
+          "type": "0x2",
+          "size": 512
+        },
+        {
+          "name": "LINUX",
+          "type": "0x202",
+          "size": 1088
+        },
+        {
+          "name": "CORE",
+          "type": "0x1",
+          "size": 336
+        },
+        {
+          "name": "CORE",
+          "type": "0x2",
+          "size": 512
+        },
+        {
+          "name": "LINUX",
+          "type": "0x202",
+          "size": 1088
+        },
+        {
+          "name": "CORE",
+          "type": "0x1",
+          "size": 336
+        },
+        {
+          "name": "CORE",
+          "type": "0x2",
+          "size": 512
+        },
+        {
+          "name": "LINUX",
+          "type": "0x202",
+          "size": 1088
+        },
+        {
+          "name": "CORE",
+          "type": "0x1",
+          "size": 336
+        },
+        {
+          "name": "CORE",
+          "type": "0x2",
+          "size": 512
+        },
+        {
+          "name": "LINUX",
+          "type": "0x202",
+          "size": 1088
+        },
+        {
+          "name": "CORE",
+          "type": "0x1",
+          "size": 336
+        },
+        {
+          "name": "CORE",
+          "type": "0x2",
+          "size": 512
+        },
+        {
+          "name": "LINUX",
+          "type": "0x202",
+          "size": 1088
+        },
+        {
+          "name": "CORE",
+          "type": "0x1",
+          "size": 336
+        },
+        {
+          "name": "CORE",
+          "type": "0x2",
+          "size": 512
+        },
+        {
+          "name": "LINUX",
+          "type": "0x202",
+          "size": 1088
+        }
+      ],
+      "load_segments": [
+        {
+          "start": "0x82ce6ac000",
+          "end": "0x82ce81e000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x82cea1d000",
+          "end": "0x82cea22000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x82cea22000",
+          "end": "0x82cea23000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x82cea23000",
+          "end": "0x82ceba3000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x82cff4d000",
+          "end": "0x82d0ead000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8110000000",
+          "end": "0x7f8110021000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8110021000",
+          "end": "0x7f8114000000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811695f000",
+          "end": "0x7f8116ea5000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8116ea5000",
+          "end": "0x7f81178a5000",
+          "file_size": 0,
+          "flags": 7
+        },
+        {
+          "start": "0x7f81178a5000",
+          "end": "0x7f811798e000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811798e000",
+          "end": "0x7f8117b8d000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8117b8d000",
+          "end": "0x7f8117b91000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8117b91000",
+          "end": "0x7f8117b92000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8117b92000",
+          "end": "0x7f8117b94000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8117b94000",
+          "end": "0x7f8117bbd000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8117bbd000",
+          "end": "0x7f8117dbd000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8117dbd000",
+          "end": "0x7f8117dbe000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8117dbe000",
+          "end": "0x7f8117dbf000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8117dbf000",
+          "end": "0x7f8117dfe000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8117dfe000",
+          "end": "0x7f8117ffd000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8117ffd000",
+          "end": "0x7f8117fff000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8117fff000",
+          "end": "0x7f8118000000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8118000000",
+          "end": "0x7f811831e000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811831e000",
+          "end": "0x7f811c000000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811c02b000",
+          "end": "0x7f811c1ee000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811c1ee000",
+          "end": "0x7f811c219000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811c219000",
+          "end": "0x7f811c419000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811c419000",
+          "end": "0x7f811c41a000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811c41a000",
+          "end": "0x7f811c41b000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811c41b000",
+          "end": "0x7f811c433000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811c433000",
+          "end": "0x7f811c633000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811c633000",
+          "end": "0x7f811c634000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811c634000",
+          "end": "0x7f811c635000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811c635000",
+          "end": "0x7f811c675000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811c675000",
+          "end": "0x7f811c874000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811c874000",
+          "end": "0x7f811c876000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811c876000",
+          "end": "0x7f811c877000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811c877000",
+          "end": "0x7f811c94b000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811c94b000",
+          "end": "0x7f811cb4b000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811cb4b000",
+          "end": "0x7f811cb4e000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811cb4e000",
+          "end": "0x7f811cb4f000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811cb4f000",
+          "end": "0x7f811cb50000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811cb50000",
+          "end": "0x7f811cb70000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811cb70000",
+          "end": "0x7f811cd70000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811cd70000",
+          "end": "0x7f811cd73000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811cd73000",
+          "end": "0x7f811cd74000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811cd74000",
+          "end": "0x7f811cd76000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811cd76000",
+          "end": "0x7f811cf75000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811cf75000",
+          "end": "0x7f811cf76000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811cf76000",
+          "end": "0x7f811cf77000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811cf77000",
+          "end": "0x7f811d241000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811d241000",
+          "end": "0x7f811d27e000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811d27e000",
+          "end": "0x7f811d47e000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811d47e000",
+          "end": "0x7f811d47f000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811d47f000",
+          "end": "0x7f811d480000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811d480000",
+          "end": "0x7f811d48a000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811d48a000",
+          "end": "0x7f811d68a000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811d68a000",
+          "end": "0x7f811d68b000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811d68b000",
+          "end": "0x7f811d68c000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811d68c000",
+          "end": "0x7f811d693000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811d693000",
+          "end": "0x7f811d892000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811d892000",
+          "end": "0x7f811d893000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811d893000",
+          "end": "0x7f811d894000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811d894000",
+          "end": "0x7f811d89a000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811d89a000",
+          "end": "0x7f811da9a000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811da9a000",
+          "end": "0x7f811da9b000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811da9b000",
+          "end": "0x7f811da9c000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811da9c000",
+          "end": "0x7f811dd6b000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811dd6b000",
+          "end": "0x7f811dd6d000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811dd6d000",
+          "end": "0x7f811df6c000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811df6c000",
+          "end": "0x7f811df6d000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811df6d000",
+          "end": "0x7f811df6e000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811df6e000",
+          "end": "0x7f811df80000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811df80000",
+          "end": "0x7f811e180000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811e180000",
+          "end": "0x7f811e181000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811e181000",
+          "end": "0x7f811e182000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811e182000",
+          "end": "0x7f811e184000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811e184000",
+          "end": "0x7f811e332000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f811e332000",
+          "end": "0x7f811e531000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811e531000",
+          "end": "0x7f811e537000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f811e537000",
+          "end": "0x7f811e538000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811e538000",
+          "end": "0x7f811e53a000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811e53a000",
+          "end": "0x7f811e53b000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811e53b000",
+          "end": "0x7f811f53b000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811f53b000",
+          "end": "0x7f811f53c000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811f53c000",
+          "end": "0x7f811fd3c000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f811fd3c000",
+          "end": "0x7f811fd3d000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f811fd3d000",
+          "end": "0x7f812053d000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812053d000",
+          "end": "0x7f8123bf9000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8123bf9000",
+          "end": "0x7f8123bfa000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8123bfa000",
+          "end": "0x7f8123f6b000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8123f6b000",
+          "end": "0x7f8123fa5000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8123fa5000",
+          "end": "0x7f8124000000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8124000000",
+          "end": "0x7f8124021000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8124021000",
+          "end": "0x7f8128000000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812803d000",
+          "end": "0x7f81280e0000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8128113000",
+          "end": "0x7f81281c4000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81281c4000",
+          "end": "0x7f81281e9000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81281e9000",
+          "end": "0x7f81283e8000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f81283e8000",
+          "end": "0x7f81283ea000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f81283ea000",
+          "end": "0x7f81283eb000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81283eb000",
+          "end": "0x7f81283ee000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81283ee000",
+          "end": "0x7f81283ef000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f81283ef000",
+          "end": "0x7f8128bef000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8128bef000",
+          "end": "0x7f8128c02000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8128c02000",
+          "end": "0x7f8128e02000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8128e02000",
+          "end": "0x7f8128e03000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8128e03000",
+          "end": "0x7f8128e04000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8128e04000",
+          "end": "0x7f8128e05000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8128e05000",
+          "end": "0x7f8128e2d000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8128e2d000",
+          "end": "0x7f812902d000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812902d000",
+          "end": "0x7f812902e000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812902e000",
+          "end": "0x7f812902f000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812902f000",
+          "end": "0x7f8129056000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8129056000",
+          "end": "0x7f8129256000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8129256000",
+          "end": "0x7f812925a000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812925a000",
+          "end": "0x7f812925b000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812925b000",
+          "end": "0x7f812928c000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812928c000",
+          "end": "0x7f812948c000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812948c000",
+          "end": "0x7f812948e000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812948e000",
+          "end": "0x7f812948f000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812948f000",
+          "end": "0x7f8129493000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8129493000",
+          "end": "0x7f81294ad000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81294ad000",
+          "end": "0x7f81296ac000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f81296ac000",
+          "end": "0x7f81296ad000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f81296ad000",
+          "end": "0x7f81296ae000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81296ae000",
+          "end": "0x7f81296b6000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81296b6000",
+          "end": "0x7f81298b5000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f81298b5000",
+          "end": "0x7f81298b6000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f81298b6000",
+          "end": "0x7f81298b7000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81298b7000",
+          "end": "0x7f81298c2000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81298c2000",
+          "end": "0x7f8129ac1000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8129ac1000",
+          "end": "0x7f8129ac2000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8129ac2000",
+          "end": "0x7f8129ac3000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8129ac3000",
+          "end": "0x7f8129aca000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8129aca000",
+          "end": "0x7f8129cc9000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8129cc9000",
+          "end": "0x7f8129cca000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8129cca000",
+          "end": "0x7f8129ccb000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8129ccb000",
+          "end": "0x7f8129cd9000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8129cd9000",
+          "end": "0x7f8129ed8000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8129ed8000",
+          "end": "0x7f8129ed9000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8129ed9000",
+          "end": "0x7f8129eda000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8129eda000",
+          "end": "0x7f812aa3b000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812aa3b000",
+          "end": "0x7f812ac3b000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812ac3b000",
+          "end": "0x7f812ac9d000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812ac9d000",
+          "end": "0x7f812aca6000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812aca6000",
+          "end": "0x7f812ae9f000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812ae9f000",
+          "end": "0x7f812aeca000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812aeca000",
+          "end": "0x7f812b0c9000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812b0c9000",
+          "end": "0x7f812b0cc000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812b0cc000",
+          "end": "0x7f812b0cd000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812b0cd000",
+          "end": "0x7f812b0df000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812b0df000",
+          "end": "0x7f812b2de000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812b2de000",
+          "end": "0x7f812b2e0000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812b2e0000",
+          "end": "0x7f812b2e1000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812b2e1000",
+          "end": "0x7f812b2ee000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812b2ee000",
+          "end": "0x7f812b4ee000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812b4ee000",
+          "end": "0x7f812b4ef000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812b4ef000",
+          "end": "0x7f812b4f0000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812b4f0000",
+          "end": "0x7f812b519000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812b519000",
+          "end": "0x7f812b719000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812b719000",
+          "end": "0x7f812b71a000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812b71a000",
+          "end": "0x7f812b71b000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812b71b000",
+          "end": "0x7f812b71c000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812b71c000",
+          "end": "0x7f812b91b000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812b91b000",
+          "end": "0x7f812b91c000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812b91c000",
+          "end": "0x7f812b91d000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812b91d000",
+          "end": "0x7f812b92a000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812b92a000",
+          "end": "0x7f812bb2a000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812bb2a000",
+          "end": "0x7f812bb2b000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812bb2b000",
+          "end": "0x7f812bb2c000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812bb2c000",
+          "end": "0x7f812bb2d000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812bb2d000",
+          "end": "0x7f812c32d000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812c32d000",
+          "end": "0x7f812c331000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812c331000",
+          "end": "0x7f812c530000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812c530000",
+          "end": "0x7f812c531000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812c531000",
+          "end": "0x7f812c535000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812c535000",
+          "end": "0x7f812c576000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812c576000",
+          "end": "0x7f812c775000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812c775000",
+          "end": "0x7f812c777000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812c777000",
+          "end": "0x7f812c778000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812c778000",
+          "end": "0x7f812c8b3000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812c8b3000",
+          "end": "0x7f812cab2000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812cab2000",
+          "end": "0x7f812cac1000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812cac1000",
+          "end": "0x7f812cac2000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812cac2000",
+          "end": "0x7f812cac4000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812cac4000",
+          "end": "0x7f812ccc3000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812ccc3000",
+          "end": "0x7f812ccc4000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812ccc4000",
+          "end": "0x7f812ccc5000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812ccc5000",
+          "end": "0x7f812ccc6000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812ccc6000",
+          "end": "0x7f812d4c6000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812d4c6000",
+          "end": "0x7f812d4c7000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812d4c7000",
+          "end": "0x7f812dcc7000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812dcc7000",
+          "end": "0x7f812f5c8000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812f5c8000",
+          "end": "0x7f812f7c7000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812f7c7000",
+          "end": "0x7f812f7c8000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812f7c8000",
+          "end": "0x7f812f7c9000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812f7c9000",
+          "end": "0x7f812f86f000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812f86f000",
+          "end": "0x7f812fa6e000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812fa6e000",
+          "end": "0x7f812fa75000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812fa75000",
+          "end": "0x7f812fa76000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812fa76000",
+          "end": "0x7f812fcc7000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812fcc7000",
+          "end": "0x7f812fec7000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f812fec7000",
+          "end": "0x7f812fee7000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f812fee7000",
+          "end": "0x7f812fef2000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812fef2000",
+          "end": "0x7f812fef6000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f812fef6000",
+          "end": "0x7f812ff5d000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f812ff5d000",
+          "end": "0x7f813015c000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f813015c000",
+          "end": "0x7f8130161000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8130161000",
+          "end": "0x7f8130167000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8130167000",
+          "end": "0x7f8130193000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8130193000",
+          "end": "0x7f8130392000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8130392000",
+          "end": "0x7f8130396000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8130396000",
+          "end": "0x7f8130397000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8130397000",
+          "end": "0x7f8130398000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8130398000",
+          "end": "0x7f81303a8000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81303a8000",
+          "end": "0x7f81305a7000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f81305a7000",
+          "end": "0x7f81305a8000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f81305a8000",
+          "end": "0x7f81305a9000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81305a9000",
+          "end": "0x7f81305e5000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81305e5000",
+          "end": "0x7f81307e4000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f81307e4000",
+          "end": "0x7f81307e5000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f81307e5000",
+          "end": "0x7f81307e6000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81307e6000",
+          "end": "0x7f813099a000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f813099a000",
+          "end": "0x7f8130b9a000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8130b9a000",
+          "end": "0x7f8130bac000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8130bac000",
+          "end": "0x7f8130bad000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8130bad000",
+          "end": "0x7f8130bae000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8130bae000",
+          "end": "0x7f8130e4a000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8130e4a000",
+          "end": "0x7f8131049000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8131049000",
+          "end": "0x7f8131057000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8131057000",
+          "end": "0x7f8131058000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8131058000",
+          "end": "0x7f8131170000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8131170000",
+          "end": "0x7f8131370000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8131370000",
+          "end": "0x7f8131371000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8131371000",
+          "end": "0x7f8131372000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8131372000",
+          "end": "0x7f81313a9000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81313a9000",
+          "end": "0x7f81315a9000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f81315a9000",
+          "end": "0x7f81315aa000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f81315aa000",
+          "end": "0x7f81315ab000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81315ab000",
+          "end": "0x7f813170d000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f813170d000",
+          "end": "0x7f813190d000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f813190d000",
+          "end": "0x7f8131914000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8131914000",
+          "end": "0x7f8131915000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8131915000",
+          "end": "0x7f8131a25000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8131a25000",
+          "end": "0x7f8131c25000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8131c25000",
+          "end": "0x7f8131c26000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8131c26000",
+          "end": "0x7f8131c27000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8131c27000",
+          "end": "0x7f8131c6a000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8131c6a000",
+          "end": "0x7f8131e69000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8131e69000",
+          "end": "0x7f8131e6a000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8131e6a000",
+          "end": "0x7f8131e6b000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8131e6b000",
+          "end": "0x7f8131e6e000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8131e6e000",
+          "end": "0x7f813206d000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f813206d000",
+          "end": "0x7f813206e000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f813206e000",
+          "end": "0x7f813206f000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f813206f000",
+          "end": "0x7f8132077000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8132077000",
+          "end": "0x7f8132276000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8132276000",
+          "end": "0x7f8132277000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8132277000",
+          "end": "0x7f8132278000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8132278000",
+          "end": "0x7f813227b000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f813227b000",
+          "end": "0x7f813247a000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f813247a000",
+          "end": "0x7f813247b000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f813247b000",
+          "end": "0x7f813247c000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f813247c000",
+          "end": "0x7f81324cd000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81324cd000",
+          "end": "0x7f81326cd000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f81326cd000",
+          "end": "0x7f81326ce000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f81326ce000",
+          "end": "0x7f81326cf000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81326cf000",
+          "end": "0x7f81326e7000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81326e7000",
+          "end": "0x7f81328e6000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f81328e6000",
+          "end": "0x7f81328e7000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f81328e7000",
+          "end": "0x7f81328e8000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81328e8000",
+          "end": "0x7f81328ef000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81328ef000",
+          "end": "0x7f8132aee000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8132aee000",
+          "end": "0x7f8132aef000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8132aef000",
+          "end": "0x7f8132af0000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8132af0000",
+          "end": "0x7f8132af7000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8132af7000",
+          "end": "0x7f8132cf6000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8132cf6000",
+          "end": "0x7f8132cf7000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8132cf7000",
+          "end": "0x7f8132cf8000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8132cf8000",
+          "end": "0x7f8132d1f000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8132d1f000",
+          "end": "0x7f8132f1e000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8132f1e000",
+          "end": "0x7f8132f1f000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8132f1f000",
+          "end": "0x7f8132f20000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8132f20000",
+          "end": "0x7f8132f2d000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8132f2d000",
+          "end": "0x7f813312d000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f813312d000",
+          "end": "0x7f813312f000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f813312f000",
+          "end": "0x7f8133130000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8133130000",
+          "end": "0x7f81332c6000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81332c6000",
+          "end": "0x7f81334c5000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f81334c5000",
+          "end": "0x7f81334c9000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f81334c9000",
+          "end": "0x7f81334cb000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81334cb000",
+          "end": "0x7f81334cf000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81334cf000",
+          "end": "0x7f81334e0000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81334e0000",
+          "end": "0x7f81336e0000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f81336e0000",
+          "end": "0x7f81336e1000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81336e1000",
+          "end": "0x7f8133853000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8133853000",
+          "end": "0x7f8133a53000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8133a53000",
+          "end": "0x7f8133a5d000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8133a5d000",
+          "end": "0x7f8133a5f000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8133a5f000",
+          "end": "0x7f8133a63000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8133a63000",
+          "end": "0x7f8133a7c000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8133a7c000",
+          "end": "0x7f8133c7b000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8133c7b000",
+          "end": "0x7f8133c7c000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8133c7c000",
+          "end": "0x7f8133c7d000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8133c7d000",
+          "end": "0x7f8133c81000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8133c81000",
+          "end": "0x7f8133ca3000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8133ca3000",
+          "end": "0x7f8133ea2000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8133ea2000",
+          "end": "0x7f8133ea3000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8133ea3000",
+          "end": "0x7f8133ea5000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8133ea5000",
+          "end": "0x7f8133eaa000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8133eaa000",
+          "end": "0x7f813438f000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f813438f000",
+          "end": "0x7f813458e000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f813458e000",
+          "end": "0x7f8134598000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8134598000",
+          "end": "0x7f8134599000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8134599000",
+          "end": "0x7f813459c000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f813459c000",
+          "end": "0x7f8134625000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8134625000",
+          "end": "0x7f8134824000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8134824000",
+          "end": "0x7f8134826000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8134826000",
+          "end": "0x7f8134827000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8134827000",
+          "end": "0x7f8134c62000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8134c62000",
+          "end": "0x7f8134e61000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8134e61000",
+          "end": "0x7f8134e76000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8134e76000",
+          "end": "0x7f8134e7a000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8134e7a000",
+          "end": "0x7f8134e7d000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8134e7d000",
+          "end": "0x7f8135399000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8135399000",
+          "end": "0x7f8135599000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8135599000",
+          "end": "0x7f81355af000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f81355af000",
+          "end": "0x7f81355b6000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81355b6000",
+          "end": "0x7f81355b8000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81355b8000",
+          "end": "0x7f81359c1000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81359c1000",
+          "end": "0x7f8135bc1000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8135bc1000",
+          "end": "0x7f8135be3000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8135be3000",
+          "end": "0x7f8135be4000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8135be4000",
+          "end": "0x7f8135be5000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8135be5000",
+          "end": "0x7f8135d09000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8135d09000",
+          "end": "0x7f8135f09000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8135f09000",
+          "end": "0x7f8135f0a000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8135f0a000",
+          "end": "0x7f8135f0b000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8135f0b000",
+          "end": "0x7f8135f69000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8135f69000",
+          "end": "0x7f8136168000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8136168000",
+          "end": "0x7f813616a000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f813616a000",
+          "end": "0x7f813616b000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f813616b000",
+          "end": "0x7f81362a6000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81362a6000",
+          "end": "0x7f81364a5000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f81364a5000",
+          "end": "0x7f81364ac000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f81364ac000",
+          "end": "0x7f81364ad000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81364ad000",
+          "end": "0x7f81364af000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81364af000",
+          "end": "0x7f81364d2000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f81364d2000",
+          "end": "0x7f81366d2000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f81366d2000",
+          "end": "0x7f81366d3000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f81366d3000",
+          "end": "0x7f81366d5000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81366d5000",
+          "end": "0x7f81366e6000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f81366e6000",
+          "end": "0x7f813670f000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f813670f000",
+          "end": "0x7f813690e000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f813690e000",
+          "end": "0x7f8136910000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8136910000",
+          "end": "0x7f8136911000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8136911000",
+          "end": "0x7f8136928000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8136928000",
+          "end": "0x7f8136b28000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8136b28000",
+          "end": "0x7f8136b29000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8136b29000",
+          "end": "0x7f8136b2a000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8136b2a000",
+          "end": "0x7f8136b2f000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8136b2f000",
+          "end": "0x7f8136d2f000",
+          "file_size": 0,
+          "flags": 0
+        },
+        {
+          "start": "0x7f8136d2f000",
+          "end": "0x7f8136d30000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8136d30000",
+          "end": "0x7f8136d31000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8136d31000",
+          "end": "0x7f8136d54000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8136d55000",
+          "end": "0x7f8136d78000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8136d78000",
+          "end": "0x7f8136d7f000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8136d7f000",
+          "end": "0x7f8136d80000",
+          "file_size": 0,
+          "flags": 5
+        },
+        {
+          "start": "0x7f8136d80000",
+          "end": "0x7f8136d84000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8136d84000",
+          "end": "0x7f8136d85000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8136d85000",
+          "end": "0x7f8136d86000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8136d86000",
+          "end": "0x7f8136eae000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8136eae000",
+          "end": "0x7f8136eaf000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8136eaf000",
+          "end": "0x7f8136eb0000",
+          "file_size": 0,
+          "flags": 2
+        },
+        {
+          "start": "0x7f8136eb0000",
+          "end": "0x7f8136eb1000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8136eb1000",
+          "end": "0x7f8136f39000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8136f39000",
+          "end": "0x7f8136f3e000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8136f3e000",
+          "end": "0x7f8136f53000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8136f53000",
+          "end": "0x7f8136f54000",
+          "file_size": 0,
+          "flags": 4
+        },
+        {
+          "start": "0x7f8136f54000",
+          "end": "0x7f8136f55000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7f8136f55000",
+          "end": "0x7f8136f56000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7ffc3e914000",
+          "end": "0x7ffc3e935000",
+          "file_size": 0,
+          "flags": 6
+        },
+        {
+          "start": "0x7ffc3e9b4000",
+          "end": "0x7ffc3e9b6000",
+          "file_size": 8192,
+          "flags": 4
+        },
+        {
+          "start": "0x7ffc3e9b6000",
+          "end": "0x7ffc3e9b8000",
+          "file_size": 8192,
+          "flags": 5
+        },
+        {
+          "start": "0xffffffffff600000",
+          "end": "0xffffffffff601000",
+          "file_size": 4096,
+          "flags": 5
+        }
+      ],
+      "fault_thread_mapping": {
+        "rdi": {
+          "value": "0x7f811695f000",
+          "segments": [
+            {
+              "start": "0x7f811695f000",
+              "end": "0x7f8116ea5000",
+              "file_size": 0,
+              "flags": 6
+            }
+          ]
+        },
+        "r9": {
+          "value": "0x7f811695efc0",
+          "segments": []
+        },
+        "rsi": {
+          "value": "0x82d0678e80",
+          "segments": [
+            {
+              "start": "0x82cff4d000",
+              "end": "0x82d0ead000",
+              "file_size": 0,
+              "flags": 6
+            }
+          ]
+        },
+        "rcx": {
+          "value": "0x82d0678dc0",
+          "segments": [
+            {
+              "start": "0x82cff4d000",
+              "end": "0x82d0ead000",
+              "file_size": 0,
+              "flags": 6
+            }
+          ]
+        },
+        "rsp": {
+          "value": "0x7ffc3e931098",
+          "segments": [
+            {
+              "start": "0x7ffc3e914000",
+              "end": "0x7ffc3e935000",
+              "file_size": 0,
+              "flags": 6
+            }
+          ]
+        }
+      },
+      "memory_capture_bytes": 20480
+    }
+  ],
+  "limits": "ELF64 little-endian x86-64 notes and program headers parsed with bounds checks. Requested core filter 0x10 read back 00000000; nevertheless PT_LOAD file sizes total 20480 bytes. Do not infer exact filter semantics. Fault-thread stack PT_LOAD has file_size 0, so no reliable caller/backtrace is available. NT_FILE records mappings, not file hashes. The modified in-loop RDX is not the original copy length.",
+  "core_filter_requested": "0x10",
+  "core_filter_readback": "00000000",
+  "base_rootfs_sha256_after": "4953a005683e009e84390bbf07d65a6a3313cc6abd692a3023e6b660066d036f"
+}

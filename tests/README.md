@@ -28,7 +28,7 @@ run (missing tool or bad root).
 | `council` | each `council/review-batch-*/` with a packet is checked against its frozen directory: unusable packets, unsafe or mismatched artifacts, and fingerprint mismatches fail; a verified package with a non-`COMPLETE` history reports as `info` |
 | `privacy` | scoped files contain no live secrets or private-key containers; identifiers are reported as private-repository information, and raw firmware/archive/capture files are permitted; findings name only file, line, and category |
 | `docs` | dedicated Ioniq history/changelog exist once `T6` leaves the queued states; earlier it reports `pending` |
-| `gitscope` | staged `kona_research/**` paths block; otherwise an Ioniq push passes only when an explicit `ioniq` remote resolves exactly to `JaredReabow/Ioniq-5`, `remote.pushDefault` is `ioniq`, and no branch `pushRemote`, push URL, or URL rewrite redirects it |
+| `gitscope` | staged `kona_research/**` paths block; otherwise an Ioniq push passes only when an explicit `ioniq` remote resolves exactly to `JaredReabow/ioniq-5-Reverse-Engineering`, `remote.pushDefault` is `ioniq`, and no branch `pushRemote`, push URL, or URL rewrite redirects it |
 
 `council/`, `evidence/`, and the root documents are in privacy scope.
 `kona_research/` and `tests/` are excluded so Kona work stays untouched and
@@ -36,15 +36,16 @@ fixture strings cannot self-flag.
 
 ## Git scope acceptance
 
-The shared checkout keeps `origin` on `kona-EV` so Kona fetch and tracking keep
-working. That alone does not block an Ioniq push: the guard reads one
-`git config --list -z` snapshot and only echoes the destination fields it
-verifies, with any embedded credentials redacted.
+This public repository keeps both `origin` and the explicit `ioniq` remote
+on the same destination. The guard reads one `git config --list -z`
+snapshot and only echoes the destination fields it verifies, with any
+embedded credentials redacted. The older shared private checkout may still
+have a Kona `origin`; that historical configuration does not apply here.
 
 A push passes only when all of these hold:
 
 - `remote.ioniq.url` (and every `remote.ioniq.pushurl`, if any) is exactly
-  `JaredReabow/Ioniq-5` on `github.com`, over HTTPS or SSH;
+  `JaredReabow/ioniq-5-Reverse-Engineering` on `github.com`, over HTTPS or SSH;
 - `remote.pushDefault` is `ioniq`;
 - the current branch has no `pushRemote` or `pushurl` that overrides that
   destination, and no other branch pushes to Kona;
@@ -84,7 +85,7 @@ The harness calls the installed skill CLIs:
 ## Expected live state
 
 With the explicit `ioniq` remote and `remote.pushDefault=ioniq` configured,
-`gitscope` passes while `origin` still points at `kona-EV` for Kona fetches.
+`gitscope` passes when both remotes point at this public repository.
 Removing or mismatching the explicit remote, overriding the push destination on
 a branch, or staging `kona_research/**` reports `blocked`. Frozen Council
 generations reviewed before a final reconciliation report `info` with

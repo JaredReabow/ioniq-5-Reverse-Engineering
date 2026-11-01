@@ -1,0 +1,3 @@
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/launcher-appnavi-liveness-preload-build/launcher-appnavi-liveness-preload.so" /launcher-appnavi-liveness-preload.so
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-liveness.sh" /full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-liveness
+set_inode_field /full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-liveness mode 0100755

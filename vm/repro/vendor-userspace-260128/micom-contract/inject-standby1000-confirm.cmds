@@ -1,0 +1,4 @@
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/ivi-fg-standby1000-build/ivi-fg-standby1000" /ivi-fg-standby1000
+set_inode_field /ivi-fg-standby1000 mode 0100755
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-standby1000-confirm.sh" /full-chain-timeout120-standby1000-confirm
+set_inode_field /full-chain-timeout120-standby1000-confirm mode 0100755

@@ -1,0 +1,68 @@
+{
+  "archive_sha256": "6019ec6e42cacce8a41fdc79c7dd9705487efdc0a53b741313e6b5b7aad01d84",
+  "host_log_sha256": "2e961f8277683f21d40172b9e6c34816c04c28893519c4f1ccb3a82417464085",
+  "maps_snapshots": 26,
+  "mapped_paths": [
+    "/opt/software-egl18/dri/swrast_dri.so",
+    "/usr/lib/libEGL.so.1.0.0",
+    "/usr/lib/libQt5WaylandClient.so.5.4.1",
+    "/usr/lib/libwayland-egl.so.1.0.0",
+    "/usr/lib/qt5/plugins/platforms/libqwayland-generic.so",
+    "/usr/lib/qt5/plugins/wayland-decoration-client/libbradient.so",
+    "/usr/lib/qt5/plugins/wayland-graphics-integration-client/libwayland-egl.so",
+    "/usr/lib/qt5/plugins/wayland-shell-integration/libivi.so"
+  ],
+  "mapped_hashes": [
+    "0c373e50d1a4700c2161628c2a2b61a25a9b5abbcd7bb52ccc763cf5020e3d53  /usr/lib/libEGL.so.1.0.0",
+    "0f2ba91c646ad99f00efde313150179bb5a7dc0a1a2a69bb778cfea3112955c9  /usr/lib/libQt5WaylandClient.so.5.4.1",
+    "716f100effbf31eb072f128cf298a592fa5af1496db3009b24f9483f1f35f155  /usr/lib/libwayland-egl.so.1.0.0",
+    "86063cac39cc6e76287273c0e66dfc155443bc8c5195a2f28e3cd6480d313920  /usr/lib/qt5/plugins/wayland-decoration-client/libbradient.so",
+    "ef0c92395c75c91869dd30883ea944ad131517f2f37c1d7d0b704c8a3bf95c1a  /usr/lib/qt5/plugins/wayland-graphics-integration-client/libwayland-egl.so",
+    "f3863ceffa270ea990f9ae4a975567b14c226f2ddf4c97015a3b5940adc481d8  /usr/lib/qt5/plugins/wayland-shell-integration/libivi.so",
+    "fa05850ba376288bec2e9e963d5b7719182aefac8e23f30405aea7719a88d758  /opt/software-egl18/dri/swrast_dri.so",
+    "fcf245d5bc4b65ddd30250900f97d0140b4da4c9eb24d3fd63d6f91ce444afe6  /usr/lib/qt5/plugins/platforms/libqwayland-generic.so"
+  ],
+  "allowlisted_environment": [
+    "GALLIUM_DRIVER=llvmpipe",
+    "LD_LIBRARY_PATH=/usr/lib/media-libva/:/opt/software-egl18/lib:/opt/software-egl/lib:/app/lib:/usr/lib:/lib:/navi/Lib:/navi/navi/Lib",
+    "LD_PRELOAD=/appnavi-egl-no-msaa-preload.so",
+    "LIBGL_DRIVERS_PATH=/opt/software-egl18/dri",
+    "QSG_RENDER_LOOP=basic",
+    "QT_QPA_PLATFORM=wayland",
+    "QT_WAYLAND_DISABLE_WINDOWDECORATION=1:1",
+    "QT_WAYLAND_SHELL_INTEGRATION=ivi",
+    "WAYLAND_DEBUG=1"
+  ],
+  "navigation_events": [
+    "1970/01/01 00:01:48.514985    1085148 221 MANG WINM IVIS log  V 1 [[00:01:48.514]  send_FG_info - SID(3000), DISP(1) AID(AppNavi)",
+    "1970/01/01 00:01:48.516970    1085164 206 MANG AppM AppM log info V 1 [APPM_LWP[771]: slotNotifyFGInfo surface_id:3000 display:1 app_id AppNavi | time 00:01:48.516]",
+    "1970/01/01 00:01:48.648862    1086487 246 MANG AppM AppM log info V 1 [APPM_LWP[771]: EventFlow2 <-- notifyNaviLaunched[5] window[0] | time 00:01:48.648]"
+  ],
+  "manager_queries": [
+    {
+      "phase": "PRE_NAVI_APPMANAGER_APPLICATION",
+      "response": "method return sender=:1.2 -> dest=:1.76 reply_serial=2\n   int32 11\n"
+    },
+    {
+      "phase": "PRE_NAVI_DRAWING_APPLICATION",
+      "response": "method return sender=:1.2 -> dest=:1.77 reply_serial=2\n   int32 11\n"
+    },
+    {
+      "phase": "POST_NAVI_APPMANAGER_APPLICATION",
+      "response": "method return sender=:1.2 -> dest=:1.104 reply_serial=2\n   int32 35\n"
+    },
+    {
+      "phase": "POST_NAVI_DRAWING_APPLICATION",
+      "response": "method return sender=:1.2 -> dest=:1.105 reply_serial=2\n   int32 11\n"
+    },
+    {
+      "phase": "RETURN_HOME_APPMANAGER_APPLICATION",
+      "response": "method return sender=:1.2 -> dest=:1.110 reply_serial=2\n   int32 11\n"
+    },
+    {
+      "phase": "RETURN_HOME_DRAWING_APPLICATION",
+      "response": "method return sender=:1.2 -> dest=:1.111 reply_serial=2\n   int32 11\n[  376.922545] AppCamera[793]: segfault at 7f231409bff8 ip 00007f231b9e48e4 sp 00007fff2c416cb8 error 4 in libc-2.25.so[7f231b969000+196000]\n[  377.896012] AppEURadio[919]: segfault at 7ffafc031ff8 ip 00007ffb10bea8e4 sp 00007fff8abe2838 error 4 in libc-2.25.so[7ffb10b6f000+196000]\n6019ec6e42cacce8a41fdc79c7dd9705487efdc0a53b74131"
+    }
+  ],
+  "limits": "Observational overhead; existing compatibility controls retained; no hide fix. Runtime maps prove loaded paths, per-path hashes are file bytes not process memory."
+}

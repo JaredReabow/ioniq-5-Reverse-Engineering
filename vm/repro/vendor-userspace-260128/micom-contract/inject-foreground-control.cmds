@@ -1,0 +1,3 @@
+write work/vm/vendor-userspace-260128/micom-contract/full-chain-foreground-control.sh /full-chain-foreground-control.sh
+set_inode_field /full-chain-foreground-control.sh mode 0100755
+stat /full-chain-foreground-control.sh

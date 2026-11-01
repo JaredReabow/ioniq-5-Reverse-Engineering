@@ -1,0 +1,6 @@
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/decrypted-eu-260128/extracted-safe/mango-rootfs/app/bin/AppStandbyClock" /AppStandbyClock.real
+set_inode_field /AppStandbyClock.real mode 0100755
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/micom-contract/AppStandbyClock-threaded-wrapper.sh" /AppStandbyClock-threaded-wrapper.sh
+set_inode_field /AppStandbyClock-threaded-wrapper.sh mode 0100755
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-standby-threaded-pointer-confirm.sh" /full-chain-timeout120-legal-reason11-standby-threaded-pointer-confirm
+set_inode_field /full-chain-timeout120-legal-reason11-standby-threaded-pointer-confirm mode 0100755

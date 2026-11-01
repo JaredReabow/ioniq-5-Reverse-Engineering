@@ -251,7 +251,7 @@ class CouncilTests(unittest.TestCase):
             self.assertIn("hard_problem_codes", result["details"]["packages"][0])
 
 
-IONIQ_REPO_URL = "https://github.com/JaredReabow/Ioniq-5.git"
+IONIQ_REPO_URL = "https://github.com/JaredReabow/ioniq-5-Reverse-Engineering.git"
 KONA_REPO_URL = "https://github.com/JaredReabow/kona-EV.git"
 
 
@@ -352,11 +352,11 @@ class GitScopeTests(unittest.TestCase):
 
     def test_ioniq_near_matches_block(self):
         near_matches = (
-            "https://github.com/JaredReabow/Ioniq-5-fork.git",
+            "https://github.com/JaredReabow/ioniq-5-Reverse-Engineering-fork.git",
             "https://github.com/JaredReabow/ioniq5.git",
             "https://github.com/someone-else/Ioniq-5.git",
-            "https://gitlab.com/JaredReabow/Ioniq-5.git",
-            "git@github.com:JaredReabow/Ioniq-5.git.extra",
+            "https://gitlab.com/JaredReabow/ioniq-5-Reverse-Engineering.git",
+            "git@github.com:JaredReabow/ioniq-5-Reverse-Engineering.git.extra",
         )
         for url in near_matches:
             with self.subTest(url=url):
@@ -372,7 +372,7 @@ class GitScopeTests(unittest.TestCase):
         runner = git_runner(
             origin=KONA_REPO_URL,
             config=verified_git_config(
-                **{"remote.ioniq.url": "http://github.com/JaredReabow/Ioniq-5.git"}
+                **{"remote.ioniq.url": "http://github.com/JaredReabow/ioniq-5-Reverse-Engineering.git"}
             ),
         )
         result = gitscope.gitscope_check(Path("/tmp/repo"), runner=runner)
@@ -381,9 +381,9 @@ class GitScopeTests(unittest.TestCase):
 
     def test_ssh_remote_forms_are_accepted(self):
         for url in (
-            "git@github.com:JaredReabow/Ioniq-5.git",
-            "ssh://git@github.com/JaredReabow/Ioniq-5.git",
-            "https://github.com/JaredReabow/Ioniq-5",
+            "git@github.com:JaredReabow/ioniq-5-Reverse-Engineering.git",
+            "ssh://git@github.com/JaredReabow/ioniq-5-Reverse-Engineering.git",
+            "https://github.com/JaredReabow/ioniq-5-Reverse-Engineering",
         ):
             with self.subTest(url=url):
                 runner = git_runner(
@@ -483,7 +483,7 @@ class GitScopeTests(unittest.TestCase):
             config=verified_git_config(
                 **{
                     "url.https://github.com/JaredReabow/kona-EV.git.pushInsteadOf": (
-                        "https://github.com/JaredReabow/Ioniq-5"
+                        "https://github.com/JaredReabow/ioniq-5-Reverse-Engineering"
                     ),
                 }
             ),
@@ -494,7 +494,7 @@ class GitScopeTests(unittest.TestCase):
 
     def test_credentials_are_redacted_from_output(self):
         secret = "ghp_SUPERSECRETTOKEN"
-        url = f"https://x-access-token:{secret}@github.com/JaredReabow/Ioniq-5.git"
+        url = f"https://x-access-token:{secret}@github.com/JaredReabow/ioniq-5-Reverse-Engineering.git"
         runner = git_runner(
             origin=KONA_REPO_URL,
             config=verified_git_config(**{"remote.ioniq.url": url}),
@@ -505,7 +505,7 @@ class GitScopeTests(unittest.TestCase):
         self.assertNotIn(secret, rendered)
         self.assertEqual(
             result["details"]["verified_destination"]["url"],
-            "https://<redacted>@github.com/JaredReabow/Ioniq-5.git",
+            "https://<redacted>@github.com/JaredReabow/ioniq-5-Reverse-Engineering.git",
         )
 
     def test_config_failure_blocks(self):
@@ -651,6 +651,25 @@ class PrivacyTests(unittest.TestCase):
             subprocess.run(["git", "-C", str(root), "add", "PUBLIC-RELEASE.md"], check=True)
             result = privacy.privacy_scan(root)
             self.assertEqual(result["status"], common.STATUS_PASS)
+
+    def test_public_mode_scans_new_vm_source_folder(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            (root / "PUBLIC-RELEASE.md").write_text("public snapshot\n")
+            vm_source = root / "vm" / "repro" / "probe.qml"
+            vm_source.parent.mkdir(parents=True)
+            vm_source.write_text("contact=private.person@home-mailbox.io\n")
+            subprocess.run(
+                ["git", "-C", str(root), "add", "PUBLIC-RELEASE.md", "vm/repro/probe.qml"],
+                check=True,
+            )
+            result = privacy.privacy_scan(root)
+            self.assertEqual(result["status"], common.STATUS_FAIL)
+            self.assertIn(
+                "email-address-private-repository",
+                {item["category"] for item in result["details"]["findings"]},
+            )
 
 
 class DocsTests(unittest.TestCase):

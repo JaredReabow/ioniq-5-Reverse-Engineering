@@ -1,0 +1,3 @@
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/micom-contract/Screen_AppStandbyClock_Confirm_Profile.sized-observe.qml" /Screen_AppStandbyClock_Confirm_Profile.sized-observe.qml
+write "/Users/researcher/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-sized-pointer-confirm.sh" /full-chain-timeout120-legal-reason11-sized-pointer-confirm
+set_inode_field /full-chain-timeout120-legal-reason11-sized-pointer-confirm mode 0100755

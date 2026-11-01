@@ -1,0 +1,42 @@
+[
+  {
+    "vaddr": "0x60b7e8a",
+    "offset": "0x60b7e8a",
+    "text": "1onSceneGraphInitialized()"
+  },
+  {
+    "vaddr": "0x60b7ea5",
+    "offset": "0x60b7ea5",
+    "text": "2sceneGraphInitialized()"
+  },
+  {
+    "vaddr": "0x60b7ebe",
+    "offset": "0x60b7ebe",
+    "text": "1onSceneGraphInvalidated()"
+  },
+  {
+    "vaddr": "0x60b7ed9",
+    "offset": "0x60b7ed9",
+    "text": "2sceneGraphInvalidated()"
+  },
+  {
+    "vaddr": "0x60b7ef2",
+    "offset": "0x60b7ef2",
+    "text": "1onBeforeRendering()"
+  },
+  {
+    "vaddr": "0x60b7f07",
+    "offset": "0x60b7f07",
+    "text": "2beforeRendering()"
+  },
+  {
+    "vaddr": "0x60b7f1a",
+    "offset": "0x60b7f1a",
+    "text": "1onVisibleChanged(bool)"
+  },
+  {
+    "vaddr": "0x60b7f32",
+    "offset": "0x60b7f32",
+    "text": "2visibleChanged(bool)"
+  }
+]

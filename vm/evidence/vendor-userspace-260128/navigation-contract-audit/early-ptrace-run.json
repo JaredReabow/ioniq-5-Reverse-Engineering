@@ -1,0 +1,9 @@
+{
+  "purpose": "bounded fault-time stack observation; original signal redelivered; decoration-unset early startup only",
+  "source_sha256": "879660e0d9f7cb61286877c3e6daeeb12948dde33f5d0e7dc3be65cd106b287b",
+  "binary_sha256": "bbdc8e505e42539e25d5d99d38fe9db56c406c305ff1a838e5ffd8927441dba1",
+  "runner_sha256": "d0843d22830c0ae28c6a56b8df611ba7062a91b0b4dc75a74830f67e97b725a8",
+  "started_unix": 1793099051.998314,
+  "returncode": 0,
+  "finished_unix": 1793099111.132035
+}

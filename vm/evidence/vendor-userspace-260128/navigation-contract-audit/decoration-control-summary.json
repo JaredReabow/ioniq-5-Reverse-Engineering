@@ -1,0 +1,31 @@
+{
+  "archive_sha256": "648b5d30c169b2e4adaa2e8cf069742fd5b3d779b0ef1d6d7e63fead7f6910e9",
+  "host_log_sha256": "9df711936074c3be7b129b8c80b55f1a8a9f102e910d35c4e1c15228499162dc",
+  "maps_snapshots": 0,
+  "allowlisted_environment": [],
+  "navigation_events": [],
+  "manager_states": {
+    "PRE_NAVI_APPMANAGER_APPLICATION": 0,
+    "PRE_NAVI_DRAWING_APPLICATION": 0,
+    "POST_NAVI_APPMANAGER_APPLICATION": 0,
+    "POST_NAVI_DRAWING_APPLICATION": 0,
+    "RETURN_HOME_APPMANAGER_APPLICATION": 0,
+    "RETURN_HOME_DRAWING_APPLICATION": 0
+  },
+  "screenshots": {
+    "shot-navi-live-60": "b316a82a1f8f726163c55705d6d6522603cbf9fbb3bb5b85a9d247876e0b9a83",
+    "shot-home-post-settle-15": "b316a82a1f8f726163c55705d6d6522603cbf9fbb3bb5b85a9d247876e0b9a83",
+    "shot-after-confirm": "b316a82a1f8f726163c55705d6d6522603cbf9fbb3bb5b85a9d247876e0b9a83",
+    "shot-navi-live-90": "b316a82a1f8f726163c55705d6d6522603cbf9fbb3bb5b85a9d247876e0b9a83",
+    "shot-navi-live-30": "b316a82a1f8f726163c55705d6d6522603cbf9fbb3bb5b85a9d247876e0b9a83",
+    "shot-before-confirm": "b316a82a1f8f726163c55705d6d6522603cbf9fbb3bb5b85a9d247876e0b9a83",
+    "shot-standby-forced": "b316a82a1f8f726163c55705d6d6522603cbf9fbb3bb5b85a9d247876e0b9a83",
+    "shot-return-home-30": "b316a82a1f8f726163c55705d6d6522603cbf9fbb3bb5b85a9d247876e0b9a83",
+    "shot-navi-live-120": "b316a82a1f8f726163c55705d6d6522603cbf9fbb3bb5b85a9d247876e0b9a83"
+  },
+  "limits": "Single-variable decoration environment control; observational overhead and prior compatibility controls retained. No hide fix.",
+  "base_rootfs_sha256_after": "4953a005683e009e84390bbf07d65a6a3313cc6abd692a3023e6b660066d036f",
+  "semantic_result": "failed before Navigation; repeated Camera/Standby crashes, no agreement, zero AppNavi snapshots; not a valid backend/geometry comparison",
+  "baseline_preserved": true,
+  "harness_exit_zero_is_not_feature_acceptance": true
+}

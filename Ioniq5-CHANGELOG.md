@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.28.0 - two independent faults isolated: a splash that never exits, and an app that paints nothing
+
+- **Identified the splash program.** `/usr/bin/early-background` is an **IVI application surface** that displays
+  `/etc/front_lcd.png`; its strings include `ivi_application`, `ivi_application_interface` and `early-background exiting`.
+  During the chain it is running (`pid 746`), and **`early-background exiting` never appears** — it does not terminate on its
+  own in this projection, so its surface keeps the splash on screen indefinitely.
+- **Killing it proves the splash was the whole obstacle to seeing anything.** With `early-background` killed, the compositor
+  output drops from the 177,691-byte splash to **4,117 bytes — pure black**. So the splash was not merely slow to dismiss; it
+  was hiding the screen.
+- **And the app still paints nothing underneath.** Killing `early-background` at 60 s and capturing at 120 s and 195 s gives
+  **the same 4,117-byte black frame** both times, with `AppHomeScreen` alive (`pid 869`). So the splash and the missing content
+  are **two independent faults**, and removing the splash does not reveal content.
+- State of the second fault: the app is alive, registers with the launcher, and emits
+  `WeatherWidget::sendEventToWidget … AW_REQUEST_LOAD_QML` at ~150 s, so the QML scene is requested but nothing reaches the
+  compositor. Astra's decision tree now applies cleanly: either the app commits buffers and never receives `wl_surface.frame`
+  done (a layer-placement problem for its IVI surface), or it never commits at all.
+- **Next test is exact:** the launcher sends the app's stderr to `/dev/null`, but `strace -e trace=write` captures the buffers.
+  Re-run that capture **without** the QML/EGL filter and grep for `wl_surface@…commit`, `wl_callback` and `ivi_application` to
+  see whether the app commits a buffer and whether a frame callback ever returns.
+
 ## 2.27.0 - diagnosed: the splash is never dismissed, and the app's own diagnostics are discarded
 
 Consulted `codex-router/gpt-6-astra` (the config's default model) and `claude-subscription/claude-opus-5-5` for independent

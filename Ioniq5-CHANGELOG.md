@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.08.0 - the attach is a `stat`, and the recovered profile is still rejected
+
+- **Corrected the instrument, again, and this time it matters.** An untargeted trace shows `ApplicationManager` doing
+  `stat("/tmp/qipc_sharedmemory_MICOMSTATUSMESSAGE…") = -1 ENOENT` and then creating the matching systemsem file. Qt's
+  `QSharedMemory` SysV backend resolves its key through **`ftok`, which uses `stat`, not `openat`** — so the earlier
+  "no `qipc` path is opened" result was a **false negative from the instrument**, not a fact about the client. With
+  `ihu-shim` having created the region, `attach fail` disappears.
+- **Found the recovered boot-info profile in the merged material**: `00000826050000051302000003c8140000…0001…`, 35 bytes,
+  documented byte-by-byte in `work/vm/…/micom-contract/BOOTINFO-AND-SIM-V2.md` as decoded from AppLauncher's own BIS
+  decoder logs (EV-family Europe, 12.3" LCD, nav+modem+RHD+amp, English US, last GUI mode 1). `micom-service` now serves it
+  verbatim instead of inventing payloads.
+- **Two failures, recorded as failures:**
+  1. Serving that authentic profile over D-Bus is **still rejected** — `reply is VALID` never appears.
+  2. **Seeding the same 35 bytes into the `MICOMSTATUSMESSAGE` region at offset 0 does not clear `pszSrc NULL`.**
+- So the region's *existence* is necessary (attach stops failing) but not sufficient, and `pszSrc` is produced by something
+  this thread has not located — a second object, or a header offset inside this one. That is now the single question, and it
+  is narrower than it has ever been.
+
 ## 2.07.0 - full suite green: 782 tests, 351,486 subtests
 
 - Installed the missing test dependencies in a **virtual environment** rather than against the system interpreter, because

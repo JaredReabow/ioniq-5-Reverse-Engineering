@@ -155,20 +155,19 @@ static int on_message(DBusConnection *conn, DBusMessage *msg, void *user)
 		return 1;	/* NOT_YET_HANDLED */
 	}
 	if (strcmp(member, "AskSysBootinfo") == 0) {
-		/* Cycle payload variants on successive asks so a live client can tell us
-		 * which one it accepts. Variant order is logged. */
-		static unsigned int variant;
-		unsigned int v = variant++;
-		memset(bootinfo, 0, sizeof bootinfo);
-		switch (v % 5) {
-		case 1: bootinfo[28] = 0x01; break;          /* byte 28 nonzero */
-		case 2: bootinfo[28] = 0xff; break;          /* byte 28 max */
-		case 3: memset(bootinfo, 0xff, sizeof bootinfo); break; /* all set */
-		case 4: bootinfo[0] = 0x01; bootinfo[28] = 0x01; break;
-		default: break;                               /* all zeros */
-		}
+		/* Boot-info profile recovered from AppLauncher's own BIS decoder logs
+		 * (work/vm/vendor-userspace-260128/micom-contract/BOOTINFO-AND-SIM-V2.md):
+		 * 35 bytes, EV-family Europe, 12.3" LCD, nav+modem+RHD+amp, English US,
+		 * last GUI mode 1. Served verbatim rather than invented. */
+		static const unsigned char v2_profile[BOOTINFO_LEN] = {
+			0x00, 0x00, 0x08, 0x26, 0x05, 0x00, 0x00, 0x05, 0x13, 0x02,
+			0x00, 0x00, 0x03, 0xc8, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00,
+			0x01, 0x00, 0x00, 0x00, 0x00,
+		};
+		memcpy(bootinfo, v2_profile, sizeof bootinfo);
 		reply_ay(conn, msg, bootinfo, BOOTINFO_LEN);
-		say("AskSysBootinfo -> 35 bytes variant %u\n", v % 5);
+		say("AskSysBootinfo -> v2 profile (35 bytes)\n");
 	} else if (strcmp(member, "AskNaviOutermostRegion") == 0) {
 		unsigned char v[8] = { 1, 0, 0, 0, 0, 0, 0, 0 };
 		reply_ay(conn, msg, v, sizeof v);

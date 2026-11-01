@@ -3614,3 +3614,11 @@ and are superseded by corrections rather than silently rewritten.
   rather than merely existing.
 - Recording the commands and the expected count matters more than the number itself: a red suite that is red for a missing
   dependency trains people to ignore it.
+
+## 2026-10-31 — the trace was lying, and the profile was already on disk
+
+- Two corrections in one round. The instrument was wrong: QSharedMemory resolves its key with stat, so an openat trace could
+  never see the file it wanted, and I had recorded that absence as a finding. And the payload I was trying to derive had
+  already been decoded from the vendor's own logs in a document sitting in the tree.
+- Even with both fixed, the client still rejects the reply and still reports a NULL source. Progress that stops at "now we
+  are asking the right question" is still progress, but it is not an answer, and the entry says so.

@@ -965,6 +965,23 @@ vulnerability is claimed, and this test does not move either entry.
   the region name appearing in `ApplicationManager`'s own strings, i.e. the client creates it and the missing thing is the
   **data** it would fill it with. There is therefore no template to harvest from the daemon in this projection, and that
   route is closed.
+- **The mechanism is `stat`, and that is why earlier traces missed it.** An untargeted trace shows
+  `ApplicationManager` doing:
+
+  `stat("/tmp/qipc_sharedmemory_MICOMSTATUSMESSAGEea9b2c48…") = -1 ENOENT`
+  `open("/tmp/qipc_systemsem_MICOMSTATUSMESSAGE…", O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC, 0640) = 7`
+
+  Qt's `QSharedMemory` SysV backend resolves its key with **`ftok`, which calls `stat`**, not `openat` — so the earlier
+  `-e trace=openat` sweep could never have seen the path, and "no `qipc` open" was a **false negative from the instrument**,
+  not evidence about the client. With `ihu-shim` having created the region, the same client stops logging `attach fail`,
+  confirming the file's existence is what the attach needs.
+- **Two things still do not hold, and are recorded as failures rather than folded into progress:**
+  1. The **authentic recovered profile** — `00000826050000051302000003c8140000000000000000000000020001000000000000`, 35
+     bytes, taken from `work/vm/…/micom-contract/BOOTINFO-AND-SIM-V2.md` where it was decoded from AppLauncher's own BIS
+     logs — served over D-Bus is **still rejected** (`reply is VALID` never logged).
+  2. **Seeding those same 35 bytes into the `MICOMSTATUSMESSAGE` region at offset 0 does not clear `pszSrc NULL`.**
+  So the region must exist *and* `pszSrc` comes from somewhere this thread has not yet located — most likely a second
+  object, or a different offset/header inside this one.
 - **Hand-off state for V-036, complete:** reachability, interface construction and shared-memory mechanisms excluded by
   measurement; reply content confirmed as the blocker; three plausible payloads rejected against a live client; the oracle
   for testing further candidates exists and is documented; and the static anchors are listed with the specific difficulty

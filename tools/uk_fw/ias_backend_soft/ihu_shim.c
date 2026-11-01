@@ -77,6 +77,41 @@ int main(void)
 		made++;
 		dprintf(log, "ihu-shim: created %s (id=%d size=%d)\n", shm_names[i], id, SEG_SIZE);
 	}
+	/* If a boot-info profile is available, seed it into the MICOM status region:
+	 * the client maps that region and reads boot info from it, so a zero-filled
+	 * region parses to nothing and its source pointer comes back NULL. */
+	{
+		const char *profile = "/micom-profile.bin";
+		int pf = open(profile, O_RDONLY);
+		if (pf >= 0) {
+			unsigned char buf[4096];
+			ssize_t n = read(pf, buf, sizeof buf);
+			close(pf);
+			if (n > 0) {
+				for (i = 0; i < sizeof shm_names / sizeof shm_names[0]; i++) {
+					key_t k;
+					int id;
+					void *p;
+					snprintf(path, sizeof path, "/tmp/%s", shm_names[i]);
+					if (!strstr(shm_names[i], "MICOMSTATUSMESSAGE"))
+						continue;
+					k = ftok(path, 'Q');
+					if (k == -1)
+						break;
+					id = shmget(k, SEG_SIZE, 0600);
+					if (id < 0)
+						break;
+					p = shmat(id, NULL, 0);
+					if (p == (void *) -1)
+						break;
+					memcpy(p, buf, (size_t) n);
+					shmdt(p);
+					dprintf(log, "ihu-shim: seeded %zd profile bytes\n", n);
+					break;
+				}
+			}
+		}
+	}
 	dprintf(log, "ihu-shim: %u segment(s)\n", made);
 	return made ? 0 : 1;
 }

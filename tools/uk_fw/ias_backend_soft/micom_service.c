@@ -155,8 +155,20 @@ static int on_message(DBusConnection *conn, DBusMessage *msg, void *user)
 		return 1;	/* NOT_YET_HANDLED */
 	}
 	if (strcmp(member, "AskSysBootinfo") == 0) {
+		/* Cycle payload variants on successive asks so a live client can tell us
+		 * which one it accepts. Variant order is logged. */
+		static unsigned int variant;
+		unsigned int v = variant++;
+		memset(bootinfo, 0, sizeof bootinfo);
+		switch (v % 5) {
+		case 1: bootinfo[28] = 0x01; break;          /* byte 28 nonzero */
+		case 2: bootinfo[28] = 0xff; break;          /* byte 28 max */
+		case 3: memset(bootinfo, 0xff, sizeof bootinfo); break; /* all set */
+		case 4: bootinfo[0] = 0x01; bootinfo[28] = 0x01; break;
+		default: break;                               /* all zeros */
+		}
 		reply_ay(conn, msg, bootinfo, BOOTINFO_LEN);
-		say("AskSysBootinfo -> %d bytes\n", BOOTINFO_LEN);
+		say("AskSysBootinfo -> 35 bytes variant %u\n", v % 5);
 	} else if (strcmp(member, "AskNaviOutermostRegion") == 0) {
 		unsigned char v[8] = { 1, 0, 0, 0, 0, 0, 0, 0 };
 		reply_ay(conn, msg, v, sizeof v);

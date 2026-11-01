@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.23.0 - service substitution works technically; the app had not started yet
+
+- Ran the published chain with `/usr/bin/micom-service` substituted for `/micom-dbus-sim`. The substitution is effective:
+  - **`method not implemented` errors: 7 → 0.** The settings asks the simulator refused are now answered.
+  - **`micom-service` answered 7 calls** in that window (`AskSysBootinfo`, `AskCustomSetting`, `AskSettingInfoValue`).
+- **But `AppHomeScreen` had not started by the 90-second capture**, so the frame is byte-identical to the splash capture
+  (177,691 bytes) and tells us nothing about content. The experiment is therefore **inconclusive on the actual question** — it
+  confirms the substitution, not whether unanswered settings were the cause of the blank content.
+- That distinction is the whole point: the lever worked, the measurement did not reach the effect. Next run needs a longer
+  window (the app started at ~30 s in the simulator-based chain, so the service-based chain is either slower or stalled
+  earlier) plus the launcher log to see whether `AppHomeScreen` was requested at all.
+- Recorded rather than reported as a result: a clean substitution and an identical screenshot is exactly the shape of evidence
+  that gets mistaken for progress.
+
 ## 2.22.0 - the app registers; the simulator's unimplemented methods are the next lever
 
 - Read the launcher's own log from the working chain. `AppHomeScreen` starts **and registers** with the launcher:

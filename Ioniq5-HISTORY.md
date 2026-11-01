@@ -3809,3 +3809,10 @@ and are superseded by corrections rather than silently rewritten.
 - The launcher's log also shows the chain's MICOM simulator rejecting the settings asks outright, while this project's own
   service answers them. That is the first concrete candidate for the blank content that is not another layer of the display
   stack, and it is a one-line substitution to test.
+
+## 2026-10-31 — the lever moved and the needle did not
+
+- Replacing the simulator with our own service removed every "method not implemented" complaint and answered seven calls. That
+  is real, and it is not the finding I was looking for.
+- The application had not started when the frame was taken, so the screenshot is the splash again. An identical image after a
+  meaningful change is the easiest thing in this work to misread as confirmation.

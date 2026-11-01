@@ -1,0 +1,355 @@
+{
+  "artifact": {
+    "build_id": "863a8730e66a1c5245a1bf458fe2554adee0351a",
+    "sha256": "464a87646153213ce1f405743a10cff78eb90c203b619f983002358ca74ef0e7",
+    "size": 5066264
+  },
+  "conclusions": {
+    "abl_or_micom_acceptance": null,
+    "caller_success_latch_can_follow_bounded_weak_true_return": true,
+    "mark_good_or_health": null,
+    "normal_image_targets_both_boot_partitions": true,
+    "persistent_boot_selector_changed": null,
+    "rollback": null,
+    "root_or_persistence": false,
+    "staging_to_boot_partition_write_paths_present": true,
+    "sub_image_targets_second_boot_partition": true,
+    "true_return_proves_direct_copy_success": false,
+    "true_return_proves_durable_boot_partition_bytes": false,
+    "true_return_proves_mount_success": false,
+    "true_return_proves_pipeline_exit_success": false
+  },
+  "exact_static": {
+    "boot_destination_matrix": [
+      {
+        "destination": "iasImage",
+        "iteration": 0,
+        "partition": "p1",
+        "source": "selected normal staging file"
+      },
+      {
+        "destination": "iasImage",
+        "iteration": 1,
+        "partition": "p2",
+        "source": "selected normal staging file"
+      },
+      {
+        "destination": "iasImage_sub",
+        "iteration": 1,
+        "partition": "p2",
+        "source": "selected _sub staging file"
+      }
+    ],
+    "bounded_absence": {
+      "qprocess_exit_code_calls_in_wait_helper": 0
+    },
+    "caller_latches": [
+      {
+        "call_site": 1179711,
+        "latch_offset": 576,
+        "stores_one_only_on_true_return": true
+      },
+      {
+        "call_site": 1189320,
+        "latch_offset": 576,
+        "stores_one_only_on_true_return": true
+      }
+    ],
+    "common_tail": {
+      "iterations": 2,
+      "key_failure_counter_increment": "nonzero key-retrieval result",
+      "mode_one_false_only_if_both_key_retrievals_fail": true,
+      "mode_zero_tail_result": true,
+      "return_formula": "1 XOR ((key_failures > 1) AND (mode_byte & 1))"
+    },
+    "direct_calls": {
+      "copy_normal_direct": {
+        "site": 1352126,
+        "target": 1315824
+      },
+      "copy_sub_direct": {
+        "site": 1352708,
+        "target": 1315824
+      },
+      "create_temporary_key_path": {
+        "site": 1348688,
+        "target": 278544
+      },
+      "diagnostic_call_swap": {
+        "site": 1358842,
+        "target": 1347184
+      },
+      "dispatch_mount_command": {
+        "site": 1350716,
+        "target": 1294752
+      },
+      "dispatch_to_process_list": {
+        "site": 1295053,
+        "target": 1294288
+      },
+      "pipeline_fgets": {
+        "site": 1284259,
+        "target": 143664
+      },
+      "pipeline_pclose": {
+        "site": 1284272,
+        "target": 139232
+      },
+      "pipeline_popen": {
+        "site": 1284199,
+        "target": 145408
+      },
+      "progress_call_swap": {
+        "site": 1179711,
+        "target": 1347184
+      },
+      "remove_temporary_key": {
+        "site": 1351402,
+        "target": 145344
+      },
+      "retrieve_key_file": {
+        "site": 1348804,
+        "target": 293600
+      },
+      "run_normal_pipeline": {
+        "site": 1350873,
+        "target": 1284032
+      },
+      "run_sub_pipeline": {
+        "site": 1357212,
+        "target": 1284032
+      },
+      "secondary_call_swap": {
+        "site": 1189320,
+        "target": 1347184
+      },
+      "select_boot_filename": {
+        "site": 1347490,
+        "target": 664704
+      },
+      "sync_tail": {
+        "site": 1348992,
+        "target": 144416
+      },
+      "unmount_mountpoint": {
+        "site": 1351695,
+        "target": 148960
+      },
+      "wait_for_finished": {
+        "site": 1293845,
+        "target": 142992
+      },
+      "wait_process_list": {
+        "site": 1294552,
+        "target": 1293216
+      }
+    },
+    "direct_copy_contract": {
+      "copy_failures_increment_key_failure_counter": false,
+      "copy_failures_logged": true,
+      "copy_results_contribute_to_common_tail_return": false,
+      "normal_result_tested": true,
+      "sub_result_tested": true
+    },
+    "instruction_anchors": {
+      "common_return_formula": {
+        "sha256": "07ff8aaa0d750769933a51e7fb32de3e3218114b1365d13ed3bc71b9b14bae11",
+        "size": 29,
+        "va": 1348997
+      },
+      "key_failure_counter_and_two_iteration_loop": {
+        "sha256": "65d3018af6e3d415e55c5700d1c3adf98a5e29c34feb733dc62043e1840072fd",
+        "size": 57,
+        "va": 1348940
+      },
+      "mode_branch": {
+        "sha256": "a0f3e87e9f76ebc734cf313c98fe0ab0e0955cfa8314f02d0baf9e3dd06d9548",
+        "size": 13,
+        "va": 1348726
+      },
+      "mount_dispatch_then_mode_test": {
+        "sha256": "5090b9ca55d1deab6d05ee83ae6a6c3f4d15e751f894d9816250d30ea0c13ff5",
+        "size": 103,
+        "va": 1350697
+      },
+      "normal_direct_copy_result_branch": {
+        "sha256": "25baa9537e2d3943e8d87d389e91c94b283d8ead621b72486305d7c01c5297f7",
+        "size": 89,
+        "va": 1352098
+      },
+      "p2_sub_gate_and_direct_copy": {
+        "sha256": "162636f29009c20a029eb9094557ebb640a9934d0d8b6ca1d46877e4fc32af14",
+        "size": 103,
+        "va": 1352622
+      },
+      "pipeline_drain_and_ignored_pclose_status": {
+        "sha256": "cda878bc166333ae523f8416575a5d778c399b27bcc92ac74b6b092345c09e80",
+        "size": 98,
+        "va": 1284179
+      },
+      "pipeline_runner_call": {
+        "sha256": "cf616c8b04bc87c665dda7702a32499bbdcd9e44ed534e22c8c556a2b9174f0c",
+        "size": 78,
+        "va": 1350800
+      },
+      "progress_latch": {
+        "sha256": "ee7ccbed593767dec67ca54074158c85ab7f6c31e1a3186fdcbd06d66753c5f6",
+        "size": 55,
+        "va": 1179680
+      },
+      "secondary_latch": {
+        "sha256": "2a1be747c5f2fece2a59eb7e9abbecd900e6e1a7ecd4e94c67a2b8b6ded33421",
+        "size": 55,
+        "va": 1189289
+      },
+      "unmount_result_log_only": {
+        "sha256": "5fefbe0330f85dbe6a92b0501f87053204bc6460e9874e49a8eb4e4c6e7b20b8",
+        "size": 171,
+        "va": 1351650
+      },
+      "wait_for_finished_log_path": {
+        "sha256": "dbf117ca59b3445cb082a0a204ec9a973e80ea98c723729c20ed77d7afed7770",
+        "size": 32,
+        "va": 1293845
+      }
+    },
+    "literals": {
+      "dd_sink_template": {
+        "va": 2171560,
+        "value": "dd of=%1 bs=512"
+      },
+      "decrypt_pipeline_template": {
+        "va": 2284362,
+        "value": "%1 -d %2 %3 0 | "
+      },
+      "decrypt_program": {
+        "va": 2143448,
+        "value": "/app/share/AppUpgrade/DecryptToPIPE"
+      },
+      "domain": {
+        "va": 2284600,
+        "value": "swapSystem"
+      },
+      "iaspreload_suffix": {
+        "va": 2284438,
+        "value": "/iasPreload"
+      },
+      "mount_p1_prefix": {
+        "va": 2284259,
+        "value": "mount -t ext2 /dev/mmcblk0p1 "
+      },
+      "mount_p2_prefix": {
+        "va": 2284289,
+        "value": "mount -t ext2 /dev/mmcblk0p2 "
+      },
+      "mountpoint": {
+        "va": 2284245,
+        "value": "/mnt/bootcopy"
+      },
+      "normal_destination_suffix": {
+        "va": 2284338,
+        "value": "/iasImage"
+      },
+      "popen_read_mode": {
+        "va": 2169995,
+        "value": "r"
+      },
+      "staging_root": {
+        "va": 2175222,
+        "value": "/tmp/update/usb"
+      },
+      "staging_suffix": {
+        "va": 2190994,
+        "value": "/bootImage"
+      },
+      "stderr_redirect": {
+        "va": 2144284,
+        "value": " 2>&1"
+      },
+      "sub_destination_suffix": {
+        "va": 2284348,
+        "value": "/iasImage_sub"
+      },
+      "umount_error_log": {
+        "va": 2284450,
+        "value": "[%s] : umount error %d "
+      }
+    },
+    "mode_dispatch": {
+      "mode_byte_va": 7151796,
+      "nonzero": "DecryptToPIPE-to-dd pipeline",
+      "zero": "direct size-checking copy helper"
+    },
+    "mount_contract": {
+      "exit_code_checked": false,
+      "exit_code_contributes_to_swap_result": false,
+      "wait_failure_logged": true,
+      "wait_for_finished_infinite": true
+    },
+    "pipeline_contract": {
+      "exit_status_contributes_to_swap_result": false,
+      "pclose_called": true,
+      "pclose_status_checked": false,
+      "stderr_redirected_to_stdout": true,
+      "stdout_drained_with_fgets": true
+    },
+    "ranges": {
+      "diagnostic_wrapper": {
+        "end_exclusive": 1359235,
+        "sha256": "230fb4615eeeb7eda4ba1f90d89af7467c0e3e9d983a8f7b587e18a44523368d",
+        "start": 1358768
+      },
+      "mount_command_dispatch": {
+        "end_exclusive": 1295360,
+        "sha256": "a3042e9295c7ef5a2f8a0d43789f5f9a52333115b22db05484155b97e7789a7f",
+        "start": 1294752
+      },
+      "pipeline_runner": {
+        "end_exclusive": 1284347,
+        "sha256": "2ecd2e51775da1ff3f6ea1f9082a1e1b44aeba526bbd4713aaff798e38a3bd26",
+        "start": 1284032
+      },
+      "process_list_dispatch": {
+        "end_exclusive": 1294741,
+        "sha256": "9d3153c135fe546cf739316ff904c7c9f6153d366f02548d6c6bc7b5ec7611c5",
+        "start": 1294288
+      },
+      "process_wait": {
+        "end_exclusive": 1294278,
+        "sha256": "e704df8654359cd570e2f231da68da8aa66414199125b1234342588566b8e9e0",
+        "start": 1293216
+      },
+      "progress_caller": {
+        "end_exclusive": 1182366,
+        "sha256": "8d8cbd6f13b03f5e744a9419937d37db6390cef7c6022c7e8a4d52ee6fe3b959",
+        "start": 1175984
+      },
+      "secondary_caller": {
+        "end_exclusive": 1192975,
+        "sha256": "79b656d58a6f3ea734b8965e228dfc55f87bc0d8b75ac4d81b3f6a70df9048be",
+        "start": 1189200
+      },
+      "swap_system": {
+        "end_exclusive": 1358758,
+        "sha256": "741fbf2e3fe1321cdc8a2274c4f194ea26c0a90801ca2a6994e4292ef40f8a60",
+        "start": 1347184
+      }
+    },
+    "unmount_contract": {
+      "return_contributes_to_swap_result": false,
+      "return_tested_for_logging": true
+    }
+  },
+  "limitations": [
+    "The analyzer proves construction and exact-static result propagation, not runtime invocation or effects.",
+    "Process completion without an exit-code check does not establish a successful mount.",
+    "Draining a pipeline and calling pclose without using its status does not establish successful decryption or dd output.",
+    "A true swapSystem return and caller latch do not establish durable boot-partition bytes.",
+    "The routine updates files on both boot partitions but does not by itself establish a persistent boot selector, boot acceptance, health, mark-good, rollback, root, or persistence."
+  ],
+  "schema": "appfumo-boot-partition-write/v1",
+  "tool": {
+    "name": "appfumo-boot-partition-write",
+    "version": "1.0.0"
+  }
+}

@@ -1,0 +1,249 @@
+{
+  "artifacts": {
+    "members": [
+      {
+        "anchors": [
+          {
+            "address": 47211,
+            "mnemonic": "callq",
+            "operands": "0x4d00 <strlen@plt>",
+            "role": "strlen-call",
+            "sha256": "14d42d4d5f77e07adf88fbd7c83dbc8e4362af2e7b7c78e3516818b420e45df8"
+          },
+          {
+            "address": 47216,
+            "mnemonic": "testq",
+            "operands": "%rax, %rax",
+            "role": "length-zero-test",
+            "sha256": "b520550e6b1fdf17e50d8a32eddc6f9501658d4ab86578e8b1aba6d400139bc1"
+          },
+          {
+            "address": 47219,
+            "mnemonic": "je",
+            "operands": "0xb88d <.text+0x659d>",
+            "role": "zero-length-skip",
+            "sha256": "5496f33bab99a6d8ce73490bbaa16a9e3e523bdd6c21f754935d21d7e36d501f"
+          },
+          {
+            "address": 47221,
+            "mnemonic": "leaq",
+            "operands": "-0x1(%rbx,%rax), %rcx",
+            "role": "last-byte-address",
+            "sha256": "645476ea37b7e0ae7e231653d26405a57b4b724f6628c80eefa02ab6e65ca42c"
+          },
+          {
+            "address": 47226,
+            "mnemonic": "movzbl",
+            "operands": "(%rcx), %eax",
+            "role": "last-byte-read",
+            "sha256": "970edaefd0e42458e29adaa8e87bf15aafad075c8d720fbeae2bae0f3481c0c3"
+          },
+          {
+            "address": 47229,
+            "mnemonic": "cmpb",
+            "operands": "$0x22, %al",
+            "role": "double-quote-check",
+            "sha256": "b01755c58029b8fee78a46fae6d7d84d3c50657e07a384d2933e4181eb024a03"
+          },
+          {
+            "address": 47231,
+            "mnemonic": "je",
+            "operands": "0xb928 <.text+0x6638>",
+            "role": "double-quote-write-branch",
+            "sha256": "ae0739a82edc3dccd660850e6a1e551cbaf309f6b055a8f39dc74595fe8f182b"
+          },
+          {
+            "address": 47237,
+            "mnemonic": "cmpb",
+            "operands": "$0x27, %al",
+            "role": "single-quote-check",
+            "sha256": "0c8d4266bdc7a6522bcff77e1fb2027f313f2b9b3d5b5b6e66ba7cdb8da9e9e9"
+          },
+          {
+            "address": 47239,
+            "mnemonic": "je",
+            "operands": "0xb928 <.text+0x6638>",
+            "role": "single-quote-write-branch",
+            "sha256": "34c0f747bf7fb95954c94e2650242dea99235a38e2ff4327f8da0095051787e2"
+          },
+          {
+            "address": 47245,
+            "mnemonic": "movq",
+            "operands": "0x28(%rsp), %rax",
+            "role": "zero-length-continuation",
+            "sha256": "a2537df45cf2de37ed747cbfae445172b59be9194a5b29df12eff234be6888bb"
+          },
+          {
+            "address": 47400,
+            "mnemonic": "movb",
+            "operands": "$0x0, (%rcx)",
+            "role": "terminal-byte-write",
+            "sha256": "c331d64377a5167ba7ab9a1d659eec1cafe043d63ae152427a2d2118efd141d3"
+          }
+        ],
+        "build_id": "0f86f3c35000b43071f28990a5d9e9b34140ed52",
+        "fde_count": 56,
+        "fde_sha256": "bc770762a0a032b99649a6665f364648503cbe3131ee985f24c797fb52ea80ed",
+        "instruction_count": 9169,
+        "instruction_sha256": "356b1e11a20ebbd00ad24da597da588b17f624120c578c4c8956ddb8467a4945",
+        "mode": 493,
+        "name": "./usr/lib/gstreamer-1.0/libgstsubparse.so",
+        "role": "subparse",
+        "selected_fde": {
+          "end_exclusive": 47551,
+          "start": 47024
+        },
+        "sha256": "8814f320ebb3ec9558e9455baaecf25ff51f527c49bd8ee716eae288fc564c1e",
+        "size": 84624,
+        "type": "regular"
+      },
+      {
+        "anchors": [
+          {
+            "address": 11449,
+            "mnemonic": "callq",
+            "operands": "0x1c90 <gst_type_find_get_length@plt>",
+            "role": "get-length-call",
+            "sha256": "1f4daddaa334591ced457264cb327520239bf786d63759cbc7b9b485b7076e30"
+          },
+          {
+            "address": 11454,
+            "mnemonic": "cmpq",
+            "operands": "$0x11, %rax",
+            "role": "initial-17-compare",
+            "sha256": "fcd538c710865b35c94fdc3f8803d39c4951ab82d4bf554327997dc9cfb62737"
+          },
+          {
+            "address": 11458,
+            "mnemonic": "jg",
+            "operands": "0x2ce0 <.text+0x1030>",
+            "role": "greater-than-17-branch",
+            "sha256": "57f9c6a89ce090e6cf6f9e9a84df555f8921dd686c4698cf2bd171714164941e"
+          },
+          {
+            "address": 11460,
+            "mnemonic": "movq",
+            "operands": "0x8(%rsp), %rax",
+            "role": "short-return-start",
+            "sha256": "75f2e8bff895f4d78e23fa2bddf9ca57a769a8aeac34e52354c67474451c9a4b"
+          },
+          {
+            "address": 11480,
+            "mnemonic": "addq",
+            "operands": "$0x18, %rsp",
+            "role": "short-return-stack",
+            "sha256": "8103271501b2712878a78039e92e0489a34150d494e85c7fe2fce61ffd37f725"
+          },
+          {
+            "address": 11486,
+            "mnemonic": "retq",
+            "operands": "",
+            "role": "short-return",
+            "sha256": "ebc83550a3f3b923b0b27704dbadb172f5c0ea8adbaa6faf97397d2e5869a245"
+          },
+          {
+            "address": 11488,
+            "mnemonic": "xorl",
+            "operands": "%esi, %esi",
+            "role": "peek-offset-zero",
+            "sha256": "0d9fc6a166d75333378825f76a70f96c401959fa032bdcb4deebbf3c095d2e2a"
+          },
+          {
+            "address": 11490,
+            "mnemonic": "movl",
+            "operands": "$0x6, %edx",
+            "role": "peek-six-byte-length",
+            "sha256": "ff353bf0cf2ad78aa58ae45ce57f8f950bfbedc8377143369e7460d8c340130e"
+          },
+          {
+            "address": 11498,
+            "mnemonic": "movq",
+            "operands": "%rax, %rbp",
+            "role": "save-total-length",
+            "sha256": "617e40e4a388e18b03b0e7176824a1ba6cfd63b856d536f4a0865f111cb8b725"
+          },
+          {
+            "address": 11501,
+            "mnemonic": "callq",
+            "operands": "0x1b20 <gst_type_find_peek@plt>",
+            "role": "peek-call",
+            "sha256": "e38354ec1c36ff606cf5af2d442d92adc03c9b0582e5744e62f0185bb09ac5d6"
+          },
+          {
+            "address": 11506,
+            "mnemonic": "testq",
+            "operands": "%rax, %rax",
+            "role": "peek-null-test",
+            "sha256": "73ddeaed8a3da8c9b2fb99f204d64c5830f7e47f6c9b1dfe99019ac178661d67"
+          },
+          {
+            "address": 11509,
+            "mnemonic": "je",
+            "operands": "0x2cc4 <.text+0x1014>",
+            "role": "peek-null-return",
+            "sha256": "c56251b704c27a66269ab7e113224e015cae2352c85c7c69e0b07a9090e5d28f"
+          },
+          {
+            "address": 11547,
+            "mnemonic": "je",
+            "operands": "0x2d79 <.text+0x10c9>",
+            "role": "type-one-branch",
+            "sha256": "85eac7b12b04796b06137ce23e8ad78dce7acd52723dfb988aa87c4f01dfe3c6"
+          },
+          {
+            "address": 11549,
+            "mnemonic": "movl",
+            "operands": "0xe(%rax), %edx",
+            "role": "size-field-read",
+            "sha256": "492a327950cea6f7d7b4ff53b03ef40b34eea67f24ca6ea4d58f958d140c37b1"
+          },
+          {
+            "address": 11552,
+            "mnemonic": "movl",
+            "operands": "0x12(%rax), %eax",
+            "role": "offset-field-read",
+            "sha256": "b4f2a374c8da4cb58ff9c9270e6bb1108b9893ac3e7879206dabd169fef841be"
+          }
+        ],
+        "build_id": "224dc195678a0319cf6319c5db46551bc1d46740",
+        "fde_count": 104,
+        "fde_sha256": "1a866c52fb6c81f2ab41057b0ed4b9f9fbae7109b334a7c8bf7c069039243e47",
+        "instruction_count": 15472,
+        "instruction_sha256": "9ab8d0f16b4ba5a2927d6e0d178b5b5b8f9f10625a2c3b266dcf967bb2ccdea4",
+        "mode": 493,
+        "name": "./usr/lib/gstreamer-1.0/libgsttypefindfunctions.so",
+        "role": "typefind",
+        "selected_fde": {
+          "end_exclusive": 11659,
+          "start": 11424
+        },
+        "sha256": "d772d31a2b64d393a72844bbfeba2f0efa12b93d6bf87f37818823958668df30",
+        "size": 105816,
+        "type": "regular"
+      }
+    ],
+    "rootfs": {
+      "inventory_sha256": "c85bc4b1b12bc4704c3aea30489bac99c10cb2211f80d94f48f3e1e22fd7a94c",
+      "member_count": 66836,
+      "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+      "size": 879109759
+    }
+  },
+  "expected": {
+    "subparse_nonzero_length_fix": "d894c19db62ce87115317616f0a5d4482d6332c4",
+    "typefind_complete_length_correction": "a3bf3094d17dded324c713d5d55968caa779a895",
+    "typefind_initial_length_fix": "2fdccfd64fc609e44e9c4b8eed5bfdc0ab9c9095"
+  },
+  "llvm": {
+    "objdump": {
+      "sha256": "7b04d723638c0793efbd31b99b2389f36ceb8c803bdc1008e43ea7525958376f",
+      "size": 813808
+    },
+    "readelf": {
+      "sha256": "80a1f8ffc44c5a1e4dbeaa5c409cd98a01cb2fa73e1ccc2eeb22a3b7ee2e1cb0",
+      "size": 1805104
+    },
+    "version": "Homebrew LLVM version 23.1.3"
+  },
+  "schema_version": 1
+}

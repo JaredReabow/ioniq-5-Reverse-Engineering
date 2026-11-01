@@ -4,6 +4,19 @@ This directory contains only small, reviewed excerpts needed to support the
 tracked media-parser conclusions. Full VM serial/DLT logs, generated ASF files,
 recovered binaries, and the local runner remain under ignored `work/`.
 
+## GStreamer parser backport exact-static audit
+
+`gstreamer-parser-backport-audit-manifest.json` pins the canonical EU 260128
+rootfs, two selected regular tar members, LLVM identities, complete
+instruction/FDE identities, and reviewed machine anchors. The deterministic
+report and bounded exact-static excerpt establish that the CVE-2017-5842
+nonzero-length effect is present in exact `libgstsubparse.so`, while exact
+`libgsttypefindfunctions.so` has the initial CVE-2016-9811-associated `<18`
+guard but lacks the later complete `<22` correction. The latter leaves a
+bounded 1-to-4-byte out-of-range read for total lengths 18 through 21. No
+parser execution, delivery, disclosure, code execution, root access, or
+persistence outcome is established.
+
 ## FLIC / CVE-2016-9634, CVE-2016-9635, CVE-2016-9636, CVE-2016-9807, and CVE-2016-9808
 
 `gstreamer-flxdec-cve-2016-9634-9636-9808.asm` retains both complete affected

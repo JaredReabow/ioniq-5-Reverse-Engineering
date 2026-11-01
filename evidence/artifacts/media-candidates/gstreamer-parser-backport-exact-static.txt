@@ -1,0 +1,91 @@
+GStreamer parser backport exact-static evidence excerpt
+======================================================
+
+Scope and provenance
+--------------------
+Canonical archive: work/decrypted-eu-260128/HU/images/mango-rootfs.tar.gz
+Archive SHA-256: 423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84
+Method: offline disassembly/unwind inspection of selected regular tar members.
+Recovered targets were not executed. No parser input was created. This file
+retains only the reviewed instructions and public patch semantics, not either
+binary or a full disassembly.
+
+1. subparse / CVE-2017-5842-associated mechanism
+-------------------------------------------------
+Tar member: ./usr/lib/gstreamer-1.0/libgstsubparse.so
+SHA-256: 8814f320ebb3ec9558e9455baaecf25ff51f527c49bd8ee716eae288fc564c1e
+GNU Build ID: 0f86f3c35000b43071f28990a5d9e9b34140ed52
+Selected FDE: [0xb7b0,0xb9bf)
+
+Public source/patch semantics: upstream commit
+`d894c19db62ce87115317616f0a5d4482d6332c4` changes the terminal-quote
+condition in `html_context_handle_element` so the `attr_value[length - 1]`
+read/write occurs only when `length > 0`.
+
+Reviewed exact instruction excerpt:
+
+    b86b: callq  0x4d00 <strlen@plt>
+    b870: testq  %rax, %rax
+    b873: je     0xb88d <.text+0x659d>
+    b875: leaq   -0x1(%rbx,%rax), %rcx
+    b87a: movzbl (%rcx), %eax
+    b87d: cmpb   $0x22, %al
+    b87f: je     0xb928 <.text+0x6638>
+    b885: cmpb   $0x27, %al
+    b887: je     0xb928 <.text+0x6638>
+    b88d: movq   0x28(%rsp), %rax
+    b928: movb   $0x0, (%rcx)
+
+The zero result from `strlen` branches to 0xb88d before the last-byte address
+at 0xb875 can be formed. Both terminal quote tests route to the write at
+0xb928 only on the nonzero-length path. The named zero-length underwrite
+mechanism is therefore backported/rejected for this exact binary. This does not
+reject unrelated subtitle-parser defects.
+
+2. typefind / CVE-2016-9811-associated mechanism
+-------------------------------------------------
+Tar member: ./usr/lib/gstreamer-1.0/libgsttypefindfunctions.so
+SHA-256: d772d31a2b64d393a72844bbfeba2f0efa12b93d6bf87f37818823958668df30
+GNU Build ID: 224dc195678a0319cf6319c5db46551bc1d46740
+Selected FDE: [0x2ca0,0x2d8b)
+
+Public source/patch semantics: initial upstream commit
+`2fdccfd64fc609e44e9c4b8eed5bfdc0ab9c9095` adds a return when `datalen < 18`
+to `windows_icon_typefind`. Later corrective commit
+`a3bf3094d17dded324c713d5d55968caa779a895` changes that minimum to 22 because
+the first image-directory entry extends through source offset 21.
+
+Reviewed exact instruction excerpt:
+
+    2cb9: callq  0x1c90 <gst_type_find_get_length@plt>
+    2cbe: cmpq   $0x11, %rax
+    2cc2: jg     0x2ce0 <.text+0x1030>
+    2cc4: movq   0x8(%rsp), %rax
+    2cd8: addq   $0x18, %rsp
+    2cde: retq
+    2ce0: xorl   %esi, %esi
+    2ce2: movl   $0x6, %edx
+    2cea: movq   %rax, %rbp
+    2ced: callq  0x1b20 <gst_type_find_peek@plt>
+    2cf2: testq  %rax, %rax
+    2cf5: je     0x2cc4 <.text+0x1014>
+    2d1b: je     0x2d79 <.text+0x10c9>
+    2d1d: movl   0xe(%rax), %edx
+    2d20: movl   0x12(%rax), %eax
+
+The comparison and signed greater-than branch route total lengths 0 through 17
+to the return sequence and admit lengths above 17. The admitted path requests a
+six-byte peek, retains the total length in `%rbp`, performs header checks, and
+then reads the four-byte offset field from source offset 18 at 0x2d20. No
+22-byte minimum check precedes that read in the selected exact function.
+Consequently the initial `<18` fix is present, the later `<22` correction is
+absent, and total lengths 18, 19, 20, and 21 leave respectively 4, 3, 2, and 1
+bytes of this exact read outside the total input range.
+
+Claim boundary
+--------------
+This establishes a bounded residual out-of-range read of 1 to 4 bytes in the
+reviewed exact typefind function for total lengths 18 through 21. It does not
+establish parser execution, production delivery, information disclosure, code
+execution, privilege gain, root access, or persistence. It does not establish
+the absence of unrelated GStreamer defects.

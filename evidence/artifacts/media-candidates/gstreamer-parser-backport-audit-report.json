@@ -1,0 +1,123 @@
+{
+  "canonical_rootfs": {
+    "inventory_sha256": "c85bc4b1b12bc4704c3aea30489bac99c10cb2211f80d94f48f3e1e22fd7a94c",
+    "member_count": 66836,
+    "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+    "size": 879109759
+  },
+  "members": {
+    "subparse": {
+      "build_id": "0f86f3c35000b43071f28990a5d9e9b34140ed52",
+      "fde_count": 56,
+      "fde_sha256": "bc770762a0a032b99649a6665f364648503cbe3131ee985f24c797fb52ea80ed",
+      "instruction_count": 9169,
+      "instruction_sha256": "356b1e11a20ebbd00ad24da597da588b17f624120c578c4c8956ddb8467a4945",
+      "selected_fde": {
+        "end_exclusive": "0xb9bf",
+        "start": "0xb7b0"
+      },
+      "sha256": "8814f320ebb3ec9558e9455baaecf25ff51f527c49bd8ee716eae288fc564c1e",
+      "size": 84624,
+      "verified_anchor_roles": [
+        "strlen-call",
+        "length-zero-test",
+        "zero-length-skip",
+        "last-byte-address",
+        "last-byte-read",
+        "double-quote-check",
+        "double-quote-write-branch",
+        "single-quote-check",
+        "single-quote-write-branch",
+        "zero-length-continuation",
+        "terminal-byte-write"
+      ]
+    },
+    "typefind": {
+      "build_id": "224dc195678a0319cf6319c5db46551bc1d46740",
+      "fde_count": 104,
+      "fde_sha256": "1a866c52fb6c81f2ab41057b0ed4b9f9fbae7109b334a7c8bf7c069039243e47",
+      "instruction_count": 15472,
+      "instruction_sha256": "9ab8d0f16b4ba5a2927d6e0d178b5b5b8f9f10625a2c3b266dcf967bb2ccdea4",
+      "selected_fde": {
+        "end_exclusive": "0x2d8b",
+        "start": "0x2ca0"
+      },
+      "sha256": "d772d31a2b64d393a72844bbfeba2f0efa12b93d6bf87f37818823958668df30",
+      "size": 105816,
+      "verified_anchor_roles": [
+        "get-length-call",
+        "initial-17-compare",
+        "greater-than-17-branch",
+        "short-return-start",
+        "short-return-stack",
+        "short-return",
+        "peek-offset-zero",
+        "peek-six-byte-length",
+        "save-total-length",
+        "peek-call",
+        "peek-null-test",
+        "peek-null-return",
+        "type-one-branch",
+        "size-field-read",
+        "offset-field-read"
+      ]
+    }
+  },
+  "outcomes": {
+    "code_execution": null,
+    "information_disclosure": null,
+    "parser_execution": null,
+    "persistence": null,
+    "privilege_gain_or_root": null,
+    "production_delivery": null
+  },
+  "schema_version": 1,
+  "scope": {
+    "canonical_tar_members_streamed_directly": true,
+    "full_binary_retained": false,
+    "full_disassembly_retained": false,
+    "llvm_version": "Homebrew LLVM version 23.1.3",
+    "malformed_media_bytes_emitted": false,
+    "manifest_sha256": "42c900a3d8fe6376aa668d7af2b9443469589a9e46da59fb06f2dfac37d6460c",
+    "offline_exact_static_analysis": true,
+    "parser_inputs_created": false,
+    "recovered_targets_executed": false,
+    "trigger_recipe_emitted": false
+  },
+  "subparse_assessment": {
+    "associated_issue": "CVE-2017-5842",
+    "named_zero_length_underwrite_mechanism": "rejected-for-exact-binary",
+    "nonzero_length_test_precedes_last_byte_address": true,
+    "terminal_quote_checks_precede_write": true,
+    "unrelated_subtitle_defects_rejected": false,
+    "upstream_fix_commit": "d894c19db62ce87115317616f0a5d4482d6332c4",
+    "zero_length_branch_skips_last_byte_address_and_write": true
+  },
+  "tool": {
+    "name": "gstreamer-parser-backport-audit",
+    "version": "1.0.0"
+  },
+  "typefind_assessment": {
+    "associated_issue": "CVE-2016-9811",
+    "bounded_residual_out_of_range_read_possible": true,
+    "complete_less_than_22_guard_present": false,
+    "initial_fix_commit": "2fdccfd64fc609e44e9c4b8eed5bfdc0ab9c9095",
+    "initial_less_than_18_guard_present": true,
+    "later_correction_commit": "a3bf3094d17dded324c713d5d55968caa779a895",
+    "offset_field_read_width_bytes": 4,
+    "offset_field_source_offset": 18,
+    "residual_out_of_range_bytes_by_total_length": {
+      "18": 4,
+      "19": 3,
+      "20": 2,
+      "21": 1
+    },
+    "residual_total_lengths": [
+      18,
+      19,
+      20,
+      21
+    ],
+    "six_byte_peek_precedes_offset_field_read": true
+  }
+}

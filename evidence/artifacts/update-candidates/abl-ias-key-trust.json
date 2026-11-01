@@ -1,0 +1,121 @@
+{
+  "conclusions": {
+    "boot_acceptance_root_or_persistence_proved": false,
+    "custom_signed_image_acceptance_proved": false,
+    "exact_target_abl_accepts_arbitrary_embedded_key_proved": false,
+    "exact_target_abl_key_pin_proved": null,
+    "package_signature_is_not_merely_unkeyed_hash": true,
+    "public_sbl_pins_embedded_os_key_digest": true
+  },
+  "exact_update": {
+    "abl": {
+      "build": "rel.1714-HF3 / release/GP1.0.1_LGE",
+      "candidate_os_key_hash_present_verbatim": false,
+      "ibb_cpd_entries": [
+        {
+          "name": "IBBP.man",
+          "offset": 112,
+          "size": 748
+        },
+        {
+          "name": "BPM.met",
+          "offset": 896,
+          "size": 180
+        },
+        {
+          "name": "IBBL",
+          "offset": 1088,
+          "size": 16384
+        },
+        {
+          "name": "IBB",
+          "offset": 17472,
+          "size": 212992
+        }
+      ],
+      "literal_offsets": {
+        "iasImage": [
+          1060552,
+          1060596,
+          1728981
+        ],
+        "ipk.": [
+          1060458,
+          1602624,
+          1619008,
+          1659306,
+          1739644,
+          1826345,
+          4198464
+        ],
+        "oemkm": [
+          1706055
+        ]
+      },
+      "member": "abl/bin/104096/abl1714-Batch10-Ver.11.00-sign-8MB.bin",
+      "primary_bpdt_descriptor_count": 13,
+      "sha256": "f6fc0373042c27f36e601fe957544582f3b1bd4be3c36659105322304b2dc7ac",
+      "size": 8388608
+    },
+    "archive": {
+      "sha256": "1e67344a714708733a9158a52ef5d4def95b126e5725d070669ea64e0644c4c8",
+      "size": 42101042
+    }
+  },
+  "limitations": [
+    "The public Intel source exactly matches the Apollo Lake IAS container contract but is not the proprietary exact rel.1714 LGE ABL source.",
+    "The predicted public-SBL key digest is not present verbatim in the exact 8 MiB flash image; compressed modules, manifests, or another trust-store encoding remain possible.",
+    "Strings and container topology corroborate product and format identity but do not establish the exact target verification branch.",
+    "No firmware, bootloader, constructor, updater, image, flash operation, or boot attempt was executed."
+  ],
+  "package_key": {
+    "containers": 12,
+    "exponent": 65537,
+    "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "public_sbl_candidate_digest": "437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06",
+    "public_sbl_hash_input": "reverse(stored_modulus) || stored_little_endian_exponent"
+  },
+  "public_intel": {
+    "iasimage": {
+      "commit": "a4068106f9971ed1362def1f71a8eccf90fc4422",
+      "files": {
+        "README.md": "e0c2c42683f8e880632da2133b080f81fc8649e97507806652c74475fd983422",
+        "iasimage.py": "6a32c7df4503aa10679d3729903c583dad81bed290ee79e6f7ad1dd936252394"
+      },
+      "format_match": {
+        "magic": "ipk.",
+        "public_key_size": 260,
+        "signature_size": 256,
+        "signed_type": "0x30300"
+      }
+    },
+    "slim_bootloader": {
+      "commit": "5f5c14b10ae6bd3cd0cf7e274142767dc2635a06",
+      "component_type": "COMP_TYPE_PUBKEY_OS (6)",
+      "digest_source": "gPayloadKeyHashGuid HOB component entry",
+      "embedded_key_digest_checked_first": true,
+      "embedded_key_extracted": true,
+      "files": {
+        "BootloaderCommonPkg/Library/IasImageLib/IasImage.c": "c44a7f2a4f24a732d312edaf483a7b60f14b7597106d23ed6ccbc6d56065d497",
+        "BootloaderCommonPkg/Library/SecureBootLib/SecureBootHash.c": "49d3fa1c8570ad87ac54c8ee548eb845b8e9da39c8355e85501f7414317e5e7b",
+        "BootloaderCommonPkg/Library/SecureBootLib/SecureBootRsa.c": "96dedbded8805d3a1de7d9745f97cfcb27ecf89ad4bae7846e612469993378ae",
+        "PayloadPkg/Library/PayloadLib/PayloadLib.c": "4eecd21c2ddec495d394b869f7282908523ec46ff5e36f15f73dcbea00d2f107"
+      },
+      "payload_signature_checked_after_key_digest": true,
+      "platform": "Apollo Lake IAS public source"
+    }
+  },
+  "schema": "abl-ias-key-trust/v1",
+  "stock_constructor": {
+    "build_id": "adbd4f651cf1d63e7e5f52f7a32dc54fb507bd48",
+    "external_boot_key_pin_proved": false,
+    "member": "bin/ias_image_app",
+    "sha256": "849b6b575ab76f865684d44f49977cf6c4b5fa60ae2cfb70c49a4a66424368d8",
+    "size": 39664,
+    "supplied_key_signature_check_before_embedding": true
+  },
+  "tool": {
+    "name": "abl-ias-key-trust",
+    "version": "1.0.0"
+  }
+}

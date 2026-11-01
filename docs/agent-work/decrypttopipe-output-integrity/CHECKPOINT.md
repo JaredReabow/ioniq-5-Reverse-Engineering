@@ -2,7 +2,7 @@
 
 ## Status
 
-Implementation and canonical validation complete. Publication remains.
+Implementation, publication, and the later host-side LZ4 pipe-deadlock remediation are complete.
 
 ## Findings
 
@@ -37,10 +37,17 @@ Implementation and canonical validation complete. Publication remains.
 - canonical suite: `977 passed, 352192 subtests passed in 147.37s`;
 - canonical log SHA-256:
   `c574c1fac0c1e1f1752bf7fe433eb32252411f70c9986724ef9fa5b21e913346`;
-- report SHA-256:
+- original published report SHA-256:
   `b52ed73601091f541541aa50aecd90886e5249f6b3f48c43fadaa2b85f9fc0cb`;
+- current report SHA-256 after rebinding the remediated matrix helper:
+  `cd85dc09404e055ae84ce45f6483dc5ab276f4d61032fe491d79624564cb351d`;
 - exact-static excerpt SHA-256:
   `ddfab55d2670e80d133490568207d42a46849d823837dc83139c55d8a2633f70`.
+
+The matrix helper was later changed from `subprocess.run(input=..., stdout=PIPE)`
+to explicitly concurrent bounded stdin/stdout/stderr draining. This avoids an
+observed Python 3.13/macOS pipe deadlock without changing package bytes or report
+semantics. The only deterministic report delta is the bound matrix-helper hash.
 
 ## Boundary
 

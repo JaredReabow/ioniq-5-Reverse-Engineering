@@ -3622,3 +3622,10 @@ and are superseded by corrections rather than silently rewritten.
   already been decoded from the vendor's own logs in a document sitting in the tree.
 - Even with both fixed, the client still rejects the reply and still reports a NULL source. Progress that stops at "now we
   are asking the right question" is still progress, but it is not an answer, and the entry says so.
+
+## 2026-10-31 — one more excluded, two kept
+
+- Creating every path the client complained about changed nothing, which closes the missing-input theory honestly.
+- The sweep did produce two facts worth having on their own: the client wants a second MMC device, and it wants the /Data
+  resource table. Both are fidelity gaps in the projection rather than bugs in the client.
+- The remaining question is inside one function, and no further external experiment will reach it.

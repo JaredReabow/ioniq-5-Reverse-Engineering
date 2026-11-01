@@ -982,6 +982,15 @@ vulnerability is claimed, and this test does not move either entry.
   2. **Seeding those same 35 bytes into the `MICOMSTATUSMESSAGE` region at offset 0 does not clear `pszSrc NULL`.**
   So the region must exist *and* `pszSrc` comes from somewhere this thread has not yet located — most likely a second
   object, or a different offset/header inside this one.
+- **The missing-input hypothesis was tested and does not explain `pszSrc`.** An untargeted `ENOENT` sweep showed what
+  `ApplicationManager` looks for beyond the qipc region:
+  `/Data/mnt-wt/Settings/shared_public/{GroupContent.json,resource-table-cfg.itz-lock}`,
+  `/Data/mnt-c/Settings/BackupFileList.info`, `/log_data/backtrace/AppManager_info.txt`, `/rw_data/app_data/common/eng/…`,
+  and **`/dev/mmcblk1p1`**. Creating those directories and placeholder files (`[]` and a header line) changed nothing:
+  `PSZNULL=1`, `ATTACHFAIL=0`, `BOOTINFO=0`. So `pszSrc` is not sourced from any of those paths.
+- **Two side-findings worth keeping for VM fidelity, independent of this bug:** the client expects a **second MMC device**
+  (`/dev/mmcblk1p1`) that the projection does not provide, and a **`/Data` resource table** under
+  `mnt-wt/Settings/shared_public` — matching the `/Data` item already ranked in the HMI gap analysis.
 - **Hand-off state for V-036, complete:** reachability, interface construction and shared-memory mechanisms excluded by
   measurement; reply content confirmed as the blocker; three plausible payloads rejected against a live client; the oracle
   for testing further candidates exists and is documented; and the static anchors are listed with the specific difficulty

@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.09.0 - missing /Data inputs excluded; two VM-fidelity gaps recorded
+
+- Swept the client's `ENOENT` calls for anything beyond the qipc noise and found it looking for
+  `/Data/mnt-wt/Settings/shared_public/{GroupContent.json,resource-table-cfg.itz-lock}`,
+  `/Data/mnt-c/Settings/BackupFileList.info`, `/log_data/backtrace/AppManager_info.txt`, `/rw_data/…/eng/…`, and
+  **`/dev/mmcblk1p1`**.
+- Created those directories and placeholder files and re-ran: **`PSZNULL=1` unchanged**, with `ATTACHFAIL=0` and
+  `BOOTINFO=0`. So `pszSrc` does not come from any of those paths, and that hypothesis is excluded by measurement.
+- **Two useful side-findings, independent of V-036:** `ApplicationManager` expects a **second MMC device**
+  (`/dev/mmcblk1p1`) that this projection never provides, and a **`/Data` resource table** under
+  `mnt-wt/Settings/shared_public` — the same `/Data` item ranked in the HMI gap analysis. Both are VM-fidelity gaps worth
+  closing regardless of this bug.
+- **Empirical work on `pszSrc` stops here.** Every externally testable input has been excluded; what remains is reading
+  `initMicomShareMem` and its caller to see which object the argument is loaded from, which is disassembly work on the
+  stripped binary with the anchors already recorded.
+
 ## 2.08.0 - the attach is a `stat`, and the recovered profile is still rejected
 
 - **Corrected the instrument, again, and this time it matters.** An untargeted trace shows `ApplicationManager` doing

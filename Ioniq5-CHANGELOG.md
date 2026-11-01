@@ -3,6 +3,34 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.05.0 - both lineages combined semantically, not sacrificed
+
+- The previous merge resolved 39 add/add conflicts by taking the newer side per file, which **discarded content** — the
+  criticism was correct. Every one of those files has now been replaced with a real union of the two histories, by eight
+  parallel workers on disjoint file sets.
+- **Log documents now carry both lineages' entries:**
+  - `Ioniq5-CHANGELOG.md` 259 → **276** sections: the 17 sections that existed only in the parallel repository are inserted in
+    version order; where both sides had the same version with different bodies, **both bodies are kept** (22 such cases).
+  - `Ioniq5-HISTORY.md` 216 → **229**: the 12 parallel-only entries placed chronologically, 7 shared headings keep both bodies.
+  - `Ioniq5-VULNERABILITIES.md`: the 9 parallel-only entries imported and **renumbered** to **V-037…V-044** and **I-002**,
+    because every one of their numbers collided with a *different* finding here (their V-006 was the launcher/serial family,
+    ours was the MTP shell defect). Each carries a provenance line naming its original number; **zero duplicate IDs** remain.
+- **21 evidence documents** keep every distinct fact, table row and citation from both sides; where the lineages **disagree**
+  on a fact, both statements are preserved with an inline disagreement marker for human adjudication rather than a silent
+  choice. Notable disagreements recorded: `oemkm=` vs `ABL.oemkm=` (3 files), update-trust scope (3 files), Wi-Fi/CVE table
+  rows vs exact-review rejections, Dirty COW / Stack Clash / AF_PACKET version-gap rows vs exact backports, and the
+  `disableEncryptionUpdate` premise.
+- **Code:** `tests/test_harness.py` 49 → **54** tests (parallel-only bodies added as `*_other_lineage`); `gitscope.py` now
+  accepts both repository names. `vm_boot.py` retains `INIT_CHOICES`, `--init`, `--sdhci-compat`, `--micom-serial` and
+  `extra_devices`. All Python compiles; `tests.test_vm_boot` and `tests.test_rootfs_patch` pass (37 tests).
+- **Two deliberate limitations, recorded rather than hidden:**
+  1. `rootfs_patch.py` keeps our hardened implementation; the parallel lineage's repack internals are **not** merged because
+     ours is a strict safety superset (`_safe_extract`/`_write_ustar`/exclusive creates, and a fix for a `lstrip("./")` bug
+     that mangled dotfiles). Their docstring material was merged in.
+  2. `test_public_mode_scans_new_vm_source_folder` **fails**, because `tests/harness/privacy.py` scans only `evidence/`,
+     `council/` and `tools/` in public mode and never `vm/`. That failure is **identical in the parallel lineage** — it is
+     pre-existing, not caused by the merge — and fixing it means widening the privacy scan, which is a separate decision.
+
 ## 2.04.0 - the two repositories are combined, with neither history discarded
 
 - The two repositories shared **no merge base**: this one 228 commits ahead, the other 19 ahead in its own right. They are

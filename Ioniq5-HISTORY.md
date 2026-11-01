@@ -3586,3 +3586,15 @@ and are superseded by corrections rather than silently rewritten.
 - Thirty-nine files had to be chosen between because unrelated histories make every difference a conflict. Newest-won, with
   the losing versions still reachable from the parents, and presence checks run afterwards on artefacts from both sides
   rather than trusting the merge to have done the right thing.
+
+## 2026-10-31 — combining properly, and being told when I had not
+
+- The first merge took the newer side per file and called it a combination. It was not: it sacrificed one lineage's text in
+  every conflicted file. Combining means both, and that is what this round did, with eight workers on disjoint files.
+- The register was the delicate part. Nine findings arrived numbered V-006 to V-013 and I-001 — numbers this lineage already
+  used for different findings. They are now V-037 to V-044 and I-002, each carrying a line naming its original number, so old
+  citations still resolve and no claim was dropped.
+- Where the two lineages disagree on facts, both statements survive with a marker for a human. A merge that silently picks a
+  winner is how a register stops being a record.
+- Two things were deliberately not merged and are written down: the parallel rootfs patch internals, because ours is a
+  safety superset, and a failing privacy test that fails identically in both lineages.

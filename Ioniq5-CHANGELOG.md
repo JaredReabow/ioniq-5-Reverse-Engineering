@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.20.0 - V-028 runtime-confirmed: a caller-supplied path executes as root
+
+- **The launcher's D-Bus `request.launch` executed an arbitrary caller-supplied path as root.** Using the published
+  reproduction chain, one session-bus call:
+
+  ```
+  dbus-send --session --dest=com.lge.avn.applauncher /Request \
+    com.lge.avn.applauncher.request.launch int32:999 string:probe string:/app/bin/AppProbe
+  ```
+
+  returned `method return … reply_serial=2`, and the script at that path ran with the marker
+  **`uid=0(root) gid=0(root)`**. This is the first runtime confirmation in this project of the route V-028 described
+  statically.
+- **Two supporting facts, both useful:** the method does **not** check that the path is a registered application, and it does
+  **not** fail for a path that does not exist — an earlier run against a missing file also returned success, so the return
+  value never indicates whether anything executed.
+- **The boundary is stated, not glossed.** The caller in this test was the root shell that also started the chain, so this
+  demonstrates the **code path**, not a **privilege boundary crossing**. Whether an unprivileged local process can reach the
+  same session bus — `EXTERNAL` auth, no explicit user connection rule — is untested, and the severity of this entry depends
+  on that entirely. V-028 is upgraded from "static route" to "runtime execution demonstrated", with that caveat attached.
+- The working entry point is **`request.launch (int32, string, string)`**, not the `launch` method this thread introspected
+  over four failed attempts. That single detail was the difference between no execution and root execution.
+
 ## 2.19.0 - a real client window is mapped; its content is blank
 
 - Ran the later chain variant (`full-chain-timeout120-legal-reason11-priority-pointer-confirm.sh`, which issues

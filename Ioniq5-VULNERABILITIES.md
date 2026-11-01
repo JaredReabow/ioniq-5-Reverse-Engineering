@@ -464,7 +464,7 @@ bring-up defect. That question is open.
 - **Remediation:** backport `c8bcd9c5be24fb9e6132e97da5a35e55a83e36b9` or equivalent consistent session-field locking/reference ownership; validate only on a disposable instrumented kernel.
 - **Evidence:** `evidence/vendor-kernel-tty-session-cve-2020-29660.md`; focused instructions `evidence/artifacts/kernel-candidates/kernel-tty-session-cve-2020-29660.asm`; Boolean-only model `tools/uk_fw/tty_session_lock_model.py`.
 
-## V-028 — AppLauncher D-Bus caller path bypasses both identified verifier calls (EXACT STATIC ROUTE; RUNTIME EXEC UNOBSERVED)
+## V-028 — AppLauncher D-Bus caller path reaches root execution (RUNTIME EXEC DEMONSTRATED IN VM)
 
 - **Status:** exact recovered AppLauncher exports session-bus `launch(appid, appname, applocation, ...)` methods. The runtime `applocation` reaches the AppProcess program field; the dispatcher sets byte `+0x1c`; and that byte selects a route to a `QProcess::start` call site without either identified verifier call. No D-Bus request, executable, target launch, credential/label transition, trust-anchor write, update, or persistence action was created.
 - **Component:** `/app/bin/AppLauncher`, SHA-256 `c8d6d56bc254ad0731e81f40bd83aa9b3be6b49bcbd8efb291157a06c4a84268`, Build ID `0452df1033bd1bbae15727a83d4d56576d8b9444`; x86-64 `ET_DYN`.
@@ -474,6 +474,32 @@ bring-up defect. That question is open.
 - **Impact boundary:** exact static evidence establishes a caller-selected route that bypasses both identified AppLauncher verifier calls and can reach `QProcess::start` after the runtime gates. It does not establish that no other platform enforcement exists, successful `exec`, unrestricted root/SMACK escape, controlled update-anchor substitution, modified-update acceptance, partition writes, slot switching, boot acceptance, mark-good or persistence.
 - **Remediation:** eliminate caller-supplied executable paths; resolve appids through an immutable root-owned registry; authorize senders explicitly; run applications under distinct non-root uids; and bind mandatory verification to the exact opened executable immediately before every exec.
 - **Evidence:** `evidence/applauncher-dbus-launch-bypass.md`; reviewed excerpt `evidence/artifacts/application-candidates/applauncher-dbus-launch-evidence.txt`; Boolean-only model `tools/uk_fw/applauncher_dbus_launch_model.py`.
+
+### Runtime confirmation (2026-10-31)
+
+The route is no longer static-only. Using the reproduction chain published in `vm/repro/` — vendor compositor, launcher
+started directly, session bus from `/tmp/session_appmgr` — a single session-bus call was made:
+
+```
+dbus-send --session --dest=com.lge.avn.applauncher /Request \
+  com.lge.avn.applauncher.request.launch int32:999 string:probe string:/app/bin/AppProbe
+```
+
+It returned `method return … reply_serial=2`, and the script at that caller-supplied path executed **as root**: the marker
+file contains `uid=0(root) gid=0(root)`.
+
+Two things this does and does not establish, kept separate:
+
+- **Established:** a caller-supplied `applocation` reaches `QProcess::start` and executes with **uid 0**. The method does not
+  validate that the path is a registered application, and it does not refuse a path that does not exist — an earlier run
+  against a **missing** path also returned success, so the return value alone never indicates whether anything ran.
+- **Not established:** privilege *escalation from an unprivileged subject*. In this test the caller was the root shell that
+  also started the chain, so this demonstrates the code path, not the boundary crossing. Whether a non-root local process can
+  reach the same bus is a policy question about the session bus (`EXTERNAL` auth, no explicit user connection rule) that has
+  **not** been tested, and the severity of this entry depends on it entirely.
+
+The working method is `request.launch` with `(int32 appid, string appname, string applocation)`; the `launch` method
+previously introspected is a different entry point and produced no execution in four attempts.
 
 ## V-029 — IPv6 append-data check occurs after skb copy (EXACT CVE-2017-9242 ORDERING; RUNTIME OVERWRITE UNPROVEN)
 

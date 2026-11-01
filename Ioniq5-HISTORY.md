@@ -3782,3 +3782,13 @@ and are superseded by corrections rather than silently rewritten.
   the compositor is presenting a client surface, and the application is not painting into it.
 - Keeping both captures matters. The splash says the compositor can paint vendor artwork; the decorated window says a client
   is mapped. Neither alone would tell the next person where to look.
+
+## 2026-10-31 — the root path works
+
+- A single D-Bus call with a caller-supplied path produced a root shell's output in a marker file. After a day of failed
+  attempts at a different method, the working entry point turned out to be one the published chain already used.
+- The discipline that matters here is what the register now says alongside it: the caller in this test was root, so what has
+  been demonstrated is the code path, not an escalation from an unprivileged subject. The severity question moves to the bus
+  policy, and it stays open until that is tested.
+- Worth noting the contrast with V-037, where a claim of demonstrated root execution turned out to rest on a harness artefact.
+  The difference is that this one was reproduced from a clean state, with the evidence being a file the target process wrote.

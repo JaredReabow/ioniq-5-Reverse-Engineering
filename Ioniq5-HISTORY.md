@@ -3858,3 +3858,12 @@ and are superseded by corrections rather than silently rewritten.
   the whole time, and every earlier "blank screen" observation was describing whichever one happened to be in front.
 - Naming them separately is the useful outcome. The next test distinguishes the last two possibilities for the second fault,
   and it can be done from the buffers the launcher throws away rather than from screenshots.
+
+## 2026-10-31 — nothing to draw, because nothing was drawn
+
+- The client never attaches or commits a buffer. Not slow, not misplaced, not stuck on a frame callback: it simply never hands
+  the compositor a frame.
+- That retires a great deal of the session's reasoning in one measurement. The compositor, the backend, the pixman renderer, the
+  software GL stack and the IVI layer assignment were all being investigated for a fault that lives entirely in the client.
+- The honest version of today's earlier entries is that they were describing the absence of a frame in ever finer detail. This
+  is the first one that names the party responsible.

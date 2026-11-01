@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.29.0 - the app never submits a buffer; the compositor is exonerated
+
+- Captured the app's Wayland traffic from the buffers the launcher discards to `/dev/null`. Against `AppHomeScreen`
+  (`pid 1176`), at 155 seconds into a run in which it is alive and registered:
+
+  `wl_surface@N.attach` calls: **0** · `wl_surface@N.commit` calls: **0** · `ivi_` mentions: **40** · `wl_callback`: **23**
+
+- So the application **never submits a single buffer**. It binds `ivi_application` and `ivi_window_manager` (those are the
+  `ivi_` lines — registry interface names), it is alive, it registers, it requests QML loads — and it never attaches or commits
+  anything to a surface.
+- **That settles the display question and exonerates the emulation stack.** The compositor, the headless backend, pixman,
+  softpipe, the IVI shell and the layer assignment are all irrelevant to the blank screen: there is nothing to draw because the
+  client never delivers a frame. Every earlier hypothesis about buffer transport, layer placement and frame callbacks is
+  eliminated by this one measurement.
+- It also explains why `early-background`'s splash was the only thing ever visible, and why killing it produced black: the
+  screen is empty because the only client that could fill it has never painted.
+- **The remaining question is inside the client**: why a running, registered QML application issues `AW_REQUEST_LOAD_QML` and
+  then renders nothing. The next check is inside the same captured stderr buffers — grep them for QML load failures
+  (`module … is not installed`, `ReferenceError`, `Failed to create`, plugin `dlopen` errors) rather than for protocol traffic.
+
 ## 2.28.0 - two independent faults isolated: a splash that never exits, and an app that paints nothing
 
 - **Identified the splash program.** `/usr/bin/early-background` is an **IVI application surface** that displays

@@ -1,0 +1,210 @@
+{
+  "artifact": {
+    "build_id": "863a8730e66a1c5245a1bf458fe2554adee0351a",
+    "sha256": "464a87646153213ce1f405743a10cff78eb90c203b619f983002358ca74ef0e7",
+    "size": 5066264
+  },
+  "conclusions": {
+    "boot_acceptance_or_mark_good_proved": false,
+    "completion_log_proves_successful_boot_partition_bytes": false,
+    "persistent_boot_selection_proved": false,
+    "root_or_persistence_proved": false,
+    "swap_false_can_continue_in_handler": true,
+    "system_swap_latch_is_not_a_mandatory_gate_for_downstream_marker_handling": true,
+    "weak_swap_true_can_set_system_swap_latch": true
+  },
+  "exact_static": {
+    "controller_fields": {
+      "navi_complete_handler_offset": 577,
+      "resource_complete_handler_offset": 578,
+      "root_updated_getter_object_offset": 69,
+      "system_swap_complete_handler_offset": 576
+    },
+    "direct_calls": {
+      "ext_folder_predicate": {
+        "site": 1177191,
+        "target": 974576
+      },
+      "ext_units_execute": {
+        "site": 1177337,
+        "target": 145664
+      },
+      "finish_system_call": {
+        "site": 1179863,
+        "target": 149392
+      },
+      "navi_completion_normal": {
+        "site": 1177710,
+        "target": 1343504
+      },
+      "read_navi_extended": {
+        "site": 1177690,
+        "target": 585024
+      },
+      "read_navi_updated": {
+        "site": 1177664,
+        "target": 585408
+      },
+      "read_resource_updated": {
+        "site": 1177732,
+        "target": 585984
+      },
+      "read_root_updated": {
+        "site": 1177124,
+        "target": 585216
+      },
+      "remove_system_completed_marker": {
+        "site": 1177779,
+        "target": 1310384
+      },
+      "swap_system": {
+        "site": 1179711,
+        "target": 1347184
+      }
+    },
+    "downstream_flow": {
+      "all_paths_reach_finish_log": false,
+      "finish_log_is_downstream_in_same_handler": true,
+      "navi_and_resource_blocks_follow_swap_block": true,
+      "system_completed_marker_helper_follows_resource_block": true,
+      "system_completed_marker_helper_requires_0x240": false
+    },
+    "ext_units_flow": {
+      "qprocess_execute_result_used": false,
+      "requires_ext_folder_predicate": true,
+      "requires_system_swap_latch": true
+    },
+    "instruction_anchors": {
+      "downstream_finish_log": {
+        "sha256": "1bdddf0562e456b7afbf8b2ef534018e6b0e9da00b7138b34c82ce0029e67776",
+        "size": 49,
+        "va": 1179848
+      },
+      "ext_folder_and_latch_gate": {
+        "sha256": "3f92f22f46f040e756575863e7de1cdd01d788bac25b1dd34dfa68777634a8db",
+        "size": 155,
+        "va": 1177188
+      },
+      "navi_resource_then_marker": {
+        "sha256": "eddfcf3875b05c210381bb6bd136415744ab7162afb32ab31bfa885371478f4a",
+        "size": 132,
+        "va": 1177660
+      },
+      "root_getter_and_current_latch": {
+        "sha256": "116cc0dba2e595107e9e037eee89fc76bd28ab3fd3c57c4e9e4c5a7cab22b97d",
+        "size": 68,
+        "va": 1177120
+      },
+      "swap_false_rejoins_and_true_latches": {
+        "sha256": "dd6cf256ed8b1edbc7da9d7dced0126d425817d6a00f969b83fac9c457015801",
+        "size": 37,
+        "va": 1179704
+      }
+    },
+    "literals": {
+      "ext_units": {
+        "va": 2243344,
+        "value": "/update/extInfoUpdate/ext_units"
+      },
+      "finish_log": {
+        "va": 2230113,
+        "value": "[%s] UPDATE FINISH !!!  \n"
+      },
+      "firmware_complete_marker": {
+        "va": 2139800,
+        "value": "/update/firmware_update_complete"
+      },
+      "firmware_complete_signal": {
+        "va": 2237560,
+        "value": "/update/exfirmware_update_complete"
+      },
+      "kernel_finish_command": {
+        "va": 2250088,
+        "value": "echo [USB-UPDATE] UPDATE FINISH >/dev/kmsg"
+      },
+      "root_updated_log": {
+        "va": 2183249,
+        "value": "\t [%s] m_rootUpdated : %d "
+      },
+      "state_ready": {
+        "va": 2284796,
+        "value": "ready"
+      },
+      "state_report": {
+        "va": 2249840,
+        "value": "/update/extInfoUpdate/StateReport2DM"
+      },
+      "system_complete_marker": {
+        "va": 2139768,
+        "value": "/update/system_update_complete"
+      },
+      "system_completed_marker": {
+        "va": 2139736,
+        "value": "/update/system_update_completed"
+      },
+      "system_swap_complete_log": {
+        "va": 2249624,
+        "value": "###[newota][%s:%d] %s() \t ***************************  Upgrade complate ******************************* :: m_systemSwapComplte [%d] "
+      },
+      "touch_template": {
+        "va": 2230077,
+        "value": "touch %1"
+      }
+    },
+    "ranges": {
+      "ext_folder_predicate": {
+        "end_exclusive": 975587,
+        "sha256": "ef44910f6ca468e807b7d72f96068d8ee3970ddcf8362b3e8d3926974038bec0",
+        "start": 974576
+      },
+      "get_navi_extended_update": {
+        "end_exclusive": 585116,
+        "sha256": "5d6fd733ae8a3cfc9f9cddd4b36a23d27e982b6efb8a86270a56a6a72999c486",
+        "start": 585024
+      },
+      "get_navi_updated": {
+        "end_exclusive": 585500,
+        "sha256": "88cde4481812191548ed102af59d273880e3e72d65cd040c51d0b4d1efb7d790",
+        "start": 585408
+      },
+      "get_resource_updated": {
+        "end_exclusive": 586076,
+        "sha256": "87a0a479102e8e411cc2835be31d2f4029a27d7fa563fd000178c947b5afa828",
+        "start": 585984
+      },
+      "get_root_updated": {
+        "end_exclusive": 585308,
+        "sha256": "9cedfbf6530b72ae8a5f927905c6c1245015acb70ed7ed8b3a9a82136cb300af",
+        "start": 585216
+      },
+      "marker_remove_helper": {
+        "end_exclusive": 1310757,
+        "sha256": "fb184af8a802f616510da2f5fc50a62509fd25902b46c8c5ae4fb12904d71ba4",
+        "start": 1310384
+      },
+      "update_info_handler": {
+        "end_exclusive": 1182366,
+        "sha256": "8d8cbd6f13b03f5e744a9419937d37db6390cef7c6022c7e8a4d52ee6fe3b959",
+        "start": 1175984
+      }
+    },
+    "swap_result_flow": {
+      "root_updated_true_requests_swap": true,
+      "swap_false_aborts_handler": false,
+      "swap_false_returns_to_current_latch_log": true,
+      "swap_true_stores_one_at_0x240": true
+    }
+  },
+  "limitations": [
+    "This is exact-static control flow, not runtime invocation or successful effects.",
+    "The handler has additional state and file predicates; the package does not claim every path reaches the final log.",
+    "Marker removal, QProcess::execute, system(), and log call sites do not establish successful or durable effects.",
+    "Neither a latch nor downstream completion handling proves selected boot bytes, persistent activation, ABL/MICOM acceptance, health, mark-good, rollback, root, or persistence."
+  ],
+  "schema": "appfumo-system-swap-completion/v1",
+  "tool": {
+    "bound_elf_helper_sha256": "c0edbbe93df218192f315437132764549453e78f7a93fec350540637312a1e82",
+    "name": "appfumo-system-swap-completion",
+    "version": "1.0.0"
+  }
+}

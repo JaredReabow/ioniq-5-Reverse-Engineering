@@ -3824,3 +3824,10 @@ and are superseded by corrections rather than silently rewritten.
   longer window.
 - The frame still was not captured, and I am recording the required window size rather than pretending the earlier attempt
   counted.
+
+## 2026-10-31 — the script was deleting the evidence before I looked
+
+- The chain kills every process it started and archives what it captured. Waiting for it to finish and then screenshotting was
+  never going to work, and the empty screenshot directory made that plain.
+- Both captures I do have came from external screenshooter calls against a live chain. That is the method, and it is now
+  written down rather than rediscovered.

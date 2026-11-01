@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.25.0 - why the frames stopped arriving: the chain tears itself down
+
+- Read the chain script's tail properly. After its last stage it **kills the launcher, ApplicationManager, AppHomeScreen,
+  AppNavi, dlt-daemon and weston**, then tar-and-base64s the `launcher-chain` directory as evidence and exits. So
+  **capturing after the script returns is impossible** — by design, everything it captured is gone and the compositor is dead.
+- Running the later variant to completion confirms it: `CHAIN_RC=0`, and the run finished at 218 s, but
+  **`/tmp/launcher-chain/shot/` contained no files and the script printed no `wayland-screenshot.png` hashes** — its own capture
+  step produced nothing in this environment, even though the identical `weston-screenshooter` binary works when invoked
+  directly against the live chain (that is how `docs/vm/07` was captured).
+- So there is a **timing constraint** rather than a tooling gap: frames must be taken *while the chain is running*, at a stage
+  the chain itself has passed, and the chain's internal capture is not reliable here. The two working captures
+  (`docs/vm/07` splash at 75 s, `docs/vm/08` decorated window) both came from external captures against a live chain — which is
+  the method to keep using.
+- **Stopping the capture chase here.** Four runs have gone into framing it and the useful output is the constraint itself; the
+  next attempt should external-capture at a named stage of a chain run in the background, not after it finishes.
+
 ## 2.24.0 - with our service the app starts, but 125 seconds later
 
 - Longer window (160 s) with `micom-service` substituted. `AppHomeScreen` **does** start and register — `PID : 983`,

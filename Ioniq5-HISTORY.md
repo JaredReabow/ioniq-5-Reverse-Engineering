@@ -3849,3 +3849,12 @@ and are superseded by corrections rather than silently rewritten.
   minutes. And the splash is simply never dismissed — identical frames at 185 and 230 seconds.
 - So the failure is not the display stack. It is a splash that nothing removes, and an app whose messages are being discarded.
   Both are specific, and neither would have been found by another round of screenshotting.
+
+## 2026-10-31 — two faults, not one
+
+- The splash turned out to be a program, `/usr/bin/early-background`, holding an IVI surface with the boot image and never
+  exiting. Killing it changed the frame from the splash to black, which settles that question and immediately opens another.
+- With the splash gone for two and a half minutes, the application still paints nothing. So there were two independent faults
+  the whole time, and every earlier "blank screen" observation was describing whichever one happened to be in front.
+- Naming them separately is the useful outcome. The next test distinguishes the last two possibilities for the second fault,
+  and it can be done from the buffers the launcher throws away rather than from screenshots.

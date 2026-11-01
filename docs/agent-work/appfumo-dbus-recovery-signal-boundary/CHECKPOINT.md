@@ -1,7 +1,7 @@
 # AppFUMO wildcard D-Bus recovery-signal boundary checkpoint
 
 Date: 2026-11-01
-Status: implemented; local validation complete; not staged or committed
+Status: implemented; independent exact-package review **ACCEPT**; committed as `98778f0` and published to both maintained repositories
 
 ## Delivered
 
@@ -96,10 +96,19 @@ All Python tests and harnesses were run with `<platformio-env>/bin/python3`.
 - normalized report SHA-256:
   `826ed7c3fcfcd7077840fbad792a88737a2555ba9e2a528f1baf9179bd07a936`.
 
-## Repository state
+## Review and publication
 
-The correction pass resumed from requested stable baseline
-`8bfe50efa8a5e32493be4de3e4d2c4326f707e07` without resetting, reverting, or
-altering concurrent history. No recovered target code was executed. No bus,
+Independent exact-package review first identified D-Bus policy-ordering,
+wildcard/conjunction, and fail-closed XML-scope gaps. After correction and
+regeneration, the reviewer returned **ACCEPT** for the hash-bound tool, tests,
+evidence, manifest, and report listed above. The accepted package was committed
+as `98778f0674cd0dc8a91d508100b3f955cbb04ba4` and fast-forward published to
+both maintained `main` branches. Post-push checks matched local `HEAD`, both
+tracking refs, and both remote branch heads.
+
+The correction pass resumed from baseline
+`8bfe50efa8a5e32493be4de3e4d2c4326f707e07`; concurrent unrelated history then
+advanced through `2eec121` before this package commit. No reset, revert, or
+history rewrite occurred. No recovered target code was executed. No bus,
 signal, method, request, payload, packet, flash/update action, or persistence
 was created. The `tools/uk_fw/ias_backend_soft/` subtree was not edited.

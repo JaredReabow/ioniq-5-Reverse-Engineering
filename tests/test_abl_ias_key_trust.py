@@ -3,6 +3,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 TOOL=ROOT/'tools/uk_fw/abl_ias_key_trust.py'
 REPORT=ROOT/'evidence/artifacts/update-candidates/abl-ias-key-trust.json'
+EXCERPT=ROOT/'evidence/artifacts/update-candidates/abl-ias-key-trust-exact-static.asm'
 UPDATE=ROOT/'work/decrypted-eu-260128/HU/firmware/update.tar.gz'
 ROOTFS=ROOT/'work/decrypted-eu-260128/HU/images/mango-rootfs.tar.gz'
 BOOT=ROOT/'work/appfumo-iasimage-eu260128/encrypted'
@@ -18,14 +19,16 @@ class AblIasKeyTrustTests(unittest.TestCase):
   if p.returncode:raise AssertionError(p.stderr.decode())
   cls.raw=p.stdout;cls.r=json.loads(p.stdout)
  def test_report_is_frozen_and_deterministic(self):
-  self.assertEqual(self.raw,REPORT.read_bytes());self.assertEqual(hashlib.sha256(self.raw).hexdigest(),'2e6096d14d54d06af4ddd2989e80de1558ff8de081b64e64306ada123658f3b7')
+  self.assertEqual(self.raw,REPORT.read_bytes());self.assertEqual(hashlib.sha256(self.raw).hexdigest(),'df9d9a2f730efb2103a11113f028008ac3c36b1b05293602d72958f5612c5fa6')
   self.assertEqual(self.raw,M.encode(self.r))
+ def test_exact_static_excerpt_is_frozen(self):
+  b=EXCERPT.read_bytes();self.assertEqual(len(b),16384);self.assertEqual(hashlib.sha256(b).hexdigest(),'5c069c0b869288e38087ad25dc86c8efa18d2f16799a8c26434dc8d82515932b');self.assertNotIn(b'work/',b);self.assertNotIn(b'Contents of section',b)
  def test_exact_target_conclusion_remains_bounded(self):
-  c=self.r['conclusions'];self.assertIsNone(c['exact_target_abl_key_pin_proved']);self.assertFalse(c['exact_target_abl_accepts_arbitrary_embedded_key_proved']);self.assertFalse(c['custom_signed_image_acceptance_proved']);self.assertFalse(c['boot_acceptance_root_or_persistence_proved'])
+  c=self.r['conclusions'];self.assertTrue(c['exact_target_abl_key_pin_proved']);self.assertTrue(c['exact_target_abl_type3_path_uses_pinned_key_check']);self.assertFalse(c['exact_target_expected_digest_storage_identity_proved']);self.assertFalse(c['exact_target_abl_accepts_arbitrary_embedded_key_proved']);self.assertFalse(c['custom_signed_image_acceptance_proved']);self.assertFalse(c['boot_acceptance_root_or_persistence_proved'])
  def test_public_source_semantics_are_separate(self):
   s=self.r['public_intel']['slim_bootloader'];self.assertTrue(s['embedded_key_digest_checked_first']);self.assertTrue(s['payload_signature_checked_after_key_digest']);self.assertEqual(s['component_type'],'COMP_TYPE_PUBKEY_OS (6)');self.assertEqual(s['commit'],M.SBL_COMMIT)
  def test_exact_flash_and_key_identities(self):
-  self.assertEqual(self.r['exact_update']['abl']['sha256'],M.ABL_SHA);self.assertFalse(self.r['exact_update']['abl']['candidate_os_key_hash_present_verbatim']);self.assertEqual(self.r['package_key']['modulus_sha256'],M.MOD_HASH);self.assertEqual(self.r['package_key']['public_sbl_candidate_digest'],'437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06')
+  a=self.r['exact_update']['abl'];self.assertEqual(a['sha256'],M.ABL_SHA);self.assertFalse(a['candidate_os_key_hash_present_verbatim']);self.assertFalse(a['candidate_os_key_hash_present_in_decompressed_stages']);self.assertEqual(a['ibb_subimages']['decompressed_sha256'][0],'3491be59ef865cb376131b02fa1ff6941e37d1c87ae3c4cf7969b5364785b3c2');self.assertTrue(a['decompressed_stage']['key_check']['digest_compared_before_rsa']);self.assertEqual(a['decompressed_stage']['type3_os_auth']['selector'],0x27);self.assertEqual(self.r['package_key']['modulus_sha256'],M.MOD_HASH);self.assertEqual(self.r['package_key']['candidate_digest'],'437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06')
  def test_unsafe_archive_spellings_fail_closed(self):
   for x in ('','/x','././x','a/./b','a/../b','a//b','a\\b'):
    with self.subTest(x=x),self.assertRaises(M.Failure):M.canon(x)
@@ -44,6 +47,10 @@ class AblIasKeyTrustTests(unittest.TestCase):
   check([('x','file',0),('./x','file',0)])
   check([('./x','symlink',0)])
   check([('./x','file',1)])
+ def test_lz4_decoder_fails_closed(self):
+  with self.assertRaises(M.Failure):M.lz4_block(b'',1)
+  with self.assertRaises(M.Failure):M.lz4_block(b'\x00\x00\x00',4)
+  self.assertEqual(M.lz4_block(b'\x30abc',3),b'abc')
  def test_public_source_drift_fails_closed(self):
   with tempfile.TemporaryDirectory() as td:
    q=Path(td)/'repo';subprocess.run(['git','init','-q',str(q)],check=True)

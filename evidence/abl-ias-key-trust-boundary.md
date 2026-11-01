@@ -2,17 +2,20 @@
 
 ## Result
 
-The exact EU ABL question is **not yet closed**. The twelve exact boot
-containers all carry one RSA-2048 public key, and their signatures verify under
-that carried key. That proves package self-consistency, not bootloader trust.
+The exact EU ABL **pins the public key carried by a signed IAS image**. The
+recovered `rel.1714-HF3` stage hashes the carried 256-byte modulus and four-byte
+exponent, compares the 32-byte digest with a selected external runtime
+hash-record, returns failure on mismatch, and reaches RSA payload-signature
+verification only after that comparison succeeds.
 
-A highly relevant public Intel Apollo Lake bootloader implementation does **not**
-accept an arbitrary carried IAS key: it hashes the carried modulus/exponent,
-compares that digest with component `COMP_TYPE_PUBKEY_OS`, and only then verifies
-the IAS payload signature. The digest is obtained from a component-key-hash HOB.
-This establishes a concrete prerequisite and expected trust model, but it is not
-promoted to the proprietary exact LGE ABL without an instruction or trust-store
-match.
+The exact type-3 OS-image path invokes this routine with hash selector `0x27`.
+Consequently, the twelve package signatures prove more than self-consistency
+only when their carried key also matches the provisioned digest. An arbitrary
+new self-signed IAS key is not accepted by this exact code path.
+
+The persistent object that supplies the runtime descriptor/hash table is not yet
+identified. Therefore the expected digest's storage and authenticated delivery
+remain open even though the exact compare-before-RSA behavior is now closed.
 
 ## Canonical identities
 
@@ -48,10 +51,44 @@ IBBP entry points to a CPD at flash `0x187000`, whose four entries are:
 | `IBBL` | `0x440` | `0x4000` |
 | `IBB` | `0x4440` | `0x34000` |
 
-The IBB begins with an IAS `ipk.` container at flash `0x18b440`. Exact ABL
-literals include `ipk.`, `iasImage`, and `oemkm`. These facts bind platform,
-format, and boot-stage identity; literals and topology alone do not identify the
-verification branch.
+The IBB begins with an IAS `ipk.` container at flash `0x18b440`. Its four
+stored subimage sizes are `0xc0`, `0x172d2`, `0x44a9`, and `0x18493`. The final
+three are raw LZ4 blocks with a four-byte decompressed-size prefix and a
+four-byte trailer. Strict host-side decompression produces:
+
+| Stage | Size | SHA-256 |
+|---|---:|---|
+| 1 | `130,560` (`0x1fe00`) | `3491be59ef865cb376131b02fa1ff6941e37d1c87ae3c4cf7969b5364785b3c2` |
+| 2 | `35,584` (`0x8b00`) | `d1e6d5da3a95a1634ec6a98703775f464044e335e0000f5f1477062f5d91d564` |
+| 3 | `172,352` (`0x2a140`) | `3a8a2ddef16dfefb17b4a28878df601f4e9f5a85fb53e2eecf11c3b4dcf4aa9e` |
+
+A unique absolute pointer to `ABL.oemkm` binds stage 1's load base to `0xe0000`.
+That stage contains the `ipk.` parser and the exact signed-image authentication
+routine. This resolves the earlier executable-boundary/load-address block for
+the relevant verifier.
+
+## Exact key pin and RSA order
+
+The stage-1 routine at file range `[0x157a3,0x159fe)` (runtime
+`[0xf57a3,0xf59fe)`) has SHA-256
+`4b71d5c95ff2bcf4210ba23a96883f3ce3524fb31b40f037a00991a6c14a7f30`.
+It:
+
+1. requires the signed-image flag;
+2. walks a runtime descriptor table and selects descriptor type `0x0b`;
+3. applies the caller's selector as a usage bitmap over `0x44`-byte records;
+4. copies a 32-byte expected digest from record offset `0x24`;
+5. reverses the stored 256-byte modulus, appends the stored four-byte exponent,
+   and SHA-256 hashes those `0x104` bytes;
+6. compares exactly 32 bytes and returns failure on mismatch;
+7. only after equality, prepares the modulus/exponent and calls RSA verification
+   over the IAS signed-data digest and 256-byte signature.
+
+The complete direct-call inventory is at stage file offsets `0xa1f8`, `0xa560`,
+`0xc1ea`, `0xc9e0`, and `0xd4fe`, using selectors `0x25`, `0x28`, `0x27`,
+`0x27`, and `0x28`. At `[0xc1e4,0xc20c)`, the selector-`0x27` authentication
+result is checked before the subsequent image-type-3 branch. This binds the
+exact package's signed type `0x30300` to the pinned-key route.
 
 ## Exact package key
 
@@ -68,10 +105,11 @@ little-endian exponent bytes. Its candidate digest is:
 
 `437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06`
 
-That candidate is not present verbatim in the exact 8 MiB flash image. This is
-bounded negative evidence only: compressed modules, CSE/Boot Guard manifests,
-a HOB supplied by an earlier authenticated stage, a transformed representation,
-or another trust-store design remain possible.
+The exact ABL routine uses the same hash input. The candidate is not present
+verbatim in the stored 8 MiB flash or any of the three decompressed IBB stages.
+That is bounded negative evidence only: manifests, CSE/HOB delivery, a
+transformed representation, or another authenticated source can populate the
+runtime descriptor/hash table.
 
 ## Stock constructor boundary
 
@@ -103,18 +141,23 @@ The latter performs this order:
    `gPayloadKeyHashGuid` HOB.
 5. Payload RSA verification follows only after the key digest succeeds.
 
-This source is authoritative for that public implementation and strongly guides
-exact-target reverse engineering. It is still comparative evidence because the
-exact proprietary LGE `rel.1714-HF3` source and a byte/control-flow match have
-not been recovered.
+This source remains comparative for names and provisioning architecture, but
+its key-hash-before-RSA order is now independently corroborated by exact
+`rel.1714-HF3` instructions. The exact code does not by itself name the
+persistent source that populates its descriptor type `0x0b` hash records.
 
 ## Conclusions
 
 - The package signatures are real RSA signatures, not merely unkeyed hashes.
 - The public Intel Apollo Lake IAS implementation pins a digest of the carried
   OS key before accepting the payload signature.
-- The exact LGE ABL's key pinning remains **unknown**.
-- Acceptance of an arbitrary embedded key is **not proved**.
+- The exact LGE ABL's key pinning is **proved** for its signed IAS verifier.
+- The exact type-3 OS-image path uses that pinned-key verifier with selector
+  `0x27`.
+- Acceptance of an arbitrary embedded key is rejected by the exact
+  compare-before-RSA path.
+- The persistent origin and authenticated delivery of the expected digest remain
+  unknown.
 - Custom signed-image acceptance, boot acceptance, root, persistence,
   mark-good, rollback, and recovery are **not proved**.
 
@@ -129,11 +172,14 @@ not been recovered.
   --iasimage-repo work/online-intel-iasimage-20261110
 ```
 
-Tracked deterministic report:
+Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-trust.json`
-- size `4,422`
-- SHA-256 `2e6096d14d54d06af4ddd2989e80de1558ff8de081b64e64306ada123658f3b7`
+  - size `7,824`
+  - SHA-256 `df9d9a2f730efb2103a11113f028008ac3c36b1b05293602d72958f5612c5fa6`
+- `evidence/artifacts/update-candidates/abl-ias-key-trust-exact-static.asm`
+  - size `16,384`
+  - SHA-256 `5c069c0b869288e38087ad25dc86c8efa18d2f16799a8c26434dc8d82515932b`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, target helper, bootloader, constructor, firmware image, or package. It

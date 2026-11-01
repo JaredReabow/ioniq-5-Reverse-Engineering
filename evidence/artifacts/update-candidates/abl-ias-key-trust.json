@@ -3,14 +3,97 @@
     "boot_acceptance_root_or_persistence_proved": false,
     "custom_signed_image_acceptance_proved": false,
     "exact_target_abl_accepts_arbitrary_embedded_key_proved": false,
-    "exact_target_abl_key_pin_proved": null,
+    "exact_target_abl_key_pin_proved": true,
+    "exact_target_abl_type3_path_uses_pinned_key_check": true,
+    "exact_target_expected_digest_storage_identity_proved": false,
     "package_signature_is_not_merely_unkeyed_hash": true,
     "public_sbl_pins_embedded_os_key_digest": true
   },
   "exact_update": {
     "abl": {
       "build": "rel.1714-HF3 / release/GP1.0.1_LGE",
+      "candidate_os_key_hash_present_in_decompressed_stages": false,
       "candidate_os_key_hash_present_verbatim": false,
+      "decompressed_stage": {
+        "auth_direct_call_file_offsets": [
+          41464,
+          42336,
+          49642,
+          51680,
+          54526
+        ],
+        "auth_ranges": {
+          "compare": {
+            "file_end": 90368,
+            "file_start": 90328,
+            "runtime_end": 1007872,
+            "runtime_start": 1007832,
+            "sha256": "7b1c913d8e4f3152d64723470cb26de125cd8f4740690cd1389f3dec67c85796"
+          },
+          "key_and_payload_auth": {
+            "file_end": 88574,
+            "file_start": 87971,
+            "runtime_end": 1006078,
+            "runtime_start": 1005475,
+            "sha256": "4b71d5c95ff2bcf4210ba23a96883f3ce3524fb31b40f037a00991a6c14a7f30"
+          },
+          "rsa_verify": {
+            "file_end": 93600,
+            "file_start": 93196,
+            "runtime_end": 1011104,
+            "runtime_start": 1010700,
+            "sha256": "b83eabfa8f01da0d1523e5ba76d6c92a6081dff4b43d17df3cdf1ec56b5ab94b"
+          },
+          "sha256_wrapper": {
+            "file_end": 93196,
+            "file_start": 93136,
+            "runtime_end": 1010700,
+            "runtime_start": 1010640,
+            "sha256": "bbabc9ec261135c0bd9eb93152e7ba73f99d3c3701b14ebe6cae8074cec2c0b9"
+          }
+        },
+        "hash_selector_immediates": [
+          {
+            "file_offset": 41459,
+            "value": 37
+          },
+          {
+            "file_offset": 42331,
+            "value": 40
+          },
+          {
+            "file_offset": 49636,
+            "value": 39
+          },
+          {
+            "file_offset": 51676,
+            "value": 39
+          },
+          {
+            "file_offset": 54521,
+            "value": 40
+          }
+        ],
+        "key_check": {
+          "carried_key_hash_input": "reverse(stored 256-byte modulus) || stored 4-byte exponent",
+          "digest_compared_before_rsa": true,
+          "digest_size": 32,
+          "expected_digest_offset": 36,
+          "mismatch_returns_failure": true,
+          "record_size": 68,
+          "runtime_descriptor_type": 11,
+          "signed_flag_required": true
+        },
+        "load_base": 917504,
+        "sha256": "3491be59ef865cb376131b02fa1ff6941e37d1c87ae3c4cf7969b5364785b3c2",
+        "size": 130560,
+        "type3_os_auth": {
+          "branch_file_end": 49676,
+          "branch_file_start": 49636,
+          "branch_sha256": "6e9002a872ebe1bbbb99b2671c0099ae01e782f679260716d7e51e0476e82414",
+          "selector": 39
+        }
+      },
       "ibb_cpd_entries": [
         {
           "name": "IBBP.man",
@@ -33,6 +116,24 @@
           "size": 212992
         }
       ],
+      "ibb_subimages": {
+        "decompressed_sha256": [
+          "3491be59ef865cb376131b02fa1ff6941e37d1c87ae3c4cf7969b5364785b3c2",
+          "d1e6d5da3a95a1634ec6a98703775f464044e335e0000f5f1477062f5d91d564",
+          "3a8a2ddef16dfefb17b4a28878df601f4e9f5a85fb53e2eecf11c3b4dcf4aa9e"
+        ],
+        "decompressed_sizes": [
+          130560,
+          35584,
+          172352
+        ],
+        "stored_sizes": [
+          192,
+          94930,
+          17577,
+          99475
+        ]
+      },
       "literal_offsets": {
         "iasImage": [
           1060552,
@@ -63,16 +164,17 @@
     }
   },
   "limitations": [
-    "The public Intel source exactly matches the Apollo Lake IAS container contract but is not the proprietary exact rel.1714 LGE ABL source.",
-    "The predicted public-SBL key digest is not present verbatim in the exact 8 MiB flash image; compressed modules, manifests, or another trust-store encoding remain possible.",
-    "Strings and container topology corroborate product and format identity but do not establish the exact target verification branch.",
+    "Exact decompressed rel.1714 code proves a 32-byte carried-key digest comparison before RSA verification, including the type-3 OS path; it does not yet identify the persistent source object that populates the runtime descriptor/hash table.",
+    "The candidate digest is not present verbatim in stored flash or the three decompressed IBB stages; manifest, CSE/HOB delivery, transformed storage, or another authenticated source remains possible.",
+    "Normal-versus-_sub selection, attempts, health, mark-good, rollback, and recovery remain unresolved.",
     "No firmware, bootloader, constructor, updater, image, flash operation, or boot attempt was executed."
   ],
   "package_key": {
+    "candidate_digest": "437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06",
     "containers": 12,
+    "exact_abl_hash_input": "reverse(stored_modulus) || stored_little_endian_exponent",
     "exponent": 65537,
     "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
-    "public_sbl_candidate_digest": "437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06",
     "public_sbl_hash_input": "reverse(stored_modulus) || stored_little_endian_exponent"
   },
   "public_intel": {
@@ -116,6 +218,6 @@
   },
   "tool": {
     "name": "abl-ias-key-trust",
-    "version": "1.0.0"
+    "version": "1.1.0"
   }
 }

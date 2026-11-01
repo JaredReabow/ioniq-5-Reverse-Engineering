@@ -1,0 +1,213 @@
+{
+  "artifacts": {
+    "elf": {
+      "build_id": "863a8730e66a1c5245a1bf458fe2554adee0351a",
+      "sha256": "464a87646153213ce1f405743a10cff78eb90c203b619f983002358ca74ef0e7",
+      "size": 5066264
+    },
+    "kernel_config": {
+      "sha256": "987268a1a4b333d67c219c63b690c3828811136a7a3b203eb6f20552e82dad56",
+      "size": 113598
+    },
+    "rootfs": {
+      "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+      "size": 879109759
+    }
+  },
+  "canonical_policy": {
+    "archive_system_local_member_present": false,
+    "dynamic_include_effect": null,
+    "group_scope_relative_order_defined": false,
+    "includedir_cross_file_order_defined": false,
+    "includedir_cross_file_order_material_for_exact_signal": false,
+    "includedir_same_scope_conflict_resolution": "unknown",
+    "policy_rule_order_semantics": "last-matching-rule-wins",
+    "policy_rules_are_conjunctive": true,
+    "policy_scope_precedence": [
+      "default",
+      "groups",
+      "user",
+      "at-console-true",
+      "at-console-false",
+      "mandatory"
+    ],
+    "rootfs_inventory_sha256": "c85bc4b1b12bc4704c3aea30489bac99c10cb2211f80d94f48f3e1e22fd7a94c",
+    "rootfs_member_count": 66836,
+    "runtime_system_local_or_include_replacement": null,
+    "selected_policy_authenticates_broadcast_signal_origin": false,
+    "selected_policy_root_own_and_destination_grants": true,
+    "system_conf_default_all_users_connect_allow_rule_count": 1,
+    "system_conf_default_all_users_may_connect": true,
+    "system_conf_default_method_call_send_denied": true,
+    "system_conf_default_method_call_send_deny_rule_count": 1,
+    "system_conf_default_policy_allow_count": 9,
+    "system_conf_default_policy_deny_count": 4,
+    "system_conf_default_policy_rule_count": 13,
+    "system_conf_default_receive_signal_allowed": true,
+    "system_conf_default_send_signal_allowed": true,
+    "system_conf_default_signal_receive_allow_rule_count": 1,
+    "system_conf_default_signal_send_allow_rule_count": 1,
+    "system_conf_policy_allow_count": 10,
+    "system_conf_policy_deny_count": 4,
+    "system_conf_policy_rule_count": 14,
+    "system_d_named_receive_sender_allow_rule_count": 15,
+    "system_d_named_receive_sender_deny_rule_count": 1,
+    "system_d_paired_receive_sender_group": {
+      "default_signal_deny_rule_count": 1,
+      "installed_consumer_effect": null,
+      "length": 21,
+      "main_default_receive_effect": "allow",
+      "non_root_recipient_effect": "deny",
+      "role": "root-allow-default-deny-signal-sender",
+      "root_recipient_effect": "allow",
+      "root_signal_allow_rule_count": 1,
+      "rules_share_one_policy_member": true,
+      "sha256": "508d97e50a6fa1dd3369295f5e1d748cd188a9ab297d3cec406c6eff9fc3b5a5"
+    },
+    "system_d_policy_allow_count": 208,
+    "system_d_policy_deny_count": 13,
+    "system_d_policy_exact_filter_allow_count": 0,
+    "system_d_policy_exact_filter_deny_count": 0,
+    "system_d_policy_general_signal_allow_count": 0,
+    "system_d_policy_general_signal_deny_count": 0,
+    "system_d_policy_inventory_sha256": "5a952075294ad24ce6e601eef93e6dbabea5d15ff3c81d9dcd7dc851ff3c8df5",
+    "system_d_policy_member_count": 18,
+    "system_d_policy_rule_count": 221,
+    "system_d_send_destination_inventory_sha256": "51ecc6b7a2005b330a4ca29a2db2d19b676048ca29f6e9a6a28c9d56f168a79e",
+    "system_d_send_destination_named_non_wildcard_count": 137,
+    "system_d_send_destination_value_count": 137,
+    "system_d_send_destination_wildcard_count": 0,
+    "system_d_send_destinationless_broadcast_match_count": 0
+  },
+  "evidence": {
+    "bus_daemon_ascii_string_count": 3930,
+    "bus_daemon_ascii_string_sha256": "62556c6ccae5efc58e2ef3c0cd66dbb7913fdfd79e0b13f423b47ef026a8768c",
+    "kernel_config_canonical_sha256": "1aa1436e1b09af7da3ec2a9fa2a69f9b5d782c4643e5ed98ffd83033d4f19298",
+    "kernel_config_count": 3430,
+    "llvm_version": "Homebrew LLVM version 23.1.3",
+    "manifest_sha256": "ff934574db6c0204c05f1e2a3766b83b5ea60394b366d2c9ec8c902db7b6e82c"
+  },
+  "exact_static": {
+    "complete_fde_count": 3789,
+    "complete_fde_sha256": "2c71813a3f098f8f949c6acee1080c0147df182e589f8b8b576798ce4807eb07",
+    "complete_instruction_count": 470739,
+    "complete_instruction_sha256": "693dce0d89faabeea30512fe0a696a733e9bdd64fd7be7379dba98a44d2dc0c8",
+    "connect_interface_filter_fixed": true,
+    "connect_member_filter_fixed": true,
+    "connect_path_filter_empty": true,
+    "connect_receiver_bound": true,
+    "connect_service_filter_empty": true,
+    "connect_slot_bound": true,
+    "consumer_tail_reaches_separate_request": true,
+    "generated_dispatch_reaches_local_consumer": true,
+    "input_nonempty_and_normalized_value_guarded": true,
+    "literal_bindings": {
+      "bound-receiver-slot": {
+        "length": 29,
+        "sha256": "7bac66793c29e5d146b03baeda34118afe6113537c169cd5b2b650257eb32e21"
+      },
+      "recovery-filter-interface": {
+        "length": 21,
+        "sha256": "4d1d2f5d27522a35e3812ae4690003ef45c5a7981bb58a77afc5346b1537be41"
+      },
+      "recovery-filter-member": {
+        "length": 23,
+        "sha256": "15f77bc4e3fc16792c9c0915a80b0276606cdc0995ec431614d42096ac91b762"
+      }
+    },
+    "local_state_guards_precede_request": true,
+    "recovery_connect_call": "0xe29df",
+    "remote_action_confirmed": false,
+    "selected_fdes": {
+      "generated-recovery-dispatch": {
+        "end_exclusive": "0x16efe4",
+        "start": "0x16df80"
+      },
+      "recovery-local-consumer": {
+        "end_exclusive": "0x11f1a9",
+        "start": "0x11f060"
+      },
+      "recovery-subscription-setup": {
+        "end_exclusive": "0xe2c2b",
+        "start": "0xe2790"
+      },
+      "separate-recovery-request": {
+        "end_exclusive": "0xe907c",
+        "start": "0xe8d10"
+      }
+    },
+    "separate_request_argument_shape": "single-byte-array-argument-value-redacted",
+    "separate_request_coordinates_redacted": true,
+    "separate_request_is_asynchronous": true
+  },
+  "finding": {
+    "bus_policy_permission_equals_same_bus_socket_reachability": false,
+    "classification": "conditional-wildcard-signal-trust-boundary",
+    "code_execution_established": false,
+    "interface_member_match_authenticates_sender": false,
+    "local_slot_invocation_confirms_external_action": false,
+    "normalized_shape": "matching-signal-to-privileged-local-consumer-to-separate-asynchronous-recovery-request",
+    "persistence_established": false,
+    "recovery_control_implies_code_execution_or_root": false,
+    "root_transition_established": false
+  },
+  "launcher_and_identity": {
+    "complete_installed_runtime_label": null,
+    "complete_installed_runtime_uid": null,
+    "launcher_contains_dynamic_app_process_construction_for_updater_role": true,
+    "launcher_runtime_dynamic_path": null,
+    "launcher_script_starts_launcher": true,
+    "launcher_unit_user_directive_present": false,
+    "outer_updater_canonical_member_bound": true,
+    "systemd_configured_default_uid_role": "root",
+    "updater_exec_label_assignment_named_in_both_canonical_scripts": true
+  },
+  "mandatory_access_control": {
+    "arbitrary_label_same_bus_admission": null,
+    "bus_daemon_selinux_named_strings_present": true,
+    "bus_daemon_smack_named_strings_present": false,
+    "kernel_apparmor_enabled": false,
+    "kernel_selinux_enabled": false,
+    "kernel_smack_enabled": true,
+    "kernel_socket_mediation": null,
+    "named_bus_daemon_smack_integration_established": false,
+    "uid_root_implies_smack_escape": false
+  },
+  "qt5_semantics": {
+    "canonical_qt_major": 5,
+    "empty_path_filter_matches_any_path": true,
+    "empty_service_filter_matches_any_remote_bus_application": true,
+    "fixed_interface_and_member_are_message_filters_not_sender_authentication": true,
+    "wildcard_filter_means_message_acceptance_not_message_forgery": true
+  },
+  "schema_version": 1,
+  "scope": {
+    "bus_connected": false,
+    "callable_dbus_coordinates_emitted": false,
+    "canonical_rootfs_streamed": true,
+    "commands_or_exploit_steps_emitted": false,
+    "exact_static_analysis": true,
+    "flash_update_or_persistence_action": false,
+    "operational_request_created": false,
+    "payload_or_packet_created": false,
+    "signal_or_argument_values_emitted": false,
+    "signal_or_method_sent": false,
+    "supplied_paths_emitted": false,
+    "target_code_executed": false,
+    "target_instructions_or_bytes_emitted": false
+  },
+  "tool": {
+    "name": "appfumo-dbus-recovery-signal-boundary",
+    "version": "1.0.0"
+  },
+  "unknowns": {
+    "dynamic_policy_replacement_or_generated_include": null,
+    "external_recovery_action": null,
+    "kernel_socket_mediation_effect": null,
+    "local_slot_observed": null,
+    "runtime_consumer_uid_and_label": null,
+    "runtime_sender_uid_and_label": null,
+    "same_bus_socket_reachability_for_arbitrary_label": null,
+    "signal_observed": null
+  }
+}

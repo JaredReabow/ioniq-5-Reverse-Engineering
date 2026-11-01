@@ -5,6 +5,36 @@ reports supporting update-path assessments. Original firmware and recovered
 executables remain ignored under `work/`; retained files must not contain target
 payloads, bypasses, private operator paths, or executable target material.
 
+## AppFUMO wildcard D-Bus recovery-signal boundary
+
+- [`appfumo-dbus-recovery-signal-boundary-exact-static.txt`](appfumo-dbus-recovery-signal-boundary-exact-static.txt):
+  byte-free FDE/transfer/anchor/literal-role hashes plus name-hashed canonical
+  policy inventory and normalized kernel/daemon inventories (SHA-256
+  `4b0c525ee7ec862dfc65df2e4e0a991d5bb934708dfb8ba1f102110759a95ab7`);
+- [`appfumo-dbus-recovery-signal-boundary-manifest.json`](appfumo-dbus-recovery-signal-boundary-manifest.json):
+  strict exact ELF, Build ID, rootfs, kernel config, LLVM, complete
+  instruction/FDE, policy XML, launcher/label, and daemon-string expectations
+  (SHA-256
+  `ff934574db6c0204c05f1e2a3766b83b5ea60394b366d2c9ec8c902db7b6e82c`);
+- [`appfumo-dbus-recovery-signal-boundary.json`](appfumo-dbus-recovery-signal-boundary.json):
+  normalized deterministic report (SHA-256
+  `826ed7c3fcfcd7077840fbad792a88737a2555ba9e2a528f1baf9179bd07a936`).
+
+The exact Qt 5 subscription has wildcard service/path filters and fixed
+hash-bound interface/member filters. Main `system.conf` default-policy counts
+are reported separately from the 18-member `system.d` audit. The directory
+contains 15 named-sender signal allows and one named-sender signal deny. One
+hash-bound sender is denied in default scope and allowed for root: the deny can
+override the main default receive allow for non-root, while the root rule later
+allows root. The installed consumer uid is unknown. All 137
+`send_destination` values are named/non-wildcard and do not match a
+destination-less broadcast. Policy constraints do not authenticate the Qt
+subscription's origin, and same-bus socket reachability under SMACK remains
+unknown. The guarded local consumer may construct a separate asynchronous
+recovery request, but external action, code execution, root, and persistence
+are not established. Assessment:
+[`../../appfumo-dbus-recovery-signal-boundary.md`](../../appfumo-dbus-recovery-signal-boundary.md).
+
 ## AppFUMO boot-activation boundary
 
 - [`appfumo-boot-activation-boundary-exact-static.txt`](appfumo-boot-activation-boundary-exact-static.txt):

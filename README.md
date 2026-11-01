@@ -205,9 +205,15 @@ base image or reach the network.
 
 ## Exact-static update-trust and boot boundaries
 
-Recent execution-free work has advanced three adjacent parts of the recovered
+Recent execution-free work has advanced four adjacent parts of the recovered
 FUMO updater without running it or constructing update material:
 
+- [Wildcard recovery-signal boundary](evidence/appfumo-dbus-recovery-signal-boundary.md)
+  binds the empty-service/path Qt 5 subscription, guarded local consumer,
+  canonical system-bus policy (including the uid-conditioned paired
+  default-deny/root-allow sender rule), launcher identity, and
+  SMACK/runtime-reachability boundary without publishing callable D-Bus
+  coordinates or values.
 - [Parameterized verifier provenance](evidence/appfumo-parameterized-verifier-provenance.md)
   resolves two formerly unknown direct verifier operands as one nested
   controller-resource route. Verification and transformation reuse a pathname
@@ -224,10 +230,11 @@ FUMO updater without running it or constructing update material:
   canonical rootfs inventory. None of those requests carries a slot identifier
   or proves hardware action.
 
-Together these results narrow the remaining boundary to runtime pathname
-immutability and external MICOM/ABL/bootloader behavior. They do not establish
-an accepted modified update, inactive-slot activation, mark-good, rollback,
-root access, or persistence.
+Together these results narrow the remaining boundary to same-bus runtime
+reachability and labels, runtime pathname immutability, and external
+MICOM/ABL/bootloader behavior. They do not establish an accepted modified
+update, inactive-slot activation, mark-good, rollback, code execution, root
+access, or persistence.
 
 ## Combined repository history
 

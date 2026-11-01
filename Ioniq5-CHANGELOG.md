@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.13.0 - all four regions created; the shared-memory line of enquiry closes
+
+- The trace enumerates exactly what the client touches: **four** names — `APPLICATIONMANAGERINFORMATION`,
+  `ApplicationEnableInformation`, `ApplicationManagerInformation`, `MICOMSTATUSMESSAGE`, each with a `qipc_systemsem_`
+  counterpart. `ihu-shim` now creates and seeds **all four**, confirmed in its own output.
+- Result unchanged: **`PSZNULL=1`, `VALID=0`**. So name resolution, file presence, segment existence, segment content (the
+  authentic 35-byte profile) and the attach calls are all accounted for — with two attaches confirmed successful by Qt's own
+  error code — and the client still reports a NULL `data()`.
+- **This closes the shared-memory line of enquiry.** What remains is vendor-side logic in `MicomInterfaceM`, not an
+  environment gap: every object the client names now exists, and it still treats one of them as absent. That is not something
+  more VM configuration can fix, and the register now says so instead of implying another round might.
+- Retained for the record: the four names, the two identified keys and their attach idioms, the `ftok`/`stat` mechanism, the
+  recovered profile, and the eight excluded environmental hypotheses — all of which stand as established facts regardless.
+
 ## 2.12.0 - the NULL handle is keyed separately; the sweep stops here
 
 - Checked the last structural explanation: is the `rbx+0x40` object a **copy** of an attached handle? It is not.

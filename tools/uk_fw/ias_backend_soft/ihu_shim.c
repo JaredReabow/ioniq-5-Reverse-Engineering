@@ -17,6 +17,13 @@
 #define SEG_SIZE (256 * 1024)
 #define LOG "/dev/ttyS0"
 
+static const char *extra_names[] = {
+	"qipc_sharedmemory_ApplicationEnableInformation7cb8a3809a33864145d0acfeca72afade555616c",
+	"qipc_sharedmemory_ApplicationManagerInformationb9a7139f20854475e13fb5d14cfa133ae03b0943",
+	"qipc_systemsem_ApplicationEnableInformation7cb8a3809a33864145d0acfeca72afade555616c",
+	"qipc_systemsem_ApplicationManagerInformationb9a7139f20854475e13fb5d14cfa133ae03b0943",
+};
+
 static const char *shm_names[] = {
 	"qipc_sharedmemory_KEYSUPPORTCHINESEe3470ef71edd715f5f694841d355b50f7c71483d",
 	"qipc_sharedmemory_MICOMSTATUSMESSAGEea9b2c48d97ddb319dd9ac9fa4f70206a8ccd52c",
@@ -77,6 +84,28 @@ int main(void)
 		made++;
 		dprintf(log, "ihu-shim: created %s (id=%d size=%d)\n", shm_names[i], id, SEG_SIZE);
 	}
+	/* Regions ApplicationManager also attaches to; without them its handles
+	 * come back unattached and data() yields NULL. */
+	for (i = 0; i < sizeof extra_names / sizeof extra_names[0]; i++) {
+		key_t k;
+		int id;
+		void *p;
+		snprintf(path, sizeof path, "/tmp/%s", extra_names[i]);
+		touch(path);
+		k = ftok(path, 'Q');
+		if (k == -1)
+			continue;
+		id = shmget(k, SEG_SIZE, IPC_CREAT | 0666);
+		if (id < 0)
+			continue;
+		p = shmat(id, NULL, 0);
+		if (p != (void *)-1) {
+			memset(p, 0, SEG_SIZE);
+			shmdt(p);
+		}
+		dprintf(log, "ihu-shim: extra %s\n", extra_names[i]);
+	}
+
 	/* If a boot-info profile is available, seed it into the MICOM status region:
 	 * the client maps that region and reads boot info from it, so a zero-filled
 	 * region parses to nothing and its source pointer comes back NULL. */

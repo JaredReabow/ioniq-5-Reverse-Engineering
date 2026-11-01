@@ -3651,3 +3651,11 @@ and are superseded by corrections rather than silently rewritten.
   imported at all, so each handle carries its own key and the third one simply has not been attributed yet.
 - That is the right place to stop this line. Three rounds of call-site reading each narrowed the question without closing it,
   and the difference between "one more grep" and "an hour in a constructor" is worth naming rather than ignoring.
+
+## 2026-10-31 — closing a line rather than circling it
+
+- All four shared-memory regions the client names now exist and are seeded, and it still reports the one handle as NULL. That
+  is the signal to stop treating this as an environment problem: the objects are there, and the client's own logic concludes
+  otherwise.
+- Nine rounds of exclusion produced a precise description of a vendor defect and no workaround. That is a legitimate outcome
+  and it is written as one, with the facts retained and the speculation kept out.

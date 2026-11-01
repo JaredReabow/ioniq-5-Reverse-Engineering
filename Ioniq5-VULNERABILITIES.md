@@ -1032,6 +1032,15 @@ vulnerability is claimed, and this test does not move either entry.
   reading of `MicomInterfaceM`'s constructor and its `QSharedMemory` members — work that is bounded and mechanical, but that
   snippet-level disassembly has stopped yielding. The register records this as the boundary of what was established, not as
   an open mystery with a plausible story attached.
+- **All four regions the client touches now exist, and `pszSrc` is still NULL.** An untargeted trace shows
+  `ApplicationManager` touches exactly four shared-memory names:
+  `APPLICATIONMANAGERINFORMATION`, `ApplicationEnableInformation`, `ApplicationManagerInformation` and
+  `MICOMSTATUSMESSAGE` (each with a matching `qipc_systemsem_` file). `ihu-shim` now creates and seeds all four — the
+  `extra` lines in its own output confirm it — and the result is unchanged: `PSZNULL=1`, `VALID=0`.
+- **Conclusion for the shared-memory line of enquiry:** name resolution, file presence, segment existence, segment content
+  (the authentic 35-byte profile) and the attach calls themselves are all accounted for; two attaches are confirmed
+  successful by Qt's own error code. What remains is that the client's `data()` on one handle returns NULL **despite** the
+  object existing — which is vendor-side logic inside `MicomInterfaceM`, not an environment gap this project can close.
 - **Hand-off state for V-036, complete:** reachability, interface construction and shared-memory mechanisms excluded by
   measurement; reply content confirmed as the blocker; three plausible payloads rejected against a live client; the oracle
   for testing further candidates exists and is documented; and the static anchors are listed with the specific difficulty

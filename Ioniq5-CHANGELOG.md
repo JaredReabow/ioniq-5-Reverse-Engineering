@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.19.0 - a real client window is mapped; its content is blank
+
+- Ran the later chain variant (`full-chain-timeout120-legal-reason11-priority-pointer-confirm.sh`, which issues
+  `show_window_fg` and a confirm sequence) to completion and captured the end state:
+  **1920×720, 6,836 bytes**, with `AppHomeScreen` alive (`pid 994`).
+- What the frame shows is a **mapped Wayland client window with window decorations** — a blue title bar and
+  minimise/maximise/close controls at the top right — over a **blank white content area**. So the stack now gets as far as
+  presenting a client window on the vendor compositor; the application's own content is not painted.
+- That is a different failure from the earlier splash frame (`docs/vm/07-…`, 177,691 bytes, vendor artwork) and worth keeping
+  side by side: the splash proves the compositor paints vendor assets, this frame proves a **client surface is mapped and
+  decorated**, and neither yet shows home tiles.
+- Honest reading: window management works, application rendering does not. Decoration appearing also suggests
+  `QT_WAYLAND_DISABLE_WINDOWDECORATION` is not taking effect for this client in this run, which is itself a clue about which
+  path the window came through.
+- Both frames are committed (`docs/vm/07`, `docs/vm/08`) so the progression is visible rather than summarised.
+
 ## 2.18.0 - the VM renders vendor graphics: Hyundai splash captured at 1920x720
 
 - Captured a **real frame from the running VM** using the image's own `/usr/libexec/weston-screenshooter`:

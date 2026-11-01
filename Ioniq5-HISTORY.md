@@ -3775,3 +3775,10 @@ and are superseded by corrections rather than silently rewritten.
   draws".
 - Second capture byte-identical at 155 seconds, which is the useful kind of duplicate: it says the splash is stable, not that
   the capture failed.
+
+## 2026-10-31 — a window, but not yet a screen
+
+- The later chain produced a mapped, decorated client window with an empty content area. That is progress of a specific kind:
+  the compositor is presenting a client surface, and the application is not painting into it.
+- Keeping both captures matters. The splash says the compositor can paint vendor artwork; the decorated window says a client
+  is mapped. Neither alone would tell the next person where to look.

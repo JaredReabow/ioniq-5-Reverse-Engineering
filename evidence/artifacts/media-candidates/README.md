@@ -17,6 +17,22 @@ bounded 1-to-4-byte out-of-range read for total lengths 18 through 21. No
 parser execution, delivery, disclosure, code execution, root access, or
 persistence outcome is established.
 
+## GStreamer CVE-2026-2921 / CVE-2026-2922 exact-static audit
+
+`gstreamer-2026-backport-audit-manifest.json` pins the canonical EU 260128
+rootfs archive and inventory, exact RIFF and RealMedia regular members,
+Homebrew LLVM identities, complete instruction/FDE identities, and bounded
+machine anchors. The deterministic report separates three verdicts: the RIFF
+checked-multiplication patch is absent and its 32-bit guard arithmetic wraps;
+the RealMedia primary pre-store repair is absent and its indexed-write
+invariant is violated; and the companion extent correction is absent with its
+local pre-copy invariant unsatisfied. The only RealMedia memory effect
+established is the bounded 4-byte overlap with the following adapter-pointer
+field before the error path. Exact installed/runtime reachability and all
+delivery, parser-execution, crash, disclosure, code-execution, privilege/root,
+and persistence outcomes remain unknown. No target or plugin was executed or
+loaded, and no media input or operational procedure was produced.
+
 ## FLIC / CVE-2016-9634, CVE-2016-9635, CVE-2016-9636, CVE-2016-9807, and CVE-2016-9808
 
 `gstreamer-flxdec-cve-2016-9634-9636-9808.asm` retains both complete affected

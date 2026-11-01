@@ -1,0 +1,149 @@
+{
+  "assessments": {
+    "riff_palette": {
+      "advisory": "GST-SA-2026-0004",
+      "associated_issue": "CVE-2026-2921",
+      "checked_multiplication_invariant": "violated",
+      "exact_downstream_memory_effect": null,
+      "exploitability": null,
+      "guard_arithmetic_wraps_for_num_colors_gte": 1073741824,
+      "implementation_fix_commit": "66d1f79c78b573db714434cf08e7531bed4f4473",
+      "multiplication_width_bits": 32,
+      "safe_widening_equivalent_on_exact_architecture": true,
+      "upstream_big_endian_conversion_loop_present": false,
+      "upstream_patch_state": "absent"
+    },
+    "rm_fragment_extent": {
+      "associated_issue": "CVE-2026-2922",
+      "companion_implementation_fix_commit": "cfc74588fca99328419eb16921fa559739a7b503",
+      "downstream_library_behavior": null,
+      "later_remaining_size_subtraction_after_processing": true,
+      "local_pre_copy_invariant": "unsatisfied",
+      "overflow_safe_fragment_le_map_and_offset_le_map_minus_fragment_gate": false,
+      "runtime_impact": null,
+      "upstream_patch_state": "absent"
+    },
+    "rm_fragment_index": {
+      "advisory": "GST-SA-2026-0005",
+      "associated_issue": "CVE-2026-2922",
+      "bounded_object_field_effect": "low 4 bytes of following adapter-pointer field overwritten before error",
+      "exploitability": null,
+      "following_adapter_pointer_displacement": "0x4b0",
+      "indexed_store_displacement": "0x4b0",
+      "max_fragments": 256,
+      "old_count_reaching_store": 256,
+      "pre_store_rejection_invariant": "violated",
+      "primary_implementation_fix_commit": "8a17c9d183ca3cfb5e97ae3b3f344ba79f8859df",
+      "upstream_patch_state": "absent"
+    }
+  },
+  "canonical_rootfs": {
+    "inventory_sha256": "c85bc4b1b12bc4704c3aea30489bac99c10cb2211f80d94f48f3e1e22fd7a94c",
+    "member_count": 66836,
+    "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+    "size": 879109759
+  },
+  "members": {
+    "realmedia": {
+      "build_id": "ee26bea186ce1052d6b38285dfb55131899fd16c",
+      "fde_count": 141,
+      "fde_sha256": "b8671586965366718f94e25c915e6c695c52f72a801db5ff0ffb790efaf9a196",
+      "instruction_count": 19045,
+      "instruction_sha256": "308bcc916905d38809d3feecc5115be5791d5ccdc40c405ecfa13cf29b37d0cc",
+      "selected_fde": {
+        "end_exclusive": "0xe649",
+        "start": "0xb780"
+      },
+      "sha256": "8bcb86554f54f38b6c78cd0b9754a7ba9d546399128353ab658f1424b8ccb5f0",
+      "size": 142128,
+      "verified_anchor_roles": [
+        "fragment-data-pointer",
+        "fragment-length-zero-extend",
+        "copy-region-flags",
+        "fragment-offset",
+        "copy-region-length",
+        "copy-region-input-buffer",
+        "fragment-copy-call",
+        "adapter-insertion-start",
+        "adapter-pointer-load",
+        "adapter-push-call",
+        "fragment-count-load",
+        "fragment-current-load",
+        "count-to-index",
+        "fragment-size-add",
+        "count-increment",
+        "indexed-offset-store",
+        "new-current-store",
+        "incremented-count-store",
+        "post-store-max-compare",
+        "post-store-error-branch",
+        "later-remaining-size-subtract",
+        "max-frags-error-value",
+        "max-frags-error-call"
+      ]
+    },
+    "riff": {
+      "build_id": "44aa3041663b7bec8f33c4d730704867af39b56b",
+      "exported_symbol": {
+        "address": "0x1d50",
+        "name": "gst_riff_create_video_caps"
+      },
+      "fde_count": 17,
+      "fde_sha256": "815880e1bbd13e6819136305cb584a7eaab41e87d077c307468be478ddcc7d66",
+      "instruction_count": 8084,
+      "instruction_sha256": "63d273a3fbe4d13594f3c1a18072f9d3b36770e2d589f9f04b29f9d01ae1f987",
+      "selected_fde": {
+        "end_exclusive": "0x51d0",
+        "start": "0x1d50"
+      },
+      "sha256": "7ba228a5fed61f45b4f5b547e22e37ce18f23246dbe88d5231736006cc473396",
+      "size": 59256,
+      "verified_anchor_roles": [
+        "strf-pointer-test",
+        "strf-null-default-branch",
+        "num-colors-32-bit-load",
+        "num-colors-32-bit-shift",
+        "palette-buffer-argument",
+        "palette-size-call",
+        "available-size-save",
+        "wrapped-product-size-compare",
+        "unsigned-accept-branch",
+        "accepted-allocation",
+        "accepted-extraction",
+        "default-palette-size",
+        "default-rejoin"
+      ]
+    }
+  },
+  "outcomes": {
+    "code_execution": null,
+    "crash": null,
+    "delivery": null,
+    "exact_installed_runtime_reachability": null,
+    "information_disclosure": null,
+    "parser_execution": null,
+    "persistence": null,
+    "privilege_gain": null,
+    "root": null
+  },
+  "schema_version": 1,
+  "scope": {
+    "callable_target_coordinates_emitted": false,
+    "canonical_tar_members_streamed_directly": true,
+    "full_disassembly_retained": false,
+    "llvm_version": "Homebrew LLVM version 23.1.3",
+    "malformed_media_emitted": false,
+    "manifest_sha256": "78e8f49f6064351f7a90e0c54321698d39716d8b6d8cfbc3bc563b8566029fa4",
+    "media_inputs_created_loaded_or_parsed": false,
+    "offline_exact_static_analysis": true,
+    "operational_device_procedure_emitted": false,
+    "plugins_loaded": false,
+    "proprietary_binary_retained": false,
+    "recovered_targets_executed": false,
+    "trigger_recipe_emitted": false
+  },
+  "tool": {
+    "name": "gstreamer-2026-backport-audit",
+    "version": "1.0.0"
+  }
+}

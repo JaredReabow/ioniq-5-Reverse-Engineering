@@ -1,0 +1,124 @@
+GStreamer 2026 backport exact-static evidence excerpt
+=====================================================
+
+Scope and provenance
+--------------------
+Canonical archive: work/decrypted-eu-260128/HU/images/mango-rootfs.tar.gz
+Archive size: 879109759
+Archive SHA-256: 423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84
+Archive members: 66836
+Inventory SHA-256: c85bc4b1b12bc4704c3aea30489bac99c10cb2211f80d94f48f3e1e22fd7a94c
+Method: offline disassembly/unwind inspection of two selected regular tar
+members with exact Homebrew LLVM identities. Recovered targets and plugins
+were not executed or loaded. No media input was created, loaded, or parsed.
+This retains only bounded reviewed instructions, not binaries or full
+machine-code listings.
+
+1. RIFF palette arithmetic / CVE-2026-2921
+-------------------------------------------
+Tar member: ./usr/lib/libgstriff-1.0.so.0.803.0
+Size: 59256
+SHA-256: 7ba228a5fed61f45b4f5b547e22e37ce18f23246dbe88d5231736006cc473396
+GNU Build ID: 44aa3041663b7bec8f33c4d730704867af39b56b
+Exported gst_riff_create_video_caps: 0x1d50
+Containing FDE: [0x1d50,0x51d0)
+Complete instruction identity: 8084 rows,
+63d273a3fbe4d13594f3c1a18072f9d3b36770e2d589f9f04b29f9d01ae1f987
+Complete FDE identity: 17 rows,
+815880e1bbd13e6819136305cb584a7eaab41e87d077c307468be478ddcc7d66
+
+Bounded reviewed sequence:
+
+    24c6: testq  %rbp, %rbp
+    24c9: je     0x2d50 <gst_riff_create_video_caps+0x1000>
+    24cf: movl   0x20(%rbp), %ebp
+    24d2: shll   $0x2, %ebp
+    24d5: movq   %r14, %rdi
+    24d8: callq  0x1870 <gst_buffer_get_size@plt>
+    24dd: movq   %rax, %r12
+    24e0: cmpq   %rbp, %rax
+    24e3: jae    0x2ca0 <gst_riff_create_video_caps+0xf50>
+    2caf: callq  0x19c0 <g_malloc0@plt>
+    2cc2: callq  0x1a00 <gst_buffer_extract@plt>
+    2d50: movl   $0x400, %ebp
+    2d55: jmp    0x24d5 <gst_riff_create_video_caps+0x785>
+
+The non-null path loads num_colors at 32-bit width and shifts that 32-bit
+register before the later 64-bit comparison. Thus the CVE-associated checked
+multiplication invariant is violated and the guard arithmetic wraps for
+num_colors >= 2^30. Safe widening before multiplication is equivalent on this
+exact x86-64 architecture. The null path supplies 0x400 and rejoins after the
+wrapping arithmetic. The accepted path proceeds to allocation and extraction.
+
+The checked-multiplication implementation fix is absent. On this exact
+little-endian x86-64 build the upstream big-endian conversion loop is absent;
+the exact downstream memory effect and exploitability remain unproved.
+
+2. RealMedia fragment index / CVE-2026-2922 primary correction
+---------------------------------------------------------------
+Tar member: ./usr/lib/gstreamer-1.0/libgstrmdemux.so
+Size: 142128
+SHA-256: 8bcb86554f54f38b6c78cd0b9754a7ba9d546399128353ab658f1424b8ccb5f0
+GNU Build ID: ee26bea186ce1052d6b38285dfb55131899fd16c
+Containing FDE: [0xb780,0xe649)
+Complete instruction identity: 19045 rows,
+308bcc916905d38809d3feecc5115be5791d5ccdc40c405ecfa13cf29b37d0cc
+Complete FDE identity: 141 rows,
+b8671586965366718f94e25c915e6c695c52f72a801db5ff0ffb790efaf9a196
+
+Bounded reviewed primary sequence:
+
+    d588: callq  0x5910 <gst_buffer_copy_region@plt>
+    d603: movq   0x58(%rsp), %rsi
+    d608: movq   0x4b0(%r13), %rdi
+    d60f: callq  0x5520 <gst_adapter_push@plt>
+    d614: movl   0xac(%r13), %edx
+    d61b: movl   0xa8(%r13), %eax
+    d622: movq   %rdx, %rsi
+    d625: addl   %eax, %ebp
+    d627: addl   $0x1, %esi
+    d62a: movl   %eax, 0xb0(%r13,%rdx,4)
+    d632: movl   %ebp, 0xa8(%r13)
+    d639: movl   %esi, 0xac(%r13)
+    d640: cmpl   $0x100, %esi
+    d646: ja     0xdcf5 <.text+0x7fb5>
+    dcf5: movl   $0x100, %edx
+    dd0c: callq  0x5960 <_gst_element_error_printf@plt>
+
+The exact path pushes the fragment, loads old frag_count, performs the indexed
+4-byte frag_offset store, updates state, and only then compares incremented
+count with 256 and branches above to the MAX_FRAGS error block. For
+old_count=256, 0xb0 + 4*256 = 0x4b0: the indexed 4-byte store overlaps the low
+4 bytes of the following adapter-pointer field that was loaded at 0xd608. The
+post-store check observes 257 and errors. This is a bounded object-field fact.
+The primary pre-store repair is absent and the indexed-write invariant is
+violated; no broader runtime or exploitability result is inferred.
+
+3. RealMedia fragment extent / CVE-2026-2922 companion correction
+------------------------------------------------------------------
+Bounded reviewed extent sequence:
+
+    d566: movq   0x40(%rsp), %rdx
+    d56b: movl   %ebp, %r12d
+    d56e: movl   $0xf, %esi
+    d578: subq   0x110(%rsp), %rdx
+    d580: movq   %r12, %rcx
+    d583: movq   0x20(%rsp), %rdi
+    d588: callq  0x5910 <gst_buffer_copy_region@plt>
+    d99c: subq   %r12, %rbx
+
+The sequence forms the offset by subtracting map.data, zero-extends the
+32-bit fragment length, and passes input buffer, flags, offset, and fragment
+length to the copy call. The complete pinned function and exact local sequence
+contain no dominating overflow-safe F<=M and O<=M-F gate on this path. The
+remaining-size subtraction occurs later, after processing. The companion
+correction is absent and the local pre-copy invariant is unsatisfied. No claim
+is made about downstream library behavior or runtime impact.
+
+Claim boundary
+--------------
+The implementation patch states and three local invariants above are the only
+positive conclusions. Exact installed/runtime reachability is unestablished.
+Delivery, parser execution, crash, information disclosure, code execution,
+privilege gain, root access, and persistence are all unknown. No target was
+executed; no plugin was loaded; no media or operational procedure was produced.

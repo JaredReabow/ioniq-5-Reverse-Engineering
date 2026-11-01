@@ -3637,3 +3637,10 @@ and are superseded by corrections rather than silently rewritten.
 - Both environment strategies then failed against it, which is the useful form of a negative: it localises the fault to the
   attach call rather than to the world around it.
 - This should have been the second thing I did, not the twentieth. Disassembly costs minutes; the experiments cost rounds.
+
+## 2026-10-31 — names from the binary, and the environment stops mattering
+
+- Reading two call sites gave both keys and both attach idioms: one attaches a pre-existing region, the other creates a
+  size-8 region first. With the region supplied, both succeed and the log's own error counter reads zero.
+- The remaining NULL therefore belongs to a third handle rather than to anything I could create, inspect or mount. That is
+  the narrowest this has been, and it came from reading four call sites rather than from another evening of experiments.

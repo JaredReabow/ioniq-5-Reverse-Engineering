@@ -1004,6 +1004,23 @@ vulnerability is claimed, and this test does not move either entry.
   `attach fail` and still leaves `data()` NULL. So `ApplicationManager` fails to obtain this shared memory whether or not the
   region already exists — which points at the **attach call itself** (key derivation, size, or permissions), not at anything
   missing from the environment.
+- **Both shared-memory keys are now identified from the disassembly.**
+  - `initBootInfo` is `QSharedMemory` keyed **`MICOM_STATUS_MESSAGE`** (20 chars, literal at `0x315a73`,
+    `setKey` at `0x269da9`), followed by **`attach()` only — no create** (`0x269dd4`); on failure it logs the literal at
+    `0x3187d0`, which is the `initBootInfo attach fail` message.
+  - `m_pShmBase` is keyed **`APPLICATIONMANAGER_INFORMATION`** (30 chars, literal at `0x2fffb0`), created with
+    **size 8** (`create(8, 1)` at `0x193ef6`) then attached (`0x193f04`), logging
+    `m_pShmBase->attach() error code : %1` on failure.
+  - On the wire those resolve to the `qipc_sharedmemory_…` file names already observed; Qt derives them via
+    **`ftok`/`stat`**, which is why an `openat` trace never saw them.
+- **With the region provided, both named attaches succeed — and `pszSrc` is still NULL.** The ordered log becomes:
+
+  `m_pShmBase->attach() error code : 0` (success) → `initMicomShareMem() -> Start` → `pszSrc NULL`, with **no**
+  `initBootInfo attach fail` line at all, i.e. the `MICOM_STATUS_MESSAGE` attach also succeeded.
+
+  So the object whose `data()` returns NULL at `rbx+0x40` is **not** either of the two named handles: it is a **third**
+  handle, or one of these after the `QSharedMemory::detach` at `0x25a42c` on an earlier failure path. That is the next
+  thing to pin down, and it is now a question about one member offset rather than about the environment.
 - **Hand-off state for V-036, complete:** reachability, interface construction and shared-memory mechanisms excluded by
   measurement; reply content confirmed as the blocker; three plausible payloads rejected against a live client; the oracle
   for testing further candidates exists and is documented; and the static anchors are listed with the specific difficulty

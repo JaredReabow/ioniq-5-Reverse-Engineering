@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.11.0 - both shared-memory keys identified; the NULL is a third handle
+
+- The disassembly names them. `initBootInfo` is `QSharedMemory` keyed **`MICOM_STATUS_MESSAGE`**, `attach()` only, no
+  create, logging `initBootInfo attach fail` on failure. `m_pShmBase` is keyed **`APPLICATIONMANAGER_INFORMATION`**,
+  **created with size 8** then attached, logging `m_pShmBase->attach() error code : %1`.
+- **With `ihu-shim` providing the region, both attaches succeed:** the log shows `attach() error code : 0` and no
+  `initBootInfo attach fail` at all — and yet `initMicomShareMem() -> Start` is still followed by `pszSrc NULL`.
+- Therefore the object whose `data()` is NULL (`rbx+0x40`) is **neither** of the two named handles. It is a third handle,
+  or one of them re-used after the `QSharedMemory::detach` on the failure path at `0x25a42c`. That is now a question about a
+  single member offset rather than about the environment — the whole environmental search has been reduced to this.
+- Practical side-effect worth noting: the `create(…, size 8)` for `APPLICATIONMANAGER_INFORMATION` and its
+  `attach() error code` log give a **direct oracle** for that object, which is more precise than anything used earlier.
+
 ## 2.10.0 - `pszSrc` identified: it is `QSharedMemory::data()`, and there is no third-party provider
 
 - The disassembly settles what the last several rounds were guessing at. The `pszSrc NULL` path is:

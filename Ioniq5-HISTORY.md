@@ -3684,3 +3684,33 @@ and are superseded by corrections rather than silently rewritten.
   resolved after the combination. All one hundred and one are present.
 - That closes the merge: content combined, duplicates marked, the contradictory severity reconciled, the count corrected
   against grep, and the citations verified.
+
+## 2026-11-02 — status 5 was not the failure value
+
+- Corrected an interpretation that the sender's `SendNaviBootFail` name had left
+  unresolved. ApplicationManager's concrete map and menu callbacks treat 5 as
+  the only positive launch status: 5 enables their handoff path, while every
+  other value clears play-enable and returns.
+- The real gate is the separately latched window byte. With window zero the
+  manager caches 5 but never calls the map/menu handlers. Its authentic BG path
+  sets the byte to one and replays the cached value, exactly the sequence absent
+  from the retained VM runs.
+- This narrows the integration task to genuine first-hide/unmap/BG behavior. It
+  also separates the later Home fallback from the status consumer, which has no
+  direct Home-ID-11 edge in the inspected routines.
+- The next static branch explains why a visibility callback is not enough. The
+  recovered QtWayland client explicitly detaches on hide only for a Shm window;
+  its Egl path skips that commit. Public v5.4.1 did not have that condition.
+  AppNavi mapped the exact EGL plugin, but the primary window instance's class at
+  first hide remains to be observed before blaming the mixed VM graphics stack.
+  No synthetic event, target execution, VM mutation, or new vulnerability claim
+  was used to reach these corrections.
+
+## 2026-10-31 — reading the other lineage's script ended a week of guessing
+
+- The parallel lineage had already solved both of this thread's blockers and published the script. Running it here produced a
+  live AppHomeScreen, a dispatching launcher, and a MICOM region with the authentic profile and twelve attachments.
+- The four differences that mattered were all mundane: which shell module, which software EGL tree, unsetting a variable the
+  vendor appends to, and two extra passwd entries. None of them were discoverable by reasoning about the failure.
+- The lesson is uncomfortable and worth keeping: after the merge, I searched this repository for clues about the blockers and
+  found the contract document, but I did not read the reproduction script that had already fixed them.

@@ -3,6 +3,55 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.17.0 - BREAKTHROUGH: the parallel lineage's published chain runs here, with AppHomeScreen live
+
+- Ran `vm/repro/…/full-chain-authentic-standby.sh` — the parallel lineage's own reproduction script, merged into this repo
+  and previously unread — directly in the VM. Result:
+
+  `AppHomeScreen` **running** (`pid 804`) · `ApplicationManager` running (`pid 762`) · launcher dispatching
+  (`m_AppProcess->start(/app/bin/AppStandbyClock) PID[942]`) · D-Bus launch request **`RC=0`**.
+
+- **The MICOM region this thread could not satisfy is populated and attached twelve times:**
+  `ipc-observe` reports `kind=shm key=0x5112047b size=35 attachments=12` with
+  `non_atomic_hex=00000826050000051302000003c8140000000000000000000000020001000000000000` — the authentic 35-byte profile,
+  delivered by `micom-dbus-sim`. Every hypothesis in this thread about that structure was solving a problem the published chain
+  had already solved.
+- **Four decisive differences from this thread's approach:** `weston-headless` with `headless-backend.so` and
+  **`ivi-shell.so`**; software EGL from **`/opt/software-egl18`** with `GALLIUM_DRIVER=softpipe`; `QT_WAYLAND_SHELL_INTEGRATION`
+  **unset** (AppLauncher appends `:ivi`, giving the invalid `ivi:ivi`); and `/etc/passwd.legacy` → `/tmp/passwd` with the
+  `xuser` and `byungsu` accounts added.
+- **The launch method is `request.launch`, not `launch`** — `com.lge.avn.applauncher.request.launch int32:30 string:AppNavi …`
+  returns success. V-028's runtime test is therefore reachable by a route none of the four earlier attempts used.
+- Recorded plainly: the answer had been sitting in this repository since the combination, in a file I had not opened.
+
+## 2.17.0 - Navigation status 5 is positive; window 0 is the blocker
+
+- Corrected the unresolved interpretation of `notifyNaviLaunched[5] window[0]`.
+  Exact `NaviMapApplication` and `NaviMenuApplication` callbacks accept only
+  status `5`: it sets their play-enable byte and enters controller-mediated
+  handoff logic. Every other status clears the byte and returns. The sender-side
+  signal name containing `Fail` is not the receiver-side enum definition.
+- Bound the local matrix. A zero manager window byte caches status but stops
+  before ID-30/ID-32 callbacks. A nonzero window plus status 5 clears two ID-35
+  loading-object lists and reaches the positive map/menu paths. The authentic BG
+  route calls the window setter with 1, which latches the byte and replays cached
+  status.
+- The latest saved runs therefore already carry the receiver's accepted status;
+  they fail to produce the authentic AppNavi BG/first-hide/unmap event needed to
+  set the separate window latch. FG and a rendered surface remain insufficient.
+- The inspected routines do not directly return to Home ID 11; that observed
+  fallback is a separate path still requiring attribution. Static positive-path
+  reachability does not prove a completed 35→30 transition or composition.
+- Bound the recovered QtWayland hide discriminator to `windowType()`. Unlike
+  public v5.4.1's unconditional detach, the recovered client explicitly commits
+  a null buffer only when `windowType()==Shm` (zero). The recovered Shm method
+  returns 0; the mapped EGL plugin's corresponding method returns 1 and skips
+  that detach. Visibility false alone therefore does not unmap an Egl instance.
+- Added exact-static consumer and hide-backend records under
+  `evidence/artifacts/application-candidates/` and updated the navigation
+  contract and handover. No guest or target execution, message injection,
+  compositor event, image change, commit, or push occurred.
+
 ## 2.16.0 - register evidence integrity: 101 cited paths, all present
 
 - Checked every repo-relative path the register cites in backticks — the evidence each finding points at — after the

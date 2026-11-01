@@ -1070,6 +1070,24 @@ vulnerability is claimed, and this test does not move either entry.
   (the authentic 35-byte profile) and the attach calls themselves are all accounted for; two attaches are confirmed
   successful by Qt's own error code. What remains is that the client's `data()` on one handle returns NULL **despite** the
   object existing — which is vendor-side logic inside `MicomInterfaceM`, not an environment gap this project can close.
+- **The parallel lineage's published chain resolves every blocker this thread hit, and it was verified here.** Running
+  `vm/repro/vendor-userspace-260128/micom-contract/full-chain-authentic-standby.sh` in the VM produced:
+
+  `AppHomeScreen` **running** (`pid 804`), `ApplicationManager` running (`pid 762`), the launcher starting applications
+  (`m_AppProcess->start(/app/bin/AppStandbyClock) PID[942]`), and the D-Bus launch request returning **`RC=0`**.
+
+  Critically, `ipc-observe` shows the MICOM boot-info region populated with the authentic profile —
+  `kind=shm key=0x5112047b id=0 size=35 attachments=12` with
+  `non_atomic_hex=00000826050000051302000003c8140000000000000000000000020001000000000000` — i.e. the 35-byte structure this
+  thread could not satisfy is delivered by `micom-dbus-sim`, and **twelve** things attach to it.
+- **The recipe differs from this thread's approach in four decisive ways**: `weston-headless` with `headless-backend.so` and
+  **`ivi-shell.so`** (not `ias-shell`), software EGL from **`/opt/software-egl18`** with `GALLIUM_DRIVER=softpipe` (not the
+  Debian swrast in `/usr/lib/dri`), `QT_WAYLAND_SHELL_INTEGRATION` **unset** (AppLauncher appends `:ivi` and produces the
+  invalid `ivi:ivi`), and `/etc/passwd.legacy` copied to `/tmp/passwd` **with the `xuser` and `byungsu` accounts added**.
+  Symlink adaptations `qml_new2.0`, the `hmc` night theme bind-mount and `/navi/navi -> .` are also required.
+- **For V-028 this is significant:** the working launch method is **`com.lge.avn.applauncher.request.launch`**
+  (`int32:30 string:AppNavi string:…`), not the `launch` method this thread introspected, and it **returns success**. That is
+  the route to a runtime test that four earlier attempts could not reach.
 - **Hand-off state for V-036, complete:** reachability, interface construction and shared-memory mechanisms excluded by
   measurement; reply content confirmed as the blocker; three plausible payloads rejected against a live client; the oracle
   for testing further candidates exists and is documented; and the static anchors are listed with the specific difficulty

@@ -1,0 +1,364 @@
+{
+  "conclusions": {
+    "all_appfumo_selected_filenames_present": true,
+    "all_embedded_signatures_verify": true,
+    "all_share_one_embedded_modulus": true,
+    "all_twelve_decompress_to_recovered_vmlinux": true,
+    "bootloader_pins_embedded_modulus": null,
+    "custom_image_acceptance_proved": false,
+    "normal_variants_te2_wrapped": true,
+    "persistent_activation_or_boot_acceptance_proved": false,
+    "root_or_persistence_proved": false,
+    "sub_variants_already_plaintext": true
+  },
+  "limitations": [
+    "The report verifies package bytes and embedded signatures, not that MICOM or ABL accepts the embedded modulus.",
+    "Presence and signature validity do not prove updater invocation, final written bytes, durability, boot selection, health, mark-good, rollback, root, or persistence.",
+    "No modified or re-signed container is created by this analyzer."
+  ],
+  "package": {
+    "already_plaintext": 6,
+    "common_decompressed_kernel_sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b",
+    "common_modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+    "common_plaintext_size": 6210308,
+    "filenames": 12,
+    "te2_wrapped": 6
+  },
+  "rows": [
+    {
+      "ipk": {
+        "build_id": 1123061140,
+        "command_line_length": 885,
+        "decompressed_kernel_sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b",
+        "decompressed_kernel_size": 16398376,
+        "header_size": 52,
+        "ipk_size": 6210308,
+        "legacy_lz4_offset": 17434,
+        "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+        "root_target": "/dev/mmcblk0p3",
+        "serial_console": false,
+        "signature": "RSA-2048 PKCS#1 v1.5 SHA-256",
+        "signed_end": 6209540,
+        "signed_sha256": "d956ed6a112116b95c087431920388d94eec9d97b1fecbb9099d1546a2ca67df",
+        "total_field": 6209484,
+        "version": 197376
+      },
+      "name": "iasImage",
+      "plaintext_sha256": "ef1820da4cf51f65abcb26e794d553661e79ad6bb095ad1cf4b0366982927d97",
+      "source_sha256": "6db0bb746722389092e60681554a3b9f1b391f8def59c65c68e764cc9d6007ce",
+      "source_size": 6226728,
+      "te2": {
+        "body_size": 6210308,
+        "iv": "7d1bf14971d2d752bfd2f13180e87c46",
+        "metadata_discriminator": 9,
+        "metadata_integrity": true
+      },
+      "te2_wrapped": true
+    },
+    {
+      "ipk": {
+        "build_id": 1123061140,
+        "command_line_length": 885,
+        "decompressed_kernel_sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b",
+        "decompressed_kernel_size": 16398376,
+        "header_size": 52,
+        "ipk_size": 6210308,
+        "legacy_lz4_offset": 17434,
+        "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+        "root_target": "/dev/mmcblk0p3",
+        "serial_console": false,
+        "signature": "RSA-2048 PKCS#1 v1.5 SHA-256",
+        "signed_end": 6209540,
+        "signed_sha256": "dcfa1bef504fa667eee3c0f9b8a6be765402bdae692c8fc80c3e3f17c8d9506e",
+        "total_field": 6209484,
+        "version": 197376
+      },
+      "name": "iasImage_1280",
+      "plaintext_sha256": "fcf18006a30b29b70ee64899177586f124b4eb1688234be83aa9baf50f89edcb",
+      "source_sha256": "c2a314bc63e1dbe1440bd87b9135210b6eea356727ba03bdecb692b61d3bce4e",
+      "source_size": 6226728,
+      "te2": {
+        "body_size": 6210308,
+        "iv": "ba952bb87427724d21097bbf5b13214e",
+        "metadata_discriminator": 9,
+        "metadata_integrity": true
+      },
+      "te2_wrapped": true
+    },
+    {
+      "ipk": {
+        "build_id": 1123061140,
+        "command_line_length": 953,
+        "decompressed_kernel_sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b",
+        "decompressed_kernel_size": 16398376,
+        "header_size": 52,
+        "ipk_size": 6210308,
+        "legacy_lz4_offset": 17502,
+        "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+        "root_target": "/dev/mmcblk0p3",
+        "serial_console": true,
+        "signature": "RSA-2048 PKCS#1 v1.5 SHA-256",
+        "signed_end": 6209540,
+        "signed_sha256": "0e6c016e1fe23029c8a5d61063ebcbe9e328263b5eb2b73a5e95c4796c3f0702",
+        "total_field": 6209484,
+        "version": 197376
+      },
+      "name": "iasImage_1280_sub",
+      "plaintext_sha256": "55e9a31be5ca734a7af111613ae6ce83cdc579b27138c5f54700f78263056eb0",
+      "source_sha256": "55e9a31be5ca734a7af111613ae6ce83cdc579b27138c5f54700f78263056eb0",
+      "source_size": 6210308,
+      "te2": null,
+      "te2_wrapped": false
+    },
+    {
+      "ipk": {
+        "build_id": 1123061140,
+        "command_line_length": 885,
+        "decompressed_kernel_sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b",
+        "decompressed_kernel_size": 16398376,
+        "header_size": 52,
+        "ipk_size": 6210308,
+        "legacy_lz4_offset": 17434,
+        "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+        "root_target": "/dev/mmcblk0p3",
+        "serial_console": false,
+        "signature": "RSA-2048 PKCS#1 v1.5 SHA-256",
+        "signed_end": 6209540,
+        "signed_sha256": "a34edfa6d47cf93ca562be9d2f9aedeb074c0d552f1d9fd652c4aca42fee3e34",
+        "total_field": 6209484,
+        "version": 197376
+      },
+      "name": "iasImage_1920_12",
+      "plaintext_sha256": "2113632569fbd8598546c664d7007e8bda07b409b86813ad6520745fc8e94e4b",
+      "source_sha256": "aaa0384e4f147ec016f019f839a06a7ed19f3a407d8b0d23070c97c8c459e0dd",
+      "source_size": 6226728,
+      "te2": {
+        "body_size": 6210308,
+        "iv": "bb6197ffeca0cab780b205de55494e29",
+        "metadata_discriminator": 9,
+        "metadata_integrity": true
+      },
+      "te2_wrapped": true
+    },
+    {
+      "ipk": {
+        "build_id": 1123061140,
+        "command_line_length": 953,
+        "decompressed_kernel_sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b",
+        "decompressed_kernel_size": 16398376,
+        "header_size": 52,
+        "ipk_size": 6210308,
+        "legacy_lz4_offset": 17502,
+        "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+        "root_target": "/dev/mmcblk0p5",
+        "serial_console": true,
+        "signature": "RSA-2048 PKCS#1 v1.5 SHA-256",
+        "signed_end": 6209540,
+        "signed_sha256": "2a19c5161759703eab1a66da3ce7456784bbdad9f20731d075739ff48f684ccc",
+        "total_field": 6209484,
+        "version": 197376
+      },
+      "name": "iasImage_1920_12_sub",
+      "plaintext_sha256": "e4d7523ba0f77a7b659260df82968d515859b01e06738bf7cfd79bef83db8e05",
+      "source_sha256": "e4d7523ba0f77a7b659260df82968d515859b01e06738bf7cfd79bef83db8e05",
+      "source_size": 6210308,
+      "te2": null,
+      "te2_wrapped": false
+    },
+    {
+      "ipk": {
+        "build_id": 1123061140,
+        "command_line_length": 885,
+        "decompressed_kernel_sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b",
+        "decompressed_kernel_size": 16398376,
+        "header_size": 52,
+        "ipk_size": 6210308,
+        "legacy_lz4_offset": 17434,
+        "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+        "root_target": "/dev/mmcblk0p5",
+        "serial_console": false,
+        "signature": "RSA-2048 PKCS#1 v1.5 SHA-256",
+        "signed_end": 6209540,
+        "signed_sha256": "c6bd8a5ae9a72173c925508ed94e3cb92be47cc8db739f86ab81b280f375407f",
+        "total_field": 6209484,
+        "version": 197376
+      },
+      "name": "iasImage_p5",
+      "plaintext_sha256": "2b9fc7ce7c3c7573f3550a3afc592a2896ad15bdf02b82bcf86c0fef8d9fbd91",
+      "source_sha256": "57ea6691a1118020bc263c1fbdba3d7e26dd0240f4c89fac380c5578708376b0",
+      "source_size": 6226728,
+      "te2": {
+        "body_size": 6210308,
+        "iv": "b38301e56c5bc5e48006e39f44619ae8",
+        "metadata_discriminator": 9,
+        "metadata_integrity": true
+      },
+      "te2_wrapped": true
+    },
+    {
+      "ipk": {
+        "build_id": 1123061140,
+        "command_line_length": 885,
+        "decompressed_kernel_sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b",
+        "decompressed_kernel_size": 16398376,
+        "header_size": 52,
+        "ipk_size": 6210308,
+        "legacy_lz4_offset": 17434,
+        "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+        "root_target": "/dev/mmcblk0p5",
+        "serial_console": false,
+        "signature": "RSA-2048 PKCS#1 v1.5 SHA-256",
+        "signed_end": 6209540,
+        "signed_sha256": "552cec4ad64df92ef455048a46c73930d6fdd1098d2bb0375d7260179633a2a0",
+        "total_field": 6209484,
+        "version": 197376
+      },
+      "name": "iasImage_p5_1280",
+      "plaintext_sha256": "50215cb2db4255e6e2e7c2916976d36624d6dec434d8b7d978b7b4edce1e369c",
+      "source_sha256": "7e8fd8c426c64eec197462aed53290c63e1a12aea43a5556f45acd2c90da3476",
+      "source_size": 6226728,
+      "te2": {
+        "body_size": 6210308,
+        "iv": "e89251ef353a06a8c2d59fd6fe3997c7",
+        "metadata_discriminator": 9,
+        "metadata_integrity": true
+      },
+      "te2_wrapped": true
+    },
+    {
+      "ipk": {
+        "build_id": 1123061140,
+        "command_line_length": 953,
+        "decompressed_kernel_sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b",
+        "decompressed_kernel_size": 16398376,
+        "header_size": 52,
+        "ipk_size": 6210308,
+        "legacy_lz4_offset": 17502,
+        "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+        "root_target": "/dev/mmcblk0p5",
+        "serial_console": true,
+        "signature": "RSA-2048 PKCS#1 v1.5 SHA-256",
+        "signed_end": 6209540,
+        "signed_sha256": "7a509b368573250bcdda0301db6600268d65e0f41e479daa4a32d029b0e3eef2",
+        "total_field": 6209484,
+        "version": 197376
+      },
+      "name": "iasImage_p5_1280_sub",
+      "plaintext_sha256": "fb442a993619b17c94c95826cc425a6e04c3e947c1f9c009191dec63607acbad",
+      "source_sha256": "fb442a993619b17c94c95826cc425a6e04c3e947c1f9c009191dec63607acbad",
+      "source_size": 6210308,
+      "te2": null,
+      "te2_wrapped": false
+    },
+    {
+      "ipk": {
+        "build_id": 1123061140,
+        "command_line_length": 885,
+        "decompressed_kernel_sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b",
+        "decompressed_kernel_size": 16398376,
+        "header_size": 52,
+        "ipk_size": 6210308,
+        "legacy_lz4_offset": 17434,
+        "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+        "root_target": "/dev/mmcblk0p5",
+        "serial_console": false,
+        "signature": "RSA-2048 PKCS#1 v1.5 SHA-256",
+        "signed_end": 6209540,
+        "signed_sha256": "4c8ad3902f3dd9c885113c5940d76c76c0825c82883b72787947b6b283d801d9",
+        "total_field": 6209484,
+        "version": 197376
+      },
+      "name": "iasImage_p5_1920_12",
+      "plaintext_sha256": "cc80a5a364f2c8e24fc6ad5bdc7d7f6e732715b76658664fd3bcf90e203c3b40",
+      "source_sha256": "7d3c4c43cee76c45518f85df2ac07cb124a7984d238d7189e6ead9e4967500f3",
+      "source_size": 6226728,
+      "te2": {
+        "body_size": 6210308,
+        "iv": "65344ccb53b1e6ea89586b21d0222eea",
+        "metadata_discriminator": 224,
+        "metadata_integrity": true
+      },
+      "te2_wrapped": true
+    },
+    {
+      "ipk": {
+        "build_id": 1123061140,
+        "command_line_length": 953,
+        "decompressed_kernel_sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b",
+        "decompressed_kernel_size": 16398376,
+        "header_size": 52,
+        "ipk_size": 6210308,
+        "legacy_lz4_offset": 17502,
+        "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+        "root_target": "/dev/mmcblk0p5",
+        "serial_console": true,
+        "signature": "RSA-2048 PKCS#1 v1.5 SHA-256",
+        "signed_end": 6209540,
+        "signed_sha256": "2a19c5161759703eab1a66da3ce7456784bbdad9f20731d075739ff48f684ccc",
+        "total_field": 6209484,
+        "version": 197376
+      },
+      "name": "iasImage_p5_1920_12_sub",
+      "plaintext_sha256": "e4d7523ba0f77a7b659260df82968d515859b01e06738bf7cfd79bef83db8e05",
+      "source_sha256": "e4d7523ba0f77a7b659260df82968d515859b01e06738bf7cfd79bef83db8e05",
+      "source_size": 6210308,
+      "te2": null,
+      "te2_wrapped": false
+    },
+    {
+      "ipk": {
+        "build_id": 1123061140,
+        "command_line_length": 953,
+        "decompressed_kernel_sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b",
+        "decompressed_kernel_size": 16398376,
+        "header_size": 52,
+        "ipk_size": 6210308,
+        "legacy_lz4_offset": 17502,
+        "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+        "root_target": "/dev/mmcblk0p5",
+        "serial_console": true,
+        "signature": "RSA-2048 PKCS#1 v1.5 SHA-256",
+        "signed_end": 6209540,
+        "signed_sha256": "b9a898511c72990e654abeaa55e539e6e1821ed7fbc58dec2f754c73761e1f15",
+        "total_field": 6209484,
+        "version": 197376
+      },
+      "name": "iasImage_p5_sub",
+      "plaintext_sha256": "47a6f19f395529814be3eeb7a5751815fab8d31b36fdc503ef025e65070a484f",
+      "source_sha256": "47a6f19f395529814be3eeb7a5751815fab8d31b36fdc503ef025e65070a484f",
+      "source_size": 6210308,
+      "te2": null,
+      "te2_wrapped": false
+    },
+    {
+      "ipk": {
+        "build_id": 1123061140,
+        "command_line_length": 953,
+        "decompressed_kernel_sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b",
+        "decompressed_kernel_size": 16398376,
+        "header_size": 52,
+        "ipk_size": 6210308,
+        "legacy_lz4_offset": 17502,
+        "modulus_sha256": "227d89f5a3cabed4efb8e67d5a0f9fa29d03a6759b8a150503fb383698fedea6",
+        "root_target": "/dev/mmcblk0p3",
+        "serial_console": true,
+        "signature": "RSA-2048 PKCS#1 v1.5 SHA-256",
+        "signed_end": 6209540,
+        "signed_sha256": "d13844111c9b49b8af9cbe83d351e551bf35c6d8bcb725dcb3580d972a79bb4a",
+        "total_field": 6209484,
+        "version": 197376
+      },
+      "name": "iasImage_sub",
+      "plaintext_sha256": "deb69570c89a37f15a92a2e07247138ab0ed83ea108141f24536db6f0f9bbc7f",
+      "source_sha256": "deb69570c89a37f15a92a2e07247138ab0ed83ea108141f24536db6f0f9bbc7f",
+      "source_size": 6210308,
+      "te2": null,
+      "te2_wrapped": false
+    }
+  ],
+  "schema": "eu260128-boot-container-matrix/v1",
+  "tool": {
+    "name": "eu260128-boot-container-matrix",
+    "version": "1.0.0"
+  }
+}

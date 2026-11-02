@@ -51,12 +51,12 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "05be861e74a3739fd32e003c0cf48974a0f745a2e1e2346b553e747ac8635765")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "ebfda04945ffff19bbb0a18eb78925a19e266bf0a18f22cb1b5ee2361f10cdca")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "3d65b46c3289c5feed238e6b60ce7cedd806b1960ed5ae3c2b114633ada4286e")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "26c95b5a9e4a2c2292e8da74533b0431e43e30bfabd246ae8559d2c1f3ec41f7")
         self.assertNotIn(b"work/", data)
         self.assertNotIn(b"Contents of section", data)
 
@@ -126,6 +126,20 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(intel["rot_key_extension14_cse_bup_main_record"]["usage_bits"], [0, 1])
         self.assertTrue(intel["shared_public_modulus_and_exponent_bytes_identical"])
         self.assertTrue(intel["rbe_ipub_key_to_rot_key_pin_proved"])
+        self.assertEqual(intel["exact_abl_static_digest_occurrences"], [M.ROT_KEY_OFFSET + 0x2CC])
+        self.assertTrue(intel["exact_abl_static_digest_occurs_only_in_rot_key_record"])
+        self.assertEqual(intel["bup_runtime_root_object_name"], "ipub_key")
+        self.assertEqual(intel["bup_snowball_fallback_path"], "/snowball/ipub_key")
+        self.assertEqual(intel["bup_runtime_object_list_head_global"], 0xA014C)
+        self.assertTrue(intel["bup_runtime_object_list_initializes_empty"])
+        self.assertEqual(intel["bup_runtime_object_layout"]["payload_size_offset"], 0x14)
+        self.assertEqual(intel["bup_runtime_object_layout"]["payload_pointer_offset"], 0x18)
+        self.assertEqual(intel["bup_runtime_object_layout"]["next_pointer_offset"], 0x1C)
+        self.assertIn("list head is zero", intel["bup_resolution_rule"])
+        self.assertEqual(intel["bup_selected_digest_size"], 0x20)
+        self.assertEqual(intel["bup_maximum_accepted_selector"], 0x23)
+        self.assertFalse(intel["bup_snowball_path_selected_at_runtime_proved"])
+        self.assertFalse(intel["bup_snowball_object_writable_or_untrusted_proved"])
         self.assertFalse(intel["ipub_key_producer_or_hardware_anchor_proved"])
         boot_policy = root_chains["oem_boot_policy_chain"]
         self.assertEqual(boot_policy["uep_and_oem_key_digest"], M.STORED_USAGE39_DIGEST)
@@ -247,6 +261,9 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["rbe_and_bup_signed_module_byte_chains_proved"])
         self.assertTrue(conclusions["rbe_runtime_ipub_key_pins_rot_key_proved"])
         self.assertTrue(conclusions["shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved"])
+        self.assertTrue(conclusions["bup_ipub_key_runtime_object_or_snowball_resolution_proved"])
+        self.assertFalse(conclusions["bup_snowball_ipub_key_selected_at_runtime_proved"])
+        self.assertFalse(conclusions["bup_snowball_ipub_key_writable_or_untrusted_proved"])
         self.assertFalse(conclusions["ipub_key_external_hardware_anchor_proved"])
         self.assertTrue(conclusions["oem_key_usage32_pins_ibbp_manifest_proved"])
         self.assertTrue(conclusions["ibbp_manifest_binds_bpm_metadata_proved"])

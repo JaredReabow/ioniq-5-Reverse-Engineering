@@ -258,6 +258,28 @@ boundary has narrowed to the producer and authority of `ipub_key`: the
 recovered RBE consumes it but does not show whether ROM, immutable CSE code,
 fuses, or another earlier authenticated object supplies it.
 
+Exact BUP independently exposes more of the same object contract in its generic
+manifest-verification path. Global `0x000a014c` is initialized as an empty
+runtime-object-list head. The object materializer prepends received objects with
+payload size at `+0x14`, payload pointer at `+0x18`, and next pointer at `+0x1c`.
+The resolver then applies this exact rule:
+
+- while the list head is nonzero, resolve the named runtime object and return
+  its payload pointer and size;
+- only while the list head is zero, construct and read
+  `/snowball/ipub_key`;
+- the caller rejects a selector greater than `0x23`, selects a pointer from the
+  returned object, and supplies exactly 32 expected-digest bytes to the later
+  manifest validator.
+
+The digest `f2eb8fc4...` occurs statically in the exact 8 MiB ABL only once, in
+`rot.key`'s Extension-14 record at flash `0x17b2cc`. This rules out a second
+plain static copy in this image, but it does not establish which BUP resolver
+branch is active or where RBE's earlier runtime object originated. In
+particular, the `/snowball/ipub_key` path name alone does not prove that the
+object is writable, unauthenticated, selected on this platform, or usable to
+replace the root key.
+
 Exact `FTPR.man` contains neither the name `oem.key` nor its SHA-256 in forward
 or reversed byte order, and FTPR CPD has no `oem.key.met` member. This is bounded
 absence of direct coverage in that signed-package metadata, not proof that no
@@ -463,6 +485,12 @@ What is now proved:
   pin `rot.key` before RSA verification;
 - `rot.key`, `RBEP.man`, `FTPR.man`, and `NFTP.man` use the same exact
   modulus-plus-exponent digest `f2eb8fc4...` and have valid embedded signatures;
+- exact BUP can resolve `ipub_key` from a runtime object or
+  `/snowball/ipub_key`, accepts selectors only through `0x23`, and passes a
+  selected 32-byte digest to its manifest verifier;
+- the exact root digest occurs statically only in `rot.key`; runtime branch
+  selection, snowball writability/authentication, and RBE object provenance
+  remain unproved;
 - the producer and ROM/fuse authority of runtime `ipub_key` remain unproved;
 - exact FTPR signed-package metadata has no direct `oem.key` name/digest entry
   and FTPR CPD has no `oem.key.met` member;
@@ -515,6 +543,9 @@ What remains unproved:
   different installed manifest or firmware generation;
 - whether CSE, Boot Guard, an ACM, ROM, physical FPFs, or another earlier stage
   authenticates or overrides the selected UEP source;
+- whether BUP ever selects `/snowball/ipub_key`, how that internal object is
+  authenticated, and whether its contents can differ from RBE's earlier runtime
+  `ipub_key`;
 - the exact producer and immutable provenance of RBE's `0xf6170800` hardware
   window, despite the now-proved later BUP/NFTP provisioning handoff;
 - the actual runtime expected digest on an installed unit, although the exact
@@ -541,11 +572,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `42,405`
-  - SHA-256 `05be861e74a3739fd32e003c0cf48974a0f745a2e1e2346b553e747ac8635765`
+  - size `44,433`
+  - SHA-256 `ebfda04945ffff19bbb0a18eb78925a19e266bf0a18f22cb1b5ee2361f10cdca`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `98,618`
-  - SHA-256 `3d65b46c3289c5feed238e6b60ce7cedd806b1960ed5ae3c2b114633ada4286e`
+  - size `101,854`
+  - SHA-256 `26c95b5a9e4a2c2292e8da74533b0431e43e30bfabd246ae8559d2c1f3ec41f7`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

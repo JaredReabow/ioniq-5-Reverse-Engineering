@@ -10,6 +10,8 @@ Exact CSE RBE `ipub_key → rot.key` pinning, shared CSE-manifest key identity, 
 - Exact RBE resolves runtime `ipub_key`, copies a selector-chosen 32-byte digest to `0x6047fa8`, and requires `rot.key`'s modulus-plus-exponent digest to match before RSA verification.
 - FTPR `rot.key` is at flash `0x17b000`, size `0x3fc`, SHA-256 `5530da6cbec43a441466478a6069b7a5d39afe9453f34923c633ad07b4613a14`.
 - `rot.key`, `RBEP.man`, `FTPR.man`, and `NFTP.man` share public-key digest `f2eb8fc44e30f6132631df884020abd685ce8843ee205d0a22eb6493f78a54cf`; all embedded signatures verify. The runtime producer/authority of `ipub_key` remains open.
+- Exact BUP initializes global `0xa014c` as an empty runtime-object-list head and materializes received objects with size/pointer/next fields at `+0x14/+0x18/+0x1c`; its generic manifest path resolves `ipub_key` from that list while nonempty or constructs `/snowball/ipub_key` while empty, bounds the selector through `0x23`, and supplies a selected 32-byte digest to its verifier.
+- Digest `f2eb8fc4...` occurs statically in the exact ABL only in `rot.key` at `0x17b2cc`; BUP branch selection, snowball writability/authentication, and identity with RBE's earlier object remain unproved.
 - Exact FTPR signed-package metadata has no direct `oem.key` name/digest coverage and FTPR CPD has no `oem.key.met`; this bounded absence is not proof of no external authentication.
 - Exact BPDT type-17 UEP contains three copies of the `oem.key` public-key digest, including a contiguous copy at `+0xcc`; comparative Apollo Lake tooling names that field an OEM public-key-hash record.
 - Exact RBE creates `ifp_uep`; hardware-window selection is `((dword[0xf6170810] >> 24) & 0x0c) != 0 && ((dword[0xf6170810] >> 24) & 0x03) != 0`, otherwise it uses BPDT UEP primary/fallback. It extracts field `0x20` (256 bits) to global `0x6048038` and requires the `oem.key` modulus-plus-exponent hash to match before RSA and extension validation.
@@ -52,18 +54,18 @@ Exact CSE RBE `ipub_key → rot.key` pinning, shared CSE-manifest key identity, 
 - `tests/test_abl_ias_key_provenance.py`
 - `evidence/abl-ias-key-manifest-provenance.md`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `42,405`
-  - SHA-256 `05be861e74a3739fd32e003c0cf48974a0f745a2e1e2346b553e747ac8635765`
+  - size `44,433`
+  - SHA-256 `ebfda04945ffff19bbb0a18eb78925a19e266bf0a18f22cb1b5ee2361f10cdca`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `98,618`
-  - SHA-256 `3d65b46c3289c5feed238e6b60ce7cedd806b1960ed5ae3c2b114633ada4286e`
+  - size `101,854`
+  - SHA-256 `26c95b5a9e4a2c2292e8da74533b0431e43e30bfabd246ae8559d2c1f3ec41f7`
 
 ## Validation
 
 - focused package: `13 passed, 10 subtests passed`;
 - ABL/update/bench integration: `136 passed, 53 subtests passed`;
-- canonical suite: `1011 passed, 352216 subtests passed in 169.05s`;
-- canonical log SHA-256: `aed9499622a55a2d06faf6848622cee909fc13c976ac560a891e4be6a06d7355`;
+- canonical suite: `1011 passed, 352216 subtests passed in 170.01s`;
+- canonical log SHA-256: `50591b3da1dbf3df900ca06c7e8ecceb7548a90c9eb7603f651d80e0352dc0cd`;
 - UTF-16 environment determinism, `py_compile`, and `git diff --check` passed.
 
 ## Boundary
@@ -72,7 +74,7 @@ Exact RBE binds `rot.key` to runtime `ipub_key`; the RoT key is shared by RBEP/F
 
 ## Next work
 
-1. Trace the producer and immutable authority of runtime `ipub_key`, including whether ROM, CSE kernel, FPFs, or another authenticated object supplies its selector and digest array.
+1. Trace the producer and immutable authority of runtime `ipub_key`, including whether ROM, CSE kernel, FPFs, or another authenticated object supplies its selector and digest array; determine what controls BUP global `0xa014c` and authenticates `/snowball/ipub_key` without assuming that fallback is selected or writable.
 2. Trace exact authentication and FPF/fuse precedence for the hardware-window versus BPDT UEP source, using the closed `ifp_uep → bup_fpf → signed NFTP fpf` path without assuming the later FPF hardware state produced RBE's earlier window.
 3. On a future disconnected bench, record `/proc/cmdline` and the exact `ABL.oemkm` value without attempting a physical-memory read unless separately authorized and safely bounded.
 4. Determine whether the installed/runtime OEM key manifest matches the exact stored FTPR object and verify its external provisioning chain host-side.

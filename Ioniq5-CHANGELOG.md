@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.45.0 - screen 9 cannot exist: IVI numbers screens by output order, and we have one output
+
+- Traced the screen-id question to source. `work/weston-source-1.10/full/ivi-shell/ivi-layout.c`, `create_screen()`:
+  ```c
+  wl_list_for_each(output, &ec->output_list, link) {
+      ...
+      iviscrn->id_screen = count;
+      count++;
+      ...
+  }
+  ```
+  So the IVI screen id is simply **the position of the output in the compositor's output list**. Screen 9 exists only if the compositor has
+  **at least ten outputs**. Our projection runs `weston-headless` with one, so the screen the app asks for has never existed in any run so far.
+- Neither escape hatch is available: `compositor-headless.c` in 1.10 has **no `--output-count` option** (only the wayland and x11 backends
+  parse one), and the **vendor `ivi-shell.so` has no configurable screen id** either — `strings` over the vendor library shows only the
+  upstream symbols (`ivi_layout_get_screen_from_id`, `id_screen`, `create_screen`), no option name to set it.
+- So the remaining fault is one we can fix on our side, and it is a backend question rather than an application one: make the compositor
+  present the outputs the vendor layout expects. Delegated that to a subagent — extend **our own** backend
+  (`tools/uk_fw/ias_backend_soft/ias-backend-soft.c`) with a runtime-selectable output count (`IAS_OUTPUT_COUNT`, default 1 so existing runs
+  are unchanged), with outputs created in list order because that order is what numbers the screens.
+- Worth stating the inference boundary: the app requesting screen 9 is **measured**; that its refusal to create an `ivi_surface` is *caused*
+  by screen 9 being absent is **the working hypothesis**, and the multi-output build is what tests it.
+
 ## 2.44.0 - the app asks the compositor for IVI screen 9, then stops
 
 - Read the compositor-side trace during a hand-started run with assets staged. The app binds the vendor IVI globals and then interrogates

@@ -4239,3 +4239,11 @@ and are superseded by corrections rather than silently rewritten.
   turns into garbage on screen.
 - This is the fourth instrument error in this project: a flooded console, a five second race, a supervising manager, and now a text parser applied to binary data. The
   habit that catches them is reading the file rather than trusting the summary of it.
+
+## 2026-10-31 — zero by zero
+
+- The screen size the vendor interface publishes is zero in every configuration tried, single output or ten. If the application sizes itself from that, the strange window
+  geometry stops being mysterious.
+- The vendor's own HMI client exists in the image and is the obvious thing to restore, but restoring it is not enough: started with no arguments it exits at once, so it needs
+  the invocation the real unit uses.
+- Recorded as an open lead with its failed first test, rather than as progress it is not.

@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.79.0 - the compositor reports a primary screen size of zero, in every configuration tried
+
+- Chasing the stride mismatch from §2.78.0, queried the vendor interface the application itself uses:
+  ```
+  ivi_wm: request ivi_window_manager.get_primary_screen_size()
+  ivi_wm:   <- ivi_window_manager.primary_screen_size(0, 0)
+  ivi_wm: primary screen size: no reply (the compositor sent no primary_screen_size event)
+  ```
+  **The compositor reports 0×0.** A client that sizes its window from this — and the vendor application does query it — would compute nonsense geometry from zero, which is a
+  plausible origin for the 1926×753 surface observed against a 1920×720 output.
+- **Not a consequence of our multi-output backend.** Reproduced on a single-output `weston-headless` with the production IVI shell config: `primary_screen_size(0, 0)`
+  again. So the zero is independent of the ten-screen work.
+- **Hypothesis, and its first test failed:** our configurations all set
+  `ivi-shell-user-interface=/bin/true`, replacing the vendor HMI client that normally drives screen and plane setup. That binary **does** ship —
+  `/usr/libexec/weston-ivi-shell-user-interface`, and it is the only binary in `/usr/bin` or `/usr/libexec` referencing `ivi_hmi_controller`/`ivi_window_manager`. Pointing
+  the config at it did **not** fix the size: the client did not stay running at all (`UI_PID=` empty) and the reported size remained `(0, 0)`. So the substitution is
+  necessary to investigate but not sufficient, and the client presumably needs arguments or environment that `/bin/true` made unnecessary to provide.
+- Where that leaves the geometry problem: **the screen size the vendor stack publishes is zero in every configuration measured**, the vendor HMI client that would plausibly
+  set it exits immediately when started with no arguments, and the application's window is sized 1926×753 regardless. The next step is to find how the vendor starts that
+  client (its argv and any environment the real unit provides), rather than guessing further.
+
 ## 2.78.0 - CORRECTION: two frames I called "black" were not black, and one of them is the application's window
 
 - My frame metric was wrong. I had been judging PPM captures with an awk scan of whitespace-separated numbers after the header. That is valid only for **P3**

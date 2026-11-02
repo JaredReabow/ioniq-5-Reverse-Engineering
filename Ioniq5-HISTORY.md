@@ -4019,3 +4019,10 @@ and are superseded by corrections rather than silently rewritten.
 - But the compositor aborts on surface destruction even with the splash removed, so the ten-screen layout that makes the request answerable is also
   what exposes the crash.
 - That is a vendor defect in how destroyed surfaces are composited, and it stands between us and the thing we actually want to see.
+
+## 2026-10-31 — caught it in the act
+
+- The log names the moment: a repaint across seventeen views, two surfaces whose destination rectangles had just been zeroed, an invisible ivi
+  surface, and a client mid-way through creating a buffer. Then the assertion.
+- That is a race in the vendor compositor, and it only bites because ten outputs make it composite many views at once.
+- The way forward is not to fix their compositor but to stop asking it to do that work: present ten screens, render one.

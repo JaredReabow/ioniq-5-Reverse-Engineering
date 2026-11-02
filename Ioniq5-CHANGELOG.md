@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.49.0 - the abort happens mid-repaint over 17 views while a client is mid-buffer
+
+- Captured the compositor log at the instant of death. The sequence immediately before the assert:
+  - `wl_surface@35.attach(wl_buffer@51, 0, 0)` / `damage(0,0,INT_MAX,INT_MAX)` / `commit()`
+  - `Surface id(1000), Weston surface W(1926), H(123)`, `ivi_info_receiver@4.receive_FG_info(1000, 1, "AvOSD")`
+  - `ivi_surface@44.configure(1920, 75)`, `ivi_surface@20.configure(1926, 123)`, `ivi_surface@20.configure(1920, 720)`
+  - `ivi_controller_surface@14.destination_rectangle(0, 0, 1920, 720)` → `source_rectangle(0, 0, 1926, 123)` →
+    `destination_rectangle(0, 0, 1926, 123)` → `destination_rectangle(0, 0, 0, 0)` (and the same for surface 46)
+  - `ivi_surface@20.visibility(0)`
+  - `wl_shm@32.create_pool(wl_shm_pool@47, …832032)`, `wl_shm_pool@47.create_buffer(wl_buffer@49, 0, 1926, 108, 7704, 0)`, `pool.destroy()`
+  - `wl_surface@35.enter(wl_output@9)`, `wl_surface@35.enter(wl_output@12)`
+  - **`ias-soft: repaint output=0 views=17 layers=3`** → `Assertion 'src_format' failed`
+- So the abort is reached **during a repaint with 17 views across 3 layers**, immediately after the vendor IVI stack zeroed two surfaces'
+  destination rectangles, made `ivi_surface@20` invisible, and a client created a fresh shm buffer it had not yet attached. That is a race in
+  the vendor compositor's surface/view bookkeeping, not a single bad client, and it is only reachable because the ten-output layout makes the
+  compositor composite many views per repaint.
+- **Strategic read, stated plainly:** the app needs IVI screen 9 to *exist*; it does not need screens 1–9 to *render*. Screen ids come from
+  output-list order, so the requirement can be satisfied by presenting ten outputs while letting only the first composite. That would keep the
+  layout the app expects and take the compositor out of the code path that aborts.
+- Delegated exactly that to a subagent: a selectable repaint limit in our backend (composite only the first N outputs, defaulting to all), so the
+  ten screens exist for the layout while rendering stays on one.
+
 ## 2.48.0 - the app really does ask for screen 9 in chain runs, and the abort does not need the splash
 
 - Disabled `early-background` entirely (mode set to 0000 in the clone) so no splash surface could be destroyed, then ran the ten-output chain.

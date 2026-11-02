@@ -310,6 +310,101 @@
       "size": 16773120
     }
   },
+  "later_fpf_exact_static_review": {
+    "advisory_attribution": "The later signed FPF contains explicit RBE, OEM key-manifest, and microcode anti-rollback enable/SVN field records absent by name from the affected signed FPF. The non-minimal 3.1.94 comparison does not establish when these fields appeared, whether they were provisioned on either platform, or whether they implement CVE-2018-3655's fix.",
+    "exact_static_observations": {
+      "affected_fpf_lacks_all_six_field_names": true,
+      "later_enable_fields_are_two_bits_each": true,
+      "later_fpf_contains_all_six_structured_field_records": true,
+      "later_svn_fields_are_contiguous_12_20_and_14_bit_ranges": true
+    },
+    "fields": {
+      "OemKmArbEn": {
+        "affected_literal_occurrences": 0,
+        "field_bit_range_inclusive": [
+          164,
+          165
+        ],
+        "later_literal_occurrences": 1,
+        "record_file_range": [
+          20976,
+          21020
+        ],
+        "record_sha256": "d2f7aac91c2edbbfd31380f44aa3999df75c13cf48ec724dfdb084ea331f3cf7",
+        "width_bits": 2
+      },
+      "OemKmArbSvn": {
+        "affected_literal_occurrences": 0,
+        "field_bit_range_inclusive": [
+          652,
+          671
+        ],
+        "later_literal_occurrences": 1,
+        "record_file_range": [
+          22208,
+          22252
+        ],
+        "record_sha256": "b404993bc5636c51555449c91ca892a003a572a8a7a57a69b070af393273d185",
+        "width_bits": 20
+      },
+      "RbeArbEn": {
+        "affected_literal_occurrences": 0,
+        "field_bit_range_inclusive": [
+          160,
+          161
+        ],
+        "later_literal_occurrences": 1,
+        "record_file_range": [
+          20932,
+          20976
+        ],
+        "record_sha256": "ec9b3df2ad66201dff320e17ccdbfdc9e916225c15e8e9f40785d8e7724257ba",
+        "width_bits": 2
+      },
+      "RbeArbSvn": {
+        "affected_literal_occurrences": 0,
+        "field_bit_range_inclusive": [
+          640,
+          651
+        ],
+        "later_literal_occurrences": 1,
+        "record_file_range": [
+          22164,
+          22208
+        ],
+        "record_sha256": "2fe296dae7117a2d68249d70a75bd5d8cb8bde2e0d1016c63ef60ce331efe380",
+        "width_bits": 12
+      },
+      "UcodeArbEn": {
+        "affected_literal_occurrences": 0,
+        "field_bit_range_inclusive": [
+          200,
+          201
+        ],
+        "later_literal_occurrences": 1,
+        "record_file_range": [
+          21372,
+          21416
+        ],
+        "record_sha256": "b52d64f84ba8c5e9ce884e66531a6c031a500c1831b2421887bee9d7a14ff671",
+        "width_bits": 2
+      },
+      "UcodeArbSvn": {
+        "affected_literal_occurrences": 0,
+        "field_bit_range_inclusive": [
+          672,
+          685
+        ],
+        "later_literal_occurrences": 1,
+        "record_file_range": [
+          22252,
+          22296
+        ],
+        "record_sha256": "d636f759f668656b927bda76d35b02f3a78ee50107edc97066b1cc0e95e6fcc9",
+        "width_bits": 14
+      }
+    }
+  },
   "later_heci_exact_static_review": {
     "advisory_attribution": "The later image adds stricter reserved/header-bit validation and a bounded extended-header parser. Because 3.1.94 is not the first fixed 3.1.55 build and spans years of intervening changes, this comparison does not identify any delta as CVE-2018-12147 or CVE-2018-3655's exact fix.",
     "code_base": 155648,

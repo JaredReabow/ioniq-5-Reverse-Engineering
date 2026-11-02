@@ -42,6 +42,8 @@ def test_canonical_fixed_module_diff_matches_reviewed_artifact():
     assert report["inputs"]["affected"]["modules"]["heci"]["decompressed_sha256"] == diff.OLD_HECI_SHA256
     assert report["inputs"]["later"]["modules"]["heci"]["decompressed_sha256"] == diff.FIXED_HECI_SHA256
     assert report["later_heci_exact_static_review"]["exact_static_observations"]["dma_ring_bit_29_now_rejected_before_payload_dispatch"] is True
+    assert report["later_fpf_exact_static_review"]["exact_static_observations"]["affected_fpf_lacks_all_six_field_names"] is True
+    assert report["later_fpf_exact_static_review"]["fields"]["OemKmArbSvn"]["field_bit_range_inclusive"] == [0x28C, 0x29F]
     assert report["classification"]["cve_2018_12147_exact_bug_identified"] is False
     assert report["classification"]["cve_2018_3655_exact_storage_bug_identified"] is False
     assert json.loads(ARTIFACT.read_text(encoding="utf-8")) == report

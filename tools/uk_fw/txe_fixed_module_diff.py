@@ -27,6 +27,8 @@ FIXED_NFTP = 0x147000
 FIXED_FTPR = 0x20000
 OLD_HECI_SHA256 = "82b7be7bb8069aebfb2c9f7a0e994500fe10d631e67a16f5a5fec71d29679125"
 FIXED_HECI_SHA256 = "04dceeb0b42db7910d913545b9b2342e9a26349c8e9d2e2bede201af62bf3b8f"
+OLD_FPF_SHA256 = "9fd694bc90c7433528cfcf80ad265093cc61e086d882a3c52dee152ba64630b9"
+FIXED_FPF_SHA256 = "2c188d8f1c0ee1a0eab08e716599149b370305033d2435c3745c7f399909713d"
 MODULES = ("heci", "busdrv", "storage", "policy", "fpf", "dal_sdm")
 
 FIXED_HECI_RANGES = {
@@ -36,6 +38,15 @@ FIXED_HECI_RANGES = {
     "client_lookup": (0x3052, 0x3094, "0b7634ab4b6af9e543ea8afbdd3feedb68c5aada26400b0db8b2ff5af9fa5266"),
     "connection_lookup": (0x3094, 0x3109, "86f2ac3493e735de1788d98144a0e2480b0801591522ee0a80c04c6056f3ef16"),
     "extended_header_parser": (0x3AD2, 0x3C0A, "f3ed29ecdcd43505ac0824e7b4762bde7bc29c477747a891f5646cb5a3e49e42"),
+}
+
+FIXED_FPF_ARB_FIELDS = {
+    "RbeArbEn": (0x51C4, 2, 0x0A0, 0x0A1, "ec9b3df2ad66201dff320e17ccdbfdc9e916225c15e8e9f40785d8e7724257ba"),
+    "OemKmArbEn": (0x51F0, 2, 0x0A4, 0x0A5, "d2f7aac91c2edbbfd31380f44aa3999df75c13cf48ec724dfdb084ea331f3cf7"),
+    "UcodeArbEn": (0x537C, 2, 0x0C8, 0x0C9, "b52d64f84ba8c5e9ce884e66531a6c031a500c1831b2421887bee9d7a14ff671"),
+    "RbeArbSvn": (0x5694, 12, 0x280, 0x28B, "2fe296dae7117a2d68249d70a75bd5d8cb8bde2e0d1016c63ef60ce331efe380"),
+    "OemKmArbSvn": (0x56C0, 20, 0x28C, 0x29F, "b404993bc5636c51555449c91ca892a003a572a8a7a57a69b070af393273d185"),
+    "UcodeArbSvn": (0x56EC, 14, 0x2A0, 0x2AD, "d636f759f668656b927bda76d35b02f3a78ee50107edc97066b1cc0e95e6fcc9"),
 }
 
 
@@ -310,6 +321,46 @@ def fixed_heci_review(heci: bytes) -> dict:
     }
 
 
+def fixed_fpf_review(affected: bytes, fixed: bytes) -> dict:
+    if sha256(affected) != OLD_FPF_SHA256 or sha256(fixed) != FIXED_FPF_SHA256:
+        raise Failure("FPF identity drift")
+    fields = {}
+    for name, (offset, width, bit_start, bit_end, digest) in FIXED_FPF_ARB_FIELDS.items():
+        record = fixed[offset : offset + 0x2C]
+        record_name = record[:12].split(b"\0", 1)[0]
+        parsed_width = struct.unpack_from("<I", record, 0x14)[0] if len(record) == 0x2C else -1
+        parsed_start, parsed_end = struct.unpack_from("<HH", record, 0x1C) if len(record) == 0x2C else (-1, -1)
+        if (
+            record_name != name.encode("ascii")
+            or parsed_width != width
+            or (parsed_start, parsed_end) != (bit_start, bit_end)
+            or parsed_end - parsed_start + 1 != parsed_width
+            or sha256(record) != digest
+            or affected.count(name.encode("ascii")) != 0
+        ):
+            raise Failure(f"fixed FPF anti-rollback field drift: {name}")
+        fields[name] = {
+            "record_file_range": [offset, offset + 0x2C],
+            "record_sha256": digest,
+            "width_bits": width,
+            "field_bit_range_inclusive": [bit_start, bit_end],
+            "affected_literal_occurrences": 0,
+            "later_literal_occurrences": fixed.count(name.encode("ascii")),
+        }
+    if any(value["later_literal_occurrences"] != 1 for value in fields.values()):
+        raise Failure("fixed FPF anti-rollback field multiplicity drift")
+    return {
+        "fields": fields,
+        "exact_static_observations": {
+            "affected_fpf_lacks_all_six_field_names": True,
+            "later_fpf_contains_all_six_structured_field_records": True,
+            "later_enable_fields_are_two_bits_each": True,
+            "later_svn_fields_are_contiguous_12_20_and_14_bit_ranges": True,
+        },
+        "advisory_attribution": "The later signed FPF contains explicit RBE, OEM key-manifest, and microcode anti-rollback enable/SVN field records absent by name from the affected signed FPF. The non-minimal 3.1.94 comparison does not establish when these fields appeared, whether they were provisioned on either platform, or whether they implement CVE-2018-3655's fix.",
+    }
+
+
 def image_report(image: bytes, nftp_offset: int, ftpr_offset: int, label: str) -> tuple[dict, dict[str, bytes]]:
     nftp_entries = parse_cpd(image, nftp_offset, b"NFTP")
     ftpr_entries = parse_cpd(image, ftpr_offset, b"FTPR")
@@ -354,6 +405,7 @@ def build_report(old: bytes, fixed: bytes) -> dict:
         "inputs": {"affected": old_report, "later": fixed_report},
         "comparisons": comparisons,
         "later_heci_exact_static_review": fixed_heci_review(fixed_modules["heci"]),
+        "later_fpf_exact_static_review": fixed_fpf_review(old_modules["fpf"], fixed_modules["fpf"]),
         "classification": {
             "later_version_is_at_or_after_intel_sa_00125_first_fixed_3_1_55": True,
             "exact_signed_later_modules_obtained": True,

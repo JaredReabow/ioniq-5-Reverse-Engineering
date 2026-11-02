@@ -98,7 +98,10 @@ external-reader import is not yet bound to the exact FTPR-kernel function. BUP
 phase zero nevertheless proves ingestion at function index 7, `ifp_uep`
 consumption at index 10, and list destruction only after the phase. Its
 materializer also subtracts `0x12` from a zero-extended u16 total without a
-minimum-size guard, but malformed-stream attacker control is not proved. BUP
+minimum-size guard. The later `ifp_uep` consumer checks neither lookup success
+nor payload size before fixed `8 + 0x100` byte copies, and duplicate names are
+last-ingested-wins. Exact RBE supplies the stock object at `0x108` bytes;
+malformed-stream or duplicate-object attacker control is not proved. BUP
 `ipub_key` provenance and snowball exclusion still remain unproved. Signed
 NFTP `dal_sdm` independently reads an exact `0x24`-byte
 `/snowball/ipub_key` policy object before `/snowball/oem_sign` and

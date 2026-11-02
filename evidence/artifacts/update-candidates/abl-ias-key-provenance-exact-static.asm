@@ -2467,25 +2467,45 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 
    32a61: push    0x54aa0                     # "ifp_uep"
    32a66: call    0x28cac                     # resolve materialized object
+   32a6b: push    0x8                         # no null/result-size check first
+   32a6d: mov     ebx, eax
    32a6f: push    dword ptr [eax + 0x18]
    32a72: push    0xa38fc
-   32a77: call    0x102e                      # copy route header
+   32a77: call    0x102e                      # fixed 8-byte route-header copy
    32a7c: push    0x100
    32a81: mov     eax, dword ptr [ebx + 0x18]
    32a84: add     eax, 0x8
    32a87: push    eax
    32a88: push    0xa37f8
-   32a8d: call    0x102e                      # copy selected UEP payload
+   32a8d: call    0x102e                      # fixed 0x100-byte payload copy
+
+# Runtime-object lookup walks from the prepended list head and returns the first
+# 12-byte name match. Therefore the last ingested duplicate name wins:
+   28cb0: mov     ebx, dword ptr [0xa014c]    # list head
+   28cb6: test    ebx, ebx
+   28cb8: je      0x28cd1
+   28cba: push    0xc
+   28cbc: push    dword ptr [ebp + 0x8]       # requested name
+   28cbf: push    ebx
+   28cc0: call    0x1060                      # compare 12 bytes
+   28cc8: test    eax, eax
+   28cca: je      0x28cd5                     # first match returned
+   28ccc: mov     ebx, dword ptr [ebx + 0x1c] # next
+   28ccf: jmp     0x28cb6
 
 # This proves BUP ingestion occurs before the phase-zero ifp_uep consumer and
 # that list cleanup follows phase zero. FTPR's stream reader and BUP ingestion
 # also agree on a 0x12-byte header, total size at +0x0e, exact payload
 # remainder, and sequential entry boundaries. BUP zero-extends the u16 total
 # then subtracts 0x12 without a minimum-size check, so totals 0..0x11 wrap the
-# requested payload length modulo 2^32. No attacker-controlled malformed stream
-# is proved. The exact external-reader import-to-kernel-function binding is not
-# yet closed, so this does not prove BUP's ipub_key came from the RBE table or
-# exclude the /snowball fallback at the later manifest-verification point.
+# requested payload length modulo 2^32. The ifp_uep consumer itself checks
+# neither lookup success nor the 0x108-byte minimum before fixed copies, and
+# duplicate resolution is last-ingested-wins. Exact RBE does allocate and fill
+# the stock ifp_uep at the required 0x108 bytes, so no attacker-controlled
+# malformed or overriding object is proved. The exact external-reader import-
+# to-kernel-function binding is also not yet closed, so this does not prove
+# BUP's ipub_key came from the RBE table or exclude the /snowball fallback at
+# the later manifest-verification point.
 
 ## BUP runtime-object or /snowball resolver (BUP file [0x2026a,0x2039a), runtime [0x4626a,0x4639a))
 

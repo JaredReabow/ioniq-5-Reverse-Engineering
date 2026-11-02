@@ -11,7 +11,7 @@ Exact CSE RBE incoming-handoff `ipub_key → rot.key` pinning, shared CSE-manife
 - The handoff lookup caps traversal at `0x8000`, begins entries at `0x08200008`, compares `0x0c`-byte names, tests enabled bit 0 at `+0x0d`, steps by the word at `+0x0e`, and exposes payload at `+0x12`. RBE first appends `cld_rst_blk`, then requires existing `bpdt`, `pm_trans`, `ftpm_fuses`, `sss_em`, `rbe.man`, `pmc_ipc`, and `ipub_key` entries; only missing optional `pmc_msg` is appended.
 - `FTPR.man → kernel.met → kernel` reverse-SHA-256 bindings close the exact FTPR kernel byte chain. That kernel processes `0x08200000..0x08208000`, initializes its first entry at `0x08200008`, and advances using the same `+0x0d` state and `+0x0e` size fields. This proves cross-stage handoff continuity, not the pre-RBE producer/authenticator.
 - BUP clears list head `0xa014c`, loops its object materializer until null, requires an exact `0x12`-byte header with total size at `+0x0e`, and then requires the exact payload remainder. This matches FTPR's handoff stream geometry. The materializer zero-extends the u16 total and subtracts `0x12` without a minimum-size guard, so totals below `0x12` wrap modulo 2^32; malformed-stream attacker control or reachability is not proved.
-- Exact startup order is now closed inside BUP: main runs phase zero; its 22-entry function table executes ingestion at index 7 and `ifp_uep` consumption at index 10; main then frees the transient list. The BUP external-reader import is not yet bound to the exact kernel function, so BUP `ipub_key` provenance and snowball exclusion remain open.
+- Exact startup order is now closed inside BUP: main runs phase zero; its 22-entry function table executes ingestion at index 7 and `ifp_uep` consumption at index 10; main then frees the transient list. The `ifp_uep` consumer checks neither lookup success nor payload size before fixed 8-byte and `0x100`-byte copies. Prepend-order ingestion plus first-match lookup means the last ingested duplicate wins. Exact RBE supplies the stock object at `0x108` bytes, while malformed/duplicate attacker control remains unproved. The BUP external-reader import is not yet bound to the exact kernel function, so BUP `ipub_key` provenance and snowball exclusion remain open.
 - Exact signed NFTP `dal_sdm` independently opens `/snowball/ipub_key`, reads exactly `0x24` bytes on the content path, checks byte `+1` bit 0 and dword `+4`, then gates reads of `/snowball/oem_sign` and `/snowball/oem_key_man`. This proves shared CSE policy-object consumption, not its producer, writability, replay behavior, or fuse/ROM authority.
 - All nine exact-ABL little-endian `0x08200000` byte occurrences are classified: five RBE consumer references, three FTPR-kernel consumer references, and one unaligned PMCP cross-dword match spanning dwords `0x20000000`/`0xff171908`. No other plain static base literal remains; computed, indirect, ROM, and external producers remain possible.
 - FTPR `rot.key` is at flash `0x17b000`, size `0x3fc`, SHA-256 `5530da6cbec43a441466478a6069b7a5d39afe9453f34923c633ad07b4613a14`.
@@ -60,18 +60,18 @@ Exact CSE RBE incoming-handoff `ipub_key → rot.key` pinning, shared CSE-manife
 - `tests/test_abl_ias_key_provenance.py`
 - `evidence/abl-ias-key-manifest-provenance.md`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `55,994`
-  - SHA-256 `fd01ced30384bff6052ed9aa3b4a40d78aa4dd190c31d043f8356b3ed929afc5`
+  - size `56,639`
+  - SHA-256 `69a1e49092cab439869e6b7b1052470639b3632f04732ae4c79f6c5e84570804`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `114,808`
-  - SHA-256 `9ece68730be6d4836c51ae3757a4b066aa0daeb44198e80da5cfe881ee8be3c4`
+  - size `115,808`
+  - SHA-256 `5a65ba290f05366e2dafc5cb52637691d2015ba9cd142ec888f8d86285035640`
 
 ## Validation
 
 - focused package: `13 passed, 10 subtests passed`;
 - selected provenance/trust/bench/MEI integration: `56 passed, 172 subtests passed`;
-- canonical suite: `1019 passed, 352351 subtests passed in 181.27s`;
-- canonical log SHA-256: `048b7a85e2469eed171a20bcb1fd87a9f41f3a6f5ea9129f297ac822f3614bc2`;
+- canonical suite: `1019 passed, 352351 subtests passed in 194.17s`;
+- canonical log SHA-256: `87e6406f85371aa64441f18007b53f4acfe5976db3ed2f39ec1c483222c232d3`;
 - UTF-16 environment determinism, `py_compile`, and `git diff --check` passed.
 
 ## Boundary

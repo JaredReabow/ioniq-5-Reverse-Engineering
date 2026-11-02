@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.65.0 - with a valid surface id the app draws, then dies in the weather widget's destructor
+
+- Tested two candidate surface ids (`1001` and `4001`) with `..._FORCED=1` in the standalone ten-screen configuration. Both behave identically:
+  `create_surface` **2**, `commit` **1**, `attach` 0 at the 30-second checkpoint, and the process gone afterwards.
+- The kernel names the death this time, and it is **not** the generic `free()` heap fault:
+  ```
+  AppHomeScreen[822]: segfault at 20 ip 00007fe6192b08b3 sp 00007fff3df88d50 error 4
+   in libWeatherWidget.so.1.0.0[7fe619297000+40000]
+  ```
+  Symbolized against `/app/plugins/WeatherWidget/libWeatherWidget.so.1.0`: `ip - base = 0x198b3`, which is **`WeatherWidget::~WeatherWidget()` + 0x53`**
+  (next symbol `_ZN13WeatherWidgetD0Ev`). A null dereference at offset 0x20 inside the widget's own destructor.
+- So the sequence with a working surface id is: surfaces created → a frame committed → the application tears down the weather widget → **the widget's
+  destructor dereferences a null pointer** → process gone. That is a vendor defect in plugin teardown, and it is why the earlier forced-id run also ended with no
+  frame captured.
+- Note what this does and does not change: the surface question is **answered** (§2.64.0) — the client draws when it is given a forced non-zero id. The new fault
+  sits *after* the first commit, in a widget destructor, and it is the next obstacle to a visible screen rather than a re-opening of anything settled.
+- Next: keep the application alive past the widget teardown — disable the weather widget, or supply whatever it expects — then capture a frame with the surface
+  actually on screen. Worth checking whether the teardown is triggered by a theme/language signal, because if it is, an attacker-reachable signal could take the
+  display down, which would be a register entry rather than a research nuisance.
+
 ## 2.64.0 - THE APP COMMITS FRAMES: the vendor shell integration wanted a forced, non-zero surface id
 
 - Found the gate, and it is the environment variable the launcher sets to zero. Running the application standalone (no `ApplicationManager`, ten screens,

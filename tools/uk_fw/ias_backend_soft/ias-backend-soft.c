@@ -53,6 +53,12 @@ struct headless_output {
 	uint32_t *image_buf;
 	pixman_image_t *image;
 	int repaint_count;
+	/* Creation order. ivi-shell derives id_screen from output-list position, so
+	 * this is also the screen id. */
+	int index;
+	/* Only outputs with index < repaint_limit composite views; see
+	 * headless_repaint_limit(). */
+	int repaint_limit;
 };
 
 struct headless_parameters {
@@ -63,6 +69,8 @@ struct headless_parameters {
 	/* How many outputs to create. ivi-shell numbers its screens by position in
 	 * the compositor output list, so screen N needs N+1 outputs. */
 	int count;
+	/* How many of those outputs actually composite. Never more than count. */
+	int repaint_limit;
 };
 
 static void
@@ -95,6 +103,14 @@ headless_output_repaint(struct weston_output *output_base,
 	static int last_views = -1;
 	int views = wl_list_length(&ec->view_list);
 	int repaint_count = output->repaint_count++;
+	/* Gated outputs keep their weston_output, wl_output and ivi screen id, but
+	 * never ask the renderer to composite: the vendor compositor's pixman path
+	 * aborts (composite_clipped(): Assertion 'src_format' failed) once it has to
+	 * composite views for this many screens, and the binary cannot be patched.
+	 * Only the composite (and its framebuffer dump) is skipped; the rest of the
+	 * frame bookkeeping below still runs so the repaint/finish_frame cycle and
+	 * frame callbacks are unchanged for clients. */
+	int composite = output->index < output->repaint_limit;
 
 	/* Diagnostic: distinguish "nothing to draw" from "drawn but not captured". */
 	if (views != last_views || repaint_count < 5) {
@@ -104,11 +120,12 @@ headless_output_repaint(struct weston_output *output_base,
 			   wl_list_length(&ec->layer_list));
 	}
 
-	ec->renderer->repaint_output(&output->base, damage);
+	if (composite)
+		ec->renderer->repaint_output(&output->base, damage);
 
 	/* Diagnostic: write a downscaled PPM of the backend framebuffer. Small enough to
 	 * move out of the guest over the serial link without truncation. */
-	if (output->image_buf && repaint_count < 10) {
+	if (composite && output->image_buf && repaint_count < 10) {
 		static char path[64];
 		const int sw = 240, sh = 90;
 		int w = output->base.current_mode->width;
@@ -200,6 +217,9 @@ headless_backend_create_output(struct headless_backend *b,
 	 * the surfaces the ivi-shell assigned to that screen. */
 	weston_output_init(&output->base, c, index * param->width, 0,
 			   param->width, param->height, param->transform, 1);
+
+	output->index = index;
+	output->repaint_limit = param->repaint_limit;
 
 	output->base.make = "gen5w";
 	output->base.model = "HDMI1";
@@ -339,10 +359,18 @@ err_free:
  * compositor has nothing to draw. For the research build only, create a view for every
  * new surface and put it on the output. This is a shim, not vendor behaviour. */
 static int shim_mapped;
+static int shim_enabled = 1;
 
 static void
 shim_on_create_surface(struct wl_listener *listener, void *data)
 {
+	/* The shim places every surface itself, including ones that are created and
+	 * never given a buffer. Those become views with no buffer, and the vendor
+	 * compositor's pixman path asserts on exactly that
+	 * (pixman-renderer.c composite_clipped: 'src_format'). IAS_SHIM=0 turns the
+	 * placement off so a run can be checked without it. Default stays on. */
+	if (!shim_enabled)
+		return;
 	struct weston_surface *ws = data;
 	struct weston_compositor *ec = ws->compositor;
 	struct weston_view *v;
@@ -395,6 +423,47 @@ headless_output_count(void)
 	return (int) count;
 }
 
+/* How many of the created outputs are allowed to composite. The extra screens
+ * must exist -- ivi-shell numbers them by output-list position, so screen 9
+ * needs ten outputs -- but the vendor compositor's pixman renderer aborts while
+ * compositing views across that many screens, and the binary cannot be patched.
+ * So they are still created and still numbered, they just never repaint.
+ *
+ * Unset means "all outputs repaint", which is exactly the old behaviour. Unlike
+ * headless_output_count(), the default here is the output count rather than 1,
+ * so an unparsable value falls back to the count while an out-of-range number
+ * clamps. */
+static int
+headless_repaint_limit(int count)
+{
+	const char *env = getenv("IAS_REPAINT_OUTPUTS");
+	char *end = NULL;
+	long limit;
+
+	if (env == NULL || *env == '\0')
+		return count;
+
+	limit = strtol(env, &end, 10);
+	if (end == NULL || end == env || *end != '\0') {
+		weston_log("ias-soft: invalid IAS_REPAINT_OUTPUTS \"%s\", using %d\n",
+			   env, count);
+		return count;
+	}
+
+	if (limit < 1) {
+		weston_log("ias-soft: clamping IAS_REPAINT_OUTPUTS %ld to 1\n", limit);
+		limit = 1;
+	}
+
+	if (limit > count) {
+		weston_log("ias-soft: clamping IAS_REPAINT_OUTPUTS %ld to %d\n",
+			   limit, count);
+		limit = count;
+	}
+
+	return (int) limit;
+}
+
 WL_EXPORT int
 backend_init(struct weston_compositor *compositor,
 	     int *argc, char *argv[],
@@ -420,8 +489,9 @@ backend_init(struct weston_compositor *compositor,
 	param.width = width;
 	param.height = height;
 	param.count = headless_output_count();
-	weston_log("ias-soft: %d output(s), ivi screen ids 0..%d\n", param.count,
-		   param.count - 1);
+	param.repaint_limit = headless_repaint_limit(param.count);
+	weston_log("ias-soft: %d output(s), ivi screen ids 0..%d, repainting first %d\n",
+		   param.count, param.count - 1, param.repaint_limit);
 
 	if (weston_parse_transform(transform, &param.transform) < 0)
 		weston_log("Invalid transform \"%s\"\n", transform);
@@ -431,6 +501,13 @@ backend_init(struct weston_compositor *compositor,
 		return -1;
 
 	ias_publish(compositor->wl_display);
+	{
+		const char *shim = getenv("IAS_SHIM");
+		if (shim && shim[0] == '0')
+			shim_enabled = 0;
+		weston_log("ias-soft: research shim %s\n",
+			   shim_enabled ? "enabled" : "disabled (IAS_SHIM=0)");
+	}
 
 	wl_signal_add(&compositor->create_surface_signal, &shim_create_surface_listener);
 

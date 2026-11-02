@@ -4026,3 +4026,11 @@ and are superseded by corrections rather than silently rewritten.
   surface, and a client mid-way through creating a buffer. Then the assertion.
 - That is a race in the vendor compositor, and it only bites because ten outputs make it composite many views at once.
 - The way forward is not to fix their compositor but to stop asking it to do that work: present ten screens, render one.
+
+## 2026-10-31 — two levers, both pulled, neither enough
+
+- The repaint gate works and the shim gate works, and the compositor still dies. That is a clean negative result and worth more than another
+  theory.
+- What it says is that the ten-screen layout changes how the vendor stack talks to its clients, and the crash comes from that, not from anything
+  we added.
+- The next question is small and cheap: does it die with ten screens and no application at all?

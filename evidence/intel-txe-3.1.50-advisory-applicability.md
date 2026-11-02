@@ -194,9 +194,9 @@ image:
 signatures, manifest-to-metadata and metadata-to-module reverse-SHA-256 chains,
 and strict decompression for HECI, busdrv, storage, policy, fpf, dal_sdm, VFS,
 and syslib. Its reviewed report is
-`evidence/artifacts/update-candidates/txe-fixed-module-diff.json`, schema v4,
+`evidence/artifacts/update-candidates/txe-fixed-module-diff.json`, schema v5,
 SHA-256
-`7cd1e22403c3fef4055303918b902108abccb34a9d2dca79ee835021d7b2a885`.
+`ed7f9ee0f93d1afa3a353560fe034510ceacc303fa3589405341bb0f62e5171f`.
 
 Across the complete affected and first-fixed HECI modules, all 377 raw
 differing bytes lie inside 369 same-offset external `rel32` encodings—366 calls
@@ -204,6 +204,14 @@ and three tail jumps—to 42 targets in `0x6460..0x67b2`. Every target shifts by
 exactly +5, and zeroing only those immediates makes the complete modules
 byte-identical. First-fixed also retains the affected nine-bit/`0x1fc` bound,
 complete-bit-only top-header test, and aligned control geometry `4..8`.
+
+The adjacent affected and first-fixed busdrv modules are both `0x6000` bytes.
+Their 97 raw differing bytes lie wholly within 96 same-offset external call
+`rel32` encodings to 26 affected syslib import stubs spanning
+`0x6465..0x67ad`. Each first-fixed target is affected+5, and zeroing only those
+call displacements makes the complete modules byte-identical. This excludes a
+busdrv-local opcode or non-address-data fix, while retaining its transitive
+syslib/kernel services as candidates.
 
 The later HECI keeps the nine-bit length and `0x1fc` fragment maximum, while
 adding exact header-state behavior:
@@ -306,13 +314,12 @@ The strongest current interpretation is:
 - SA-00086 is a rejected version-only lead for this exact artifact;
 - SA-00125 is an exact advisory-version match and a high-priority future bench
   lead;
-- exact first-fixed comparison excludes HECI-local code/data and opcode or
-  non-address-data changes in all 42 directly imported syslib destination
-  bodies and their 29 new direct first-level callees as the location of the
-  `3.1.55` fix; indirect dispatch, deeper callees, kernel/service handlers,
-  another signed module, or a downstream parser remain open, while later
-  header/extended-parser
-  changes postdate `3.1.55`;
+- exact first-fixed comparison excludes HECI-local and busdrv-local code/data,
+  plus opcode or non-address-data changes in all 42 directly imported syslib
+  destination bodies and their 29 new direct first-level callees, as the
+  location of the `3.1.55` fix; indirect dispatch, deeper callees,
+  kernel/service handlers, another signed module, or a downstream parser
+  remain open, while later header/extended-parser changes postdate `3.1.55`;
 - CVE-2018-12147 does not solve initial Linux root because it requires a
   privileged local caller;
 - CVE-2018-3655 is directly relevant to a physically isolated bench because

@@ -18,7 +18,7 @@ import struct
 import sys
 from pathlib import Path
 
-SCHEMA = "ioniq-txe-fixed-module-diff/v4"
+SCHEMA = "ioniq-txe-fixed-module-diff/v5"
 OLD_SHA256 = "f6fc0373042c27f36e601fe957544582f3b1bd4be3c36659105322304b2dc7ac"
 FIRST_FIXED_SHA256 = "db9325168976e1e68cba25924e82c2aeb2db85fb7a678de5fd66e200ab7643b9"
 LATER_SHA256 = "75a866331d8f23d023bbdcf9efdfee7b57bf4727eb50f6162940a2a51cb57b4a"
@@ -31,6 +31,8 @@ LATER_FTPR = 0x20000
 OLD_HECI_SHA256 = "82b7be7bb8069aebfb2c9f7a0e994500fe10d631e67a16f5a5fec71d29679125"
 FIRST_FIXED_HECI_SHA256 = "16afeb7e9a9328bd22b5c8b383b5e003bcce2e4d46db18ea1737606bffa3ed31"
 LATER_HECI_SHA256 = "04dceeb0b42db7910d913545b9b2342e9a26349c8e9d2e2bede201af62bf3b8f"
+OLD_BUSDRV_SHA256 = "f226a92dd219a020bca96aeca3b54d8b0870f230128b7cb206c3389d5096ad21"
+FIRST_FIXED_BUSDRV_SHA256 = "0e995c76f16f1f86240f85416059ca32e5c6fd0155eb1d3132b90505e8646fc0"
 OLD_SYSLIB_SHA256 = "dba068b882c11783af4e2c0b7911b3a0db90f9b22808f42ac3e8768e2dda961c"
 FIRST_FIXED_SYSLIB_SHA256 = "1f4722eeaab64eee5b6febe1b7e6d21565794c929173a56ff4bb9a01f96b00c8"
 OLD_FPF_SHA256 = "9fd694bc90c7433528cfcf80ad265093cc61e086d882a3c52dee152ba64630b9"
@@ -585,6 +587,78 @@ def module_wide_external_relocation_review(affected: bytes, first_fixed: bytes) 
         "affected_external_target_reference_counts": {
             f"0x{target:x}": target_counts[target] for target in sorted(target_counts)
         },
+    }
+
+
+def first_fixed_busdrv_review(affected: bytes, first_fixed: bytes) -> dict:
+    if (
+        sha256(affected) != OLD_BUSDRV_SHA256
+        or sha256(first_fixed) != FIRST_FIXED_BUSDRV_SHA256
+        or len(affected) != 0x6000
+        or len(first_fixed) != 0x6000
+    ):
+        raise Failure("first-fixed busdrv identity drift")
+
+    actual_differences = {
+        index for index, (left, right) in enumerate(zip(affected, first_fixed))
+        if left != right
+    }
+    sites = []
+    allowed_differences: set[int] = set()
+    normalized_affected = bytearray(affected)
+    normalized_first_fixed = bytearray(first_fixed)
+    target_counts: dict[int, int] = {}
+    for offset in range(len(affected) - 4):
+        if affected[offset] != 0xE8 or first_fixed[offset] != 0xE8:
+            continue
+        old_displacement = struct.unpack_from("<i", affected, offset + 1)[0]
+        new_displacement = struct.unpack_from("<i", first_fixed, offset + 1)[0]
+        old_target = 0x26000 + offset + 5 + old_displacement
+        new_target = 0x26000 + offset + 5 + new_displacement
+        changed = any(
+            affected[index] != first_fixed[index]
+            for index in range(offset + 1, offset + 5)
+        )
+        if not changed or new_displacement - old_displacement != 5 or old_target >= 0x26000:
+            continue
+        if new_target != old_target + 5 or new_target >= 0x26000:
+            raise Failure("first-fixed busdrv external call target drift")
+        target_counts[old_target] = target_counts.get(old_target, 0) + 1
+        allowed_differences.update(range(offset + 1, offset + 5))
+        normalized_affected[offset + 1 : offset + 5] = b"\0" * 4
+        normalized_first_fixed[offset + 1 : offset + 5] = b"\0" * 4
+        sites.append(offset)
+
+    if (
+        len(actual_differences) != 97
+        or len(sites) != 96
+        or len(target_counts) != 26
+        or min(target_counts, default=-1) != 0x6465
+        or max(target_counts, default=-1) != 0x67AD
+        or not actual_differences <= allowed_differences
+        or normalized_affected != normalized_first_fixed
+    ):
+        raise Failure("first-fixed busdrv relocation-only comparison drift")
+
+    return {
+        "affected_sha256": OLD_BUSDRV_SHA256,
+        "first_fixed_sha256": FIRST_FIXED_BUSDRV_SHA256,
+        "module_size": len(affected),
+        "raw_differing_byte_count": len(actual_differences),
+        "non_external_rel32_immediate_differing_byte_count": 0,
+        "external_rel32_call_site_count": len(sites),
+        "distinct_affected_external_target_count": len(target_counts),
+        "affected_external_target_range": [min(target_counts), max(target_counts)],
+        "all_first_fixed_external_targets_equal_affected_plus_five": True,
+        "equal_after_zeroing_only_selected_external_rel32_call_immediates": True,
+        "affected_external_target_reference_counts": {
+            f"0x{target:x}": target_counts[target] for target in sorted(target_counts)
+        },
+        "exact_static_observations": {
+            "entire_busdrv_module_equal_after_only_external_rel32_call_normalization": True,
+            "busdrv_local_opcode_or_non_address_data_change_at_first_fixed_boundary": False,
+        },
+        "attribution_boundary": "The complete affected and first-fixed busdrv modules are byte-identical after normalizing only 96 external call displacements to 26 syslib import stubs, each shifted by the inserted syslib export. This excludes busdrv-local opcode and non-address-data changes as the first-fixed CVE-2018-12147 fix, but does not exclude changed transitive callees, kernel/service handlers, another module, or downstream clients.",
     }
 
 
@@ -1354,6 +1428,9 @@ def build_report(old: bytes, first_fixed: bytes, later: bytes) -> dict:
         "first_fixed_heci_exact_static_review": first_fixed_heci_review(
             old_modules["heci"], first_modules["heci"]
         ),
+        "first_fixed_busdrv_exact_static_review": first_fixed_busdrv_review(
+            old_modules["busdrv"], first_modules["busdrv"]
+        ),
         "first_fixed_heci_syslib_import_review": first_fixed_heci_syslib_import_review(
             old_modules["heci"],
             first_modules["heci"],
@@ -1380,6 +1457,7 @@ def build_report(old: bytes, first_fixed: bytes, later: bytes) -> dict:
             "exact_signed_first_fixed_3_1_55_build_obtained": True,
             "exact_signed_later_modules_obtained": True,
             "first_fixed_entire_heci_module_changes_only_external_rel32_immediates": True,
+            "first_fixed_entire_busdrv_module_changes_only_external_rel32_call_immediates": True,
             "first_fixed_primary_heci_ranges_change_only_rel32_call_immediates": True,
             "first_fixed_all_42_heci_imported_syslib_bodies_change_only_address_operands": True,
             "first_fixed_all_29_new_first_level_syslib_callees_change_only_address_operands": True,
@@ -1393,6 +1471,7 @@ def build_report(old: bytes, first_fixed: bytes, later: bytes) -> dict:
         "boundaries": [
             "The official ASUS first-fixed image closes the version-bisect gap for 3.1.55, but attribution still requires exact changed-function and reachability analysis.",
             "The reviewed primary HECI ranges exclude later header/extension changes as the first-fixed primary-path delta; they do not exclude another HECI function or downstream client parser.",
+            "The complete busdrv module also normalizes to byte identity after only 96 external rel32 call displacements are zeroed. All 26 affected targets are syslib import stubs and their first-fixed targets are affected plus five, excluding a busdrv-local opcode or non-address-data fix while leaving its transitive services open.",
             "All 42 syslib bodies directly imported by HECI normalize to byte identity after only reviewed address operands are zeroed. Their 96 reviewed direct calls resolve to two unchanged external gates, two already reviewed bodies, and 29 new internal first-level callee bodies; all 29 new bodies also normalize to identity. This excludes opcode/non-address-data changes in those bounded bodies, but not indirect dispatch, deeper callees, kernel/service handlers, another signed module, or a downstream client.",
             "The named later FPF anti-rollback fields are absent from both affected and first-fixed FPF; this excludes those records as the 3.1.55 fix.",
             "First-fixed VFS newly opens pre-existing ndl_critical and ndl_counting storage channels and passes their descriptors to a new syslib setter. This is an exact anti-replay/data-integrity candidate, not yet proof of CVE-2018-3655 attribution or physical reachability.",

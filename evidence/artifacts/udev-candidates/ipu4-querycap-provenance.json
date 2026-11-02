@@ -1,0 +1,101 @@
+{
+  "boundaries": [
+    "The reviewed function returns fixed driver identity metadata; it does not parse image pixels or sensor stream payloads.",
+    "This closes the public USB-descriptor V4L route for the enabled recovered IPU4 querycap implementation, not every hypothetical vendor camera driver.",
+    "Physical owner-unit identity and any alternate installed module remain unverified until a disconnected bench capture.",
+    "No ioctl, device, helper, VM, property injection, unit activation, or root action was executed by this audit."
+  ],
+  "canonical_sha256": "e550192a8f6d48267b0931d57267d2bdce236f49b20aab5073570f99c84139dc",
+  "dataflow": {
+    "bus_info": {
+      "destination": "v4l2_capability.bus_info (+0x30)",
+      "maximum_copy": 32,
+      "producer_destination": "isys +0x368",
+      "producer_format": "pci:%s",
+      "query_source": "isys +0x368"
+    },
+    "card": {
+      "destination": "v4l2_capability.card (+0x10)",
+      "maximum_copy": 32,
+      "producer_destination": "isys +0x320",
+      "producer_sources": [
+        "ipu4/Broxton B",
+        "ipu5/A"
+      ],
+      "query_source": "video_drvdata->isys pointer at +0x7a8, then isys +0x320",
+      "selector": "masked PCI device ID equals 0x1a88 selects ipu4/Broxton B; otherwise ipu5/A"
+    },
+    "driver": {
+      "destination": "v4l2_capability.driver (+0x00)",
+      "maximum_copy": 16,
+      "source": "fixed rodata 'intel-ipu4-isys'"
+    }
+  },
+  "inputs": {
+    "kallsyms": {
+      "bytes": 2621327,
+      "sha256": "2cfba917c1c8e7444e393e8d94ebfe367e2ba348be4f35ce10fbb331822e3c1f"
+    },
+    "transport_report": {
+      "canonical_sha256": "f4e47bae5b167d154905114a6811388a688c7ee868d6642d9a2908053ceef039",
+      "sha256": "acb581cdf4e28f9588554430790fe4266fcc3fa98a82f874339489ae2efb29f9"
+    },
+    "vmlinux": {
+      "bytes": 16398376,
+      "sha256": "f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b"
+    }
+  },
+  "pattern_offsets": {
+    "producer": {
+      "bus_destination_offset_0x368": "0x9b",
+      "card_destination_offset_0x320": "0x1c",
+      "card_strlcpy_call": "0x71",
+      "conditional_string_select": "0x6d",
+      "default_ipu5_string": "0x1",
+      "ipu4_string_candidate": "0x66",
+      "pci_bus_format": "0xa2",
+      "pci_device_id_compare_0x1a88": "0x62",
+      "pci_device_id_load": "0x5b",
+      "pci_device_id_mask": "0x5f"
+    },
+    "querycap": {
+      "bus_pointer_and_copy_geometry": "0x43",
+      "card_pointer_and_copy_geometry": "0x26",
+      "driver_destination_and_length": "0xf",
+      "video_drvdata_call": "0xa"
+    }
+  },
+  "ranges": {
+    "card_bus_producer_prefix": {
+      "end": "0xffffffff8142b427",
+      "function": "isys_register_devices",
+      "sha256": "ff54919e0ebea913c993f7ef499a634a1cdd387824aa459f7954d60ddc922193",
+      "size": 201,
+      "start": "0xffffffff8142b35e"
+    },
+    "querycap": {
+      "end": "0xffffffff814321cd",
+      "next_symbol": "fmt_mp_to_sp",
+      "sha256": "ecdb0fb41f9152ba713928857ca552e9645baaf94be49b20657624d7abae9a35",
+      "size": 168,
+      "start": "0xffffffff81432125"
+    }
+  },
+  "schema": "ioniq-ipu4-querycap-provenance/v1",
+  "strings": {
+    "0xffffffff818805c8": "intel-ipu4-isys",
+    "0xffffffff81881e7d": "ipu4/Broxton B",
+    "0xffffffff81881e8c": "ipu5/A",
+    "0xffffffff81881e93": "pci:%s"
+  },
+  "verdict": {
+    "camera_pixels_control_querycap_card": false,
+    "generic_usb_v4l_transport_built": false,
+    "ipu4_card_selected_by_pci_identity": true,
+    "ipu4_card_selected_from_fixed_driver_strings": true,
+    "root_access_demonstrated": false,
+    "sensor_stream_metadata_controls_querycap_card": false,
+    "stock_external_v4l_product_injection_demonstrated": false,
+    "usb_descriptor_controls_ipu4_querycap_card": false
+  }
+}

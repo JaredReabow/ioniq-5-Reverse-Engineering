@@ -99,7 +99,7 @@ static unsigned int unknown;
 static void open_console(void)
 {
 	if (log_fd < 0) {
-		log_fd = open("/dev/ttyS0", O_WRONLY | O_NOCTTY);
+		log_fd = open("/tmp/persist-stub.log", O_WRONLY | O_CREAT | O_APPEND | O_NOCTTY, 0644);
 		if (log_fd < 0)
 			log_fd = open("/dev/console", O_WRONLY | O_NOCTTY);
 	}

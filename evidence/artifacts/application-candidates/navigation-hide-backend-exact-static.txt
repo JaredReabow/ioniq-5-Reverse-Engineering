@@ -1,0 +1,300 @@
+Navigation primary-surface and hide-backend exact-static record
+================================================================
+
+Scope
+-----
+This record binds the recovered AppNavi primary Qt Quick surface to OpenGL/EGL,
+binds both in-binary QWindow::hide producers, binds the selected basic render-
+loop hide target, contrasts the threaded obscure path, follows
+QOpenGLContext::doneCurrent() into the recovered Wayland EGL plugin's null-
+attachment/commit routine, and classifies AppLauncher's AppNavi child-channel
+routing. It contains no raw target instruction bytes, callable message values,
+host path, command, packet, payload, or actuation step.
+
+Recovered artifact identities
+-----------------------------
+AppNavi
+  size: 143718392
+  sha256: 62d6e0b3119b99b3fe322ec3bbe03366e9f71ed40dc18b0323d2a9da0e7fa1a3
+  build_id: 1e0ebcdac58cb902be82f90e4df8213c3f74bafc
+
+AppLauncher
+  size: 407720
+  sha256: c8d6d56bc254ad0731e81f40bd83aa9b3be6b49bcbd8efb291157a06c4a84268
+  build_id: 0452df1033bd1bbae15727a83d4d56576d8b9444
+
+libQt5Quick.so.5.4.1
+  size: 4374048
+  sha256: e929f7b55cc1fd5581467ac85faf18c9fc84dc58f65fce9c29acc8d399c074b4
+  build_id: a2168644c8d6631c94e77663c3a6685bffbdac50
+
+libQt5Gui.so.5.4.1
+  size: 5477552
+  sha256: 8652ab259fa40b7ac33b5ab6e967b51cea26a22cbe3e927e85d6dfa73414ee6d
+  build_id: c34da4a556795b09e047ef3aa52bd1f67483e7c6
+
+libQt5WaylandClient.so.5.4.1
+  size: 1351304
+  sha256: 0f2ba91c646ad99f00efde313150179bb5a7dc0a1a2a69bb778cfea3112955c9
+  build_id: 75da7252205f5a0ff653fa7877c42b9d33839ecf
+
+libwayland-egl.so
+  size: 59384
+  sha256: ef0c92395c75c91869dd30883ea944ad131517f2f37c1d7d0b704c8a3bf95c1a
+  build_id: ebe2fb10997c80c328a44242b03afc726df5ec60
+
+Public-source provenance
+------------------------
+QtWayland repository: https://code.qt.io/qt/qtwayland.git
+Tag: v5.4.1
+Annotated tag object: 9eb1d8e5659480284503608b00b447ff0c45588c
+Peeled commit: 23bb7cad3166eedcd528da2d3c35377b506f80cc
+
+src/client/qwaylandwindow.cpp
+  sha256: f11e5d97341e58f599a4c302796e0880af6e670cfab3f861e28343120b9eec01
+src/client/qwaylandwindow_p.h
+  sha256: 7bb60a5554ce9901381bbcad0cf68eecd53cae795168a490af3289b7cc406966
+src/hardwareintegration/client/wayland-egl/qwaylandeglwindow.cpp
+  sha256: 99d99fd70d36d439be25c0b0dc8ed88e7bbfc48ed918ae97ab34f3657aed060c
+
+QtDeclarative repository: https://code.qt.io/qt/qtdeclarative.git
+Tag: v5.4.1
+Commit: aebdf4649934e65bdab94d799da5afb2da145a37
+
+src/quick/items/qquickwindow.cpp
+  sha256: 394757b9255f94bc154aba217978f916ef6e05f2fd269d36327565f88d32cf3f
+src/quick/scenegraph/qsgcontext.cpp
+  sha256: 04860b3bc2386191fca25150392af022aa379aa62b3cd7f7ec140425cb38af20
+src/quick/scenegraph/qsgrenderloop.cpp
+  sha256: bc9dd7d4d39b1b779e1df41b5bdd9198002801ec0b8fe1d96de6feacb7b1e16f
+src/quick/scenegraph/qsgrenderloop_p.h
+  sha256: 2648dd58fb1b810f16d9c6950da68724be4ece2788319bba6be6aa638e85cfec
+src/quick/scenegraph/qsgthreadedrenderloop.cpp
+  sha256: adb3502dfc8ed59946638e17791dadab7e5229b85d0fbd6e18c409437ea40f04
+
+Primary surface classification
+------------------------------
+AppNavi's NimoExSLScreenLinux constructor at 0x335b080 constructs QQuickView.
+The recovered QQuickView(QWindow*) constructor is at 0x2735d0 and reaches
+QQuickWindowPrivate::init at 0x1b0160. That initializer calls
+QWindow::setSurfaceType at 0x1b02f6 with the result of render-loop virtual
+windowSurfaceType(). The recovered QSGRenderLoop implementation at 0x178680
+returns 1, which Qt's QSurface enum defines as OpenGLSurface.
+
+This resolves the earlier class ambiguity: the primary Qt Quick window is an
+OpenGL surface and uses the recovered Wayland EGL client integration, not the
+Shm window route. Independent AppLauncher/Weston runtime records bind that
+primary AppNavi window to IVI surface ID 3000. AppNavi's separate
+createExSLEglSurface(type=2) call is an ExSL enum and is not used as the Qt
+surface-type proof.
+
+Common QtWayland false-visibility branch
+-----------------------------------------
+Public QtWayland v5.4.1 defines QWaylandWindow::WindowType as Shm=0 and Egl=1.
+Its public QWaylandWindow::setVisible(false) source unconditionally attaches a
+null buffer and commits after the delete guard survives.
+
+The recovered QWaylandWindow::setVisible(bool) is [0x63ce0,0x63ec1). On false
+visibility it calls virtual windowType() through slot +0x60 at 0x63dbd. Only a
+zero return reaches attach(nullptr,0,0) at 0x63ea9 and commit at 0x63eb2. The
+recovered QWaylandShmWindow::windowType() at 0x67870 returns zero. The recovered
+EGL implementation at 0x80e0 returns one. Thus the common false-visibility path
+explicitly detaches Shm but skips that detach for Egl.
+
+AppNavi hide producers and Qt Quick dispatch
+---------------------------------------------
+The complete recovered AppNavi direct-call inventory contains two calls to its
+QWindow::hide() import and no direct tail transfer to that import:
+
+- 0x3362275 in NimoExSLScreenLinux::onForeground(bool,bool), body
+  [0x3361df0,0x3362c7d);
+- 0x3365140 in NimoExSLScreenLinux::dispatchNotifyEvent(ExSLNotifyEvent const*),
+  body [0x3364fe0,0x3365c97).
+
+The first path calls NimoExSLScreen::onForeground at 0x3361e27. That base calls
+ExSLScreen::onForeground at 0x33712c3. The direct Linux hide branch is entered
+only when the returned Boolean is true. It then admits screen IDs 1, 2, or 4 and
+requires the logical foreground argument to be false before calling hide at
+0x3362275. Other screen IDs do not reach that direct hide call through this
+branch.
+
+There is also a queued visibility route. ExSLScreen::onForeground(bool,bool),
+body [0x2607730,0x2607c85), has a Gen5/platform-specific same-state branch: when
+the requested foreground Boolean equals its byte at +0x18 but differs from its
+byte at +0x4c, platform code is 6, and platform generation is 5, it constructs
+an ExSLNotifyEvent whose type field +0x30 is 0x103 and whose value field +0x34 is
+the requested Boolean. The event is queued back to the same screen at
+0x2607af7.
+
+NimoExSLScreenLinux::dispatchNotifyEvent loads the type at event +0x30 and
+selects 0x103 at 0x33650f3..0x33650f8. Its retained diagnostic format is
+`setVisible screenId(%d) value(%d)`. A zero event value reaches QWindow::hide()
+at 0x3365140; a nonzero value reaches QWindow::show() at 0x3365338. The local
+same-state producer returns false after queueing, so the Linux override skips its
+direct-hide branch and the queued event remains a distinct visibility route.
+This proves a genuine onForeground -> queued visibility event ->
+dispatchNotifyEvent -> Qt hide/show architecture. It does not prove that every
+type-0x103 event is locally created by that branch or that this branch executed
+in a retained run.
+
+The complete in-binary direct-call inventory for
+SessionInteraction::setForegroundStatus(unsigned short,bool,bool) at 0x1c3a930
+contains six calls:
+
+- 0x1c3bca7 in SessionInteraction::updateServiceState(unsigned short,
+  ExSLEventBase*,bool);
+- 0x2d98d7b and 0x2d9903e in
+  CSystemControl::onSplitScreenStateChanged(bool);
+- 0x2daa4a0, 0x2daa51b, and 0x2daa573 in
+  CSystemControl::changeWindowStatus(ecScreenId,ecWindowStatus).
+
+At 0x1c3bca7, a parsed-event result bit 0x100 and true
+isUnificationPlatform() predicate select the call; status is true exactly when
+event field +0x30 equals 0x0a, and beforeNotify is false. The other five direct
+calls pass beforeNotify=true. Thus retained `beforeNotify(0)` diagnostics are
+consistent with 0x1c3bca7 among the recovered direct callers, but static caller
+inventory does not prove the runtime callsite or exclude indirect invocation.
+
+Constructor connections bind visibleChanged(bool) to
+NimoExSLScreenLinux::onVisibleChanged(bool) at 0x335be80. In retained integrated
+DLT (SHA-256
+02fa2f7268f574184745739afaa8a3e5e4db61c3b7093f70991e9e93d7a0d972), Weston
+sends AppNavi FG at 00:04:02.050, AppNavi logs onVisibleChanged(false) at
+00:04:02.071, and ApplicationManager logs accepted status 5 with window 0 at
+00:04:02.198. The first retained setForegroundStatus change is later, at
+00:04:04.585 for screen 6/true. Later false calls are screen 9 at 00:04:04.755
+(its own diagnostic says ignored), screen 6 at 00:04:05.349, and screen 10 at
+00:04:05.364 (also ignored). There is no retained primary-screen false call or
+`set hide NimoExSLScreen(1)` diagnostic. Therefore the saved log does not bind
+its first false-visibility callback to a logged onForeground(false) call; the
+0x103 dispatch route is now the other exact in-binary direct-hide candidate.
+Absent handler diagnostics and possible dropped logs prevent promotion to
+runtime invocation proof.
+
+The callback ordering itself is exact. On first false visibility,
+NimoExSLScreenLinux::onVisibleChanged reaches the existing one-shot launch-
+notification call at 0x335c228 when its launch gate is set. The retained manager
+status appears after the false-visibility callback. Thus hide/false visibility is
+upstream of status 5 in the saved launch handoff, not a response to that status.
+ApplicationManager's setter replay permits authentic BG to arrive after cached
+status; it does not require fabricating either event.
+
+Recovered QQuickWindow::showEvent at 0x1aa760 dispatches render-loop slot +0x60.
+Recovered QQuickWindow::hideEvent at 0x1aa7d0 dispatches render-loop slot +0x68.
+The selected render loop therefore changes the semantic effect of either
+QWindow::hide() producer.
+
+Selected basic render-loop hide
+-------------------------------
+The retained integrated Home-to-Navigation runs under diagnosis explicitly
+export QSG_RENDER_LOOP=basic. Recovered basic-loop vtable address point 0x60fce0
+has its +0x68 relocation at 0x60fd48, resolving to 0x178730. Public v5.4.1 binds
+that method to QSGGuiThreadRenderLoop::hide(QQuickWindow*).
+
+The exact recovered routine at 0x178730 obtains QQuickWindowPrivate and tail
+jumps to sceneGraphAboutToStop at 0x1aacd0. It does not remove the window,
+release the scene graph, call QOpenGLContext::doneCurrent(), invalidate the EGL
+surface, or attach a null Wayland buffer. Public v5.4.1 agrees: ordinary basic
+hide only calls fireAboutToStop(); basic-loop GL cleanup/doneCurrent belongs to
+windowDestroyed(), not ordinary hide.
+
+Threaded obscure route
+-----------------------
+Recovered threaded-loop vtable address point 0x61df58 has its +0x68 relocation
+at 0x61dfc0, resolving to 0x1802a0. Public v5.4.1 identifies this as
+QSGThreadedRenderLoop::hide(QQuickWindow*). If the window is exposed, it calls
+handleObscurity(), which posts WM_Obscure and waits for the render thread. The
+WM_Obscure handler calls fireAboutToStop(), QOpenGLContext::doneCurrent(), and
+then clears the active-window pointer. The recovered event-handler sequence
+contains the corresponding doneCurrent import call at 0x1831f6 followed by the
+active-window clear at 0x1831fb. This path is conditional on the threaded
+window/render-thread state; source reachability is not runtime execution proof.
+
+Recovered EGL invalidation edge
+--------------------------------
+QOpenGLContext::doneCurrent() is at 0x121380 in the recovered QtGui library. At
+0x1213d4 it calls platform-context virtual slot +0x30. The recovered Wayland EGL
+platform-context vtable address point is 0x20d2a0; relocation 0x20d2d0 resolves
+its +0x30 slot to 0x6aa0.
+
+The 0x6aa0 implementation calls eglMakeCurrent with no current surfaces/context,
+then invokes virtual slot +0xf8 on its associated Wayland window at 0x6ad3 and
+clears the current-window pointer. The QWaylandEglWindow vtable address point is
+0x20d538; relocation 0x20d630 resolves its +0xf8 slot to 0x82c0.
+
+The recovered 0x82c0 routine conditionally destroys the EGL surface, clears its
+stored handle, calls QWaylandWindow::attach(nullptr,0,0) at 0x8310, commits the
+wl_surface at 0x8319, and flushes the display. This recovered vendor behavior is
+stronger than the public v5.4.1 invalidateSurface() body, which only destroys the
+EGL surface. The separate destructor region beginning at 0x8120 also destroys
+the native wl_egl_window and must not be conflated with ordinary invalidation.
+
+Result
+------
+The retained harness changed this contract by forcing the basic loop. For an
+AppNavi OpenGL/EGL QQuickView, common QWaylandWindow false visibility skips the
+Shm-only detach, and selected basic-loop hide stops at fireAboutToStop(). It
+therefore omits the threaded doneCurrent -> QWaylandEglWindow invalidation ->
+null-attachment/commit route capable of creating the compositor zero-size/BG
+condition needed by ApplicationManager's Navigation-window latch.
+
+This is an exact harness-specific semantic mismatch and a direct explanation
+for why a genuine false-visibility callback can coexist with no AppNavi BG in
+the retained basic-loop runs. Producer analysis now also shows that waiting only
+for a primary NimoExSLScreenLinux::onForeground(false,...) diagnostic is too
+narrow: AppNavi has a second direct hide at the type-0x103 visibility-event
+consumer, and the first retained false-visibility callback precedes all retained
+setForegroundStatus/onForeground screen diagnostics in that launch interval.
+It does not prove which hide producer executed, that this is the only runtime
+problem, or that a future threaded run will complete Navigation. The mixed
+vendor-EGL/project-Mesa VM stack, exposure state, actual WM_Obscure execution,
+child stderr routing, compositor delivery, setter replay, callbacks, and final
+current/drawing ID 30 remain runtime boundaries.
+
+AppLauncher child-channel routing
+---------------------------------
+AppLauncher's process-start body is [0x163f0,0x18550). It reads app ID from
+AppProcess+0x20 at 0x16f78. For IDs at most 40, the mask at 0x17a48 exempts only
+17, 22, and 40; ID 30 is not exempt. The remaining exemption at 0x16f84 requires
+AppProcess+0x50 to equal 2. The ordinary app-data construction branch writes 1
+at 0x23b23, while only app ID 310 selects the adjacent value-2 branch at
+0x23b17/0x24000.
+
+The ordinary AppNavi ID-30 path therefore constructs the /dev/null literal at
+0x46fab and calls QProcess::setStandardOutputFile at 0x16fbd and
+QProcess::setStandardErrorFile at 0x17007. Client-side WAYLAND_DEBUG output is
+thus predicted to be discarded rather than inherited by the launcher's own log.
+This is static control-flow and object-construction evidence, not proof that the
+runtime object was unmodified or that either redirection call succeeded.
+
+Retained harness comparison
+---------------------------
+The integrated basic/deadline script is 349 lines, SHA-256
+906e734012a9a9cac35aed2e9258674215b407a93cdce9e58024a2f78bf8dd9f. The
+threaded pointer-confirm script is 199 lines, SHA-256
+004c4d47f4271301ecc88ea2676eb0fc9ad0a0116dc44327b8e0878259f4e6f7.
+The latter is not a stock integrated Navigation comparison: it bind-mounts a
+modified AppNavi, changes software rasterizer and worker count, uses a different
+Standby observation overlay, omits the integrated script's AppNavi compatibility
+opt-ins and launcher-local liveness preload, and contains no Home-to-Navigation
+or Navigation-to-Home transition segment.
+
+The integrated script starts Weston before exporting WAYLAND_DEBUG. Therefore
+that variable neither enables server-side tracing in the existing Weston
+process nor defeats AppLauncher's child stdout/stderr redirection. A future
+passive design may use bounded compositor-side protocol logging to correlate IVI
+surface 3000 with a genuine null attach and commit. Such a trace can establish a
+protocol-visible terminal effect but cannot directly prove internal WM_Obscure
+or doneCurrent execution. No replacement runner or observation interposer was
+created or executed for this record.
+
+Runtime and safety limits
+-------------------------
+No retained integrated run proves which of the two direct hide producers caused
+the first false-visibility callback, type-0x103 handler execution, WM_Obscure ->
+doneCurrent -> 0x82c0 execution, raw null attachment, AppNavi BG,
+naviWindoeCreate(1), cached-status replay, or a completed Navigation-30
+transition. Existing threaded pointer-confirm/standby runs are not a completed
+integrated Navigation comparison. No synthetic BG/FG, forced manager byte,
+fabricated status callback, guest execution, target execution, image mutation,
+new runner, or operational interposer was used for this static classification.

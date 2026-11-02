@@ -1,0 +1,217 @@
+{
+  "artifact": {
+    "build_id": "0452df1033bd1bbae15727a83d4d56576d8b9444",
+    "role": "canonical-rootfs-AppLauncher",
+    "sha256": "c8d6d56bc254ad0731e81f40bd83aa9b3be6b49bcbd8efb291157a06c4a84268",
+    "size": 407720
+  },
+  "rootfs": {
+    "external_option_member_present": false,
+    "inventory_sha256": "c85bc4b1b12bc4704c3aea30489bac99c10cb2211f80d94f48f3e1e22fd7a94c",
+    "member_count": 66836,
+    "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+    "size": 879109759
+  },
+  "runtime_unknowns": {
+    "boot_acceptance_or_persistence": null,
+    "child_creation_and_exec_success": null,
+    "child_credentials_and_smack_label": null,
+    "dbus_delivery": null,
+    "installed_binary_and_data_equal_recovered_image": null,
+    "owner_unit_external_option_file_state": null,
+    "owner_unit_selects_recovered_NE_row": null,
+    "owner_unit_vehicle_model_region_fields": null,
+    "qprocess_acceptance": null,
+    "update_acceptance_or_partition_write": null,
+    "whole_runtime_argument_list": null
+  },
+  "schema_version": 1,
+  "static_contract": {
+    "causal_chain": [
+      "dynamic-helper-stores-requested-app-id-and-program",
+      "dynamic-helper-calls-option-builder-mode-zero",
+      "dynamic-helper-stores-generated-QStringList-at-AppProcess-plus-0x60",
+      "process-start-binds-AppProcess-plus-0x58-as-program",
+      "process-start-binds-AppProcess-plus-0x60-as-argument-list",
+      "process-start-calls-QProcess-start"
+    ],
+    "option_builder": {
+      "owner_fde": [
+        "0x34510",
+        "0x36a74"
+      ],
+      "reason": "builder-also-uses-runtime-fields-runtime-files-and-conditional-options",
+      "recovered_row_selected_options_would_be_appended": 17,
+      "selected_option_append_loop": [
+        "0x35c8e",
+        "0x35cd2"
+      ],
+      "selected_option_source": "option-loader-object-plus-0x28",
+      "selected_options_preserve_list_order": true,
+      "whole_generated_argv_fixed_by_static_row_alone": false
+    },
+    "process_construction": {
+      "accepted_app_id_range": [
+        1,
+        1024
+      ],
+      "allocation_site": "0x1fe28",
+      "app_id_300_uses_this_ordinary_path": true,
+      "app_id_store": {
+        "field": "AppProcess+0x20",
+        "site": "0x1fe43"
+      },
+      "generated_arguments_store": {
+        "field": "AppProcess+0x60",
+        "sites": [
+          "0x1fed2",
+          "0x1feef"
+        ]
+      },
+      "option_builder_call": {
+        "mode": 0,
+        "site": "0x1fec8",
+        "target": "0x34510"
+      },
+      "owner_fde": [
+        "0x1fd30",
+        "0x1ffcf"
+      ],
+      "program_store": {
+        "field": "AppProcess+0x58",
+        "site": "0x1fe61"
+      }
+    },
+    "process_start": {
+      "argument_list_address_binding": {
+        "call_register": "rdx",
+        "site": "0x16679",
+        "source": "AppProcess+0x60"
+      },
+      "call_receiver": "AppProcess-as-QProcess",
+      "owner_fde": [
+        "0x163f0",
+        "0x1854d"
+      ],
+      "program_binding": {
+        "call_register": "rsi",
+        "site": "0x17430",
+        "source": "AppProcess+0x58"
+      },
+      "qprocess_open_mode_immediate": 3,
+      "qprocess_start_site": "0x1745d"
+    },
+    "recovered_row_selection_predicate": {
+      "EUR_is_selected_row_data_not_runtime_region_proof": true,
+      "comparison": "case-folded-vehicle-equality-and-exact-energy-token-equality",
+      "energy_key": "argument-7-formatted-with-energy-template",
+      "energy_key_required_value_role": "8",
+      "matching_embedded_data_rows": 1,
+      "matching_embedded_split_index": 50,
+      "normal_branch_condition": "formatted-performance-argument-is-not-the-performance-one-token",
+      "owner_unit_runtime_predicate_satisfied": null,
+      "region_column_participates_in_predicate": false,
+      "vehicle_key": "argument-4-formatted-as-lowercase-0x-prefixed-two-digit-hex",
+      "vehicle_key_required_value_role": "0x26"
+    },
+    "selector_input_provenance": {
+      "call_site": "0x19925",
+      "caller_fde": [
+        "0x19860",
+        "0x19a3e"
+      ],
+      "initial_fallback_mode": 0,
+      "selector_destination_fields": {
+        "argument-1": "loader-plus-0x41",
+        "argument-10": "loader-plus-0x56",
+        "argument-11": "loader-plus-0x57",
+        "argument-12": "loader-plus-0x58",
+        "argument-2": "loader-plus-0x42",
+        "argument-3": "loader-plus-0x44",
+        "argument-4": "loader-plus-0x48",
+        "argument-5": "loader-plus-0x49",
+        "argument-6": "loader-plus-0x51",
+        "argument-7": "loader-plus-0x53",
+        "argument-8": "loader-plus-0x54",
+        "argument-9": "loader-plus-0x55"
+      },
+      "source_object": "caller-field-plus-0x18",
+      "source_offsets_in_logical_argument_order": [
+        "0x60",
+        "0x3f",
+        "0x1d-four-bytes",
+        "0x3e",
+        "0x32",
+        "0xad",
+        "0xc0",
+        "0xc1",
+        "boolean-from-0x84",
+        "0x3d",
+        "0x3a",
+        "0x83"
+      ]
+    },
+    "table": {
+      "delimiter_occurrences": 128,
+      "normal_branch_matching_row_count": 1,
+      "owner_unit_selected_this_row": null,
+      "selected_option_count": 17,
+      "selected_option_roles": [
+        "energy-type",
+        "brand-type",
+        "gui-generation",
+        "screen-control",
+        "vehicle-class",
+        "korean-type",
+        "day-night",
+        "n-mode",
+        "phone-projection-split-screen",
+        "emblem",
+        "performance-feature",
+        "parent-vehicle-value",
+        "ota-support",
+        "ota-region",
+        "update-mode",
+        "engineering-region",
+        "isr-support"
+      ],
+      "selected_option_sequence_sha256": "4a265a6c887376163f37544abec770074afe3ec63d063eaf9bdf28a87010d04a",
+      "selected_row_field_count_including_terminal_empty": 38,
+      "selected_row_role": "recovered-NE-EUR-fallback-row",
+      "selected_row_sha256": "85e0fd9e6a0b67fc32b05fc2ddecc4f0143ae6eb3c72a992a0014990a759e6a0",
+      "selected_row_split_index": 50,
+      "split_component_count": 129,
+      "update_mode_option_ordinal_zero_based": 14,
+      "update_mode_value_role": "zero"
+    },
+    "table_source": {
+      "active_source_field": "option-loader-object-plus-0x18",
+      "canonical_absence_is_owner_unit_runtime_absence": false,
+      "canonical_external_member_present": false,
+      "embedded_fallback_copy_field": "option-loader-object-plus-0x20",
+      "embedded_source_range": [
+        "0x4ba10",
+        "0x523c5"
+      ],
+      "embedded_source_sha256": "d56aaf6fff599e4b26afa8a845a6afb54e8726d166c535fb5ca379c56bb1c358",
+      "embedded_source_size": 27061,
+      "external_loader_behavior": "if-file-exists-and-read-open-succeeds-then-read-all-decode-utf8-and-replace-plus-0x18; absent-or-open-failed-retains-embedded-source",
+      "external_path_literal_sha256": "076ff37f48eef2d0e74323a57d08663aaaf0a5b379b09c2a573f30a3514e3e39",
+      "fallback_is_bounded_to_one_transition": true,
+      "invalid_or_nonmatching_external_behavior": "if-selected-option-list-remains-empty-and-fallback-mode-flag-is-zero-copy-plus-0x20-to-plus-0x18-and-reinvoke-selector-with-fallback-mode-one",
+      "recursive_fallback_call_site": "0x38df0"
+    }
+  },
+  "tool": {
+    "name": "applauncher-app300-argv",
+    "version": "1.0.0"
+  },
+  "whole_inventory": {
+    "direct_transfer_target_count": 7,
+    "fde_count": 436,
+    "fde_sha256": "b7d430bbf6dedd5285ffdabe84188d7eb404909550ffc3aaf1f7380a30a664c5",
+    "instruction_count": 59259,
+    "instruction_sha256": "a83cf95ee11850142b5c6b37d7a2d861f48452521aa1d8b4f57fd74c08faa168",
+    "machine_anchor_count": 127
+  }
+}

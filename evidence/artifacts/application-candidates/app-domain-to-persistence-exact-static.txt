@@ -1,0 +1,147 @@
+App-domain to persistence exact-static record
+=============================================
+
+Scope
+-----
+Offline, read-only analysis of recovered EU Gen5W 260128 artifacts. No recovered
+executable, D-Bus method, updater, radio, malformed input, flash command, or
+persistence mechanism was executed.
+
+Canonical rootfs
+----------------
+archive: work/decrypted-eu-260128/HU/images/mango-rootfs.tar.gz
+size: 879109759
+sha256: 423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84
+
+The selected-member inventory below was read through one no-follow descriptor;
+pre/post (device,inode,size,mtime_ns) identity was revalidated.
+
+./app/bin/AppUpgrade
+  size=10787256 mode=0755 uid=0 gid=0
+  sha256=5295c6e4c41fb9c03760cf006c58b66fcd11aeb4e6e889af6e31b062549b6df0
+./etc/fstab_emmc
+  size=1847 mode=0644 uid=0 gid=0
+  sha256=93c4af1a0ffb0f36c9ff64c6252cfbd950e7615d2f32f85dcab0af17cf9af74e
+./etc/init.d/checkroot.sh
+  size=3581 mode=0755 uid=0 gid=0
+  sha256=cd9d224eb1e46cb63271f2dcad166f3147c901b3b023535ab7f1cacf82e4ade2
+./etc/update_start_5w.sh.ori
+  size=3933 mode=0700 uid=0 gid=0
+  sha256=06c3ab7e24b082c24a81299f0627245c0281bc5d519005cd921c13707eb5e838
+./lib/systemd/esinit
+  size=17894 mode=0755 uid=0 gid=0
+  sha256=9f39947ec144322b29c0366bb681f0452ae3696139589bc2f4a2f05bf44afa52
+./lib/systemd/systemd
+  size=1552488 mode=0755 uid=0 gid=0
+  sha256=a7f5290180223def9e09570edac76f50a1bfe40b63480153daad1f22d54032b5
+  build-id=f4b6c1c79802cce19d0c0ac0bae3c51a758563ee
+
+Recovered kernel
+----------------
+path: work/eu-260128/vmlinux
+sha256: f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b
+cap_bprm_set_creds: 0xffffffff811b85a2
+cap_bprm_secureexec: 0xffffffff811b89d6
+smack_bprm_set_creds: 0xffffffff811bbee7
+smack_privileged: 0xffffffff811bac8c
+smack_onlycap: 0xffffffff81c2aad8
+smack_known_floor: 0xffffffff81a2fb60
+exact cap_bprm_set_creds disassembly (ignored work artifact):
+  work/online-kernel-exec-smack-20261108/cap_bprm_set_creds-exact.asm
+  sha256=96f408a149acd5adf93d1fa259abb49054a046842a7f41383ff9300a7b0d1c47
+upstream Linux v4.1 commoncap source:
+  work/online-kernel-exec-smack-20261108/commoncap.c
+  sha256=bf00df2e6cdeaf72e033dfaeaf60425a165c1c7bfa32627139930aedd9097255
+upstream Linux v4.1 proc status source:
+  work/online-kernel-exec-smack-20261108/proc-array-v4.1.c
+  sha256=83432532e46d09c269eca0c892b39e3d677868830d9ceea2779f4951fc0a4662
+  exposes CapInh/CapPrm/CapEff/CapBnd and Seccomp, but not CapAmb/NoNewPrivs
+
+Configured credential observations
+----------------------------------
+ApplicationLauncher.service has no User=, Group=, SmackProcessLabel=,
+CapabilityBoundingSet=, AmbientCapabilities=, NoNewPrivileges=, or namespace
+isolation directive. AppLauncher.sh starts /app/bin/AppLauncher 3 without a
+credential or label change. Exact AppLauncher imports QProcess::start but no
+direct setuid/setgid/setresuid/setresgid/capset/setgroups/initgroups call.
+
+For an ordinary root execution without file capabilities, upstream Linux v4.1
+cap_bprm_set_creds derives the new permitted set from the old bounding set when
+the effective uid is zero and makes the effective set equal to permitted. The
+recovered exact function occupies [0xffffffff811b85a2,0xffffffff811b89d6).
+This predicts, but does not runtime-prove, broad permitted/effective capability
+inheritance for the configured UID-zero launcher and app children.
+
+SMACK observations
+------------------
+/etc/smack_setup.sh writes Privileged to /sys/fs/smackfs/onlycap. Therefore a
+floor task is not eligible for smack_privileged() solely because it has uid 0
+or ordinary capability bits.
+
+Recovered policy includes reciprocal explicit rules between floor '_' and
+enumerated App::* domains, including App::manager, App::navi, App::mediaplayer,
+and App::upgrade. The upgrade policy separately grants App::upgrade broad
+access to '*', '_', and Privileged. This does not make floor equivalent to
+App::upgrade or Privileged.
+
+/etc/update_start_5w.sh.ori recursively deletes labels and restores
+SMACK64EXEC only for enumerated executables. It restores AppUpgrade with
+SMACK64EXEC=App::upgrade but omits systemd, init, AppLauncher.sh, and
+AppLauncher. In the recovered kernel, exec with no inode execute label retains
+the inherited task label.
+
+Exact systemd ambiguity
+-----------------------
+The exact /lib/systemd/systemd embeds 'systemd 225' banner strings while its
+embedded build paths and RPM inventory identify systemd 249.3-r0mango134. Exact
+dynamic relocations include prctl, fsetxattr, lsetxattr, and cap_set_proc, but no
+fgetxattr/getxattr relocation was found. This record does not infer executable
+SMACK label behavior from either upstream version alone.
+
+Storage and boot observations
+-----------------------------
+The recovered kernel command line identifies root=/dev/mmcblk0p3 rootfstype=ext4
+and init=/lib/systemd/esinit, without an explicit ro/rw token. Linux defaults
+such a root mount to read-only until userspace remounts it. checkroot.sh contains
+a default root mode/options of rw, but its successful use and the owner unit's
+live root flags are unobserved. fstab_emmc contains /log_data, /update,
+/voicememo, /rw_data, and three /Data/* entries without a read-only option;
+runtime mounts, labels, and actual write access are not established by static
+configuration.
+
+The recovered kernel has no dm-verity, IMA appraisal, EVM, or module-signature
+enforcement configured. This removes named runtime integrity mechanisms only;
+it does not establish write access, executable-object stability, update
+acceptance, inactive-slot selection, ABL/MICOM boot acceptance, anti-rollback,
+health, mark-good, or persistence. OEM update/boot trust remains a separate
+boundary rooted in the ABL.oemkm/oemkm handoff and signature/manifest paths.
+
+Passive collector extension
+---------------------------
+tools/uk_fw/bench_state_bundle.py now emits read-only records for every observed
+process's PPid, CapInh, CapPrm, CapEff, CapBnd, optional CapAmb, optional
+NoNewPrivs, and Seccomp fields. Stock Linux v4.1 omits the NoNewPrivs status
+line, so absence is recorded as unavailable. The host parser deterministically decodes Linux v4.1 capability
+bits through CAP_AUDIT_READ while preserving unknown bits. It also records the
+read-only sysctls kexec_load_disabled, modules_disabled, dmesg_restrict, and
+mmap_min_addr; hashes systemd/esinit/AppLauncher.sh/update_start_5w.sh.ori; and
+queries SMACK64/SMACK64EXEC for the launcher chain, relabel script, systemd, and
+/tmp. The probe does not write, remount, signal, start a service, or execute a
+recovered target.
+
+Verdict
+-------
+The strongest configured post-entry hypothesis is:
+
+  stock App::* code (configured uid 0, capabilities unobserved)
+    -> conditional AppLauncher V-028 direct execution
+    -> floor '_' task label if the selected executable lacks SMACK64EXEC
+    -> explicit floor-to-enumerated-App access
+
+This is a same-uid SMACK-domain amplification candidate, not a completed root or
+persistence chain. The missing gates are runtime D-Bus registration/delivery,
+caller-controlled executable object stability, successful exec, actual uid/gid/
+groups/capability/securebits/namespaces/SMACK state, useful floor-authorized
+objects, update-anchor reachability, authenticated-byte continuity, partition
+write, next-boot activation, boot acceptance, health, mark-good, rollback, and
+recovery.

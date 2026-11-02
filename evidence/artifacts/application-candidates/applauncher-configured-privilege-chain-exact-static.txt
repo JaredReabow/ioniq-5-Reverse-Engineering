@@ -1,0 +1,174 @@
+IONIQ 5 EU 260128 — AppLauncher configured credential/SMACK chain
+Scope: canonical archive metadata, exact recovered kernel/AppLauncher static
+semantics, recovered service/policy configuration, and saved VM bus ownership.
+No D-Bus request, executable, payload, target execution, credential change,
+filesystem write, update, or persistence action was created or attempted.
+
+[canonical rootfs]
+path=work/decrypted-eu-260128/HU/images/mango-rootfs.tar.gz
+size=879109759
+sha256=423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84
+members=66836
+normalized-inventory-sha256=c85bc4b1b12bc4704c3aea30489bac99c10cb2211f80d94f48f3e1e22fd7a94
+Stable no-follow descriptor scan:
+  regular typeflag 0: 55624
+  symlink typeflag 2: 7208
+  directory typeflag 5: 4004
+  members with PAX headers: 0
+  xattr/SMACK PAX records: 0
+The archive therefore carries no executable-label xattr record. Installed SMACK
+labels depend on relabeling/runtime configuration, not mutable host extraction.
+
+Selected canonical members:
+  ./sbin/init: symlink -> /lib/systemd/systemd, mode 0777, uid/gid 0/0
+  ./lib/systemd/systemd: regular, mode 0755, uid/gid 0/0
+  ./app/bin/AppLauncher: regular, mode 0755, uid/gid 0/0
+  ./app/bin/AppLauncher.sh: regular, mode 0755, uid/gid 0/0
+  ./app/bin/AppUpgrade: regular, mode 0755, uid/gid 0/0
+  ./tmp: directory, mode 01755, uid/gid 0/0
+All selected members have empty PAX headers.
+
+[stock relabel sequence]
+/etc/update_start_5w.sh.ori run-number-2 rootfs branch executes, in order:
+  delete_dir_label "${TARGET_DIR}"
+  app_remove_label
+  app_labeling ${TARGET_DIR}
+  app_usr_labeling ${TARGET_DIR}
+  app_usr_bin_labeling ${TARGET_DIR}
+  set SMACK64EXEC=Privileged on the update anchor
+
+delete_dir_label sets the target access label to floor "_" and recursively
+removes access/execute attributes with chsmack -r -A -E. app_labeling restores
+SMACK64EXEC only for its enumerated list. AppUpgrade is listed as App::upgrade.
+AppLauncher, AppLauncher.sh, /lib/systemd/systemd, and /sbin/init are not in the
+three executable lists. Exact-name absence is bounded to these relabel lists;
+the ordered delete-then-enumerated-restore sequence is the positive reason the
+stock installation predicts no SMACK64EXEC transition on those files.
+
+[exact recovered kernel semantics]
+Recovered vmlinux SHA-256:
+  f5ee9c2f97eed44f9827153c273125bf131a9ca9a96c63bb6e93cfc5af6b102b
+Recovered kallsyms label objects:
+  smack_known_floor ffffffff81a2fb60
+  smack_onlycap     ffffffff81c2aad8
+Recovered kallsyms anchors:
+  smack_privileged          ffffffff811bac8c
+  smack_inode_init_security ffffffff811bb83a
+  smack_bprm_set_creds      ffffffff811bbee7
+  smack_cred_prepare        ffffffff811bd979
+  smack_inode_alloc_security ffffffff811bdddd
+  smack_init                ffffffff81b1d754
+
+smack_init exact structure:
+  0xffffffff81b1d7c8 loads one label pointer into %rsi
+  0xffffffff81b1d7d4 copies that same pointer into %rdi
+  0xffffffff81b1d7d7 calls the task-Smack allocator
+  0xffffffff81b1d803 loads current
+  0xffffffff81b1d80c loads current->cred
+  0xffffffff81b1d828 stores the new task-Smack pointer at cred security +0x78
+This matches Linux v4.1's initialization of both initial task fields to floor.
+
+smack_bprm_set_creds exact structure:
+  0xffffffff811bbf26 loads the inode-Smack object
+  0xffffffff811bbf2b loads its execute-label pointer at +0x8
+  0xffffffff811bbf30 tests that pointer
+  0xffffffff811bbf33 branches to unchanged return when it is null
+  0xffffffff811bbf35 compares it with the new credential's current task label
+  0xffffffff811bbf8b reloads the execute label
+  0xffffffff811bbf92 writes it to the new credential only on the transition path
+Thus a null SMACK64EXEC retains the inherited task label; a non-null label is the
+exec transition mechanism.
+
+smack_inode_alloc_security at 0xffffffff811bdddd calls the current-label helper
+then allocates the new inode-Smack blob with that label. Subject to an explicit
+transmuting directory/rule, a newly created file therefore starts with its
+creator's task label.
+
+smack_privileged exact structure:
+  0xffffffff811bac9a calls capable(cap)
+  0xffffffff811baca5 loads smack_onlycap
+  0xffffffff811bacac compares the current task label with smack_onlycap
+  success requires the capability and either no onlycap value or label equality
+/etc/smack_setup.sh writes Privileged to smackfs/onlycap. A floor task is not
+therefore granted a SMACK CAP_MAC_OVERRIDE/CAP_MAC_ADMIN override merely because
+its uid is zero or those capability bits are otherwise present.
+
+[service and process configuration]
+ApplicationLauncher.service:
+  ExecStart=/app/bin/AppLauncher.sh
+  no User= or Group=
+  no SmackProcessLabel=
+  no CapabilityBoundingSet=, AmbientCapabilities=, NoNewPrivileges=,
+  SecureBits=, or other unit credential-reduction directive
+AppLauncher.sh executes /app/bin/AppLauncher 3 in the background and contains no
+credential or label change.
+Exact AppLauncher:
+  size=407720
+  sha256=c8d6d56bc254ad0731e81f40bd83aa9b3be6b49bcbd8efb291157a06c4a84268
+  build-id=0452df1033bd1bbae15727a83d4d56576d8b9444
+Its dynamic imports include QProcess::start overloads and no setuid/setgid,
+setresuid/setresgid, capset, setgroups, initgroups, prctl, chroot, unshare, or
+setns credential/sandbox API. QProcess child creation is therefore configured
+to inherit launcher credentials; successful exec and runtime credentials remain
+separate observations.
+
+[session bus]
+Dbuslaunch.service also has no User=/Group=/SmackProcessLabel= and starts
+/app/bin/Dbuslaunch.sh. The script starts:
+  dbus-daemon --session --print-address --fork
+and records its address under /tmp. session.conf listens on unix:tmpdir=/tmp,
+requires EXTERNAL authentication, and default-allows send, receive/eavesdrop,
+and ownership. No session.d policy file is present.
+
+The session daemon and AppLauncher are therefore configured under uid 0 and the
+floor-label inheritance chain. Application processes created by AppLauncher are
+also configured to retain uid 0 but transition to enumerated App::* labels when
+their executable has SMACK64EXEC. This predicts same-daemon-uid EXTERNAL access
+for stock launcher children, not access for arbitrary non-root users.
+
+Saved isolated-VM session-bus observation shows unique owner :1.1 emitting as
+com.lge.avn.applauncher and later method traffic to that well-known name. Static
+AppLauncher startup attempts ownership at 0xbb21..0xbb2f; Request constructor
+[0x26250,0x26333) attempts /Request registration with ExportAdaptors. Runtime
+success of the Request-object registration on an owner unit remains unobserved.
+No adaptor-level sender authorization was found in the exact reviewed path.
+
+[SMACK reachability and predicted child label]
+Recovered policy has reciprocal application/floor rules:
+  App::<domain> _ rwx...  for the enumerated application domains
+  _ App::<domain> rwx---  for the floor policy's enumerated domains
+This includes App::manager, App::navi, App::mediaplayer, App::upgrade, and the
+other listed HMI domains. The rules predict that a stock app-domain process can
+reach floor-labeled /tmp/session-bus objects and create a file in a floor
+location when DAC also permits it. Because launcher children are configured uid
+0, canonical /tmp mode 01755 does not deny the root owner.
+
+A file created by an App::* task is predicted to receive that creator label in
+the non-transmuting case. The floor-labeled AppLauncher has explicit rwx access
+to the enumerated App::* object labels, so it is predicted to be able to execute
+such a file. With no SMACK64EXEC on that new file, exact kernel semantics retain
+the AppLauncher task label: floor "_". V-028's direct launch branch supplies the
+separate verifier-bypass-to-QProcess call edge.
+
+[bounded security conclusion]
+The recovered configuration and exact kernel semantics close the previously
+unknown *configured* label prediction:
+  stock init/systemd floor -> AppLauncher floor -> direct-route QProcess child
+  retains floor when the caller-controlled executable has no SMACK64EXEC.
+The configured uid prediction is root throughout because neither service nor
+AppLauncher drops uid/gid.
+
+This is a predicted same-uid App::* -> floor SMACK-domain transition, not a
+runtime-demonstrated unrestricted-root transition. It does not prove Request
+registration/delivery, a writable object at exec time, QProcess acceptance,
+successful exec, actual credentials/capabilities, or owner-unit labels. Floor is
+not Privileged under onlycap and does not automatically access Data::*, System::*
+or every other label. It has same-label floor access and explicit access to the
+enumerated application labels.
+
+A compromised stock app is already configured uid 0 and has an explicit
+App::* -> floor rwx rule. The AppLauncher route's defensible incremental effect
+is therefore a task-label transition and access to other enumerated application
+domains, not a newly established uid-0 transition. Capability retention,
+read-only-root remount behavior, update-anchor modification, update acceptance,
+partition writing, boot acceptance, rollback, and persistence remain separate.

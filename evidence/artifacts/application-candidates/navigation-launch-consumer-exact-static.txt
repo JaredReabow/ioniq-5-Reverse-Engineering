@@ -1,0 +1,109 @@
+Navigation launch consumer exact-static record
+==============================================
+
+Scope
+-----
+Read-only analysis of canonical EU 260128 ./app/bin/ApplicationManager. No target
+executable, D-Bus message, compositor request, guest, or recovered updater was
+executed. This record contains addresses and decoded control flow, not raw target
+instruction bytes or an operational request.
+
+Artifact identity
+-----------------
+size: 3956056
+sha256: 5d71539f61a3982b8aac6132a2de14c083fa9ac129792bae750a526ebd771cbc
+build_id: fd5b023c1b1dcf0b5bc0f1e85e82226fb3da5c7f
+llvm: Homebrew LLVM 23.1.3
+
+Unwind-bounded routines
+-----------------------
+notify-navigation consumer: [0x287e70, 0x28806c)
+navigation-window setter: [0x288070, 0x28819b)
+NaviMap launch callback: [0x2c5900, 0x2c5c4f)
+NaviMenu launch callback: [0x2c5df0, 0x2c613f)
+BG callback enclosing the window-setter call: [0x190c70, 0x19177b)
+
+Consumer state and gate
+-----------------------
+0x287e89 reads receiver byte +0x20 for the logged window value.
+0x287f21 stores the incoming status at receiver dword +0x1c.
+0x287f3a..0x287f44 returns before application callbacks when the controller
+lookup is null or receiver byte +0x20 is zero.
+0x287f46 compares status with literal 5 only after that window gate.
+0x287f57 looks up application ID 30 and conditionally invokes virtual slot +0x110.
+0x287f78 looks up application ID 32 and conditionally invokes virtual slot +0x110.
+0x287fd8..0x28802d clears two list fields of application ID 35 only when status
+is 5, then rejoins the ID-30/ID-32 callback path.
+
+0x288112 loads cached status from receiver +0x1c.
+0x288115 stores the window-setter input low byte at receiver +0x20.
+0x28811c calls the same notify-navigation consumer with the cached status.
+The authentic BG route calls the setter with literal 1 at 0x19108d.
+
+Class/vtable binding
+--------------------
+RTTI name 22NaviLoadingApplication is referenced by typeinfo at 0x5bd658; its
+primary vtable address point is 0x5bd680. Slot +0x110 relocates at 0x5bd790 to
+the default no-op 0x289390.
+
+RTTI name 18NaviMapApplication is referenced by typeinfo at 0x5bd8e8; its
+primary vtable address point is 0x5bd910. Slot +0x110 relocates at 0x5bda20 to
+0x2c5900.
+
+RTTI name 19NaviMenuApplication is referenced by typeinfo at 0x5bdb78; its
+primary vtable address point is 0x5bdba0. Slot +0x110 relocates at 0x5bdcb0 to
+0x2c5df0.
+
+Status semantics in the concrete callbacks
+------------------------------------------
+Both concrete callbacks have the same decisive branch shape:
+
+- if internal byte object+0x60+0x92 is already nonzero, log that current was
+  play-enable true and return;
+- otherwise, status other than 5 stores zero to that byte and returns;
+- status 5 stores one to that byte and enters controller-mediated navigation
+  handoff logic involving application ID 35.
+
+The NaviMap callback's positive branch uses event constants 0x12e and 0x135.
+The NaviMenu callback's corresponding branch uses 0x12e and 0x13f. Both retain
+additional virtual predicates and controller dispatch; static reachability of
+these blocks does not prove a runtime transition.
+
+Branch matrix
+-------------
+window byte 0, any status:
+  Cache status; do not invoke ID-30 or ID-32 launch callbacks.
+
+window byte nonzero, status other than 5:
+  Invoke eligible navigation callbacks; each clears its play-enable byte and
+  returns without entering its positive handoff block.
+
+window byte nonzero, status 5:
+  Clear the two ID-35 list fields, invoke eligible ID-30 and ID-32 callbacks,
+  set their play-enable byte, and enter their controller-mediated handoff logic.
+
+window setter input 1 after cached status 5:
+  Latch +0x20=1 and replay cached status 5 through the positive branch above.
+
+window setter input 0:
+  Latch +0x20=0 and replay the cached status only as far as the window gate.
+
+Conclusions and limits
+----------------------
+For these exact ApplicationManager consumers, integer 5 is the sole accepted
+positive launch value. The sender-side signal member name containing "Fail" does
+not determine the receiver's enum semantics. The observed pair status 5/window 0
+therefore contains an accepted status blocked by an unset window latch; it is not
+a two-field failure report.
+
+The inspected routines contain no direct transition to Home application ID 11.
+In the retained Home-to-Navigation-to-Home harness, the later return was
+explicitly requested with event 302 and reason 322; it is not evidence of an
+autonomous Navigation loading/fallback timeout. The positive callback path is
+controller-mediated; static control flow does not prove the final current/drawing
+application, callback delivery, surface composition, or successful
+Home-to-Navigation transition.
+
+The saved VM evidence still lacks the authentic AppNavi BG event that would call
+the window setter with 1. No synthetic BG/FG message, forced byte, fabricated
+status, or patched enum is accepted as a fix.

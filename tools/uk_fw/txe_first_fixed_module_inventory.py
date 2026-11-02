@@ -457,6 +457,8 @@ def kernel_message_submit_selector_review(
     global_immediates = {
         "affected_mov_eax_0xff": [0x860F2, 0x8C87E],
         "first_fixed_mov_eax_0x102": [0x86347, 0x8C820],
+        "affected_mov_edx_0xff": [0x8C08A],
+        "first_fixed_mov_edx_0x102": [0x8C02C],
         "affected_cmp_eax_0xff": [
             0x88096, 0x88A02, 0x88C9C, 0x89A23, 0x89C9A, 0x8B6CD,
             0x8BDB9, 0x8C91B, 0x8CB6D, 0x8EC67, 0x8EFDF, 0x901F9,
@@ -469,6 +471,8 @@ def kernel_message_submit_selector_review(
     census_specs = (
         (affected_kernel, b"\xb8\xff\x00\x00\x00", "affected_mov_eax_0xff"),
         (first_fixed_kernel, b"\xb8\x02\x01\x00\x00", "first_fixed_mov_eax_0x102"),
+        (affected_kernel, b"\xba\xff\x00\x00\x00", "affected_mov_edx_0xff"),
+        (first_fixed_kernel, b"\xba\x02\x01\x00\x00", "first_fixed_mov_edx_0x102"),
         (affected_kernel, b"\x3d\xff\x00\x00\x00", "affected_cmp_eax_0xff"),
         (first_fixed_kernel, b"\x3d\x02\x01\x00\x00", "first_fixed_cmp_eax_0x102"),
     )
@@ -545,9 +549,9 @@ def kernel_message_submit_selector_review(
         },
         "kernel_global_immediate_census": {
             **global_immediates,
-            "affected_total_site_count": 14,
-            "first_fixed_total_site_count": 14,
-            "interpretation_boundary": "The same numeric change occurs in fourteen MOV/CMP sites across each complete kernel, so the selector-0x10 uses are part of a kernel-wide status/sentinel renumbering candidate rather than isolated proof of message-validation logic.",
+            "affected_total_site_count": 15,
+            "first_fixed_total_site_count": 15,
+            "interpretation_boundary": "The same numeric change occurs in fifteen MOV/CMP sites across each complete kernel, so the selector-0x10 uses are part of a kernel-wide status/sentinel renumbering candidate rather than isolated proof of message-validation logic.",
         },
         "affected_syslib_selector_wrapper_runtime_range": [0x16F8F, 0x16FB3],
         "first_fixed_syslib_selector_wrapper_runtime_range": [0x16FB1, 0x16FD5],
@@ -555,7 +559,7 @@ def kernel_message_submit_selector_review(
         "first_fixed_syslib_selector_wrapper_sha256": sha256(first_wrapper),
         "syslib_wrapper_builds_syscall_value": "(selector_byte << 24) | 0x00010000 | argument_size_word",
         "reviewed_submit_syscall_value": 0x10010040,
-        "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed message-length sites, but the same 0xff-to-0x102 change appears at fourteen MOV/CMP sites kernel-wide. Its semantic name, reason for the plus-three renumbering, message dword-zero meaning, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
+        "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed message-length sites, but the same 0xff-to-0x102 change appears at fifteen MOV/CMP sites kernel-wide, including the directly called helper's MOV EDX return path. Its semantic name, reason for the plus-three renumbering, message dword-zero meaning, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
     }
 
 

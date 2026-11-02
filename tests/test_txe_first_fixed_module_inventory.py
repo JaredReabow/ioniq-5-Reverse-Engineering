@@ -85,8 +85,10 @@ def test_canonical_inventory_matches_reviewed_artifact():
     assert [site["affected_value"] for site in kernel_review["semantic_immediate_sites"]] == [0xFF, 0xFF]
     assert [site["first_fixed_value"] for site in kernel_review["semantic_immediate_sites"]] == [0x102, 0x102]
     census = kernel_review["kernel_global_immediate_census"]
-    assert census["affected_total_site_count"] == 14
-    assert census["first_fixed_total_site_count"] == 14
+    assert census["affected_total_site_count"] == 15
+    assert census["first_fixed_total_site_count"] == 15
+    assert census["affected_mov_edx_0xff"] == [0x8C08A]
+    assert census["first_fixed_mov_edx_0x102"] == [0x8C02C]
     assert len(census["affected_cmp_eax_0xff"]) == 12
     assert len(census["first_fixed_cmp_eax_0x102"]) == 12
     assert json.loads(ARTIFACT.read_text(encoding="utf-8")) == report

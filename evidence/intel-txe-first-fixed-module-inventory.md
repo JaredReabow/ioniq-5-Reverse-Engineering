@@ -145,9 +145,11 @@ bodies are byte-identical. The handler tail reaches a shared return epilogue at
 `0x8bdb0..0x8bdcf` / `0x8bd52..0x8bd71`; its only byte change is another
 `cmp eax, 0xff → 0x102`.
 
-A complete-kernel instruction census finds the same numeric transition in 14
-sites in each build: two `mov eax, immediate` and twelve
-`cmp eax, immediate` sites. Thus the selector-`0x10` uses are part of a
+A complete-kernel instruction census finds the same numeric transition in 15
+sites in each build: two `mov eax, immediate`, one `mov edx, immediate`, and
+twelve `cmp eax, immediate` sites. The `mov edx` site is the return path in the
+helper called by selector `0x10`, and its result reaches the handler's changed
+comparison. Thus the selector-`0x10` uses are part of a
 kernel-wide status/sentinel-renumbering candidate, not isolated evidence of
 message-validation logic. This proves a real first-fixed semantic delta on the
 exact path used by the eleven reviewed length sites, but does **not** name the
@@ -164,8 +166,8 @@ exact CVE-2018-3655 candidate.
 
 - `evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json`
 - schema `ioniq-txe-first-fixed-module-inventory/v1`
-- size `111,564` bytes
-- SHA-256 `3a5df368a7d319101cfd710960a8cfe38e61215e898958442ce382657b4eae1e`
+- size `111,740` bytes
+- SHA-256 `e3ee05715b3ed657e511f9f9ad108b6954bbace7a88ce88e69eaf0669d6ff2ba`
 
 Embedded `$MN2` signatures establish self-consistency and byte binding only.
 They do not establish platform ROM/fuse/OEM acceptance or installed-unit

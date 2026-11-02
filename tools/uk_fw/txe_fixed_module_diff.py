@@ -18,7 +18,7 @@ import struct
 import sys
 from pathlib import Path
 
-SCHEMA = "ioniq-txe-fixed-module-diff/v3"
+SCHEMA = "ioniq-txe-fixed-module-diff/v4"
 OLD_SHA256 = "f6fc0373042c27f36e601fe957544582f3b1bd4be3c36659105322304b2dc7ac"
 FIRST_FIXED_SHA256 = "db9325168976e1e68cba25924e82c2aeb2db85fb7a678de5fd66e200ab7643b9"
 LATER_SHA256 = "75a866331d8f23d023bbdcf9efdfee7b57bf4727eb50f6162940a2a51cb57b4a"
@@ -134,6 +134,96 @@ SYSLIB_HECI_ALLOWED_REL32_TARGET_PAIRS = {
     (0x12C02, 0x12C0A),
     (0x1693C, 0x1695E),
     (0x17F2E, 0x17F50),
+}
+
+# Reviewed direct-call instruction offsets within the 42 bodies above. These
+# 96 instruction boundaries exclude nine incidental 0xe8 data/immediate bytes.
+SYSLIB_HECI_DIRECT_CALL_OFFSETS = {
+    0x06ABC: (0x2B, 0x109, 0x114, 0x130, 0x142, 0x154, 0x1A1, 0x1AC, 0x1B3, 0x208, 0x217, 0x296, 0x310, 0x373, 0x435, 0x43F, 0x490, 0x4AF, 0x4C5, 0x4D0, 0x4E4),
+    0x07F65: (0x14,),
+    0x08489: (0xD,),
+    0x084E8: (0xE, 0x32, 0x3D, 0xAD, 0xD4, 0xDF),
+    0x08F00: (0x5,),
+    0x09088: (0xE,),
+    0x090B3: (0x11,),
+    0x09783: (0x17,),
+    0x09874: (0x2C, 0x37, 0x83, 0xC4, 0xE4, 0xEF, 0x102),
+    0x09983: (0xD,),
+    0x09B51: (0x1A,),
+    0x0A274: (0x1D,),
+    0x0AF34: (0x1B, 0x26, 0x2E, 0x5A),
+    0x0B393: (0x29, 0x65, 0x6D, 0x79, 0x82, 0x8F, 0x98),
+    0x0BEA2: (0x13,),
+    0x0C7E7: (0xB,),
+    0x0CFB5: (0xD,),
+    0x0D660: (0x8,),
+    0x0D6C2: (0x18, 0x23, 0x74, 0x7F),
+    0x0DA93: (0x10,),
+    0x0DAAA: (0x21, 0x62, 0xB1),
+    0x0DE35: (0x5,),
+    0x0E0BD: (0xE,),
+    0x0E46D: (0xF, 0x1A, 0x37, 0x73, 0x8C, 0x97, 0xCA, 0xD5, 0xFB, 0x10F, 0x170, 0x186, 0x191),
+    0x0EC24: (0xA,),
+    0x0F8F8: (0x2E, 0x3C, 0xB8),
+    0x103D6: (0x1B, 0x5F, 0xD5, 0x112, 0x184, 0x192, 0x1B0),
+    0x1140A: (0x16,),
+    0x164F3: (0x1C,),
+    0x17E48: (0xA,),
+    0x17FC1: (0x15,),
+}
+
+# New internal first-level callees after excluding the two unchanged external
+# gates (0x102e/0x103d) and the already reviewed 0x7972/0x118b0 bodies.
+SYSLIB_HECI_INCIDENTAL_E8_OFFSETS = {
+    0x06ABC: (0x27F, 0x2A9, 0x369, 0x399, 0x4B0),
+    0x0DAAA: (0x2B,),
+    0x0E46D: (0x107,),
+    0x103D6: (0x8B, 0xE6),
+}
+
+SYSLIB_HECI_FIRST_LEVEL_CALLEE_RANGES = {
+    0x06A95: (0x06ABC, 0x06A9A, 0x06AC1),
+    0x0790B: (0x07914, 0x07910, 0x07919),
+    0x07963: (0x07972, 0x07968, 0x07977),
+    0x07989: (0x079E9, 0x0798E, 0x079EE),
+    0x079E9: (0x07A83, 0x079EE, 0x07A88),
+    0x07C5E: (0x07C6A, 0x07C63, 0x07C6F),
+    0x07E31: (0x07EA2, 0x07E36, 0x07EA7),
+    0x081D1: (0x0847D, 0x081D6, 0x08482),
+    0x084C6: (0x084E8, 0x084CB, 0x084ED),
+    0x085E0: (0x08994, 0x085E5, 0x08999),
+    0x08A77: (0x08AE6, 0x08A7C, 0x08AEB),
+    0x08B27: (0x08B36, 0x08B2C, 0x08B3B),
+    0x08ED3: (0x08F00, 0x08ED8, 0x08F05),
+    0x09411: (0x09421, 0x09416, 0x09426),
+    0x09458: (0x09461, 0x0945D, 0x09466),
+    0x097A1: (0x09874, 0x097A6, 0x09879),
+    0x0B4B1: (0x0B4DF, 0x0B4B6, 0x0B4E4),
+    0x0BE51: (0x0BEA2, 0x0BE56, 0x0BEA7),
+    0x0D0D7: (0x0D0EA, 0x0D0DC, 0x0D0EF),
+    0x0D29B: (0x0D2EE, 0x0D2A0, 0x0D2F3),
+    0x0E1A8: (0x0E358, 0x0E1AD, 0x0E35D),
+    0x0E358: (0x0E3A2, 0x0E35D, 0x0E3A7),
+    0x0E66B: (0x0E67A, 0x0E670, 0x0E67F),
+    0x0E6D7: (0x0E7D7, 0x0E6DC, 0x0E7DC),
+    0x101C4: (0x10226, 0x101C9, 0x1022B),
+    0x120D3: (0x12170, 0x120DB, 0x12178),
+    0x12C02: (0x12C3C, 0x12C0A, 0x12C44),
+    0x1693C: (0x1694F, 0x1695E, 0x16971),
+    0x17F2E: (0x17F6C, 0x17F50, 0x17F8E),
+}
+
+SYSLIB_HECI_FIRST_LEVEL_ALLOWED_REL32_TARGET_PAIRS = {
+    (0x0102E, 0x0102E),
+    (0x0103D, 0x0103D),
+    (0x07972, 0x07977),
+    (0x08F00, 0x08F05),
+    (0x0A274, 0x0A279),
+    (0x118B0, 0x118B8),
+    (0x11AB8, 0x11AC0),
+    (0x11ADA, 0x11AE2),
+    (0x120D3, 0x120DB),
+    (0x16F8F, 0x16FB1),
 }
 
 LATER_FPF_ARB_FIELDS = {
@@ -686,6 +776,251 @@ def first_fixed_heci_syslib_import_review(
     }
 
 
+def first_fixed_heci_syslib_first_level_callee_review(
+    affected_syslib: bytes,
+    first_fixed_syslib: bytes,
+) -> dict:
+    if (
+        sha256(affected_syslib) != OLD_SYSLIB_SHA256
+        or sha256(first_fixed_syslib) != FIRST_FIXED_SYSLIB_SHA256
+    ):
+        raise Failure("HECI/syslib first-level review identity drift")
+
+    call_target_counts: dict[tuple[int, int], int] = {}
+    reviewed_call_addresses: set[int] = set()
+    for affected_body_start, call_offsets in sorted(
+        SYSLIB_HECI_DIRECT_CALL_OFFSETS.items()
+    ):
+        _, first_body_start, _ = SYSLIB_HECI_DESTINATION_RANGES[
+            affected_body_start
+        ]
+        for relative_offset in call_offsets:
+            affected_call = affected_body_start + relative_offset
+            first_call = first_body_start + relative_offset
+            affected_target = rel32_target(
+                0x6000, affected_syslib, affected_call - 0x6000, 0xE8
+            )
+            first_target = rel32_target(
+                0x6000, first_fixed_syslib, first_call - 0x6000, 0xE8
+            )
+            pair = (affected_target, first_target)
+            call_target_counts[pair] = call_target_counts.get(pair, 0) + 1
+            reviewed_call_addresses.add(affected_call)
+
+    raw_e8_addresses: set[int] = set()
+    for affected_start, (affected_end, _, _) in SYSLIB_HECI_DESTINATION_RANGES.items():
+        raw_e8_addresses.update(
+            address
+            for address in range(affected_start, affected_end)
+            if affected_syslib[address - 0x6000] == 0xE8
+        )
+    reviewed_incidental_e8_addresses = {
+        affected_start + relative_offset
+        for affected_start, offsets in SYSLIB_HECI_INCIDENTAL_E8_OFFSETS.items()
+        for relative_offset in offsets
+    }
+    if (
+        len(raw_e8_addresses) != 105
+        or len(reviewed_call_addresses) != 96
+        or len(reviewed_incidental_e8_addresses) != 9
+        or raw_e8_addresses
+        != reviewed_call_addresses | reviewed_incidental_e8_addresses
+        or reviewed_call_addresses & reviewed_incidental_e8_addresses
+    ):
+        raise Failure("HECI/syslib direct-call instruction boundary drift")
+
+    new_internal_targets: dict[int, tuple[int, int]] = {}
+    external_gate_references = 0
+    already_reviewed_references = 0
+    for (affected_target, first_target), count in call_target_counts.items():
+        if affected_target < 0x6000:
+            if (affected_target, first_target) not in {
+                (0x102E, 0x102E),
+                (0x103D, 0x103D),
+            }:
+                raise Failure("HECI/syslib external direct-call target drift")
+            external_gate_references += count
+        elif affected_target in SYSLIB_HECI_DESTINATION_RANGES:
+            expected_first = SYSLIB_HECI_DESTINATION_RANGES[affected_target][1]
+            if first_target != expected_first:
+                raise Failure("HECI/syslib already-reviewed direct-call target drift")
+            already_reviewed_references += count
+        else:
+            previous = new_internal_targets.get(affected_target)
+            if previous is not None and previous[0] != first_target:
+                raise Failure("HECI/syslib inconsistent first-level target mapping")
+            new_internal_targets[affected_target] = (
+                first_target,
+                (previous[1] if previous else 0) + count,
+            )
+    if (
+        sum(call_target_counts.values()) != 96
+        or len(call_target_counts) != 33
+        or external_gate_references != 12
+        or already_reviewed_references != 6
+        or set(new_internal_targets) != set(SYSLIB_HECI_FIRST_LEVEL_CALLEE_RANGES)
+        or sum(value[1] for value in new_internal_targets.values()) != 78
+    ):
+        raise Failure("HECI/syslib first-level call inventory drift")
+
+    absolute_operand_specs = {
+        0x06A95: (0x1F, 0x188B0, 0x188D4),
+        0x081D1: (0x20E, 0x182BC, 0x182E0),
+        0x08ED3: (0x25, 0x188B0, 0x188D4),
+        0x0BE51: (0x39, 0x188B0, 0x188D4),
+    }
+    bodies = {}
+    total_bytes = 0
+    total_raw_differences = 0
+    total_rel32_relocations = 0
+    total_absolute_relocations = 0
+    for affected_start in sorted(new_internal_targets):
+        affected_end, expected_first_start, first_end = (
+            SYSLIB_HECI_FIRST_LEVEL_CALLEE_RANGES[affected_start]
+        )
+        first_start, reference_count = new_internal_targets[affected_start]
+        if first_start != expected_first_start:
+            raise Failure("HECI/syslib first-level destination mapping drift")
+        affected_body = affected_syslib[
+            affected_start - 0x6000 : affected_end - 0x6000
+        ]
+        first_body = first_fixed_syslib[
+            first_start - 0x6000 : first_end - 0x6000
+        ]
+        if not affected_body or len(affected_body) != len(first_body):
+            raise Failure("HECI/syslib first-level body geometry drift")
+
+        actual_differences = {
+            index
+            for index, (left, right) in enumerate(zip(affected_body, first_body))
+            if left != right
+        }
+        allowed_differences: set[int] = set()
+        normalized_affected = bytearray(affected_body)
+        normalized_first = bytearray(first_body)
+        rel32_relocations = []
+        for offset in range(len(affected_body) - 4):
+            opcode = affected_body[offset]
+            if opcode not in (0xE8, 0xE9) or first_body[offset] != opcode:
+                continue
+            if affected_body[offset + 1 : offset + 5] == first_body[offset + 1 : offset + 5]:
+                continue
+            affected_target = (
+                affected_start
+                + offset
+                + 5
+                + struct.unpack_from("<i", affected_body, offset + 1)[0]
+            )
+            first_target = (
+                first_start
+                + offset
+                + 5
+                + struct.unpack_from("<i", first_body, offset + 1)[0]
+            )
+            if (
+                affected_target,
+                first_target,
+            ) not in SYSLIB_HECI_FIRST_LEVEL_ALLOWED_REL32_TARGET_PAIRS:
+                continue
+            allowed_differences.update(range(offset + 1, offset + 5))
+            normalized_affected[offset + 1 : offset + 5] = b"\0" * 4
+            normalized_first[offset + 1 : offset + 5] = b"\0" * 4
+            rel32_relocations.append({
+                "affected_runtime_address": affected_start + offset,
+                "first_fixed_runtime_address": first_start + offset,
+                "opcode": opcode,
+                "affected_target": affected_target,
+                "first_fixed_target": first_target,
+            })
+
+        absolute_relocations = []
+        if affected_start in absolute_operand_specs:
+            operand_offset, affected_value_expected, first_value_expected = (
+                absolute_operand_specs[affected_start]
+            )
+            affected_value = struct.unpack_from(
+                "<I", affected_body, operand_offset
+            )[0]
+            first_value = struct.unpack_from("<I", first_body, operand_offset)[0]
+            if (affected_value, first_value) != (
+                affected_value_expected,
+                first_value_expected,
+            ):
+                raise Failure("HECI/syslib first-level table-base drift")
+            allowed_differences.update(range(operand_offset, operand_offset + 4))
+            normalized_affected[operand_offset : operand_offset + 4] = b"\0" * 4
+            normalized_first[operand_offset : operand_offset + 4] = b"\0" * 4
+            absolute_relocations.append({
+                "affected_operand_runtime_range": [
+                    affected_start + operand_offset,
+                    affected_start + operand_offset + 4,
+                ],
+                "first_fixed_operand_runtime_range": [
+                    first_start + operand_offset,
+                    first_start + operand_offset + 4,
+                ],
+                "affected_value": affected_value,
+                "first_fixed_value": first_value,
+                "instruction": "indexed table base",
+            })
+
+        if (
+            not actual_differences <= allowed_differences
+            or normalized_affected != normalized_first
+        ):
+            raise Failure("HECI/syslib first-level normalized body drift")
+        bodies[f"0x{affected_start:x}"] = {
+            "direct_reference_count": reference_count,
+            "affected_runtime_range": [affected_start, affected_end],
+            "first_fixed_runtime_range": [first_start, first_end],
+            "size": len(affected_body),
+            "affected_sha256": sha256(affected_body),
+            "first_fixed_sha256": sha256(first_body),
+            "raw_differing_byte_count": len(actual_differences),
+            "rel32_relocations": rel32_relocations,
+            "absolute_address_relocations": absolute_relocations,
+            "normalized_sha256": sha256(bytes(normalized_affected)),
+            "equal_after_reviewed_address_normalization": True,
+        }
+        total_bytes += len(affected_body)
+        total_raw_differences += len(actual_differences)
+        total_rel32_relocations += len(rel32_relocations)
+        total_absolute_relocations += len(absolute_relocations)
+
+    if (
+        len(bodies) != 29
+        or total_bytes != 3911
+        or total_raw_differences != 34
+        or total_rel32_relocations != 29
+        or total_absolute_relocations != 4
+    ):
+        raise Failure("HECI/syslib first-level aggregate drift")
+    return {
+        "raw_0xe8_byte_count_in_42_bodies": len(raw_e8_addresses),
+        "reviewed_direct_call_site_count": sum(call_target_counts.values()),
+        "reviewed_incidental_0xe8_byte_count": len(reviewed_incidental_e8_addresses),
+        "distinct_direct_call_target_pair_count": len(call_target_counts),
+        "unchanged_external_gate_reference_count": external_gate_references,
+        "already_reviewed_body_reference_count": already_reviewed_references,
+        "new_internal_first_level_callee_reference_count": sum(
+            value[1] for value in new_internal_targets.values()
+        ),
+        "new_internal_first_level_callee_count": len(bodies),
+        "reviewed_callee_body_byte_count": total_bytes,
+        "raw_differing_byte_count": total_raw_differences,
+        "rel32_relocation_site_count": total_rel32_relocations,
+        "absolute_address_relocation_site_count": total_absolute_relocations,
+        "callee_bodies": bodies,
+        "exact_static_observations": {
+            "all_96_reviewed_direct_call_sites_resolved": True,
+            "all_29_new_internal_first_level_callees_have_equal_reviewed_geometry": True,
+            "all_29_new_internal_first_level_callees_equal_after_only_reviewed_address_normalization": True,
+            "no_first_level_callee_body_has_an_opcode_or_non_address_data_change": True,
+        },
+        "attribution_boundary": "The 96 reviewed direct calls from HECI-imported syslib bodies resolve to two unchanged external gates, two already reviewed bodies, and 29 new internal first-level callee bodies. The 29 new bodies are unchanged after reviewed address normalization. This does not cover indirect calls/jumps, indexed dispatch targets, deeper callees not present in these next-entry-bounded bodies, kernel/service handlers behind the external gates, another signed module, or downstream HECI clients.",
+    }
+
+
 def first_fixed_heci_review(affected: bytes, first_fixed: bytes) -> dict:
     if sha256(affected) != OLD_HECI_SHA256 or sha256(first_fixed) != FIRST_FIXED_HECI_SHA256:
         raise Failure("first-fixed HECI identity drift")
@@ -1025,6 +1360,10 @@ def build_report(old: bytes, first_fixed: bytes, later: bytes) -> dict:
             old_modules["syslib"],
             first_modules["syslib"],
         ),
+        "first_fixed_heci_syslib_first_level_callee_review": first_fixed_heci_syslib_first_level_callee_review(
+            old_modules["syslib"],
+            first_modules["syslib"],
+        ),
         "first_fixed_vfs_exact_static_review": first_fixed_vfs_review(
             old_modules["vfs"],
             first_modules["vfs"],
@@ -1043,6 +1382,7 @@ def build_report(old: bytes, first_fixed: bytes, later: bytes) -> dict:
             "first_fixed_entire_heci_module_changes_only_external_rel32_immediates": True,
             "first_fixed_primary_heci_ranges_change_only_rel32_call_immediates": True,
             "first_fixed_all_42_heci_imported_syslib_bodies_change_only_address_operands": True,
+            "first_fixed_all_29_new_first_level_syslib_callees_change_only_address_operands": True,
             "later_heci_header_and_extended_parser_changes_are_the_3_1_55_fix": False,
             "later_fpf_named_anti_rollback_fields_are_the_3_1_55_fix": False,
             "first_fixed_vfs_ndl_integration_candidate_identified": True,
@@ -1053,7 +1393,7 @@ def build_report(old: bytes, first_fixed: bytes, later: bytes) -> dict:
         "boundaries": [
             "The official ASUS first-fixed image closes the version-bisect gap for 3.1.55, but attribution still requires exact changed-function and reachability analysis.",
             "The reviewed primary HECI ranges exclude later header/extension changes as the first-fixed primary-path delta; they do not exclude another HECI function or downstream client parser.",
-            "All 42 syslib bodies directly imported by HECI normalize to byte identity after only reviewed address operands are zeroed. This excludes direct opcode/non-address-data changes in those bodies, but not changed transitive callees, syscall/service implementations, indirect dispatch targets, another signed module, or a downstream client.",
+            "All 42 syslib bodies directly imported by HECI normalize to byte identity after only reviewed address operands are zeroed. Their 96 reviewed direct calls resolve to two unchanged external gates, two already reviewed bodies, and 29 new internal first-level callee bodies; all 29 new bodies also normalize to identity. This excludes opcode/non-address-data changes in those bounded bodies, but not indirect dispatch, deeper callees, kernel/service handlers, another signed module, or a downstream client.",
             "The named later FPF anti-rollback fields are absent from both affected and first-fixed FPF; this excludes those records as the 3.1.55 fix.",
             "First-fixed VFS newly opens pre-existing ndl_critical and ndl_counting storage channels and passes their descriptors to a new syslib setter. This is an exact anti-replay/data-integrity candidate, not yet proof of CVE-2018-3655 attribution or physical reachability.",
             "Embedded $MN2 verification proves self-consistency and byte binding only, not platform ROM, fuse, Boot Guard, or OEM acceptance.",

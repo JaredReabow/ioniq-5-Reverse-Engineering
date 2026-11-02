@@ -63,6 +63,20 @@ def test_canonical_fixed_module_diff_matches_reviewed_artifact():
     assert syslib_review["absolute_address_relocation_site_count"] == 1
     assert syslib_review["destination_entry_shift_counts"] == {"5": 33, "8": 2, "34": 7}
     assert syslib_review["exact_static_observations"]["no_directly_imported_syslib_body_has_an_opcode_or_non_address_data_change"] is True
+    callee_review = report["first_fixed_heci_syslib_first_level_callee_review"]
+    assert callee_review["raw_0xe8_byte_count_in_42_bodies"] == 105
+    assert callee_review["reviewed_direct_call_site_count"] == 96
+    assert callee_review["reviewed_incidental_0xe8_byte_count"] == 9
+    assert callee_review["distinct_direct_call_target_pair_count"] == 33
+    assert callee_review["unchanged_external_gate_reference_count"] == 12
+    assert callee_review["already_reviewed_body_reference_count"] == 6
+    assert callee_review["new_internal_first_level_callee_reference_count"] == 78
+    assert callee_review["new_internal_first_level_callee_count"] == 29
+    assert callee_review["reviewed_callee_body_byte_count"] == 3911
+    assert callee_review["raw_differing_byte_count"] == 34
+    assert callee_review["rel32_relocation_site_count"] == 29
+    assert callee_review["absolute_address_relocation_site_count"] == 4
+    assert callee_review["exact_static_observations"]["no_first_level_callee_body_has_an_opcode_or_non_address_data_change"] is True
     assert report["first_fixed_vfs_exact_static_review"]["exact_static_observations"]["first_fixed_vfs_adds_both_ndl_path_consumers"] is True
     assert report["first_fixed_vfs_exact_static_review"]["first_fixed_syslib"]["new_setter_runtime_range"] == [0x16691, 0x166AB]
     assert report["later_fpf_exact_static_review"]["exact_static_observations"]["affected_fpf_lacks_all_six_field_names"] is True
@@ -71,4 +85,4 @@ def test_canonical_fixed_module_diff_matches_reviewed_artifact():
     assert report["classification"]["cve_2018_12147_exact_bug_identified"] is False
     assert report["classification"]["cve_2018_3655_exact_storage_bug_identified"] is False
     assert json.loads(ARTIFACT.read_text(encoding="utf-8")) == report
-    assert hashlib.sha256(EXACT_STATIC.read_bytes()).hexdigest() == "88bb85894ca61bacc009255f55405a8d5f2edf2d6b6bc90af970e39b46e5410e"
+    assert hashlib.sha256(EXACT_STATIC.read_bytes()).hexdigest() == "ec8901efdd7aa04ceae99e8b6427fc6116d7f3c0653d75e314b41c8cb285e27c"

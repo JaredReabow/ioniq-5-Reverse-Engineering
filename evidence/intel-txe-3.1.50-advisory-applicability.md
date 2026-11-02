@@ -194,9 +194,9 @@ image:
 signatures, manifest-to-metadata and metadata-to-module reverse-SHA-256 chains,
 and strict decompression for HECI, busdrv, storage, policy, fpf, dal_sdm, VFS,
 and syslib. Its reviewed report is
-`evidence/artifacts/update-candidates/txe-fixed-module-diff.json`, schema v3,
+`evidence/artifacts/update-candidates/txe-fixed-module-diff.json`, schema v4,
 SHA-256
-`d1043552b8ef772e825dc9e624dc3b62ab57f0fc8496cce7b359fbd5942d5fdb`.
+`7cd1e22403c3fef4055303918b902108abccb34a9d2dca79ee835021d7b2a885`.
 
 Across the complete affected and first-fixed HECI modules, all 377 raw
 differing bytes lie inside 369 same-offset external `rel32` encodings—366 calls
@@ -230,9 +230,18 @@ syslib destination bodies. Across 4,410 reviewed body bytes, 39 raw differences
 are wholly explained by 37 `rel32` address operands and one indexed-jump-table
 base operand. All 42 body pairs are byte-identical after only those reviewed
 address operands are normalized. This excludes an opcode or non-address-data
-change in every syslib body directly imported by HECI. It does not exclude a
-changed transitive callee, syscall/service implementation, indirect dispatch
-target, another signed module, or downstream parser.
+change in every syslib body directly imported by HECI.
+
+The direct-call boundary is also now exact. Ninety-six reviewed direct calls
+from those 42 bodies resolve to 12 references to unchanged external gates, six
+references to already reviewed bodies, and 78 references to 29 new internal
+first-level callees. Across 3,911 additional callee-body bytes, all 34 raw
+changes are confined to 29 `rel32` address operands and four indexed-table base
+operands. All 29 new body pairs normalize to identity. This excludes opcode or
+non-address-data changes in the directly imported bodies and their new direct
+first-level callees. It does not exclude indirect dispatch targets, deeper
+callees, kernel/service handlers behind the external gates, another signed
+module, or downstream parser.
 
 The exact later signed FPF adds structured `RbeArbEn`, `RbeArbSvn`,
 `OemKmArbEn`, `OemKmArbSvn`, `UcodeArbEn`, and `UcodeArbSvn` records absent by
@@ -299,9 +308,10 @@ The strongest current interpretation is:
   lead;
 - exact first-fixed comparison excludes HECI-local code/data and opcode or
   non-address-data changes in all 42 directly imported syslib destination
-  bodies as the location of the `3.1.55` fix; changed transitive callees,
-  syscall/service implementations, indirect dispatch, another signed module,
-  or a downstream parser remain open, while later header/extended-parser
+  bodies and their 29 new direct first-level callees as the location of the
+  `3.1.55` fix; indirect dispatch, deeper callees, kernel/service handlers,
+  another signed module, or a downstream parser remain open, while later
+  header/extended-parser
   changes postdate `3.1.55`;
 - CVE-2018-12147 does not solve initial Linux root because it requires a
   privileged local caller;

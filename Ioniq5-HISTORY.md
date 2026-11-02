@@ -4079,3 +4079,11 @@ and are superseded by corrections rather than silently rewritten.
 - Each of those was a reasonable theory and each is now closed by measurement rather than by argument.
 - What remains is the internal condition the static analysis could reach but not resolve: which reason and app id the app itself uses when the home screen
   is genuinely current. It also produced a second way to kill the process, which widens the security entry rather than narrowing it.
+
+## 2026-10-31 — it was trying all along
+
+- The tracer shows show() called, the window visible, and the vendor shell integration entering createShellSurface. The application was never the one
+  refusing.
+- Every earlier conclusion that the window "is never shown" was an inference from the absence of a surface. The absence is real; the cause is one layer
+  further down, in code that ships as a library and reads an environment variable the launcher sets to zero.
+- Astra's warning was the useful part: not having a surface does not mean nobody asked for one.

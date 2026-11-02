@@ -41,3 +41,4 @@ __pycache__/
 # Compiled research tools (sources and build scripts are tracked instead).
 tools/uk_fw/ias_backend_soft/ivi_wm
 tools/uk_fw/ias_backend_soft/ivi_place
+tools/uk_fw/ias_backend_soft/persistence-admin-service

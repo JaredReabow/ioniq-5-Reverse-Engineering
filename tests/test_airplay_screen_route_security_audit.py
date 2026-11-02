@@ -88,6 +88,14 @@ class AirPlayScreenRouteSecurityAuditTests(unittest.TestCase):
         self.assertEqual(report["route"]["setup_stream"]["type"], "0x6e")
         self.assertEqual(report["route"]["listener"]["ipv4_bind_address"], "INADDR_ANY (zero address)")
         self.assertFalse(report["route"]["listener"]["accepted_peer_address_requested_by_caller"])
+        self.assertFalse(
+            report["route"]["generic_http_dispatch"]
+            ["authorization_check_between_message_read_and_delegate"]
+        )
+        self.assertEqual(
+            report["route"]["generic_http_dispatch"]["airplay_callback_entry"],
+            "0xf3d1",
+        )
         self.assertTrue(report["assessment"]["no_mfi_fallback_candidate"])
         self.assertIsNone(report["assessment"]["cve_attribution"])
         self.assertEqual(
@@ -110,6 +118,10 @@ class AirPlayScreenRouteSecurityAuditTests(unittest.TestCase):
             self.assertEqual(first.read_bytes(), second.read_bytes())
             parsed = json.loads(first.read_text(encoding="ascii"))
             self.assertEqual(parsed["schema"], module.SCHEMA)
+            self.assertEqual(
+                parsed["canonical_sha256"],
+                "ce6e1747bf5763efe99acff725a6b7598b11397d9626d8dc474b861eb307633b",
+            )
             duplicate = subprocess.run(
                 command + ["--output", str(first)],
                 stdout=subprocess.PIPE,

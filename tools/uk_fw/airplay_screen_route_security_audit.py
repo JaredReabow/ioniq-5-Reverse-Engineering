@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "ioniq-airplay-screen-route-security-audit/v1"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 MAX_FILE_BYTES = 64 * 1024 * 1024
 ELF_HEADER = struct.Struct("<16sHHIQQQIHHHHHH")
 PROGRAM_HEADER = struct.Struct("<IIQQQQQQ")
@@ -34,6 +34,10 @@ SUBJECTS = {
 }
 
 RANGES = {
+    "http_delegate_install": (
+        "airplay", 0xC750, 0xC7D2,
+        "89012ad230f7302e6d6d77fa90b67db910e417c929eb2ac1208adc6195c75ba5",
+    ),
     "setup_callback_encryption_to_session_setup": (
         "airplay", 0x103C3, 0x10637,
         "5cde34310a8cdf36004c110ed3f9656dbdadaacf2b808fb12dc057e1fce57a81",
@@ -90,6 +94,14 @@ RANGES = {
         "coreutils", 0x43D18, 0x43D87,
         "be58439ad302800e4b0330e1d8120ff2be822aab800238e7220ee4e71badb202",
     ),
+    "http_connection_set_delegate": (
+        "coreutils", 0x75E63, 0x75EB1,
+        "03bbd091b0ecba150867d6a1b022ad866bf2e126b1a151bf5c62039834a1ceaa",
+    ),
+    "http_connection_state_machine": (
+        "coreutils", 0x76E94, 0x77153,
+        "4130bd9de44106e7e08f072cbd83da4fccd2fcacffffb533c23ee3f62a6e473e",
+    ),
     "socket_accept": (
         "coreutils", 0x87AE3, 0x87CCC,
         "91f051bbf297b0b5adca67abbb9c61cc161f6afa9023ba55228efd226fc343f2",
@@ -101,6 +113,10 @@ RANGES = {
 }
 
 ANCHORS = {
+    "airplay_callback_installed_as_http_delegate": (
+        "airplay", 0xC77B,
+        "488d0584faffff4c89c748895424084889442418488d055bf7ffff4889442420488d057cf6ffff4889442428488d05232c00004889442438e848d2ffff",
+    ),
     "absent_or_none_encryption_skips_key_install": (
         "airplay", 0x103D7,
         "837c2450004989c50f854102000083f8010f8438020000",
@@ -168,6 +184,10 @@ ANCHORS = {
     "sha512_derivation_hashes_salt_then_base_key": (
         "airplay", 0x21289,
         "4d85ff7444488d5c24204889dfe81575feff488b5424104889df488b742418e8937afeff4c89f24c89ee4889dfe8857afeff4889de4889efe8fa7bfeff0f108424f8000000410f11074d85e47444488d5c24204889dfe8cc74feff488b5424084889df488b3424e84b7afeff4c89f24c89ee4889dfe83d7afeff4889de4889efe8b27bfeff0f108c24f8000000410f110c24",
+    ),
+    "http_message_read_flows_directly_to_delegate": (
+        "coreutils", 0x76EDC,
+        "e8cf4dfaffba010000004889df89c6e82be6ffff83f80b0f843c02000085c00f8502020000488b7b70488d5510488b8d100400004c8b8d200500004c8b85180500004889fee86a69faff488b53204889ee4889dfff5350",
     ),
     "missing_dictionary_integer_sets_error": (
         "coreutils", 0x43D30,
@@ -371,6 +391,19 @@ def build_report(airplay: bytes, coreutils: bytes) -> dict[str, Any]:
         "ranges": ranges,
         "anchors": anchors,
         "route": {
+            "generic_http_dispatch": {
+                "airplay_callback_entry": "0xf3d1",
+                "airplay_callback_installed_at": "0xc7a7",
+                "connection_delegate_call_offset": "0x50",
+                "message_read_success_to_delegate_sequence": [
+                    "HTTPMessageReadMessage",
+                    "I/O error mapping",
+                    "LogHTTP",
+                    "installed delegate call",
+                ],
+                "authorization_check_between_message_read_and_delegate": False,
+                "qualification": "This closes a separate generic HTTPConnection check in the exact post-read dispatcher only; admission or policy elsewhere remains unproved.",
+            },
             "setup_stream": {
                 "type": "0x6e",
                 "requires_nonzero_stream_connection_id": True,
@@ -423,12 +456,13 @@ def build_report(airplay: bytes, coreutils: bytes) -> dict[str, Any]:
             "reason": "A fresh session is zero-initialized; absent encryption type or comparative None value 0x01 skips AirPlayReceiverSessionSetSecurityInfo; the type-0x6e screen branch nevertheless derives and installs an AES-CTR screen key from the zero base key and requester-supplied nonzero streamConnectionID.",
             "wildcard_secondary_listener": True,
             "same_peer_enforcement_observed_at_accept_call": False,
+            "generic_httpconnection_authorization_gate_observed": False,
             "relationship_to_prior_parser_finding": "This narrows static prerequisites for the separately byte-bound screen parser read/write candidate; it does not change that finding's impact or CVE boundaries.",
             "cve_attribution": None,
         },
         "boundaries": {
             "not_established": [
-                "upstream HTTPConnection authorization state",
+                "authorization or admission checks before completed-message dispatch or outside the reviewed generic HTTPConnection path",
                 "live SETUP or session-start acceptance",
                 "runtime listening interface or firewall exposure",
                 "phone, USB/NCM peer, or network-peer delivery",
@@ -443,6 +477,7 @@ def build_report(airplay: bytes, coreutils: bytes) -> dict[str, Any]:
                 "The pair-verify branch requires valid ChaCha20-Poly1305 authentication before parsing.",
                 "The null-pair-verify branch still applies AES-CTR before parsing; the exact no-MFi candidate is about deterministic non-hardware-backed base material, not cleartext socket input.",
                 "Wildcard bind and a null peer-address output do not prove that the port is reachable from an external interface or that no policy exists elsewhere.",
+                "The exact generic state machine calls the installed AirPlay delegate directly after successful message read and logging, but this does not exclude admission or policy before that state machine or elsewhere in the system.",
                 "Static route acceptance does not prove a sender can complete every preceding control-session state transition.",
             ],
         },

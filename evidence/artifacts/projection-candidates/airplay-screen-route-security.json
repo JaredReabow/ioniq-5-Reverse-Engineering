@@ -24,6 +24,12 @@
       "subject": "airplay",
       "va": "0x1f19b"
     },
+    "airplay_callback_installed_as_http_delegate": {
+      "bytes_hex": "488d0584faffff4c89c748895424084889442418488d055bf7ffff4889442420488d057cf6ffff4889442428488d05232c00004889442438e848d2ffff",
+      "size": 61,
+      "subject": "airplay",
+      "va": "0xc77b"
+    },
     "chacha_verify_or_aes_ctr_before_parser": {
       "bytes_hex": "80bbf0010000000f8403010000837b480f0f86310100004c8d83180300004c8db3f80100004c89c24c89442438488db3f80200004c89f7e8ef90feff4c89feba800000004c89f7e86f91feff8b43484889e94889ee4c89f78d50f0e85b8ffeff488d4c24444c89f74989c78b43484a8d743d008d50f04801eae85d99feff8b7424444c01f84c8b44243885f6741f41b81c020000415131d26a004c8d0d1ac20000488d0dc3bd0000e9e50000008b4b4883e9104839c8743941b81d0200005631ff31f66a004c8d0defc1000031c0488d0d96bd0000488d15f0be0000e83aa1feffc744245496e5ffff5f4158e99d030000894b4831c0418a0c008d51014188140084d2754348ffc04883f80875e8eb3880bbe801000000742f8b5348488dbbc80000004889e94889eee82da2feff8944244485c07412",
       "size": 310,
@@ -35,6 +41,12 @@
       "size": 95,
       "subject": "airplay",
       "va": "0x16ec4"
+    },
+    "http_message_read_flows_directly_to_delegate": {
+      "bytes_hex": "e8cf4dfaffba010000004889df89c6e82be6ffff83f80b0f843c02000085c00f8502020000488b7b70488d5510488b8d100400004c8b8d200500004c8b85180500004889fee86a69faff488b53204889ee4889dfff5350",
+      "size": 87,
+      "subject": "coreutils",
+      "va": "0x76edc"
     },
     "ipv4_sockaddr_is_zeroed_before_wildcard_bind": {
       "bytes_hex": "89eac1fa1f4189d74131ef4129d74183fc020f85ce0100004c8d64241cb904000000ba100000004c89e74c89e64589f9f3ab89df66c744241c02006641c1c9086644894c241ee8c154f9ff",
@@ -130,6 +142,7 @@
   "assessment": {
     "classification": "exact-static screen-route prerequisite refinement",
     "cve_attribution": null,
+    "generic_httpconnection_authorization_gate_observed": false,
     "no_mfi_fallback_candidate": true,
     "reason": "A fresh session is zero-initialized; absent encryption type or comparative None value 0x01 skips AirPlayReceiverSessionSetSecurityInfo; the type-0x6e screen branch nevertheless derives and installs an AES-CTR screen key from the zero base key and requester-supplied nonzero streamConnectionID.",
     "relationship_to_prior_parser_finding": "This narrows static prerequisites for the separately byte-bound screen parser read/write candidate; it does not change that finding's impact or CVE boundaries.",
@@ -141,10 +154,11 @@
       "The pair-verify branch requires valid ChaCha20-Poly1305 authentication before parsing.",
       "The null-pair-verify branch still applies AES-CTR before parsing; the exact no-MFi candidate is about deterministic non-hardware-backed base material, not cleartext socket input.",
       "Wildcard bind and a null peer-address output do not prove that the port is reachable from an external interface or that no policy exists elsewhere.",
+      "The exact generic state machine calls the installed AirPlay delegate directly after successful message read and logging, but this does not exclude admission or policy before that state machine or elsewhere in the system.",
       "Static route acceptance does not prove a sender can complete every preceding control-session state transition."
     ],
     "not_established": [
-      "upstream HTTPConnection authorization state",
+      "authorization or admission checks before completed-message dispatch or outside the reviewed generic HTTPConnection path",
       "live SETUP or session-start acceptance",
       "runtime listening interface or firewall exposure",
       "phone, USB/NCM peer, or network-peer delivery",
@@ -156,7 +170,7 @@
       "CVE-2025-30422 or any other CVE identity"
     ]
   },
-  "canonical_sha256": "9e69506830676153ca09737ae86cc28ce88cf4db151e953fa5a57683419cb447",
+  "canonical_sha256": "ce6e1747bf5763efe99acff725a6b7598b11397d9626d8dc474b861eb307633b",
   "direct_offset_inventory": {
     "direct_explicit_read_address_pattern_count": 1,
     "direct_explicit_read_address_sites_in_complete_libAirPlay_disassembly": [
@@ -204,6 +218,27 @@
       "size": 111,
       "start_va": "0x43d18",
       "subject": "coreutils"
+    },
+    "http_connection_set_delegate": {
+      "end_va_exclusive": "0x75eb1",
+      "sha256": "03bbd091b0ecba150867d6a1b022ad866bf2e126b1a151bf5c62039834a1ceaa",
+      "size": 78,
+      "start_va": "0x75e63",
+      "subject": "coreutils"
+    },
+    "http_connection_state_machine": {
+      "end_va_exclusive": "0x77153",
+      "sha256": "4130bd9de44106e7e08f072cbd83da4fccd2fcacffffb533c23ee3f62a6e473e",
+      "size": 703,
+      "start_va": "0x76e94",
+      "subject": "coreutils"
+    },
+    "http_delegate_install": {
+      "end_va_exclusive": "0xc7d2",
+      "sha256": "89012ad230f7302e6d6d77fa90b67db910e417c929eb2ac1208adc6195c75ba5",
+      "size": 130,
+      "start_va": "0xc750",
+      "subject": "airplay"
     },
     "receiver_session_create": {
       "end_va_exclusive": "0x172c2",
@@ -298,6 +333,19 @@
     }
   },
   "route": {
+    "generic_http_dispatch": {
+      "airplay_callback_entry": "0xf3d1",
+      "airplay_callback_installed_at": "0xc7a7",
+      "authorization_check_between_message_read_and_delegate": false,
+      "connection_delegate_call_offset": "0x50",
+      "message_read_success_to_delegate_sequence": [
+        "HTTPMessageReadMessage",
+        "I/O error mapping",
+        "LogHTTP",
+        "installed delegate call"
+      ],
+      "qualification": "This closes a separate generic HTTPConnection check in the exact post-read dispatcher only; admission or policy elsewhere remains unproved."
+    },
     "listener": {
       "accepted_peer_address_requested_by_caller": false,
       "accepted_socket_reaches_process_frames": true,
@@ -388,5 +436,5 @@
       "size": 1200368
     }
   },
-  "tool_version": "1.0.0"
+  "tool_version": "1.1.0"
 }

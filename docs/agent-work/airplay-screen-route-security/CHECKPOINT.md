@@ -4,6 +4,9 @@ Status: implementation, exact-static analysis, and validation complete.
 
 ## Bound results
 
+- Exact `HTTPConnection` dispatch calls the installed AirPlay callback directly
+  after successful message read, I/O mapping, and logging; no separate post-read
+  generic authorization check appears in that path.
 - Screen stream type `0x6e` and a nonzero `streamConnectionID` select the
   recovered screen setup branch.
 - Pair verify selects a 32-byte stream key and ChaCha20-Poly1305; the tag is
@@ -33,23 +36,25 @@ Status: implementation, exact-static analysis, and validation complete.
 ## Artifact
 
 - schema: `ioniq-airplay-screen-route-security-audit/v1`
-- size: 16,458 bytes
-- file SHA-256: `aae4dcec49e0e0a36c86f34cb721cf1f97e4883b656bf2ec5c36ce5fb4433166`
-- canonical SHA-256: `9e69506830676153ca09737ae86cc28ce88cf4db151e953fa5a57683419cb447`
+- tool version: `1.1.0`
+- size: 18,738 bytes
+- file SHA-256: `29c979bbdbdfa3bb3e5b95edc2c0e1204c1d5ae96fd2135602be8c927529d801`
+- canonical SHA-256: `ce6e1747bf5763efe99acff725a6b7598b11397d9626d8dc474b861eb307633b`
 
 ## Validation
 
 - focused route tests: 5 passed;
 - projection-focused tests: 20 passed;
-- canonical suite: 1,090 passed and 352,357 subtests passed in 161.57 s;
+- canonical suite: 1,090 passed and 352,357 subtests passed in 173.51 s;
 - canonical log SHA-256:
-  `41633edf1836def9551a721507935e2bd2ac60330241a0aeb130e15b1e2d946a`;
+  `03a440e14e6a3f629359a00d04ca7900590d54108a1ed21d191b7ab39411d250`;
 - `py_compile`, deterministic reproduction, exclusive no-overwrite behavior,
   strict ASCII JSON decode, and path-limited `git diff --check` passed.
 
 ## Boundaries
 
-No recovered target code ran and no protocol input was created. Upstream
-authorization, live setup/session start, listener/interface exposure, port
-discovery, socket delivery, process behavior, exploitation, root, persistence,
-CVE identity, and installed-unit applicability remain unproved.
+No recovered target code ran and no protocol input was created. Admission or
+authorization outside the exact post-read generic dispatcher, live setup/session
+start, listener/interface exposure, port discovery, socket delivery, process
+behavior, exploitation, root, persistence, CVE identity, and installed-unit
+applicability remain unproved.

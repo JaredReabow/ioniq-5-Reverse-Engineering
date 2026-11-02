@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.67.0 - the application manager rebuilds the child environment, so the shim cannot reach the app
+
+- Wrote `tools/uk_fw/ias_backend_soft/qt_env_shim.c`, which interposes `getenv()` in the application process and returns `4001` for
+  `QT_WAYLAND_SET_SURFACE_ID` and `1` for `QT_WAYLAND_SET_SURFACE_ID_FORCED`, forwarding every other name to the real `getenv`. Preloaded through
+  `AppLauncher.sh`'s existing `LD_PRELOAD` slot (the one this project already uses to *remove* the vendor libEGL).
+- **It never reaches the application.** Dumping `/proc/<pid>/environ` for the chain-launched app shows **no `LD_PRELOAD` entry at all**, and an earlier dump
+  showed `QT_WAYLAND_SET_SURFACE_ID=0` even after the launcher script exported `4001`. The vendor application manager constructs the child's environment itself
+  rather than inheriting the script's, so neither the variable nor the preload can be injected from the launcher.
+- That closes the chain route for this variable and explains why patching `AppLauncher.sh` had no effect in §2.66.0's run. The compositor log does show
+  `surface_create` 14 in that run, so surfaces are being created by clients generally — just not placed, and not the home screen's under the manager's
+  environment.
+- So the remaining work splits cleanly into two pieces, and both are now understood:
+  1. **Surface id**: supply it in a way the manager cannot strip — the standalone configuration already achieves this, and the alternative is patching the vendor
+     library's own default in the clone rather than fighting the manager's environment.
+  2. **Layout placement**: even with a created and committed surface, nothing adds it to a layer, so nothing composites it. On the vehicle the application manager
+     drives `ivi_controller` to do that.
+- Delegated the placement tool: a client that uses the vendor `ivi_controller` interface to add a given surface to a layer, set visibility and a destination
+  rectangle, so a committed frame becomes a visible one.
+
 ## 2.66.0 - a 4 MB frame that was black, and a filename that lied
 
 - Captured eight frames while the app was alive with a forced surface id, all identical at **4,147,216 bytes**, and I briefly read that size as content. It is not:

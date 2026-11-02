@@ -4150,3 +4150,10 @@ and are superseded by corrections rather than silently rewritten.
   text, not because it was detailed.
 - The honest finding is better anyway: the application draws and commits, and nothing places its surface on a layer, so the screen stays black.
 - Removed the mislabelled artifact. A wrong file in the record is worse than a missing one.
+
+## 2026-10-31 — the manager builds its own environment
+
+- The interposer that would have supplied the surface id could not reach the application, because the manager does not pass its own environment through. The launcher
+  script is not the place where a child's variables are decided.
+- That is a clean negative and it closes a route rather than a theory.
+- What remains is genuinely two problems, both now named: supply the id somewhere the manager cannot strip it, and place the surface that results.

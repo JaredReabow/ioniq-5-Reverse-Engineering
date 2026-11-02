@@ -1395,6 +1395,12 @@ For each new issue record: stable ID, affected artifact/build and digest, source
   - `show_window_fg(int32,int32,int32,int32,int32,boolean,int32)` → `org.freedesktop.DBus.Error.NoReply`
   - `hide_window_bg(int32,int32,int32,int32)` → `org.freedesktop.DBus.Error.NoReply`, and the process is **gone afterwards**
     (subsequent calls return `ServiceUnknown`).
+  - **A third reproducing case, added 2026-10-31:** with the app's own application id and a legal-looking reason,
+    `show_window_fg(appid=11, reason=1, plane=1, avmode=-1, command=0, boolean=false)` → `NoReply` and the process is **gone**.
+    What matters here is that the kill does **not** require a malformed message: `appid` 11 is the value the application uses for
+    itself internally (`7f7297 esi = 0xb` in `inter_show_window_fg`'s caller) and `reason=1` is a small, entirely plausible
+    enumeration value. The immediately preceding call with `reason=0` on the same arguments returned `int32 1` and left the process
+    alive, so the difference between a harmless call and a fatal one is a single small integer.
 - **Impact:** any peer on the session bus can terminate the home screen application — the compositor client responsible for the
   primary driver-facing display — using only messages that the interface itself documents, or that differ from the working form by
   arity alone. No authentication and no root are required, only the ability to send on that bus. Two of the three documented

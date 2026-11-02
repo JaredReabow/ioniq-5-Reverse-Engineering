@@ -26,10 +26,18 @@ CANDIDATE_OS_KEY_DIGEST = "437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf
 UEP_OFFSET = 0x100210
 UEP_SIZE = 0x108
 UEP_SHA256 = "184e01883e7f9233d5e50104a52620ec45e44c79ae3255fdeeaf8a44d5e8edc3"
+ROT_KEY_OFFSET = 0x17B000
+ROT_KEY_SIZE = 0x3FC
+ROT_KEY_SHA256 = "5530da6cbec43a441466478a6069b7a5d39afe9453f34923c633ad07b4613a14"
+INTEL_ROOT_KEY_DIGEST = "f2eb8fc44e30f6132631df884020abd685ce8843ee205d0a22eb6493f78a54cf"
 OEM_KEY_OFFSET = 0x17C000
 OEM_KEY_SIZE = 0x61C
 OEM_KEY_SHA256 = "a72a5d867185852be1466a9d3d2e97bb11bd6b0a89b48f5454220def946814bd"
 STORED_USAGE39_DIGEST = "9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af"
+IBBP_MAN_SHA256 = "f224328529c3662c8c3ba490ad2a3c8143a34d0c9a531d2568f94d639058f615"
+BPM_MET_SHA256 = "4a82dcd20e5ad30e80b11637c767a9a9140b3e570d5144cda9407390b9618738"
+IBB_SHA256 = "4fba3004219bbfe3a94baa23467c7076d87f4ad76fdb6687ccdbf93455e365ed"
+NFTP_MAN_SHA256 = "d89f510f91eb9191e4b1e4a1a17b4675e3823953067ded257a6d78b2fb340ea4"
 SBL_COMMIT = "5f5c14b10ae6bd3cd0cf7e274142767dc2635a06"
 SBL_FILE = "BootloaderCorePkg/Include/FirmwareInterfaceTable.h"
 SBL_FILE_SHA256 = "0e0f1fff576e4edc48d2918d14bb1292526d3c01d3547d38305ea435543722ef"
@@ -72,6 +80,8 @@ CSE_RBE_RANGES = {
     "oem_key_validation_caller": (0x2B83, 0x2C32, "ef80b6477cc58f10265fcd2b87fc25265e3a1277ea3d472cc1d42bb9f0a78815"),
     "mn2_key_hash_and_signature_validator": (0x2768, 0x2A9F, "7746354214d3c192aad6b206cb7ab3f41157168d3ad3c700eb26a3bbda4c8fee"),
     "uep_bitfield_extractor": (0x774B, 0x78F4, "91cc564e915b626697b61a885197c85d75bfa565e8509472f9359a61687e836b"),
+    "ipub_key_materialization": (0x3C5, 0x3FD, "2a68ab7b0a996caa89a80a3c99e49ad56ab74b2394d70f37b1e0040d59713c57"),
+    "rot_key_validation": (0x2A9F, 0x2ADA, "1730fad17c09ae4e10d74c21639905acc97efac3298debcbb92e3999936ad083"),
 }
 CSE_BUP_SHA256 = "cee77bc172a9df1c4088d5f716b9e55cda539a26656d07a92268c3cd5d4f0165"
 CSE_BUP_CODE_BASE = 0x26000
@@ -87,6 +97,9 @@ CSE_BUP_RANGES = {
     "ibb_ring_chunk_loader": (0x657D, 0x66EE, "48a58197fa803564ed3086f2be1c627679b088ce85e6e1bf7dc743c0bb70ecc2"),
     "ibb_ring_completion": (0x66EE, 0x6755, "281a9b2c20a948b461238417e0ff2ccea606e7fda32b015d5ef180396455e537"),
     "fit_base_pointer_for_ibbl": (0xBE27, 0xBE3F, "f21b32ebbc979ec59183fbb17cfdd8f3bebdb3134fe6b0e24641082ee542a49a"),
+    "boot_policy_usage32_record_selector": (0x2B4BD, 0x2B4DC, "b0ade2c19d4b92653588ea997cd40bcabcb8df29927b38d9a8c73656097991b9"),
+    "boot_policy_oem_key_pin_and_rsa": (0x2B4DC, 0x2B7DB, "a5b7ca06a3b9d48c21494588362856b2badd2d0bcfa9adff6d376a96328350e5"),
+    "boot_policy_metadata_hash": (0x2B81A, 0x2B8E9, "f45c5d6b099a209457ed44f3878b4d5158b5a394c32b46724c4f114825e8890c"),
 }
 
 
@@ -405,6 +418,134 @@ def parse_cse_signed_module_chains(abl: bytes, rbe: bytes, bup: bytes) -> dict:
     }
 
 
+def parse_cse_root_and_boot_policy_chains(abl: bytes) -> dict:
+    members = {
+        "rot_key": (ROT_KEY_OFFSET, ROT_KEY_SIZE, ROT_KEY_SHA256),
+        "rbep_manifest": (0x104058, 0x2EC, RBEP_MAN_SHA256),
+        "ftpr_manifest": (0x11E130, 0xC14, FTPR_MAN_SHA256),
+        "nftp_manifest": (0x203688, 0x9A0, NFTP_MAN_SHA256),
+        "ibbp_manifest": (0x187070, 0x2EC, IBBP_MAN_SHA256),
+        "bpm_metadata": (0x187380, 0xB4, BPM_MET_SHA256),
+        "ibbl": (0x187440, 0x4000, IBBL_SHA256),
+        "ibb": (0x18B440, 0x34000, IBB_SHA256),
+    }
+    blobs = {}
+    identities = {}
+    for name, (offset, size, digest) in members.items():
+        blob = abl[offset : offset + size]
+        if len(blob) != size or hashlib.sha256(blob).hexdigest() != digest:
+            raise Failure(f"CSE root-chain member identity drift: {name}")
+        blobs[name] = blob
+        identities[name] = {"flash_offset": offset, "size": size, "sha256": digest}
+
+    signed_names = ("rot_key", "rbep_manifest", "ftpr_manifest", "nftp_manifest", "ibbp_manifest")
+    key_digests = {}
+    for name in signed_names:
+        identities[name]["manifest"] = verify_mn2_embedded_signature(blobs[name], name)
+        key_digests[name] = hashlib.sha256(blobs[name][0x80:0x184]).hexdigest()
+        identities[name]["manifest_public_key_digest"] = key_digests[name]
+
+    intel_signed = ("rot_key", "rbep_manifest", "ftpr_manifest", "nftp_manifest")
+    intel_public_keys = [blobs[name][0x80:0x184] for name in intel_signed]
+    if any(key_digests[name] != INTEL_ROOT_KEY_DIGEST for name in intel_signed) or any(
+        key != intel_public_keys[0] for key in intel_public_keys[1:]
+    ):
+        raise Failure("shared CSE manifest signing-key identity drift")
+    if key_digests["ibbp_manifest"] != STORED_USAGE39_DIGEST:
+        raise Failure("IBBP OEM signing-key digest drift")
+
+    rot = blobs["rot_key"]
+    ext_tag, ext_size, key_type = struct.unpack_from("<III", rot, 0x284)
+    if (ext_tag, ext_size, key_type) != (0x0E, 0x178, 1) or (ext_size - 0x24) // 0x44 != 5:
+        raise Failure("rot.key extension-14 geometry drift")
+    rot_records = []
+    for index in range(5):
+        offset = 0x2A8 + index * 0x44
+        usage = [bit for bit in range(128) if rot[offset + bit // 8] & (1 << (bit & 7))]
+        flags = rot[offset + 0x20]
+        algorithm = rot[offset + 0x21]
+        digest_size = struct.unpack_from("<H", rot, offset + 0x22)[0]
+        digest = rot[offset + 0x24 : offset + 0x44].hex()
+        if algorithm != 2 or digest_size != 0x20:
+            raise Failure("rot.key extension-14 record drift")
+        rot_records.append({"index": index, "usage_bits": usage, "flags": flags, "digest": digest})
+    if rot_records[0] != {
+        "index": 0,
+        "usage_bits": [0, 1],
+        "flags": 1,
+        "digest": INTEL_ROOT_KEY_DIGEST,
+    }:
+        raise Failure("rot.key CSE BUP/Main record drift")
+
+    oem = abl[OEM_KEY_OFFSET : OEM_KEY_OFFSET + OEM_KEY_SIZE]
+    if blobs["ibbp_manifest"][0x80:0x184] != oem[0x80:0x184]:
+        raise Failure("IBBP and oem.key public-key byte identity drift")
+    oem_boot_policy_record = oem[0x2A8 : 0x2A8 + 0x44]
+    oem_boot_usage = [bit for bit in range(128) if oem_boot_policy_record[bit // 8] & (1 << (bit & 7))]
+    if (
+        oem_boot_usage != [32]
+        or oem_boot_policy_record[0x20] != 0
+        or oem_boot_policy_record[0x21] != 2
+        or struct.unpack_from("<H", oem_boot_policy_record, 0x22)[0] != 0x20
+        or oem_boot_policy_record[0x24:0x44].hex() != STORED_USAGE39_DIGEST
+    ):
+        raise Failure("oem.key Boot Policy usage-32 record drift")
+
+    ibbp = blobs["ibbp_manifest"]
+    bpm = blobs["bpm_metadata"]
+    bpm_digest = hashlib.sha256(bpm).digest()
+    if ibbp.count(b"BPM.met") != 1 or ibbp.count(bpm_digest[::-1]) != 1:
+        raise Failure("IBBP.man to BPM.met signed hash chain drift")
+    if struct.unpack_from("<II", bpm, 0) != (0x13, 0xB4):
+        raise Failure("BPM.met extension-19 header drift")
+    if struct.unpack_from("<II", bpm, 0x0C) != (2, 0x20) or struct.unpack_from("<II", bpm, 0x34) != (2, 0x20):
+        raise Failure("BPM.met IBB hash geometry drift")
+    ibbl_digest = bpm[0x14:0x34].hex()
+    ibb_digest = bpm[0x3C:0x5C].hex()
+    if ibbl_digest != IBBL_SHA256 or ibb_digest != IBB_SHA256:
+        raise Failure("BPM.met exact IBBL/IBB digest binding drift")
+
+    return {
+        "members": identities,
+        "intel_manifest_key_chain": {
+            "rbe_runtime_root_object_name": "ipub_key",
+            "rbe_runtime_root_digest_destination": 0x6047FA8,
+            "rbe_runtime_root_digest_size": 0x20,
+            "rbe_runtime_selector_offset": 0x12,
+            "rbe_runtime_pointer_array_offset": 0x16,
+            "rot_key_validator_expected_hash_pointer": 0x6047FA8,
+            "rot_key_validator_selector": 5,
+            "shared_manifest_public_key_digest": INTEL_ROOT_KEY_DIGEST,
+            "shared_by": list(intel_signed),
+            "shared_public_modulus_and_exponent_bytes_identical": True,
+            "rot_key_extension14_cse_bup_main_record": rot_records[0],
+            "rbe_ipub_key_to_rot_key_pin_proved": True,
+            "rot_key_embedded_signature_valid": True,
+            "rbep_ftpr_nftp_embedded_signatures_valid": True,
+            "ipub_key_producer_or_hardware_anchor_proved": False,
+            "boundary": "exact RBE trusts a runtime ipub_key object supplied before its recovered instruction boundary; its producer and ROM/fuse provenance remain unproved",
+        },
+        "oem_boot_policy_chain": {
+            "uep_and_oem_key_digest": STORED_USAGE39_DIGEST,
+            "ibbp_manifest_public_key_digest": key_digests["ibbp_manifest"],
+            "ibbp_manifest_uses_same_public_key_as_oem_key": True,
+            "ibbp_and_oem_key_public_modulus_and_exponent_bytes_identical": True,
+            "oem_key_usage_bit_for_boot_policy": 32,
+            "bup_selects_usage_bit_32_record": True,
+            "bup_compares_ibbp_modulus_plus_exponent_hash_before_rsa": True,
+            "ibbp_manifest_embedded_signature_valid": True,
+            "ibbp_manifest_binds_bpm_metadata_reverse_sha256": True,
+            "bpm_metadata_extension_tag": 0x13,
+            "bpm_metadata_ibbl_sha256": ibbl_digest,
+            "bpm_metadata_ibb_sha256": ibb_digest,
+            "bpm_metadata_binds_exact_ibbl": True,
+            "bpm_metadata_binds_exact_ibb": True,
+            "uep_to_oem_key_to_ibbp_to_bpm_to_ibb_bytes_chain_proved": True,
+            "uep_external_authentication_or_fuse_precedence_proved": False,
+        },
+    }
+
+
 def uep_hardware_window_selected(mode_nibble: int) -> bool:
     if not isinstance(mode_nibble, int) or not 0 <= mode_nibble <= 0x0F:
         raise Failure("UEP mode nibble outside exact four-bit domain")
@@ -551,6 +692,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     cse_rbe = extract_cse_rbe(abl)
     cse_bup = extract_cse_bup(abl)
     cse_signed_module_chains = parse_cse_signed_module_chains(abl, cse_rbe, cse_bup)
+    cse_root_and_boot_policy_chains = parse_cse_root_and_boot_policy_chains(abl)
     uep_oem_hash_candidate = parse_uep_oem_hash_candidate(abl)
     stored_oem_key = parse_stored_oem_key(abl)
     ibbl_ranges = check_ranges(ibbl, IBBL_RANGES, "IBBL")
@@ -595,6 +737,8 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
         raise Failure("CSE RBE key-manifest destination string drift")
     if cse_rbe.find(b"ifp_uep\0") != 0x7AE0:
         raise Failure("CSE RBE UEP object string drift")
+    if cse_rbe.find(b"ipub_key\0") != 0x7930:
+        raise Failure("CSE RBE runtime Intel public-key object string drift")
     if cse_rbe[0x7F74:0x7F78] != bytes.fromhex("60010001"):
         raise Failure("CSE RBE UEP OEM-hash field descriptor drift")
     if cse_rbe[0x3AF3:0x3B13] != bytes.fromhex(
@@ -612,7 +756,8 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
         raise Failure("CSE RBE oem.key to oem_key_man route drift")
     if cse_bup.find(b"oem.key\0") != 0x2E235 or cse_bup.find(b"oem_key_man\0") != 0x2E249:
         raise Failure("CSE BUP key-manifest source strings drift")
-        raise Failure("CSE BUP key-manifest source strings drift")
+    if cse_bup.rfind(b"BPM.met\0") != 0x2F9F3 or cse_bup.rfind(b"IBBP.man\0") != 0x2FA4E:
+        raise Failure("CSE BUP Boot Policy member strings drift")
     name_offsets = []
     name_pos = 0
     while True:
@@ -791,6 +936,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                 },
             },
             "cse_signed_module_chains": cse_signed_module_chains,
+            "cse_root_and_boot_policy_chains": cse_root_and_boot_policy_chains,
             "cse_rbe_uep_oem_key_authentication": {
                 "uep_object_name": "ifp_uep",
                 "object_size": UEP_SIZE,
@@ -972,6 +1118,13 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "apl_public_cse_sram_to_fef80000_handoff_corroborated": True,
             "final_handoff_address_0xfef80000_mapping_proved": True,
             "rbe_and_bup_signed_module_byte_chains_proved": True,
+            "rbe_runtime_ipub_key_pins_rot_key_proved": True,
+            "shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved": True,
+            "ipub_key_external_hardware_anchor_proved": False,
+            "oem_key_usage32_pins_ibbp_manifest_proved": True,
+            "ibbp_manifest_binds_bpm_metadata_proved": True,
+            "bpm_metadata_binds_exact_ibbl_and_ibb_proved": True,
+            "uep_to_oem_key_to_ibbp_to_exact_ibb_chain_proved": True,
             "ftpr_manifest_direct_oem_key_coverage_proved": False,
             "pre_ibbl_key_manifest_authentication_proved": True,
             "custom_signed_image_acceptance_proved": False,
@@ -987,7 +1140,9 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "Hash-bound historical Apollo Lake Slim Bootloader source independently matches the exact target's chunk-count field, four-slot interpretation, size field, low-four-bit XOR handshake, slot geometry, source expression, acknowledgement, and PCI configuration offsets.",
             "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
             "The RBE-to-BUP-to-IBBL path binds the runtime type-0x0b payload to exact FTPR oem.key bytes. The recovered set's runtime expected usage-39 digest is therefore 9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af.",
-            "RBEP.man and FTPR.man embedded signatures verify, and their signed metadata hashes bind exact RBE and BUP bytes through rbe.met and bup.met. These remain self-contained signature chains until their manifest keys are externally anchored.",
+            "Exact RBE resolves runtime object ipub_key, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. rot.key, RBEP.man, FTPR.man, and NFTP.man share digest f2eb8fc4...; the producer and hardware provenance of ipub_key remain outside the recovered boundary.",
+            "Exact BUP selects oem.key usage bit 32, compares the IBBP.man modulus-plus-exponent digest before RSA verification, verifies IBBP.man, checks its signed BPM.met hash, and checks BPM.met's exact IBBL and IBB SHA-256 values. This closes the selected-UEP-to-exact-IBB byte chain for the recovered set.",
+            "RBEP.man, FTPR.man, NFTP.man, rot.key, and IBBP.man embedded signatures verify. The first four are externally anchored only if the runtime ipub_key object is anchored; the OEM/IBBP chain is externally anchored only if the selected UEP digest is anchored.",
             "Exact FTPR.man has no direct oem.key name or digest coverage and FTPR CPD has no oem.key.met member. This bounded absence is not proof that another CSE policy, key manifest, or hardware root leaves oem.key unauthenticated.",
             "Exact RBE creates ifp_uep, obtains a CRC-checked UEP from an exact hardware-window branch or BPDT primary/fallback route, extracts field 0x20 (256 bits) to global 0x6048038, and uses that digest to pin oem.key's modulus-plus-exponent hash before RSA and extension validation.",
             "The OEM key-manifest authentication path is therefore proved before BUP publication. What remains unproved is whether the selected UEP bytes are externally authenticated, fuse-backed, overrideable, or merely CRC-protected flash data on a given installed platform.",

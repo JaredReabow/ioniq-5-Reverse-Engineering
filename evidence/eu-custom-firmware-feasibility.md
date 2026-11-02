@@ -83,6 +83,14 @@ type-17 UEP with a fallback candidate. UEP field `0x20` is a 256-bit OEM-key
 digest and pins the stored `oem.key` public modulus plus exponent before RSA
 verification. A newly self-signed IAS image therefore remains insufficient.
 
+The earlier boot-policy chain is now also exact. RBE consumes runtime object
+`ipub_key` and uses its selected 32-byte digest to pin `rot.key`; `rot.key`,
+`RBEP.man`, `FTPR.man`, and `NFTP.man` share the pinned CSE signing-key digest.
+Separately, BUP selects OEM usage bit 32, pins and verifies `IBBP.man`, verifies
+its signed `BPM.met` hash, and checks the metadata's exact IBBL/IBB hashes. The
+remaining earlier-stage questions are who produces and anchors `ipub_key`, and
+whether the selected UEP source is ROM/fuse authenticated or overrideable.
+
 The volatile handoff is no longer an open qualifier for this recovered set.
 Exact BUP writes FIT-base pointer `0xfffe0000` into the tail-placed IBBL image;
 IBBL self-relocation preserves the pointer, then exact IBBL copies and relocates

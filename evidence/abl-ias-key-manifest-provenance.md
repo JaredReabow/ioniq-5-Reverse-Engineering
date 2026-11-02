@@ -91,10 +91,11 @@ Before this caller executes, exact IBBL startup configures memory types for the
 latter, and invokes its three-dword copy helper on the embedded descriptor at
 `0xffffe760`. The descriptor is statically present at IBBL file offset `0x2760`
 and copies `0x1000` dwords from `0xffffc000` to `0xfeffc000`: exactly one
-`0x4000`-byte IBBL image. IBBL then reads from `0xfef80000`. This proves
-self-relocation, not byte identity between BUP's FIT-bearing buffer and the FIT
-observed at `0xfef80000`. The package carried-key candidate digest remains
-absent verbatim from the stored update ABL, IBBL, and decompressed stage 1.
+`0x4000`-byte IBBL image. IBBL then reads the preserved FIT pointer from
+`0xfeffffc0` and copies the bounded FIT from `0xfffe0000` to `0xfef80000`.
+This proves both self-relocation and the separate FIT byte mapping. The package
+carried-key candidate digest remains absent verbatim from the stored update
+ABL, IBBL, and decompressed stage 1.
 
 ## Exact stage-1 key-manifest consumer
 
@@ -229,8 +230,33 @@ Host-side verification closes two self-contained module-integrity chains:
   and `bup.met` contains the reversed SHA-256 of exact BUP bytes.
 
 The manifest keys are carried inside their respective `$MN2` headers. Signature
-validity therefore proves internal consistency and byte binding, not a ROM,
-fuse, ACM, Boot Guard, or CSE-policy anchor.
+validity therefore proves internal consistency and byte binding until their
+expected key digest is connected to an earlier runtime object.
+
+### Exact `ipub_key → rot.key → CSE manifests` chain
+
+Exact RBE resolves runtime object `ipub_key`, reads selector byte `+0x12`, uses
+it to select a pointer at `+0x16 + 4*selector`, and copies exactly 32 bytes to
+`0x6047fa8`. It then passes that digest pointer and materialized `rot_key_man`
+to the same fail-closed `$MN2` key-hash/RSA/extension validator with selector
+`5`.
+
+Host-side parsing establishes:
+
+- FTPR `rot.key` at flash `0x17b000`, size `0x3fc`, SHA-256
+  `5530da6cbec43a441466478a6069b7a5d39afe9453f34923c633ad07b4613a14`;
+- its public modulus-plus-exponent digest is
+  `f2eb8fc44e30f6132631df884020abd685ce8843ee205d0a22eb6493f78a54cf`;
+- its first Extension-14 record covers usage bits 0 and 1, publicly named
+  `CSE BUP` and `CSE Main`, and carries that same digest;
+- `rot.key`, `RBEP.man`, `FTPR.man`, and `NFTP.man` all use that exact public
+  key digest and all four embedded RSA signatures verify.
+
+Thus exact RBE binds `rot.key` to the selected runtime `ipub_key` digest before
+using the RoT manifest to authorize CSE BUP/Main signing keys. The remaining
+boundary has narrowed to the producer and authority of `ipub_key`: the
+recovered RBE consumes it but does not show whether ROM, immutable CSE code,
+fuses, or another earlier authenticated object supplies it.
 
 Exact `FTPR.man` contains neither the name `oem.key` nor its SHA-256 in forward
 or reversed byte order, and FTPR CPD has no `oem.key.met` member. This is bounded
@@ -269,6 +295,30 @@ The current public coreboot Apollo Lake/Gemini Lake IFWI constructor's
 record** and requires a 32-byte public-key hash. Exact target consumption is now
 proved; the remaining boundary is whether the selected UEP source is externally
 authenticated, fuse-backed, or overrideable on an installed production unit.
+
+## Exact OEM Boot Policy chain
+
+The same OEM public-key digest also anchors the recovered IBB package:
+
+- `IBBP.man`, flash `0x187070`, size `0x2ec`, SHA-256
+  `f224328529c3662c8c3ba490ad2a3c8143a34d0c9a531d2568f94d639058f615`,
+  uses the same public key as FTPR `oem.key` and has a valid embedded RSA
+  signature;
+- exact BUP finds the OEM key-manifest Extension 14, selects its usage-bit-32
+  record, computes the IBBP modulus-plus-exponent digest, compares it with that
+  record before RSA verification, and fails closed on mismatch;
+- the signed IBBP manifest contains reversed SHA-256 of `BPM.met`;
+- exact BUP stages `BPM.met`, hashes it, reverses the calculated digest, and
+  compares it with the signed expected value;
+- `BPM.met`, flash `0x187380`, size `0xb4`, SHA-256
+  `4a82dcd20e5ad30e80b11637c767a9a9140b3e570d5144cda9407390b9618738`,
+  is Extension 19 and directly contains the exact IBBL and IBB SHA-256 values;
+- the exact IBB SHA-256 is
+  `4fba3004219bbfe3a94baa23467c7076d87f4ad76fdb6687ccdbf93455e365ed`.
+
+This proves the recovered set's byte chain
+`selected UEP digest → oem.key → usage bit 32 → IBBP.man → BPM.met → exact
+IBBL and IBB`. It does not independently authenticate the selected UEP source.
 
 ## Exact stored FTPR `oem.key` manifest
 
@@ -365,8 +415,11 @@ root.
 What is now proved:
 
 - the runtime descriptor table is FIT-format;
-- exact RBEP and FTPR signed-package metadata bind the exact RBE and BUP bytes,
-  but their embedded signing keys remain externally unanchored;
+- exact RBE consumes runtime `ipub_key` and uses its selected 32-byte digest to
+  pin `rot.key` before RSA verification;
+- `rot.key`, `RBEP.man`, `FTPR.man`, and `NFTP.man` use the same exact
+  modulus-plus-exponent digest `f2eb8fc4...` and have valid embedded signatures;
+- the producer and ROM/fuse authority of runtime `ipub_key` remain unproved;
 - exact FTPR signed-package metadata has no direct `oem.key` name/digest entry
   and FTPR CPD has no `oem.key.met` member;
 - exact BPDT type-17 UEP contains three copies of the stored `oem.key` public-key
@@ -374,6 +427,8 @@ What is now proved:
   `0x6048038`;
 - exact RBE pins the `oem.key` modulus-plus-exponent digest to that UEP field
   before embedded RSA and Extension-14 validation;
+- exact BUP selects OEM usage bit 32 to pin and verify `IBBP.man`, verifies its
+  signed `BPM.met` hash, and verifies the metadata's exact IBBL/IBB hashes;
 - UEP source authentication and hardware/fuse precedence remain open;
 - exact CSE RBE copies FTPR `oem.key` at its exact source length into
   `oem_key_man`, with a matching manifest-length check;
@@ -433,11 +488,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `28,206`
-  - SHA-256 `f8a84d935e251da4c838e3664f6fb0c570ace9854307aa357666ab5b7521364d`
+  - size `36,563`
+  - SHA-256 `0154bec1847242874e032b3e1009ef76bd17c045977606f9f3bf775845f4afb7`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `87,570`
-  - SHA-256 `668fb27cfa9b5bd08f9424e3558586a4c9d985a1ddb5b9a99d6ca89146f9872c`
+  - size `93,196`
+  - SHA-256 `7550669453ba498fceff2243b48bd0513026ec6a9f833ec1845f7ea8235ecd33`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

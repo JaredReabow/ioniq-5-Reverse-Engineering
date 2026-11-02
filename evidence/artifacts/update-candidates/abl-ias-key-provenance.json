@@ -2,6 +2,7 @@
   "conclusions": {
     "apl_public_cse_sram_to_fef80000_handoff_corroborated": true,
     "boot_root_or_persistence_proved": false,
+    "bpm_metadata_binds_exact_ibbl_and_ibb_proved": true,
     "bup_fit_base_pointer_to_ibbl_source_mapping_proved": true,
     "bup_places_exact_ibbl_at_0xffffc000_proved": true,
     "bup_published_expected_usage39_digest_recovered": true,
@@ -17,12 +18,16 @@
     "ibbl_copies_fit_and_relocates_type_0b_payload_proved": true,
     "ibbl_self_relocation_descriptor_is_not_fit_transfer_proved": true,
     "ibbl_static_self_relocation_descriptor_recovered": true,
+    "ibbp_manifest_binds_bpm_metadata_proved": true,
+    "ipub_key_external_hardware_anchor_proved": false,
     "oem_key_manifest_kernel_command_line_export_proved": true,
+    "oem_key_usage32_pins_ibbp_manifest_proved": true,
     "package_candidate_matches_stored_usage39_digest": false,
     "pre_ibbl_fit_handoff_address_proved": true,
     "pre_ibbl_key_manifest_authentication_proved": true,
     "public_apl_host_protocol_matches_exact_bup_bitfields_and_ring_geometry": true,
     "rbe_and_bup_signed_module_byte_chains_proved": true,
+    "rbe_runtime_ipub_key_pins_rot_key_proved": true,
     "runtime_descriptor_is_fit_entry_type_0b_proved": true,
     "runtime_expected_digest_bytes_recovered": true,
     "runtime_expected_usage39_digest": "9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af",
@@ -30,6 +35,7 @@
     "runtime_fit_type0b_object_name_oem_key_man_proved": true,
     "runtime_key_manifest_layout_proved": true,
     "selector_0x27_is_usage_bit_39_proved": true,
+    "shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved": true,
     "source_fit_content_producer_cse_bup_proved": true,
     "stored_oem_key_manifest_bytes_recovered": true,
     "stored_oem_key_manifest_embedded_signature_valid": true,
@@ -40,6 +46,7 @@
     "uep_exact_target_consumption_proved": true,
     "uep_external_hardware_anchor_proved": false,
     "uep_hardware_vs_bpdt_selection_expression_proved": true,
+    "uep_to_oem_key_to_ibbp_to_exact_ibb_chain_proved": true,
     "usage_bit_39_os_kernel_name_publicly_corroborated": true
   },
   "exact_update": {
@@ -98,6 +105,21 @@
         "sram_alias_base": 4294836224
       },
       "instruction_ranges": {
+        "boot_policy_metadata_hash": {
+          "file_end": 178409,
+          "file_start": 178202,
+          "sha256": "f45c5d6b099a209457ed44f3878b4d5158b5a394c32b46724c4f114825e8890c"
+        },
+        "boot_policy_oem_key_pin_and_rsa": {
+          "file_end": 178139,
+          "file_start": 177372,
+          "sha256": "a5b7ca06a3b9d48c21494588362856b2badd2d0bcfa9adff6d376a96328350e5"
+        },
+        "boot_policy_usage32_record_selector": {
+          "file_end": 177372,
+          "file_start": 177341,
+          "sha256": "b0ade2c19d4b92653588ea997cd40bcabcb8df29927b38d9a8c73656097991b9"
+        },
         "fit_base_pointer_for_ibbl": {
           "file_end": 48703,
           "file_start": 48679,
@@ -182,6 +204,11 @@
           "file_start": 17489,
           "sha256": "e44730fe26601f3b5914add1b155aaa4ad3c83a53837d6511c3167000ad4ab36"
         },
+        "ipub_key_materialization": {
+          "file_end": 1021,
+          "file_start": 965,
+          "sha256": "2a68ab7b0a996caa89a80a3c99e49ad56ab74b2394d70f37b1e0040d59713c57"
+        },
         "key_manifest_materialization": {
           "file_end": 12376,
           "file_start": 12101,
@@ -206,6 +233,11 @@
           "file_end": 11314,
           "file_start": 11139,
           "sha256": "ef80b6477cc58f10265fcd2b87fc25265e3a1277ea3d472cc1d42bb9f0a78815"
+        },
+        "rot_key_validation": {
+          "file_end": 10970,
+          "file_start": 10911,
+          "sha256": "1730fad17c09ae4e10d74c21639905acc97efac3298debcbb92e3999936ad083"
         },
         "uep_bitfield_extractor": {
           "file_end": 30964,
@@ -273,6 +305,149 @@
       "object_size": 264,
       "oem_key_validation": "requires oem.key presence to agree with nonzero UEP hash, hashes the manifest's 0x100-byte modulus plus four-byte exponent, compares that digest with the UEP field, and only then performs embedded RSA verification and extension validation",
       "uep_object_name": "ifp_uep"
+    },
+    "cse_root_and_boot_policy_chains": {
+      "intel_manifest_key_chain": {
+        "boundary": "exact RBE trusts a runtime ipub_key object supplied before its recovered instruction boundary; its producer and ROM/fuse provenance remain unproved",
+        "ipub_key_producer_or_hardware_anchor_proved": false,
+        "rbe_ipub_key_to_rot_key_pin_proved": true,
+        "rbe_runtime_pointer_array_offset": 22,
+        "rbe_runtime_root_digest_destination": 100958120,
+        "rbe_runtime_root_digest_size": 32,
+        "rbe_runtime_root_object_name": "ipub_key",
+        "rbe_runtime_selector_offset": 18,
+        "rbep_ftpr_nftp_embedded_signatures_valid": true,
+        "rot_key_embedded_signature_valid": true,
+        "rot_key_extension14_cse_bup_main_record": {
+          "digest": "f2eb8fc44e30f6132631df884020abd685ce8843ee205d0a22eb6493f78a54cf",
+          "flags": 1,
+          "index": 0,
+          "usage_bits": [
+            0,
+            1
+          ]
+        },
+        "rot_key_validator_expected_hash_pointer": 100958120,
+        "rot_key_validator_selector": 5,
+        "shared_by": [
+          "rot_key",
+          "rbep_manifest",
+          "ftpr_manifest",
+          "nftp_manifest"
+        ],
+        "shared_manifest_public_key_digest": "f2eb8fc44e30f6132631df884020abd685ce8843ee205d0a22eb6493f78a54cf",
+        "shared_public_modulus_and_exponent_bytes_identical": true
+      },
+      "members": {
+        "bpm_metadata": {
+          "flash_offset": 1602432,
+          "sha256": "4a82dcd20e5ad30e80b11637c767a9a9140b3e570d5144cda9407390b9618738",
+          "size": 180
+        },
+        "ftpr_manifest": {
+          "flash_offset": 1171760,
+          "manifest": {
+            "embedded_signature_boundary": "self-consistency only; no external root established",
+            "embedded_signature_valid": true,
+            "exponent": 65537,
+            "header_size": 644,
+            "public_key_size": 256,
+            "tag": "$MN2",
+            "total_size": 3092
+          },
+          "manifest_public_key_digest": "f2eb8fc44e30f6132631df884020abd685ce8843ee205d0a22eb6493f78a54cf",
+          "sha256": "ca4fc90c57b212daa077e8dec1bc7c4827638ff21da0e7224a3bbce2e57efdf4",
+          "size": 3092
+        },
+        "ibb": {
+          "flash_offset": 1619008,
+          "sha256": "4fba3004219bbfe3a94baa23467c7076d87f4ad76fdb6687ccdbf93455e365ed",
+          "size": 212992
+        },
+        "ibbl": {
+          "flash_offset": 1602624,
+          "sha256": "394c442368c67f82f17e84854575bf07abafac2b8fbf2fda7dca68b182f91b93",
+          "size": 16384
+        },
+        "ibbp_manifest": {
+          "flash_offset": 1601648,
+          "manifest": {
+            "embedded_signature_boundary": "self-consistency only; no external root established",
+            "embedded_signature_valid": true,
+            "exponent": 65537,
+            "header_size": 644,
+            "public_key_size": 256,
+            "tag": "$MN2",
+            "total_size": 748
+          },
+          "manifest_public_key_digest": "9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af",
+          "sha256": "f224328529c3662c8c3ba490ad2a3c8143a34d0c9a531d2568f94d639058f615",
+          "size": 748
+        },
+        "nftp_manifest": {
+          "flash_offset": 2111112,
+          "manifest": {
+            "embedded_signature_boundary": "self-consistency only; no external root established",
+            "embedded_signature_valid": true,
+            "exponent": 65537,
+            "header_size": 644,
+            "public_key_size": 256,
+            "tag": "$MN2",
+            "total_size": 2464
+          },
+          "manifest_public_key_digest": "f2eb8fc44e30f6132631df884020abd685ce8843ee205d0a22eb6493f78a54cf",
+          "sha256": "d89f510f91eb9191e4b1e4a1a17b4675e3823953067ded257a6d78b2fb340ea4",
+          "size": 2464
+        },
+        "rbep_manifest": {
+          "flash_offset": 1065048,
+          "manifest": {
+            "embedded_signature_boundary": "self-consistency only; no external root established",
+            "embedded_signature_valid": true,
+            "exponent": 65537,
+            "header_size": 644,
+            "public_key_size": 256,
+            "tag": "$MN2",
+            "total_size": 748
+          },
+          "manifest_public_key_digest": "f2eb8fc44e30f6132631df884020abd685ce8843ee205d0a22eb6493f78a54cf",
+          "sha256": "80b5c254b9349d3bb716122f8dce36873e0ecb1a0576231fc74057eb90fcde79",
+          "size": 748
+        },
+        "rot_key": {
+          "flash_offset": 1552384,
+          "manifest": {
+            "embedded_signature_boundary": "self-consistency only; no external root established",
+            "embedded_signature_valid": true,
+            "exponent": 65537,
+            "header_size": 644,
+            "public_key_size": 256,
+            "tag": "$MN2",
+            "total_size": 1020
+          },
+          "manifest_public_key_digest": "f2eb8fc44e30f6132631df884020abd685ce8843ee205d0a22eb6493f78a54cf",
+          "sha256": "5530da6cbec43a441466478a6069b7a5d39afe9453f34923c633ad07b4613a14",
+          "size": 1020
+        }
+      },
+      "oem_boot_policy_chain": {
+        "bpm_metadata_binds_exact_ibb": true,
+        "bpm_metadata_binds_exact_ibbl": true,
+        "bpm_metadata_extension_tag": 19,
+        "bpm_metadata_ibb_sha256": "4fba3004219bbfe3a94baa23467c7076d87f4ad76fdb6687ccdbf93455e365ed",
+        "bpm_metadata_ibbl_sha256": "394c442368c67f82f17e84854575bf07abafac2b8fbf2fda7dca68b182f91b93",
+        "bup_compares_ibbp_modulus_plus_exponent_hash_before_rsa": true,
+        "bup_selects_usage_bit_32_record": true,
+        "ibbp_and_oem_key_public_modulus_and_exponent_bytes_identical": true,
+        "ibbp_manifest_binds_bpm_metadata_reverse_sha256": true,
+        "ibbp_manifest_embedded_signature_valid": true,
+        "ibbp_manifest_public_key_digest": "9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af",
+        "ibbp_manifest_uses_same_public_key_as_oem_key": true,
+        "oem_key_usage_bit_for_boot_policy": 32,
+        "uep_and_oem_key_digest": "9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af",
+        "uep_external_authentication_or_fuse_precedence_proved": false,
+        "uep_to_oem_key_to_ibbp_to_bpm_to_ibb_bytes_chain_proved": true
+      }
     },
     "cse_signed_module_chains": {
       "external_manifest_key_anchor_proved": false,
@@ -541,7 +716,9 @@
     "Hash-bound historical Apollo Lake Slim Bootloader source independently matches the exact target's chunk-count field, four-slot interpretation, size field, low-four-bit XOR handshake, slot geometry, source expression, acknowledgement, and PCI configuration offsets.",
     "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
     "The RBE-to-BUP-to-IBBL path binds the runtime type-0x0b payload to exact FTPR oem.key bytes. The recovered set's runtime expected usage-39 digest is therefore 9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af.",
-    "RBEP.man and FTPR.man embedded signatures verify, and their signed metadata hashes bind exact RBE and BUP bytes through rbe.met and bup.met. These remain self-contained signature chains until their manifest keys are externally anchored.",
+    "Exact RBE resolves runtime object ipub_key, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. rot.key, RBEP.man, FTPR.man, and NFTP.man share digest f2eb8fc4...; the producer and hardware provenance of ipub_key remain outside the recovered boundary.",
+    "Exact BUP selects oem.key usage bit 32, compares the IBBP.man modulus-plus-exponent digest before RSA verification, verifies IBBP.man, checks its signed BPM.met hash, and checks BPM.met's exact IBBL and IBB SHA-256 values. This closes the selected-UEP-to-exact-IBB byte chain for the recovered set.",
+    "RBEP.man, FTPR.man, NFTP.man, rot.key, and IBBP.man embedded signatures verify. The first four are externally anchored only if the runtime ipub_key object is anchored; the OEM/IBBP chain is externally anchored only if the selected UEP digest is anchored.",
     "Exact FTPR.man has no direct oem.key name or digest coverage and FTPR CPD has no oem.key.met member. This bounded absence is not proof that another CSE policy, key manifest, or hardware root leaves oem.key unauthenticated.",
     "Exact RBE creates ifp_uep, obtains a CRC-checked UEP from an exact hardware-window branch or BPDT primary/fallback route, extracts field 0x20 (256 bits) to global 0x6048038, and uses that digest to pin oem.key's modulus-plus-exponent hash before RSA and extension validation.",
     "The OEM key-manifest authentication path is therefore proved before BUP publication. What remains unproved is whether the selected UEP bytes are externally authenticated, fuse-backed, overrideable, or merely CRC-protected flash data on a given installed platform.",

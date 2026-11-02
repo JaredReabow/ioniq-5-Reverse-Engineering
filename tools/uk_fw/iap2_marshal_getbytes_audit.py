@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "ioniq-iap2-marshal-getbytes-audit/v1"
-TOOL_VERSION = "1.1.0"
+TOOL_VERSION = "1.2.0"
 MAX_FILE_BYTES = 64 * 1024 * 1024
 ELF_HEADER = struct.Struct("<16sHHIQQQIHHHHHH")
 PROGRAM_HEADER = struct.Struct("<IIQQQQQQ")
@@ -40,6 +40,10 @@ FRAMEWORK_RANGES = {
 }
 
 FRAMEWORK_ANCHORS = {
+    "transaction_pointer_plus_64_and_unreduced_total_remaining": (
+        0x21126,
+        "488b45f0488d5040488b45e848895010488b45e8488b5010488b45e8488910488b45f08b5038488b45e889500c488b45e8c7401801000000",
+    ),
     "get_length_store_and_bounded_accessor_call": (
         0x21AE3,
         "488b45e84889c7e82136feff89c2488b45e08910488b45e08b10488b45e889d64889c7e83afbffff",
@@ -323,12 +327,20 @@ def build_report(framework: bytes, service: bytes) -> dict[str, Any]:
             ],
             "copy_behavior": "the helper returns an interior transaction pointer; it performs no destination allocation and no fixed-size copy",
             "failure_detail": "the already stored declared length is not cleared when the bounded accessor later fails",
+            "initializer_boundary": "iAp2MarshalInitFromTxn advances the parse pointer by 0x40 but copies header offset 0x38 directly into remaining; the companion local-socket framing audit establishes that field as total transaction size including the 0x40-byte header",
+            "effective_true_bound": "the accessor is bounded only relative to an over-stated remaining count and can therefore accept a transaction-tail read extending by as much as 64 bytes past the allocation",
         },
         "caller_semantics": CALLER_SEMANTICS,
         "findings": {
             "generic_helper": {
-                "classification": "bounded direct byte accessor",
-                "conclusion": "the exact generic iAp2MarshalGetBytes body is not a fixed-stack-copy primitive and rejects aligned lengths larger than the remaining transaction",
+                "classification": "locally bounded direct byte accessor with over-stated transaction remaining",
+                "conclusion": "the exact helper performs no fixed-stack copy and rejects aligned lengths above its state count, but iAp2MarshalInitFromTxn seeds that count with total transaction size after moving the parse pointer past the 64-byte header",
+            },
+            "transaction_tail_overread": {
+                "classification": "exact-static transaction-tail out-of-bounds read candidate",
+                "location": "iAp2MarshalInitFromTxn 0x210ff..0x21175 and the 31 direct byte-accessor calls",
+                "mechanism": "the parser pointer starts at allocation+0x40 while remaining is the unreduced total-size field; accepted declared byte fields can extend by as much as 64 bytes beyond the transaction allocation and downstream consumers may copy or format from those returned pointers",
+                "impact_boundary": "the local-socket framing audit establishes a candidate local-client route, but a concrete disclosure, crash, code execution, physical phone route, CVE identity, and installed-unit applicability are not demonstrated",
             },
             "null_return_consumer": {
                 "classification": "exact-static null-source denial-of-service candidate",
@@ -353,6 +365,8 @@ def build_report(framework: bytes, service: bytes) -> dict[str, Any]:
                 "bounded aligned remaining-length enforcement and absence of a copy in the generic helper",
                 "one exact null-return consumer and multiple exact plain-%s consumers",
                 "the exact logger bounds formatted output through vsnprintf to the remainder of a 0x400-byte stack buffer",
+                "iAp2MarshalInitFromTxn advances the parse pointer by 64 without subtracting 64 from the total-size-derived remaining count",
+                "the generic helper can consequently accept transaction-tail reads extending by as much as 64 bytes beyond the allocation",
             ],
             "not_demonstrated": [
                 "physical phone-to-handler delivery, successful iAP2 admission/authentication, or session eligibility",
@@ -360,6 +374,7 @@ def build_report(framework: bytes, service: bytes) -> dict[str, Any]:
                 "process crash, service restart behavior, information disclosure to an attacker, code execution, root access, SMACK escape, persistence, or firmware modification",
                 "CVE identity or affected-versus-fixed SDK lineage",
                 "complete indirect-call or alternate-build coverage",
+                "a concrete attacker-visible disclosure or crash from the 64-byte remaining-count overstatement",
             ],
         },
     }

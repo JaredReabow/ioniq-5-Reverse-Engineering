@@ -4293,3 +4293,22 @@ and are superseded by corrections rather than silently rewritten.
 - Added local QEMU bootstrapping to `setup_eu260128.py`: apt packages are downloaded and unpacked under ignored `work/tools/qemu`, with no root/system-wide install. The single `--setup-qemu --boot-test` invocation uses QEMU 6.2, snapshot mode, no NIC, and the existing guest-RAM-only SDHCI adaptation.
 - Reproduced QEMU 6.2's `sd0` collision, changed the drive ID to `ioniq-sd0`, and verified the full serial-shell boot: root ext4 mounted, shell command exited 0 in 5.31 seconds.
 - This only restores the minimal kernel shell; the authentic Home/Navigation runtime and old generated launcher workspace remain unreconstructed.
+
+## 2026-10-31 — the interposition that 1.62.0 retired, done differently
+
+- 1.62.0 concluded that interposition cannot work from outside the process, and every
+  sentence of that conclusion survives: an unknown `va_list` cannot be forwarded to a
+  variadic callee, and `wl_proxy_marshal_array` is reached by a direct intra-library
+  call that never traverses the PLT. The mistake would be to read it as "nothing can be
+  observed", because a third route exists that neither statement covers.
+- The wrapper receives the variadic call instead of relaying it, reads the arguments
+  typed from the interface's own signature table, and calls `wl_proxy_marshal_array`
+  itself with a rebuilt argument array. No `va_list` ever crosses the boundary, so the
+  language limit never applies. Only an unreadable signature falls back to replaying
+  integer slots through the variadic entry, and a test covers that path separately.
+- Two facts from that work stay: `|'f'|` is `wl_fixed_t`, a 24.8 fixed-point integer
+  rather than a C `float`, and a hook that never fires is indistinguishable from a
+  client that never commits, which is why the object reports `interposed=1|0` and a
+  verdict at unload rather than claiming success.
+- No claim is made that AppNavi's own commits are now observed: they are not, and the
+  reason is in the run logs (vendor EGL only, no `/opt/software-egl*` in these trees).

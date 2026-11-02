@@ -132,6 +132,30 @@ that are not AppNavi's. The cause is not established; the runs that recorded sur
 `3000`/`4903` used the project software EGL from `/opt/software-egl*` (absent from these
 extracted trees, which carry only vendor `libEGL`/`libGLESv2` and the `i965` DRI driver)
 and drove the standby/profile-confirm transition this chain does not.
+
+### Reconciling with the retired shim
+
+CHANGELOG 1.62.0 retired this approach, and the reasoning there is correct for the
+point it tested: an external object **cannot** forward an unknown `va_list` to a
+variadic callee, and `wl_proxy_marshal_array` is reached by a direct intra-library call
+that never traverses the PLT. Both statements still hold, and neither is used here.
+
+The wrapper that ships now never forwards through the variadic entry to relay a
+message: it *receives* the call, reads the arguments typed from the interface's own
+signature table, and passes a rebuilt `union wl_argument[]` to
+`wl_proxy_marshal_array` — a non-variadic call it makes itself, so no `va_list`
+survives the boundary. The variadic entry is used only for the last-resort replay of a
+signature that cannot be read, where every wire argument is an integer slot, and
+`tests/test_navi_bg_observer.py` covers that path separately.
+
+Two facts from that work are worth carrying forward rather than rediscovering:
+
+- `|'f'|` in a Wayland signature is `wl_fixed_t` — a 24.8 fixed-point **integer**,
+  not a C `float` — so it needs no floating-point handling. A test now pins it.
+- A hook that never fires is indistinguishable from a quiet client. The object
+  therefore reports `interposed=1|0` plus a verdict at unload, and a client that
+  bypasses the link chain is reported as `unverified`, never as "no commit happened".
+
 ## Decompiled confirmation of the input gap
 
 The claim that `ivi-shell.so` has no pointer or keyboard focus implementation was

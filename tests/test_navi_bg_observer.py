@@ -40,9 +40,10 @@ static const struct my_message surface_methods[] = {
     { "set_input_region", "?o", 0 },
     { "commit", "", 0 },
     { "bogus", "x", 0 },
+    { "set_scale", "f", 0 },
 };
 const struct my_interface wl_surface_interface = {
-    "wl_surface", 4, 8, surface_methods, 3, 0
+    "wl_surface", 4, 9, surface_methods, 3, 0
 };
 union my_argument { int32_t i; uint32_t u; int32_t f; const char *s;
                      void *o; uint32_t n; void *a; int32_t h; };
@@ -52,6 +53,10 @@ const char *wl_proxy_get_class(void *proxy) { (void)proxy; return "wl_surface"; 
 void wl_proxy_marshal_array(void *proxy, uint32_t opcode, union my_argument *args)
 {
     (void)proxy;
+    if (opcode == 8) {
+        printf("REAL_ARRAY fixed=%d\n", args[0].f);
+        return;
+    }
     printf("REAL_ARRAY opcode=%u first=%p second=%d third=%d\n",
            opcode, args[0].o, args[1].i, args[2].i);
 }
@@ -82,6 +87,30 @@ int main(void)
     wl_proxy_marshal(&surface, 1, 0, 0, 0);
     wl_proxy_marshal(&surface, 6);
     wl_proxy_marshal(&surface, 1, 0, 0, 0);
+    wl_proxy_marshal(&surface, 6);
+    return 0;
+}
+"""
+
+MOCK_FIXED_APP = r"""
+#include <stdint.h>
+struct my_interface {
+    const char *name;
+    int version;
+    int method_count;
+    const void *methods;
+    int event_count;
+    const void *events;
+};
+struct proxy { const struct my_interface *interface; };
+extern const struct my_interface wl_surface_interface;
+extern void wl_proxy_marshal(void *, uint32_t, ...);
+int main(void)
+{
+    struct proxy surface = { &wl_surface_interface };
+    /* |'f'| is wl_fixed_t: a 24.8 fixed-point integer (1.5 == 0x0180), so it travels
+     * in an integer slot and the wrapper must forward the integer unchanged. */
+    wl_proxy_marshal(&surface, 8, 0x0180);
     wl_proxy_marshal(&surface, 6);
     return 0;
 }
@@ -325,11 +354,14 @@ class MarshalInterpositionTests(unittest.TestCase):
         fallback_source.write_text(MOCK_FALLBACK_APP)
         no_array_source = root / "no-array.c"
         no_array_source.write_text(MOCK_NO_ARRAY_LIBRARY)
+        fixed_source = root / "fixed.c"
+        fixed_source.write_text(MOCK_FIXED_APP)
         cls.library = root / "libmockmarshal.so"
         cls.no_array_library = root / "libmocknoarray.so"
         cls.app = root / "AppNavi"
         cls.fallback = root / "AppNaviFallback"
         cls.no_array_app = root / "AppNaviNoArray"
+        cls.fixed_app = root / "AppNaviFixed"
         cls.observer = root / "navi-bg-0x0.so"
         for command in (
             [COMPILER, "-shared", "-fPIC", "-O2", "-Wall", "-Wextra", "-Werror",
@@ -347,6 +379,9 @@ class MarshalInterpositionTests(unittest.TestCase):
              str(no_array_source)],
             [COMPILER, "-O2", "-Wall", "-Wextra", "-Werror", "-o", str(cls.no_array_app),
              str(app_source), "-L" + str(root), "-lmocknoarray",
+             "-Wl,-rpath," + str(root)],
+            [COMPILER, "-O2", "-Wall", "-Wextra", "-Werror", "-o", str(cls.fixed_app),
+             str(fixed_source), "-L" + str(root), "-lmockmarshal",
              "-Wl,-rpath," + str(root)],
         ):
             subprocess.run(command, check=True, capture_output=True, text=True)
@@ -375,6 +410,18 @@ class MarshalInterpositionTests(unittest.TestCase):
         self.assertIn("interposed=1", result.stderr)
         self.assertIn("observation verdict=observed", result.stderr)
         self.assertIn("complete=1", result.stderr)
+
+    def test_a_fixed_point_argument_survives_the_wrapper(self):
+        """|'f'| is a 24.8 fixed-point integer; the wrapper must not alter it."""
+        env = os.environ.copy()
+        env["LD_PRELOAD"] = str(self.observer)
+        env.pop("NAVI_BG_HOLD_AFTER", None)
+        env.pop("NAVI_BG_CLIENT_MATCH", None)
+        result = subprocess.run([str(self.fixed_app)], env=env, capture_output=True,
+                                text=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("REAL_ARRAY fixed=384", result.stdout)
+        self.assertEqual(result.stdout.count("REAL_ARRAY fixed="), 1, result.stdout)
 
     def test_undecodable_requests_are_forwarded_not_dropped(self):
         env = os.environ.copy()

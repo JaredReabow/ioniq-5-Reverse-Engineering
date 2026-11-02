@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.72.0 - interposition is not retired: the signature table makes the call readable
+
+- 1.62.0 retired external interposition and was right about the point it tested: an
+  unknown `va_list` cannot be forwarded to a variadic callee, and
+  `wl_proxy_marshal_array` is reached by a direct intra-library call that never
+  traverses the PLT. Neither is needed here. The object receives the variadic call,
+  reads its arguments typed from the interface's own signature table, and calls
+  `wl_proxy_marshal_array` itself with a rebuilt argument array, so no `va_list`
+  crosses the boundary. The variadic entry is used only for the last-resort replay of
+  an unreadable signature, where every wire argument is an integer slot.
+- Recorded while pinning the signature decoder: `|'f'|` is `wl_fixed_t`, a 24.8
+  fixed-point **integer**, not a C `float`. The decoder reads it as an integer, which
+  was already correct; `tests/test_navi_bg_observer.py` now covers the branch, which
+  previously had none.
+- The same document that retired the shim noted the real hazard — a hook that never
+  fires looks like a client that never commits. The object therefore reports
+  `interposed=1|0` and a verdict (`observed|shadowed|unverified|idle`) at unload, and
+  `unverified` is never read as "no commit happened".
+
 ## 2.71.0 - manual inspection of a live guest
 
 - `vm_boot.py` accepts `--display vnc` (guest framebuffer on `127.0.0.1:0`, headless and

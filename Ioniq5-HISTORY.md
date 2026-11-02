@@ -3973,3 +3973,12 @@ and are superseded by corrections rather than silently rewritten.
   is the first one that explains a log line we had been reading past for hours.
 - Also corrected a claim I made an hour earlier: the pending MMUS calls complete, they do not hang. The evidence for that was already in the
   log and I read it backwards.
+
+## 2026-10-31 — fixing the pictures did not fix the screen
+
+- The image path is genuinely the vendor's own, and nothing in the shipped system creates its target. That makes our reproduction step a
+  documented assumption rather than a discovery of intent, which is how it is now written down.
+- With assets loading and the splash gone, the frame is still black and the client still submits nothing. The one remaining fault is now
+  narrow, stubborn, and out of reach of the instruments the image provides: there is no debugger in it.
+- Astra's probe needs a gdbserver we do not have. Rather than pretend otherwise, the next attempt goes at the signal side, which is the only
+  other surface left that can change the application's state from outside.

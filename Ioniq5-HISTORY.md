@@ -4157,3 +4157,10 @@ and are superseded by corrections rather than silently rewritten.
   script is not the place where a child's variables are decided.
 - That is a clean negative and it closes a route rather than a theory.
 - What remains is genuinely two problems, both now named: supply the id somewhere the manager cannot strip it, and place the surface that results.
+
+## 2026-10-31 — a tool that can place, and no id to place
+
+- The placement client binds every vendor global and reports what it sees. What it sees is nothing, because this protocol announces objects as they are created and
+  says nothing to a client that arrives afterwards.
+- It also turned up a correction: the layer ids in our own configuration are not the layer ids the vendor layout uses.
+- So this is blocked on discovering an id, not on building anything. That is a smaller and more honest problem than the one at the start of the day.

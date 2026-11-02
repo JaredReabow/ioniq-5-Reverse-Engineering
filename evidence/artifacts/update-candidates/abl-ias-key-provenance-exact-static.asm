@@ -2098,3 +2098,142 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 # rot.key / RBEP.man / FTPR.man / NFTP.man use that same public key.
 # selected UEP digest 9b0a59c8... -> oem.key -> usage bit 32 -> IBBP.man.
 # IBBP.man signs reverse(SHA-256(BPM.met)); BPM.met binds exact IBBL and IBB SHA-256.
+
+## RBE selected-UEP publication as ifp_uep (RBE file [0x386e,0x3b52), runtime [0x4386e,0x43b52))
+
+   438d9: push    0x108
+   438de: push    dword ptr [eax + 0x8]  # BPDT UEP primary
+   438e1: push    esi                    # ifp_uep object base
+   438e2: call    0x4449c                # copy full $UEP/CRC object
+   438f2: push    0x108
+   438f7: push    esi
+   438f8: call    0x4383f                # $UEP magic and CRC-16
+   43907: push    0x108
+   4390c: mov     eax, dword ptr [edi + 0x8]
+   4390f: add     eax, 0x1000            # fallback candidate
+   43914: push    eax
+   43915: push    esi
+   43916: call    0x4449c
+   43922: push    0x108
+   43927: push    esi
+   43928: call    0x4383f                # fallback magic and CRC-16
+
+   439c6: push    0x0
+   439c8: mov     byte ptr [ebp - 0x10], 0x0
+   439cc: push    0x108
+   439d1: mov     byte ptr [ebp - 0xf], 0x0
+   439d5: push    0x0
+   439d7: push    0x47ae0              # "ifp_uep"
+   439dc: call    0x4158c              # create runtime object
+   439e9: mov     edi, eax
+   439eb: mov     dword ptr [0x6041030], eax
+   439f8: mov     eax, dword ptr [0xf6170810]
+   439fd: lea     esi, [edi + 0x8]     # selected 0x100-byte payload
+   43a00: shr     eax, 0x18
+   43a03: and     eax, 0xf
+   43a06: push    eax
+   43a07: call    0x41dd9              # exact mode decoder
+   43a12: dec     al
+   43a14: jne     0x43a36              # BPDT primary/fallback route
+   43a16: mov     eax, 0xf6170800      # hardware-window route
+   43a1b: mov     edx, dword ptr [eax]
+   43a1d: mov     dword ptr [esi + eax + 0x9e8f800], edx
+   43a24: add     eax, 0x4
+   43a27: cmp     eax, 0xf6170900
+   43a2c: jne     0x43a1b
+   43a2e: mov     dword ptr [edi], 0x4c414552  # "REAL"
+
+## BUP ifp_uep to FPF shadow (BUP file [0xca1b,0xcacf), runtime [0x32a1b,0x32acf))
+
+   32a1b: push    ebp
+   32a1f: push    0xa08
+   32a24: push    0x0
+   32a26: push    0xa37f0
+   32a2b: call    0x103d               # clear FPF state
+   32a48: push    0x100
+   32a4d: push    0x0
+   32a4f: push    0xa37f8
+   32a59: call    0x103d               # clear initial UEP shadow
+   32a61: push    0x54aa0              # "ifp_uep"
+   32a66: call    0x28cac              # resolve runtime object
+   32a6b: push    0x8
+   32a6f: push    dword ptr [eax + 0x18]
+   32a72: push    0xa38fc
+   32a77: call    0x102e               # copy object marker/header
+   32a7c: push    0x100
+   32a81: mov     eax, dword ptr [ebx + 0x18]
+   32a84: add     eax, 0x8
+   32a87: push    eax
+   32a88: push    0xa37f8
+   32a8d: call    0x102e               # copy selected UEP payload
+   32a9f: cmp     dword ptr [0xa38fc], 0x4c414552  # "REAL"
+   32ac3: push    0x302001
+   32ac8: mov     byte ptr [0xa37f4], 0x1
+
+## BUP bup_fpf special-file publication (BUP file [0xd357,0xd377), runtime [0x33357,0x33377))
+
+   33357: push    ebp
+   3335a: push    0x302002
+   3335f: push    0x5
+   33361: call    0x2870b
+   33366: push    0x880                # exact published length
+   3336b: push    0xa37f8             # exact FPF shadow global
+   33370: call    0x28eb5              # special-file response
+   33375: leave
+   33376: ret
+
+## Signed NFTP FPF startup inputs (FPF file [0x200,0x313), runtime [0x26200,0x26313))
+
+   26230: push    0x100
+   2624b: push    0x366e4             # FPF shadow destination
+   2626c: push    eax                  # returned length
+   2626d: push    0x880                # required input length
+   26272: push    0x366e4
+   26277: push    0x29de0              # "/dev/bup_fpf"
+   2627c: call    0x26bdb              # exact-size input read
+   26284: test    eax, eax
+   26286: js      0x26291
+   26288: cmp     dword ptr [ebp - 0x3c], 0x880
+   2628f: je      0x262a1
+   26291: push    -0x1                 # fail closed on read/size drift
+   262ee: push    0x0
+   262f0: push    0x29df9              # "/dev/flash/uep"
+   262f5: call    0x60c8               # open flash UEP endpoint
+   262fb: mov     dword ptr [0x366cc], eax
+
+## Signed NFTP FPF shadow-versus-hardware field read (FPF file [0x1dbc,0x1f02), runtime [0x27dbc,0x27f02))
+
+   27dbc: push    ebp
+   27dd9: mov     ebx, dword ptr [ebp + 0x8]
+   27de4: mov     esi, dword ptr [0x36f60]  # hardware-mode global
+   27dec: test    al, al
+   27dee: movzx   edx, bl
+   27df1: jne     0x27e1f              # hardware path
+   27df3: mov     eax, dword ptr [ebp + 0xc]
+   27df6: mov     edi, dword ptr [ebp + 0x10]
+   27df9: shl     edx, 0x7             # 0x80-byte field slot
+   27e05: mov     ebx, edx
+   27e08: add     ebx, 0x366e4         # BUP-provided shadow
+   27e0e: push    dword ptr [ebp + 0xc]
+   27e11: push    ebx
+   27e12: call    0x111e               # shadow copy
+
+## Signed NFTP FPF hardware-mode activation (FPF file [0x2d2c,0x2fb2), runtime [0x28d2c,0x28fb2))
+
+   28d2c: push    ebp
+   28d44: cmp     byte ptr [0x36f60], 0x0
+   28d4b: jne     0x28f99
+   28d51: push    0x3
+   28d53: mov     byte ptr [0x36f60], 0x1  # enable hardware mode
+   28d5a: mov     byte ptr [0x367e6], 0x1
+   28d61: call    0x28c72              # process fixed field sequence
+   28d71: push    0x1f
+   28d73: call    0x28c72
+   28d83: push    0x20
+   28d85: call    0x28c72
+   28d95: push    0x4
+   28d97: call    0x28c72
+
+# Exact decompressed FPF data table entry "OemLock" carries callback pointer
+# 0x28d2c. This proves the later FPF transition, but does not equate its
+# hardware state with RBE's earlier 0xf6170800 hardware-window producer.

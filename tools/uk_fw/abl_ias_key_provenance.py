@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import lzma
 import os
 import stat
 import struct
@@ -38,6 +39,14 @@ IBBP_MAN_SHA256 = "f224328529c3662c8c3ba490ad2a3c8143a34d0c9a531d2568f94d639058f
 BPM_MET_SHA256 = "4a82dcd20e5ad30e80b11637c767a9a9140b3e570d5144cda9407390b9618738"
 IBB_SHA256 = "4fba3004219bbfe3a94baa23467c7076d87f4ad76fdb6687ccdbf93455e365ed"
 NFTP_MAN_SHA256 = "d89f510f91eb9191e4b1e4a1a17b4675e3823953067ded257a6d78b2fb340ea4"
+FPF_MET_OFFSET = 0x205F6C
+FPF_MET_SIZE = 0x10C
+FPF_MET_SHA256 = "2f5ecd89cfd900abf8dda056ee19b7d373bdda7a6a1ea0092e38404268de51ec"
+FPF_COMPRESSED_OFFSET = 0x268000
+FPF_COMPRESSED_SIZE = 0x2A51
+FPF_COMPRESSED_SHA256 = "40e9da01431dc7a40e82ba6a33e1ee7d9891c9ffa0cda02efb5ff56387681e47"
+FPF_SIZE = 0x6000
+FPF_SHA256 = "9fd694bc90c7433528cfcf80ad265093cc61e086d882a3c52dee152ba64630b9"
 SBL_COMMIT = "5f5c14b10ae6bd3cd0cf7e274142767dc2635a06"
 SBL_FILE = "BootloaderCorePkg/Include/FirmwareInterfaceTable.h"
 SBL_FILE_SHA256 = "0e0f1fff576e4edc48d2918d14bb1292526d3c01d3547d38305ea435543722ef"
@@ -100,6 +109,14 @@ CSE_BUP_RANGES = {
     "boot_policy_usage32_record_selector": (0x2B4BD, 0x2B4DC, "b0ade2c19d4b92653588ea997cd40bcabcb8df29927b38d9a8c73656097991b9"),
     "boot_policy_oem_key_pin_and_rsa": (0x2B4DC, 0x2B7DB, "a5b7ca06a3b9d48c21494588362856b2badd2d0bcfa9adff6d376a96328350e5"),
     "boot_policy_metadata_hash": (0x2B81A, 0x2B8E9, "f45c5d6b099a209457ed44f3878b4d5158b5a394c32b46724c4f114825e8890c"),
+    "uep_interface_to_fpf_shadow": (0xCA1B, 0xCACF, "7a0b5154fad45d4970df385f9629f08d8aad38d548deb153cc14e7fb4664871a"),
+    "uep_field_to_fpf_shadow": (0x3B2E, 0x3B7F, "391db9062319f017a0d04e237f43efbd564da59499ef4e6e5e291b5faae78e7f"),
+    "bup_fpf_special_file_publish": (0xD357, 0xD377, "fed0c6ccc89cb65ee12a7cbb092e26ee426bdca8c408d1a7841a9e48e1d6587f"),
+}
+FPF_RANGES = {
+    "startup_bup_fpf_and_flash_uep_inputs": (0x200, 0x313, "8d864579abfd7f4226c633aedcbf3e16468ae662c8c8f19be4624d09bfed4ed3"),
+    "shadow_or_hardware_field_read": (0x1DBC, 0x1F02, "921f3ab91ad726df1bd5eefe1d50dec18b16edb8b0eef2550fc0aedfd78b36a3"),
+    "hardware_mode_activation_and_field_sequence": (0x2D2C, 0x2FB2, "482aa6b11ab4989412e4da22948e66ed9be9b1020028c57e474d6b1235dbf7c8"),
 }
 
 
@@ -336,6 +353,176 @@ def extract_cse_bup(abl: bytes) -> bytes:
     if len(bup) != 0x33000 or hashlib.sha256(bup).hexdigest() != CSE_BUP_SHA256:
         raise Failure("CSE BUP identity drift")
     return bup
+
+
+def parse_metadata_extensions(metadata: bytes, label: str) -> dict[int, bytes]:
+    extensions: dict[int, bytes] = {}
+    pos = 0
+    while pos < len(metadata):
+        if pos + 8 > len(metadata):
+            raise Failure(f"{label} truncated extension header")
+        tag, size = struct.unpack_from("<II", metadata, pos)
+        if tag in extensions or size < 8 or pos + size > len(metadata):
+            raise Failure(f"{label} extension geometry drift")
+        extensions[tag] = metadata[pos : pos + size]
+        pos += size
+    if pos != len(metadata):
+        raise Failure(f"{label} extension traversal drift")
+    return extensions
+
+
+def parse_special_files(extension: bytes, label: str) -> dict:
+    if len(extension) < 12 or struct.unpack_from("<I", extension, 0)[0] != 9 or (len(extension) - 12) % 24:
+        raise Failure(f"{label} special-file extension drift")
+    major = struct.unpack_from("<I", extension, 8)[0]
+    entries = []
+    for pos in range(12, len(extension), 24):
+        raw_name = extension[pos : pos + 12]
+        if b"\0" not in raw_name:
+            raise Failure(f"{label} unterminated special-file name")
+        name = raw_name.split(b"\0", 1)[0].decode("ascii")
+        access, user, group, minor, reserved = struct.unpack_from("<HHHHI", extension, pos + 12)
+        entries.append(
+            {
+                "name": name,
+                "access_mode": access,
+                "user_id": user,
+                "group_id": group,
+                "minor": minor,
+                "reserved": reserved,
+            }
+        )
+    return {"major": major, "entries": entries}
+
+
+def extract_fpf_provisioning_handoff(abl: bytes, bup: bytes) -> dict:
+    cpd = 0x203000
+    if struct.unpack_from("<IIBBBBI", abl, cpd)[:6] != (0x44504324, 69, 1, 1, 16, 240):
+        raise Failure("NFTP CPD header drift")
+    entries = []
+    for index in range(69):
+        raw_name, raw_offset, size, _ = struct.unpack_from("<12sIII", abl, cpd + 0x10 + index * 24)
+        entries.append((raw_name.rstrip(b"\0").decode("ascii"), raw_offset & 0x1FFFFFF, size))
+    fpf_entries = [entry for entry in entries if entry[0] in ("fpf", "fpf.met")]
+    if fpf_entries != [("fpf", 0x65000, FPF_COMPRESSED_SIZE), ("fpf.met", 0x2F6C, FPF_MET_SIZE)]:
+        raise Failure("NFTP fpf CPD entries drift")
+
+    compressed = abl[FPF_COMPRESSED_OFFSET : FPF_COMPRESSED_OFFSET + FPF_COMPRESSED_SIZE]
+    metadata = abl[FPF_MET_OFFSET : FPF_MET_OFFSET + FPF_MET_SIZE]
+    manifest = abl[0x203688 : 0x203688 + 0x9A0]
+    bup_metadata = abl[0x11EE36 : 0x11EE36 + 0x4A6]
+    identities = (
+        (compressed, FPF_COMPRESSED_SIZE, FPF_COMPRESSED_SHA256, "compressed fpf"),
+        (metadata, FPF_MET_SIZE, FPF_MET_SHA256, "fpf.met"),
+        (manifest, 0x9A0, NFTP_MAN_SHA256, "NFTP.man"),
+        (bup_metadata, 0x4A6, BUP_MET_SHA256, "bup.met"),
+    )
+    for blob, size, digest, label in identities:
+        if len(blob) != size or hashlib.sha256(blob).hexdigest() != digest:
+            raise Failure(f"{label} identity drift")
+    if manifest.count(hashlib.sha256(metadata).digest()[::-1]) != 1:
+        raise Failure("NFTP.man to fpf.met signed hash chain drift")
+
+    fpf_extensions = parse_metadata_extensions(metadata, "fpf.met")
+    bup_extensions = parse_metadata_extensions(bup_metadata, "bup.met")
+    module = fpf_extensions.get(10)
+    if module is None or len(module) != 0x38:
+        raise Failure("fpf.met module extension drift")
+    compression = module[8]
+    uncompressed_size, compressed_size = struct.unpack_from("<II", module, 0x0C)
+    if (
+        compression != 2
+        or uncompressed_size != FPF_SIZE
+        or compressed_size != FPF_COMPRESSED_SIZE
+        or module[0x18:0x38] != hashlib.sha256(compressed).digest()[::-1]
+    ):
+        raise Failure("fpf.met compressed module binding drift")
+
+    if not compressed.startswith(bytes.fromhex("3600400000")) or compressed[0x0E:0x11] != b"\0\0\0":
+        raise Failure("Intel CSE LZMA header drift")
+    adjusted = compressed[:0x0E] + compressed[0x11:]
+    try:
+        decoder = lzma.LZMADecompressor()
+        fpf = decoder.decompress(adjusted)
+    except lzma.LZMAError as exc:
+        raise Failure(f"fpf LZMA decompression failure: {exc}") from exc
+    if (
+        not decoder.eof
+        or decoder.unused_data
+        or len(fpf) != FPF_SIZE
+        or hashlib.sha256(fpf).hexdigest() != FPF_SHA256
+    ):
+        raise Failure("decompressed fpf identity drift")
+
+    fpf_special = parse_special_files(fpf_extensions[9], "fpf.met")
+    bup_special = parse_special_files(bup_extensions[9], "bup.met")
+    expected_fpf_special = [
+        {"name": "fpf", "access_mode": 0x1B0, "user_id": 0x1D, "group_id": 0x36, "minor": 0, "reserved": 0},
+        {"name": "fpf_hw_use", "access_mode": 0x1B0, "user_id": 0x1D, "group_id": 0xDF, "minor": 1, "reserved": 0},
+    ]
+    if fpf_special != {"major": 23, "entries": expected_fpf_special}:
+        raise Failure("fpf special-file metadata drift")
+    bup_fpf = [entry for entry in bup_special["entries"] if entry["name"] == "bup_fpf"]
+    if bup_special["major"] != 30 or bup_fpf != [
+        {"name": "bup_fpf", "access_mode": 0x1B0, "user_id": 3, "group_id": 0x58, "minor": 7, "reserved": 0}
+    ]:
+        raise Failure("BUP bup_fpf special-file metadata drift")
+
+    fpf_ranges = check_ranges(fpf, FPF_RANGES, "NFTP fpf")
+    if fpf.find(b"/dev/bup_fpf\0") != 0x3DE0 or fpf.find(b"/dev/flash/uep\0") != 0x3DF9:
+        raise Failure("fpf input path strings drift")
+    if fpf[0x5688:0x569C] != struct.pack("<IIIII", 0x27D53, 0x28D2C, 0x28FB2, 0x290F1, 0xFFFFFFFF):
+        raise Failure("fpf OemLock callback table drift")
+    if fpf[0x5668:0x5670] != b"OemLock\0":
+        raise Failure("fpf OemLock name drift")
+    if [index for index in range(len(bup)) if bup.startswith(b"ifp_uep\0", index)] != [0x2E456, 0x2EAA0]:
+        raise Failure("BUP ifp_uep interface string drift")
+
+    return {
+        "signed_chain": {
+            "nftp_manifest": {"flash_offset": 0x203688, "size": 0x9A0, "sha256": NFTP_MAN_SHA256},
+            "fpf_metadata": {"flash_offset": FPF_MET_OFFSET, "size": FPF_MET_SIZE, "sha256": FPF_MET_SHA256},
+            "fpf_compressed": {"flash_offset": FPF_COMPRESSED_OFFSET, "size": FPF_COMPRESSED_SIZE, "sha256": FPF_COMPRESSED_SHA256},
+            "fpf_decompressed": {"size": FPF_SIZE, "sha256": FPF_SHA256},
+            "nftp_manifest_binds_fpf_metadata": True,
+            "fpf_metadata_binds_compressed_fpf": True,
+            "nftp_manifest_embedded_signature_valid": True,
+            "nftp_manifest_rooted_in_runtime_ipub_key_if_that_object_is_anchored": True,
+        },
+        "bup_special_file": bup_fpf[0],
+        "fpf_special_files": fpf_special,
+        "instruction_ranges": fpf_ranges,
+        "handoff": {
+            "rbe_output_object": "ifp_uep",
+            "rbe_output_object_size": 0x108,
+            "rbe_hardware_route_marker": "REAL",
+            "rbe_flash_route_marker": "$UEP",
+            "rbe_selected_uep_payload_offset": 8,
+            "rbe_selected_uep_payload_size": 0x100,
+            "bup_resolves_object": "ifp_uep",
+            "bup_compares_header_with_marker": "REAL",
+            "bup_real_marker_global": 0xA4074,
+            "bup_rejects_non_real_marker": False,
+            "bup_copies_payload_to_global": 0xA37F8,
+            "bup_initial_copy_size": 0x100,
+            "bup_initial_payload_copy_byte_identity_proved": True,
+            "bup_later_field_assembly_can_update_shadow": True,
+            "full_initial_payload_byte_identity_at_publication_proved": False,
+            "bup_publishes_special_file": "/dev/bup_fpf",
+            "bup_published_buffer_global": 0xA37F8,
+            "bup_published_size": 0x880,
+            "fpf_requires_bup_fpf_size": 0x880,
+            "fpf_shadow_global": 0x366E4,
+            "fpf_hardware_mode_global": 0x36F60,
+            "fpf_flash_uep_path": "/dev/flash/uep",
+            "shadow_reads_used_while_hardware_mode_zero": True,
+            "hardware_access_used_while_hardware_mode_nonzero": True,
+            "oem_lock_callback_sets_hardware_mode_before_field_sequence": True,
+            "selected_uep_to_bup_fpf_to_nftp_fpf_shadow_proved": True,
+            "nftp_fpf_hardware_state_equated_to_rbe_hardware_window": False,
+        },
+        "boundary": "The selected RBE UEP payload is copied exactly into BUP's FPF shadow before BUP's later field-assembly path can update that shadow; the resulting 0x880-byte object is consumed by the signed NFTP fpf service. This proves later provisioning dataflow, not full initial-payload byte identity at publication or who authenticates and immutably supplies the earlier RBE hardware-window/BPDT source.",
+    }
 
 
 def verify_mn2_embedded_signature(manifest: bytes, label: str) -> dict:
@@ -693,6 +880,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     cse_bup = extract_cse_bup(abl)
     cse_signed_module_chains = parse_cse_signed_module_chains(abl, cse_rbe, cse_bup)
     cse_root_and_boot_policy_chains = parse_cse_root_and_boot_policy_chains(abl)
+    fpf_provisioning_handoff = extract_fpf_provisioning_handoff(abl, cse_bup)
     uep_oem_hash_candidate = parse_uep_oem_hash_candidate(abl)
     stored_oem_key = parse_stored_oem_key(abl)
     ibbl_ranges = check_ranges(ibbl, IBBL_RANGES, "IBBL")
@@ -937,6 +1125,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             },
             "cse_signed_module_chains": cse_signed_module_chains,
             "cse_root_and_boot_policy_chains": cse_root_and_boot_policy_chains,
+            "cse_uep_to_fpf_provisioning_handoff": fpf_provisioning_handoff,
             "cse_rbe_uep_oem_key_authentication": {
                 "uep_object_name": "ifp_uep",
                 "object_size": UEP_SIZE,
@@ -1125,6 +1314,8 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "ibbp_manifest_binds_bpm_metadata_proved": True,
             "bpm_metadata_binds_exact_ibbl_and_ibb_proved": True,
             "uep_to_oem_key_to_ibbp_to_exact_ibb_chain_proved": True,
+            "selected_uep_to_bup_fpf_to_signed_nftp_fpf_shadow_proved": True,
+            "nftp_fpf_hardware_state_equated_to_rbe_hardware_window": False,
             "ftpr_manifest_direct_oem_key_coverage_proved": False,
             "pre_ibbl_key_manifest_authentication_proved": True,
             "custom_signed_image_acceptance_proved": False,
@@ -1142,6 +1333,8 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "The RBE-to-BUP-to-IBBL path binds the runtime type-0x0b payload to exact FTPR oem.key bytes. The recovered set's runtime expected usage-39 digest is therefore 9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af.",
             "Exact RBE resolves runtime object ipub_key, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. rot.key, RBEP.man, FTPR.man, and NFTP.man share digest f2eb8fc4...; the producer and hardware provenance of ipub_key remain outside the recovered boundary.",
             "Exact BUP selects oem.key usage bit 32, compares the IBBP.man modulus-plus-exponent digest before RSA verification, verifies IBBP.man, checks its signed BPM.met hash, and checks BPM.met's exact IBBL and IBB SHA-256 values. This closes the selected-UEP-to-exact-IBB byte chain for the recovered set.",
+            "Exact RBE materializes the selected 0x100-byte UEP payload in the 0x108-byte ifp_uep object, with a hardware-route REAL header or the validated flash-route $UEP/CRC header. Exact BUP records whether the header is REAL without rejecting the alternative in this range, initially copies the payload byte-for-byte into its FPF shadow, may update that shadow through later field assembly, and publishes the resulting 0x880-byte bup_fpf special file. The signed NFTP fpf module requires that exact-size input and uses the resulting shadow while its hardware-mode global is zero.",
+            "The signed NFTP fpf module exposes fpf and fpf_hw_use special files, opens /dev/flash/uep, and switches its field-read path between the BUP-provided shadow and hardware access. Its OemLock callback sets hardware mode before processing a fixed field sequence. This later provisioning state is not yet proved byte-identical to RBE's earlier 0xf6170800 hardware window.",
             "RBEP.man, FTPR.man, NFTP.man, rot.key, and IBBP.man embedded signatures verify. The first four are externally anchored only if the runtime ipub_key object is anchored; the OEM/IBBP chain is externally anchored only if the selected UEP digest is anchored.",
             "Exact FTPR.man has no direct oem.key name or digest coverage and FTPR CPD has no oem.key.met member. This bounded absence is not proof that another CSE policy, key manifest, or hardware root leaves oem.key unauthenticated.",
             "Exact RBE creates ifp_uep, obtains a CRC-checked UEP from an exact hardware-window branch or BPDT primary/fallback route, extracts field 0x20 (256 bits) to global 0x6048038, and uses that digest to pin oem.key's modulus-plus-exponent hash before RSA and extension validation.",

@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.66.0 - a 4 MB frame that was black, and a filename that lied
+
+- Captured eight frames while the app was alive with a forced surface id, all identical at **4,147,216 bytes**, and I briefly read that size as content. It is not:
+  `ias-shot` writes **ASCII PPM (P3)**, not PNG, and the file is 1920×720 of `0 0 0`.
+- Two of my own mistakes, recorded because they nearly became a false result:
+  1. **The tool writes PPM** and my filename said `.png`. A 4 MB text file of black pixels is large *because it is text*, not because it has detail. Size is not
+     evidence of content in an uncompressed text format.
+  2. I copied it into `docs/vm/` as a "home screen captured" artifact before checking a single pixel value. It has been removed rather than left to mislead
+     later readers.
+- What the capture actually says: the application creates surfaces and commits (§2.64.0), and the composited output is **black** — so its surface exists but is
+  **not placed on a layer that any output composites**. That is consistent with the vendor design: the application manager normally drives `ivi_controller` to add
+  the surface to a layer and make it visible, and nothing in this configuration does that.
+- So the remaining work is layout placement, not rendering: something must call `ivi_controller` to put the application's surface on a layer for a screen. That is
+  the same category of missing adaptor as everything else in this projection, and it explains why a committed frame produces no visible picture.
+- Sharpest statement of where we are: **the client draws, and nothing puts what it drew on the screen.**
+
 ## 2.65.0 - with a valid surface id the app draws, then dies in the weather widget's destructor
 
 - Tested two candidate surface ids (`1001` and `4001`) with `..._FORCED=1` in the standalone ten-screen configuration. Both behave identically:

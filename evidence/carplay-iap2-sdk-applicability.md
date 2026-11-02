@@ -55,33 +55,35 @@ Those private identifiers are useful comparison anchors. No public mapping was
 found from `320.17` to Apple's later public `R18.1` security release, so neither
 "affected" nor "fixed" can be inferred from the number alone.
 
-## Generic iAP2 byte decoder is bounded
+## iAP2 byte decoder is helper-local bounded, not transaction-tail bounded
 
-The first exact decoder review rejects one broad hypothesis. Exported
-`iAp2MarshalGetBytes` at `0x21a56..0x21b21` has SHA-256
+Exported `iAp2MarshalGetBytes` at `0x21a56..0x21b21` has SHA-256
 `601fc208cd6c41eb6926c782dcafcedd47c88785516c98c1290ebcdd2e08ac31`.
 It obtains a 32-bit length and calls the internal span helper at
 `0x21645..0x2176a`, SHA-256
 `98cbc5af41238b006a7497dfce512b59c21b448f616a55ff641597a058303fcf`.
-The complete helper:
+The helper rejects alignment overflow, rounds to four bytes, checks the marshal
+state's `remaining`, and advances only on success. It performs no fixed-stack
+copy and therefore is not itself the unchecked fixed-stack-copy primitive in
+the public Sony/Alpine advisories.
 
-1. rejects unsigned lengths greater than `0xfffffffc` before alignment;
-2. rounds the requested size up to four-byte alignment;
-3. compares that aligned size with the marshalling context's remaining byte
-   count;
-4. advances the data pointer only on the passing branch; and
-5. subtracts the same aligned size from the remaining count.
+The transaction integration adds a separate exact defect. The local-socket and
+37-producer audit in
+[`iap2-local-socket-framing.md`](iap2-local-socket-framing.md) proves that header
+offset `0x38` is total transaction size including the 64-byte header. At
+`0x21126..0x2115e`, `iAp2MarshalInitFromTxn` advances the parse pointer to
+`transaction+0x40` but copies that unreduced total size into `remaining`.
+Accessors can consequently accept transaction-tail reads extending by as much
+as 64 bytes beyond the allocation.
 
-It returns a pointer into the bounded transaction span and performs no copy into
-a fixed stack buffer. Consequently this generic byte-string decoder is not the
-unchecked fixed-stack copy described by the public Sony/Alpine advisories.
-
-The completed direct-caller audit in
+The direct-caller audit in
 [`iap2-marshal-getbytes-caller-audit.md`](iap2-marshal-getbytes-caller-audit.md)
-now byte-binds 31 direct PLT calls across 11 service functions. Most callers
-retain pointer+length pairs and dispatch aggregates downstream. Two caller-side
-issues remain distinct from the bounded generic helper:
+byte-binds 31 direct PLT calls across 11 service functions. It now distinguishes
+three issues:
 
+- accepted pointer+length fields can cross the allocation tail by up to 64
+  bytes, producing an exact-static OOB source-read candidate in downstream
+  copies and formatting;
 - the heap-string materializer at `0x2957c..0x296a7` does not reject a null
   returned pointer before a nonzero-length `strncpy`; 22 exact calls bind that
   wrapper to `kCmdIdentificationSelect` (`0x2afb`) and
@@ -92,11 +94,14 @@ issues remain distinct from the bounded generic helper:
   the remainder of a `0x400`-byte canary-protected output buffer, excluding a
   demonstrated destination overflow while retaining the source-read question.
 
-These are exact-static denial-of-service and unbounded-source-read candidates only.
-Physical delivery, admission, process impact, attacker-visible disclosure, CVE
-identity, and installed-unit applicability remain unproved. This also does
-**not** clear other iAP2 event handlers, downstream callbacks, TLV parsers,
-HTTP/AirPlay handlers, pairing code, media decoders, or vendor wrappers.
+The local service receiver additionally allocates a client-declared total and
+copies the complete 64-byte header before checking for totals at or below 64,
+producing an exact-static local AF_UNIX heap OOB write candidate. These findings
+do not establish physical phone delivery, live local admission, process impact,
+attacker-visible disclosure, code execution, CVE identity, or installed-unit
+applicability. They also do **not** clear other iAP2 event handlers, downstream
+callbacks, TLV parsers, HTTP/AirPlay handlers, pairing code, media decoders, or
+vendor wrappers.
 
 ## Exact AirPlay HTTP/plist architecture
 

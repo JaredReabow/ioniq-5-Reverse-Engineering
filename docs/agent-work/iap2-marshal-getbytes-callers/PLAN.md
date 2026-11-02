@@ -4,8 +4,8 @@
 
 Complete an exact-static inventory of `iAp2MarshalGetBytes` in the recovered EU
 `260128` corpus, trace every direct recovered caller, and distinguish the
-bounded generic helper from caller-side allocation, copy, arithmetic, logging,
-and downstream-dispatch semantics.
+helper-local bounds, transaction-initializer bounds, and caller-side allocation,
+copy, arithmetic, logging, and downstream-dispatch semantics.
 
 ## Constraints
 

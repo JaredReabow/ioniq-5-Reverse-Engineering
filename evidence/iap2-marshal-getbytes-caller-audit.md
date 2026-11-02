@@ -6,18 +6,27 @@ This is an offline exact-static audit of `iAp2MarshalGetBytes` and its recovered
 callers. No recovered target executable was run, no iAP2 or CarPlay message was
 constructed, and no device, USB endpoint, radio, or network interface was used.
 
-The earlier helper-local conclusion remains correct: the generic byte accessor
-is bounded and performs no copy. The complete recovered direct-call inventory
-also identifies two separate caller-side candidates:
+The earlier helper-local conclusion needs a transaction-wide qualification.
+The generic accessor performs no copy and enforces the `remaining` value stored
+in its marshal state. The exact transaction initializer, however, advances the
+parse pointer past the 64-byte header while seeding `remaining` with the
+**unreduced total transaction size**. The companion local-socket framing audit
+proves that header field `+0x38` is total size, not payload size. The effective
+parse bound is therefore 64 bytes past the allocation.
 
-1. an **exact-static null-source denial-of-service candidate** in the heap-string
-   materializer used by identification commands; and
-2. **exact-static unbounded string-read candidates** where length-delimited byte
-   pointers are passed to `%s` logging without a local terminator check or
-   precision bound.
+The complete recovered direct-call inventory now identifies three distinct
+exact-static candidates:
 
-Neither candidate establishes physical delivery, a live crash, information
-exposure to an attacker, code execution, root, persistence, CVE identity, or
+1. a **transaction-tail out-of-bounds read candidate** of up to 64 bytes through
+   otherwise locally bounded marshal accessors;
+2. a **null-source denial-of-service candidate** in the heap-string materializer
+   used by identification commands; and
+3. **unbounded string-read candidates** where length-delimited byte pointers are
+   passed to `%s` logging without a local terminator check or precision bound.
+
+The local AF_UNIX audit establishes a candidate local-client route, not physical
+phone delivery. None of these candidates establishes a live crash, attacker-
+visible disclosure, code execution, root, persistence, CVE identity, or
 applicability to the owner's installed unit.
 
 ## Exact subjects
@@ -36,7 +45,7 @@ another name, runtime-generated code, an unextracted member, or another build.
 Ghidra mapped both ELFs at image base `0x100000`; addresses below are normalized
 ELF virtual addresses after subtracting that base.
 
-## Generic helper remains bounded
+## Helper-local bound and transaction-wide overstatement
 
 Exact ranges:
 
@@ -63,9 +72,44 @@ allocate a destination and does not copy bytes into a fixed stack object. This
 closes the generic helper as the public Sony/Alpine-style fixed-stack-copy
 primitive.
 
-One detail becomes important downstream: the declared length is written to the
-caller's output field *before* the aligned-span accessor can fail, and the
-failure branch does not clear that output field.
+Two details become important downstream:
+
+1. the declared length is written to the caller's output field *before* the
+   aligned-span accessor can fail, and the failure branch does not clear that
+   output field; and
+2. at `0x21126..0x2115e`, `iAp2MarshalInitFromTxn` sets the parse pointer to
+   `transaction+0x40`, but loads the `uint32` at transaction offset `0x38`
+   directly into `remaining` without subtracting `0x40`.
+
+The independently byte-bound local-socket and producer audit establishes the
+second field's semantics. All 37 direct `SendEventToApp` producers initialize
+marshaling with offset `0x40`, store `iAp2MarshalGetUsedSize()` at `+0x38`, and
+send that many bytes. Both socket receivers allocate exactly the `+0x38` value
+and receive only `value-0x40` body bytes. Thus `+0x38` is total transaction size
+including the header.
+
+The parser begins at the true payload start but treats total size as payload
+remaining. The helper's aligned check can consequently accept a returned span
+that extends by as much as 64 bytes beyond the transaction allocation. The
+helper remains unlike the public fixed-stack-copy primitive, but it is not an
+allocation-accurate transaction bound in this recovered integration.
+
+## Transaction-tail out-of-bounds read candidate
+
+The overstatement is constant: at every point after initialization, declared
+remaining exceeds the true bytes to the allocation end by 64. Fixed-width get
+helpers may therefore read beyond the transaction tail, and
+`iAp2MarshalGetBytes` can return an interior pointer plus a declared length whose
+accepted span crosses that tail by up to 64 bytes.
+
+This matters to the direct callers rather than merely to the helper body. The
+heap-string materializer can pass such a non-null pointer and accepted length to
+`strncpy`; the plain-`%s` consumers can begin or continue source traversal past
+the transaction; and the pointer-plus-length aggregates require downstream
+copy/callback review. This is an exact-static heap out-of-bounds **source read**
+candidate, not a demonstrated disclosure or process fault. A specific command,
+downstream sink, local-client admission, resulting output, and runtime impact
+must still be established separately.
 
 ## Complete direct static call inventory
 
@@ -86,10 +130,13 @@ There are 31 exact PLT calls in 11 reviewed service functions.
 | `SessionCommunications.cpp` | `0x2fa3`, `0x2fa4`, `0x2fa5`, `0x2fa8`, `0x2faa` | 6 | destination/address-book/call UUID pairs; byte pointers logged with `%s` |
 
 All 31 call instructions and each FDE-bounded caller range are byte-anchored in
-the deterministic artifact. The reviewed direct caller ranges contain no copy
-performed by `iAp2MarshalGetBytes`; most retain pointer+length pairs and pass a
-stack aggregate to a downstream handler. That conclusion is direct-caller
-coverage, not a blanket clearance of every downstream callback.
+the deterministic artifact. The companion local-socket audit also binds
+`handleClientCmd()` `0x2ea28..0x2f1ad` directly to every listed caller function,
+closing accepted local transactions to these parsers subject to command/session
+predicates. The reviewed direct caller ranges contain no copy performed by
+`iAp2MarshalGetBytes`; most retain pointer+length pairs and pass a stack
+aggregate to a downstream handler. That conclusion is direct-caller coverage,
+not a blanket clearance of every downstream callback.
 
 ## Identification null-source candidate
 
@@ -162,10 +209,10 @@ Tracked artifact:
 
 - path: `evidence/artifacts/projection-candidates/iap2-marshal-getbytes-audit.json`
 - schema: `ioniq-iap2-marshal-getbytes-audit/v1`
-- tool version: `1.1.0`
-- size: `29,540` bytes
-- file SHA-256: `20efbb7ce982d12e36ce7537602deb6d918c522a24c326fad157689cd14f8fbf`
-- canonical SHA-256: `d5dc0a104ee3b9de9c148e9bfdbc578b75f54ed66eeb4ddfd3f76de58afceeb6`
+- tool version: `1.2.0`
+- size: `31,652` bytes
+- file SHA-256: `0437b91abb2d48f844616594f0d7c7a26bed255171adc768fb4d9bdaa777887a`
+- canonical SHA-256: `366d116d6154d6245c4fae6937b4f8666185183b665cd9bc877f6feb1161d8b2`
 
 The tool uses stable no-follow reads, exact identity checks, ELF PT_LOAD address
 mapping, exact range hashes and instruction anchors, ASCII canonical JSON, and
@@ -180,8 +227,8 @@ This audit does **not** demonstrate:
 - successful iAP2 admission, authentication, identification state, or session
   eligibility;
 - that the owner's installed unit runs either exact binary;
-- a process crash, restart loop, information leak to an attacker, memory write,
-  control-flow influence, code execution, root, SMACK escape, persistence, or
-  firmware modification;
+- a process crash, restart loop, attacker-visible disclosure, reliable memory
+  corruption, control-flow influence, code execution, root, SMACK escape,
+  persistence, or firmware modification;
 - a public CVE identity or affected-versus-fixed SDK mapping; or
 - complete indirect-call, unextracted-file, or alternate-build coverage.

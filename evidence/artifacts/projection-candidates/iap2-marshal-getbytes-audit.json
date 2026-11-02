@@ -12,14 +12,17 @@
       "22 exact calls to the null-return-consuming heap-string wrapper from two identification-related command handlers",
       "bounded aligned remaining-length enforcement and absence of a copy in the generic helper",
       "one exact null-return consumer and multiple exact plain-%s consumers",
-      "the exact logger bounds formatted output through vsnprintf to the remainder of a 0x400-byte stack buffer"
+      "the exact logger bounds formatted output through vsnprintf to the remainder of a 0x400-byte stack buffer",
+      "iAp2MarshalInitFromTxn advances the parse pointer by 64 without subtracting 64 from the total-size-derived remaining count",
+      "the generic helper can consequently accept transaction-tail reads extending by as much as 64 bytes beyond the allocation"
     ],
     "not_demonstrated": [
       "physical phone-to-handler delivery, successful iAP2 admission/authentication, or session eligibility",
       "that the owner unit runs either exact recovered binary",
       "process crash, service restart behavior, information disclosure to an attacker, code execution, root access, SMACK escape, persistence, or firmware modification",
       "CVE identity or affected-versus-fixed SDK lineage",
-      "complete indirect-call or alternate-build coverage"
+      "complete indirect-call or alternate-build coverage",
+      "a concrete attacker-visible disclosure or crash from the 64-byte remaining-count overstatement"
     ]
   },
   "caller_semantics": {
@@ -110,7 +113,7 @@
       "handling": "frees the previous pointer, obtains pointer+uint32 length, allocates length+1, zeroes the allocation, then strncpy-copies exactly length bytes"
     }
   },
-  "canonical_sha256": "d5dc0a104ee3b9de9c148e9bfdbc578b75f54ed66eeb4ddfd3f76de58afceeb6",
+  "canonical_sha256": "366d116d6154d6245c4fae6937b4f8666185183b665cd9bc877f6feb1161d8b2",
   "coverage": {
     "boundary": "does not exclude calls through previously captured function pointers, symbol-name-free wrappers, runtime-generated code, files outside extracted-safe, or alternate builds",
     "direct_static_call_count": 31,
@@ -125,6 +128,7 @@
   },
   "decoded_helper": {
     "copy_behavior": "the helper returns an interior transaction pointer; it performs no destination allocation and no fixed-size copy",
+    "effective_true_bound": "the accessor is bounded only relative to an over-stated remaining count and can therefore accept a transaction-tail read extending by as much as 64 bytes past the allocation",
     "failure_detail": "the already stored declared length is not cleared when the bounded accessor later fails",
     "flow": [
       "rejects null state or null length-output pointer by logging and returning null",
@@ -135,6 +139,7 @@
       "on insufficiency sets remaining to zero, sets state flag bit 1, logs, and returns null",
       "on success returns the current transaction pointer, advances it by aligned consumption length, and subtracts that length from remaining"
     ],
+    "initializer_boundary": "iAp2MarshalInitFromTxn advances the parse pointer by 0x40 but copies header offset 0x38 directly into remaining; the companion local-socket framing audit establishes that field as total transaction size including the 0x40-byte header",
     "prototype": "void *iAp2MarshalGetBytes(Marshal *state, uint32_t *declared_length_out)"
   },
   "direct_calls": {
@@ -411,8 +416,8 @@
   },
   "findings": {
     "generic_helper": {
-      "classification": "bounded direct byte accessor",
-      "conclusion": "the exact generic iAp2MarshalGetBytes body is not a fixed-stack-copy primitive and rejects aligned lengths larger than the remaining transaction"
+      "classification": "locally bounded direct byte accessor with over-stated transaction remaining",
+      "conclusion": "the exact helper performs no fixed-stack copy and rejects aligned lengths above its state count, but iAp2MarshalInitFromTxn seeds that count with total transaction size after moving the parse pointer past the 64-byte header"
     },
     "null_return_consumer": {
       "classification": "exact-static null-source denial-of-service candidate",
@@ -434,6 +439,12 @@
       ],
       "mechanism": "recovered length-delimited byte pointers are passed to plain %s logging without a local terminator check or precision bound; the exact logger at 0x6fa6..0x7277 formats through vsnprintf with at most the remainder of a 0x400-byte stack buffer",
       "output_boundary": "the reviewed logger bounds formatted output and has a stack canary, so this is not a demonstrated logger-destination overflow; plain %s still requires source-string traversal rather than respecting the recovered field length"
+    },
+    "transaction_tail_overread": {
+      "classification": "exact-static transaction-tail out-of-bounds read candidate",
+      "impact_boundary": "the local-socket framing audit establishes a candidate local-client route, but a concrete disclosure, crash, code execution, physical phone route, CVE identity, and installed-unit applicability are not demonstrated",
+      "location": "iAp2MarshalInitFromTxn 0x210ff..0x21175 and the 31 direct byte-accessor calls",
+      "mechanism": "the parser pointer starts at allocation+0x40 while remaining is the unreduced total-size field; accepted declared byte fields can extend by as much as 64 bytes beyond the transaction allocation and downstream consumers may copy or format from those returned pointers"
     }
   },
   "framework_anchors": {
@@ -468,6 +479,14 @@
       "matched": true,
       "sha256": "eacbb61945a88c431457b3b371f2294f7194754f77f33f1a60208e7a4c8b032c",
       "size": 52
+    },
+    "transaction_pointer_plus_64_and_unreduced_total_remaining": {
+      "bytes_hex": "488b45f0488d5040488b45e848895010488b45e8488b5010488b45e8488910488b45f08b5038488b45e889500c488b45e8c7401801000000",
+      "elf_va": "0x21126",
+      "file_offset": "0x21126",
+      "matched": true,
+      "sha256": "10142caa36793612b80380909fae495f270a72a099571be3ec33e537eec9ddd9",
+      "size": 56
     }
   },
   "framework_ranges": {
@@ -831,6 +850,6 @@
   },
   "tool": {
     "name": "iap2_marshal_getbytes_audit.py",
-    "version": "1.1.0"
+    "version": "1.2.0"
   }
 }

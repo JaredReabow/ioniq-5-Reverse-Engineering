@@ -63,7 +63,9 @@ class Iap2MarshalGetBytesAuditTests(unittest.TestCase):
         self.assertEqual(report["coverage"]["heap_string_wrapper_caller_count"], 2)
         self.assertEqual(report["caller_semantics"]["SessionLocation"]["byte_fields"], 7)
         self.assertEqual(report["framework_anchors"]["get_length_store_and_bounded_accessor_call"]["elf_va"], "0x21ae3")
-        self.assertEqual(report["findings"]["generic_helper"]["classification"], "bounded direct byte accessor")
+        self.assertEqual(report["findings"]["generic_helper"]["classification"], "locally bounded direct byte accessor with over-stated transaction remaining")
+        self.assertEqual(report["findings"]["transaction_tail_overread"]["classification"], "exact-static transaction-tail out-of-bounds read candidate")
+        self.assertEqual(report["decoded_helper"]["effective_true_bound"].endswith("allocation"), True)
         self.assertEqual(report["findings"]["null_return_consumer"]["classification"], "exact-static null-source denial-of-service candidate")
         self.assertEqual(report["service_support_ranges"]["variadic_logger"]["size"], 0x2D1)
         self.assertEqual(report["findings"]["percent_s_consumers"]["classification"], "exact-static unbounded-source-read candidates with bounded formatted output")
@@ -79,7 +81,7 @@ class Iap2MarshalGetBytesAuditTests(unittest.TestCase):
             self.assertEqual(first.read_bytes(), second.read_bytes())
             parsed = json.loads(first.read_text(encoding="ascii"))
             self.assertEqual(parsed["schema"], module.SCHEMA)
-            self.assertEqual(parsed["canonical_sha256"], "d5dc0a104ee3b9de9c148e9bfdbc578b75f54ed66eeb4ddfd3f76de58afceeb6")
+            self.assertEqual(parsed["canonical_sha256"], "366d116d6154d6245c4fae6937b4f8666185183b665cd9bc877f6feb1161d8b2")
             duplicate = subprocess.run(
                 command + ["--output", str(first)], stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE, check=False,

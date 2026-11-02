@@ -762,7 +762,7 @@ for SX_PATH in /update /update/usb /update/usb/bin /update/usb/bin/AppUpgrade /u
 end_section smack 0
 
 begin_section units
-for U_NAME in connman.service ofono.service ofono.path supplicantmanager.service supplicantmanager.path vbtd.service dropbear.socket dropbear@.service dropbearkey.service Dbuslaunch.service ApplicationLauncher.service MediaBrowser.service dbus.service
+for U_NAME in connman.service ofono.service ofono.path supplicantmanager.service supplicantmanager.path vbtd.service dropbear.socket dropbear@.service dropbearkey.service Dbuslaunch.service ApplicationLauncher.service MediaBrowser.service dbus.service debug-shell.service
  do
     capture_unit "$U_NAME"
  done
@@ -837,7 +837,7 @@ begin_section storage
 capture_file fstab /etc/fstab
 capture_file partitions /proc/partitions
 capture_file mounts /proc/mounts
-for S_DEVICE in /dev/ptmx /dev/pts /dev/pts/ptmx
+for S_DEVICE in /dev/ptmx /dev/pts /dev/pts/ptmx /dev/tty9
  do
     file_meta "$S_DEVICE"
  done
@@ -852,11 +852,11 @@ for S_DIR in /update /update/usb /update/sysroot /update/usb/upgrade /update/usb
 end_section storage 0
 
 begin_section hashes
-for H_META in /bin/busybox /usr/bin/unzip /usr/bin/unzip64 /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /lib/systemd/esinit /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppScomoDM /app/bin/AppUpgrade /app/bin/NaviUpdateApp /app/bin/CarOption.csv /app/share/AppUpgrade/DecryptToPIPE /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /tmp/AppUpgrade
+for H_META in /bin/busybox /usr/bin/unzip /usr/bin/unzip64 /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /lib/systemd/systemd-udevd /lib/systemd/esinit /lib/udev/scsi_id /lib/udev/v4l_id /lib/udev/rules.d/50-udev-default.rules /lib/udev/rules.d/60-persistent-storage.rules /lib/udev/rules.d/60-persistent-v4l.rules /lib/udev/rules.d/99-systemd.rules /lib/systemd/system/debug-shell.service /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppScomoDM /app/bin/AppUpgrade /app/bin/NaviUpdateApp /app/bin/CarOption.csv /app/share/AppUpgrade/DecryptToPIPE /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /tmp/AppUpgrade
  do
     file_meta "$H_META"
  done
-for H_TARGET in /usr/sbin/connmand /usr/sbin/ofonod /usr/sbin/wpa_supplicant /app/bin/supplicantmanager /app/bin/vbtd /tmp/vbtd /lib/systemd/system/vbtd.service /etc/setup_bt_patchram.sh /usr/sbin/dropbear /usr/sbin/dropbearmulti /bin/busybox /usr/bin/unzip /usr/bin/unzip64 /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /lib/systemd/esinit /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppScomoDM /app/bin/AppUpgrade /app/bin/NaviUpdateApp /app/bin/CarOption.csv /app/share/AppUpgrade/AppUpgrade /app/share/AppUpgrade/DecryptToPIPE /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /tmp/AppUpgrade /lib/modules/4.1.27-abl/kernel/sound/core/seq/snd-seq.ko /lib/modules/4.1.27-abl/kernel/net/unix/unix.ko
+for H_TARGET in /usr/sbin/connmand /usr/sbin/ofonod /usr/sbin/wpa_supplicant /app/bin/supplicantmanager /app/bin/vbtd /tmp/vbtd /lib/systemd/system/vbtd.service /etc/setup_bt_patchram.sh /usr/sbin/dropbear /usr/sbin/dropbearmulti /bin/busybox /usr/bin/unzip /usr/bin/unzip64 /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /lib/systemd/systemd-udevd /lib/systemd/esinit /lib/udev/scsi_id /lib/udev/v4l_id /lib/udev/rules.d/50-udev-default.rules /lib/udev/rules.d/60-persistent-storage.rules /lib/udev/rules.d/60-persistent-v4l.rules /lib/udev/rules.d/99-systemd.rules /lib/systemd/system/debug-shell.service /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppScomoDM /app/bin/AppUpgrade /app/bin/NaviUpdateApp /app/bin/CarOption.csv /app/share/AppUpgrade/AppUpgrade /app/share/AppUpgrade/DecryptToPIPE /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /tmp/AppUpgrade /lib/modules/4.1.27-abl/kernel/sound/core/seq/snd-seq.ko /lib/modules/4.1.27-abl/kernel/net/unix/unix.ko
  do
     hash_file "$H_TARGET"
  done

@@ -54,6 +54,8 @@ host:
   > work/bench/kernel-candidate-triage.json
 "$PY" tools/uk_fw/bench_root_readiness.py work/bench/state.json \
   -o work/bench/root-readiness.json
+"$PY" tools/uk_fw/bench_physical_root_readiness.py work/bench/state.json \
+  -o work/bench/physical-root-readiness.json
 ```
 
 This single capture records installed hashes, process uid/gid and effective
@@ -112,6 +114,14 @@ keeps a loaded `unix` module name and a matching current file separate from the
 unproved claim that the loaded bytes came from that file. Symlink metadata is
 recorded separately from hash resolution. A positive triage gate still does not
 establish an installed-kernel byte identity, race, UAF, corruption, or root.
+For the exact CVE-2026-40225 physical-root candidate, it now also passively
+records hashes and metadata for `scsi_id`, `v4l_id`, `systemd-udevd`, the four
+reviewed udev rule files, and `debug-shell.service`; the read-only load/active/
+unit-file state of `debug-shell.service`; and `/dev/tty9` metadata. The host
+physical-root assessor compares only exact identities and character-device
+`4:9` state. It does not execute either helper, emit a uevent, request a unit,
+access the virtual terminal, or infer hardware byte delivery, root, or
+persistence.
 Missing commands/files remain explicit records. Unreadable files, failed
 reads/metadata queries/passive commands, and malformed hash output set a
 nonzero terminal collection status; an incomplete or nonzero terminal marker

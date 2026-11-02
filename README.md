@@ -72,6 +72,37 @@ to, and the base rootfs hash is rechecked after each experiment
 | CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed |
 | Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end |
 
+### Recently established (2026-10-31)
+
+Work in the merge of the two lineages resolved several faults that had been blocking
+reproducible rendering, and produced tools that are now part of the repository.
+
+| Finding | Evidence |
+| --- | --- |
+| The vendor IVI shell integration **silently declines to create a Wayland surface** unless it is given a surface id. With the launcher's `QT_WAYLAND_SET_SURFACE_ID=0` the client enters `IviShellIntegration::createShellSurface`, returns, and never calls the surface creator. | `Ioniq5-CHANGELOG.md` 2.64.0; `tools/uk_fw/ias_backend_soft/qt_show_trace.c` |
+| Forcing one id onto the app **collides** with the ids of its other surfaces: the compositor raises `id_surface(1) is already created`, the connection dies with a fatal protocol error, and the resulting teardown is what previously looked like two unrelated crashes in `free()` and in a widget destructor. | 2.72.0, 2.73.0 |
+| `QT_WAYLAND_USE_PID_FOR_SURFACE_ID=1` gives each client a unique id (its pid). The application then **stays alive indefinitely** and the compositor reports a real window: `Surface id(778), Weston surface W(1926), H(753)`. | 2.73.0 |
+| The vendor compositor **aborts** when more than one IVI screen exists: `pixman-renderer.c:277 composite_clipped: Assertion 'src_format' failed`. The cause is its own solid-colour backgrounds, which have no pixmap format. An interposer supplies one. | 2.53.0; `tools/uk_fw/ias_backend_soft/pixman_solid_shim.c` |
+| `hmi-controller.so` ships but **never loads** without nine `[ivi-shell]` config keys; with them it initialises. | 2.55.0 |
+| The vendor ships its own window-manager protocol (`/usr/share/ivi-window-manager/ivi-window-manager.xml`) with `set_surface_visible`, `request_fg` and `set_surface_layout` — the placement vocabulary this project had been hand-rolling. | 2.69.0; `tools/uk_fw/ias_backend_soft/ivi_wm.c` |
+| `org.genivi.persistence.admin` is **absent** from the image although clients link its library; a stub now provides it. Supplying it does **not** stop the client crashes — a refuted hypothesis, recorded as such. | 2.59.0, 2.61.0; `persistence_admin_stub.c` |
+
+New tools in `tools/uk_fw/ias_backend_soft/`: `qt_show_trace.c` (traces `QWindow::show`, the vendor shell surface calls and the HMI
+id request), `qt_env_shim.c` (environment interposer), `pixman_solid_shim.c`, `ivi_wm.c`, `ivi_place.c`, `persistence_admin_stub.c`.
+
+Two capabilities were added to the research backend for this work: `IAS_OUTPUT_COUNT` (present N IVI screens, which is what the
+vendor shell numbers screens by) and `IAS_REPAINT_OUTPUTS` / `IAS_SHIM` (limit which outputs composite, and disable the research
+surface shim), all defaulting to previous behaviour.
+
+**A caveat stated plainly:** the authentic Home screen capture in this README (`docs/vm/02-home-screen.png`) came from the earlier
+configuration. In the ten-screen research backend used for this week's work the composited frame still measures black
+(max channel value 8 of 255) even with the application's surface created and committed, so "Home renders" and "this particular backend
+shows it" are not the same claim, and the second is not established.
+
+**Security:** the same work produced register entry **V-046**, a *candidate*: every request in the vendor window-manager interface
+names its target by surface id rather than by calling client, which would permit cross-client window control unless the compositor
+validates the sender. No cross-client attempt has been made yet, and the entry says so.
+
 Runs use QEMU with TCG acceleration, `-cpu max,vendor=GenuineIntel`, 1536 MiB RAM,
 disk `snapshot=on`, and **no NIC**. Snapshot mode is mandatory: a run must never
 mutate the base image or reach the network.

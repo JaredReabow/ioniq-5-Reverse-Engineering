@@ -51,12 +51,12 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "35fe6417620f902000a1229f9b9e191a4503d487a582e636908767f19896de25")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "2af6d075bb78bde3c91c6eedce90a98005f2b302ffcc61c840e42d4e326e0b11")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "1d971885a9c9510f4d1bec2aacc8a4c045a1da2889c0f45167ce3911f92ae0b3")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "fc5db0009fa0e879e674dd80d841bdcb93c3211bc82e98b4dfc34b23434c4dd4")
         self.assertIn(b"RBE incoming runtime-object handoff lookup", data)
         self.assertIn(b"mov     ebx, 0x8200008", data)
         self.assertIn(b"RBE runtime-object handoff append", data)
@@ -236,6 +236,18 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(fpf_handoff["fpf_hardware_mode_global"], 0x36F60)
         self.assertTrue(fpf_handoff["selected_uep_to_bup_fpf_to_nftp_fpf_shadow_proved"])
         self.assertFalse(fpf_handoff["nftp_fpf_hardware_state_equated_to_rbe_hardware_window"])
+        dal = exact["nftp_dal_sdm_snowball_policy"]
+        self.assertEqual(dal["signed_chain"]["dal_sdm_compressed"]["sha256"], M.DAL_SDM_COMPRESSED_SHA256)
+        self.assertEqual(dal["signed_chain"]["dal_sdm_decompressed"]["sha256"], M.DAL_SDM_SHA256)
+        self.assertTrue(dal["signed_chain"]["nftp_manifest_binds_dal_sdm_metadata"])
+        self.assertEqual(dal["ipub_key_policy"]["exact_read_size"], 0x24)
+        self.assertEqual(dal["ipub_key_policy"]["state_bit_offset"], 1)
+        self.assertEqual(dal["ipub_key_policy"]["conditional_dword_offset"], 4)
+        self.assertFalse(dal["ipub_key_policy"]["ipub_key_write_observed_in_range"])
+        self.assertTrue(dal["oem_gate"]["ipub_policy_checked_before_oem_objects"])
+        self.assertEqual(dal["oem_gate"]["oem_key_manifest_max_read"], 0x1000)
+        self.assertTrue(dal["snowball_ipub_key_is_shared_cse_policy_object_proved"])
+        self.assertFalse(dal["snowball_ipub_key_producer_or_writability_proved"])
         materializer = exact["cse_rbe_key_manifest_materializer"]
         self.assertEqual(materializer["sha256"], M.CSE_RBE_SHA256)
         self.assertEqual(materializer["source_cpd_member"], "oem.key")
@@ -329,6 +341,8 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["bup_phase_zero_ingestion_before_ifp_uep_consumption_and_cleanup_proved"])
         self.assertFalse(conclusions["ftpr_stream_reader_to_bup_import_binding_proved"])
         self.assertFalse(conclusions["bup_runtime_ipub_key_proved_to_originate_in_rbe_handoff"])
+        self.assertTrue(conclusions["signed_nftp_dal_sdm_reads_exact_snowball_ipub_key_policy_object_proved"])
+        self.assertFalse(conclusions["snowball_ipub_key_producer_or_writability_proved"])
         self.assertFalse(conclusions["pre_rbe_handoff_producer_or_authenticator_proved"])
         self.assertTrue(conclusions["shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved"])
         self.assertTrue(conclusions["bup_ipub_key_runtime_object_or_snowball_resolution_proved"])

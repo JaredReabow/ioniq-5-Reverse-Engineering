@@ -97,8 +97,11 @@ runtime-object ingestion independently expects the same `0x12`-byte header,
 external-reader import is not yet bound to the exact FTPR-kernel function. BUP
 phase zero nevertheless proves ingestion at function index 7, `ifp_uep`
 consumption at index 10, and list destruction only after the phase. BUP
-`ipub_key` provenance and snowball exclusion still remain unproved. All
-plain little-endian handoff-base occurrences in the exact ABL are classified as these
+`ipub_key` provenance and snowball exclusion still remain unproved. Signed
+NFTP `dal_sdm` independently reads an exact `0x24`-byte
+`/snowball/ipub_key` policy object before `/snowball/oem_sign` and
+`/snowball/oem_key_man`; this proves shared CSE policy consumption but no
+producer, write route, or fuse authority. All plain little-endian handoff-base occurrences in the exact ABL are classified as these
 consumers or one unaligned cross-dword PMCP match, leaving no other static base
 literal. Computed, indirect, ROM, or external producers remain possible. The
 remaining questions are who populates and authenticates the handoff before RBE,

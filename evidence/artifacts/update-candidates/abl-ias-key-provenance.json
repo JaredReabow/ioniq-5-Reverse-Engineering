@@ -48,6 +48,8 @@
     "selected_uep_to_bup_fpf_to_signed_nftp_fpf_shadow_proved": true,
     "selector_0x27_is_usage_bit_39_proved": true,
     "shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved": true,
+    "signed_nftp_dal_sdm_reads_exact_snowball_ipub_key_policy_object_proved": true,
+    "snowball_ipub_key_producer_or_writability_proved": false,
     "source_fit_content_producer_cse_bup_proved": true,
     "stored_oem_key_manifest_bytes_recovered": true,
     "stored_oem_key_manifest_embedded_signature_valid": true,
@@ -972,6 +974,81 @@
       "size": 16384,
       "source_fit_address": 4277665792,
       "type_0b_payload_relocated_if_present": true
+    },
+    "nftp_dal_sdm_snowball_policy": {
+      "instruction_ranges": {
+        "oem_sign_and_key_manifest_gate": {
+          "file_end": 8229,
+          "file_start": 7951,
+          "sha256": "e7e55402a39184b7ffcf7691991bfc2ffd4eebfdef8f5e888c54ce37e0c60bcc"
+        },
+        "snowball_ipub_key_policy_read": {
+          "file_end": 3533,
+          "file_start": 3339,
+          "sha256": "b83ee973e1fe7333ed95b3d58d277b0dee99a9029f9c13ad79e3f4e8aaa5eef1"
+        }
+      },
+      "ipub_key_policy": {
+        "conditional_dword_offset": 4,
+        "exact_read_size": 36,
+        "ipub_key_write_observed_in_range": false,
+        "open_flags": 0,
+        "requires_exact_read": true,
+        "state_bit_mask": 1,
+        "state_bit_offset": 1,
+        "when_state_bit_clear_result": true,
+        "when_state_bit_set_requires_dword_zero": true
+      },
+      "oem_gate": {
+        "ipub_policy_checked_before_oem_objects": true,
+        "oem_key_manifest_max_read": 4096,
+        "oem_sign_exact_read_size": 1,
+        "oem_sign_must_be_nonzero": true
+      },
+      "physical_fuse_or_rom_authority_proved": false,
+      "signed_chain": {
+        "dal_sdm_compressed": {
+          "flash_offset": 3039232,
+          "sha256": "1149c790897678ef5896251e55c038448c7c9fc9424c337e378df07f111f9b8f",
+          "size": 27418
+        },
+        "dal_sdm_decompressed": {
+          "sha256": "04c4f9833276bc4fe26969ba4fa195b1e330efba4d97f178987c8c4b170335ba",
+          "size": 57344
+        },
+        "dal_sdm_metadata": {
+          "flash_offset": 2125184,
+          "sha256": "e92963d1b1fd942671b9cb11c1de30312f7a529b1e63bfbf0b26826dd1d9c874",
+          "size": 252
+        },
+        "dal_sdm_metadata_binds_compressed_module": true,
+        "nftp_manifest": {
+          "flash_offset": 2111112,
+          "sha256": "d89f510f91eb9191e4b1e4a1a17b4675e3823953067ded257a6d78b2fb340ea4",
+          "size": 2464
+        },
+        "nftp_manifest_binds_dal_sdm_metadata": true
+      },
+      "snowball_ipub_key_is_shared_cse_policy_object_proved": true,
+      "snowball_ipub_key_producer_or_writability_proved": false,
+      "snowball_paths": {
+        "ipub_key": {
+          "file_offset": 50278,
+          "runtime_address": 205926
+        },
+        "oem_key_man": {
+          "file_offset": 50411,
+          "runtime_address": 206059
+        },
+        "oem_sign": {
+          "file_offset": 50392,
+          "runtime_address": 206040
+        },
+        "uniquepid": {
+          "file_offset": 50332,
+          "runtime_address": 205980
+        }
+      }
     },
     "package_carried_os_key_candidate_digest": {
       "matches_stored_oem_key_usage39_digest": false,

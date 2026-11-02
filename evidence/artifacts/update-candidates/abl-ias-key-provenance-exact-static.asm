@@ -169,7 +169,7 @@
     1196: rep movsd dword ptr es:[edi], dword ptr [esi]
     1198: ret
 
-## IBBL CSE-SRAM-to-temporary-memory handoff setup (file [0x269a,0x275b))
+## IBBL early memory setup and self-relocation call (file [0x269a,0x275b))
 ## SHA-256: 9fb4c68a8041510cbd3fe188a7abc30f0f6be8aa2ef95bc5407af5d773b80fe4
 
 0000269a:
@@ -228,6 +228,14 @@
     2752: rdmsr
     2754: or      eax, 0x100
     2759: wrmsr
+
+## IBBL embedded self-relocation descriptor
+## File [0x2760,0x276c), runtime [0xffffe760,0xffffe76c)
+## SHA-256: b113dfa3b2239b5ba46861c8621b70475617b3e37e23bb84efe5c20a5cfc2b57
+
+ffffe760: .long 0xfeffc000  # destination
+ffffe764: .long 0x00001000  # dword count = 0x4000 bytes
+ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 
 ## Stage-1 FIT type-0x0b key-manifest traversal
 ## Stage file [0x157dd,0x15944), runtime [0xf57dd,0xf5944)
@@ -367,6 +375,184 @@
    313b0: push    0x2
    313b2: mov     ebx, dword ptr [0xa4aa0]
    313b8: call    0x27e30
+
+### IBBL/IBB member resolution and IBBL size bound
+### File [0xb5db,0xb664), runtime [0x315db,0x31664)
+### SHA-256: db725f0cdcf10dd0c7f9dbfcc67478784ba61a91c40c381834a7e19e03c880e0
+
+000315db:
+   315db: push    0xa4ac0
+   315e0: push    0x55a45
+   315e5: push    esi
+   315e6: call    0x3232c
+   315eb: push    0xa4ad8
+   315f0: mov     edi, eax
+   315f2: push    0x55a4a
+   315f7: push    esi
+   315f8: call    0x3232c
+   315fd: or      eax, edi
+   315ff: add     esp, 0x1c
+   31602: mov     edx, eax
+   31604: test    byte ptr [0xa4b38], 0x4
+   3160b: je      0x3163c
+   3160d: push    0xa4af0
+   31612: mov     dword ptr [ebp - 0x38], eax
+   31615: push    0x55a4e
+   3161a: push    esi
+   3161b: call    0x3232c
+   31620: push    0xa4b08
+   31625: mov     edi, eax
+   31627: push    0x559f3
+   3162c: push    esi
+   3162d: call    0x3232c
+   31632: mov     edx, dword ptr [ebp - 0x38]
+   31635: or      edi, eax
+   31637: or      edx, edi
+   31639: add     esp, 0x18
+   3163c: test    edx, edx
+   3163e: jne     0x3164e
+   31640: mov     ecx, dword ptr [0xa4ad0]
+   31646: cmp     ecx, 0x9000
+   3164c: jbe     0x31664
+   3164e: or      byte ptr [0xa4c80], 0x20
+   31655: mov     dword ptr [0xa4b54], 0x7
+   3165f: jmp     0x31efd
+
+# runtime strings: 0x55a45 "IBBL", 0x55a4a "IBB",
+#                  0x55a4e "IBBP.man", 0x559f3 "BPM.met"
+
+### IBBL placement at the end of the 0x20000-byte buffer
+### File [0xba42,0xba7d), runtime [0x31a42,0x31a7d)
+### SHA-256: 4783f44c2c0c586a5479f365dddc04fbb7d682d6679baa8c2d9df410253de991
+
+00031a42:
+   31a42: push    0xd
+   31a44: mov     edi, 0x20000
+   31a49: call    0x27e30
+   31a4e: mov     edx, dword ptr [0xa4ad0]
+   31a54: mov     eax, dword ptr [0xa4acc]
+   31a59: sub     edi, edx
+   31a5b: and     eax, 0x1ffffff
+   31a60: add     edi, dword ptr [0xa4aa0]
+   31a66: add     eax, dword ptr [0xa4ab8]
+   31a6c: push    0x0
+   31a6e: mov     dword ptr [ebp - 0x38], edi
+   31a71: push    edx
+   31a72: push    eax
+   31a73: push    edx
+   31a74: push    edi
+   31a75: call    0x2c316
+   31a7a: add     esp, 0x18
+
+### Resolved IBB source and four-slot SRAM ring initialization
+### File [0x6496,0x657d), runtime [0x2c496,0x2c57d)
+### SHA-256: b5394b6889535d58fedfc076333a14530d2d6f5f638071552a052e7d7a87f41c
+
+0002c496:
+   2c496: mov     eax, ebx
+   2c498: mov     dl, byte ptr [0xa4c79]
+   2c49e: shr     eax, 0x1e
+   2c4a1: and     edx, -0x9
+   2c4a4: and     eax, 0x1
+   2c4a7: shl     eax, 0x3
+   2c4aa: or      eax, edx
+   2c4ac: mov     edx, dword ptr [0xa4ae4]
+   2c4b2: and     edx, 0x1ffffff
+   2c4b8: mov     byte ptr [0xa4c79], al
+   2c4bd: mov     eax, dword ptr [0xa4ae8]
+   2c4c2: add     edx, dword ptr [0xa4ab8]
+   2c4c8: mov     dword ptr [0xa4c58], eax
+   2c4cd: mov     dword ptr [0xa4c5c], edx
+   2c4d3: shr     eax, 0xa
+   2c4d6: and     eax, 0x3fff
+   2c4db: mov     edx, eax
+   2c4dd: shl     edx, 0xe
+   2c4e0: or      edx, 0x30000000
+   2c545: push    edx
+   2c546: push    0x14
+   2c548: push    0x37
+   2c54a: call    0x11be
+   2c54f: mov     dword ptr [0xa4c60], 0x0
+   2c559: mov     dword ptr [0xa4c64], 0x0
+   2c563: mov     dword ptr [0xa4bc0], 0x1
+
+### IBB chunk loader into four 0x8000-byte slots
+### File [0x657d,0x66ee), runtime [0x2c57d,0x2c6ee)
+### SHA-256: 48a58197fa803564ed3086f2be1c627679b088ce85e6e1bf7dc743c0bb70ecc2
+
+0002c57d:
+   2c57d: mov     ecx, dword ptr [0xa4c60]
+   2c583: mov     eax, 0x1
+   2c588: and     ecx, 0x3
+   2c58b: push    0x28
+   2c58d: shl     eax, cl
+   2c58f: push    0x37
+   2c591: mov     dword ptr [ebp - 0x38], eax
+   2c594: call    0x11cd
+   2c599: push    0x14
+   2c59b: mov     ebx, eax
+   2c59d: push    0x37
+   2c59f: call    0x11cd
+   2c5a7: xor     ebx, eax
+   2c5ac: test    dword ptr [ebp - 0x38], ebx
+   2c5af: jne     0x2c8d6
+   2c5b5: mov     ebx, dword ptr [0xa4c58]
+   2c5bb: sub     ebx, dword ptr [0xa4c64]
+   2c5c1: cmp     ebx, 0x7fff
+   2c5c7: jbe     0x2c5ce
+   2c5c9: mov     ebx, 0x8000
+   2c5ce: mov     eax, dword ptr [0xa4c60]
+   2c5d3: push    0x0
+   2c5d5: and     eax, 0x3
+   2c5d8: push    ebx
+   2c5d9: mov     edx, eax
+   2c5db: imul    eax, eax, 0xffff8000
+   2c5e1: push    dword ptr [0xa4c5c]
+   2c5e7: shl     edx, 0xf
+   2c5ea: add     eax, 0x20000
+   2c5ef: add     edx, dword ptr [0xa4aa0]
+   2c5f5: push    eax
+   2c5f6: mov     dword ptr [ebp - 0x40], edx
+   2c5f9: push    edx
+   2c5fa: call    0x2c316
+   2c6a8: mov     edx, dword ptr [0xa4c64]
+   2c6b1: add     edx, ebx
+   2c6b3: add     dword ptr [0xa4c5c], ebx
+   2c6bc: mov     dword ptr [0xa4c64], edx
+   2c6c2: cmp     edx, dword ptr [0xa4c58]
+   2c6c8: jae     0x2c6d0
+   2c6ca: inc     dword ptr [0xa4c60]
+   2c6d0: push    eax
+   2c6d1: push    0x14
+   2c6d3: push    0x37
+   2c6d5: call    0x11be
+   2c6da: mov     eax, dword ptr [0xa4c58]
+   2c6e2: cmp     dword ptr [0xa4c64], eax
+   2c6e8: jb      0x2c57d
+
+### IBB ring completion transition
+### File [0x66ee,0x6755), runtime [0x2c6ee,0x2c755)
+### SHA-256: 281a9b2c20a948b461238417e0ff2ccea606e7fda32b015d5ef180396455e537
+
+0002c6ee:
+   2c6ee: cmp     dword ptr [0xa4b54], 0x0
+   2c6f5: jne     0x2c755
+   2c6f7: test    byte ptr [0xa4b38], 0xc
+   2c6fe: je      0x2c710
+   2c700: lea     eax, [ebp - 0x30]
+   2c703: push    eax
+   2c704: push    0xa4bc4
+   2c709: call    0x2aa6d
+   2c710: test    byte ptr [0xa4b38], 0x4
+   2c717: je      0x2c743
+   2c719: lea     eax, [ebp - 0x30]
+   2c71c: push    0x20
+   2c71e: push    eax
+   2c71f: push    0xa4ba0
+   2c724: call    0x10a6
+   2c743: push    0x14
+   2c745: mov     dword ptr [0xa4bc0], 0x2
+   2c74f: call    0x27e30
 
 ### FIT header initialization (file [0x1409d,0x140cf), runtime [0x3a09d,0x3a0cf))
 

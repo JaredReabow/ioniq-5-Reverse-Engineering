@@ -79,6 +79,11 @@ CSE_BUP_RANGES = {
     "oem_key_manifest_fit_publish": (0xB9BC, 0xBAF4, "e18d11f44ce11a7e405399afba236cab0bdd3ce5b24283ccfb0da79f53469c12"),
     "fit_header_init": (0x1409D, 0x140CF, "8429773135288206a92ebdfd3fd4afd5719a9da046f1265d691f32cd40f31f90"),
     "key_manifest_resolver": (0x1F58E, 0x1F871, "5132d70beda6603eaee882917a2723367209c2871a9dc4028ac8602e16b856c3"),
+    "ibbl_ibb_member_resolution": (0xB5DB, 0xB664, "db725f0cdcf10dd0c7f9dbfcc67478784ba61a91c40c381834a7e19e03c880e0"),
+    "ibbl_tail_placement_copy": (0xBA42, 0xBA7D, "4783f44c2c0c586a5479f365dddc04fbb7d682d6679baa8c2d9df410253de991"),
+    "ibb_ring_stream_init": (0x6496, 0x657D, "b5394b6889535d58fedfc076333a14530d2d6f5f638071552a052e7d7a87f41c"),
+    "ibb_ring_chunk_loader": (0x657D, 0x66EE, "48a58197fa803564ed3086f2be1c627679b088ce85e6e1bf7dc743c0bb70ecc2"),
+    "ibb_ring_completion": (0x66EE, 0x6755, "281a9b2c20a948b461238417e0ff2ccea606e7fda32b015d5ef180396455e537"),
 }
 
 
@@ -625,6 +630,10 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     )
     if cse_bup[0xBAD4 : 0xBAD4 + len(add_sequence)] != add_sequence:
         raise Failure("CSE BUP FIT type-0x0b append sequence drift")
+    require_once(cse_bup, b"IBBL\0", "CSE BUP IBBL member name")
+    require_once(cse_bup, b"IBB\0", "CSE BUP IBB member name")
+    if struct.unpack_from("<III", ibbl, 0x2760) != (0xFEFFC000, 0x1000, 0xFFFFC000):
+        raise Failure("IBBL static self-relocation descriptor drift")
 
     fit_source = git_blob(sbl_repo, SBL_COMMIT, SBL_FILE, SBL_FILE_SHA256)
     require_once(fit_source, b"#define FIT_TYPE_0B_KEY_MANIFEST            0x0B", "FIT type 0x0b")
@@ -685,18 +694,26 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                 "relocation_mode": 2,
                 "relocation_skips_type": 1,
                 "type_0b_payload_relocated_if_present": True,
-                "cse_sram_handoff": {
+                "early_memory_setup_and_self_relocation": {
                     "mtrr_base_addresses": [0xFEF80000, 0xFFFE0000],
                     "temporary_destination_clear_base": 0xFEF80000,
                     "temporary_destination_clear_dword_count": 0x20000,
-                    "copy_descriptor_address": 0xFFFFE760,
-                    "copy_descriptor_dwords": ["destination", "count", "source"],
+                    "copy_descriptor_runtime_address": 0xFFFFE760,
+                    "copy_descriptor_file_offset": 0x2760,
+                    "copy_descriptor_dwords": {
+                        "destination": 0xFEFFC000,
+                        "count": 0x1000,
+                        "source": 0xFFFFC000,
+                    },
                     "copy_count_unit": "dwords",
+                    "copy_size_bytes": 0x4000,
+                    "source_equals_ibbl_runtime_base": True,
+                    "copy_size_equals_exact_ibbl_size": True,
+                    "purpose": "IBBL self-relocation from the top-of-SRAM execution address, not the BUP-FIT-to-0xfef80000 transfer",
                     "post_copy_read_base": 0xFEF80000,
                     "post_copy_read_dword_count": 0x4800,
                     "descriptor_directed_copy_path_proved": True,
-                    "runtime_descriptor_values_recovered": False,
-                    "descriptor_source_bound_to_bup_buffer_proved": False,
+                    "static_descriptor_values_recovered": True,
                 },
             },
             "decompressed_stage1": {
@@ -787,6 +804,33 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                 "published_fit_address": 0xFFFE1000,
                 "published_fit_type": 0x0B,
                 "published_length_source": "oem_key_man object dword count at +0x18, multiplied by four",
+                "ibbl_tail_placement": {
+                    "resolved_member_name": "IBBL",
+                    "companion_member_name": "IBB",
+                    "maximum_accepted_ibbl_size": 0x9000,
+                    "fit_buffer_size": 0x20000,
+                    "placement_expression": "fit_buffer + 0x20000 - resolved IBBL size",
+                    "exact_ibbl_size": 0x4000,
+                    "exact_buffer_offset": 0x1C000,
+                    "sram_alias_base": 0xFFFE0000,
+                    "exact_runtime_address": 0xFFFFC000,
+                    "matches_self_relocation_descriptor_source": True,
+                },
+                "ibb_ring_streamer": {
+                    "source_member_name": "IBB",
+                    "source_offset_from_resolved_member_descriptor": True,
+                    "source_size_from_resolved_member_descriptor": True,
+                    "ring_buffer_base_global": 0xA4AA0,
+                    "ring_buffer_size": 0x20000,
+                    "slot_count": 4,
+                    "slot_size": 0x8000,
+                    "slot_expression": "fit_buffer + (ring_index & 3) * 0x8000",
+                    "maximum_chunk_size": 0x8000,
+                    "source_position_advanced_by_chunk": True,
+                    "ring_index_advanced_until_full_source_size": True,
+                    "host_destination_address_proved": False,
+                    "fit_table_transfer_by_this_chunk_loop_proved": False,
+                },
                 "final_handoff_address_0xfef80000_mapping_proved": False,
                 "oem_key_man_byte_identity_with_ftpr_oem_key_proved": True,
             },
@@ -860,8 +904,10 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "runtime_fit_type0b_bound_to_stored_oem_key_manifest": False,
             "runtime_expected_digest_bytes_recovered": False,
             "source_fit_content_producer_cse_bup_proved": True,
-            "ibbl_exact_cse_sram_descriptor_copy_path_proved": True,
-            "ibbl_runtime_copy_descriptor_values_recovered": False,
+            "bup_places_exact_ibbl_at_0xffffc000_proved": True,
+            "bup_streams_resolved_ibb_through_four_slot_sram_ring_proved": True,
+            "ibbl_static_self_relocation_descriptor_recovered": True,
+            "ibbl_self_relocation_descriptor_is_not_fit_transfer_proved": True,
             "apl_public_cse_sram_to_fef80000_handoff_corroborated": True,
             "final_handoff_address_0xfef80000_mapping_proved": False,
             "rbe_and_bup_signed_module_byte_chains_proved": True,
@@ -873,8 +919,10 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
         "limitations": [
             "Exact CSE RBE code selects FTPR CPD member oem.key, creates object oem_key_man at the exact source length, transfers that exact length without a visible transformation, and requires the destination manifest dword count to match the source length.",
             "Exact CSE BUP code initializes a 0x20000-byte FIT-bearing buffer, copies oem_key_man into payload offset 0x1000, and appends type 0x0b with address 0xfffe1000. Exact IBBL later consumes a FIT at 0xfef80000.",
-            "Exact IBBL startup configures memory types for both 0xfffe0000 and 0xfef80000, clears the latter, executes a descriptor-directed dword copy using a descriptor at 0xffffe760, and then reads from 0xfef80000. The runtime descriptor values are not present in the recovered static bytes, so the exact copy source/destination and its byte identity with BUP's buffer remain unresolved.",
-            "Hash-bound historical Apollo Lake Slim Bootloader source independently defines a 0x20000-byte CSE SRAM remapping at 0xfffe0000 and copies CSE-provided chunks into IbbDst, while its board config places Stage1A at 0xfef80000. This strongly corroborates the exact proprietary endpoints without substituting for the missing runtime descriptor values.",
+            "Exact BUP resolves IBBL, bounds its size, and places it at the end of the 0x20000-byte buffer. The exact 0x4000-byte IBBL therefore begins at buffer offset 0x1c000, or SRAM alias 0xffffc000.",
+            "The descriptor at runtime 0xffffe760 is statically embedded at IBBL file offset 0x2760 and contains destination 0xfeffc000, count 0x1000 dwords, source 0xffffc000. It relocates the exact 0x4000-byte IBBL itself and is not the unresolved FIT transfer into 0xfef80000.",
+            "Exact BUP separately streams the resolved IBB member through four 0x8000-byte slots spanning the same 0x20000-byte SRAM buffer, advancing source position and ring index under a hardware handshake. This proves the proprietary CSE producer side of the IBB stream, but not the host destination or an exact FIT-table transfer.",
+            "Hash-bound historical Apollo Lake Slim Bootloader source independently defines a 0x20000-byte CSE SRAM remapping at 0xfffe0000 and copies CSE-provided chunks into IbbDst, while its board config places Stage1A at 0xfef80000. This remains comparative support for the still-unrecovered FIT transfer path.",
             "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
             "The RBE-to-BUP path binds BUP's published oem_key_man payload to exact FTPR oem.key bytes. The exact stored usage-39 digest is therefore recovered for the BUP-published object, but it is not promoted to the IBBL runtime expected digest until the BUP-to-0xfef80000 mapping is proved.",
             "RBEP.man and FTPR.man embedded signatures verify, and their signed metadata hashes bind exact RBE and BUP bytes through rbe.met and bup.met. These remain self-contained signature chains until their manifest keys are externally anchored.",

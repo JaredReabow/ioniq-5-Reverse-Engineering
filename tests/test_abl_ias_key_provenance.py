@@ -51,12 +51,12 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "b5e32c319d9ee5fb555f936672d1e135ac25221cf791cd5779270689cf683fad")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "11ec0d56b7ac912d67588778ce7b09647f7aba34a3ebd0a8973dc9f10dec2044")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "0f71ffbe6d7d153d20da1764af688871e8f0b2a03b8e07273fb72b76f0d69b60")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "8fd1004319b20acca4877e0dbadfa020177b1b3023c0a47417e358770a606a5d")
         self.assertNotIn(b"work/", data)
         self.assertNotIn(b"Contents of section", data)
 
@@ -65,10 +65,14 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         loader = exact["ibb_loader"]
         stage = exact["decompressed_stage1"]
         self.assertEqual(loader["source_fit_address"], 0xFEF80000)
-        cse_handoff = loader["cse_sram_handoff"]
-        self.assertEqual(cse_handoff["copy_descriptor_address"], 0xFFFFE760)
-        self.assertTrue(cse_handoff["descriptor_directed_copy_path_proved"])
-        self.assertFalse(cse_handoff["runtime_descriptor_values_recovered"])
+        relocation = loader["early_memory_setup_and_self_relocation"]
+        self.assertEqual(relocation["copy_descriptor_runtime_address"], 0xFFFFE760)
+        self.assertEqual(relocation["copy_descriptor_file_offset"], 0x2760)
+        self.assertEqual(relocation["copy_descriptor_dwords"]["destination"], 0xFEFFC000)
+        self.assertEqual(relocation["copy_descriptor_dwords"]["count"], 0x1000)
+        self.assertEqual(relocation["copy_descriptor_dwords"]["source"], 0xFFFFC000)
+        self.assertEqual(relocation["copy_size_bytes"], 0x4000)
+        self.assertTrue(relocation["static_descriptor_values_recovered"])
         self.assertEqual(loader["relocated_fit_address"], 0xC10C0)
         self.assertEqual(loader["fit_signature"], "_FIT_   ")
         self.assertTrue(loader["type_0b_payload_relocated_if_present"])
@@ -114,6 +118,16 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(producer["published_fit_type"], 0x0B)
         self.assertFalse(producer["final_handoff_address_0xfef80000_mapping_proved"])
         self.assertTrue(producer["oem_key_man_byte_identity_with_ftpr_oem_key_proved"])
+        placement = producer["ibbl_tail_placement"]
+        self.assertEqual(placement["exact_buffer_offset"], 0x1C000)
+        self.assertEqual(placement["exact_runtime_address"], 0xFFFFC000)
+        self.assertTrue(placement["matches_self_relocation_descriptor_source"])
+        streamer = producer["ibb_ring_streamer"]
+        self.assertEqual(streamer["source_member_name"], "IBB")
+        self.assertEqual(streamer["slot_count"], 4)
+        self.assertEqual(streamer["slot_size"], 0x8000)
+        self.assertEqual(streamer["ring_buffer_size"], 0x20000)
+        self.assertFalse(streamer["host_destination_address_proved"])
 
     def test_uep_mode_decoder_matches_exact_four_bit_expression(self):
         selected = {5, 6, 7, 9, 10, 11, 13, 14, 15}
@@ -159,8 +173,10 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["bup_published_expected_usage39_digest_recovered"])
         self.assertFalse(conclusions["runtime_fit_type0b_bound_to_stored_oem_key_manifest"])
         self.assertFalse(conclusions["runtime_expected_digest_bytes_recovered"])
-        self.assertTrue(conclusions["ibbl_exact_cse_sram_descriptor_copy_path_proved"])
-        self.assertFalse(conclusions["ibbl_runtime_copy_descriptor_values_recovered"])
+        self.assertTrue(conclusions["bup_places_exact_ibbl_at_0xffffc000_proved"])
+        self.assertTrue(conclusions["bup_streams_resolved_ibb_through_four_slot_sram_ring_proved"])
+        self.assertTrue(conclusions["ibbl_static_self_relocation_descriptor_recovered"])
+        self.assertTrue(conclusions["ibbl_self_relocation_descriptor_is_not_fit_transfer_proved"])
         self.assertTrue(conclusions["apl_public_cse_sram_to_fef80000_handoff_corroborated"])
         self.assertFalse(conclusions["final_handoff_address_0xfef80000_mapping_proved"])
         self.assertTrue(conclusions["rbe_and_bup_signed_module_byte_chains_proved"])

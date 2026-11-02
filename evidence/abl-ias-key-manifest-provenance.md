@@ -30,11 +30,13 @@ manifest dword length. BUP then copies `oem_key_man` into a FIT payload and
 publishes type `0x0b` at `0xfffe1000`. Before that copy, RBE obtains a
 CRC-checked UEP through an exact hardware-window or BPDT route, extracts its
 256-bit OEM-key field, and requires the `oem.key` modulus-plus-exponent digest
-to match before RSA and extension validation. Exact IBBL startup configures
-both `0xfffe0000` and `0xfef80000`, consumes a copy descriptor at `0xffffe760`,
-and then reads the FIT at `0xfef80000`. The runtime descriptor values that
-would bind BUP's buffer to that destination, and the external trust or fuse
-precedence governing the selected UEP bytes, remain unproved.
+to match before RSA and extension validation. Exact BUP also resolves `IBBL`
+and places the exact `0x4000`-byte member at buffer offset `0x1c000`, which is
+SRAM alias `0xffffc000`. IBBL's embedded descriptor at runtime `0xffffe760`
+is now recovered as `{ destination=0xfeffc000, count=0x1000 dwords,
+source=0xffffc000 }`: it self-relocates IBBL and is not the FIT transfer to
+`0xfef80000`. That transfer, and the external trust or fuse precedence
+governing the selected UEP bytes, remain unproved.
 
 ## Canonical identities
 
@@ -83,13 +85,13 @@ with 16-byte alignment. FIT type `0x0b` is therefore included when present.
 
 Before this caller executes, exact IBBL startup configures memory types for the
 `0xfffe0000` CSE SRAM region and the `0xfef80000` temporary region, clears the
-latter, and invokes a three-dword descriptor copy helper on a descriptor at
-`0xffffe760`. It then reads from `0xfef80000`. This proves the proprietary
-handoff mechanism but not the runtime descriptor's destination, source, or
-count values. Consequently it does not yet establish byte identity between
-BUP's FIT-bearing buffer and the FIT observed at `0xfef80000`. The package
-carried-key candidate digest remains absent verbatim from the stored update
-ABL, IBBL, and decompressed stage 1.
+latter, and invokes its three-dword copy helper on the embedded descriptor at
+`0xffffe760`. The descriptor is statically present at IBBL file offset `0x2760`
+and copies `0x1000` dwords from `0xffffc000` to `0xfeffc000`: exactly one
+`0x4000`-byte IBBL image. IBBL then reads from `0xfef80000`. This proves
+self-relocation, not byte identity between BUP's FIT-bearing buffer and the FIT
+observed at `0xfef80000`. The package carried-key candidate digest remains
+absent verbatim from the stored update ABL, IBBL, and decompressed stage 1.
 
 ## Exact stage-1 key-manifest consumer
 
@@ -175,25 +177,33 @@ A separate exact BUP resolver couples names `rot.key`/`oem.key` with
 this proves that BUP's published type-`0x0b` object contains the exact FTPR
 `oem.key` bytes.
 
-IBBL's later source table is at `0xfef80000`, whereas BUP publishes the payload
-address as `0xfffe1000`. Historical Apollo Lake Slim Bootloader source at the
+BUP separately resolves `IBBL` and `IBB`, rejects an IBBL larger than `0x9000`,
+and loads IBBL at `fit_buffer + 0x20000 - ibbl_size`. The exact IBBL size is
+`0x4000`, so it occupies buffer offset `0x1c000`. With BUP's `0xfffe0000` SRAM
+alias, the exact runtime base is `0xffffc000`. This equals the source in IBBL's
+embedded self-relocation descriptor, independently joining BUP placement to
+IBBL execution identity.
+
+BUP also supplies the exact IBB producer side. It takes source offset and size
+from the resolved `IBB` member descriptor, divides the same `0x20000`-byte SRAM
+buffer into four `0x8000`-byte slots, reads at most `0x8000` bytes into
+`fit_buffer + (ring_index & 3) * 0x8000`, advances source position, and uses a
+hardware handshake before reusing each slot. This proves the proprietary IBB
+stream source and ring geometry. It does not expose the host destination or show
+that this loop itself transfers the pre-existing FIT table.
+
+IBBL's later FIT source remains `0xfef80000`, whereas BUP publishes the key
+manifest at `0xfffe1000`. Historical Apollo Lake Slim Bootloader source at the
 same hash-bound commit defines a `0x20000`-byte CSE SRAM remapping beginning at
 `0xfffe0000`, requests IBB data from CSE, copies ring-buffer chunks from that
 remapping into `IbbDst`, and acknowledges each chunk. Its board configuration
 places Stage1A at `0xfef80000` and Stage1B firmware data at `0xfef88000`.
 
-The exact IBBL startup narrows this boundary further. It configures MTRR pairs
-covering `0xfef80000` and `0xfffe0000`, clears the temporary destination at
-`0xfef80000`, loads a three-dword copy descriptor from `0xffffe760`, calls a
-helper that interprets the descriptor as destination, dword count, and source,
-and then reads from `0xfef80000`. This proves an exact descriptor-directed
-CSE-SRAM handoff path. The runtime descriptor values are not present in the
-recovered static image, so its actual source/destination and byte identity with
-BUP's FIT buffer remain unresolved.
-
-The public flow strongly corroborates the exact BUP buffer size, IBBL startup,
-and both endpoint addresses. It does not substitute for the missing runtime
-descriptor values or prove that BUP's exact bytes reach IBBL unchanged.
+The exact IBBL startup is consistent with those endpoints but does not perform
+that transfer itself. Its descriptor copies only IBBL from `0xffffc000` to
+`0xfeffc000`; afterward it reads `0x4800` dwords at `0xfef80000`. The public
+flow therefore remains comparative support for a CSE-provided IBB transfer,
+not proof that BUP's exact FIT bytes reach `0xfef80000` unchanged.
 
 ## Exact CSE signed-module byte chains
 
@@ -276,9 +286,10 @@ candidate:
 `437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06`
 
 This is an exact stored-object mismatch, not a boot verdict. The runtime source
-FIT and the descriptor at `0xffffe760` were not captured. Exact RBE and BUP
-bind FTPR `oem.key` to BUP's type-`0x0b` payload, while the missing descriptor
-values still prevent binding that payload byte-for-byte to IBBL's FIT at
+FIT at `0xfef80000` was not captured. The descriptor at `0xffffe760` is now
+fully recovered but proves only IBBL self-relocation. Exact RBE and BUP bind
+FTPR `oem.key` to BUP's type-`0x0b` payload, while the intervening CSE/host
+transfer still prevents binding that payload byte-for-byte to IBBL's FIT at
 `0xfef80000`. The package may also be applied under an
 already-installed ABL/key manifest rather than the ABL image present in the
 same update archive. Therefore neither package acceptance nor rejection follows
@@ -359,6 +370,11 @@ What is now proved:
 - exact CSE BUP constructs a FIT type-`0x0b` entry from `oem_key_man` and
   publishes payload address `0xfffe1000`;
 - exact CSE BUP couples names `oem.key` and `oem_key_man` in its key resolver;
+- exact BUP places the `0x4000`-byte IBBL at SRAM alias `0xffffc000`;
+- exact BUP streams the resolved `IBB` member through four `0x8000`-byte SRAM
+  slots under a hardware handshake;
+- IBBL's static descriptor relocates those exact bytes to `0xfeffc000` and is
+  not the FIT transfer;
 - IBBL copies a FIT from `0xfef80000` to `0xc10c0`;
 - IBBL relocates a present type-`0x0b` payload;
 - stage 1 selects FIT type `0x0b` as its IAS key-manifest source;
@@ -373,9 +389,9 @@ What is now proved:
 
 What remains unproved:
 
-- whether the proprietary intervening loader implements the publicly
-  corroborated CSE SRAM-remapping/ring-copy flow that explains BUP's
-  `0xfffe0000` addresses and IBBL's `0xfef80000` destination;
+- the exact host-side consumer and destination for BUP's proved four-slot IBB
+  stream, and the mechanism that preserves or transfers the FIT table to
+  IBBL's `0xfef80000` source;
 - whether an installed unit executes this exact RBE/BUP/ABL set rather than a
   different installed manifest or firmware generation;
 - whether CSE, Boot Guard, an ACM, ROM, real FPFs, or another earlier stage
@@ -403,11 +419,11 @@ are captured.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `22,130`
-  - SHA-256 `b5e32c319d9ee5fb555f936672d1e135ac25221cf791cd5779270689cf683fad`
+  - size `25,061`
+  - SHA-256 `11ec0d56b7ac912d67588778ce7b09647f7aba34a3ebd0a8973dc9f10dec2044`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `76,911`
-  - SHA-256 `0f71ffbe6d7d153d20da1764af688871e8f0b2a03b8e07273fb72b76f0d69b60`
+  - size `82,802`
+  - SHA-256 `8fd1004319b20acca4877e0dbadfa020177b1b3023c0a47417e358770a606a5d`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

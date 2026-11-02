@@ -4200,3 +4200,11 @@ and are superseded by corrections rather than silently rewritten.
 - Using the pid as the id removes the collision: the application stays up, creates its surfaces, commits, and the compositor names a window with real dimensions.
 - The screen is still black. But for the first time the thing that should be on it exists in the compositor, and the reason it is not there is a placement question rather than a
   survival one.
+
+## 2026-10-31 — the screen had content in it
+
+- Found the recipe the archive was built from, reproduced it on a clone of the untouched reference image, and the capture has the application's own drawing in it: the night
+  background, the wave, and two large text keys.
+- They are untranslated keys, so this is a partial render rather than the archived screen. But it is the application's pixels, captured from the compositor, on an image whose
+  hash was checked before and after.
+- The difference from this week's runs was not a bug I fixed. It was an id the vendor declares, used without forcing it, and no variant arguments.

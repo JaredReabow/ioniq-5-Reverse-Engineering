@@ -51,12 +51,12 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "5a803cb5d4baba39ca79e835f7cd2c3ad86689bd2d61cc3fa5a56806bdf67ec8")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "fd01ced30384bff6052ed9aa3b4a40d78aa4dd190c31d043f8356b3ed929afc5")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "4169d65333fbbad8ad2556b58fe04b02ac9149287d425232921e7ec085678673")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "9ece68730be6d4836c51ae3757a4b066aa0daeb44198e80da5cfe881ee8be3c4")
         self.assertIn(b"RBE incoming runtime-object handoff lookup", data)
         self.assertIn(b"mov     ebx, 0x8200008", data)
         self.assertIn(b"RBE runtime-object handoff append", data)
@@ -199,6 +199,11 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(ingestion["reader_called_until_null"])
         self.assertEqual(ingestion["header_read_size"], 0x12)
         self.assertEqual(ingestion["entry_total_size_offset"], 0x0E)
+        self.assertEqual(ingestion["entry_total_size_width_bits"], 16)
+        self.assertFalse(ingestion["minimum_total_size_check_before_subtract"])
+        self.assertTrue(ingestion["payload_length_underflows_when_total_size_below_0x12"])
+        self.assertFalse(ingestion["explicit_maximum_total_size_check_observed"])
+        self.assertFalse(ingestion["malformed_stream_attacker_control_or_reachability_proved"])
         self.assertTrue(ingestion["payload_read_must_be_exact"])
         phase_zero = ingestion["phase_zero_order"]
         self.assertEqual(phase_zero["phase_zero_function_count"], 0x16)
@@ -347,6 +352,8 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["same_handoff_consumed_by_signed_ftpr_kernel_proved"])
         self.assertTrue(conclusions["ftpr_stream_and_bup_runtime_object_ingestion_geometry_match_proved"])
         self.assertTrue(conclusions["bup_phase_zero_ingestion_before_ifp_uep_consumption_and_cleanup_proved"])
+        self.assertTrue(conclusions["bup_runtime_object_total_size_underflow_guard_absent_proved"])
+        self.assertFalse(conclusions["bup_malformed_runtime_object_stream_reachability_proved"])
         self.assertFalse(conclusions["ftpr_stream_reader_to_bup_import_binding_proved"])
         self.assertFalse(conclusions["bup_runtime_ipub_key_proved_to_originate_in_rbe_handoff"])
         self.assertTrue(conclusions["signed_nftp_dal_sdm_reads_exact_snowball_ipub_key_policy_object_proved"])

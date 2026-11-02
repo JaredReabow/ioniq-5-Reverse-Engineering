@@ -98,7 +98,12 @@ external-reader import is not yet bound to the exact FTPR-kernel function. BUP
 phase zero nevertheless proves ingestion at function index 7, `ifp_uep`
 consumption at index 10, and list destruction only after the phase. Its
 materializer also subtracts `0x12` from a zero-extended u16 total without a
-minimum-size guard. The later `ifp_uep` consumer checks neither lookup success
+minimum-size guard. FTPR can concatenate a state-1 total-`0x10` or total-`0x11`
+entry with bytes from the next accepted entry, delivering a complete header
+that makes BUP compute `0xfffffffe` or `0xffffffff`. On the standard kernel read
+path, however, the exact `0x01800000` process-buffer maximum rejects that
+wrapped payload request before any stream copy; the BUP reader import binding
+is still unresolved. The later `ifp_uep` consumer checks neither lookup success
 nor payload size before fixed `8 + 0x100` byte copies, and duplicate names are
 last-ingested-wins. Exact RBE supplies the stock object at `0x108` bytes;
 malformed-stream or duplicate-object attacker control is not proved. BUP

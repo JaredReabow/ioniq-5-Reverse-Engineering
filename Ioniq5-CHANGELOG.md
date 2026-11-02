@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.53.0 - the pixman abort is fixed: the vendor shell's solid fills had no format
+
+- **Diagnosis, from instrumenting our own backend.** Logging every view in the compositor's view list at repaint, with the wayland client
+  credentials behind each surface, showed the aborting views plainly:
+  ```
+  ias-soft: view[0] client=-1 buffer=no alpha=1.00 scissor=1 size=1920x720
+  ias-soft: view[1] client=-1 buffer=no alpha=1.00 scissor=1 size=1920x720
+  ias-soft: view[2] client=-1 buffer=no alpha=1.00 scissor=1 size=1920x720
+  ias-soft: view[4] client=-1 buffer=no alpha=1.00 scissor=1 size=1920x720
+  ```
+  **No client, no buffer, scissored.** Those are the vendor IVI shell's own solid-colour surfaces — layer and screen backgrounds — not anything a
+  client drew. `pixman_renderer_surface_set_color()` draws them with `pixman_image_create_solid_fill()`, whose image has **no format**, and
+  `composite_clipped()` asserts on exactly that. So the assertion is the vendor compositor using a path that cannot handle its own solid fills once
+  a second screen makes those fills scissored. Opus named this cause precisely (its cause (a)) when asked, and it was right.
+- **Fix, without touching any vendor binary.** `tools/uk_fw/ias_backend_soft/pixman_solid_shim.c`: an interposer for
+  `pixman_image_create_solid_fill()` that returns an ordinary 1×1 ARGB32 bits image with `PIXMAN_REPEAT_NORMAL`, so the image has a real format and
+  fills a clipped region identically. Preloaded into weston only.
+- **Result, measured:** the ten-output chain now runs with **`Assertion` count 0**, weston alive (pid 731) and `AppHomeScreen` alive (pid 855) —
+  where every previous ten-output run ended in `abort`. `screen(9` now appears **18 times**, so the app is interrogating the layout controller
+  repeatedly instead of dying before it can.
+- Two remaining facts, recorded honestly:
+  - The app still shows `commit` 0, `attach` 0, `ivi_surface` 0 — the surface problem is unchanged and is now the only display blocker.
+  - A **separate** crash appeared: `AppCamera[818]: segfault … in libc-2.25.so`. That is a client dying, not the compositor, and it is new to this
+    configuration; it needs its own investigation rather than being folded into the display question.
+- Screenshot capture failed in this run (`screenshooter` produced no file), so there is no image from it; the assertion count and process states are
+  the evidence, and a capture run follows.
+
 ## 2.52.0 - AppHomeScreen is exonerated: the abort happens without it
 
 - Bisection step one: ten outputs, `IAS_REPAINT_OUTPUTS=1`, `IAS_SHIM=0`, with **`/app/bin/AppHomeScreen` made non-executable** (mode 0000) so the

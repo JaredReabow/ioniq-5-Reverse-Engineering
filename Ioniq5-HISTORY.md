@@ -4046,3 +4046,10 @@ and are superseded by corrections rather than silently rewritten.
 - Remove the home screen and the compositor still dies, so the thing we have been trying to see is not the thing that kills it.
 - Also caught myself trusting a probe whose baseline was wrong: weston was reported dead because it had not started yet. Two runs lost to a five-second
   race, and the record says so.
+
+## 2026-10-31 — the compositor stops dying
+
+- Our own backend named the culprit in one line per view: no client, no buffer, scissored. The vendor shell was compositing its own colour fills through
+  a path that asserts on them.
+- Opus called that exactly, and the fix needed no vendor surgery — a two-dozen-line interposer that gives a solid fill an actual format.
+- Ten screens now run without aborting. The picture is still absent, but for the first time the ground under it is stable.

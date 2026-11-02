@@ -431,9 +431,35 @@
         "rbe_ipub_key_to_rot_key_pin_proved": true,
         "rbe_runtime_object_handoff": {
           "base": 136314880,
+          "classified_consumer_occurrences": {
+            "ftpr_kernel": [
+              1180922,
+              1185446,
+              1185454
+            ],
+            "rbe": [
+              1074496,
+              1074514,
+              1074623,
+              1074646,
+              1074757
+            ]
+          },
+          "computed_indirect_or_external_producer_excluded": false,
           "enabled_flag_mask": 1,
           "enabled_flag_offset": 13,
           "entry_total_size_offset": 14,
+          "exact_abl_little_endian_base_occurrences": [
+            1074496,
+            1074514,
+            1074623,
+            1074646,
+            1074757,
+            1167229,
+            1180922,
+            1185446,
+            1185454
+          ],
           "external_authentication_or_immutability_proved": false,
           "first_entry": 136314888,
           "first_rbe_append_name": "cld_rst_blk",
@@ -441,9 +467,18 @@
           "maximum_total_size": 32768,
           "name_compare_size": 12,
           "optional_missing_pmc_msg_is_appended_by_rbe": true,
+          "other_plain_static_handoff_base_literal_found": false,
           "payload_offset": 18,
           "pre_rbe_producer_identity_proved": false,
           "rbe_ipub_key_path_uses_lookup_not_append": true,
+          "remaining_unaligned_cross_dword_occurrence": {
+            "containing_dwords": [
+              536870912,
+              4279703816
+            ],
+            "flash_offset": 1167229,
+            "is_aligned_address_literal": false
+          },
           "required_existing_entry_names": [
             "bpdt",
             "pm_trans",

@@ -281,6 +281,14 @@ kernel. It still does not show who populated or authenticated the table before
 RBE, and the embedded manifest chain remains externally anchored only if the
 incoming `ipub_key` itself is anchored.
 
+A whole-image literal search finds nine byte occurrences of little-endian
+`0x08200000`: five are the exact RBE lookup/append references and three are the
+FTPR-kernel range/iterator references. The ninth starts one byte into PMCP dword
+`0x20000000` and crosses into following dword `0xff171908`; it is not an aligned
+address literal. Thus no other plain static handoff-base literal remains in the
+exact 8 MiB ABL. This bounded absence does not exclude a computed address,
+indirect pointer, ROM producer, or producer outside the recovered image.
+
 Host-side parsing establishes:
 
 - FTPR `rot.key` at flash `0x17b000`, size `0x3fc`, SHA-256
@@ -535,8 +543,10 @@ What is now proved:
 - RBE's `ipub_key` path looks up an existing handoff entry rather than appending
   it, and the exact manifest-bound FTPR kernel later consumes the same base,
   first-entry address, state byte, and entry-size geometry;
-- the pre-RBE handoff producer, authentication, mutability, and ROM/fuse
-  authority remain unproved;
+- all plain little-endian `0x08200000` byte occurrences in the exact ABL are
+  classified as RBE/FTPR consumers or one unaligned cross-dword PMCP match;
+- the pre-RBE handoff producer, authentication, mutability, computed/indirect
+  paths, and ROM/fuse authority remain unproved;
 - exact FTPR signed-package metadata has no direct `oem.key` name/digest entry
   and FTPR CPD has no `oem.key.met` member;
 - exact BPDT type-17 UEP contains three copies of the stored `oem.key` public-key
@@ -617,8 +627,8 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `48,562`
-  - SHA-256 `52f4e7e148be690a45162ee6b25c2cefc0c918444fc1eae9fdb5ce13a39942c2`
+  - size `49,530`
+  - SHA-256 `bd8083a1d4f2c3615f4f3e90fe744ef672a0db34d3c65964717bc2a601b254ec`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
   - size `106,756`
   - SHA-256 `de572636a386de1faca23155cfa1c670b87a9ab08e267c3a1980035106f1641e`

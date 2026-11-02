@@ -676,10 +676,12 @@ Intel-SA-00086 lists `3.1.50.2222` as its resolved Apollo Lake TXE production
 release, so CVE-2017-5707 and CVE-2017-5710 are rejected as version-only
 candidates for this artifact. Intel-SA-00125 explicitly covers TXE 3.0 through
 3.1.50 and says TXE 3.1.55 replaces `3.1.50.2222`. That makes
-CVE-2018-12147 an exact-version privileged-local HECI lead and CVE-2018-3655 an
-exact-version physical-access lead. Neither advisory proves an unprivileged
-Linux-root route, a reachable MEI client, or control over the handoff, UEP, or
-snowball objects. Detailed source hashes and bench prerequisites are in
+CVE-2018-12147 an exact-version privileged-local HECI lead. Intel names
+anti-replay bypass, TXE data-file tampering, and firmware rollback as
+CVE-2018-3655 physical-access consequences, making persistent policy rollback a
+strong lead but not proving identity with the exact `/snowball` objects.
+Neither advisory proves an unprivileged Linux-root route, a reachable MEI
+client, or control over the handoff, UEP, or snowball objects. Detailed source hashes and bench prerequisites are in
 `intel-txe-3.1.50-advisory-applicability.md`.
 
 ## Security boundary

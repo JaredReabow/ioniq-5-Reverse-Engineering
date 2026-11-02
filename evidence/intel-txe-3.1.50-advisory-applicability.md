@@ -64,9 +64,14 @@ The relevant CVEs have materially different prerequisites:
 
 - **CVE-2018-3655**: a subsystem flaw before TXE 3.1.55 may allow an
   unauthenticated user to modify or disclose information with **physical
-  access**. Intel's public advisory does not identify the subsystem, object,
-  transaction, or required electrical/debug interface. Version applicability
-  is established; an actionable route is not.
+  access**. Intel additionally states that a physical attacker may bypass CSME
+  anti-replay protection, tamper with CSME/SPS/TXE data-file integrity, and
+  potentially roll firmware back to a release affected by the earlier
+  SA-00086 issues. Those consequences make persistent `/snowball` policy and
+  provisioning-state rollback high-priority questions. The advisory does not
+  identify the subsystem, object, transaction, or required electrical/debug
+  interface, however; exact version applicability is established but an
+  actionable route is not.
 - **CVE-2018-12147**: insufficient input validation in the HECI subsystem before
   TXE 3.1.55 may allow a **privileged local user** to escalate privileges. This
   is a host-root/privileged-to-TXE lead, not an unprivileged Linux-root path.
@@ -102,7 +107,10 @@ The strongest current interpretation is:
   lead;
 - CVE-2018-12147 does not solve initial Linux root because it requires a
   privileged local caller;
-- CVE-2018-3655 may matter to a physically isolated bench, but public advisory
-  text is insufficient to derive a safe or reproducible interface;
+- CVE-2018-3655 is directly relevant to a physically isolated bench because
+  Intel names anti-replay bypass, TXE data-file tampering, and rollback as
+  consequences, but the public text is insufficient to derive a safe or
+  reproducible interface or to equate generic TXE data files with the exact
+  `/snowball` objects;
 - no TXE exploit, HECI message, malformed request, flash operation, or trust
   replacement has been generated or executed.

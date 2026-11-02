@@ -3,6 +3,21 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.52.0 - AppHomeScreen is exonerated: the abort happens without it
+
+- Bisection step one: ten outputs, `IAS_REPAINT_OUTPUTS=1`, `IAS_SHIM=0`, with **`/app/bin/AppHomeScreen` made non-executable** (mode 0000) so the
+  launcher cannot start it. Result: **`Assertion` count 1, weston gone, and `screen(9` never appears** (0 occurrences, because the client that
+  issues it was absent).
+- So **the home screen application is not the trigger.** Combined with §2.51.0, the abort needs *some* application traffic on the ten-screen layout,
+  and it is not this one. The remaining candidates are the other clients the launcher starts (the session bus in earlier runs showed
+  `AppStandbyClock`, `UserProfileManager`, `AppDMClient`, `AppCamera`, `appphev`, `AppOSDManager`, `AssistantWindow`, `AppNavi`).
+- **A false alarm worth recording**, because it cost two runs: a watcher that polled `pidof weston` every 5 s reported "weston died" on the very
+  first poll (`DIED_IN_WINDOW=1`, run ended at 9 s). Weston simply had not started yet — the chain brings it up at about five seconds. The
+  follow-up run confirmed the chain completes normally through `APPNAVI_LAUNCH_REQUEST_END`. The lesson is the same one this log keeps relearning:
+  a negative from a probe with a bad baseline is not evidence.
+- Next: bisect the remaining launcher-spawned clients. The launcher log records what it starts, so the next step is to read it and disable candidates
+  in the order they are launched rather than guessing.
+
 ## 2.51.0 - ten screens on their own are stable; the abort needs a client
 
 - Ran the discriminator: **ten outputs, `IAS_REPAINT_OUTPUTS=1`, `IAS_SHIM=0`, the `ivi-shell`, and `early-background` — and no other

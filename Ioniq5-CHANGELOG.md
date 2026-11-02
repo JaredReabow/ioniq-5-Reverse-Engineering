@@ -3,7 +3,7 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
-## 2.72.0 - interposition is not retired: the signature table makes the call readable
+## 2.73.0 - interposition is not retired: the signature table makes the call readable
 
 - 1.62.0 retired external interposition and was right about the point it tested: an
   unknown `va_list` cannot be forwarded to a variadic callee, and
@@ -22,7 +22,7 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
   `interposed=1|0` and a verdict (`observed|shadowed|unverified|idle`) at unload, and
   `unverified` is never read as "no commit happened".
 
-## 2.71.0 - manual inspection of a live guest
+## 2.72.0 - manual inspection of a live guest
 
 - `vm_boot.py` accepts `--display vnc` (guest framebuffer on `127.0.0.1:0`, headless and
   network-free) and `gtk`/`sdl` windows beside the existing headless modes; the CLI
@@ -37,7 +37,7 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
   identifier (`wl_surface@N.attach`) as an email address; the local part is an
   interface name, so only real addresses are reported.
 
-## 2.70.0 - whole-tree decompile queue for the vendor application layer
+## 2.71.0 - whole-tree decompile queue for the vendor application layer
 
 - Added `tools/uk_fw/decompile_all.py`: it inventories every ELF in `app/` and `navi/`
   (**157 binaries, 382 MB**, third-party Qt/ICU runtimes excluded), then works through them
@@ -86,31 +86,47 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 - State is `work/decompiled/all-state.json`; `--dry-run` prints the queue and re-running
   the same command resumes from there.
 
-## 2.69.0 - the decompile is complete: every body-bearing AppNavi function has an artifact
+## 2.70.0 - the decompile is complete: every body-bearing AppNavi function has an artifact
 
 - Closed the tail: **157,484 `.c` + 15 `.asm` = 157,499 artifacts** for 157,499 body-bearing functions, verified by reconciling `--select LIST` against the files on disk — zero entries without an artifact.
 - The 15 `.asm` files are decompiler refusals published as disassembly listings with the exact error in the header and a row in `listing-fallbacks.tsv` (`process: timeout`, `Cannot properly adjust input varnodes`, `Unable to find unique hash for varnode`, `Decompiler process died`). A refusal is now a documented artifact instead of a hole.
 - Root cause of the entries that had no artifact at all: `DecompileStubborn` deleted the function with `removeFunction` before rebuilding it, so a failed rebuild left the program without that function. The retry is now non-destructive (clear and re-disassemble the existing body in place), which is what let the last ones close.
 - Two idempotent drivers close any future gap from the inventory: `--select MISSING` (`DecompileMissing.java`) and `--select STUBBORN` (`DecompileStubborn.java`).
 
-## 2.68.0 - AppNavi tail pass: 99.0% of body-bearing functions have C
+## 2.69.0 - AppNavi tail pass: 99.0% of body-bearing functions have C
 
 - The tail has its own script: `tools/uk_fw/ghidra/DecompileMissing.java`, driven by `decompile.py --select MISSING`. It ignores the resume predicate, reads the inventory, and decompiles exactly the entries marked `has_c_file=false`, recording its own refusals in `missing-failures.tsv`. That converted **13,846** functions of the 15,430 gap, taking AppNavi to **155,916 of 157,499 body-bearing functions (99.0%)**.
 - Remaining: 1,583 functions. 78 are decompiler refusals logged per entry (`Cannot properly adjust input varnodes`, `Unable to find unique hash for varnode`); the rest exceed the default 90-second per-function budget and need a much longer cap — the pass is resumable and re-runnable from the same inventory.
 - Driver fixes so a pass cannot look finished when it is not: the 289-line script compiles again after the inventory counters were added, the wrapper reports `functions` as a count with a 40-name sample (not 142k names), reports `failure_rows` and the `ghidra.log` path, and exits non-zero only for an aborted run or a run that produced and skipped nothing.
 
-## 2.67.0 - decompile of the recovered userland, with the AppNavi tail tracked
+## 2.68.0 - decompile of the recovered userland, with the AppNavi tail tracked
 
 - Decompiled every function of the launcher-side binaries, in one queue with a bounded import each: `AppOSDManager` 2,098, `UserProfileManager` 2,127, `ApplicationManager` 4,740, `AppHomeScreen` 12,467, the decrypted updater `AppUpgrade` 369, plus the earlier `ivi-shell.so` 400 and `AppLauncher` 1,114. Output lives under ignored `work/decompiled/<binary>/` with the entry address and signature in each file header.
 - Fixed the abort that stopped `AppNavi` after 1,417 functions: C++ mangled names exceed the filesystem's 255-byte limit, so `FileNotFoundException` killed the run. File names now keep the address, a 60-character head of the symbol and an 8-hex CRC-32 of the full name — short, unique and reproducible.
 - `--limit 0` now means "no cap" end to end (the Java script takes the cap as its third argument instead of a hard-coded 4,000), which is what a complete run needs.
 - `AppNavi` (143 MB, 158,641 analysed functions) runs from the kept project with `--reuse`, so a full pass costs no re-import.
 
-## 2.66.0 - envelope writer, decrypted updater, deployment gate map
+## 2.67.0 - envelope writer, decrypted updater, deployment gate map
 
 - Added `tools/uk_fw/gen5w_encrypt.py`, the inverse of the TE2 decryptor. Proven against the real package: decrypting `HU/firmware/update.tar.gz` and re-encrypting it with the vendor envelope as template reproduces the original file **byte for byte**, including the ciphertext tail kept in the metadata padding field. `tests/test_gen5w_encrypt.py` pins the round trip and that reproduction.
 - Decrypted the packaged updater itself: `AppUpgrade` is a TE2 envelope whose body is an ELF64 binary (10.8 MB), now readable at `work/updater/AppUpgrade.elf`. Its strings show the acceptance logic instead of guessing it: RedBend `Source signature 0x%08x and CRC 0x%08x mismatch`, `[VELIX] : _CheckCKSOfFile … crc`, `Vr_fixed md5sum checking`, `CheckEncryptFile`, and a version gate (`E_UPDATE_VERSION_DOWN/SAME/UP`, UNECE version comparison).
 - Published `docs/update-deployment-feasibility.md`: a gate-by-gate map separating what this project can reproduce (`.ver` CRC, MD5 lists, version string, TE2 envelopes) from what needs the OEM private key (RSA-2048 signature on the `ipk.` boot container, `manifest_keyring` root of trust), with the cheapest next experiments ordered and the explicit non-goals.
+
+## 2.66.0 - a 4 MB frame that was black, and a filename that lied
+
+- Captured eight frames while the app was alive with a forced surface id, all identical at **4,147,216 bytes**, and I briefly read that size as content. It is not:
+  `ias-shot` writes **ASCII PPM (P3)**, not PNG, and the file is 1920×720 of `0 0 0`.
+- Two of my own mistakes, recorded because they nearly became a false result:
+  1. **The tool writes PPM** and my filename said `.png`. A 4 MB text file of black pixels is large *because it is text*, not because it has detail. Size is not
+     evidence of content in an uncompressed text format.
+  2. I copied it into `docs/vm/` as a "home screen captured" artifact before checking a single pixel value. It has been removed rather than left to mislead
+     later readers.
+- What the capture actually says: the application creates surfaces and commits (§2.64.0), and the composited output is **black** — so its surface exists but is
+  **not placed on a layer that any output composites**. That is consistent with the vendor design: the application manager normally drives `ivi_controller` to add
+  the surface to a layer and make it visible, and nothing in this configuration does that.
+- So the remaining work is layout placement, not rendering: something must call `ivi_controller` to put the application's surface on a layer for a screen. That is
+  the same category of missing adaptor as everything else in this projection, and it explains why a committed frame produces no visible picture.
+- Sharpest statement of where we are: **the client draws, and nothing puts what it drew on the screen.**
 
 ## 2.65.0 - with a valid surface id the app draws, then dies in the weather widget's destructor
 

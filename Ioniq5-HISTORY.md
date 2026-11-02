@@ -4135,3 +4135,11 @@ and are superseded by corrections rather than silently rewritten.
 - This has been the answer to "why does nothing appear" for the entire investigation, and it is two environment variables set by the vendor launcher to zero.
 - Recorded with its caveats: the process died, no frame was captured, and the id I used collides with our layer numbering. But the surfaces exist now, and they are
   the application's own.
+
+## 2026-10-31 — surfaces, a commit, and then a destructor
+
+- With a surface id the application finally draws: surfaces created and a frame committed. It then destroys its weather widget and crashes inside that widget's own
+  destructor.
+- The surface question is closed. What is left is a plugin teardown fault that happens after the first frame, which is a different and much smaller problem than the
+  one we have been carrying for days.
+- Noted for the security side: if a signal can trigger that teardown, it is a way to take the display down.

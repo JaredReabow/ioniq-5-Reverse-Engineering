@@ -112,7 +112,7 @@ HECI opens its internal `/dev/bus_drv` service. `busdrv` publishes internal
 interrupt, isolation, and power-state services. Its operation dispatcher is an
 internal CSE interface, not a recovered Linux MEI client grammar.
 
-Exact receive dispatcher `0x277c8..0x27dc8` and host-fragment consumer
+Exact receive dispatcher `0x277c8..0x27dc9` and host-fragment consumer
 `0x28a2d..0x28e77` establish that this transport path:
 
 1. decodes payload length as `(header >> 16) & 0x1ff`;
@@ -163,6 +163,50 @@ acceptance, a vulnerability fix, or installed-unit identity: the comparative
 image itself remains in the superseded TXE 3.1.50 family and therefore cannot
 serve as the required 3.1.55 fixed-version diff.
 
+## Hash-bound comparison with later TXE 3.1.94
+
+A public Intel NUC `AY0076.bio` capsule has now supplied a later Apollo Lake
+image:
+
+- capsule size `11,841,568`, SHA-256
+  `ab8caa3fe9e5b3d14afb765e6a806d48d5918d21d85c3bff083b6b17ea4e7ec2`;
+- strictly extracted IFWI size `16,773,120`, SHA-256
+  `75a866331d8f23d023bbdcf9efdfee7b57bf4727eb50f6162940a2a51cb57b4a`;
+- signed TXE version `3.1.94.3086`, date `2023-01-02`, TCB SVN `3`, ARB SVN
+  `7`, and VCN `112`;
+- signed later HECI size `0x9000`, SHA-256
+  `04dceeb0b42db7910d913545b9b2342e9a26349c8e9d2e2bede201af62bf3b8f`.
+
+`tools/uk_fw/txe_fixed_module_diff.py` verifies the FTPR/NFTP embedded
+signatures, manifest-to-metadata and metadata-to-module reverse-SHA-256 chains,
+and strict decompression for HECI, busdrv, storage, policy, fpf, dal_sdm, and
+syslib. Its reviewed report is
+`evidence/artifacts/update-candidates/txe-fixed-module-diff.json`, SHA-256
+`37061c438fbd979693442fab99aaeb50ecce784478ffb861fe8fca88e4354216`.
+
+The later HECI keeps the nine-bit length and `0x1fc` fragment maximum, while
+adding exact header-state behavior:
+
+- the later-defined DMA-ring bit 29 is rejected before payload dispatch;
+- control messages require `(top_header_byte & 0x90) == 0x80`, rejecting the
+  later-defined extended-header bit 28;
+- aligned control payload geometry expands from `4..8` to `4..40` bytes; and
+- bit 28 on ordinary messages selects a new bounded extended-header parser that
+  checks its encoded length against both the payload and `0x1fc` destination.
+
+Public Linux history names these as later DMA-ring and extended/vtag protocol
+features. More importantly, exact recovered `mei.ko` transmit range
+`0x4db1..0x4dd1` masks the header byte with `0x41`, clearing full-header bits
+25..29 before stock transmission. Ordinary `/dev/mei` writes therefore do not
+supply bits 28/29 through this path.
+
+These are exact later-version deltas, but `3.1.94` is not the first fixed
+`3.1.55` release and spans years of protocol and feature changes. They cannot
+be attributed to CVE-2018-12147. The signed storage/policy modules also changed,
+but no exact CVE-2018-3655 object, anti-replay record, or transaction has been
+identified. See `evidence/intel-txe-fixed-module-diff.md` for full provenance,
+range hashes, and boundaries.
+
 ## Intel's public recovery tool is not a firmware flasher
 
 Intel's advisory links the public repository
@@ -206,7 +250,9 @@ The strongest current interpretation is:
 - SA-00125 is an exact advisory-version match and a high-priority future bench
   lead;
 - exact HECI receive-path bounds reject a simple oversized-fragment stack-copy
-  theory, but do not identify or exclude CVE-2018-12147's proprietary defect;
+  theory, and the later `3.1.94` HECI adds header-bit validation plus bounded
+  extended-header parsing, but the non-minimal diff does not identify or
+  exclude CVE-2018-12147's proprietary defect;
 - CVE-2018-12147 does not solve initial Linux root because it requires a
   privileged local caller;
 - CVE-2018-3655 is directly relevant to a physically isolated bench because

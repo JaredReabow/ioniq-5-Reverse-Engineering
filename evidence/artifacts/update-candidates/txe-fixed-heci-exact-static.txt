@@ -1,0 +1,158 @@
+# TXE HECI affected-to-later exact-static excerpts
+#
+# Inputs:
+# affected decompressed HECI SHA-256
+#   82b7be7bb8069aebfb2c9f7a0e994500fe10d631e67a16f5a5fec71d29679125
+# later decompressed HECI SHA-256
+#   04dceeb0b42db7910d913545b9b2342e9a26349c8e9d2e2bede201af62bf3b8f
+# code base: 0x26000
+#
+# Raw instruction bytes are intentionally omitted. Address ranges and their
+# SHA-256 values are bound by txe-fixed-module-diff.json.
+
+## Affected 3.1.50.2222 receive dispatcher
+# function 0x277c8..0x27dc9
+
+0x27866  mov    ecx, edi
+0x27868  shr    ecx, 0x10
+0x2786b  mov    eax, ecx
+0x2786d  and    ax, 0x1ff
+0x27871  and    cl, 0x3
+0x27874  je     0x2789b
+# If bit31 is clear and header bits 16..17 are nonzero, reject.
+
+0x2789b  mov    eax, edi
+0x2789d  shr    eax, 0x10
+0x278a0  mov    esi, eax
+0x278a5  and    esi, 0x1ff
+0x278ab  cmp    esi, 0x1fc
+0x278b1  jle    0x278bf
+# Above 0x1fc calls reset/error handling.
+# No corresponding bit-29 rejection occurs between this bound and FIFO-word
+# availability checking in the affected range.
+
+0x2792d  cmp    byte ptr [ebp - 0x41], 0x0
+0x27931  jne    0x2793a
+# The affected control branch tests the captured bit31 state only.
+
+0x2793a  lea    eax, [esi - 0x4]
+0x2793d  cmp    eax, 0x4
+0x27940  ja     0x27948
+0x27942  test   byte ptr [ebp - 0x3c], 0x3
+0x27946  je     0x2796e
+# Aligned control payload accepted only when 4 <= length <= 8.
+
+## Later 3.1.94.3086 receive dispatcher
+# function 0x2789a..0x27ef8
+# range SHA-256
+#   4aea1addeb7e4e4fef929be25f3eb879a0114673e7572ec8c4b1d9dcff03fe64
+
+0x27936  mov    cx, word ptr [ebp - 0x56]
+0x2793a  mov    eax, ecx
+0x2793c  and    ax, 0x1ff
+0x27940  and    cl, 0x3
+0x27943  je     0x27971
+# The prior bit31/bits16..17 malformed-header rejection remains.
+
+0x27971  mov    di, word ptr [ebp - 0x56]
+0x27975  mov    esi, edi
+0x27977  and    esi, 0x1ff
+0x2797d  cmp    esi, 0x1fc
+0x27983  jle    0x27991
+# The nine-bit length and 0x1fc maximum remain.
+
+0x27991  test   dl, 0x20
+0x27994  jne    0x27985
+# dl is the top header byte captured from header byte +3. Bit 0x20 therefore
+# rejects full-header bit 29 (the later public MEI dma_ring bit) before FIFO
+# availability or payload dispatch.
+
+0x27a13  and    edx, 0xffffff90
+0x27a16  cmp    dl, 0x80
+0x27a19  je     0x27a22
+# Later control messages require (top_header_byte & 0x90) == 0x80:
+# bit31 is required and bit28 (the later public MEI extended-header bit) is
+# rejected for control messages.
+
+0x27a22  lea    eax, [esi - 0x4]
+0x27a25  cmp    eax, 0x24
+0x27a28  ja     0x27a31
+0x27a2a  test   di, 0x3
+0x27a2f  je     0x27a57
+# Aligned later control payload accepted when 4 <= length <= 40.
+
+0x27a57  lea    edi, [ebp - 0x38]
+0x27a5a  push   0x28
+0x27a5c  push   0x0
+0x27a5e  push   edi
+0x27a5f  call   memset-wrapper
+# The later local control buffer and receive bound are 0x28 bytes.
+# Exact dispatcher recovery additionally has explicit command cases 0x12 and
+# 0x13, absent from the affected command switch. Comparative public Linux MEI
+# names 0x12 DMA setup (whose request is exactly 40 bytes) and 0x13 capability
+# negotiation. This supports protocol evolution, not shared-source identity.
+
+## Later ordinary payload consumer and extended-header parser
+# payload consumer 0x28b46..0x29052
+# range SHA-256
+#   6ef9be6f6d5d37d30dfab717dd8651118a7e8510ccce8455c72d83c473019d9e
+# extended-header parser 0x29ad2..0x29c0a
+# range SHA-256
+#   f3ed29ecdcd43505ac0824e7b4762bde7bc29c477747a891f5646cb5a3e49e42
+
+0x28bba  test   byte ptr [esi + 0x3], 0x10
+# Ordinary-message header bit28 selects the new parser.
+
+# Exact decompilation of 0x29ad2 establishes these ordered conditions before
+# its dword count is returned to 0x28b46:
+#
+#   encoded_count != 0
+#   encoded_count < 0x80
+#   encoded_bytes = (encoded_count + 1) * 4
+#   encoded_bytes <= (header_length & 0x1ff)
+#   encoded_bytes <= 0x1fc destination capacity
+#   first encoded type == 1
+#   first encoded type <= encoded_count
+#   nested_count <= encoded_count
+#   nested_count == 1
+#   nested end <= encoded end
+#   nested end == encoded end
+#
+# A failure returns -1 and the caller resets/rejects the message. A successful
+# parse subtracts the consumed dword count from the ordinary payload length.
+# The ordinary payload is still received through a zeroed 0x1fc-byte local
+# destination before message-capacity comparisons and process-buffer copying.
+
+## Exact recovered Linux MEI transmit-header construction
+# module: /lib/modules/4.1.27-abl/kernel/drivers/misc/mei/mei.ko
+# module SHA-256:
+#   8518715e6e1910aacddf9da116aa97b98e7fca8f14c64da83959c60204d83609
+# Build ID: ca127bac6266f1afd1ff48cdd0c0bdcb4a67d643
+# .text range 0x4db1..0x4dd1 SHA-256:
+#   94cb14162af5acbd6b17cc7db5d000d2d2bf18805dcae3b1bfde2b9c2e35b831
+
+0x4db1  mov    al, byte ptr [rbp - 0x61]
+0x4db4  mov    dl, al
+0x4db9  and    eax, 0x1
+0x4dbc  and    edx, 0x41
+0x4dbf  mov    byte ptr [rbp - 0x61], dl
+0x4dc2  mov    dl, byte ptr [r13 + 0x44]
+0x4dc6  and    edx, 0x1
+0x4dc9  shl    edx, 0x6
+0x4dcc  or     eax, edx
+0x4dce  mov    byte ptr [rbp - 0x61], al
+
+# Header byte +3 bit0 is the ninth length bit, bits1..5 are full-header bits
+# 25..29, bit6 is internal, and bit7 is message-complete. Mask 0x41 clears all
+# bits25..29 while preserving/rebuilding length bit24 and internal bit30.
+# Message-complete bit31 is set separately for the final fragment. Thus the
+# exact stock transmit construction does not emit later extended bit28 or
+# dma_ring bit29 through this path.
+
+## Boundary
+
+These excerpts prove exact differences between signed TXE 3.1.50.2222 and
+signed later TXE 3.1.94.3086. They do not prove that any changed condition is
+the fix for CVE-2018-12147. Version 3.1.94 is not the first-fixed 3.1.55 build,
+and the changed control geometry plus new extension parser may include ordinary
+protocol evolution. No HECI request was generated or transmitted.

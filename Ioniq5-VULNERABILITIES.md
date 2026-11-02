@@ -1378,3 +1378,30 @@ vulnerability is claimed, and this test does not move either entry.
 ## Maintenance
 
 For each new issue record: stable ID, affected artifact/build and digest, source location, evidence type, caller/reachability, preconditions, bounded impact, remediation owner/status, regression test and remaining unknowns. Keep secrets and private keys out of reports. Append discovery/validation/correction events to `Ioniq5-HISTORY.md`; edit this register to reflect current conclusions. Preserve rejected findings to avoid rediscovery.
+
+## V-045 — Session-bus call with the alternate `show_window_fg` signature terminates `AppHomeScreen` (denial of service)
+
+- **Status:** demonstrated in emulation (2026-10-31). Crash caused deliberately during control-channel discovery; not yet
+  reproduced against physical hardware.
+- **Component:** `/app/bin/AppHomeScreen`, D-Bus object `/com/lge/hkmc/avn/appfunc/appInterface`, bus name
+  `com.lge.hkmc.avn.appfunc.AppHomeScreen`, interface `com.lge.avn.appmanager.appbase`.
+- **What happens:** the interface exposes two overloads of `show_window_fg` — the 6-argument form
+  `(int32,int32,int32,int32,int32,boolean)` and a 4-argument form `(int32,int32,int32,int32)`, both present in the binary's
+  exported method table (`int AppHomeEngine::show_window_fg(int,int,int,int,int,bool)` and
+  `int AppHomeEngine::show_window_fg(int,int,int,int)`).
+  - The 6-argument call `int32:1 int32:11 int32:1 int32:-1 int32:0 boolean:false` returns `int32 1` normally.
+  - The 4-argument call `int32:10 int32:11 int32:1 int32:-1` produces
+    `org.freedesktop.DBus.Error.NoReply: Did not receive a reply`, and the process does not answer afterwards.
+- **Impact:** the home screen application is the compositor client responsible for the primary user interface. Any process able to
+  send on the session bus can terminate it with a single well-formed message, blanking the display while the rest of the system
+  continues to run. That is a denial of service against the primary driver-facing display from an unprivileged bus peer.
+- **Preconditions measured:** access to the session bus only. No authentication, no root, no physical access beyond having code
+  running as any user that can reach that bus.
+- **Evidence:** traced control-channel session; `dbus-send` replies reproduced above. Companion record in `Ioniq5-CHANGELOG.md`.
+- **Not established:** whether the 4-argument overload is reachable by design or is an artefact of the method table; whether the
+  process restarts automatically under the real watchdog (our chain restarts nothing); and whether a debugger-visible crash signal
+  matches a simple null-dereference.
+- **Suggested patch direction:** remove or gate the 4-argument overload, validate argument arity before dispatch, and treat a
+  malformed or unexpected call on `com.lge.avn.appmanager.appbase` as a recoverable error rather than a path into unguarded engine
+  code.
+

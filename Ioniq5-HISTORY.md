@@ -3924,3 +3924,11 @@ and are superseded by corrections rather than silently rewritten.
   decoupled here, and only the request matters.
 - The caveat is recorded too: ApplicationManager had adopted the older process, so this excludes the simple hypothesis, not the
   hypothesis in every form.
+
+## 2026-10-31 — the app answers the request and still does not appear
+
+- The show request exists, the object exists, and the call returns one. It is the first time the application has acknowledged an
+  instruction from us, and it did not change the screen.
+- The same experiment killed the app outright when I used the shorter overload, which is a genuine security finding rather than a
+  curiosity: any peer on that bus can terminate the driver-facing display with one message. It is in the register as V-045.
+- Two things learned in one run, one of them about our problem and one about theirs.

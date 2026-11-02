@@ -42,9 +42,10 @@ cross-product/public-version comparisons.
   `_requestProcessSetupPlist` branch for bounded static handler audit.
 - Its setup path passes exact HTTP body pointer/length fields to the
   `libCoreUtils.so` binary-plist parser. Parser bounds checks, encryption-key
-  handling, and arithmetic candidates must be byte-bound; exact memory-safety
-  findings must remain separate from runtime delivery and vendor-confirmed CVE
-  identity.
+  handling, arithmetic candidates, local route gates, MFi-SAP state transitions,
+  and MFi certificate/signature transport must be byte-bound; exact
+  memory-safety findings must remain separate from runtime delivery and
+  vendor-confirmed CVE identity.
 
 ## Deliverables
 

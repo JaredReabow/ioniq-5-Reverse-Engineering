@@ -38,6 +38,18 @@
 - Matched that recovered mechanism to a later public third-party
   CVE-2025-24132 crash report while retaining the absence of Apple/Oligo
   function confirmation, fixed bytes, runtime delivery, and exploitation.
+- Bound exact callback dispatch for `SETUP` by plist content type and for `POST
+  /auth-setup`; no local HTTP-Authorization or pair-state check appears before
+  the setup branch, while an upstream generic HTTPConnection gate remains
+  unexcluded.
+- Partitioned the direct pre-key metadata/session branch. `deviceID`,
+  `interfaceName`, `macAddress`, `name`, `sessionUUID`, `sourceVersion`, and
+  `model` each use explicit capacities; `sessionUUID` also has an exact-length
+  check. CF helper bodies and downstream session setup remain separate.
+- Bound `MFiSAP_Exchange`, server-M1, certificate, and signature bodies. A
+  successful server exchange moves state 5 to accepted state 6, sets the done
+  byte, and requires exact platform certificate/signature operations through
+  `/dev/i2c-1`; static code does not prove runtime chip or exchange success.
 - Bound the wrapper, object reader, reference reader, extended-count reader, and
   sized-integer reader by exact ranges and hashes. The parser contains an exact
   unguarded UTF-16 byte-count doubling at `0x39e89`.
@@ -53,17 +65,17 @@
 
 - schema: `ioniq-carplay-sdk-applicability/v1`
 - path: `evidence/artifacts/projection-candidates/carplay-sdk-applicability.json`
-- size: `25,029` bytes
-- file SHA-256: `d6a835f08a4a79966434d4d0309bbe040cd443cfcff0087b96a341106238f03d`
-- canonical SHA-256: `5b1a4d141b2a8a16bfc8f759291186b1e7495bc2f13b576a441225097b425bd3`
+- size: `32,307` bytes
+- file SHA-256: `de3f59b5d9db0bbbe916a5919972065331fb550f2a2c210ed39870e397ada699`
+- canonical SHA-256: `c2f25b6489a0853dfc598e499d02e0fb2ff92de5f83dce29f4f50e1690dd31e2`
 
 ## Validation
 
 - focused static audit: `4 passed`;
-- combined CarPlay/static-state focus: `37 passed, 20 subtests passed in 3.43s`;
-- canonical: `1074 passed, 352357 subtests passed in 174.10s (0:02:54)`;
+- combined CarPlay/static-state focus: `37 passed, 20 subtests passed in 1.52s`;
+- canonical: `1074 passed, 352357 subtests passed in 173.07s (0:02:53)`;
 - canonical log SHA-256:
-  `fc46638764d0a4c7890aa1bb68e6d6a138f85cce20263843be2e6d43febbf9a2`;
+  `cd2a3534b0a9d13edbd484673e7c1a33b5567331f2dcb6ae103078b5952ddacd`;
 - `py_compile`: passed;
 - normal-versus-UTF-16 stdout identity: passed, both outputs matched the
   accepted artifact SHA-256;
@@ -86,8 +98,8 @@
    destinations.
 2. Audit external-accessory, file-transfer, HID, Wi-Fi configuration, and list
    event handlers.
-3. Trace setup `ekey` route/authentication preconditions and seek lawful fixed
-   R18.1 bytes without constructing protocol inputs.
+3. Seek lawful fixed R18.1 bytes for the now-bound setup-key route without
+   constructing protocol inputs.
 4. Partition the remaining `_requestProcessSetupPlist` branches and audit type
    checks, integer conversions, and stack/heap destinations.
 5. Trace setup-dictionary consumers of the UTF-16 wrap/truncation result; the

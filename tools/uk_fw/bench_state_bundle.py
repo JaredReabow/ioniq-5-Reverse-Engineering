@@ -752,7 +752,7 @@ capture_file smack-mounts /proc/mounts
 capture_file smack-rule /sys/fs/smackfs/load2
 capture_file smack-onlycap /sys/fs/smackfs/onlycap
 capture_file smack-ambient /sys/fs/smackfs/ambient
-for SX_PATH in /update /update/usb /update/usb/bin /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppUpgrade /app/bin/iAP2Service-2.0 /app/bin/AppProjection /dev/mfd-iap2 /dev/ttyIAP20 /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /tmp
+for SX_PATH in /update /update/usb /update/usb/bin /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppUpgrade /app/bin/iAP2Service-2.0 /app/bin/AppProjection /dev/mfd-iap2 /dev/ttyIAP20 /dev/i2c-1 /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /tmp
  do
     for SX_NAME in SMACK64 SMACK64EXEC
     do
@@ -837,7 +837,7 @@ begin_section storage
 capture_file fstab /etc/fstab
 capture_file partitions /proc/partitions
 capture_file mounts /proc/mounts
-for S_DEVICE in /dev/ptmx /dev/pts /dev/pts/ptmx /dev/tty9 /dev/mfd-iap2 /dev/ttyIAP20
+for S_DEVICE in /dev/ptmx /dev/pts /dev/pts/ptmx /dev/tty9 /dev/mfd-iap2 /dev/ttyIAP20 /dev/i2c-1
  do
     file_meta "$S_DEVICE"
  done

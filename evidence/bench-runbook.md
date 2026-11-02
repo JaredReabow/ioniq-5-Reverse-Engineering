@@ -130,11 +130,12 @@ SMACK policy, `iAP2Service-2.0`, `AppProjection`, `mdnsd`, the iAP2/AirPlay/
 CoreUtils/CarPlay libraries, and the three normal transport modules. It records
 unit state, projection process command lines and credentials, parsed
 `/proc/modules`, `/dev/mfd-iap2` and alternate `/dev/ttyIAP20` metadata and
-SMACK labels, plus the already passive interface/listener inventory. The host
+SMACK labels, `/dev/i2c-1` metadata/label for the exact MFi certificate/signature
+transport, plus the already passive interface/listener inventory. The host
 CarPlay assessor compares sixteen exact recovered identities and keeps the
-active service/process/device/module prerequisites separate from an optional
-port-7000 observation. It never opens either device, sends iAP2/AirPlay data, or
-infers phone delivery, public-CVE applicability, code execution, unrestricted
+active service/process/device/module prerequisites separate from MFi I2C and
+optional port-7000 observations. It never opens any device, sends iAP2/AirPlay
+data, or infers phone delivery, public-CVE applicability, code execution, unrestricted
 root, or persistence.
 
 Missing commands/files remain explicit records. Unreadable files, failed

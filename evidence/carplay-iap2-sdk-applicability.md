@@ -109,8 +109,75 @@ At call site `0x10032`, this exact request processor passes the HTTP message's
 `+0x518` body pointer and `+0x530` body length to
 `CFBinaryPlistV0CreateWithData`, checks the returned error, then verifies that
 the decoded object is a dictionary at `0x100a3..0x100b6`. This is a static
-request-body-to-parser route. Runtime delivery, route eligibility, and
-authentication remain unobserved.
+request-body-to-parser route. Runtime delivery remains unobserved.
+
+### Exact SETUP and MFi-SAP route gates
+
+Two additional ranges bind the local callback dispatch rather than inferring it
+from route strings:
+
+| Reviewed callback role | Range | SHA-256 |
+|---|---|---|
+| `SETUP` method/content-type/plist dispatch | `0xff0d..0x100b6` | `c208fb3bb3d4ff1c63a25e39dc7b2263aed1258cd62d73797bd591576f52304a` |
+| pre-key metadata/session branch | `0x100a3..0x103c3` | `44ad05b420c93321d8bef6dd724d52eed547ca9e0274ef8399f8424f5e368b39` |
+| `POST /auth-setup` dispatch | `0x1094d..0x10b3f` | `4220993de1cc6fd57f9cfd5234217482a5001b5dffe8e5b4604b08cd94a87163` |
+
+The first branch compares the request method with `SETUP` at `0xff1b`, reads
+`Content-Type`, accepts the binary-plist and XML-plist MIME strings, and calls
+the binary-plist parser at `0x10032`. No URL-specific acceptance check, HTTP
+`Authorization` check, or pair-setup/pair-verify state check occurs in this
+reviewed callback before the setup parser. This is a stronger exact local-route
+result than the earlier marker inventory. It does **not** exclude an upstream
+generic `HTTPConnection` gate before the callback is invoked, and it does not
+establish a listening interface or phone delivery.
+
+The direct pre-key field branch is now partitioned as well. It handles
+`deviceID` as a six-byte hardware address, formats `interfaceName` with a
+17-byte `snprintf` capacity, copies `macAddress` with a six-byte capacity,
+retrieves `name` with a 128-byte capacity, retrieves `sessionUUID` with a
+16-byte capacity and an exact returned-length check at `0x10192`, and retrieves
+`sourceVersion` and `model` with 64-byte capacities. It clears the session-create
+parameter structure before populating it and calls `AirPlayReceiverSessionCreate`
+at `0x10333`. This excludes a missing-capacity argument among those direct
+callback-local writes only; the CF helper implementations and downstream
+`AirPlayReceiverSessionSetup` consumers remain separate review surfaces.
+
+The normal exact route to the cryptographic prerequisite is `POST
+/auth-setup`. That branch requires a non-empty body, deletes a previous
+completed MFi-SAP context before restarting, creates a version-1 server
+context, and calls `MFiSAP_Exchange` at `0x10a8f` with the HTTP body pointer,
+body length, and the connection's done byte at `+0xe8`. On success it returns
+`application/octet-stream` response data.
+
+The downstream state and hardware path are also byte-bound:
+
+| Reviewed MFi role | Range | SHA-256 |
+|---|---|---|
+| server-M1 exchange body | `0x7f184..0x7f6d2` | `82f0acf4129488fd468c797af0ab57fc997ec9f8900558ff1537f437d312c00d` |
+| `MFiSAP_Exchange` | `0x7f8ce..0x7f99b` | `366334d17eabce1093798b600a43004e4b8140230ecb8fb4c178421899d63a6c` |
+| `MFiPlatform_CreateSignature` | `0x8068a..0x80d6c` | `923e37d7fd3828db659fd135fd652a0c35b9e6f17f030946d1bf702a21648677` |
+| `MFiPlatform_CopyCertificate` | `0x80d6c..0x8129f` | `0b1160862646812e44f1e019eab17f6545cc4e58c601611e8ddb758e994c035e` |
+
+With non-null input, exact `MFiSAP_Exchange` selects server-M1 state 5. Its
+server body requires version 1 plus one 32-byte public key and exact input
+consumption, derives the shared state, and calls the platform certificate and
+signature functions. Only successful completion increments the context to
+server-done state 6 and sets the connection done byte; an exchange error
+invalidates the state. Exact `MFiSAP_Decrypt` accepts state 4 or 6. Both exact
+platform operations open `/dev/i2c-1`, so the recovered implementation expects
+an MFi authentication-chip transport there.
+
+At `0x103a9..0x103c3`, a non-null HomeKit pair-verify security context takes an
+alternate branch that installs that context and bypasses the `ekey` decrypt
+path. The reviewed stack write therefore requires this HomeKit context to be
+null; pair-verify is not a prerequisite for entering the affected branch.
+
+Consequently, for setup encryption type `0x10`, the route has a real
+cryptographic/hardware prerequisite rather than a local HTTP-password or
+pairing-state check: a successful MFi-SAP exchange must first establish an
+accepted state. Static code and a device-path string do not prove that
+`/dev/i2c-1`, an authentication chip, a valid certificate/signature operation,
+or a phone exchange exists at runtime. No exchange was attempted.
 
 ### Exact setup `ekey` stack-write mechanism
 
@@ -161,9 +228,12 @@ That is a strong third-party mechanism match. It is not Apple/Oligo confirmation
 of the function, and the claimed patched binary or patch bytes were not
 published for an exact affected-versus-fixed comparison.
 
-Static entry into the write still requires a parsed setup dictionary,
-encryption type `0x10`, a non-null MFiSAP context, and a completed MFiSAP state.
-No live phone delivery, pairing/authentication state, crash, reliable control
+Static entry into the write still requires the callback to receive a recognized
+plist `SETUP`, a parsed dictionary, a null HomeKit pair-verify context,
+encryption type `0x10`, a non-null MFiSAP context, and state 4 or 6. The normal
+exact server route reaches state 6 only
+after the successful `/auth-setup` certificate/signature exchange described
+above. No live phone delivery, completed authentication, crash, reliable control
 flow, code execution, SMACK escape, unrestricted root, or persistence was
 observed. The canary provides a fail-stop boundary for overwrites reaching it;
 it does not repair the preceding memory corruption.
@@ -290,8 +360,10 @@ network interface creation, and installed owner-unit hashes remain bench gates.
 `tools/uk_fw/bench_carplay_readiness.py` now consumes the canonical passive
 state bundle and compares the installed owner-unit projection stack against
 these exact identities. It separately gates active service state, EUID/SMACK
-process context, `/dev/mfd-iap2`, device labels, and loaded transport modules.
-It sends no traffic and cannot promote passive prerequisites into CVE
+process context, `/dev/mfd-iap2`, device labels, and loaded transport modules,
+and now reports `/dev/i2c-1` character-device metadata as the exact MFi
+certificate/signature transport prerequisite. It sends no traffic and cannot
+promote passive prerequisites into CVE
 applicability, code execution, unrestricted root, or persistence. See
 `evidence/carplay-bench-readiness.md`.
 
@@ -300,9 +372,9 @@ applicability, code execution, unrestricted root, or persistence. See
 - tool: `tools/uk_fw/carplay_sdk_applicability.py`
 - schema: `ioniq-carplay-sdk-applicability/v1`
 - report: `evidence/artifacts/projection-candidates/carplay-sdk-applicability.json`
-- size: `25,029` bytes
-- file SHA-256: `d6a835f08a4a79966434d4d0309bbe040cd443cfcff0087b96a341106238f03d`
-- canonical SHA-256: `5b1a4d141b2a8a16bfc8f759291186b1e7495bc2f13b576a441225097b425bd3`
+- size: `32,307` bytes
+- file SHA-256: `de3f59b5d9db0bbbe916a5919972065331fb550f2a2c210ed39870e397ada699`
+- canonical SHA-256: `c2f25b6489a0853dfc598e499d02e0fb2ff92de5f83dce29f4f50e1690dd31e2`
 
 ## Sources
 
@@ -324,8 +396,9 @@ applicability, code execution, unrestricted root, or persistence. See
 2. Audit `iAp2ConectionHandleExternalAccessoryProtocolData`, file-transfer,
    HID, Wi-Fi configuration, and list-update handlers for destination-size
    checks.
-3. Trace the setup `ekey` branch's route/authentication gates and seek lawful
-   fixed R18.1 bytes without constructing or sending protocol input.
+3. Seek lawful fixed R18.1 bytes for the now-bound setup-key route without
+   constructing or sending protocol input; do not infer the patch from private
+   version strings.
 4. Partition the remaining `_requestProcessSetupPlist` branches by type check,
    length conversion, and stack/heap destination.
 5. Trace consumers of the exact UTF-16 wrap/truncation result in the setup

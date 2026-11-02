@@ -170,6 +170,27 @@ IBBL's later source table is at `0xfef80000`, whereas BUP publishes the payload
 address as `0xfffe1000`. The intervening physical mapping or handoff is not yet
 recovered, so the exact address chain remains bounded at both ends.
 
+## Exact CSE signed-module byte chains
+
+Host-side verification closes two self-contained module-integrity chains:
+
+- `RBEP.man` (SHA-256 `80b5c254b9349d3bb716122f8dce36873e0ecb1a0576231fc74057eb90fcde79`)
+  has a valid embedded RSA-2048 PKCS#1 v1.5 SHA-256 signature, contains the
+  reversed SHA-256 of `rbe.met`, and `rbe.met` contains the reversed SHA-256 of
+  exact RBE bytes;
+- `FTPR.man` (SHA-256 `ca4fc90c57b212daa077e8dec1bc7c4827638ff21da0e7224a3bbce2e57efdf4`)
+  has a valid embedded signature, contains the reversed SHA-256 of `bup.met`,
+  and `bup.met` contains the reversed SHA-256 of exact BUP bytes.
+
+The manifest keys are carried inside their respective `$MN2` headers. Signature
+validity therefore proves internal consistency and byte binding, not a ROM,
+fuse, ACM, Boot Guard, or CSE-policy anchor.
+
+Exact `FTPR.man` contains neither the name `oem.key` nor its SHA-256 in forward
+or reversed byte order, and FTPR CPD has no `oem.key.met` member. This is bounded
+absence of direct coverage in that signed-package metadata, not proof that no
+other authenticated CSE policy or hardware root covers `oem.key`.
+
 ## Exact stored FTPR `oem.key` manifest
 
 The exact flash FTPR CPD contains:
@@ -256,6 +277,10 @@ root.
 What is now proved:
 
 - the runtime descriptor table is FIT-format;
+- exact RBEP and FTPR signed-package metadata bind the exact RBE and BUP bytes,
+  but their embedded signing keys remain externally unanchored;
+- exact FTPR signed-package metadata has no direct `oem.key` name/digest entry
+  and FTPR CPD has no `oem.key.met` member;
 - exact CSE RBE copies FTPR `oem.key` at its exact source length into
   `oem_key_man`, with a matching manifest-length check;
 - exact CSE BUP constructs a FIT type-`0x0b` entry from `oem_key_man` and
@@ -304,8 +329,8 @@ are captured.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `12,690`
-  - SHA-256 `86f3936c41b75fde136bdd68e24a0253a5192072ea9eb06d0b30148908b9014b`
+  - size `15,125`
+  - SHA-256 `8f1147474b6e2a412015337d7eac9f0f1cea8fcfbd5beb7dfaab02535fc4d056`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
   - size `31,647`
   - SHA-256 `f888b0c5b13020625be4550a069ef22a2070cfe4a2e742385b0535b3aeff46de`

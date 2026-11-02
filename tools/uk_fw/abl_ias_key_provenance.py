@@ -42,6 +42,10 @@ STAGE1_RANGES = {
     "ias_key_and_payload_auth": (0x157A3, 0x159FE, "4b71d5c95ff2bcf4210ba23a96883f3ce3524fb31b40f037a00991a6c14a7f30"),
     "oemkm_command_line_export": (0xBEA5, 0xBF10, "f37111948019b765312545efc1c3472d488b4fef7a3a322f86e5df92a722e40b"),
 }
+RBEP_MAN_SHA256 = "80b5c254b9349d3bb716122f8dce36873e0ecb1a0576231fc74057eb90fcde79"
+RBE_MET_SHA256 = "85f66e7be721e913665f5ffb9a0aca1d8e5d811ac8cb4f0e702bc0a3dec656c0"
+FTPR_MAN_SHA256 = "ca4fc90c57b212daa077e8dec1bc7c4827638ff21da0e7224a3bbce2e57efdf4"
+BUP_MET_SHA256 = "7ef14c9991d3fb702131b3fc3da96c382e9eb294a054bf4bceeb78245df4941b"
 CSE_RBE_SHA256 = "ec4c2ea54c2943f6f6ffed4b4157b7b03cbccf6ca2cc9b21ccc3dd62adc88cc1"
 CSE_RBE_CODE_BASE = 0x40000
 CSE_RBE_RANGES = {
@@ -297,6 +301,86 @@ def extract_cse_bup(abl: bytes) -> bytes:
     return bup
 
 
+def verify_mn2_embedded_signature(manifest: bytes, label: str) -> dict:
+    if len(manifest) < 0x284 or manifest[0x1C:0x20] != b"$MN2":
+        raise Failure(f"{label} $MN2 header drift")
+    header_size = struct.unpack_from("<I", manifest, 4)[0] * 4
+    manifest_size = struct.unpack_from("<I", manifest, 0x18)[0] * 4
+    public_key_size = struct.unpack_from("<I", manifest, 0x78)[0] * 4
+    exponent_size = struct.unpack_from("<I", manifest, 0x7C)[0] * 4
+    if header_size != 0x284 or manifest_size != len(manifest) or public_key_size != 0x100 or exponent_size != 4:
+        raise Failure(f"{label} $MN2 geometry drift")
+    modulus = manifest[0x80:0x180]
+    exponent_bytes = manifest[0x180:0x184]
+    signature = manifest[0x184:0x284]
+    exponent = int.from_bytes(exponent_bytes, "little")
+    signed_digest = hashlib.sha256(manifest[:0x80] + manifest[header_size:manifest_size]).digest()
+    encoded = pow(int.from_bytes(signature, "little"), exponent, int.from_bytes(modulus, "little")).to_bytes(
+        public_key_size, "big"
+    )
+    separator = encoded.find(b"\0", 2)
+    valid = (
+        encoded.startswith(b"\0\1")
+        and separator >= 10
+        and encoded[2:separator] == b"\xff" * (separator - 2)
+        and encoded[separator + 1 :] == bytes.fromhex("3031300d060960864801650304020105000420") + signed_digest
+    )
+    if not valid:
+        raise Failure(f"{label} embedded RSA signature failure")
+    return {
+        "tag": "$MN2",
+        "header_size": header_size,
+        "total_size": manifest_size,
+        "public_key_size": public_key_size,
+        "exponent": exponent,
+        "embedded_signature_valid": True,
+        "embedded_signature_boundary": "self-consistency only; no external root established",
+    }
+
+
+def parse_cse_signed_module_chains(abl: bytes, rbe: bytes, bup: bytes) -> dict:
+    members = {
+        "rbep_manifest": (0x104058, 0x2EC, RBEP_MAN_SHA256),
+        "rbe_metadata": (0x104344, 0xAE, RBE_MET_SHA256),
+        "ftpr_manifest": (0x11E130, 0xC14, FTPR_MAN_SHA256),
+        "bup_metadata": (0x11EE36, 0x4A6, BUP_MET_SHA256),
+    }
+    blobs = {}
+    identities = {}
+    for name, (offset, size, digest) in members.items():
+        blob = abl[offset : offset + size]
+        if len(blob) != size or hashlib.sha256(blob).hexdigest() != digest:
+            raise Failure(f"{name} identity drift")
+        blobs[name] = blob
+        identities[name] = {"flash_offset": offset, "size": size, "sha256": digest}
+    rbep_manifest = blobs["rbep_manifest"]
+    rbe_metadata = blobs["rbe_metadata"]
+    ftpr_manifest = blobs["ftpr_manifest"]
+    bup_metadata = blobs["bup_metadata"]
+    if rbep_manifest.count(hashlib.sha256(rbe_metadata).digest()[::-1]) != 1:
+        raise Failure("RBEP signed metadata hash chain drift")
+    if rbe_metadata.count(hashlib.sha256(rbe).digest()[::-1]) != 1:
+        raise Failure("RBE module hash chain drift")
+    if ftpr_manifest.count(hashlib.sha256(bup_metadata).digest()[::-1]) != 1:
+        raise Failure("FTPR signed metadata hash chain drift")
+    if bup_metadata.count(hashlib.sha256(bup).digest()[::-1]) != 1:
+        raise Failure("BUP module hash chain drift")
+    oem_digest = bytes.fromhex(OEM_KEY_SHA256)
+    if ftpr_manifest.count(b"oem.key") or ftpr_manifest.count(oem_digest) or ftpr_manifest.count(oem_digest[::-1]):
+        raise Failure("unexpected direct FTPR.man oem.key coverage")
+    identities["rbep_manifest"]["manifest"] = verify_mn2_embedded_signature(rbep_manifest, "RBEP.man")
+    identities["ftpr_manifest"]["manifest"] = verify_mn2_embedded_signature(ftpr_manifest, "FTPR.man")
+    return {
+        "members": identities,
+        "rbep_manifest_to_rbe_metadata_to_rbe_bytes_proved": True,
+        "ftpr_manifest_to_bup_metadata_to_bup_bytes_proved": True,
+        "stored_hash_encoding": "reverse(SHA-256 bytes)",
+        "ftpr_manifest_direct_oem_key_name_or_digest_coverage_found": False,
+        "ftpr_cpd_oem_key_metadata_member_present": False,
+        "external_manifest_key_anchor_proved": False,
+    }
+
+
 def parse_stored_oem_key(abl: bytes) -> dict:
     cpd = 0x11E000
     if struct.unpack_from("<IIBBBBI", abl, cpd)[:6] != (0x44504324, 12, 1, 1, 16, 150):
@@ -406,6 +490,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     ibbl, stage1 = extract_ibb(abl)
     cse_rbe = extract_cse_rbe(abl)
     cse_bup = extract_cse_bup(abl)
+    cse_signed_module_chains = parse_cse_signed_module_chains(abl, cse_rbe, cse_bup)
     stored_oem_key = parse_stored_oem_key(abl)
     ibbl_ranges = check_ranges(ibbl, IBBL_RANGES, "IBBL")
     stage_ranges = check_ranges(stage1, STAGE1_RANGES, "stage-1")
@@ -555,6 +640,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                     "public_me_analyzer_name": "OS Kernel",
                 },
             },
+            "cse_signed_module_chains": cse_signed_module_chains,
             "cse_rbe_key_manifest_materializer": {
                 "cpd": "RBEP",
                 "member": "rbe",
@@ -644,6 +730,8 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "runtime_expected_digest_bytes_recovered": False,
             "source_fit_content_producer_cse_bup_proved": True,
             "final_handoff_address_0xfef80000_mapping_proved": False,
+            "rbe_and_bup_signed_module_byte_chains_proved": True,
+            "ftpr_manifest_direct_oem_key_coverage_proved": False,
             "pre_ibbl_key_manifest_authentication_proved": False,
             "custom_signed_image_acceptance_proved": False,
             "boot_root_or_persistence_proved": False,
@@ -653,6 +741,8 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "Exact CSE BUP code initializes a FIT, copies oem_key_man into its payload area, and appends type 0x0b with address 0xfffe1000. Exact IBBL later consumes a FIT at 0xfef80000, but the physical mapping between those addresses is not yet recovered.",
             "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
             "The RBE-to-BUP path binds BUP's published oem_key_man payload to exact FTPR oem.key bytes. The exact stored usage-39 digest is therefore recovered for the BUP-published object, but it is not promoted to the IBBL runtime expected digest until the BUP-to-0xfef80000 mapping is proved.",
+            "RBEP.man and FTPR.man embedded signatures verify, and their signed metadata hashes bind exact RBE and BUP bytes through rbe.met and bup.met. These remain self-contained signature chains until their manifest keys are externally anchored.",
+            "Exact FTPR.man has no direct oem.key name or digest coverage and FTPR CPD has no oem.key.met member. This bounded absence is not proof that another CSE policy, key manifest, or hardware root leaves oem.key unauthenticated.",
             "The exact flash contains an FTPR oem.key $MN2/Extension-14 manifest with a valid embedded self-signature and usage-39 digest 9b0a59...; the embedded signature still proves self-consistency rather than an external hardware root.",
             "The stored usage-39 digest does not equal the package carried-key candidate 437008... . Without the missing runtime FIT binding, this mismatch does not prove that the package boots or fails to boot under an installed ABL.",
             "The recovered IBB stages do not locally authenticate the key manifest before use. Any CSE, Boot Guard, fuse, ACM, or earlier-ROM authentication remains outside the recovered instruction boundary; the embedded manifest signature proves self-consistency only.",

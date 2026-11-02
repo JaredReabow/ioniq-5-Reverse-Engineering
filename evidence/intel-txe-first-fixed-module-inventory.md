@@ -103,7 +103,7 @@ implemented by a transitive service reached through their unchanged imports.
 The eleven smallest residual bytes are now individually bound rather than left
 as generic differences:
 
-- `ish_srv`: one serialized length changes `0x13 → 0x14`;
+- `ish_srv`: one VFS event ordinal changes `0x13 → 0x14`;
 - `loadmgr`: one changes `0x15 → 0x16`;
 - `gpio`: two change `0x16 → 0x17` and `0x0e → 0x0f`; and
 - `pm`: seven change `0x0b → 0x0c`, `0x0d → 0x0e`, `0x10 → 0x11`,
@@ -118,10 +118,30 @@ sites write the byte at local message offset `+4` directly and preserve their
 submit API through syslib-stub translation `0x6609 → 0x660e`. Exact submit
 wrappers store first-argument dword `0x02000200` at message offset zero.
 
-This is a coordinated serialized-interface change, not a generic address
-relocation. The meaning of dword zero, recipient, added-byte semantics,
-attacker control, HECI reachability, and advisory identity remain unresolved;
-it must not yet be called the CVE-2018-12147 fix.
+The complete selector-`0x10` handler resolves the field geometry and corrects
+the earlier length interpretation. Its byte-identical input slice copies
+message `+4` to persistent kernel state `+0x60`, separately copies message
+`+5`, and bounds the latter at `0x38` (slice SHA-256
+`e527f5d670d725147c91ea62459bfde546253bbd8ecab5c7f1602ba49061f96a`).
+The retained `+4` byte is later compared with event values `0xf4` and `0xf5`;
+the separate `+5` byte is used as completion copy length plus eight. Therefore
+the eleven deltas are VFS event-ordinal renumberings, not message-length
+increases, and they introduce no appended payload byte.
+
+The inserted numeric event is also exact. The old PM event `0x0b` becomes
+`0x0c`, while first-fixed Maestro adds function `0x29950..0x29990` (size
+`0x40`, SHA-256
+`0be9ef6f8034023db17a6c6740045b7523198fdb73d11098fb92e49d67c0e903`).
+That function clears a `0x40`-byte local message, selects VFS identity
+`0x02000200`, and submits new event ordinal `0x0b`; its sole direct caller at
+`0x27b24` takes the call when `eax == 2`.
+
+This is a coordinated VFS event-table insertion at numeric ordinal `0x0b`, not
+a generic address relocation. The vendor name and full semantics of that event
+remain unknown, and the renumbered constructors are not yet proved to reach the
+reviewed `ipc_drv` event-`0xf4` callback. Attacker control, HECI reachability,
+and advisory identity remain unresolved; this cluster must not yet be called
+the CVE-2018-12147 fix.
 
 The exact submit wrapper gives this cluster a concrete FTPR kernel path. It
 stores the message pointer in a `0x40`-byte syscall argument block, passes
@@ -203,9 +223,8 @@ the central pending-work dispatcher returns to its dequeue path when global
 
 Together, the queue-like helper and epilogue behavior support a deferred or
 nonordinary-completion sentinel interpretation. It still does **not** establish
-the vendor status names or full semantics, identify the message recipient or
-appended byte, establish HECI reachability, or attribute the change to
-CVE-2018-12147.
+the vendor status names or full semantics, identify the inserted VFS event
+ordinal, establish HECI reachability, or attribute the change to CVE-2018-12147.
 
 A focused `ipc_drv` review now binds one concrete first-fixed hardening change.
 The affected operation callback at `0x274bd..0x2780d` is `0x350` bytes, SHA-256
@@ -290,8 +309,8 @@ strongest exact CVE-2018-3655 candidate.
 
 - `evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json`
 - schema `ioniq-txe-first-fixed-module-inventory/v1`
-- size `140,099` bytes
-- SHA-256 `e9ba5a22b8ab00c2028234719f8446d4b70cbd1e45167bae071b2f074f879ad7`
+- size `142,376` bytes
+- SHA-256 `c4acdb4ec3775c53523e6abb094ddf3845e1816ba75aa5596ef4063c8966f184`
 
 Embedded `$MN2` signatures establish self-consistency and byte binding only.
 They do not establish platform ROM/fuse/OEM acceptance or installed-unit

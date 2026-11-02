@@ -4208,3 +4208,10 @@ and are superseded by corrections rather than silently rewritten.
 - They are untranslated keys, so this is a partial render rather than the archived screen. But it is the application's pixels, captured from the compositor, on an image whose
   hash was checked before and after.
 - The difference from this week's runs was not a bug I fixed. It was an id the vendor declares, used without forcing it, and no variant arguments.
+
+## 2026-10-31 — facts handed over with their limits attached
+
+- The iAP2 socket is root-owned and world-writable, so file permissions are not what gates it. The service runs as root with no unit-level confinement, and SMACK policy
+  labels only the device nodes.
+- The one thing that would matter most — what label the process and socket actually carry on the vehicle — is exactly what this projection cannot provide, and the record
+  says so instead of reporting the research init's default as if it were the vehicle's.

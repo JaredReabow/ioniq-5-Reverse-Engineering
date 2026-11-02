@@ -129,4 +129,14 @@ def test_canonical_inventory_matches_reviewed_artifact():
     assert census["first_fixed_mov_edx_0x102"] == [0x8C02C]
     assert len(census["affected_cmp_eax_0xff"]) == 12
     assert len(census["first_fixed_cmp_eax_0x102"]) == 12
+    ipc = report["ipc_drv_stack_initialization_review"]
+    assert ipc["affected_callback_runtime_range"] == [0x274BD, 0x2780D]
+    assert ipc["first_fixed_callback_runtime_range"] == [0x274E5, 0x27849]
+    assert ipc["affected_callback_sha256"] == "b7e498a3daa735910a68d49d69beb32b0159611b301e304bf0b5c4ac04c569b9"
+    assert ipc["first_fixed_callback_sha256"] == "31079b2150e42e39209b3eed814d1c4de2bfc7875003a7ec8b85f05b41f2436f"
+    assert ipc["affected_call_sites"]["zero_fill_0x103d"] == []
+    assert ipc["first_fixed_call_sites"]["zero_fill_0x103d"] == [0x27516]
+    assert ipc["first_fixed_new_initialization"]["size"] == 0x88
+    assert ipc["shared_buffer_use"]["payload_bound"] == 0x80
+    assert ipc["shared_buffer_use"]["fixed_transfer_size"] == 0x88
     assert json.loads(ARTIFACT.read_text(encoding="utf-8")) == report

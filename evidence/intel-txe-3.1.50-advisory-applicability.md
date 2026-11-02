@@ -279,7 +279,18 @@ selector-helper acceptance comparison, and one central-dispatcher comparison
 that continues pending-work dequeue. This is a deferred/nonordinary-completion
 sentinel-renumbering candidate, not isolated proof of an input-validation fix.
 The vendor status names and full semantics, recipient, added-byte semantics,
-HECI reachability, and CVE attribution remain unproved. See
+HECI reachability, and CVE attribution remain unproved.
+
+A separate first-fixed `ipc_drv` callback change is now exact. The affected
+`0x350`-byte callback at `0x274bd` has no call to gate `0x103d`; its `0x364`-byte
+first-fixed counterpart at `0x274e5` newly clears a complete `0x88`-byte local
+buffer through `0x103d`. Both then store a four-byte header, bounded-copy at
+most `0x80` payload bytes, and pass the buffer to syslib wrapper `0x61d6` with
+both size arguments fixed at `0x88`. This is a stale-stack or partial-
+initialization information-disclosure hardening candidate. It is not proof of
+the privileged-local HECI input-validation path described by CVE-2018-12147:
+the named operation, boundary crossing, HECI reachability, attacker control,
+and practical disclosure remain unresolved. See
 `evidence/intel-txe-first-fixed-module-inventory.md`.
 
 The exact later signed FPF adds structured `RbeArbEn`, `RbeArbSvn`,

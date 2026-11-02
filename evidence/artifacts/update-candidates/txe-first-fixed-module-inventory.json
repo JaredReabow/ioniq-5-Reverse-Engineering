@@ -34,6 +34,75 @@
       "syslib_sha256": "1f4722eeaab64eee5b6febe1b7e6d21565794c929173a56ff4bb9a01f96b00c8"
     }
   },
+  "ipc_drv_stack_initialization_review": {
+    "affected_call_sites": {
+      "bounded_copy_0x6055": [
+        161499
+      ],
+      "fixed_transfer_0x61d6": [
+        161548
+      ],
+      "zero_fill_0x103d": []
+    },
+    "affected_callback_runtime_range": [
+      160957,
+      161805
+    ],
+    "affected_callback_sha256": "b7e498a3daa735910a68d49d69beb32b0159611b301e304bf0b5c4ac04c569b9",
+    "affected_callback_size": 848,
+    "attribution_boundary": "This is an exact first-fixed stale-stack or partial-initialization information-disclosure hardening candidate inside ipc_drv. Static bytes alone do not establish which special-file operation invokes the callback, whether uninitialized bytes cross a privilege boundary in practice, HECI reachability, attacker control, exploitability, or attribution to CVE-2018-12147.",
+    "bounded_interpretation": "The first-fixed callback newly clears its complete 0x88-byte local transfer buffer before storing a four-byte header, bounded-copying at most 0x80 payload bytes, and passing the buffer to a wrapper with both size arguments fixed at 0x88. The affected callback has no call to gate 0x103d in its complete hash-bound body.",
+    "first_fixed_call_sites": {
+      "bounded_copy_0x6055": [
+        161559
+      ],
+      "fixed_transfer_0x61d6": [
+        161608
+      ],
+      "zero_fill_0x103d": [
+        161046
+      ]
+    },
+    "first_fixed_callback_runtime_range": [
+      160997,
+      161865
+    ],
+    "first_fixed_callback_sha256": "31079b2150e42e39209b3eed814d1c4de2bfc7875003a7ec8b85f05b41f2436f",
+    "first_fixed_callback_size": 868,
+    "first_fixed_new_initialization": {
+      "buffer_address_instruction_runtime_address": 161032,
+      "local_buffer_stack_range": "ebp-0x98 through ebp-0x11",
+      "size": 136,
+      "zero_fill_call_runtime_address": 161046,
+      "zero_fill_target": 4157
+    },
+    "operation_table_callback_pointer_sites": [
+      {
+        "callback_runtime_address": 160957,
+        "runtime_address": 165881
+      },
+      {
+        "callback_runtime_address": 160997,
+        "runtime_address": 165941
+      }
+    ],
+    "shared_buffer_use": {
+      "bounded_payload_copy_call_runtime_addresses": [
+        161499,
+        161559
+      ],
+      "fixed_transfer_call_runtime_addresses": [
+        161548,
+        161608
+      ],
+      "fixed_transfer_size": 136,
+      "header_dword_store_runtime_addresses": [
+        161454,
+        161514
+      ],
+      "payload_bound": 128
+    }
+  },
   "kernel_message_submit_selector_0x10_review": {
     "adjacent_ordinal_shift_review": {
       "affected_to_first_fixed_value_counts": {

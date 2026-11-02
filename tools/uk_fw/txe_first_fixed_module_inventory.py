@@ -375,6 +375,129 @@ def minimal_length_delta_review(
     }
 
 
+def ipc_drv_stack_initialization_review(
+    affected_ipc: bytes,
+    first_fixed_ipc: bytes,
+) -> dict:
+    affected_range = (0x274BD, 0x2780D)
+    first_range = (0x274E5, 0x27849)
+    affected_body = affected_ipc[
+        affected_range[0] - MODULE_BASE : affected_range[1] - MODULE_BASE
+    ]
+    first_body = first_fixed_ipc[
+        first_range[0] - MODULE_BASE : first_range[1] - MODULE_BASE
+    ]
+    if (
+        len(affected_body) != 0x350
+        or len(first_body) != 0x364
+        or sha256(affected_body) != "b7e498a3daa735910a68d49d69beb32b0159611b301e304bf0b5c4ac04c569b9"
+        or sha256(first_body) != "31079b2150e42e39209b3eed814d1c4de2bfc7875003a7ec8b85f05b41f2436f"
+    ):
+        raise Failure("ipc_drv callback body drift")
+
+    def call_sites(module: bytes, start: int, end: int, target: int) -> list[int]:
+        found = []
+        for offset in range(start - MODULE_BASE, end - MODULE_BASE - 4):
+            if module[offset] != 0xE8:
+                continue
+            called = MODULE_BASE + offset + 5 + struct.unpack_from("<i", module, offset + 1)[0]
+            if called == target:
+                found.append(MODULE_BASE + offset)
+        return found
+
+    affected_calls = {
+        "zero_fill_0x103d": call_sites(affected_ipc, *affected_range, 0x103D),
+        "bounded_copy_0x6055": call_sites(affected_ipc, *affected_range, 0x6055),
+        "fixed_transfer_0x61d6": call_sites(affected_ipc, *affected_range, 0x61D6),
+    }
+    first_calls = {
+        "zero_fill_0x103d": call_sites(first_fixed_ipc, *first_range, 0x103D),
+        "bounded_copy_0x6055": call_sites(first_fixed_ipc, *first_range, 0x6055),
+        "fixed_transfer_0x61d6": call_sites(first_fixed_ipc, *first_range, 0x61D6),
+    }
+    if affected_calls != {
+        "zero_fill_0x103d": [],
+        "bounded_copy_0x6055": [0x276DB],
+        "fixed_transfer_0x61d6": [0x2770C],
+    } or first_calls != {
+        "zero_fill_0x103d": [0x27516],
+        "bounded_copy_0x6055": [0x27717],
+        "fixed_transfer_0x61d6": [0x27748],
+    }:
+        raise Failure("ipc_drv callback call-target drift")
+
+    zero_fill_prefix = bytes.fromhex("8d8568ffffff68880000006a0050e8")
+    zero_offset = 0x27508 - MODULE_BASE
+    if first_fixed_ipc[zero_offset : zero_offset + len(zero_fill_prefix)] != zero_fill_prefix:
+        raise Failure("ipc_drv first-fixed zero-fill argument drift")
+    zero_call = 0x27516
+    zero_target = zero_call + 5 + struct.unpack_from(
+        "<i", first_fixed_ipc, zero_call - MODULE_BASE + 1
+    )[0]
+    if zero_target != 0x103D:
+        raise Failure("ipc_drv first-fixed zero-fill target drift")
+
+    for module, header_store, bounded_copy, fixed_transfer in (
+        (affected_ipc, 0x276AE, 0x276DB, 0x2770C),
+        (first_fixed_ipc, 0x276EA, 0x27717, 0x27748),
+    ):
+        header_offset = header_store - MODULE_BASE
+        if module[header_offset : header_offset + 6] != bytes.fromhex("898568ffffff"):
+            raise Failure("ipc_drv local transfer-buffer header store drift")
+        copy_offset = bounded_copy - MODULE_BASE
+        if module[copy_offset - 12 : copy_offset] != bytes.fromhex("8d856cffffff688000000050"):
+            raise Failure("ipc_drv bounded payload-copy arguments drift")
+        transfer_offset = fixed_transfer - MODULE_BASE
+        if module[transfer_offset - 21 : transfer_offset] != bytes.fromhex(
+            "68880000006888000000506a00ff75140fbf451050"
+        ):
+            raise Failure("ipc_drv fixed-size transfer arguments drift")
+
+    callback_pointer_sites = []
+    for module, address, expected in (
+        (affected_ipc, 0x287F9, 0x274BD),
+        (first_fixed_ipc, 0x28835, 0x274E5),
+    ):
+        offset = address - MODULE_BASE
+        if module[offset : offset + 3] != bytes.fromhex("c745d0"):
+            raise Failure("ipc_drv operation-table callback encoding drift")
+        value = struct.unpack_from("<I", module, offset + 3)[0]
+        if value != expected:
+            raise Failure("ipc_drv operation-table callback target drift")
+        callback_pointer_sites.append({
+            "runtime_address": address,
+            "callback_runtime_address": value,
+        })
+
+    return {
+        "affected_callback_runtime_range": list(affected_range),
+        "first_fixed_callback_runtime_range": list(first_range),
+        "affected_callback_size": len(affected_body),
+        "first_fixed_callback_size": len(first_body),
+        "affected_callback_sha256": sha256(affected_body),
+        "first_fixed_callback_sha256": sha256(first_body),
+        "affected_call_sites": affected_calls,
+        "first_fixed_call_sites": first_calls,
+        "operation_table_callback_pointer_sites": callback_pointer_sites,
+        "first_fixed_new_initialization": {
+            "local_buffer_stack_range": "ebp-0x98 through ebp-0x11",
+            "size": 0x88,
+            "buffer_address_instruction_runtime_address": 0x27508,
+            "zero_fill_call_runtime_address": 0x27516,
+            "zero_fill_target": 0x103D,
+        },
+        "shared_buffer_use": {
+            "header_dword_store_runtime_addresses": [0x276AE, 0x276EA],
+            "payload_bound": 0x80,
+            "bounded_payload_copy_call_runtime_addresses": [0x276DB, 0x27717],
+            "fixed_transfer_size": 0x88,
+            "fixed_transfer_call_runtime_addresses": [0x2770C, 0x27748],
+        },
+        "bounded_interpretation": "The first-fixed callback newly clears its complete 0x88-byte local transfer buffer before storing a four-byte header, bounded-copying at most 0x80 payload bytes, and passing the buffer to a wrapper with both size arguments fixed at 0x88. The affected callback has no call to gate 0x103d in its complete hash-bound body.",
+        "attribution_boundary": "This is an exact first-fixed stale-stack or partial-initialization information-disclosure hardening candidate inside ipc_drv. Static bytes alone do not establish which special-file operation invokes the callback, whether uninitialized bytes cross a privilege boundary in practice, HECI reachability, attacker control, exploitability, or attribution to CVE-2018-12147.",
+    }
+
+
 def kernel_message_submit_selector_review(
     affected_kernel: bytes,
     first_fixed_kernel: bytes,
@@ -1019,6 +1142,10 @@ def build_report(affected_image: bytes, first_fixed_image: bytes) -> dict:
             first_kernel,
             affected_syslib,
             first_syslib,
+        ),
+        "ipc_drv_stack_initialization_review": ipc_drv_stack_initialization_review(
+            decoded_modules["ipc_drv"][0],
+            decoded_modules["ipc_drv"][1],
         ),
         "modules": modules,
         "boundaries": [

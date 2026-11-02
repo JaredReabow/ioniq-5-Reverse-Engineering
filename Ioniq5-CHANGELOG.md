@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.43.0 - the `/tmp/new_gui` symlink is the vendor's own, and assets alone do not unlock the window
+
+- **Provenance settled.** `/app/share/images/new_gui -> /tmp/new_gui` is present in the **raw extraction**
+  (`extracted-partial-bsdtar/mango-rootfs/…`) as well as the materialised tree, so it is **vendor-authored**, not an artefact of this
+  project's extraction or symlink materialisation. On the real unit something must mount or populate `/tmp/new_gui` at boot; nothing in
+  `/etc`, no systemd unit and no binary references it (`grep -rln new_gui` finds only the updater script, and `grep -rl /tmp/new_gui`
+  finds nothing at all). Creating it by hand is therefore a **reproduction assumption**, recorded as such, not a claim about vendor
+  behaviour.
+- **With assets staged and the splash killed, still nothing is painted.** `ASTC_FAILS=0` (the image fault is genuinely fixed), app alive,
+  and `commit` 0, `attach` 0, `ivi_surface` 0 over 20 s, with a 4,117-byte black frame. Assets were a real defect and are not the gate.
+- **Instrumentation limits, measured rather than assumed:** the image has **no `gdb`, no `gdbserver`, no `ltrace`** — only `strace`. So
+  Astra's discriminating probe (breakpoints on `QQuickWindow` construction and `QWindow::setVisible`) is unavailable as described and
+  needs either a cross-built gdbserver or a different instrument.
+- **Qt's own logging is swallowed:** `QT_LOGGING_RULES='qt.qpa.*=true'` produced **0** `qt.qpa` lines, because the application installs its
+  own message handler (`[QtMsg]` records in its log). So the platform plugin cannot be interrogated that way.
+- **Next lever is the signal side.** The app reports signals it could not connect (from the host run log, counted):
+  `NotifyLanguageChanged` ×15, `NotifyStatusHomeTypeChange` ×8, `NotifyClockFormatChanged` ×3, `requestBackupProfileSystem` ×3,
+  `AOAPState` ×3, `callStatusChanged` ×2, `BroadcastProvStatus` ×2, and singletons for `voice_memo_status`, `valet_mode_status` and
+  the USB media status signals. Emitting these from the owning service names is the cheapest untried way to move the app's state, and
+  `NotifyStatusHomeTypeChange` is the one plausibly tied to which home presentation is shown.
+
 ## 2.42.0 - the UI images were never staged: a `/tmp` symlink nobody creates
 
 - The app's log names a real failure: `[QtMsg] ASTC: Failed to load ASTC image for

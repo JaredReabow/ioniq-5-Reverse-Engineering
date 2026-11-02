@@ -4012,3 +4012,10 @@ and are superseded by corrections rather than silently rewritten.
   still submits no buffer.
 - The crash in the previous run needed the splash to die mid-composite, which is why it appeared only when the whole chain ran.
 - Honest reading: the layout problem is closer to solved, the application problem has not moved.
+
+## 2026-10-31 — the question was real, and the answer is a compositor crash
+
+- With the launcher driving it, the app asks for screen nine ten times. The hypothesis had a real premise after all.
+- But the compositor aborts on surface destruction even with the splash removed, so the ten-screen layout that makes the request answerable is also
+  what exposes the crash.
+- That is a vendor defect in how destroyed surfaces are composited, and it stands between us and the thing we actually want to see.

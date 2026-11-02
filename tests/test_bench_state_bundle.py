@@ -82,7 +82,15 @@ class BenchStateBundleTests(unittest.TestCase):
         self.assertEqual(script.count("command -v"), 1)  # only inside has_command()
         self.assertNotIn("if command -v", script)
         self.assertNotRegex(script, r"\biw\s+.*\bscan\b")
-        for process_name in ("AppLauncher", "AppDMClient", "AppScomoDM", "AppUpgrade"):
+        for process_name in (
+            "AppLauncher",
+            "AppDMClient",
+            "AppScomoDM",
+            "AppUpgrade",
+            "iAP2Service-2.0",
+            "AppProjection",
+            "mdnsd",
+        ):
             self.assertIn(process_name, script)
         self.assertIn('record process-credentials "$P_PID|$P_UID|$P_EUID|$P_SUID|$P_FSUID|$P_GID|$P_EGID|$P_SGID|$P_FSGID|$P_GROUPS"', script)
         self.assertIn('record process-security "$P_PID|$P_PPID|$P_CAP_INH|$P_CAP_PRM|$P_CAP_EFF|$P_CAP_BND|$P_CAP_AMB|$P_NO_NEW_PRIVS|$P_SECCOMP"', script)
@@ -157,6 +165,31 @@ class BenchStateBundleTests(unittest.TestCase):
         self.assertIn('U_STATUS=$?', script)
         for pty_path in ("/dev/ptmx", "/dev/pts", "/dev/pts/ptmx", "/dev/tty9"):
             self.assertIn(pty_path, script)
+        for carplay_path in (
+            "/lib/systemd/system/carplay_iAP2.service",
+            "/lib/systemd/system/carplay_mdnsd.service",
+            "/lib/systemd/system/multi-user.target.wants/carplay_iAP2.service",
+            "/etc/iap2_mod.sh",
+            "/etc/smack/accesses.d/projection",
+            "/app/bin/iAP2Service-2.0",
+            "/app/bin/AppProjection",
+            "/app/bin/mdnsd",
+            "/app/lib/libiAP2AppFramework-2.0.so",
+            "/app/lib/libAirPlay.so",
+            "/app/lib/libCoreUtils.so",
+            "/app/lib/libAirPlaySupport.so",
+            "/app/lib/libCarPlayAppFramework.so",
+            "/app/lib/libCarPlayMediaFramework.so",
+            "/lib/modules/4.1.27-abl/kernel/drivers/usb/gadget/function/usb_f_ncm.ko",
+            "/lib/modules/4.1.27-abl/kernel/drivers/usb/gadget/function/usb_f_iap2.ko",
+            "/lib/modules/4.1.27-abl/kernel/drivers/lge/mfd/mfd-iap2.ko",
+            "/dev/mfd-iap2",
+            "/dev/ttyIAP20",
+        ):
+            self.assertIn(carplay_path, script)
+        self.assertIn("carplay_iAP2.service", script)
+        self.assertIn("carplay_mdnsd.service", script)
+
         for physical_root_path in (
             "/lib/systemd/systemd-udevd",
             "/lib/udev/scsi_id",
@@ -858,14 +891,15 @@ wpa_cli p2p_find
                     ),
                     ("process-path", "12|/usr/local/bin:/usr/bin:/bin"),
                 ],
-                "identity": [
-                    ("security-sysctl", "kernel/kexec_load_disabled|0"),
-                    ("security-sysctl", "kernel/modules_disabled|1"),
-                ],
                 "units": [("unit", "vbtd.service|LoadState=loaded;ActiveState=active;")],
                 "interfaces": [
                     ("interface", "wlan0|up|1|1|3|3|/sys/bus/pci/drivers/test"),
                     ("listener", "tcp LISTEN 0 5 0.0.0.0:22"),
+                ],
+                "identity": [
+                    ("security-sysctl", "kernel/kexec_load_disabled|0"),
+                    ("security-sysctl", "kernel/modules_disabled|1"),
+                    ("modules", "usb_f_iap2 16384 0 - Live 0xffffffffa0000000"),
                 ],
                 "hashes": [("hash", "/tmp/vbtd|" + "a" * 64)],
             }
@@ -922,6 +956,10 @@ wpa_cli p2p_find
         self.assertEqual(report["facts"]["interfaces"][0]["ifindex"], 3)
         self.assertEqual(report["facts"]["hashes"]["/tmp/vbtd"], "a" * 64)
         self.assertEqual(report["facts"]["listeners"], ["tcp LISTEN 0 5 0.0.0.0:22"])
+        self.assertEqual(
+            report["facts"]["modules"],
+            ["usb_f_iap2 16384 0 - Live 0xffffffffa0000000"],
+        )
 
     def test_capability_decoder_preserves_unknown_and_malformed_values(self) -> None:
         decoded = MODULE._decode_capability_set("8000000000000001")

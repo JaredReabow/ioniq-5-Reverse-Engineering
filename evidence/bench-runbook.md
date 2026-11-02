@@ -56,6 +56,8 @@ host:
   -o work/bench/root-readiness.json
 "$PY" tools/uk_fw/bench_physical_root_readiness.py work/bench/state.json \
   -o work/bench/physical-root-readiness.json
+"$PY" tools/uk_fw/bench_carplay_readiness.py work/bench/state.json \
+  -o work/bench/carplay-readiness.json
 ```
 
 This single capture records installed hashes, process uid/gid and effective
@@ -122,6 +124,19 @@ physical-root assessor compares only exact identities and character-device
 `4:9` state. It does not execute either helper, emit a uevent, request a unit,
 access the virtual terminal, or infer hardware byte delivery, root, or
 persistence.
+For the recovered CarPlay/iAP2 boundary, the same passive pass now records exact
+hashes and metadata for both projection units, `iap2_mod.sh`, the projection
+SMACK policy, `iAP2Service-2.0`, `AppProjection`, `mdnsd`, the iAP2/AirPlay/
+CoreUtils/CarPlay libraries, and the three normal transport modules. It records
+unit state, projection process command lines and credentials, parsed
+`/proc/modules`, `/dev/mfd-iap2` and alternate `/dev/ttyIAP20` metadata and
+SMACK labels, plus the already passive interface/listener inventory. The host
+CarPlay assessor compares sixteen exact recovered identities and keeps the
+active service/process/device/module prerequisites separate from an optional
+port-7000 observation. It never opens either device, sends iAP2/AirPlay data, or
+infers phone delivery, public-CVE applicability, code execution, unrestricted
+root, or persistence.
+
 Missing commands/files remain explicit records. Unreadable files, failed
 reads/metadata queries/passive commands, and malformed hash output set a
 nonzero terminal collection status; an incomplete or nonzero terminal marker

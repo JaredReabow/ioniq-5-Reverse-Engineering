@@ -121,8 +121,39 @@ wrappers store first-argument dword `0x02000200` at message offset zero.
 This is a coordinated serialized-interface change, not a generic address
 relocation. The meaning of dword zero, recipient, added-byte semantics,
 attacker control, HECI reachability, and advisory identity remain unresolved;
-it must not yet be called
-the CVE-2018-12147 fix.
+it must not yet be called the CVE-2018-12147 fix.
+
+The exact submit wrapper gives this cluster a concrete FTPR kernel path. It
+stores the message pointer in a `0x40`-byte syscall argument block, passes
+selector `0x10`, and calls syslib wrapper `0x16f8f` / `0x16fb1`. That wrapper
+constructs syscall value `0x10010040` as
+`(selector << 24) | 0x00010000 | argument_size` and tail-jumps to the exact
+kernel gate.
+
+The affected and first-fixed syscall tables preserve flags `1` and argument
+size `0x40`, but bind selector `0x10` to shifted handlers
+`0x8c6b8..0x8c946` and `0x8c65a..0x8c8e8`. Both bodies are `0x28e` bytes.
+Across the complete handlers there are only seven raw differing bytes: three
+are inside two reviewed `call rel32` operands, while the remaining four encode
+two uses of one semantic immediate change:
+
+- `mov eax, 0x000000ff` becomes `mov eax, 0x00000102`; and
+- `cmp eax, 0x000000ff` becomes `cmp eax, 0x00000102`.
+
+After normalizing those two call operands and two immediate fields, the handler
+bodies are byte-identical. The handler tail reaches a shared return epilogue at
+`0x8bdb0..0x8bdcf` / `0x8bd52..0x8bd71`; its only byte change is another
+`cmp eax, 0xff → 0x102`.
+
+A complete-kernel instruction census finds the same numeric transition in 14
+sites in each build: two `mov eax, immediate` and twelve
+`cmp eax, immediate` sites. Thus the selector-`0x10` uses are part of a
+kernel-wide status/sentinel-renumbering candidate, not isolated evidence of
+message-validation logic. This proves a real first-fixed semantic delta on the
+exact path used by the eleven reviewed length sites, but does **not** name the
+value, explain why it increased by three, identify the message recipient or
+appended byte, establish HECI reachability, or attribute the change to
+CVE-2018-12147.
 
 Larger changed modules include plausible service and downstream-parser surfaces
 such as `ipc_drv`, but a module name or diff size is not reachability or advisory
@@ -133,8 +164,8 @@ exact CVE-2018-3655 candidate.
 
 - `evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json`
 - schema `ioniq-txe-first-fixed-module-inventory/v1`
-- size `107,331` bytes
-- SHA-256 `e9194799468fbde8c0e1acd3739943e6c02f413dd3a84d6ce9ac1fcdcbeafd13`
+- size `111,564` bytes
+- SHA-256 `3a5df368a7d319101cfd710960a8cfe38e61215e898958442ce382657b4eae1e`
 
 Embedded `$MN2` signatures establish self-consistency and byte binding only.
 They do not establish platform ROM/fuse/OEM acceptance or installed-unit

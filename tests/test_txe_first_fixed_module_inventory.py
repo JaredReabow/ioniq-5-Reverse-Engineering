@@ -75,6 +75,18 @@ def test_canonical_inventory_matches_reviewed_artifact():
     assert length_review["site_count"] == 11
     assert length_review["message_dword_zero"] == 0x02000200
     assert length_review["all_reviewed_lengths_increment_by_one"] is True
-    assert length_review["constructor_stores_first_argument_dword_at_message_offset_zero"] is True
+    assert length_review["submit_wrapper_stores_first_argument_dword_at_message_offset_zero"] is True
     assert length_review["constructor_stores_second_argument_low_byte_at_message_offset_four"] is True
+    kernel_review = report["kernel_message_submit_selector_0x10_review"]
+    assert kernel_review["selector"] == 0x10
+    assert kernel_review["syscall_argument_size"] == 0x40
+    assert kernel_review["reviewed_submit_syscall_value"] == 0x10010040
+    assert kernel_review["raw_differing_byte_count"] == 7
+    assert [site["affected_value"] for site in kernel_review["semantic_immediate_sites"]] == [0xFF, 0xFF]
+    assert [site["first_fixed_value"] for site in kernel_review["semantic_immediate_sites"]] == [0x102, 0x102]
+    census = kernel_review["kernel_global_immediate_census"]
+    assert census["affected_total_site_count"] == 14
+    assert census["first_fixed_total_site_count"] == 14
+    assert len(census["affected_cmp_eax_0xff"]) == 12
+    assert len(census["first_fixed_cmp_eax_0x102"]) == 12
     assert json.loads(ARTIFACT.read_text(encoding="utf-8")) == report

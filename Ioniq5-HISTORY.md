@@ -4171,3 +4171,10 @@ and are superseded by corrections rather than silently rewritten.
   put it in the foreground, lay it out at this rectangle.
 - That changes the shape of the remaining work from inventing a mechanism to driving the vendor's own one, which is the same lesson as the MICOM transport and the
   environment variable: the machinery is usually there, and the missing part is the driver for it.
+
+## 2026-10-31 — building the tool raised a question worth filing
+
+- The window-manager interface takes a surface id from the caller instead of deriving it from the caller's own connection. That shape allows cross-client window
+  control unless it is checked somewhere, and nothing in the description suggests it is.
+- It is filed as a candidate with every caveat attached: no cross-client attempt has been made, and the tool that would make one is the tool just built.
+- Worth recording that this came out of solving a display problem rather than from looking for vulnerabilities. The register grows where the work goes.

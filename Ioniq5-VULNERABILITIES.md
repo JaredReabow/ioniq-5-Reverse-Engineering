@@ -1416,3 +1416,30 @@ For each new issue record: stable ID, affected artifact/build and digest, source
   error instead of entering engine code, and route any unexpected call on `com.lge.avn.appmanager.appbase` through a recoverable
   error path.
 
+## V-046 — The window-manager interface takes another client's surface id, permitting cross-client surface control (candidate)
+
+- **Status:** **candidate / unproven.** Source-documented interface shape (measured), effect **not yet demonstrated**. Filed because it is reachable from the same
+  work that solved the display problem, and because it would be irresponsible to note the mechanism in the changelog and not here.
+- **Component:** vendor `ivi_window_manager` Wayland interface, described by `/usr/share/ivi-window-manager/ivi-window-manager.xml` and implemented by
+  `/usr/lib/weston/ivi-window-manager.so`.
+- **The interface, verbatim from the vendor XML:** `set_surface_visible(uint surface_id, uint is_visible)`,
+  `request_fg(int display_plane_idx, uint surface_id)`, `set_surface_layout(uint surface_id, int x, int y, int width, int height)`,
+  `set_surface_alpha(uint surface_id, int alpha)`, `set_surface_to_full_screen(uint surface_id)`,
+  `set_surface_to_top_order_within_layer(uint surface_id)`, `set_visible_for_qtwayland(uint surface_id, int isVisible)`.
+- **Why this is a candidate vulnerability rather than an API note:** every one of those requests identifies the target **by surface id, not by the calling client**.
+  A protocol that takes another client's surface id as an argument allows, by construction, one client to change the visibility, geometry, stacking or alpha of
+  another client's window unless the compositor validates the sender. Nothing in the interface description expresses such a check.
+- **What an attacker would gain if no sender check exists:** the ability to hide, move, resize, make transparent or bring to front arbitrary windows — including the
+  ones a driver is looking at. Foreground theft is the interesting one: `request_fg` names the plane and the surface, so a malicious process could ask to be shown
+  over the primary display, which is a UI-spoofing primitive rather than only a denial of service.
+- **Related, already measured:** `QT_WAYLAND_SET_SURFACE_ID_FORCED=1` lets a client **assert** a surface id instead of being assigned one (this is exactly what made
+  the home screen draw at all). Combined with the above, a client may both choose an identity and request that identity be shown.
+- **What is NOT established, and must be before this is treated as a vulnerability:** whether `ivi-window-manager.so` verifies that the caller owns the surface id
+  it names; whether surface ids are guessable in practice; whether the shell's own `app_surface_created should be visible at Foreground` path makes the explicit
+  requests redundant for legitimate clients; and whether any of it is reachable from a non-privileged process on the vehicle's bus and Wayland socket. No
+  cross-client attempt has been made yet — deliberately, because it is the next experiment rather than a result.
+- **Evidence:** the vendor XML path above; `Ioniq5-CHANGELOG.md` entries 2.64.0 (forced surface id) and 2.69.0 (the protocol inventory); `ivi_wm.c` in
+  `tools/uk_fw/ias_backend_soft/` is a working client for the interface and is the tool that would run the test.
+- **Suggested patch direction:** have the compositor derive the surface from the calling client instead of trusting a supplied id, reject requests naming a surface
+  the sender does not own, and ignore externally supplied surface ids in the client library unless the client is entitled to that id.
+

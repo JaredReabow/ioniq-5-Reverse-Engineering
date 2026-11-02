@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.70.0 - the window-manager client is built, and the interface it drives has a security question attached
+
+- `ivi_wm.c` is built and injected (`ivi_wm`, 42,656 bytes): it binds `ivi_window_manager`, can query `get_primary_screen_size`, and issues
+  `set_surface_layout` → `set_surface_visible` → `request_fg` for a given surface id. Not yet exercised against a live surface; that is the next measurement.
+- **Filed V-046** for the security property this work exposed, as a **candidate, not a finding**. Every request in the vendor window-manager interface names its
+  target **by surface id rather than by calling client** — `set_surface_visible(id, …)`, `request_fg(plane, id)`, `set_surface_layout(id, …)`,
+  `set_surface_alpha(id, …)`, `set_surface_to_full_screen(id)`. A protocol shaped that way permits one client to hide, move, restack, fade or foreground another
+  client's window **unless the compositor validates the sender**, and nothing in the interface description expresses such a check.
+- Combined with what this session already measured — `QT_WAYLAND_SET_SURFACE_ID_FORCED=1` lets a client **assert** an arbitrary surface id rather than be assigned
+  one — a malicious process might both choose an identity and ask for that identity to be displayed. That is a UI-spoofing primitive, not only a denial of service.
+- **Explicitly not claimed:** no cross-client attempt has been made. Whether `ivi-window-manager.so` checks ownership, whether ids are guessable, and whether any of
+  this is reachable from a non-privileged process are all unestablished. The register entry says so in its own words, and `ivi_wm` is the tool that would run the
+  test — deliberately as the next experiment rather than as a result.
+
 ## 2.69.0 - the vendor ships its own window-manager protocol, and it has exactly the requests we need
 
 - While looking for how a surface id is agreed, found the vendor's own protocol description at

@@ -1,0 +1,243 @@
+{
+  "address_model": {
+    "artifact_addresses": "ELF virtual addresses",
+    "example": {
+      "elf_va": "0x1998a",
+      "ghidra": "0x11998a"
+    },
+    "file_mapping": "resolved through file-backed PT_LOAD segments",
+    "ghidra_image_base": "0x100000",
+    "ghidra_normalization": "subtract 0x100000 from the Ghidra address to obtain the ELF virtual address for this analysis"
+  },
+  "anchors": {
+    "divisor_load": {
+      "bytes_hex": "8b8b34040000",
+      "elf_va": "0x1a647",
+      "file_offset": "0x1a647",
+      "matched": true,
+      "sha256": "1cb9a70b720ef41458b453357f4ef83ac34e5ae15986dce073739b8d54475651",
+      "size": 6
+    },
+    "encryption_error_to_setup": {
+      "bytes_hex": "837c2450004989c50f8541020000",
+      "elf_va": "0x103d7",
+      "file_offset": "0x103d7",
+      "matched": true,
+      "sha256": "05c2fe176a93dd2fe393b57eeffd7bef019f94772a1088b920fc97008480567b",
+      "size": 14
+    },
+    "encryption_none_to_setup": {
+      "bytes_hex": "83f8010f8438020000",
+      "elf_va": "0x103e5",
+      "file_offset": "0x103e5",
+      "matched": true,
+      "sha256": "1c0be48c14da8e13d1b616d80897c9157684480fb7a3d70474b4ccc261373c46",
+      "size": 9
+    },
+    "redundant_audio_cfstring_object": {
+      "bytes_hex": "56070100ffffff7f726564756e64616e74417564696f00",
+      "elf_va": "0x2a2c0",
+      "file_offset": "0x2a2c0",
+      "matched": true,
+      "sha256": "d19587b2014d45ec002bef882433efb1f88653b680218ce53eee006973b9ed95",
+      "size": 23
+    },
+    "redundant_audio_lookup_and_store": {
+      "bytes_hex": "31d24c89efc683c014000000488d350f000100e8dae6feff31d24c89ef488d35150001008983bc140000",
+      "elf_va": "0x1a29e",
+      "file_offset": "0x1a29e",
+      "matched": true,
+      "sha256": "fb2ffa3fb0af31c8b0ce0659191fcf9f89a562aa85c5284f33caaa5ab5e71440",
+      "size": 42
+    },
+    "redundant_audio_nonzero_bypass": {
+      "bytes_hex": "c683b803000001e9df000000",
+      "elf_va": "0x1a5ea",
+      "file_offset": "0x1a5ea",
+      "matched": true,
+      "sha256": "714a3f6bb3a8a54d2ca7a448c7dcd818a42adfd6e5f66b102c6430c170832e00",
+      "size": 12
+    },
+    "redundant_audio_zero_branch": {
+      "bytes_hex": "83bbbc14000000740c",
+      "elf_va": "0x1a5e1",
+      "file_offset": "0x1a5e1",
+      "matched": true,
+      "sha256": "0ae52a87d4112745b2990d6e0946eab34d276e19d0f99f42804f8d86cb903569",
+      "size": 9
+    },
+    "session_setup_call": {
+      "bytes_hex": "488b7b10488d5424704c89e6e8a97fffff",
+      "elf_va": "0x10626",
+      "file_offset": "0x10626",
+      "matched": true,
+      "sha256": "d40dc1872ff075be80fc905d8361f9ec670853a9bd8ca017670e7c7c45793cee",
+      "size": 17
+    },
+    "spf_cfstring_object": {
+      "bytes_hex": "56070100ffffff7f73706600",
+      "elf_va": "0x2a33c",
+      "file_offset": "0x2a33c",
+      "matched": true,
+      "sha256": "e0dd5422fabeb31d118f24b2c9d2099a782662ef8e966e670e9f31e178cbc40b",
+      "size": 12
+    },
+    "spf_dictionary_lookup": {
+      "bytes_hex": "4c89ef488d35d8ff00004c8dab3009000019c031d283c00b898338040000e813e6feff",
+      "elf_va": "0x1a35a",
+      "file_offset": "0x1a35a",
+      "matched": true,
+      "sha256": "7c22842ed0b0c4771c5a6a6fe59f9452ebd86de0ade122c8caa58e386c5d4def",
+      "size": 35
+    },
+    "spf_store": {
+      "bytes_hex": "898334040000",
+      "elf_va": "0x1a38c",
+      "file_offset": "0x1a38c",
+      "matched": true,
+      "sha256": "f0287e77ceb78fd2842d52cb494d551012ebd1782bf5c8131ed46149474d0713",
+      "size": 6
+    },
+    "stream_type_main_high": {
+      "bytes_hex": "e840eafeff4989c683f866741e",
+      "elf_va": "0x19f4b",
+      "file_offset": "0x19f4b",
+      "matched": true,
+      "sha256": "34accc791092c5455435e9c6d229c8af5ed675f9eba8f4e52ffb3161d03be016",
+      "size": 13
+    },
+    "unsigned_divide": {
+      "bytes_hex": "f7f1",
+      "elf_va": "0x1a6c0",
+      "file_offset": "0x1a6c0",
+      "matched": true,
+      "sha256": "6e963457bf02d5eca02fcbddac937f5ee284a3639bcb33babf0dc20dadfb347d",
+      "size": 2
+    }
+  },
+  "assessment": {
+    "classification": "exact-static denial-of-service candidate",
+    "cve_attribution": null,
+    "demonstrated": [
+      "exact recovered bytes bind the SETUP callback call to AirPlayReceiverSessionSetup",
+      "exact recovered bytes bind MainHighAudio type 0x66 and the spf getter/store",
+      "exact recovered bytes bind the redundant-audio branch, divisor load, and unguarded unsigned divide",
+      "a zero spf value on that path is an architectural divide exception"
+    ],
+    "mfi_sap_note": "the exact encryption-error and encryption-None branches reach AirPlayReceiverSessionSetup without entering the reviewed MFi-SAP decrypt path; other runtime gates remain unexcluded",
+    "mfi_sap_required_for_this_candidate": false,
+    "not_demonstrated": [
+      "that a physical phone, USB/NCM peer, or network peer can deliver the required dictionary to the exact installed unit",
+      "listener/interface exposure, upstream generic HTTP authorization state, or route eligibility at runtime",
+      "that session creation, control setup, socket setup, and earlier format checks all succeed on a live unit",
+      "process termination, service restart behavior, or user-visible denial of service",
+      "memory corruption, code execution, authentication bypass, root access, SMACK escape, persistence, or firmware modification",
+      "CVE identity, affected-versus-fixed lineage, or impact on the owner's installed firmware"
+    ],
+    "prerequisites": [
+      "the exact recovered libAirPlay.so identity",
+      "a locally accepted SETUP request with a parsed dictionary",
+      "successful session/control setup up to the reviewed stream branch",
+      "a streams array containing a MainHighAudio descriptor (type 0x66)",
+      "audio compression/format values accepted by earlier checks",
+      "redundantAudio resolving to zero",
+      "spf resolving to zero"
+    ]
+  },
+  "canonical_sha256": "e4eb3df14e54bd65c9fe3b52ea839d579eccae6989a495afab0fb2b8bbc7d527",
+  "decoded_flow": {
+    "callback_to_setup": {
+      "boundary": "this shows a local route that does not require the MFi-SAP decrypt branch when the getter reports an error or encryption type is None; it does not establish upstream request authorization or live delivery",
+      "call_site": "0x10632",
+      "callee_plt": "0x85e0 (AirPlayReceiverSessionSetup@plt)",
+      "encryption_error_branch": "0x103d7 tests the CFDictionaryGetInt64 error slot and 0x103df branches to 0x10626 when nonzero",
+      "encryption_none_branch": "0x103e5 compares encryption type with 1 and 0x103e8 branches to 0x10626 when equal"
+    },
+    "main_high_audio_selection": {
+      "comparison": "0x19f53 cmp eax,0x66; 0x19f56 je 0x19f76",
+      "frames_per_packet_key_exact": "spf",
+      "lookup_and_store": "0x1a35d loads the CFString object at 0x2a33c; the getter returns at 0x1a37d; 0x1a38c stores EAX at session+0x434",
+      "semantic_name_from_public_comparator": "framesPerPacket",
+      "type_key": "type",
+      "type_value": "0x66"
+    },
+    "zero_divisor_path": {
+      "architectural_result_if_zero": "x86 DIV with a zero divisor raises #DE before producing a quotient",
+      "branch": "0x1a5e1 compares the state with zero; zero falls through the retransmit initialization, while nonzero reaches 0x1a5ea and jumps to 0x1a6d5",
+      "divisor": "0x1a647 loads ECX from session+0x434 (the spf value)",
+      "guard": "the exact 0x1a647..0x1a6c2 byte range contains no divisor-zero rejection between the load and divide",
+      "operation": "0x1a6c0 executes unsigned div ecx",
+      "redundant_audio_state": "session+0x14bc"
+    }
+  },
+  "public_comparator": {
+    "commit": "51145ef55f8dd9f1cbadd58353cacb5e0ca215e9",
+    "repository": "45clouds/WirelessCarPlay",
+    "role": "comparative semantic names only; recovered bytes and addresses are authoritative",
+    "server_source": "source/Sources/AirPlayReceiverServer.c",
+    "server_source_sha256": "c517c24c4ae07510b7d00c5b31656e9397076c2de9058ef5ad3d41383d47a571",
+    "session_source": "source/Sources/AirPlayReceiverSession.c",
+    "session_source_sha256": "5ed352778a8e786707245ef993994e6e172efd6b89f5fb71893e71e1c8ca3b61"
+  },
+  "ranges": {
+    "AirPlayReceiverSessionSetup": {
+      "elf_va_end_exclusive": "0x1c24a",
+      "elf_va_start": "0x1998a",
+      "file_offset_start": "0x1998a",
+      "matched": true,
+      "sha256": "31f794fd8074bde88c42fea984664430b3c1a38b2ae43835936e2f25c6a56f41",
+      "size": 10432
+    },
+    "divisor_load_to_div": {
+      "elf_va_end_exclusive": "0x1a6c2",
+      "elf_va_start": "0x1a647",
+      "file_offset_start": "0x1a647",
+      "matched": true,
+      "sha256": "4ca9172f3de6ce259425fe3cb7611aa53f92d561730f5cf6fb21c55688899b84",
+      "size": 123
+    },
+    "main_high_audio_to_divisor_exit": {
+      "elf_va_end_exclusive": "0x1a6d5",
+      "elf_va_start": "0x19f3f",
+      "file_offset_start": "0x19f3f",
+      "matched": true,
+      "sha256": "22eb130b2e003a5815c9dd7f7d2df880a042b8a8b36bdcff33e2f8f1a54fcf50",
+      "size": 1942
+    },
+    "redundant_audio_branch_to_divisor_exit": {
+      "elf_va_end_exclusive": "0x1a6d5",
+      "elf_va_start": "0x1a5e1",
+      "file_offset_start": "0x1a5e1",
+      "matched": true,
+      "sha256": "617d62b9cd30e77f9f29e7406f36631d451a6d1e5e06e28d9bb460f42214245d",
+      "size": 244
+    },
+    "setup_encryption_to_session_setup": {
+      "elf_va_end_exclusive": "0x10637",
+      "elf_va_start": "0x103c3",
+      "file_offset_start": "0x103c3",
+      "matched": true,
+      "sha256": "5cde34310a8cdf36004c110ed3f9656dbdadaacf2b808fb12dc057e1fce57a81",
+      "size": 628
+    },
+    "spf_load_and_geometry": {
+      "elf_va_end_exclusive": "0x1a39b",
+      "elf_va_start": "0x1a35a",
+      "file_offset_start": "0x1a35a",
+      "matched": true,
+      "sha256": "53725b779b9ee88d61bedbfce06dfb9d1039070ef2338eeb1e621c07aa595324",
+      "size": 65
+    }
+  },
+  "schema": "ioniq-airplay-session-setup-divisor-audit/v1",
+  "subject": {
+    "basename": "libAirPlay.so",
+    "format": "ELF64 little-endian ET_DYN x86-64",
+    "sha256": "ef9e69e3b3388d4a7a1d185827c710af25b8ee99d406c60c664a9609b00aada0",
+    "size": 215896
+  },
+  "tool": {
+    "name": "airplay_session_setup_divisor_audit.py",
+    "version": "1.0.0"
+  }
+}

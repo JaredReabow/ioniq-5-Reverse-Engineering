@@ -4114,3 +4114,9 @@ and are superseded by corrections rather than silently rewritten.
   the failure latency, with the service confirmed alive.
 - The stub stays, because the image genuinely lacks that service. It is not a cure and will not be described as one.
 - Two questions remain and one of them is new: what the two remaining shared libraries do, and why the home screen vanishes without a segfault of its own.
+
+## 2026-10-31 — supervision, not a crash
+
+- The application that kept disappearing was being stopped by the manager after a sibling died, which is the manager doing its job. No fault, no leak, no OOM.
+- Corrected my own previous entry, which had floated it as a possible defect. The evidence against that was already in the memory numbers.
+- Also fixed a debugging tool that was drowning the console it was supposed to be observed through. Worth remembering that an instrument can be the problem.

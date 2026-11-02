@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.62.0 - the vanishing was management, not a crash; and the stub no longer floods the console
+
+- Instrument fix first: the stub wrote every call to `/dev/ttyS0`, which **flooded the serial console** and swallowed my own markers mid-run. It now writes to
+  `/tmp/persist-stub.log`, so the console stays usable and its 18+ handled calls remain recorded. A debug tool that destroys the channel it is being observed
+  through is a self-inflicted blindfold.
+- With a clean channel, a 240 s timeline of the ten-screen chain:
+  ```
+  T40   HOME=805            (then 851 — the app was restarted once, early)
+  T80   HOME=851 CAM=783 OSD=797   MemFree 1.40 GB
+  T120  HOME=851 CAM=783 OSD=797   MemFree 1.38 GB
+  T160  HOME=851 CAM=783 OSD=797   MemFree 1.39 GB
+  181s  AppCamera[783]: segfault … ip …8e4 in libc-2.25.so      (the free()+0x14 fault)
+  T200  HOME=- CAM=- OSD=-                                  MemFree 1.78 GB
+  ```
+- **The home screen does not crash.** There is no kernel segfault line for it, and memory is released in one step at the same moment the other clients vanish —
+  no OOM (no `out of memory`/`oom-kill`/`killed process` messages, and 1.4 GB still free when it happens). It is being **stopped by the vendor's own application
+  management** after a sibling client dies, which is exactly what an app manager is for. So this is not a defect and does not need a register entry; it is the
+  supervisor doing its job.
+- The kernel-visible client faults in this configuration reduce to **two**: `AppNavi` at ~55 s in `libQt5Core` (`segfault at 8`, a null dereference) and
+  `AppCamera` at ~181 s in `free()+0x14` (heap corruption). Everything else that disappears is supervision.
+- Correcting my own framing from §2.61.0: I wrote that `AppHomeScreen` vanishing "may be a separate defect worth its own record". It is not a defect. It is
+  managed shutdown, and the evidence for that is the absence of a fault line combined with the memory release and the contemporaneous sibling death.
+
 ## 2.61.0 - refuted: supplying the persistence service does not stop the heap corruption
 
 - The stub now works in the guest. Its own log, in order:

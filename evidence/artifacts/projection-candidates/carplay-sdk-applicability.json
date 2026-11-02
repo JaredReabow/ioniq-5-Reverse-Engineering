@@ -1,0 +1,498 @@
+{
+  "activation": {
+    "configured_systemd_default_uid": 0,
+    "enable_link": "lib/systemd/system/multi-user.target.wants/carplay_iAP2.service",
+    "enable_target": "/lib/systemd/system/carplay_iAP2.service",
+    "enabled_by_multi_user_symlink": true,
+    "exec_start": "/app/bin/iAP2Service-2.0",
+    "exec_start_pre": "/etc/iap2_mod.sh",
+    "explicit_user_directive": null,
+    "restart": "always"
+  },
+  "airplay_http_plist_review": {
+    "binary": "app/lib/libAirPlay.so",
+    "binary_plist_parser_review": {
+      "accepted_offset_and_reference_widths": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "binary": "app/lib/libCoreUtils.so",
+      "bounds_data_and_single_byte_string_lengths_to_remaining_input": true,
+      "bounds_dictionary_reference_count_with_division_before_multiplication": true,
+      "bounds_offset_table_with_division_before_multiplication": true,
+      "bounds_sized_integer_reads_to_remaining_input": true,
+      "ranges": {
+        "CFBinaryPlistV0CreateWithData": {
+          "end": "0x3b8fc",
+          "sha256": "c03a2284cb4fcc1b8fc71dd44653d9250c74e8149d285efd8b87296527c2e625",
+          "size": 759,
+          "start": "0x3b605"
+        },
+        "CFStringCreateWithBytes": {
+          "end": "0x29b11",
+          "sha256": "fb6c03d8ad313a1dd91026cece624b2ce1529fb6b56b2bcf2f09deee002c161b",
+          "size": 301,
+          "start": "0x299e4"
+        },
+        "read_extended_count": {
+          "end": "0x3975d",
+          "sha256": "7b2ad966d067e523a2e7caf20a375b74182572be39d6332db8b26cae207e790d",
+          "size": 128,
+          "start": "0x396dd"
+        },
+        "read_object_reference": {
+          "end": "0x39867",
+          "sha256": "d16bc0d58e25b9415efec660dd96f07f7888729f1b2aa138d312df1a9843b75d",
+          "size": 266,
+          "start": "0x3975d"
+        },
+        "read_sized_integer": {
+          "end": "0x396dd",
+          "sha256": "2054c003efe46884944f96f0790084b092a4f8d48c51b923e79d547f74a48c24",
+          "size": 146,
+          "start": "0x3964b"
+        },
+        "read_v0_object": {
+          "end": "0x3a25b",
+          "sha256": "311b21c47180959ed11e36874aefd57aa62a6b625e4c2061b2c7b2b15aca12cc",
+          "size": 2073,
+          "start": "0x39a42"
+        },
+        "utf8_encodelen": {
+          "end": "0xc36dd",
+          "sha256": "8291feddc85ed5bc7ff032a2615aae0f54e4c40c906435e70dc4f8d473369ba2",
+          "size": 370,
+          "start": "0xc356b"
+        },
+        "utf8_encodestr": {
+          "end": "0xc39ee",
+          "sha256": "c6beb495d5117cebf4e0883fa60ac3fe65fdc3f3409b608d8878d8a9a46effcd",
+          "size": 785,
+          "start": "0xc36dd"
+        },
+        "utf8_encodestr_copy": {
+          "end": "0xc459e",
+          "sha256": "6a51fe798013ec28857712bc2f381f26279c6b620ee5d4258a696ac2bad08cbe",
+          "size": 213,
+          "start": "0xc44c9"
+        }
+      },
+      "rejects_input_pointer_wrap": true,
+      "requires_bplist00_header": true,
+      "requires_nonzero_object_count": true,
+      "requires_top_object_below_object_count": true,
+      "unguarded_utf16_byte_length_doubling": {
+        "CFStringCreateWithBytes_signed_32bit_narrowing": "0x299eb: movsxd rsi, edx",
+        "cve_2025_30422_attribution_established": false,
+        "direct_out_of_bounds_read_or_copy_excluded_for_this_chain": true,
+        "high_bit_32bit_length_causes_zero_input_iterations": true,
+        "instruction": "0x39e89: add rdx, rdx",
+        "interpretation": "An exact unsigned length-wrap and later signed-32-bit narrowing exist for binary-plist UTF-16 objects. A high-bit 32-bit result exits both UTF-16 conversion loops before input reads; a nonnegative truncated result is no larger than the parser-checked wrapped length. This excludes a direct OOB read/copy in this exact chain, while leaving unproved semantic-truncation effects and other integer paths open.",
+        "nonnegative_truncated_length_not_greater_than_parser_checked_length": true,
+        "security_relevant_semantic_truncation_established": false,
+        "subsequent_check_uses_wrapped_value": true,
+        "wrapped_value_passed_as_CFStringCreateWithBytes_length": true
+      }
+    },
+    "limitation": "Architecture and API overlap do not identify either 2025 CVE's exact route, field, or vulnerable instruction sequence; no fixed-build byte comparator is available.",
+    "parser_api_markers": [
+      "CFBinaryPlistV0CreateWithData",
+      "CFDictionaryGetTypeID",
+      "CFPropertyListCreateWithData",
+      "HTTPServerCreate",
+      "_HTTPServerControl"
+    ],
+    "protocol_markers": [
+      "/auth-setup",
+      "/command",
+      "/feedback",
+      "/info",
+      "/logs",
+      "/pair-setup",
+      "/pair-verify",
+      "application/x-apple-binary-plist",
+      "text/x-apple-plist+xml",
+      "AirPlayReceiverServerHTTP",
+      "_requestProcessSetupPlist"
+    ],
+    "public_architecture_overlap": "The recovered library contains an HTTP/RTSP-style AirPlay receiver, binary/XML plist content types, route strings, and plist/dictionary parser APIs of the same broad class discussed by Oligo.",
+    "request_body_to_parser_path": {
+      "body_length_field": "HTTP message + 0x530",
+      "body_pointer_field": "HTTP message + 0x518",
+      "call_site": "0x10032",
+      "dictionary_type_checked_at": "0x100a3..0x100b6",
+      "error_checked_after_call": true,
+      "runtime_delivery_observed": false
+    },
+    "request_processor": {
+      "binary_plist_parse_call_sites": [
+        "0x10032",
+        "0x107a7",
+        "0x10b75",
+        "0x10e1a"
+      ],
+      "bounded_text_write_callees": [
+        "TruncateUTF8",
+        "snprintf",
+        "strlcpy"
+      ],
+      "dictionary_type_check_call_sites": [
+        "0x100ae",
+        "0x107bf",
+        "0x10bac",
+        "0x10c54",
+        "0x10e51"
+      ],
+      "direct_dispatcher_interpretation": "Reviewed direct calls and repeated-memory instructions show bounded text writes and structure clears, not a direct memcpy/strcpy/sprintf/strcat-style copy. Deeper parser, dictionary, session, and internal helper callees remain open.",
+      "direct_rep_operations": [
+        {
+          "address": "0xf817",
+          "operation": "rep stosd"
+        },
+        {
+          "address": "0xfc4a",
+          "operation": "rep stosd"
+        },
+        {
+          "address": "0x102a3",
+          "operation": "rep stosd"
+        }
+      ],
+      "direct_unbounded_copy_or_concatenation_callees": [],
+      "end": "0x11a3b",
+      "name_evidence": "embedded function-name string referenced inside the FDE-bounded body",
+      "reviewed_name": "_requestProcessSetupPlist",
+      "sha256": "fccea004635853ec3d685f24815e548a227bf8f65853f5e025e4115cda0cfc10",
+      "size": 9834,
+      "stack_canary_load_present": true,
+      "stack_frame_bytes": 376,
+      "start": "0xf3d1"
+    }
+  },
+  "boundaries": [
+    "The recovered service, enable link, module script, binaries, labels, hashes, and lineage strings are exact static facts for EU 260128.",
+    "The public Sony and Alpine findings concern different products and disclose no function bytes or patch suitable for an exact code match.",
+    "Apple's public SDK advisory names fixed AirPlay and CarPlay SDK releases, but the recovered private 320.17 lineage string has no public version mapping to those releases.",
+    "Oligo classifies CVE-2025-24132 as CarPlay stack-overflow RCE and CVE-2025-30422 as potential integer-overflow RCE, but withholds the exact vulnerable route and implementation details in the reviewed publication.",
+    "Recovered AirPlay HTTP/plist architecture overlap prioritizes exact handler review; it does not establish vulnerable lineage, reachability, or exploitability.",
+    "Stack canary, non-executable stack, RELRO, or fortify references constrain some outcomes but do not prove parser safety.",
+    "No target executable, module, service, USB device, network endpoint, parser, or malformed input was executed by this audit."
+  ],
+  "canonical_sha256": "44cc84f3494c9794141b62294cb810ae30f2f4abf27325152b7dedadb4651b13",
+  "elf_static_properties": {
+    "app/bin/AppProjection": {
+      "elf_type": 3,
+      "entry": 138736,
+      "fortified_memory_reference": true,
+      "gnu_relro_segment": true,
+      "gnu_stack_present": true,
+      "has_interpreter": true,
+      "machine": 62,
+      "position_independent_executable": true,
+      "stack_canary_reference": true,
+      "stack_executable": false
+    },
+    "app/bin/iAP2Service-2.0": {
+      "elf_type": 3,
+      "entry": 21248,
+      "fortified_memory_reference": false,
+      "gnu_relro_segment": true,
+      "gnu_stack_present": true,
+      "has_interpreter": true,
+      "machine": 62,
+      "position_independent_executable": true,
+      "stack_canary_reference": true,
+      "stack_executable": false
+    },
+    "app/bin/mdnsd": {
+      "elf_type": 3,
+      "entry": 17840,
+      "fortified_memory_reference": false,
+      "gnu_relro_segment": true,
+      "gnu_stack_present": true,
+      "has_interpreter": true,
+      "machine": 62,
+      "position_independent_executable": true,
+      "stack_canary_reference": true,
+      "stack_executable": false
+    },
+    "app/lib/libAirPlay.so": {
+      "elf_type": 3,
+      "entry": 39760,
+      "fortified_memory_reference": false,
+      "gnu_relro_segment": true,
+      "gnu_stack_present": true,
+      "has_interpreter": false,
+      "machine": 62,
+      "position_independent_executable": false,
+      "stack_canary_reference": true,
+      "stack_executable": false
+    },
+    "app/lib/libAirPlaySupport.so": {
+      "elf_type": 3,
+      "entry": 4096,
+      "fortified_memory_reference": false,
+      "gnu_relro_segment": true,
+      "gnu_stack_present": true,
+      "has_interpreter": false,
+      "machine": 62,
+      "position_independent_executable": false,
+      "stack_canary_reference": true,
+      "stack_executable": false
+    },
+    "app/lib/libCarPlayAppFramework.so": {
+      "elf_type": 3,
+      "entry": 24048,
+      "fortified_memory_reference": false,
+      "gnu_relro_segment": true,
+      "gnu_stack_present": true,
+      "has_interpreter": false,
+      "machine": 62,
+      "position_independent_executable": false,
+      "stack_canary_reference": true,
+      "stack_executable": false
+    },
+    "app/lib/libCarPlayMediaFramework.so": {
+      "elf_type": 3,
+      "entry": 30368,
+      "fortified_memory_reference": false,
+      "gnu_relro_segment": true,
+      "gnu_stack_present": true,
+      "has_interpreter": false,
+      "machine": 62,
+      "position_independent_executable": false,
+      "stack_canary_reference": true,
+      "stack_executable": false
+    },
+    "app/lib/libCoreUtils.so": {
+      "elf_type": 3,
+      "entry": 126320,
+      "fortified_memory_reference": true,
+      "gnu_relro_segment": true,
+      "gnu_stack_present": true,
+      "has_interpreter": false,
+      "machine": 62,
+      "position_independent_executable": false,
+      "stack_canary_reference": true,
+      "stack_executable": false
+    },
+    "app/lib/libiAP2AppFramework-2.0.so": {
+      "elf_type": 3,
+      "entry": 22752,
+      "fortified_memory_reference": false,
+      "gnu_relro_segment": true,
+      "gnu_stack_present": true,
+      "has_interpreter": false,
+      "machine": 62,
+      "position_independent_executable": false,
+      "stack_canary_reference": true,
+      "stack_executable": false
+    }
+  },
+  "iap2_marshal_getbytes_review": {
+    "advances_pointer_only_after_remaining_check": true,
+    "bounded_interpretation": "The generic exported byte-string decoder is not the unchecked fixed-stack copy described by the public Sony/Alpine advisories; other TLV, HTTP, pairing, media, and vendor handlers remain unreviewed.",
+    "checks_aligned_length_against_remaining_bytes": true,
+    "copies_to_fixed_stack_buffer": false,
+    "length_prefix_source": "iAp2MarshalGetUint32",
+    "maximum_accepted_unaligned_length": 4294967292,
+    "ranges": {
+      "bounded_byte_span_helper": {
+        "end": "0x2176a",
+        "sha256": "98cbc5af41238b006a7497dfce512b59c21b448f616a55ff641597a058303fcf",
+        "size": 293,
+        "start": "0x21645"
+      },
+      "iAp2MarshalGetBytes": {
+        "end": "0x21b21",
+        "sha256": "601fc208cd6c41eb6926c782dcafcedd47c88785516c98c1290ebcdd2e08ac31",
+        "size": 203,
+        "start": "0x21a56"
+      },
+      "iAp2MarshalGetUint32": {
+        "end": "0x21885",
+        "sha256": "9470cb639a4bd1c95813d61f134f6b0bd8a4d64fc0af0ff0b49cc2a7d777af46",
+        "size": 90,
+        "start": "0x2182b"
+      }
+    },
+    "rounds_length_to_four_byte_alignment": true,
+    "subtracts_aligned_length_from_remaining_bytes": true
+  },
+  "inputs": {
+    "app/bin/AppProjection": {
+      "bytes": 2321256,
+      "sha256": "8f0096bcc0734d4c9766c15bac54c42f302ed7057182c2573b5ac543913960e3"
+    },
+    "app/bin/iAP2Service-2.0": {
+      "bytes": 633216,
+      "sha256": "38419131df82ec7e3c3b29a68ecc1a078c7f0b403051f137fe9f46f82b99f26e"
+    },
+    "app/bin/mdnsd": {
+      "bytes": 436352,
+      "sha256": "71122d8f59cdfd248f80414014e22114b0ee486415e5a7de23f5acd1676b9cdd"
+    },
+    "app/lib/libAirPlay.so": {
+      "bytes": 215896,
+      "sha256": "ef9e69e3b3388d4a7a1d185827c710af25b8ee99d406c60c664a9609b00aada0"
+    },
+    "app/lib/libAirPlaySupport.so": {
+      "bytes": 18312,
+      "sha256": "1e57d807c320999fda35ac08e7e213f6533014f8d68391b1c33b00505b175893"
+    },
+    "app/lib/libCarPlayAppFramework.so": {
+      "bytes": 141960,
+      "sha256": "e3603e6b0744cf07724cc5cc79ea01ea3d9207d7eaf37c544c7ce26536ecd7a2"
+    },
+    "app/lib/libCarPlayMediaFramework.so": {
+      "bytes": 162392,
+      "sha256": "69690210d1aa4dec33c77b0e80f1d3368f8a70bcb507c1b158b6245dc29eb2f3"
+    },
+    "app/lib/libCoreUtils.so": {
+      "bytes": 1200368,
+      "sha256": "9104e2c16ee27e647fac090ee7f3aa4cc686b8caaea1dc24763af2950c0ebfae"
+    },
+    "app/lib/libiAP2AppFramework-2.0.so": {
+      "bytes": 190272,
+      "sha256": "d4d0558c9c53f02ee14024c081ccd83a02ca29404ef400131e2951f68a388120"
+    },
+    "etc/iap2_mod.sh": {
+      "bytes": 1643,
+      "sha256": "ecec04580a09b258796e96e20835deab60479b76edaceaaca01d58097b19656b"
+    },
+    "etc/smack-relabel-ro.sh": {
+      "bytes": 6206,
+      "sha256": "8275625764c30b6e82d99e5fdf887038261f97e9f0ef5a36da8faa743a35a15f"
+    },
+    "etc/smack/accesses.d/projection": {
+      "bytes": 831,
+      "sha256": "978ccab43e6724df0bb74c4f84e3319ab3f0022dec442f4389fba140f6b3c1c9"
+    },
+    "etc/smack_setup.sh": {
+      "bytes": 7603,
+      "sha256": "847af53be34d0e325c738a4ae26d11f7ed69b940cf2aa53d27e3b422e8a8ebb6"
+    },
+    "lib/modules/4.1.27-abl/kernel/drivers/lge/mfd/mfd-iap2.ko": {
+      "bytes": 16288,
+      "sha256": "1276cee2d1a2eca5e2c8d5c7f49eb813ffeae6b81ee490ba3abfc176ae2040c4"
+    },
+    "lib/modules/4.1.27-abl/kernel/drivers/usb/gadget/function/usb_f_iap2.ko": {
+      "bytes": 10704,
+      "sha256": "13bb79d9d9e991fdb9a950fc4ef8d65491c804a061208acb669ba54683e1e7bd"
+    },
+    "lib/modules/4.1.27-abl/kernel/drivers/usb/gadget/function/usb_f_ncm.ko": {
+      "bytes": 31632,
+      "sha256": "bb4c508c17d7c292d806f98d2d135a00949b2c144b57837194aa574c9a10cfaa"
+    },
+    "lib/systemd/system/carplay_iAP2.service": {
+      "bytes": 397,
+      "sha256": "f7cf915509005a4aaa18d09e3a6ccd0abdd72ef2b2816641ea9a592a1e3f4495"
+    }
+  },
+  "lineage_strings": {
+    "app/bin/iAP2Service-2.0": [
+      "CarPlay.LHW.230712.a",
+      "/dev/mfd-iap2"
+    ],
+    "app/lib/libAirPlay.so": [
+      "320.17.6"
+    ],
+    "app/lib/libAirPlaySupport.so": [
+      "CarPlayFramework/0.1.89-189.180620M.38-r8",
+      "AppleCarPlay_CommunicationPlugin/320.17"
+    ]
+  },
+  "linkage_strings": {
+    "app/bin/AppProjection": [
+      "libiAP2AppFramework-2.0.so",
+      "libCarPlayAppFramework.so"
+    ],
+    "app/bin/iAP2Service-2.0": [
+      "libiAP2AppFramework-2.0.so"
+    ],
+    "app/lib/libCarPlayAppFramework.so": [
+      "libAirPlay.so",
+      "libAirPlaySupport.so"
+    ]
+  },
+  "public_comparators": [
+    {
+      "advisory": "ZDI-24-877",
+      "cve": "CVE-2024-23933",
+      "product": "Sony XAV-AX5500",
+      "public_impact": "code execution in the device context",
+      "public_mechanism": "physically delivered CarPlay TLV reaches an unchecked copy into a fixed stack buffer",
+      "url": "https://www.zerodayinitiative.com/advisories/ZDI-24-877/"
+    },
+    {
+      "advisory": "ZDI-25-763",
+      "cve": "CVE-2025-8474",
+      "product": "Alpine iLX-507",
+      "public_impact": "code execution in the root context on the named Alpine product",
+      "public_mechanism": "physically delivered CarPlay data reaches an unchecked copy into a fixed stack buffer",
+      "url": "https://www.zerodayinitiative.com/advisories/ZDI-25-763/"
+    },
+    {
+      "advisory": null,
+      "cve": "CVE-2024-37602",
+      "product": "Mercedes-Benz NTG6 through 2021",
+      "public_impact": "CarPlay service failure",
+      "public_mechanism": "prepared HTTP requests reach an AirTunes/AirPlay null-pointer dereference",
+      "url": "https://securelist.com/mercedes-benz-head-unit-security-research/115218/"
+    },
+    {
+      "advisory": "Apple AirPlay SDK security update",
+      "cve": "CVE-2025-24132",
+      "product": "AirPlay audio SDK before 2.7.1 / video SDK before 3.6.0.126",
+      "public_impact": "vendor: termination; researcher: CarPlay RCE under stated Wi-Fi, Bluetooth, or physical-USB conditions",
+      "public_mechanism": "vendor: memory-handling issue; researcher: CWE-121 stack-based buffer overflow",
+      "url": "https://support.apple.com/en-us/122403"
+    },
+    {
+      "advisory": "Apple AirPlay SDK security update",
+      "cve": "CVE-2025-30422",
+      "product": "AirPlay audio SDK before 2.7.1 / video SDK before 3.6.0.126",
+      "public_impact": "vendor: termination; researcher: potential RCE",
+      "public_mechanism": "vendor: buffer overflow; researcher: CWE-190 integer overflow or wraparound",
+      "url": "https://support.apple.com/en-us/122403"
+    }
+  ],
+  "schema": "ioniq-carplay-sdk-applicability/v1",
+  "smack": {
+    "iap2_device_label": "System::iap20",
+    "projection_to_floor_access": "rwxa--",
+    "runtime_labels_observed": false,
+    "service_exec_label": "App::projection",
+    "service_to_iap2_device_access": "rw----"
+  },
+  "tool_version": "1.1.0",
+  "transport_configuration": {
+    "device_path_in_service_binary": "/dev/mfd-iap2",
+    "exact_module_files_bound": true,
+    "normal_script_branch_modules": [
+      "usb_f_ncm",
+      "usb_f_iap2",
+      "mfd-iap2"
+    ],
+    "physical_phone_or_network_delivery_observed": false
+  },
+  "verdict": {
+    "airplay_setup_dispatcher_direct_unbounded_copy_present": false,
+    "apple_communication_plugin_320_17_string_present": true,
+    "binary_plist_utf16_direct_out_of_bounds_chain_excluded": true,
+    "binary_plist_utf16_length_wrap_candidate_present": true,
+    "binary_plist_utf16_security_relevant_semantic_truncation_established": false,
+    "code_execution_observed": false,
+    "configured_uid_zero": true,
+    "crash_observed": false,
+    "exact_public_cve_code_match_established": false,
+    "generic_iap2_getbytes_unchecked_stack_copy_present": false,
+    "persistence_observed": false,
+    "phone_to_parser_delivery_observed": false,
+    "recovered_carplay_iap2_service_enabled": true,
+    "recovered_iap2_gadget_and_mfd_modules_selected": true,
+    "root_transition_observed": false
+  }
+}

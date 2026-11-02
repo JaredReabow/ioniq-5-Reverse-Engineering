@@ -1964,6 +1964,15 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
    403f5: call    0x102e
    403fa: add     esp, 0xc
 
+# After the name lookup succeeds, this path does not inspect entry total +0x0e
+# or derive a payload length. It does not bound selector byte +0x12, require the
+# pointer field at entry+0x16+4*selector to remain inside the entry, or constrain
+# the loaded pointer before the fixed 0x20-byte copy. Selector zero alone needs
+# an entry total of at least 0x1a for its four-byte pointer field; for the
+# intended 0x24-byte payload, only selectors 0..7 keep that field in the
+# payload. These are exact parser-integrity gaps, not proof that an attacker can
+# create or mutate the pre-RBE object.
+
 ### RBE `rot.key` validation against `ipub_key` (file [0x2a9f,0x2ada), runtime [0x42a9f,0x42ada))
 
    42a9f: xor     eax, eax
@@ -2262,6 +2271,13 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
    4157f: xor     eax, eax
    41583: mov     eax, ebx
 
+# The traversal cap bounds the declared table extent, but the iterator does not
+# require a minimum entry total, a nonzero step, or enough remaining bytes for
+# the fields it reads. A nonmatching zero-total entry repeats at the same
+# address. A short nonzero total can advance into the current entry's own bytes,
+# and an entry near the declared end can make the name/state/total reads cross
+# that logical boundary. Malformed pre-RBE producer control is not proved.
+
 ## RBE runtime-object handoff append (RBE file [0x158c,0x1654), runtime [0x4158c,0x41654))
 
    415a4: lea     eax, [edx + 0x12]           # header plus payload
@@ -2291,6 +2307,15 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
    4163f: mov     word ptr [esi + 0x10], ax   # caller metadata
    41643: add     dword ptr [0x8200000], ebx  # publish new total
    41649: lea     eax, [esi + 0x12]           # return payload
+
+# The function bounds payload size and the 32-bit sum current_total+entry_total,
+# but does not first bound current_total or reject addition carry. The first RBE
+# call appends a one-byte cld_rst_blk payload, so entry_total is 0x13. Incoming
+# totals 0xffffffed..0xffffffff wrap the checked sum to 0..0x12 and place the
+# destination at 0x081fffed..0x081fffff; the header/payload writes can therefore
+# begin before the declared 0x08200000 handoff and can overlap its total field.
+# Control of such an incoming total and practical post-write behavior are not
+# proved.
 
 # RBE appends "cld_rst_blk" before key initialization requires existing bpdt,
 # pm_trans, ftpm_fuses, sss_em, rbe.man, pmc_ipc, and ipub_key entries. Missing
@@ -2376,8 +2401,8 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 # destination. A state-1 entry with total 0x10 or 0x11 therefore contributes
 # its complete 16 or 17 bytes to BUP's 0x12-byte header read, then the next
 # accepted entry contributes the final 2 or 1 bytes. Header bytes +0x0e/+0x0f
-# still encode 0x0010 or 0x0011, so BUP's subtraction can be reached if its
-# external reader is this standard stream path.
+# still encode 0x0010 or 0x0011, so BUP's subtraction is reached on the exact
+# reader binding proved below.
 
 ## FTPR kernel read handler and process-buffer bound (kernel file [0xa7ff,0xa8c8) and [0xed23,0xedc6))
 
@@ -2407,10 +2432,69 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 
 # For totals 0x10 and 0x11 BUP computes payload requests 0xfffffffe and
 # 0xffffffff. Both exceed 0x01800000 and are rejected by this exact kernel
-# validator before 0x8ee19 is called on the standard syscall path. This bounds
-# the underflow to an error/cleanup path rather than proving memory corruption.
-# The exact relocation/import binding of BUP's call target 0x659b to this
-# standard handler remains open, as does attacker control of the pre-RBE table.
+# validator before 0x8ee19 is called. This bounds the underflow to an
+# error/cleanup path rather than proving memory corruption. Attacker control of
+# the pre-RBE table remains open.
+
+## Exact BUP 0x659b -> syslib -> int 0x80 -> FTPR handler binding
+
+# Exact BUP calls the same address for both header and payload reads:
+   28888: call    0x659b
+   288d2: call    0x659b
+
+# The manifest-bound FTPR syslib is loaded at the exact call-compatible base
+# 0x6000. Runtime 0x659b is raw syslib stub +0x59b:
+     659b: jmp     0x16fb3             # raw +0x59b -> raw +0x10fb3
+
+# The target builds a four-dword request and invokes the generic syscall encoder:
+    16fc4: mov     eax, dword ptr [ebp + 0x8]
+    16fc7: mov     dword ptr [ebp - 0x18], eax
+    16fca: mov     eax, dword ptr [ebp + 0xc]
+    16fcd: mov     dword ptr [ebp - 0x14], eax
+    16fd0: mov     eax, dword ptr [ebp + 0x10]
+    16fd3: mov     dword ptr [ebp - 0x10], eax
+    16fd6: lea     eax, [ebp - 0x18]
+    16fd9: push    eax
+    16fda: mov     ebx, dword ptr [ebp + 0x14]
+    16fdd: push    0x10                # request structure size
+    16fdf: push    0x0                 # syscall table selector/index
+    16fe1: call    0x16f8f
+
+# Encoder result is (selector << 24) | 0x10000 | size = 0x00010010, passed to
+# int 0x80 with the request pointer:
+    16f92: movzx   eax, word ptr [ebp + 0xc]
+    16f96: movzx   edx, byte ptr [ebp + 0x8]
+    16f9a: shl     edx, 0x18
+    16f9d: or      eax, 0x10000
+    16fa2: or      eax, edx
+    16fa4: mov     edx, dword ptr [ebp + 0x10]
+    16fae: jmp     0x118b2
+    118b5: mov     eax, dword ptr [ebp + 0xc]
+    118b8: mov     edx, dword ptr [ebp + 0x8]
+    118bb: int     0x80
+
+# Exact kernel dispatch takes the high byte as the 12-byte table index:
+    8e870: shr     ebx, 0x18
+    8e87b: movzx   esi, bl
+    8e93d: cmp     bl, 0x2c
+    8e942: imul    edx, esi, 0xc
+    8e945: lea     edi, [edx + 0x90d24]
+
+# Table entry zero is {flags=5, request_size=0x10, handler=0x8ed23}:
+    90d24: .long   0x00000005
+    90d28: .long   0x00000010
+    90d2c: .long   0x0008ed23
+
+# The later dispatcher loads handler +8 from the same indexed entry and calls it:
+    8ebe8: imul    eax, dword ptr [ebx + 0x80], 0xc
+    8ebef: mov     edx, dword ptr [eax + 0x90d24]
+    8ebf5: lea     ecx, [eax + 0x90d24]
+    8ebfe: mov     eax, dword ptr [ecx + 0x8]
+    8ec3b: call    eax
+
+# This closes BUP target 0x659b to exact handler 0x8ed23, including the 0x10-byte
+# request size expected by both wrapper and table. The process-buffer rejection
+# above therefore applies to BUP's wrapped 0xfffffffe/0xffffffff reads.
 
 # This proves that the exact signed FTPR kernel consumes the same handoff base,
 # first entry, +0x0d state byte, and +0x0e entry-size geometry after RBE. It
@@ -2547,8 +2631,8 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 # the handoff's then-current total. With sequence-preserving FTPR/BUP ingestion,
 # that later stock object is prepended after every pre-RBE duplicate and wins
 # first-match lookup. No post-RBE mutation or reordering is proved. The exact
-# external-reader import-to-kernel-function binding is also not yet closed, so
-# this does not prove BUP's ipub_key came from the RBE table or exclude the
+# exact external-reader import-to-kernel-function binding is closed above. This
+# still does not prove BUP's ipub_key came from the RBE table or exclude the
 # /snowball fallback at the later manifest-verification point.
 
 ## BUP runtime-object or /snowball resolver (BUP file [0x2026a,0x2039a), runtime [0x4626a,0x4639a))

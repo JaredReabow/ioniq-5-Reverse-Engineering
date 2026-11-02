@@ -86,6 +86,28 @@ verification. A newly self-signed IAS image therefore remains insufficient.
 The earlier boot-policy chain is now also exact. RBE looks up `ipub_key` in an
 incoming bounded runtime-object handoff at `0x08200000` and uses its selected
 32-byte digest to pin `rot.key`; its path does not create that handoff entry.
+The exact RBE iterator does not require a nonzero/minimum entry total or enough
+remaining bytes for its header fields, so zero can cause nonprogress and short
+totals can reparse interior bytes. Its first one-byte `cld_rst_blk` append also
+checks only the wrapped `current_total + 0x13` sum: incoming totals
+`0xffffffed..0xffffffff` can place its write at
+`0x081fffed..0x081fffff`, partly before the declared handoff. After an
+`ipub_key` match it also checks neither entry size nor selector range,
+pointer-field containment, or the loaded
+source pointer before copying 32 bytes from
+`dword[entry + 0x16 + 4*selector]`. These are stronger pre-RBE parser-integrity
+leads, but no attacker-controlled handoff producer or mutation route is proved.
+
+The conditional security consequence is root substitution, not a demonstrated
+RSA break. If an authorized recovery or provisioning path could both choose the
+pre-RBE digest and replace the persistent CSE key/manifest objects, a chosen
+self-consistent `rot.key` could become the expected key and could in turn
+authorize replacement RBEP/FTPR/NFTP manifests and their metadata-bound
+modules. That chain still requires a real handoff writer plus persistent CPD
+write acceptance, outer partition/ROM policy, anti-rollback, and FPF checks.
+None of those write/acceptance conditions is currently established, and no
+replacement key, manifest, module, or flash image has been produced.
+
 `rot.key`, `RBEP.man`, `FTPR.man`, and `NFTP.man` share the pinned CSE
 signing-key digest. Separately, BUP selects OEM usage bit 32, pins and verifies
 `IBBP.man`, verifies its signed `BPM.met` hash, and checks the metadata's exact
@@ -93,17 +115,19 @@ IBBL/IBB hashes. The exact manifest-bound FTPR kernel later consumes the same
 handoff base, first-entry address, `+0x0d` state byte, and `+0x0e` entry-size
 geometry, proving cross-stage continuity but not earlier authority. BUP's
 runtime-object ingestion independently expects the same `0x12`-byte header,
-`+0x0e` total size, payload remainder, and sequential entry boundaries, but its
-external-reader import is not yet bound to the exact FTPR-kernel function. BUP
-phase zero nevertheless proves ingestion at function index 7, `ifp_uep`
+`+0x0e` total size, payload remainder, and sequential entry boundaries. Its
+external-reader import is now bound exactly through manifest-bound syslib and
+the kernel syscall table. BUP phase zero proves ingestion at function index 7, `ifp_uep`
 consumption at index 10, and list destruction only after the phase. Its
 materializer also subtracts `0x12` from a zero-extended u16 total without a
 minimum-size guard. FTPR can concatenate a state-1 total-`0x10` or total-`0x11`
 entry with bytes from the next accepted entry, delivering a complete header
-that makes BUP compute `0xfffffffe` or `0xffffffff`. On the standard kernel read
-path, however, the exact `0x01800000` process-buffer maximum rejects that
-wrapped payload request before any stream copy; the BUP reader import binding
-is still unresolved. The later `ifp_uep` consumer checks neither lookup success
+that makes BUP compute `0xfffffffe` or `0xffffffff`. The reader binding is now
+exact: BUP target `0x659b` is syslib base `0x6000` plus stub `0x59b`, which
+reaches the `0x10`-byte selector-zero `int 0x80` wrapper; kernel syscall-table
+entry zero points to handler `0x8ed23`. Its exact `0x01800000` process-buffer
+maximum rejects the wrapped request before any stream copy. The later
+`ifp_uep` consumer checks neither lookup success
 nor payload size before fixed `8 + 0x100` byte copies, and duplicate names are
 last-ingested-wins. Exact RBE appends the stock object at `0x108` bytes after
 all preexisting entries, so sequence-preserving ingestion makes it shadow a
@@ -118,6 +142,15 @@ literal. Computed, indirect, ROM, or external producers remain possible. The
 remaining questions are who populates and authenticates the handoff before RBE,
 whether that memory is immutable, and whether the selected UEP source is
 ROM/fuse authenticated or overrideable.
+
+The signed FTPR manifest identifies exact Intel TXE version `3.1.50.2222`.
+Intel-SA-00086 lists that release as its resolved Apollo Lake production
+version, so its TXE 3.0 kernel CVEs are not promoted. Intel-SA-00125, however,
+explicitly says TXE 3.0 through 3.1.50 is affected and TXE 3.1.55 replaces
+`3.1.50.2222`. CVE-2018-12147 requires a privileged local HECI caller and is
+therefore not an initial Linux-root route; CVE-2018-3655 requires physical
+access but its public advisory does not disclose an actionable interface. See
+`intel-txe-3.1.50-advisory-applicability.md`.
 
 Exact BUP adds a bounded lead: its generic manifest path can resolve `ipub_key`
 from a runtime object or construct `/snowball/ipub_key`. The `0x23` comparison

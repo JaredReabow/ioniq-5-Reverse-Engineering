@@ -254,6 +254,34 @@ the existing-entry lookup and does not create an `ipub_key` entry. The exact
 RBE has only five direct static references to handoff base `0x08200000`, all in
 these lookup/append routines.
 
+The cap does not make the iterator structurally fail closed. The lookup does
+not require a nonzero or minimum entry total and does not first require enough
+remaining bytes for the name, state, and total fields. A nonmatching entry with
+total zero leaves the cursor unchanged, while a short nonzero total can advance
+into the current entry's own bytes. Thus malformed totals can produce
+nonprogress or interior re-parsing before the bounded-end comparison. This is
+an exact parser-integrity dependency; control of such an incoming entry is not
+proved.
+
+The append side also trusts the incoming 32-bit current total. It checks only
+the wrapped sum with the new entry total and does not reject carry. RBE's first
+append is the one-byte `cld_rst_blk`, whose entry total is `0x13`; incoming
+totals `0xffffffed..0xffffffff` make the checked sum wrap to `0..0x12` and
+place the destination at `0x081fffed..0x081fffff`. The header/payload write can
+therefore begin before the declared handoff and overlap its total field. This
+is a bounded pre-handoff write condition, not a demonstrated attacker-controlled
+memory-corruption route.
+
+The successful `ipub_key` path has a separate unchecked selection dependency.
+It does not inspect the matched entry's total or derive a payload length before
+reading selector byte `+0x12`, loading a dword pointer from
+`entry + 0x16 + 4*selector`, and copying `0x20` bytes from that pointer. There
+is no observed selector upper bound, pointer-field-within-entry check, or
+selected-pointer range check. Selector zero requires entry total at least
+`0x1a` merely to contain its four-byte pointer field; with the intended
+`0x24`-byte payload, only selectors `0..7` keep that field within the payload.
+Malformed-object attacker control, however, remains unproved.
+
 This proves that RBE consumes `ipub_key` through an incoming handoff entry even
 though RBE can append other entries later. It still does not identify who
 populated the table before RBE, authenticate that producer, prove the memory
@@ -297,16 +325,25 @@ accepted entry, and continues filling the same request. A state-1 entry whose
 total is `0x10` or `0x11` can therefore contribute its complete 16 or 17 bytes
 to BUP's 18-byte header request, with the next accepted entry contributing the
 last two or one bytes. The synthesized header still contains total `0x0010` or
-`0x0011`, so BUP would compute payload length `0xfffffffe` or `0xffffffff` if
-its external call uses this exact stream path.
+`0x0011`, so BUP computes payload length `0xfffffffe` or `0xffffffff` on
+the exact bound reader path.
 
-The matching FTPR read handler validates the process buffer before calling the
-stream copier. Its exact validator rejects either destination offset or
-requested length above `0x01800000`; both wrapped payload lengths are therefore
-rejected before stream copying on that standard path, after which BUP takes its
-reader-error cleanup branch. This closes the underflow as a bounded rejection,
-not proved memory corruption, conditional on the still-unresolved import
-binding. Attacker control of the pre-RBE malformed stream also remains
+That binding is now closed. Both BUP read sites call runtime `0x659b`. The
+manifest-bound FTPR `syslib` is placed at the call-compatible base `0x6000`, so
+this address is raw syslib stub `+0x59b`; it jumps to raw wrapper `+0x10fb3`.
+The wrapper packs BUP's first three arguments into a four-dword request, uses
+selector byte zero and request size `0x10`, and calls the encoder which emits
+syscall value `0x00010010` before `int 0x80`. Exact kernel dispatch takes the
+high byte as a 12-byte table index. Entry zero at runtime `0x90d24` is
+`{flags=5, size=0x10, handler=0x8ed23}`, and the dispatcher calls handler `+8`.
+This is the exact previously analyzed FTPR read handler.
+
+That handler validates the process buffer before calling the stream copier. Its
+exact validator rejects either destination offset or requested length above
+`0x01800000`; both wrapped payload lengths are therefore rejected before
+stream copying, after which BUP takes its reader-error cleanup branch. The
+underflow is therefore an exact bounded rejection on this artifact, not proved
+memory corruption. Attacker control of the pre-RBE malformed stream remains
 unproved.
 
 BUP startup also fixes the runtime order. Main calls phase dispatcher `0x28932`
@@ -329,11 +366,12 @@ and shadows it during first-match lookup. No post-RBE mutation or reordering is
 proved. The unchecked consumer is thus a bounded integrity dependency rather
 than a demonstrated pre-RBE duplicate override.
 
-However, the recovered call/import binding from BUP's external reader at
-`0x659b` to the exact FTPR-kernel stream function is not yet closed. Therefore
-the geometry and order match do not yet prove that BUP's runtime `ipub_key`
-came from the RBE table or that the `/snowball/ipub_key` fallback is unreachable
-during manifest verification.
+The reader binding proves that BUP's phase-zero materializer consumes the exact
+FTPR handoff stream. It still does not establish that every later generic
+`ipub_key` resolution occurs while the transient list is nonempty; list cleanup
+can select the `/snowball/ipub_key` branch at a later call site. Exact
+verification-call timing and snowball fallback authority therefore remain
+open.
 
 The signed NFTP `dal_sdm` module independently consumes the same persistent
 namespace:
@@ -565,7 +603,7 @@ manifest signature header, or prove that a user-space capture is permitted.
 
 ## Public structure corroboration
 
-Three public sources are hash-bound and kept separate from exact-target proof:
+Four public sources are hash-bound and kept separate from exact-target proof:
 
 1. Slim Bootloader commit
    `5f5c14b10ae6bd3cd0cf7e274142767dc2635a06`:
@@ -593,15 +631,25 @@ Three public sources are hash-bound and kept separate from exact-target proof:
    - `ME/notes/09-cve-hunt.md`, SHA-256
      `c93e2faa28374f092369ce7055ebd704cb565568436cece890208c686b7ec92c`;
    - its independent CSME 11.8 analysis reports a low syslib region, a
-     five-byte-stride jump PLT, and loader-generated cross-module imports whose
-     mappings are not present in raw process-module blobs. This corroborates why
-     BUP target `0x659b` cannot be bound by treating it as a raw syslib offset;
-     it does not identify this artifact's exact import or handler.
+     five-byte-stride jump PLT, and loader-generated cross-module imports. That
+     is useful comparison for a later CSME generation but does not identify this
+     artifact's exact import policy.
+4. Positive Technologies' public `ptresearch/unME11` commit
+   `fa6b4d73a53be10b199b0b87ec7d45f0e38b1333` and linked TROOPERS 2017
+   presentation *Intel ME: The Way of the Static Analysis*:
+   - `unME11.py` SHA-256
+     `cce3a3fb7c6278b1507b9062a4c03e7f40e515cd8b8a70a34d662b840c1416df`;
+   - presentation PDF SHA-256
+     `c313ce296ad674b6385df954d918a10a33feba91c0b0fad461a9dad2aeba66a3`;
+   - the presentation independently states that TXE v3 uses non-kernel module
+     base `0x26000` and loads firmware syslib at `0x6000`. Those values match
+     exact BUP and the exact call-to-raw-stub mapping, but the handler binding
+     above is proved from recovered bytes rather than the public slide.
 
-The exact proprietary instructions independently match the first two sources'
-structural facts. Public names and comparative loader observations do not prove
-the target's earlier authentication policy, persistent provisioning
-implementation, or exact BUP import binding.
+The exact proprietary instructions independently establish the target
+structures and reader binding. Public names and comparative loader observations
+do not prove the target's earlier authentication policy or persistent
+provisioning implementation.
 
 A current public coreboot Apollo Lake/Gemini Lake IFWI constructor provides
 separate comparative corroboration:
@@ -617,6 +665,23 @@ That modern public constructor corroborates the persistent member's purpose but
 is not evidence of exact source lineage or of the target's runtime authentication
 root.
 
+## Exact TXE identity and advisory boundary
+
+The signed FTPR manifest itself encodes version components `3, 1, 50, 2222`,
+date `0x20170926`, and TCB SVN `3`. This identifies the recovered firmware as
+Intel TXE `3.1.50.2222`, independently matching the exact `0x26000` BUP and
+`0x6000` syslib layout.
+
+Intel-SA-00086 lists `3.1.50.2222` as its resolved Apollo Lake TXE production
+release, so CVE-2017-5707 and CVE-2017-5710 are rejected as version-only
+candidates for this artifact. Intel-SA-00125 explicitly covers TXE 3.0 through
+3.1.50 and says TXE 3.1.55 replaces `3.1.50.2222`. That makes
+CVE-2018-12147 an exact-version privileged-local HECI lead and CVE-2018-3655 an
+exact-version physical-access lead. Neither advisory proves an unprivileged
+Linux-root route, a reachable MEI client, or control over the handoff, UEP, or
+snowball objects. Detailed source hashes and bench prerequisites are in
+`intel-txe-3.1.50-advisory-applicability.md`.
+
 ## Security boundary
 
 What is now proved:
@@ -625,6 +690,11 @@ What is now proved:
 - exact RBE consumes `ipub_key` from a bounded incoming runtime-object handoff
   at `0x08200000` and uses its selected 32-byte digest to pin `rot.key` before
   RSA verification;
+- the RBE iterator lacks minimum-total, nonzero-progress, and remaining-header
+  checks; its first append does not reject current-total addition overflow and
+  can begin up to `0x13` bytes before the handoff for wrapped incoming totals;
+- its `ipub_key` path lacks entry-size, selector, pointer-field, and
+  selected-pointer bounds; malformed producer control remains unproved;
 - `rot.key`, `RBEP.man`, `FTPR.man`, and `NFTP.man` use the same exact
   modulus-plus-exponent digest `f2eb8fc4...` and have valid embedded signatures;
 - exact BUP can resolve `ipub_key` from a runtime object or
@@ -640,17 +710,19 @@ What is now proved:
   header, total-size-at-`+0x0e`, payload remainder, and entry boundaries;
 - BUP subtracts `0x12` from the zero-extended u16 total without a minimum-size
   guard; FTPR can synthesize a complete BUP header from state-1 totals `0x10`
-  or `0x11` plus the next entry, but its standard process-buffer validator
-  rejects the resulting `0xfffffffe`/`0xffffffff` payload request before copy;
-  the exact BUP import binding and malformed-stream attacker control remain
-  unproved;
+  or `0x11` plus the next entry; exact BUP target `0x659b` binds through syslib
+  selector zero to kernel handler `0x8ed23`, whose process-buffer validator
+  rejects the resulting `0xfffffffe`/`0xffffffff` request before copy;
+  malformed-stream attacker control remains unproved;
 - BUP phase zero ingests that transient object list at function index 7,
   consumes `ifp_uep` at index 10, and frees the list only after the phase;
 - the `ifp_uep` consumer has no lookup-null or payload-size check and duplicate
   names resolve last-ingested-first, but exact RBE appends the stock `0x108`-byte
   object after all preexisting entries, so it shadows a pre-RBE duplicate when
   FTPR/BUP sequence is preserved; post-RBE mutation or reordering is unproved;
-- the BUP reader-import/FTPR-kernel-function binding remains open;
+- the BUP reader-import/FTPR-kernel-function binding is exact through the
+  manifest-bound syslib stub, syscall encoder, table index zero, and handler
+  `0x8ed23`;
 - signed NFTP `dal_sdm` reads an exact `0x24`-byte
   `/snowball/ipub_key` policy object before OEM authorization objects, but no
   producer or write path is proved;
@@ -738,11 +810,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `58,530`
-  - SHA-256 `128fdb797dbe679f138bd1efaca75af222c1e8b9625955662cb596b3c1f7c0a2`
+  - size `65,471`
+  - SHA-256 `fbb502a9fc0a7de410c209f91aee382b9008b74e860b72edc9b6c40a480ec558`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `118,318`
-  - SHA-256 `4682888b3ce5bcb0ac5ec23f2cd6c19bf7e18c0b74a8136ce544715f097f3aa1`
+  - size `122,227`
+  - SHA-256 `09e04891ef801085750c1445773901c917682e858ad1c10bc971428a3a2d5c52`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

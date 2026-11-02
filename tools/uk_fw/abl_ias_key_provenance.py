@@ -105,8 +105,20 @@ CSE_RBE_RANGES = {
 CSE_FTPR_KERNEL_SHA256 = "cf7dd5fc9918f96ffd2352d09a3e303471a768b3a6ee056089dd7a3d5c00bfdf"
 CSE_FTPR_KERNEL_METADATA_SHA256 = "f6c17c5b9ce1fc218da9608fce470dfa28fe180d4ec8909da71aa93bbb4b75ed"
 CSE_FTPR_KERNEL_CODE_BASE = 0x80000
+CSE_SYSLIB_SHA256 = "dba068b882c11783af4e2c0b7911b3a0db90f9b22808f42ac3e8768e2dda961c"
+CSE_SYSLIB_METADATA_SHA256 = "32c133377bb1d14c18f5338824dbf7249d270e5b0ce9439d468f6e5353252724"
+CSE_SYSLIB_RUNTIME_BASE = 0x6000
+CSE_SYSLIB_RANGES = {
+    "reader_entry_stub": (0x59B, 0x5A0, "0ef35ea8a57cbd18bbc6ddcf11e1e90950f65fda55c19d57c2a2533dcd4fc77e"),
+    "reader_syscall_wrapper": (0x10FB3, 0x1101A, "b0e1ce75c54d21bfe53cbcd72f6047dbb12972cbbd488bbaf20c1cdde6ccfb93"),
+    "syscall_value_encoder": (0x10F8F, 0x10FB3, "58a75d3146459c122d603c5d17d231129c9fe3226ebe51b777f8b8cbc8c593c1"),
+    "int80_wrapper": (0xB8B2, 0xB8BF, "57857b830d7ebe297082e7c1d1e15b433246b62894a92bd7bf67598163092144"),
+}
 CSE_FTPR_KERNEL_RANGES = {
     "handoff_page_range_setup": (0x4F4, 0x518, "1592ccf012d9a11485556e08672b44da3f5a726769909f8fd9d5d80686ff6996"),
+    "syscall_entry_select": (0xE853, 0xE97F, "57dde80daf3e2ac196dbd4da1844b3fcbb578739947d14807b85e9de0acec3f8"),
+    "syscall_handler_dispatch": (0xEB89, 0xEC56, "6ee6a609f13f0071e92600c9c21b2a80d96ac68bcb86b32a1a8a59dbc69c2b32"),
+    "syscall_table_entry_zero": (0x10D24, 0x10D30, "82a17534970281e1b2956c78899211e59f5d0e9c9c354dd934ead5e3cc0d4ada"),
     "handoff_iterator_init": (0x169F, 0x16D7, "720c7d471eb5cc7c2276dce1304c1b48d1158471beefeb36dbce2c19232f9b78"),
     "process_buffer_validator": (0xA7FF, 0xA8C8, "63295eee91d3c154ff2a70dde41e06af9aa030ec0ffea3d850fc088c41ef1356"),
     "handoff_read_syscall_handler": (0xED23, 0xEDC6, "54091a74c26edf2e4e6bdb631dc75e06105ee2bb66ced42a4d234b7b879b8365"),
@@ -406,6 +418,31 @@ def extract_cse_ftpr_kernel(abl: bytes) -> tuple[bytes, bytes, bytes]:
     if struct.unpack_from("<I", process, 0x24)[0] != CSE_FTPR_KERNEL_CODE_BASE:
         raise Failure("FTPR kernel entry point drift")
     return kernel, metadata, manifest
+
+
+def extract_cse_syslib(abl: bytes) -> tuple[bytes, bytes]:
+    cpd = 0x11E000
+    entries = []
+    for index in range(12):
+        raw_name, raw_offset, size, _ = struct.unpack_from("<12sIII", abl, cpd + 0x10 + index * 24)
+        entries.append((raw_name.rstrip(b"\0").decode("ascii"), raw_offset & 0x1FFFFFF, size))
+    selected = {name: (offset, size) for name, offset, size in entries if name in {"syslib", "syslib.met"}}
+    if selected != {"syslib": (0x14000, 0x13000), "syslib.met": (0xDD2, 0x64)}:
+        raise Failure("FTPR syslib members drift")
+    manifest = abl[cpd + 0x130 : cpd + 0x130 + 0xC14]
+    metadata = abl[cpd + 0xDD2 : cpd + 0xDD2 + 0x64]
+    syslib = abl[cpd + 0x14000 : cpd + 0x14000 + 0x13000]
+    if hashlib.sha256(metadata).hexdigest() != CSE_SYSLIB_METADATA_SHA256:
+        raise Failure("FTPR syslib metadata identity drift")
+    if hashlib.sha256(syslib).hexdigest() != CSE_SYSLIB_SHA256:
+        raise Failure("FTPR syslib identity drift")
+    if manifest.count(hashlib.sha256(metadata).digest()[::-1]) != 1:
+        raise Failure("FTPR manifest to syslib metadata binding drift")
+    if metadata.count(hashlib.sha256(syslib).digest()[::-1]) != 1:
+        raise Failure("FTPR syslib metadata to syslib binding drift")
+    if sorted(parse_metadata_extensions(metadata, "FTPR syslib metadata")) != [4, 10, 11]:
+        raise Failure("FTPR syslib metadata extension set drift")
+    return syslib, metadata
 
 
 def extract_cse_bup(abl: bytes) -> bytes:
@@ -880,6 +917,15 @@ def parse_cse_root_and_boot_policy_chains(abl: bytes) -> dict:
             "rbe_runtime_root_digest_size": 0x20,
             "rbe_runtime_selector_offset": 0x12,
             "rbe_runtime_pointer_array_offset": 0x16,
+            "rbe_selected_pointer_offset_expression": "entry + 0x16 + 4 * selector",
+            "rbe_selector_upper_bound_check_observed": False,
+            "rbe_entry_total_or_payload_minimum_check_before_selector_observed": False,
+            "rbe_selected_pointer_field_within_entry_check_observed": False,
+            "rbe_selected_pointer_range_check_observed": False,
+            "rbe_fixed_digest_copy_size": 0x20,
+            "rbe_minimum_entry_total_for_selector_zero_pointer_field": 0x1A,
+            "rbe_maximum_pointer_field_selector_for_intended_0x24_byte_payload": 7,
+            "rbe_malformed_ipub_key_reachability_or_control_proved": False,
             "rot_key_validator_expected_hash_pointer": 0x6047FA8,
             "rot_key_validator_selector": 5,
             "shared_manifest_public_key_digest": INTEL_ROOT_KEY_DIGEST,
@@ -897,7 +943,20 @@ def parse_cse_root_and_boot_policy_chains(abl: bytes) -> dict:
                 "entry_total_size_offset": 0x0E,
                 "payload_offset": 0x12,
                 "lookup_returns_existing_entry": True,
+                "iterator_minimum_entry_total_check_observed": False,
+                "iterator_nonzero_step_check_observed": False,
+                "iterator_remaining_header_bytes_check_observed": False,
+                "zero_total_nonmatching_entry_causes_nonprogress": True,
+                "short_total_can_step_into_current_entry_bytes": True,
+                "append_current_total_bound_check_observed": False,
+                "append_current_total_plus_entry_total_carry_check_observed": False,
                 "first_rbe_append_name": "cld_rst_blk",
+                "first_rbe_append_payload_size": 1,
+                "first_rbe_append_entry_total": 0x13,
+                "wrapped_current_total_range_accepted_by_first_append": [0xFFFFFFED, 0xFFFFFFFF],
+                "wrapped_first_append_destination_range": [0x081FFFED, 0x081FFFFF],
+                "wrapped_first_append_can_write_outside_declared_handoff": True,
+                "wrapped_first_append_attacker_control_proved": False,
                 "required_existing_entry_names": ["bpdt", "pm_trans", "ftpm_fuses", "sss_em", "rbe.man", "pmc_ipc", "ipub_key"],
                 "optional_missing_pmc_msg_is_appended_by_rbe": True,
                 "rbe_ipub_key_path_uses_lookup_not_append": True,
@@ -939,7 +998,7 @@ def parse_cse_root_and_boot_policy_chains(abl: bytes) -> dict:
             "bup_snowball_path_selected_at_runtime_proved": False,
             "bup_snowball_object_writable_or_untrusted_proved": False,
             "ipub_key_producer_or_hardware_anchor_proved": False,
-            "boundary": "exact RBE looks up ipub_key in an incoming bounded runtime-object handoff at 0x08200000; RBE can append later objects but its ipub_key path does not create that entry. The pre-RBE producer, authentication, mutability, and ROM/fuse provenance remain unproved",
+            "boundary": "exact RBE looks up ipub_key in an incoming bounded runtime-object handoff at 0x08200000 without checking iterator progress, a minimum entry total, first-append current-total overflow, selector range, pointer-field containment, or selected-pointer range. RBE can append later objects but its ipub_key path does not create that entry. Missing checks are exact parser-integrity findings; malformed attacker-controlled reachability, the pre-RBE producer, authentication, mutability, and ROM/fuse provenance remain unproved",
         },
         "oem_boot_policy_chain": {
             "uep_and_oem_key_digest": STORED_USAGE39_DIGEST,
@@ -1106,8 +1165,15 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     abl = archive_one(update)
     ibbl, stage1 = extract_ibb(abl)
     cse_rbe = extract_cse_rbe(abl)
-    cse_ftpr_kernel, cse_ftpr_kernel_metadata, _cse_ftpr_manifest = extract_cse_ftpr_kernel(abl)
+    cse_ftpr_kernel, cse_ftpr_kernel_metadata, cse_ftpr_manifest = extract_cse_ftpr_kernel(abl)
+    cse_syslib, cse_syslib_metadata = extract_cse_syslib(abl)
     cse_bup = extract_cse_bup(abl)
+    if struct.unpack_from("<I", cse_ftpr_manifest, 0x14)[0] != 0x20170926:
+        raise Failure("FTPR manifest date drift")
+    if struct.unpack_from("<4H", cse_ftpr_manifest, 0x24) != (3, 1, 50, 2222):
+        raise Failure("FTPR TXE version drift")
+    if struct.unpack_from("<I", cse_ftpr_manifest, 0x2C)[0] != 3:
+        raise Failure("FTPR manifest TCB SVN drift")
     cse_signed_module_chains = parse_cse_signed_module_chains(abl, cse_rbe, cse_bup)
     cse_root_and_boot_policy_chains = parse_cse_root_and_boot_policy_chains(abl)
     fpf_provisioning_handoff = extract_fpf_provisioning_handoff(abl, cse_bup)
@@ -1118,6 +1184,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     stage_ranges = check_ranges(stage1, STAGE1_RANGES, "stage-1")
     cse_rbe_ranges = check_ranges(cse_rbe, CSE_RBE_RANGES, "CSE RBE")
     cse_ftpr_kernel_ranges = check_ranges(cse_ftpr_kernel, CSE_FTPR_KERNEL_RANGES, "CSE FTPR kernel")
+    cse_syslib_ranges = check_ranges(cse_syslib, CSE_SYSLIB_RANGES, "CSE syslib")
     cse_bup_ranges = check_ranges(cse_bup, CSE_BUP_RANGES, "CSE BUP")
 
     # Fixed exact instruction and string anchors within the hash-bound ranges.
@@ -1183,6 +1250,14 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
         raise Failure("CSE RBE runtime-object handoff base references drift")
     if cse_rbe.find(struct.pack("<I", 0x08200008)) != 0x1557:
         raise Failure("CSE RBE runtime-object first-entry reference drift")
+    if cse_rbe[0x3C5:0x3FD] != bytes.fromhex(
+        "6830790400a208100406e8661100005985c00f8456ffffff66c705a67f040620000fb650126a20ff74901668a87f0406e8340cfcff83c40c"
+    ):
+        raise Failure("CSE RBE unchecked ipub_key selector/copy sequence drift")
+    if cse_rbe[0x153A:0x158C] != bytes.fromhex(
+        "5589e55653a1000020083d008000007605b8008000008db000002008bb0800200839f37320f6430d0174126a0c53ff7508e8f0fafbff83c40c85c0740c0fb7430e01c3ebdc31c0eb0289d88d65f85b5e5dc3"
+    ):
+        raise Failure("CSE RBE unchecked runtime-object iterator sequence drift")
     if cse_rbe[0x7F74:0x7F78] != bytes.fromhex("60010001"):
         raise Failure("CSE RBE UEP OEM-hash field descriptor drift")
     if cse_ftpr_kernel[0x4F4:0x503] != bytes.fromhex("68008020086800002008e875feffff"):
@@ -1204,6 +1279,16 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     )
     if cse_rbe[0x2FCF : 0x2FCF + len(rbe_route)] != rbe_route:
         raise Failure("CSE RBE oem.key to oem_key_man route drift")
+    for call_offset in (0x2888, 0x28D2):
+        if cse_bup[call_offset] != 0xE8:
+            raise Failure("CSE BUP runtime-object reader call opcode drift")
+        displacement = struct.unpack_from("<i", cse_bup, call_offset + 1)[0]
+        if CSE_BUP_CODE_BASE + call_offset + 5 + displacement != 0x659B:
+            raise Failure("CSE BUP runtime-object reader call target drift")
+    if cse_syslib[0x59B] != 0xE9 or 0x59B + 5 + struct.unpack_from("<i", cse_syslib, 0x59C)[0] != 0x10FB3:
+        raise Failure("CSE syslib reader entry stub target drift")
+    if struct.unpack_from("<III", cse_ftpr_kernel, 0x10D24) != (5, 0x10, 0x8ED23):
+        raise Failure("CSE FTPR syscall table entry zero drift")
     if cse_bup.find(b"oem.key\0") != 0x2E235 or cse_bup.find(b"oem_key_man\0") != 0x2E249:
         raise Failure("CSE BUP key-manifest source strings drift")
     if cse_bup.rfind(b"BPM.met\0") != 0x2F9F3 or cse_bup.rfind(b"IBBP.man\0") != 0x2FA4E:
@@ -1442,6 +1527,11 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                 "metadata_sha256": CSE_FTPR_KERNEL_METADATA_SHA256,
                 "code_base": CSE_FTPR_KERNEL_CODE_BASE,
                 "main_thread_entry": CSE_FTPR_KERNEL_CODE_BASE,
+                "firmware_family": "Intel TXE 3.x",
+                "manifest_version": "3.1.50.2222",
+                "manifest_version_components": [3, 1, 50, 2222],
+                "manifest_date_bcd": "2017-09-26",
+                "manifest_tcb_security_version": 3,
                 "instruction_ranges": cse_ftpr_kernel_ranges,
                 "ftpr_manifest_binds_kernel_metadata_reverse_sha256": True,
                 "kernel_metadata_binds_kernel_reverse_sha256": True,
@@ -1458,6 +1548,39 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                 "accepted_entry_state": 1,
                 "same_handoff_geometry_as_rbe_proved": True,
                 "handoff_survives_into_ftpr_kernel_proved": True,
+                "bup_reader_import_binding": {
+                    "syslib_member": "syslib",
+                    "syslib_flash_offset": 0x132000,
+                    "syslib_size": len(cse_syslib),
+                    "syslib_sha256": CSE_SYSLIB_SHA256,
+                    "syslib_metadata_member": "syslib.met",
+                    "syslib_metadata_flash_offset": 0x11EDD2,
+                    "syslib_metadata_size": len(cse_syslib_metadata),
+                    "syslib_metadata_sha256": CSE_SYSLIB_METADATA_SHA256,
+                    "syslib_instruction_ranges": cse_syslib_ranges,
+                    "ftpr_manifest_binds_syslib_metadata_reverse_sha256": True,
+                    "syslib_metadata_binds_syslib_reverse_sha256": True,
+                    "syslib_runtime_base": CSE_SYSLIB_RUNTIME_BASE,
+                    "bup_reader_call_target": 0x659B,
+                    "bup_reader_call_file_offsets": [0x2888, 0x28D2],
+                    "syslib_entry_stub_file_offset": 0x59B,
+                    "syslib_entry_stub_runtime": 0x659B,
+                    "syslib_entry_stub_jump_target_file_offset": 0x10FB3,
+                    "syslib_entry_stub_jump_target_runtime": 0x16FB3,
+                    "syscall_encoder_file_offset": 0x10F8F,
+                    "syscall_encoder_runtime": 0x16F8F,
+                    "syscall_interrupt": 0x80,
+                    "syscall_selector_byte": 0,
+                    "syscall_argument_size": 0x10,
+                    "syscall_value": 0x00010010,
+                    "kernel_dispatch_index_expression": "syscall_value >> 24",
+                    "kernel_syscall_table_runtime": 0x90D24,
+                    "kernel_syscall_table_entry_size": 0x0C,
+                    "kernel_table_entry_zero": {"flags": 5, "argument_size": 0x10, "handler": 0x8ED23},
+                    "exact_handler_runtime": 0x8ED23,
+                    "exact_handler_file_offset": 0xED23,
+                    "binding_to_exact_ftpr_read_handler_proved": True,
+                },
                 "bup_runtime_object_ingestion_geometry": {
                     "list_head_global": 0xA014C,
                     "list_initialized_empty": True,
@@ -1478,8 +1601,8 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                     "underflow_payload_lengths_for_0x10_and_0x11": [0xFFFFFFFE, 0xFFFFFFFF],
                     "kernel_process_buffer_maximum": 0x01800000,
                     "kernel_rejects_underflowed_payload_length_before_stream_copy": True,
-                    "kernel_rejection_depends_on_bup_reader_using_exact_standard_syscall_path": True,
-                    "malformed_stream_can_reach_bup_header_parser_if_reader_binding_holds": True,
+                    "kernel_rejection_depends_on_unresolved_bup_reader_binding": False,
+                    "malformed_stream_can_reach_bup_header_parser_on_exact_bound_path": True,
                     "malformed_stream_attacker_control_proved": False,
                     "memory_corruption_from_total_underflow_proved": False,
                     "payload_read_must_be_exact": True,
@@ -1501,7 +1624,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                         "ifp_uep_consumer_precedes_cleanup": True,
                     },
                     "ftpr_stream_to_bup_object_geometry_matches": True,
-                    "external_reader_api_bound_to_exact_ftpr_kernel_function": False,
+                    "external_reader_api_bound_to_exact_ftpr_kernel_function": True,
                     "bup_ipub_key_source_proved_to_be_rbe_handoff": False,
                     "snowball_fallback_excluded_during_manifest_verification": False,
                 },
@@ -1654,20 +1777,26 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "rbe_runtime_ipub_key_pins_rot_key_proved": True,
             "rbe_ipub_key_consumed_from_incoming_0x08200000_handoff_proved": True,
             "same_handoff_consumed_by_signed_ftpr_kernel_proved": True,
+            "exact_ftpr_txe_version_3_1_50_2222_proved": True,
             "ftpr_stream_and_bup_runtime_object_ingestion_geometry_match_proved": True,
             "bup_phase_zero_ingestion_before_ifp_uep_consumption_and_cleanup_proved": True,
             "bup_runtime_object_total_size_underflow_guard_absent_proved": True,
-            "ftpr_total_0x10_or_0x11_survives_stream_as_synthetic_bup_header_if_reader_binding_holds": True,
-            "ftpr_kernel_rejects_underflowed_bup_payload_read_on_standard_path": True,
+            "ftpr_total_0x10_or_0x11_survives_stream_as_synthetic_bup_header_proved": True,
+            "ftpr_kernel_rejects_underflowed_bup_payload_read_on_bound_path": True,
             "bup_malformed_runtime_object_stream_attacker_control_proved": False,
             "bup_total_underflow_memory_corruption_proved": False,
-            "ftpr_stream_reader_to_bup_import_binding_proved": False,
+            "ftpr_stream_reader_to_bup_import_binding_proved": True,
             "bup_runtime_ipub_key_proved_to_originate_in_rbe_handoff": False,
             "signed_nftp_dal_sdm_reads_exact_snowball_ipub_key_policy_object_proved": True,
             "snowball_ipub_key_producer_or_writability_proved": False,
             "pre_rbe_handoff_producer_or_authenticator_proved": False,
             "shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved": True,
             "bup_ipub_key_runtime_object_or_snowball_resolution_proved": True,
+            "rbe_runtime_object_iterator_progress_and_minimum_checks_absent_proved": True,
+            "rbe_first_append_current_total_overflow_guard_absent_proved": True,
+            "rbe_first_append_wrapped_pre_handoff_write_reachability_proved": False,
+            "rbe_ipub_selector_pointer_field_and_pointer_range_checks_absent_proved": True,
+            "rbe_malformed_ipub_object_attacker_control_or_reachability_proved": False,
             "bup_ipub_selector_and_pointer_field_bounds_checks_absent_proved": True,
             "bup_malformed_ipub_object_attacker_control_or_reachability_proved": False,
             "bup_snowball_ipub_key_selected_at_runtime_proved": False,
@@ -1697,7 +1826,8 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "Hash-bound historical Apollo Lake Slim Bootloader source independently matches the exact target's chunk-count field, four-slot interpretation, size field, low-four-bit XOR handshake, slot geometry, source expression, acknowledgement, and PCI configuration offsets.",
             "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
             "The RBE-to-BUP-to-IBBL path binds the runtime type-0x0b payload to exact FTPR oem.key bytes. The recovered set's runtime expected usage-39 digest is therefore 9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af.",
-            "Exact RBE looks up ipub_key in an incoming bounded runtime-object handoff at 0x08200000, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. RBE can append other handoff objects but its ipub_key path does not create that entry. The FTPR manifest and kernel metadata bind the exact signed FTPR kernel, which later consumes the same handoff base, first-entry address, state byte, and +0x0e entry-size geometry. Exact BUP's corresponding manifest path resolves ipub_key either from a runtime object or from /snowball/ipub_key depending on global 0xa014c. It requires the returned object size to be greater than 0x23, then uses byte 0 as an unchecked selector for the pointer at offset 4 + 4*selector and supplies 32 bytes from that pointer to its verifier. No selector upper bound or selected-pointer-within-object check is observed in this path. Reachable attacker control of either object source is not proved. The exact Intel digest occurs statically only in rot.key's Extension-14 record. These paths do not prove who populated or authenticated the pre-RBE handoff, that it is immutable, or that the snowball branch is active, writable, or unauthenticated.",
+            "Exact BUP calls 0x659b for both runtime-object reads. With the exact syslib at runtime base 0x6000, this is raw stub +0x59b, which jumps to the wrapper at raw +0x10fb3. That wrapper encodes selector 0, argument size 0x10 as syscall value 0x00010010 and invokes int 0x80. Exact kernel dispatch uses the high byte as its 12-byte table index; entry zero is flags 5, size 0x10, handler 0x8ed23. This closes BUP's reader import to the exact previously analyzed FTPR handler. Consequently totals 0x10/0x11 reach the synthetic-header underflow, but the resulting 0xfffffffe/0xffffffff payload read is rejected by the exact process-buffer validator before stream copy.",
+            "Exact RBE looks up ipub_key in an incoming bounded runtime-object handoff at 0x08200000, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. Its iterator does not require a nonzero or minimum entry total or enough remaining bytes for an entry header; a zero-total nonmatch does not progress, while a short total can step into the current entry. Its first append trusts the incoming 32-bit current total and bounds only the wrapped sum with the 0x13-byte new entry; totals 0xffffffed..0xffffffff can therefore pass and place the write at 0x081fffed..0x081fffff, partly outside the declared handoff. After an ipub_key name match, RBE checks neither the entry total nor selector range, pointer-field containment, or selected-pointer range before its fixed 32-byte copy from dword[entry + 0x16 + 4*selector]. RBE can append other handoff objects but its ipub_key path does not create that entry. The FTPR manifest and kernel metadata bind the exact signed FTPR kernel, which later consumes the same handoff base, first-entry address, state byte, and +0x0e entry-size geometry. Exact BUP's corresponding manifest path resolves ipub_key either from a runtime object or from /snowball/ipub_key depending on global 0xa014c. It requires the returned object size to be greater than 0x23, then uses byte 0 as an unchecked selector for the pointer at offset 4 + 4*selector and supplies 32 bytes from that pointer to its verifier. No selector upper bound or selected-pointer-within-object check is observed in this path. These are exact parser-integrity findings, but reachable attacker control of either object source is not proved. The exact Intel digest occurs statically only in rot.key's Extension-14 record. These paths do not prove who populated or authenticated the pre-RBE handoff, that it is immutable, or that the snowball branch is active, writable, or unauthenticated.",
             "Exact BUP selects oem.key usage bit 32, compares the IBBP.man modulus-plus-exponent digest before RSA verification, verifies IBBP.man, checks its signed BPM.met hash, and checks BPM.met's exact IBBL and IBB SHA-256 values. This closes the selected-UEP-to-exact-IBB byte chain for the recovered set.",
             "Exact RBE materializes the selected 0x100-byte UEP payload in the 0x108-byte ifp_uep object, with a hardware-route REAL header or the validated flash-route $UEP/CRC header. Exact BUP records whether the header is REAL without rejecting the alternative in this range, initially copies the payload byte-for-byte into its FPF shadow, may update that shadow through later field assembly, and publishes the resulting 0x880-byte bup_fpf special file. The signed NFTP fpf module requires that exact-size input and uses the resulting shadow while its hardware-mode global is zero.",
             "The signed NFTP fpf module exposes fpf and fpf_hw_use special files, opens /dev/flash/uep, and switches its field-read path between the BUP-provided shadow and hardware access. Its OemLock callback sets hardware mode before processing a fixed field sequence. This later provisioning state is not yet proved byte-identical to RBE's earlier 0xf6170800 hardware window.",

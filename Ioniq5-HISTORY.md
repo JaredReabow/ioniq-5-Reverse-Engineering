@@ -4222,3 +4222,11 @@ and are superseded by corrections rather than silently rewritten.
   instantly.
 - That is a constraint worth handing over: it means the service's vehicle label cannot be a confinement that blocks /tmp, and the unit declares no label.
 - The admission test itself still cannot be run, because in the labelled runs there was nothing to connect to. Recorded as unmeasured rather than as a negative.
+
+## 2026-10-31 — small facts, named dead ends
+
+- The launcher path really does produce vendor surface ids: 1000, 1001, 2080. That is worth knowing and it is new.
+- Three ways of getting the working surface id into the chain-launched application failed, and each failure narrowed where the value is actually set. The one
+  injection point that can survive the manager's environment handling is replacing the binary with a wrapper; it is installed and not yet proven.
+- Also closed a localization theory before spending longer on it: the archived full-tile run logged the same language-load failure, so raw string keys were never the
+  difference.

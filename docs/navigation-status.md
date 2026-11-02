@@ -1,16 +1,23 @@
 # Navigation status: what is measured, and what still blocks the transition
 
-Recorded 2026-10-29. Build `NE_E.EUR.S5W_L.001.001.260128`, x86-64, kernel
+Recorded 2026-10-31. Build `NE_E.EUR.S5W_L.001.001.260128`, x86-64, kernel
 `4.1.27-abl`. Everything below is measured in the project's isolated QEMU VM unless
 stated otherwise.
 
-## Where the VM is
+## Latest full-chain status
 
-The vendor kernel boots, the recovered userspace runs, the authentic launcher chain
-passes the standby and profile-confirm gates, and the genuine `AppHomeScreen` renders
-with real tiles. AppNavi starts and can render genuine map pixels into its own
-surface. **Home ↔ Navigation does not transition**, and this document records why the
-remaining gap is narrower than it was.
+The authentic launcher chain reaches Home. In the latest AppLauncher-owned AppNavi
+run, the navigation engine initializes and creates parent surface `3000` plus widget
+surface `4903`; genuine map pixels have also been verified in the widget surface.
+The Home-to-Navigation transition is still incomplete: ApplicationManager receives
+`notifyNaviLaunched[5] window[0]`, remains at current/drawing AppID `35/11`, and does
+not reach `APP_NAVI` (`30`). A return request restores visible Home.
+
+The current boundary is the genuine launch/window contract, not process startup or
+surface creation. Do not patch status `5`, force the window byte, or synthesize a
+success callback. The experiment sections below preserve intermediate hypotheses and
+corrections; later corrections supersede earlier negative conclusions. See
+[HANDOVER.md](../HANDOVER.md) for the consolidated run and evidence hashes.
 
 ## What is now measured rather than inferred
 
@@ -63,9 +70,11 @@ One behavioural finding matters for any observer: **`PTRACE_DETACH` with a slot 
 armed leaves the breakpoint live and kills the tracee.** Disarm, verify the readback,
 then detach — that sequence is proven safe.
 
-## The remaining blocker
+## Earlier probe: the scoped adapter had no surface to act on
 
-A scoped adapter was built to drive AppNavi's parent surface to a real `0x0` configure:
+This intermediate probe was superseded by the later corrected AppNavi surface and
+visibility measurements below. A scoped adapter was built to drive AppNavi's parent
+surface to a real `0x0` configure:
 an `LD_PRELOAD` interposer on `wl_surface_attach` that suppresses buffer attachment
 once a hold condition is met. Two useful things were learned building it, and one
 problem remains.
@@ -85,6 +94,90 @@ standalone render probe, AppNavi loads libraries and then produces no attach. Th
 manager reports drawing application `0` throughout. This is the blocker: there is no
 surface for the compositor to classify, so neither the adapter nor the BG path can be
 exercised yet.
+
+The observer's commit observation used to be described as best-effort, which made a
+bypass indistinguishable from silence. It now proves the interposition at run time:
+`wl_surface_commit`'s wrapper compares its `dlsym(RTLD_NEXT, …)` resolution with the
+global-scope definition and reports `verdict=observed|shadowed|unverified|idle` with
+`complete=0/1` at unload. `unverified` means commits were **not observed** and must
+never be read as "no commit happened". `tests/test_navi_bg_observer.py` pins both
+outcomes with native clients: the linked client must report `interposed=1` and
+`complete=1`, while a client that commits through a `dlopen` handle must report
+`verdict=unverified` and `complete=0`.
+
+That proof also runs inside the recovered guest, and it exposed a wrong assumption.
+The vendor `libwayland-client` (1.10, `0.3.0`) exports **no `wl_surface_commit` or
+`wl_surface_attach` symbol at all** — they are header inlines over
+`wl_proxy_marshal`, which the guest probe reports as `PROBE surface_symbol=0`.
+Wrapping those symbols could therefore never observe a vendor client's commit; the
+object that ships here now interposes `wl_proxy_marshal`, decodes the call from the
+interface's own signature (validated against `wl_proxy_get_class`, so no struct
+layout is trusted blind) and forwards once through `wl_proxy_marshal_array`.
+
+With that hook, a real client inside the guest produces
+`null-attach surface#0 target=1 … attach=1`, `commit-after-null-attach … commit=1`
+and `verdict=observed commits=2 interposed=1 complete=1`, all asserted by
+`tests/test_vm_vendor_e2e.py`. The chain also reaches the authentic launcher stack
+(`ApplicationManager`, `UserProfileManager`, `AppOSDManager`, `AppHomeScreen`) and
+starts `AppNavi` with the observer mapped into it.
+
+AppNavi's own hide path is still unobserved, and this is what the guest actually
+shows. The observer hook is live inside the process (`navi-bg: loaded pid=…`,
+`marshal … interposed=1`) and the client maps `libEGL.so.1.0.0`, `libGLESv2.so.2.0.0`
+and `libwayland-egl.so.1.0.0` (`APPNAVI_RENDER_MAPS=12`), yet no `wl_surface` attach or
+commit reaches it (`OBSERVER_NAVI_LINES=0` over 120 seconds). Other vendor clients do
+reach the compositor in the same run: weston's debug log records
+`WESTON_CREATE_SURFACE=40`, hundreds of `get_registry` calls, and commits from surfaces
+that are not AppNavi's. At the time of these runs the cause was not established; the
+runs that recorded surfaces `3000`/`4903` used the project software EGL from
+`/opt/software-egl*` (absent from these extracted trees, which carry only vendor
+`libEGL`/`libGLESv2` and the `i965` DRI driver) and drove the standby/profile-confirm
+transition this chain does not.
+
+**Superseded in part:** CHANGELOG 2.64.0 and 2.66.0 establish the gate the launcher
+closes — `QT_WAYLAND_SET_SURFACE_ID` with `QT_WAYLAND_SET_SURFACE_ID_FORCED=1` — and
+show that a forced non-zero id makes the client create, attach and commit, with the
+black output coming from the missing `ivi_controller` layer placement rather than from
+the client's silence. The observation above stays scoped to the launcher-owned chain,
+where that variable arrives as `0`; it is not evidence about the client's own
+capability.
+
+### Reconciling with the retired shim
+
+CHANGELOG 1.62.0 retired this approach, and the reasoning there is correct for the
+point it tested: an external object **cannot** forward an unknown `va_list` to a
+variadic callee, and `wl_proxy_marshal_array` is reached by a direct intra-library call
+that never traverses the PLT. Both statements still hold, and neither is used here.
+
+The wrapper that ships now never forwards through the variadic entry to relay a
+message: it *receives* the call, reads the arguments typed from the interface's own
+signature table, and passes a rebuilt `union wl_argument[]` to
+`wl_proxy_marshal_array` — a non-variadic call it makes itself, so no `va_list`
+survives the boundary. The variadic entry is used only for the last-resort replay of a
+signature that cannot be read, where every wire argument is an integer slot, and
+`tests/test_navi_bg_observer.py` covers that path separately.
+
+Two facts from that work are worth carrying forward rather than rediscovering:
+
+- `|'f'|` in a Wayland signature is `wl_fixed_t` — a 24.8 fixed-point **integer**,
+  not a C `float` — so it needs no floating-point handling. A test now pins it.
+- A hook that never fires is indistinguishable from a quiet client. The object
+  therefore reports `interposed=1|0` plus a verdict at unload, and a client that
+  bypasses the link chain is reported as `unverified`, never as "no commit happened".
+
+## Decompiled confirmation of the input gap
+
+The claim that `ivi-shell.so` has no pointer or keyboard focus implementation was
+recorded from behaviour; it is now also decompiled evidence. With JDK 21 and Ghidra
+12.1.4 (`tools/uk_fw/decompile.py --select ALL`) the module yields 400 functions, of
+which 120 reference imported `PTR_*` slots. References to `wl_keyboard`, `wl_pointer`,
+`notify_key` or `notify_button` number **zero**. What the shell does contain is
+activation and input-panel plumbing — `terminate_binding(weston_keyboard *…)` at
+`0x10a110`, `click_to_activate_binding(weston_pointer *…)` at `0x10a480`,
+`touch_to_activate_binding` at `0x10a410`, and the input-panel bind/show/destroy
+family — plus `weston_seat_get_keyboard` at `0x103260` as an imported stub the panel
+path uses. See
+[`vm/evidence/vendor-userspace-260128/ivi-shell-input-audit.txt`](../vm/evidence/vendor-userspace-260128/ivi-shell-input-audit.txt).
 
 ## The interposer is cleared, and AppNavi paints nothing
 
@@ -380,11 +473,24 @@ input helpers, and it would convert the symbol-level conclusion above into a run
 
 ## Next steps, in cost order
 
-1. One instrumented boot with `QT_WAYLAND_SET_SURFACE_ID=3000` and no
-   ApplicationManager: record which id the surface actually receives, then re-drive the
-   visibility helper with *that* id. This settles the 30000-versus-3000 question directly.
-2. Once AppNavi paints, re-run the `0x0` hold and look for the BG notification.
-3. Only then decide whether a compatibility adapter is needed at all.
+1. **Cheapest first — driver only, not the library.** The vendor `libEGL` contains its own
+   Wayland software path (see the `-4`-byte stride defect above), so it may accept a
+   `swrast_dri.so` placed on `LIBGL_DRIVERS_PATH` while the vendor `libEGL.so.1` stays in
+   place. What was tried instead — binding a whole Mesa 17 `libEGL` over the vendor one —
+   makes AppNavi exit before its first attach, and that substitution is now opt-in
+   (`vendor_rootfs.py run --software-gl`). The untested variant is the vendor library with
+   only the Mesa driver, which would also bypass the `-4` stride defect only if the vendor
+   build accepts that driver ABI.
+2. In the full AppLauncher-owned run, capture AppNavi's actual `visibleChanged(false)`
+   call together with the selected QtWayland/EGL backend and the parent surface's
+   configure, attach, and commit events. The current static hide-path analysis is not
+   proof that the null-buffer path executes at runtime.
+3. Compare that lifecycle with the retained positive-size Camera/Standby control that
+   reaches `0×0` and `slotNotifyBGInfo`; determine whether AppNavi naturally emits the
+   same background notification. Do not force a BG state or window byte.
+4. Keep tracing the authentic `notifyNaviLaunched[5] window[0]` contract: establish
+   the meaning and producer of each field and what legitimately advances manager state
+   from `APP_NAVI_LOADING` (`35`) to `APP_NAVI` (`30`).
 
 ## Reproducing
 
@@ -396,9 +502,11 @@ zig cc -target x86_64-linux-gnu.2.25 -shared -fPIC -O2 -Wall -Wextra -Werror \
     -o navi-bg-0x0.so navi_bg_0x0.c
 ```
 
-A musl-linked `.so` will not load into the vendor's glibc process. All experiments run
-in snapshot mode with no NIC, and the canonical vendor image is never modified — runs
-use an APFS copy-on-write clone with helper binaries injected by `debugfs`.
+zig comes from `pip install --user ziglang`; a musl-linked `.so` will not load into the
+vendor's glibc process. All experiments run in snapshot mode with no NIC, and the
+canonical vendor image is never modified in place: `tools/uk_fw/vendor_rootfs.py`
+assembles its own ext4 image and injects the helpers with `debugfs`, so a run always
+starts from the same bytes.
 
 ## Bounds
 

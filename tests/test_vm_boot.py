@@ -1,11 +1,16 @@
 """Offline tests for the VM harness; live boot checks are run separately."""
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import io
+import os
 import struct
+import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 TOOL = Path(__file__).parents[1] / "tools/uk_fw/vm_boot.py"
 SPEC = importlib.util.spec_from_file_location("vm_boot", TOOL)
@@ -55,6 +60,15 @@ class FakeSocket:
 
     def sendall(self, data):
         self.sent.append(data)
+
+
+class HashTests(unittest.TestCase):
+    def test_sha256_streams_files_without_hashlib_file_digest(self):
+        payload = bytes(range(256)) * 8193
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "payload.bin"
+            path.write_bytes(payload)
+            self.assertEqual(VM.sha256(path), hashlib.sha256(payload).hexdigest())
 
 
 class BootImageTests(unittest.TestCase):
@@ -149,6 +163,18 @@ class ProtocolTests(unittest.TestCase):
 
 
 class CommandTests(unittest.TestCase):
+    def test_vnc_display_keeps_the_guest_headless_on_loopback(self):
+        command = VM.qemu_command(Path("/w"), "qemu-system-x86_64", False,
+                                  display="vnc")
+        joined = " ".join(command)
+        self.assertIn("-vnc 127.0.0.1:0", joined)
+        self.assertIn("-display none", joined)
+        self.assertNotIn("-nic user", joined)
+
+    def test_unsupported_display_is_refused(self):
+        with self.assertRaisesRegex(ValueError, "display"):
+            VM.qemu_command(Path("/w"), "qemu-system-x86_64", False, display="spice")
+
     def test_no_initramfs_network_or_writable_base_image(self):
         cmd = VM.qemu_command(VM.PROJECT / "work/vm/example", "qemu", False)
         self.assertNotIn("-initrd", cmd)
@@ -158,6 +184,13 @@ class CommandTests(unittest.TestCase):
         self.assertIn("snapshot=on", cmd[cmd.index("-drive") + 1])
         self.assertIn("rootwait", cmd[cmd.index("-append") + 1])
         self.assertIn("init=/init", cmd[cmd.index("-append") + 1])
+
+    def test_sd_card_drive_id_does_not_collide_with_sdhci_default(self):
+        cmd = VM.qemu_command(VM.PROJECT / "work/vm/example", "qemu", False)
+        drive = cmd[cmd.index("-drive") + 1]
+        self.assertIn("if=none,id=ioniq-sd0", drive)
+        self.assertIn("sd-card,drive=ioniq-sd0", cmd)
+        self.assertNotIn("id=sd0", drive)
 
     def test_compat_debug_interface_is_local_and_explicit(self):
         cmd = VM.qemu_command(VM.PROJECT / "work/vm/example", "qemu", True)
@@ -236,6 +269,39 @@ class CommandTests(unittest.TestCase):
             VM.project_output(VM.PROJECT / "work/a,b")
         self.assertEqual(VM.project_output(VM.PROJECT / "work/vm/example"),
                          VM.PROJECT / "work/vm/example")
+
+
+class QemuResolutionTests(unittest.TestCase):
+    """QEMU lookup: explicit override, project-local bootstrap, then PATH."""
+
+    def test_explicit_override_wins(self):
+        with mock.patch.dict(os.environ, {VM.QEMU_ENV: sys.executable}):
+            self.assertEqual(VM.find_qemu(), str(Path(sys.executable).resolve()))
+
+    def test_override_that_is_not_executable_fails_closed(self):
+        with mock.patch.dict(os.environ, {VM.QEMU_ENV: str(Path(__file__))}):
+            with self.assertRaisesRegex(ValueError, VM.QEMU_ENV):
+                VM.find_qemu()
+
+    def test_project_local_bootstrap_is_used_before_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            local = Path(directory) / "qemu-system-x86_64"
+            local.write_text("#!/bin/sh\nexit 0\n")
+            local.chmod(0o755)
+            env = {key: value for key, value in os.environ.items()
+                   if key != VM.QEMU_ENV}
+            with mock.patch.dict(os.environ, env, clear=True), \
+                    mock.patch.object(VM, "LOCAL_QEMU", local):
+                self.assertEqual(VM.find_qemu(), str(local))
+
+    def test_missing_everywhere_reports_none(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env = {key: value for key, value in os.environ.items()
+                   if key != VM.QEMU_ENV}
+            with mock.patch.dict(os.environ, env, clear=True), \
+                    mock.patch.object(VM, "LOCAL_QEMU", Path(directory) / "absent"), \
+                    mock.patch.object(VM.shutil, "which", return_value=None):
+                self.assertIsNone(VM.find_qemu())
 
 
 if __name__ == "__main__":

@@ -1,0 +1,29 @@
+# ivi-shell.so input audit (decompiled)
+
+Method: `tools/uk_fw/decompile.py --binary usr/lib/weston/ivi-shell.so --select ALL`
+with JDK 21 and Ghidra 12.1.4, imported as unpacked by the EU 260128 extraction
+(`work/vm/vendor-userspace-260128/rootfs-tree/usr/lib/weston/ivi-shell.so`).
+Output: 400 function files under ignored `work/decompiled/ivi-shell/`.
+
+## Measured
+
+- 400 functions decompiled; 120 files reference an imported `PTR_*` slot (PLT stubs).
+- References to `wl_keyboard`, `wl_pointer`, `notify_key`, `notify_button`: **0**.
+- Seat use is limited to weston's own bindings and the input-panel path:
+  - `terminate_binding(weston_keyboard *keyboard, uint32_t time, uint32_t key, void *data)` @ 0x10a110
+  - `click_to_activate_binding(weston_pointer *pointer, uint32_t time, uint32_t button, void *data)` @ 0x10a480
+  - `touch_to_activate_binding(...)` @ 0x10a410
+  - `bind_input_panel` / `unbind_input_panel` / `show_input_panel_surface` / `destroy_input_panel_surface_resource`
+  - `weston_seat_get_keyboard` @ 0x103260 is an imported stub, used only by the input-panel path.
+
+## Interpretation
+
+The shell does implement activation bindings (a click or touch can activate a surface)
+and drives the on-screen input panel, but it contains no pointer-focus or key-dispatch
+implementation of its own: nothing calls `wl_keyboard_send_*` or `notify_key`, and no
+`wl_pointer` handling exists in the module. That matches the earlier behavioural
+finding that keys reach the compositor with no focus surface and are dropped, and it
+narrows the gap to the shell/compositor boundary rather than to a missing driver.
+
+Bounded by construction: the audit records counts, symbol names and addresses from the
+decompiled module; it publishes no vendor code beyond those identifiers.

@@ -14,6 +14,14 @@ python3 tests/run_all.py --only json,artifacts
 python3 -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
+The suite is 231 cases: 45% statement coverage over `tools/uk_fw` and `tests/harness`
+(measured with `coverage run --branch`), and 49% over the VM/vendor toolchain
+(`vm_boot`, `vendor_rootfs`, `vm_display`, `decompile`). The number is low by design in
+the heavy paths: QEMU boots, image assembly and Ghidra runs happen in child processes,
+so line coverage cannot see them — their behaviour is pinned by the end-to-end tests
+below instead. Untested modules remain `dump_survey`, `elf_reader`, `kallsyms_*`,
+`net_surface`, `ota_structure`, `bench_*` and `compare_eu_aus`.
+
 Exit codes: `0` all checks pass or report expected state (`info`/`pending`),
 `1` a validation failure or blocked Ioniq push, `2` the harness itself could not
 run (missing tool or bad root).
@@ -33,6 +41,68 @@ run (missing tool or bad root).
 `council/`, `evidence/`, and the root documents are in privacy scope.
 `kona_research/` and `tests/` are excluded so Kona work stays untouched and
 fixture strings cannot self-flag.
+
+## Decompilation tooling
+
+`tests/test_decompile.py` covers the Ghidra wrapper without running Ghidra: a stub
+`analyzeHeadless` verifies the command it builds (import, `-process` reuse,
+`-analysisTimeoutPerFile`, `-max-cpu`, `-deleteProject`), the output guard and the
+error paths. `tests/test_decompiled_artifacts.py` checks the decompiled output against
+the published claim in `vm/evidence/vendor-userspace-260128/ivi-shell-input-audit.txt`
+and is skipped when `work/decompiled/` is absent, like the Ghidra run itself.
+
+```bash
+python3 tools/uk_fw/decompile.py --binary work/.../ivi-shell.so --select ALL
+python3 tools/uk_fw/decompile.py --binary work/.../AppNavi --select 0x2d6611 \
+    --analysis-timeout 2700 --max-cpu 2
+python3 -m unittest discover -s tests -p 'test_decompiled_artifacts.py' -v
+```
+
+## VM end-to-end test
+
+`tests/test_vm_e2e.py` is the only test that needs hardware-level inputs. It
+boots the prepared EU 260128 workspace (`work/vm/bootable-eu260128`) in QEMU and
+asserts the whole chain from the host's point of view: the measured `4.1.27-abl`
+kernel starts, the ext4 root is mounted through the guest-RAM-only SDHCI patch,
+the shell runs as root, the ABL loader arguments are readable from sysfs, the run
+artifacts match the reported result, and a guest command's exit status comes back
+over the serial console.
+
+It is skipped, never failed, when QEMU or the workspace is missing. QEMU is
+resolved from `IONIQ_VM_QEMU`, then `work/tools/qemu/bin/qemu-system-x86_64`
+(what `setup_eu260128.py --setup-qemu` creates), then `PATH`; the other inputs
+come from the same setup command.
+
+```bash
+python3 tools/uk_fw/setup_eu260128.py --setup-qemu --boot-test
+python3 -m unittest discover -s tests -p 'test_vm_e2e.py' -v
+```
+
+## Vendor end-to-end test
+
+`tests/test_vm_vendor_e2e.py` boots the recovered vendor root instead of the
+BusyBox shell and asserts eight facts from the host: dynamic loader, system and
+session D-Bus, the weston Wayland socket, `AppLauncher` with `ApplicationManager`
+and `AppHomeScreen`, `AppNavi` started through the manager with the observer mapped
+into it, and — the interposition proof — that the observer's `wl_proxy_marshal` hook
+is the definition the guest resolves (`shared=0`, `interposed=1`) and that a real
+client's null attach and commits reach it (`verdict=observed complete=1`).
+
+The vendor library exports no `wl_surface_commit` symbol at all (`PROBE
+surface_symbol=0`), which is why the hook is on `wl_proxy_marshal`.
+
+```bash
+pip install --user ziglang                    # cross-build the guest helpers
+python3 tools/uk_fw/vendor_rootfs.py prepare \
+    --container work/firmware/IONIQ5_EU/HU/images/iasImage_1280_sub
+python3 -m unittest discover -s tests -p 'test_vm_vendor_e2e.py' -v
+```
+
+The image is 8 GiB because QEMU accepts only power-of-two SD card sizes, and
+`mkfs` over the 5.2 GiB vendor root takes about ten minutes once. Afterwards
+`tools/uk_fw/vendor_rootfs.py refresh` patches the harness-owned files inside the
+image and the manifest hashes in seconds, so chain edits do not force a rebuild.
+`tests/test_vendor_rootfs.py` covers the assembly rules without any image.
 
 ## Git scope acceptance
 

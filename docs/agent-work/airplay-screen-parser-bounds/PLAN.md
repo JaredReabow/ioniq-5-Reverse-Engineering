@@ -3,8 +3,8 @@
 ## Objective
 
 Determine whether exact recovered screen-stream bytes contain request-derived
-output-capacity failures, while preserving authentication, delivery, process
-impact, privilege, and CVE-attribution boundaries.
+true-input-bound or output-capacity failures, while preserving authentication,
+delivery, process impact, privilege, and CVE-attribution boundaries.
 
 ## Safety boundary
 
@@ -28,9 +28,10 @@ impact, privilege, and CVE-attribution boundaries.
    `AirPlayReceiverSessionScreen_ProcessFrames`.
 2. Bind screen context initialization, AVCC state retention, and first-frame
    state.
-3. Audit `ScreenStreamProcessData` allocation, prepend, NAL conversion, output
-   writes, and loop bounds.
-4. Audit `H264GetNextNALUnit` input bounds and zero-length behavior.
+3. Audit `ScreenStreamProcessData` allocation, prepend, declared-length extent,
+   true-body handling, NAL conversion, output writes, and loop bounds.
+4. Audit `H264GetNextNALUnit` bounds relative to the caller-supplied end and
+   zero-length behavior.
 5. Derive an abstract length proof without constructing protocol input.
 6. Separate the exact output-bound defect from an inapplicable 64-bit doubling
    wrap claim on the uint32 socket route.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Implementation and validation are complete; publication is pending.
+Implementation and validation are complete.
 
 ## Exact identities
 
@@ -22,15 +22,19 @@ Implementation and validation are complete; publication is pending.
 - Screen context is `calloc`-zeroed; AVCC conversion retains header length `H`
   and prefix width `p`; start sets the one-time prepend flag.
 - The growth path allocates and records exactly `2*S` bytes.
+- The caller reads each next `p`-byte declared length without checking true
+  remaining body bytes, forms a synthetic helper end from that declared length,
+  and performs the true-body comparison only after the copy.
 - The retained-header copy and each four-byte-start-code-plus-NAL write have no
   output-used-versus-capacity check.
-- The bounded input helper accepts `p` in `{1,2,4}`, accepts zero NAL length,
-  and advances input by `p`.
+- The bounded helper accepts `p` in `{1,2,4}`, accepts zero NAL length, and
+  advances input by `p`, but it is bounded only to the synthetic end supplied
+  by this caller.
 - For `S=p*N+L`, output is `H+S+(4-p)*N`; it exceeds `2*S` when
   `H+(4-p)*N>S`.
 - The exact uint32-to-x86-64 socket route rules out a `2*S` arithmetic wrap.
-  The candidate is output-capacity under-accounting, classified as exact-static
-  CWE-787.
+  The candidate combines true-input-bound and output-capacity under-accounting,
+  classified as exact-static CWE-125/CWE-787.
 
 ## Deliverables
 
@@ -43,19 +47,20 @@ Implementation and validation are complete; publication is pending.
 
 ## Current validation
 
-- Focused tests: `6 passed`.
-- Projection-focused tests: `14 passed`.
-- Canonical suite: `1084 passed, 352357 subtests passed in 168.01s (0:02:48)`.
+- Tool version: `1.1.0`.
+- Focused tests: `7 passed`.
+- Projection-focused tests: `15 passed`.
+- Canonical suite: `1085 passed, 352357 subtests passed in 171.05s (0:02:51)`.
 - Canonical log SHA-256:
-  `f77938cd656708f855874ae91181d1bf040079537b399b909d260fc3a48bac36`.
+  `2e6ebd977e626422612c08eaa52a3be46eedcf6d08064e048f790c44de861a4b`.
 - `py_compile`, path-limited `git diff --check`, strict JSON/ASCII parsing,
   deterministic reproduction, normal-versus-UTF-16 output identity, and
   exclusive no-overwrite behavior: passed.
-- Artifact size: 18,092 bytes.
+- Artifact size: 20,824 bytes.
 - Artifact file SHA-256:
-  `2ae2670a770508816d22159f9ae6c1185f6dac598d51c304a0ccc57c7e1f8e00`.
+  `540520d01fe9df8afe805060ffac7c1e6d5949e4726f01e58570439c170eedce`.
 - Embedded canonical SHA-256:
-  `a01793627cae6f52c6befaf58c4e6c01cabfffd8e5a7494f3801fc00e5dcea54`.
+  `4dbc0a3b6d91cbe988082b271788681380447a6cff2ffeec5258573d63e3822f`.
 
 ## Boundaries retained
 

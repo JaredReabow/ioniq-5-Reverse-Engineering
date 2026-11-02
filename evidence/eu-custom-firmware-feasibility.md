@@ -91,7 +91,10 @@ signing-key digest. Separately, BUP selects OEM usage bit 32, pins and verifies
 `IBBP.man`, verifies its signed `BPM.met` hash, and checks the metadata's exact
 IBBL/IBB hashes. The exact manifest-bound FTPR kernel later consumes the same
 handoff base, first-entry address, `+0x0d` state byte, and `+0x0e` entry-size
-geometry, proving cross-stage continuity but not earlier authority. The
+geometry, proving cross-stage continuity but not earlier authority. All plain
+little-endian handoff-base occurrences in the exact ABL are classified as these
+consumers or one unaligned cross-dword PMCP match, leaving no other static base
+literal. Computed, indirect, ROM, or external producers remain possible. The
 remaining questions are who populates and authenticates the handoff before RBE,
 whether that memory is immutable, and whether the selected UEP source is
 ROM/fuse authenticated or overrideable.

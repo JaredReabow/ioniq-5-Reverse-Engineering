@@ -777,6 +777,18 @@ def parse_cse_root_and_boot_policy_chains(abl: bytes) -> dict:
                 "required_existing_entry_names": ["bpdt", "pm_trans", "ftpm_fuses", "sss_em", "rbe.man", "pmc_ipc", "ipub_key"],
                 "optional_missing_pmc_msg_is_appended_by_rbe": True,
                 "rbe_ipub_key_path_uses_lookup_not_append": True,
+                "exact_abl_little_endian_base_occurrences": [0x106540, 0x106552, 0x1065BF, 0x1065D6, 0x106645, 0x11CF7D, 0x1204FA, 0x1216A6, 0x1216AE],
+                "classified_consumer_occurrences": {
+                    "rbe": [0x106540, 0x106552, 0x1065BF, 0x1065D6, 0x106645],
+                    "ftpr_kernel": [0x1204FA, 0x1216A6, 0x1216AE],
+                },
+                "remaining_unaligned_cross_dword_occurrence": {
+                    "flash_offset": 0x11CF7D,
+                    "containing_dwords": [0x20000000, 0xFF171908],
+                    "is_aligned_address_literal": False,
+                },
+                "other_plain_static_handoff_base_literal_found": False,
+                "computed_indirect_or_external_producer_excluded": False,
                 "pre_rbe_producer_identity_proved": False,
                 "external_authentication_or_immutability_proved": False,
             },
@@ -1028,6 +1040,11 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     if cse_rbe.find(b"cld_rst_blk\0") != 0x78F4:
         raise Failure("CSE RBE first appended runtime-object name drift")
     handoff_base = struct.pack("<I", 0x08200000)
+    abl_handoff_refs = [index for index in range(len(abl)) if abl.startswith(handoff_base, index)]
+    if abl_handoff_refs != [0x106540, 0x106552, 0x1065BF, 0x1065D6, 0x106645, 0x11CF7D, 0x1204FA, 0x1216A6, 0x1216AE]:
+        raise Failure("exact ABL runtime-object handoff base occurrences drift")
+    if abl[0x11CF7C:0x11CF84] != bytes.fromhex("00000020081917ff"):
+        raise Failure("PMCP cross-dword handoff-byte occurrence context drift")
     handoff_refs = [index for index in range(len(cse_rbe)) if cse_rbe.startswith(handoff_base, index)]
     if handoff_refs != [0x1540, 0x1552, 0x15BF, 0x15D6, 0x1645]:
         raise Failure("CSE RBE runtime-object handoff base references drift")

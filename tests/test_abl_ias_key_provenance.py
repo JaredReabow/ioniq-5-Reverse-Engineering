@@ -51,7 +51,7 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "52f4e7e148be690a45162ee6b25c2cefc0c918444fc1eae9fdb5ce13a39942c2")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "bd8083a1d4f2c3615f4f3e90fe744ef672a0db34d3c65964717bc2a601b254ec")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
@@ -146,6 +146,16 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         )
         self.assertTrue(handoff["optional_missing_pmc_msg_is_appended_by_rbe"])
         self.assertTrue(handoff["rbe_ipub_key_path_uses_lookup_not_append"])
+        self.assertEqual(len(handoff["exact_abl_little_endian_base_occurrences"]), 9)
+        self.assertEqual(len(handoff["classified_consumer_occurrences"]["rbe"]), 5)
+        self.assertEqual(len(handoff["classified_consumer_occurrences"]["ftpr_kernel"]), 3)
+        self.assertEqual(
+            handoff["remaining_unaligned_cross_dword_occurrence"]["containing_dwords"],
+            [0x20000000, 0xFF171908],
+        )
+        self.assertFalse(handoff["remaining_unaligned_cross_dword_occurrence"]["is_aligned_address_literal"])
+        self.assertFalse(handoff["other_plain_static_handoff_base_literal_found"])
+        self.assertFalse(handoff["computed_indirect_or_external_producer_excluded"])
         self.assertFalse(handoff["pre_rbe_producer_identity_proved"])
         self.assertFalse(handoff["external_authentication_or_immutability_proved"])
         self.assertEqual(intel["exact_abl_static_digest_occurrences"], [M.ROT_KEY_OFFSET + 0x2CC])

@@ -4064,3 +4064,10 @@ and are superseded by corrections rather than silently rewritten.
 - Not "asks and is refused", not "draws and is lost": the application never requests a compositor surface. The window exists as an object and is never shown.
 - The show request over D-Bus changes nothing, and a slightly different one kills the process instead.
 - The question has narrowed to a single internal condition, which is a question a binary can answer.
+
+## 2026-10-31 — the number I kept quoting meant nothing
+
+- The vendor HMI module was missing nine config keys and had silently never loaded. With those set it initialises and the compositor stays up.
+- The static analysis then dismantled a claim I had repeated: the D-Bus reply I read as acknowledgement is only the echo of an argument I passed. Several
+  entries in this log leaned on it. They are corrected here rather than left standing.
+- What actually gates the picture is ignition status, which the application says it cannot obtain. That line has been in the log for hours.

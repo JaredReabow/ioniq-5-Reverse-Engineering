@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.55.0 - hmi-controller now initialises, and the static analysis corrects what "int32 1" ever meant
+
+- **The vendor HMI module was never loading.** `hmi-controller.so` exists in `/usr/lib/weston/` but the chain's shell config only loaded
+  `ivi-window-manager.so,ivi-controller.so`. Adding it failed with `Failed to initialize hmi-controller`, and reading `hmi-controller.c`
+  showed why: `initialize()` requires **nine** `[ivi-shell]` config keys and returns failure if any is missing —
+  `background-id`, `panel-id`, `tiling-id`, `sidebyside-id`, `fullscreen-id`, `random-id`, `home-id`, `workspace-background-id`,
+  `surface-id-offset`. The chain supplied only `workspace-background-id`. With all nine added: **`Failed to initialize hmi-controller` count 0**,
+  weston alive (pid 729), `AppHomeScreen` alive (pid 845), `Assertion` 0.
+- **Correction, and it matters.** The static analysis of `AppHomeScreen`
+  (`docs/vm/apphomescreen-show-gate.md`, 470 lines) shows `inter_show_window_fg` has exactly one epilogue, and it returns
+  `movl 0x4(%rsp), %eax` — **the third argument, the `plane`**. So the `int32 1` I have been reporting for several entries as an
+  acknowledgement was simply the echo of the `plane` argument I passed. It carried **no information about whether a window was shown**, and any
+  inference drawn from it was unfounded. The report says this explicitly rather than leaving me to discover it later.
+- **The real gate, from the same analysis:** `QWindow::show()` has three call sites in two functions; every path to `show()` must traverse
+  `AppHomeEngine::checkScrShowingCondition(appid, false)` and then skips `show()` only when `isVisible() && appid == this->0x1e4`. The function's
+  own strings name its decision inputs, including `"HOME_MODEL->getIGNStatus() = "` — **ignition state is a factor**. So the `appid`/`reason`/`plane`
+  triple and the ignition status decide whether `show()` is attempted at all.
+- That connects to a log line this project has been reading past for many hours: `Can not connect IGN3 Status from AppHomeScreen:
+  GetIgn3StatusData`. The app cannot obtain ignition state, and ignition state gates the show.
+- Current state: compositor stable, HMI module loaded, app alive, and still `create_surface` 0 — because `show()` is never reached. The next step is
+  to supply ignition status, not to call D-Bus show methods again.
+
 ## 2.54.0 - with the compositor stable, the remaining fact is stark: the app never calls create_surface
 
 - Re-measured the app in the now-stable ten-screen configuration (`Assertion` 0 throughout, weston pid 731, `AppHomeScreen` pid 912):

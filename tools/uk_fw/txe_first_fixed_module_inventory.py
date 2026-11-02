@@ -23,6 +23,9 @@ except ModuleNotFoundError:  # Direct script execution from the repository root.
 SCHEMA = "ioniq-txe-first-fixed-module-inventory/v1"
 MODULE_BASE = 0x26000
 SYSLIB_BASE = 0x6000
+KERNEL_BASE = 0x80000
+AFFECTED_KERNEL_SHA256 = "cf7dd5fc9918f96ffd2352d09a3e303471a768b3a6ee056089dd7a3d5c00bfdf"
+FIRST_FIXED_KERNEL_SHA256 = "5de5db65abe4602d9c5bf12cdbc5cf5402974025901924307cf6f38f302bacfb"
 EXPECTED_MODULES = (
     "adspa",
     "busdrv",
@@ -364,11 +367,195 @@ def minimal_length_delta_review(
         "affected_constructor_runtime_range": [0x8E8A, 0x8ED3],
         "first_fixed_constructor_runtime_range": [0x8E8F, 0x8ED8],
         "constructor_sha256": sha256(affected_constructor),
-        "constructor_stores_first_argument_dword_at_message_offset_zero": True,
+        "submit_wrapper_stores_first_argument_dword_at_message_offset_zero": True,
         "constructor_stores_second_argument_low_byte_at_message_offset_four": True,
         "all_reviewed_lengths_increment_by_one": True,
         "sites": sites,
         "attribution_boundary": "The eleven residual bytes in ish_srv, loadmgr, gpio, and pm are exact one-byte increases in serialized message-length fields whose message dword zero is 0x02000200. This is a coordinated interface delta, but the dword's semantics, recipient, added byte meaning, attacker control, HECI reachability, and CVE attribution remain unproved.",
+    }
+
+
+def kernel_message_submit_selector_review(
+    affected_kernel: bytes,
+    first_fixed_kernel: bytes,
+    affected_syslib: bytes,
+    first_fixed_syslib: bytes,
+) -> dict:
+    """Bind the exact syscall path used by the reviewed message submit wrapper."""
+    if len(affected_kernel) != 0x12000 or len(first_fixed_kernel) != 0x12000:
+        raise Failure("FTPR kernel size drift")
+    if sha256(affected_kernel) != AFFECTED_KERNEL_SHA256:
+        raise Failure("affected FTPR kernel identity mismatch")
+    if sha256(first_fixed_kernel) != FIRST_FIXED_KERNEL_SHA256:
+        raise Failure("first-fixed FTPR kernel identity mismatch")
+
+    affected_table = 0x10D24
+    first_table = 0x10CE0
+    selector = 0x10
+    affected_entry = struct.unpack_from("<III", affected_kernel, affected_table + selector * 12)
+    first_entry = struct.unpack_from("<III", first_fixed_kernel, first_table + selector * 12)
+    if affected_entry != (1, 0x40, 0x8C6B8) or first_entry != (1, 0x40, 0x8C65A):
+        raise Failure("kernel selector 0x10 table entry drift")
+
+    affected_range = (0x8C6B8, 0x8C946)
+    first_range = (0x8C65A, 0x8C8E8)
+    affected_body = affected_kernel[affected_range[0] - KERNEL_BASE : affected_range[1] - KERNEL_BASE]
+    first_body = first_fixed_kernel[first_range[0] - KERNEL_BASE : first_range[1] - KERNEL_BASE]
+    if len(affected_body) != len(first_body) or len(affected_body) != 0x28E:
+        raise Failure("kernel selector 0x10 handler geometry drift")
+    if sha256(affected_body) != "8335a78c6ea2ca8f1c7a255a1cc5e82855bdba76dc4bdb134106d2092ce89792":
+        raise Failure("affected kernel selector 0x10 handler hash drift")
+    if sha256(first_body) != "fece441f780c7171087f410322244c1ffbb9afcb2a55879d5c103dcb48147e0f":
+        raise Failure("first-fixed kernel selector 0x10 handler hash drift")
+
+    normalized_affected = bytearray(affected_body)
+    normalized_first = bytearray(first_body)
+    rel32_sites = []
+    allowed: set[int] = set()
+    for relative_offset in (0x52, 0xF3):
+        if affected_body[relative_offset] != 0xE8 or first_body[relative_offset] != 0xE8:
+            raise Failure("kernel selector 0x10 reviewed call opcode drift")
+        old_displacement = struct.unpack_from("<i", affected_body, relative_offset + 1)[0]
+        new_displacement = struct.unpack_from("<i", first_body, relative_offset + 1)[0]
+        old_target = affected_range[0] + relative_offset + 5 + old_displacement
+        new_target = first_range[0] + relative_offset + 5 + new_displacement
+        rel32_sites.append({
+            "handler_relative_offset": relative_offset,
+            "affected_runtime_address": affected_range[0] + relative_offset,
+            "first_fixed_runtime_address": first_range[0] + relative_offset,
+            "affected_target": old_target,
+            "first_fixed_target": new_target,
+        })
+        allowed.update(range(relative_offset + 1, relative_offset + 5))
+        normalized_affected[relative_offset + 1 : relative_offset + 5] = b"\0" * 4
+        normalized_first[relative_offset + 1 : relative_offset + 5] = b"\0" * 4
+
+    semantic_sites = []
+    for relative_offset, opcode in ((0x1C6, 0xB8), (0x263, 0x3D)):
+        if affected_body[relative_offset] != opcode or first_body[relative_offset] != opcode:
+            raise Failure("kernel selector 0x10 sentinel opcode drift")
+        old_value = struct.unpack_from("<I", affected_body, relative_offset + 1)[0]
+        new_value = struct.unpack_from("<I", first_body, relative_offset + 1)[0]
+        if (old_value, new_value) != (0xFF, 0x102):
+            raise Failure("kernel selector 0x10 sentinel value drift")
+        semantic_sites.append({
+            "handler_relative_immediate_offset": relative_offset + 1,
+            "affected_runtime_immediate_address": affected_range[0] + relative_offset + 1,
+            "first_fixed_runtime_immediate_address": first_range[0] + relative_offset + 1,
+            "instruction": "mov_eax_imm32" if opcode == 0xB8 else "cmp_eax_imm32",
+            "affected_value": old_value,
+            "first_fixed_value": new_value,
+        })
+        allowed.update(range(relative_offset + 1, relative_offset + 5))
+        normalized_affected[relative_offset + 1 : relative_offset + 5] = b"\0" * 4
+        normalized_first[relative_offset + 1 : relative_offset + 5] = b"\0" * 4
+
+    actual = {index for index, pair in enumerate(zip(affected_body, first_body)) if pair[0] != pair[1]}
+    if actual - allowed or normalized_affected != normalized_first:
+        raise Failure("kernel selector 0x10 unexplained body delta")
+
+    global_immediates = {
+        "affected_mov_eax_0xff": [0x860F2, 0x8C87E],
+        "first_fixed_mov_eax_0x102": [0x86347, 0x8C820],
+        "affected_cmp_eax_0xff": [
+            0x88096, 0x88A02, 0x88C9C, 0x89A23, 0x89C9A, 0x8B6CD,
+            0x8BDB9, 0x8C91B, 0x8CB6D, 0x8EC67, 0x8EFDF, 0x901F9,
+        ],
+        "first_fixed_cmp_eax_0x102": [
+            0x88038, 0x889A4, 0x88C3E, 0x899C5, 0x89C3C, 0x8B66F,
+            0x8BD5B, 0x8C8BD, 0x8CB0F, 0x8EC09, 0x8EF81, 0x9019B,
+        ],
+    }
+    census_specs = (
+        (affected_kernel, b"\xb8\xff\x00\x00\x00", "affected_mov_eax_0xff"),
+        (first_fixed_kernel, b"\xb8\x02\x01\x00\x00", "first_fixed_mov_eax_0x102"),
+        (affected_kernel, b"\x3d\xff\x00\x00\x00", "affected_cmp_eax_0xff"),
+        (first_fixed_kernel, b"\x3d\x02\x01\x00\x00", "first_fixed_cmp_eax_0x102"),
+    )
+    for kernel, pattern, key in census_specs:
+        found = []
+        cursor = 0
+        while True:
+            cursor = kernel.find(pattern, cursor)
+            if cursor < 0:
+                break
+            found.append(KERNEL_BASE + cursor)
+            cursor += 1
+        if found != global_immediates[key]:
+            raise Failure(f"kernel global immediate census drift: {key}")
+
+    affected_epilogue = affected_kernel[0x8BDB0 - KERNEL_BASE : 0x8BDCF - KERNEL_BASE]
+    first_epilogue = first_fixed_kernel[0x8BD52 - KERNEL_BASE : 0x8BD71 - KERNEL_BASE]
+    if (
+        sha256(affected_epilogue) != "09ea11155b3e87de23f62f18420589a74c6fefd14c5f0dda24bf956a7264bdb4"
+        or sha256(first_epilogue) != "34967dbd0be79aae7c2c0319e1e237210740e207895932e2269b42cef1bd978d"
+        or affected_epilogue[:9] != first_epilogue[:9]
+        or struct.unpack_from("<I", affected_epilogue, 10)[0] != 0xFF
+        or struct.unpack_from("<I", first_epilogue, 10)[0] != 0x102
+        or affected_epilogue[14:] != first_epilogue[14:]
+    ):
+        raise Failure("selector 0x10 shared return epilogue drift")
+
+    affected_wrapper = affected_syslib[0x16F8F - SYSLIB_BASE : 0x16FB3 - SYSLIB_BASE]
+    first_wrapper = first_fixed_syslib[0x16FB1 - SYSLIB_BASE : 0x16FD5 - SYSLIB_BASE]
+    expected_prefix = bytes.fromhex("5589e50fb7450c0fb65508c1e2180d0000010009d08b551089550c8945085d")
+    if affected_wrapper[:31] != expected_prefix or first_wrapper[:31] != expected_prefix:
+        raise Failure("syslib selector wrapper instruction drift")
+    if affected_wrapper[31] != 0xE9 or first_wrapper[31] != 0xE9:
+        raise Failure("syslib selector wrapper tail gate drift")
+    affected_gate = 0x16F8F + 36 + struct.unpack_from("<i", affected_wrapper, 32)[0]
+    first_gate = 0x16FB1 + 36 + struct.unpack_from("<i", first_wrapper, 32)[0]
+    if (affected_gate, first_gate) != (0x118B2, 0x118BA):
+        raise Failure("syslib selector wrapper gate target drift")
+
+    affected_submit = affected_syslib[0x7F38 - SYSLIB_BASE : 0x7F65 - SYSLIB_BASE]
+    first_submit = first_fixed_syslib[0x7F3D - SYSLIB_BASE : 0x7F6A - SYSLIB_BASE]
+    if affected_submit[9:16] != b"\x89\x10\x50\x6a\x40\x6a\x10" or first_submit[9:16] != affected_submit[9:16]:
+        raise Failure("reviewed message submit selector arguments drift")
+    for value, runtime, expected_target in (
+        (affected_submit, 0x7F38, 0x16F8F),
+        (first_submit, 0x7F3D, 0x16FB1),
+    ):
+        if value[16] != 0xE8:
+            raise Failure("reviewed message submit wrapper call drift")
+        target = runtime + 21 + struct.unpack_from("<i", value, 17)[0]
+        if target != expected_target:
+            raise Failure("reviewed message submit selector wrapper target drift")
+
+    return {
+        "selector": selector,
+        "syscall_argument_size": 0x40,
+        "affected_table_runtime_address": KERNEL_BASE + affected_table,
+        "first_fixed_table_runtime_address": KERNEL_BASE + first_table,
+        "affected_handler_runtime_range": list(affected_range),
+        "first_fixed_handler_runtime_range": list(first_range),
+        "handler_size": len(affected_body),
+        "affected_handler_sha256": sha256(affected_body),
+        "first_fixed_handler_sha256": sha256(first_body),
+        "raw_differing_byte_count": len(actual),
+        "reviewed_rel32_sites": rel32_sites,
+        "semantic_immediate_sites": semantic_sites,
+        "only_handler_semantic_change_after_rel32_normalization": "two uses of the same immediate change from 0x000000ff to 0x00000102",
+        "shared_return_epilogue": {
+            "affected_runtime_range": [0x8BDB0, 0x8BDCF],
+            "first_fixed_runtime_range": [0x8BD52, 0x8BD71],
+            "affected_sha256": sha256(affected_epilogue),
+            "first_fixed_sha256": sha256(first_epilogue),
+            "only_change": "cmp eax immediate 0x000000ff to 0x00000102",
+        },
+        "kernel_global_immediate_census": {
+            **global_immediates,
+            "affected_total_site_count": 14,
+            "first_fixed_total_site_count": 14,
+            "interpretation_boundary": "The same numeric change occurs in fourteen MOV/CMP sites across each complete kernel, so the selector-0x10 uses are part of a kernel-wide status/sentinel renumbering candidate rather than isolated proof of message-validation logic.",
+        },
+        "affected_syslib_selector_wrapper_runtime_range": [0x16F8F, 0x16FB3],
+        "first_fixed_syslib_selector_wrapper_runtime_range": [0x16FB1, 0x16FD5],
+        "affected_syslib_selector_wrapper_sha256": sha256(affected_wrapper),
+        "first_fixed_syslib_selector_wrapper_sha256": sha256(first_wrapper),
+        "syslib_wrapper_builds_syscall_value": "(selector_byte << 24) | 0x00010000 | argument_size_word",
+        "reviewed_submit_syscall_value": 0x10010040,
+        "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed message-length sites, but the same 0xff-to-0x102 change appears at fourteen MOV/CMP sites kernel-wide. Its semantic name, reason for the plus-three renumbering, message dword-zero meaning, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
     }
 
 
@@ -392,6 +579,12 @@ def build_report(affected_image: bytes, first_fixed_image: bytes) -> dict:
     )
     first_syslib, _ = fixed.extract_module(
         first_fixed_image, fixed.FIRST_FIXED_FTPR, first_ftpr, first_ftpr_manifest, "syslib"
+    )
+    affected_kernel, _ = fixed.extract_module(
+        affected_image, fixed.OLD_FTPR, affected_ftpr, affected_ftpr_manifest, "kernel"
+    )
+    first_kernel, _ = fixed.extract_module(
+        first_fixed_image, fixed.FIRST_FIXED_FTPR, first_ftpr, first_ftpr_manifest, "kernel"
     )
     if fixed.sha256(affected_syslib) != fixed.OLD_SYSLIB_SHA256:
         raise Failure("affected syslib identity mismatch")
@@ -493,6 +686,12 @@ def build_report(affected_image: bytes, first_fixed_image: bytes) -> dict:
         "minimal_length_delta_review": minimal_length_delta_review(
             decoded_modules,
             modules,
+            affected_syslib,
+            first_syslib,
+        ),
+        "kernel_message_submit_selector_0x10_review": kernel_message_submit_selector_review(
+            affected_kernel,
+            first_kernel,
             affected_syslib,
             first_syslib,
         ),

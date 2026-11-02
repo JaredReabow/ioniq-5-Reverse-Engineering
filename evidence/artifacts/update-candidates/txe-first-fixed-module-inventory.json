@@ -34,6 +34,126 @@
       "syslib_sha256": "1f4722eeaab64eee5b6febe1b7e6d21565794c929173a56ff4bb9a01f96b00c8"
     }
   },
+  "kernel_message_submit_selector_0x10_review": {
+    "affected_handler_runtime_range": [
+      575160,
+      575814
+    ],
+    "affected_handler_sha256": "8335a78c6ea2ca8f1c7a255a1cc5e82855bdba76dc4bdb134106d2092ce89792",
+    "affected_syslib_selector_wrapper_runtime_range": [
+      94095,
+      94131
+    ],
+    "affected_syslib_selector_wrapper_sha256": "58a75d3146459c122d603c5d17d231129c9fe3226ebe51b777f8b8cbc8c593c1",
+    "affected_table_runtime_address": 593188,
+    "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed message-length sites, but the same 0xff-to-0x102 change appears at fourteen MOV/CMP sites kernel-wide. Its semantic name, reason for the plus-three renumbering, message dword-zero meaning, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
+    "first_fixed_handler_runtime_range": [
+      575066,
+      575720
+    ],
+    "first_fixed_handler_sha256": "fece441f780c7171087f410322244c1ffbb9afcb2a55879d5c103dcb48147e0f",
+    "first_fixed_syslib_selector_wrapper_runtime_range": [
+      94129,
+      94165
+    ],
+    "first_fixed_syslib_selector_wrapper_sha256": "340e07b4a8f55ba69f1a4d2b1b8240bb0a1f95bda9e436300fc3cedc4c24105e",
+    "first_fixed_table_runtime_address": 593120,
+    "handler_size": 654,
+    "kernel_global_immediate_census": {
+      "affected_cmp_eax_0xff": [
+        557206,
+        559618,
+        560284,
+        563747,
+        564378,
+        571085,
+        572857,
+        575771,
+        576365,
+        584807,
+        585695,
+        590329
+      ],
+      "affected_mov_eax_0xff": [
+        549106,
+        575614
+      ],
+      "affected_total_site_count": 14,
+      "first_fixed_cmp_eax_0x102": [
+        557112,
+        559524,
+        560190,
+        563653,
+        564284,
+        570991,
+        572763,
+        575677,
+        576271,
+        584713,
+        585601,
+        590235
+      ],
+      "first_fixed_mov_eax_0x102": [
+        549703,
+        575520
+      ],
+      "first_fixed_total_site_count": 14,
+      "interpretation_boundary": "The same numeric change occurs in fourteen MOV/CMP sites across each complete kernel, so the selector-0x10 uses are part of a kernel-wide status/sentinel renumbering candidate rather than isolated proof of message-validation logic."
+    },
+    "only_handler_semantic_change_after_rel32_normalization": "two uses of the same immediate change from 0x000000ff to 0x00000102",
+    "raw_differing_byte_count": 7,
+    "reviewed_rel32_sites": [
+      {
+        "affected_runtime_address": 575242,
+        "affected_target": 4142,
+        "first_fixed_runtime_address": 575148,
+        "first_fixed_target": 4142,
+        "handler_relative_offset": 82
+      },
+      {
+        "affected_runtime_address": 575403,
+        "affected_target": 544906,
+        "first_fixed_runtime_address": 575309,
+        "first_fixed_target": 546038,
+        "handler_relative_offset": 243
+      }
+    ],
+    "reviewed_submit_syscall_value": 268501056,
+    "selector": 16,
+    "semantic_immediate_sites": [
+      {
+        "affected_runtime_immediate_address": 575615,
+        "affected_value": 255,
+        "first_fixed_runtime_immediate_address": 575521,
+        "first_fixed_value": 258,
+        "handler_relative_immediate_offset": 455,
+        "instruction": "mov_eax_imm32"
+      },
+      {
+        "affected_runtime_immediate_address": 575772,
+        "affected_value": 255,
+        "first_fixed_runtime_immediate_address": 575678,
+        "first_fixed_value": 258,
+        "handler_relative_immediate_offset": 612,
+        "instruction": "cmp_eax_imm32"
+      }
+    ],
+    "shared_return_epilogue": {
+      "affected_runtime_range": [
+        572848,
+        572879
+      ],
+      "affected_sha256": "09ea11155b3e87de23f62f18420589a74c6fefd14c5f0dda24bf956a7264bdb4",
+      "first_fixed_runtime_range": [
+        572754,
+        572785
+      ],
+      "first_fixed_sha256": "34967dbd0be79aae7c2c0319e1e237210740e207895932e2269b42cef1bd978d",
+      "only_change": "cmp eax immediate 0x000000ff to 0x00000102"
+    },
+    "syscall_argument_size": 64,
+    "syslib_wrapper_builds_syscall_value": "(selector_byte << 24) | 0x00010000 | argument_size_word"
+  },
   "minimal_length_delta_review": {
     "affected_constructor_runtime_range": [
       36490,
@@ -42,7 +162,6 @@
     "all_reviewed_lengths_increment_by_one": true,
     "attribution_boundary": "The eleven residual bytes in ish_srv, loadmgr, gpio, and pm are exact one-byte increases in serialized message-length fields whose message dword zero is 0x02000200. This is a coordinated interface delta, but the dword's semantics, recipient, added byte meaning, attacker control, HECI reachability, and CVE attribution remain unproved.",
     "constructor_sha256": "1a9f71789daff697fe6ac80b110101ecc63d84bbc3759c6a869bfc648a6d8c28",
-    "constructor_stores_first_argument_dword_at_message_offset_zero": true,
     "constructor_stores_second_argument_low_byte_at_message_offset_four": true,
     "first_fixed_constructor_runtime_range": [
       36495,
@@ -173,7 +292,8 @@
         "module_relative_immediate_offset": 10965,
         "runtime_immediate_address": 166613
       }
-    ]
+    ],
+    "submit_wrapper_stores_first_argument_dword_at_message_offset_zero": true
   },
   "modules": {
     "adspa": {

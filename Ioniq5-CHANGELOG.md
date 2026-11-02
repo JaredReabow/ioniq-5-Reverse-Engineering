@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.38.0 - the app's advertised D-Bus contract does not match its dispatch, and V-045 is corrected
+
+- Obtained the app's live introspection (10,990 bytes, saved as
+  `evidence/vm-bringup/apphomescreen-introspection-2026-10-31.xml`) and it lists five interfaces: `appbase`, `audiotransition`,
+  `notification`, `registration`, `screentransition`, plus the app's own `com.lge.hkmc.avn.appfunc.appInterface`.
+- **The advertised signatures are wrong, and I had repeated them.** Introspection claims
+  `show_window_fg(i,i,i,i,i)`, `show_window_fg(i,i,i,i,i,b,i)` and `hide_window_bg(i,i,i,i)`. Measured dispatch:
+  - `show_window_fg` with **5 ints → `UnknownMethod`**
+  - `show_window_fg` with **5 ints + boolean → `int32 1`** — the undocumented 6-argument form is the only one that works
+  - `show_window_fg` with **7 args → `NoReply`**
+  - `hide_window_bg` with **4 ints → `NoReply`, and the process is gone afterwards** (subsequent calls `ServiceUnknown`)
+- **V-045 has been rewritten to the measured facts**, with an explicit correction note: my earlier entry described a "4-argument
+  overload" of `show_window_fg`, which does not exist. The finding is unchanged and arguably sharper — a well-behaved client that
+  reads the advertised introspection and calls `hide_window_bg` as documented takes the primary display down, so the published
+  contract invites the fatal call.
+- **For the display problem:** `show_window_fg(10,11,1,-1,0,true)` returns `int32 1` with the app alive, and the frame is still the
+  4,117-byte black output. Both boolean values acknowledge without painting, so the request is received and is not what completes
+  the picture.
+- Next: `NotifyRequestHomeScreen(ay)` and the `screentransition`/`notification` interfaces are the untried part of the conversation,
+  and the app-side handlers for them are named in the binary (`inter_show_window_fg`, `NotifyShowFullScreen`, `notify_event`).
+
 ## 2.37.0 - the show request is found, it returns success, and one overload kills the app
 
 - **Identified the method that shows a window.** `AppHomeScreen` implements the interface **`com.lge.avn.appmanager.appbase`** with

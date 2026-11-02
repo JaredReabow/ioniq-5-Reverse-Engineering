@@ -89,9 +89,10 @@ For a future disconnected bench, the safe order is:
 
 1. passively confirm installed TXE/ABL identity and whether it still reports
    `3.1.50.2222` rather than a different board or service update;
-2. record `/dev/mei*` metadata without opening the nodes;
-3. hash `mei.ko`, `mei-me.ko`, and `mei-txe.ko`, and record the bound transport
-   and `/sys/class/mei/*` identities;
+2. record `/dev/mei*`, `/dev/tpm0`, and `/dev/tpmrm0` metadata without opening
+   the nodes;
+3. hash the MEI/TXE and TPM/CRB/TIS modules, and record the bound transport plus
+   `/sys/class/mei/*` and `/sys/class/tpm/tpm*` identities;
 4. determine host credentials, DAC, capabilities, and SMACK policy required to
    reach any client;
 5. identify the exact client UUID and message grammar from recovered bytes or

@@ -113,6 +113,37 @@ def _module_extension(metadata: bytes, label: str) -> bytes:
     return values[0]
 
 
+def _special_files(metadata: bytes, label: str) -> dict:
+    values = [value for tag, value in fixed.metadata_extensions(metadata, label) if tag == 9]
+    if len(values) != 1:
+        raise Failure(f"{label} special-file extension count drift")
+    extension = values[0]
+    if len(extension) < 12 or (len(extension) - 12) % 24:
+        raise Failure(f"{label} special-file extension size drift")
+    major = struct.unpack_from("<I", extension, 8)[0]
+    entries = []
+    for offset in range(12, len(extension), 24):
+        raw_name = extension[offset : offset + 12]
+        if b"\0" not in raw_name:
+            raise Failure(f"{label} unterminated special-file name")
+        try:
+            name = raw_name.split(b"\0", 1)[0].decode("ascii")
+        except UnicodeDecodeError as exc:
+            raise Failure(f"{label} non-ASCII special-file name") from exc
+        access, user, group, minor, reserved = struct.unpack_from(
+            "<HHHHI", extension, offset + 12
+        )
+        entries.append({
+            "name": name,
+            "access_mode": access,
+            "user_id": user,
+            "group_id": group,
+            "minor": minor,
+            "reserved": reserved,
+        })
+    return {"major": major, "entries": entries}
+
+
 def _partition_context(image: bytes, offset: int, label: str) -> dict:
     entries = fixed.parse_cpd(image, offset, b"NFTP")
     manifest = fixed.member(image, offset, entries, "NFTP.man")
@@ -371,13 +402,19 @@ def minimal_length_delta_review(
         "constructor_stores_second_argument_low_byte_at_message_offset_four": True,
         "all_reviewed_lengths_increment_by_one": True,
         "sites": sites,
-        "attribution_boundary": "The eleven residual bytes in ish_srv, loadmgr, gpio, and pm are exact one-byte increases in serialized message-length fields whose message dword zero is 0x02000200. This is a coordinated interface delta, but the dword's semantics, recipient, added byte meaning, attacker control, HECI reachability, and CVE attribution remain unproved.",
+        "attribution_boundary": "The eleven residual bytes in ish_srv, loadmgr, gpio, and pm are exact one-byte increases in serialized message-length fields whose message dword zero is 0x02000200. The separate ipc_drv review proves that value's low half 0x0200 selects an alternate internal transfer path in one callback, but does not name the selector/domain or prove these constructors reach that callback. Recipient identity, added-byte meaning, attacker control, HECI reachability, and CVE attribution remain unproved.",
     }
 
 
 def ipc_drv_stack_initialization_review(
     affected_ipc: bytes,
     first_fixed_ipc: bytes,
+    affected_syslib: bytes,
+    first_fixed_syslib: bytes,
+    affected_kernel: bytes,
+    first_fixed_kernel: bytes,
+    affected_special_files: dict,
+    first_fixed_special_files: dict,
 ) -> dict:
     affected_range = (0x274BD, 0x2780D)
     first_range = (0x274E5, 0x27849)
@@ -469,6 +506,161 @@ def ipc_drv_stack_initialization_review(
             "callback_runtime_address": value,
         })
 
+    expected_special_files = {
+        "major": 39,
+        "entries": [
+            {"name": "ipc_boot", "access_mode": 0o660, "user_id": 58, "group_id": 147, "minor": 1, "reserved": 0},
+            {"name": "ipc_mctp", "access_mode": 0o660, "user_id": 58, "group_id": 148, "minor": 2, "reserved": 0},
+            {"name": "ipc_dd", "access_mode": 0o660, "user_id": 58, "group_id": 149, "minor": 3, "reserved": 0},
+            {"name": "ipc_pmc", "access_mode": 0o660, "user_id": 58, "group_id": 363, "minor": 4, "reserved": 0},
+            {"name": "ipc_prtc", "access_mode": 0o660, "user_id": 58, "group_id": 364, "minor": 5, "reserved": 0},
+            {"name": "ipc_iun", "access_mode": 0o660, "user_id": 58, "group_id": 365, "minor": 6, "reserved": 0},
+        ],
+    }
+    if affected_special_files != expected_special_files or first_fixed_special_files != expected_special_files:
+        raise Failure("ipc_drv special-file metadata drift")
+
+    # Startup copies the static template at runtime 0x29000 into BSS at
+    # 0x34000. Three 0xe0-byte contexts carry six entries whose +4 dwords are
+    # exactly the metadata minors 1..6.
+    template_offset = 0x29000 - MODULE_BASE
+    context_minor_groups = []
+    for module in (affected_ipc, first_fixed_ipc):
+        template = module[template_offset : template_offset + 0x2AC]
+        if len(template) != 0x2AC or template[-4:] != b"SSSS":
+            raise Failure("ipc_drv static context template drift")
+        groups = []
+        for context_index, expected_count in enumerate((3, 2, 1)):
+            context = context_index * 0xE0
+            count = struct.unpack_from("<I", template, context + 0xDC)[0]
+            if count != expected_count:
+                raise Failure("ipc_drv context entry-count drift")
+            groups.append([
+                struct.unpack_from("<I", template, context + 0x70 + entry * 0x24 + 4)[0]
+                for entry in range(count)
+            ])
+        context_minor_groups.append(groups)
+    if context_minor_groups != [[[1, 2, 3], [4, 5], [6]]] * 2:
+        raise Failure("ipc_drv context minor mapping drift")
+
+    # Syslib event byte 0xf4 dispatches through object offset +0x10. Because the
+    # registered operation array is copied to object +8, this is table index 2,
+    # the exact slot containing the reviewed callback.
+    dispatcher_sites = []
+    for syslib, event_site, push_site, call_site in (
+        (affected_syslib, 0x86A6, 0x880B, 0x8815),
+        (first_fixed_syslib, 0x86AB, 0x8810, 0x881A),
+    ):
+        event_offset = event_site - SYSLIB_BASE
+        if syslib[event_offset : event_offset + 2] != bytes.fromhex("3cf4"):
+            raise Failure("ipc_drv syslib event-0xf4 dispatch drift")
+        push_offset = push_site - SYSLIB_BASE
+        if syslib[push_offset : push_offset + 13] != bytes.fromhex(
+            "ff7614ff7610ff365053ff5310"
+        ):
+            raise Failure("ipc_drv syslib callback argument dispatch drift")
+        dispatcher_sites.append({
+            "event_compare_runtime_address": event_site,
+            "argument_push_runtime_address": push_site,
+            "indirect_call_runtime_address": call_site,
+            "object_callback_offset": 0x10,
+            "operation_table_index": 2,
+            "message_fields_passed": ["+0x14", "+0x10", "+0x00", "+0x08"],
+        })
+
+    # Export 0x61d6 is the fixed-size transfer wrapper used by the callback. It
+    # consumes the signed low 16 bits of message dword zero as its first
+    # argument. Zero takes its local-descriptor path; nonzero takes the alternate
+    # internal transfer path.
+    transfer_exports = []
+    for syslib, body_start, alternate_call, alternate_target, syscall_push, syscall_call, syscall_target in (
+        (affected_syslib, 0x7849, 0x78C6, 0x77C9, 0x7802, 0x7810, 0x16F8F),
+        (first_fixed_syslib, 0x784E, 0x78CB, 0x77CE, 0x7807, 0x7815, 0x16FB1),
+    ):
+        stub = 0x61D6 - SYSLIB_BASE
+        if syslib[stub] != 0xE9:
+            raise Failure("ipc_drv syslib transfer-export encoding drift")
+        target = 0x61D6 + 5 + struct.unpack_from("<i", syslib, stub + 1)[0]
+        if target != body_start:
+            raise Failure("ipc_drv syslib transfer-export target drift")
+        body = body_start - SYSLIB_BASE
+        expected = bytes.fromhex("6685c0")
+        matches = [
+            SYSLIB_BASE + offset
+            for offset in range(body, body + 0x50 - len(expected) + 1)
+            if syslib[offset : offset + len(expected)] == expected
+        ]
+        if len(matches) != 1:
+            raise Failure("ipc_drv syslib low-half selector test drift")
+        alternate_offset = alternate_call - SYSLIB_BASE
+        if syslib[alternate_offset] != 0xE8:
+            raise Failure("ipc_drv alternate transfer call encoding drift")
+        called = alternate_call + 5 + struct.unpack_from(
+            "<i", syslib, alternate_offset + 1
+        )[0]
+        if called != alternate_target:
+            raise Failure("ipc_drv alternate transfer call target drift")
+        syscall_offset = syscall_push - SYSLIB_BASE
+        if syslib[syscall_offset : syscall_offset + 14] != bytes.fromhex(
+            "508b5d206a206a0766c745e60000"
+        ):
+            raise Failure("ipc_drv alternate transfer syscall arguments drift")
+        syscall_call_offset = syscall_call - SYSLIB_BASE
+        if syslib[syscall_call_offset] != 0xE8:
+            raise Failure("ipc_drv alternate transfer syscall call drift")
+        called = syscall_call + 5 + struct.unpack_from(
+            "<i", syslib, syscall_call_offset + 1
+        )[0]
+        if called != syscall_target:
+            raise Failure("ipc_drv alternate transfer syscall target drift")
+        transfer_exports.append({
+            "export_stub_runtime_address": 0x61D6,
+            "body_runtime_address": body_start,
+            "low_16_bit_zero_test_runtime_address": matches[0],
+            "alternate_transfer_call_runtime_address": alternate_call,
+            "alternate_transfer_body_runtime_address": alternate_target,
+            "alternate_transfer_syscall_selector": 7,
+            "alternate_transfer_syscall_argument_size": 0x20,
+            "alternate_transfer_syscall_call_runtime_address": syscall_call,
+        })
+
+    selector_7_handlers = []
+    for kernel, table, handler_start, handler_end, expected_hash, pid_extract, pid_compare, copy_flag in (
+        (affected_kernel, 0x90D24, 0x8BBC2, 0x8BCE1, "9559b5e7075342b3ea2ec8e141a900aad93d81f7a8da8a32c05a9ba7b903cc6a", 0x8BC2A, 0x8BC4A, 0x8BC6D),
+        (first_fixed_kernel, 0x90CE0, 0x8BB64, 0x8BC83, "26e9aaf080e5dfc5a40309cd24ee2cf0ca9decd89f06bc52768bdad931f0f91b", 0x8BBCC, 0x8BBEC, 0x8BC0F),
+    ):
+        table_offset = table - KERNEL_BASE + 7 * 12
+        entry = struct.unpack_from("<III", kernel, table_offset)
+        if entry != (1, 0x20, handler_start):
+            raise Failure("FTPR kernel selector-7 table entry drift")
+        body = kernel[handler_start - KERNEL_BASE : handler_end - KERNEL_BASE]
+        if len(body) != 0x11F or sha256(body) != expected_hash:
+            raise Failure("FTPR kernel selector-7 handler drift")
+        if kernel[pid_extract - KERNEL_BASE : pid_extract - KERNEL_BASE + 8] != bytes.fromhex(
+            "8b75dc89f00fb6c4"
+        ):
+            raise Failure("FTPR kernel selector-7 process-index extraction drift")
+        if kernel[pid_compare - KERNEL_BASE : pid_compare - KERNEL_BASE + 7] != bytes.fromhex(
+            "6639b708880900"
+        ):
+            raise Failure("FTPR kernel selector-7 process-identity comparison drift")
+        if kernel[copy_flag - KERNEL_BASE : copy_flag - KERNEL_BASE + 5] != bytes.fromhex(
+            "6802020000"
+        ):
+            raise Failure("FTPR kernel selector-7 copy-flag drift")
+        selector_7_handlers.append({
+            "dispatch_table_runtime_address": table,
+            "handler_runtime_range": [handler_start, handler_end],
+            "handler_size": len(body),
+            "handler_sha256": sha256(body),
+            "argument_size": 0x20,
+            "process_identifier_argument_offset": 0x0C,
+            "process_table_index_source": "high byte of 16-bit process identifier",
+            "accepted_process_table_index_range": [1, 47],
+            "full_process_identifier_comparison_runtime_address": pid_compare,
+            "copy_helper_flag": 0x202,
+        })
+
     return {
         "affected_callback_runtime_range": list(affected_range),
         "first_fixed_callback_runtime_range": list(first_range),
@@ -479,6 +671,21 @@ def ipc_drv_stack_initialization_review(
         "affected_call_sites": affected_calls,
         "first_fixed_call_sites": first_calls,
         "operation_table_callback_pointer_sites": callback_pointer_sites,
+        "special_file_metadata": expected_special_files,
+        "static_context_minor_groups": context_minor_groups[0],
+        "syslib_event_0xf4_dispatch_sites": dispatcher_sites,
+        "syslib_fixed_transfer_exports": transfer_exports,
+        "kernel_selector_7_transfer_handlers": selector_7_handlers,
+        "message_dword_zero_transfer_role": {
+            "value": 0x02000200,
+            "low_16_bits_consumed_by_transfer_wrapper": 0x0200,
+            "high_16_bits_not_consumed_by_this_transfer_wrapper": 0x0200,
+            "kernel_selector_7_process_identifier": 0x0200,
+            "kernel_process_table_index": 2,
+            "zero_low_half_selects_local_descriptor_path": True,
+            "nonzero_low_half_selects_alternate_transfer_path": True,
+            "vendor_process_or_recipient_name": None,
+        },
         "first_fixed_new_initialization": {
             "local_buffer_stack_range": "ebp-0x98 through ebp-0x11",
             "size": 0x88,
@@ -493,8 +700,8 @@ def ipc_drv_stack_initialization_review(
             "fixed_transfer_size": 0x88,
             "fixed_transfer_call_runtime_addresses": [0x2770C, 0x27748],
         },
-        "bounded_interpretation": "The first-fixed callback newly clears its complete 0x88-byte local transfer buffer before storing a four-byte header, bounded-copying at most 0x80 payload bytes, and passing the buffer to a wrapper with both size arguments fixed at 0x88. The affected callback has no call to gate 0x103d in its complete hash-bound body.",
-        "attribution_boundary": "This is an exact first-fixed stale-stack or partial-initialization information-disclosure hardening candidate inside ipc_drv. Static bytes alone do not establish which special-file operation invokes the callback, whether uninitialized bytes cross a privilege boundary in practice, HECI reachability, attacker control, exploitability, or attribution to CVE-2018-12147.",
+        "bounded_interpretation": "The first-fixed callback newly clears its complete 0x88-byte local transfer buffer before storing a four-byte header, bounded-copying at most 0x80 payload bytes, and transferring the complete fixed-size buffer through syslib export 0x61d6. Syslib event byte 0xf4 dispatches to this exact operation-table slot and supplies message dword zero; the transfer wrapper consumes its low 16 bits. Value 0x02000200 therefore supplies process identifier 0x0200, process-table index 2, to kernel selector 7 in this callback. The affected callback has no call to gate 0x103d in its complete hash-bound body.",
+        "attribution_boundary": "This is an exact first-fixed stale-stack/partial-initialization information-disclosure hardening mechanism inside ipc_drv and an exact internal process-transfer boundary. The common major-39 operation table covers six metadata-defined internal CSE special files; static bytes do not reduce event-0xf4 reachability to one named minor or identify the vendor process represented by 0x0200. HECI reachability, external attacker control, privilege ordering between internal processes, exploitability, and CVE-2018-12147 attribution remain unproved.",
     }
 
 
@@ -1146,6 +1353,28 @@ def build_report(affected_image: bytes, first_fixed_image: bytes) -> dict:
         "ipc_drv_stack_initialization_review": ipc_drv_stack_initialization_review(
             decoded_modules["ipc_drv"][0],
             decoded_modules["ipc_drv"][1],
+            affected_syslib,
+            first_syslib,
+            affected_kernel,
+            first_kernel,
+            _special_files(
+                fixed.member(
+                    affected_image,
+                    fixed.OLD_NFTP,
+                    affected_context["entries"],
+                    "ipc_drv.met",
+                ),
+                "affected ipc_drv.met",
+            ),
+            _special_files(
+                fixed.member(
+                    first_fixed_image,
+                    fixed.FIRST_FIXED_NFTP,
+                    first_context["entries"],
+                    "ipc_drv.met",
+                ),
+                "first-fixed ipc_drv.met",
+            ),
         ),
         "modules": modules,
         "boundaries": [

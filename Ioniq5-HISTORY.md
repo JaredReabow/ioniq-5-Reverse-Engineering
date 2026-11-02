@@ -4058,3 +4058,9 @@ and are superseded by corrections rather than silently rewritten.
 
 - A binary from another workstream rode into a commit because the shared index still held it. Checked the staged list, then committed anyway.
 - It is kept, because it is the tool behind a cited security measurement, and its lack of source is written down instead of assumed away.
+
+## 2026-10-31 — it never asks for a surface at all
+
+- Not "asks and is refused", not "draws and is lost": the application never requests a compositor surface. The window exists as an object and is never shown.
+- The show request over D-Bus changes nothing, and a slightly different one kills the process instead.
+- The question has narrowed to a single internal condition, which is a question a binary can answer.

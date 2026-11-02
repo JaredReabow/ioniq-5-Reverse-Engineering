@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.54.0 - with the compositor stable, the remaining fact is stark: the app never calls create_surface
+
+- Re-measured the app in the now-stable ten-screen configuration (`Assertion` 0 throughout, weston pid 731, `AppHomeScreen` pid 912):
+  - `screen(9` 18 occurrences, `ivi_application` 109 occurrences in the compositor log — the app is talking to the layout and shell interfaces;
+  - but over a 25-second trace of its own writes: **`create_surface` 0, `attach` 0, `commit` 0, `ivi_surface` 0.**
+- That is a sharper statement than "it never commits": the client **never even asks the compositor for a surface**. A `QQuickWindow` object exists and the
+  scene graph builds textures against it, so the window is constructed and never shown — Qt creates the `wl_surface` when the window becomes visible,
+  and that never happens.
+- **The show request is not the missing input.** In this stable configuration,
+  `appbase.show_window_fg(10, 11, 1, -1, 0, true)` returns `int32 1` and changes nothing — still `create_surface` 0. A second call with screen id 9
+  instead of 10 produced `NoReply`, i.e. the app died on it, which is the same fragility already filed as **V-045** (a malformed or unexpected call on
+  that interface terminates the process).
+- So the gate is inside the application: something must make its window visible, and it is not the D-Bus show call, not the presence of screen 9, not
+  the assets, not the compositor. Delegated a static analysis of `AppHomeScreen` to find what actually calls `QWindow::show()`/`setVisible(true)` and
+  which conditions guard it — the question is now specific enough to answer from the binary.
+- Also still outstanding and unrelated: `AppCamera` segfaults in `libc` in every ten-screen run (`AppCamera[858]: segfault at 7fb37c013ff8 …`), and
+  `weston-screenshooter` fails with rc 255 in this configuration, so there is no frame image from these runs.
+
 ## 2.53.1 - provenance note: `tools/uk_fw/ias_backend_soft/as-uid` entered the repository in 802ab5b
 
 - That commit was intended to contain the changelog, the history entry and two source files. It also carried

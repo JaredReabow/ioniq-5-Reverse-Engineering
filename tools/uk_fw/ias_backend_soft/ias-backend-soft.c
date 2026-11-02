@@ -52,6 +52,7 @@ struct headless_output {
 	struct wl_event_source *finish_frame_timer;
 	uint32_t *image_buf;
 	pixman_image_t *image;
+	int repaint_count;
 };
 
 struct headless_parameters {
@@ -59,6 +60,9 @@ struct headless_parameters {
 	int height;
 	int use_pixman;
 	uint32_t transform;
+	/* How many outputs to create. ivi-shell numbers its screens by position in
+	 * the compositor output list, so screen N needs N+1 outputs. */
+	int count;
 };
 
 static void
@@ -88,17 +92,17 @@ headless_output_repaint(struct weston_output *output_base,
 {
 	struct headless_output *output = (struct headless_output *) output_base;
 	struct weston_compositor *ec = output->base.compositor;
-	static int repaint_count;
 	static int last_views = -1;
 	int views = wl_list_length(&ec->view_list);
+	int repaint_count = output->repaint_count++;
 
 	/* Diagnostic: distinguish "nothing to draw" from "drawn but not captured". */
 	if (views != last_views || repaint_count < 5) {
 		last_views = views;
-		weston_log("ias-soft: repaint views=%d layers=%d\n", views,
+		weston_log("ias-soft: repaint output=%u views=%d layers=%d\n",
+			   output->base.id, views,
 			   wl_list_length(&ec->layer_list));
 	}
-	repaint_count++;
 
 	ec->renderer->repaint_output(&output->base, damage);
 
@@ -111,7 +115,9 @@ headless_output_repaint(struct weston_output *output_base,
 		int h = output->base.current_mode->height;
 		const unsigned char *src = output->image_buf;
 
-		snprintf(path, sizeof path, "/tmp/fb-%d.ppm", repaint_count);
+		/* Per output, otherwise N outputs overwrite each other's dump. */
+		snprintf(path, sizeof path, "/tmp/fb-%u-%d.ppm",
+			 output->base.id, repaint_count);
 		{
 			FILE *f = fopen(path, "wb");
 			if (f) {
@@ -160,15 +166,23 @@ headless_output_destroy(struct weston_output *output_base)
 
 static int
 headless_backend_create_output(struct headless_backend *b,
-			       struct headless_parameters *param)
+			       struct headless_parameters *param,
+			       int index)
 {
 	struct weston_compositor *c = b->compositor;
 	struct headless_output *output;
 	struct wl_event_loop *loop;
+	char name[32];
 
 	output = zalloc(sizeof *output);
 	if (output == NULL)
 		return -1;
+
+	/* Give every output a distinct name: the output is identified by name in
+	 * logs and by the screenshooter, and duplicate names would make a
+	 * multi-output run unreadable. weston_output_destroy() frees this. */
+	snprintf(name, sizeof name, "IAS-%d", index);
+	output->base.name = strdup(name);
 
 	output->mode.flags =
 		WL_OUTPUT_MODE_CURRENT | WL_OUTPUT_MODE_PREFERRED;
@@ -179,8 +193,13 @@ headless_backend_create_output(struct headless_backend *b,
 	wl_list_insert(&output->base.mode_list, &output->mode.link);
 
 	output->base.current_mode = &output->mode;
-	weston_output_init(&output->base, c, 0, 0, param->width,
-			   param->height, param->transform, 1);
+	/* Nail the outputs side by side instead of stacking them at (0,0):
+	 * ivi-layout offsets a layer's destination by output->x/y, so overlapping
+	 * outputs would draw every screen's content on every output. Laid out
+	 * left to right, each output owns a disjoint global region and holds only
+	 * the surfaces the ivi-shell assigned to that screen. */
+	weston_output_init(&output->base, c, index * param->width, 0,
+			   param->width, param->height, param->transform, 1);
 
 	output->base.make = "gen5w";
 	output->base.model = "HDMI1";
@@ -261,6 +280,7 @@ headless_backend_create(struct weston_compositor *compositor,
 			const char *display_name)
 {
 	struct headless_backend *b;
+	int i;
 
 	b = zalloc(sizeof *b);
 	if (b == NULL)
@@ -280,8 +300,24 @@ headless_backend_create(struct weston_compositor *compositor,
 	if (b->use_pixman) {
 		pixman_renderer_init(compositor);
 	}
-	if (headless_backend_create_output(b, param) < 0)
-		goto err_input;
+
+	/* Outputs are appended to compositor->output_list in creation order, and
+	 * ivi-shell's create_screen() walks that list assigning
+	 * iviscrn->id_screen = position. So creating them here in index order is
+	 * what makes screen 0..count-1 come out in that order. */
+	for (i = 0; i < param->count; i++) {
+		if (headless_backend_create_output(b, param, i) < 0) {
+			weston_log("ias-soft: failed to create output %d of %d\n",
+				   i, param->count);
+			/* Nothing to fall back on, and no list for ivi-shell to
+			 * number. */
+			if (i == 0)
+				goto err_input;
+			/* Keep the outputs that did come up: screens 0..i-1 are
+			 * still numbered as expected, just fewer of them. */
+			break;
+		}
+	}
 
 	if (!b->use_pixman && noop_renderer_init(compositor) < 0)
 		goto err_input;
@@ -327,6 +363,38 @@ static struct wl_listener shim_create_surface_listener = {
 	.notify = shim_on_create_surface,
 };
 
+/* The vendor ivi-shell assigns screen ids by output-list position, so IVI screen
+ * 9 exists only when there are at least ten outputs. weston 1.10's headless
+ * backend has no --output-count option and the vendor ivi-shell.so has no
+ * configurable screen id, so the count is selected here at runtime. Default 1
+ * keeps the single-output geometry and behaviour of every earlier run. */
+static int
+headless_output_count(void)
+{
+	const char *env = getenv("IAS_OUTPUT_COUNT");
+	char *end = NULL;
+	long count;
+
+	if (env == NULL || *env == '\0')
+		return 1;
+
+	count = strtol(env, &end, 10);
+	if (end == NULL || *end != '\0' || count < 1) {
+		weston_log("ias-soft: invalid IAS_OUTPUT_COUNT \"%s\", using 1\n",
+			   env);
+		return 1;
+	}
+
+	/* weston_output_init() asserts a free bit in output_id_pool, which is 32
+	 * bits wide. */
+	if (count > 32) {
+		weston_log("ias-soft: clamping IAS_OUTPUT_COUNT %ld to 32\n", count);
+		count = 32;
+	}
+
+	return (int) count;
+}
+
 WL_EXPORT int
 backend_init(struct weston_compositor *compositor,
 	     int *argc, char *argv[],
@@ -351,6 +419,9 @@ backend_init(struct weston_compositor *compositor,
 
 	param.width = width;
 	param.height = height;
+	param.count = headless_output_count();
+	weston_log("ias-soft: %d output(s), ivi screen ids 0..%d\n", param.count,
+		   param.count - 1);
 
 	if (weston_parse_transform(transform, &param.transform) < 0)
 		weston_log("Invalid transform \"%s\"\n", transform);

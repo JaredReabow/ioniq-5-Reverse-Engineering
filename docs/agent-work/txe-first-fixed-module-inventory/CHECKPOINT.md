@@ -20,7 +20,8 @@ Accepted locally. The deterministic inventory covers every paired NFTP module in
 - The complete `0xb2`-byte helper directly called by selector `0x10` differs only in its `mov edx, 0xff → 0x102`. Exact instructions first walk `+0x50`/`+0x28` links to a null tail, store the source pointer there, and return the reviewed value through `eax`.
 - The shared epilogue treats zero and the reviewed value alike, while other nonzero values call a separate handler. This supports a deferred/nonordinary-completion sentinel interpretation and kernel-wide renumbering candidate, not isolated message-validation proof.
 - Seven matching instruction contexts prove adjacent ordinal translations `0x100 → 0x103` (two sites), `0x101 → 0x104` (one), and `0x102 → 0x105` (four), strongly supporting insertion of three statuses at or below the old sentinel.
-- The analysis does not establish the vendor semantic name, identify the three inserted statuses or exact insertion point, identify the recipient or appended byte, establish HECI reachability, or attribute the change to CVE-2018-12147.
+- Two exact first-fixed producer candidates occupy newly available values: a page-table state/clear/invalidate function returns `0x100`, and a 128-entry enumeration function returns `0x101` when its output count exceeds 62. These are memory-management/resource-status candidates, not vendor-name or advisory proof.
+- The analysis does not establish the vendor semantic names, identify the third inserted status or exact insertion point, identify the message recipient or appended byte, establish HECI reachability, or attribute the change to CVE-2018-12147.
 
 ## Artifacts
 
@@ -29,20 +30,20 @@ Accepted locally. The deterministic inventory covers every paired NFTP module in
 - `evidence/intel-txe-first-fixed-module-inventory.md`
 - `evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json`
   - schema `ioniq-txe-first-fixed-module-inventory/v1`
-  - size `114,906`
-  - SHA-256 `e031bf789b38c1797e61d82b04a923c80d0322a7a44bef2f40d5885ad4e38770`
+  - size `116,223`
+  - SHA-256 `e2e7a6a0e0c08fee5c03b2950e5227fccac9028ec7c6dee17dd15b292513f0dc`
 
 ## Validation
 
 - focused tests: `3 passed in 0.19s`;
-- canonical suite: `1025 passed, 352351 subtests passed in 180.37s`;
-- canonical log SHA-256: `a4978cb7bea6ea627f692126b721d00c1c30c372d9d0cb0f0e4cc0073bbdf34b`;
+- canonical suite: `1025 passed, 352351 subtests passed in 178.94s`;
+- canonical log SHA-256: `be3c921ed6018ba4d85738aec126b1959d346e33308127293a13917b272cc1f2`;
 - normal versus UTF-16 environment output: byte-identical;
 - `py_compile` and `git diff --check`: passed.
 
 ## Next work
 
-1. Map all fifteen kernel-wide `0xff → 0x102` MOV/CMP sites to callers and return paths, then identify the three inserted ordinal statuses and their exact insertion point.
+1. Map all fifteen kernel-wide `0xff → 0x102` MOV/CMP sites to callers and return paths, then identify the remaining inserted ordinal status and exact insertion point.
 2. Identify the semantics and recipient associated with message dword-zero value `0x02000200`, then determine the meaning of the appended byte without sending a request.
 3. Compare `ipc_drv` changed entry bodies and dispatch tables; retain CVE attribution boundaries.
 4. Extend the same exact inventory to the remaining FTPR `kernel`, `bup`, and `syslib` service-handler mappings.

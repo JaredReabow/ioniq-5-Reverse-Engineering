@@ -128,6 +128,35 @@
       575720
     ],
     "first_fixed_handler_sha256": "fece441f780c7171087f410322244c1ffbb9afcb2a55879d5c103dcb48147e0f",
+    "first_fixed_inserted_status_producer_candidates": {
+      "interpretation_boundary": "These are exact first-fixed producers for two values inside the three newly available ordinal positions. They are memory-management/resource-status candidates; no vendor status names, affected counterparts, or relationship to either SA-00125 CVE is established.",
+      "status_0x100": {
+        "bounded_behavior": "examines a page-table entry at 0x08002000, validates state and index bounds, returns 0x100 when a secondary table byte has bits 0..5 set, and otherwise can clear the entry and invalidate its page",
+        "direct_call_sites": [
+          548486,
+          548553,
+          557242
+        ],
+        "runtime_range": [
+          533707,
+          533847
+        ],
+        "sha256": "b12ad8b0c4e784655e76de10ba1977c906bb55c14d0b7eccfd2c62479b96d930",
+        "size": 140
+      },
+      "status_0x101": {
+        "bounded_behavior": "scans 128 table entries, appends selected indexes to an output array, and returns 0x101 when the output count exceeds 62",
+        "direct_call_sites": [
+          547126
+        ],
+        "runtime_range": [
+          546827,
+          546921
+        ],
+        "sha256": "004b911c32d58e78d2ffb3aab766308fb6b9168b35781208021eeabeb2f0f10e",
+        "size": 94
+      }
+    },
     "first_fixed_syslib_selector_wrapper_runtime_range": [
       94129,
       94165

@@ -286,11 +286,22 @@ repeatedly calls an external reader until it returns no object, requires an
 exact `0x12`-byte header, obtains total entry size from header `+0x0e`, then
 requires an exact read of `total_size - 0x12` payload bytes before prepending
 the materialized object. This exactly matches the FTPR kernel's sequential
-entry-boundary stream geometry. However, the recovered call/import binding from
-BUP's external reader at `0x659b` to the exact FTPR-kernel stream function is
-not yet closed. Therefore the geometry match does not yet prove that BUP's
-runtime `ipub_key` came from the RBE table or that the `/snowball/ipub_key`
-fallback is unreachable during manifest verification.
+entry-boundary stream geometry.
+
+BUP startup also fixes the runtime order. Main calls phase dispatcher `0x28932`
+for phase zero. That phase has 22 functions at table `0x54744`; ingestion
+function `0x2891a` is index 7 and the `ifp_uep` consumer at `0x32a1b` is index
+10. The dispatcher calls ascending indices, after which main calls `0x3ac94`
+to free every object and clear list head `0xa014c`. Thus exact BUP ingests the
+runtime-object stream before resolving `ifp_uep`, copies its route header and
+`0x100`-byte payload during phase zero, and only then destroys the transient
+list.
+
+However, the recovered call/import binding from BUP's external reader at
+`0x659b` to the exact FTPR-kernel stream function is not yet closed. Therefore
+the geometry and order match do not yet prove that BUP's runtime `ipub_key`
+came from the RBE table or that the `/snowball/ipub_key` fallback is unreachable
+during manifest verification.
 
 A whole-image literal search finds nine byte occurrences of little-endian
 `0x08200000`: five are the exact RBE lookup/append references and three are the
@@ -555,8 +566,10 @@ What is now proved:
   it, and the exact manifest-bound FTPR kernel later consumes the same base,
   first-entry address, state byte, and entry-size geometry;
 - exact FTPR streaming and BUP runtime-object ingestion agree on `0x12`-byte
-  header, total-size-at-`+0x0e`, payload remainder, and entry boundaries, but
-  their import/function binding remains open;
+  header, total-size-at-`+0x0e`, payload remainder, and entry boundaries;
+- BUP phase zero ingests that transient object list at function index 7,
+  consumes `ifp_uep` at index 10, and frees the list only after the phase;
+- the BUP reader-import/FTPR-kernel-function binding remains open;
 - all plain little-endian `0x08200000` byte occurrences in the exact ABL are
   classified as RBE/FTPR consumers or one unaligned cross-dword PMCP match;
 - the pre-RBE handoff producer, authentication, mutability, computed/indirect
@@ -641,11 +654,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `50,561`
-  - SHA-256 `0e80943a5ca734c6323b89d2658058f4f2154095fcdbe1f7ebfee3f90e52eb7f`
+  - size `51,849`
+  - SHA-256 `35fe6417620f902000a1229f9b9e191a4503d487a582e636908767f19896de25`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `109,090`
-  - SHA-256 `6281ca80b93f4cef25421960cd42562ac42b84815aff9ca93c0c327ad149a9f6`
+  - size `110,948`
+  - SHA-256 `1d971885a9c9510f4d1bec2aacc8a4c045a1da2889c0f45167ce3911f92ae0b3`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

@@ -3949,3 +3949,12 @@ and are superseded by corrections rather than silently rewritten.
 - Both configurations sit at zero commits in steady state, which also revises what that earlier light frame meant: it was a transient
   during startup, not a steady state we had achieved.
 - The next comparison is obvious and cheap: the same binary, the same environment, the real argument list.
+
+## 2026-10-31 — the graphics were finished some time ago
+
+- The scene graph builds textures for a real window; the window is never shown. Every graphic-layer suspect had already been cleared, and
+  this confirms the problem lives in the service landscape instead.
+- The app subscribes to a hundred and eighty signals and waits. Building the rest of that world is the same craft as the MICOM responder:
+  find what it expects, provide it, verify by observation.
+- Astra's advice was to distinguish construction from visibility before doing anything else. Cheap version of that test settled it in one
+  run.

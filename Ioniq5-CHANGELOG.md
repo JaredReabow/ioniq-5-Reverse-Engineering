@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.40.0 - the window is constructed and never shown; the app is waiting on a world of services
+
+- **Astra's discriminating probe, answered cheaply.** Rather than gdb breakpoints, checked whether the scene graph is even built: the
+  app's log contains repeated `virtual QSGTexture* UncompressedTextureFactory::createTexture(QQuickWindow*) const` under the `QtMsg`
+  channel, and `libQt5Quick.so`, `libQt5Gui.so` and `libQt5WaylandClient` are all mapped. So **a `QQuickWindow` exists and the scene
+  graph is creating textures for it.** The window is constructed; it is never shown. That rules out Astra's cause #4 in its strong
+  form (no window at all) and leaves the visibility gate.
+- **The 37-argument run reaches init and stops.** With the vendor argument list: 1,597 log lines, `AppHomeEngine::applicationStart()`
+  → `AppHome Init Done`, `AppHomeModel::setCurrentShowingAppID`, then idle on unresolved `QDBusPendingCallWatcher` lambdas for
+  MMUS (`mmusAskEtcCarInformationRead`, `mmusAskFactoryModeInfo`, `mmusAskVolumeInfo`, `mmusAskSoundSetupInfo`,
+  `mmusAskAMPSupportInfo`). Still `commit` 0, `attach` 0 over 20 s and a 4,117-byte black frame.
+- **Which bus:** `dbus-monitor --system` captured almost nothing (2 lines) during that window, while `--session` captured 873. The app's
+  traffic is on the **session** bus, whose address the chain exports (`/tmp/session_appmgr`). MMUS is not a service name in the
+  binary — `MMUSControl` is an in-app class calling `com.lge.car.micom.*` and appmanager interfaces.
+- **What it is waiting for, measured:** 180 `AddMatch` subscriptions by the app itself, plus interest in
+  `com.lge.hyundai.avn.appmanager /Information`, `com.lge.tms.provisionApp.broadcast`, `com.lge.hkmc.ccs.infobigdata`,
+  `com.lge.hkmc.avn.tms.tmsstate`, `com.lge.hkmc.avn.appnavi.tms`, `appnavi.naviboot`, plus its own `appInterface` notifications for
+  theme status and system popups. The app is subscribed to a wide service landscape that our projection only partly provides.
+- So the remaining work is no longer graphics at all: it is **completing the D-Bus world the app expects**, which is the same
+  activity as the MICOM work, applied to the infotainment services. Delegated a subagent to produce the missing-services matrix from
+  the binary (every service/path/method it calls or subscribes to, and whether it exists in the running projection).
+
 ## 2.39.0 - the app is launched with a 37-argument variant configuration; that is how it picks its QML
 
 - **Recovered the exact command line the vendor launcher uses** for the home screen:

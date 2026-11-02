@@ -36,9 +36,13 @@ The exact body shows:
    non-empty.
 
 The recovered code therefore binds a socket-read body to the reviewed media
-callbacks. It does **not** identify how a peer obtains the screen socket or
-prove listener exposure, pairing, authorization, authenticated-encryption
-state, or live peer control.
+callbacks. Follow-up exact-static work now binds the preceding type-`0x6e`
+setup branch, wildcard secondary listener, returned `dataPort`, screen thread,
+and accepted socket in `evidence/airplay-screen-route-security.md`. That review
+also identifies a fresh-session, null-pair-verify, missing/None-encryption
+AES-CTR route whose base material is zero-initialized rather than MFi-derived.
+It still does **not** prove listener/interface exposure, upstream authorization,
+session start, port discovery, live peer control, or accepted-socket delivery.
 
 The public `45clouds/WirelessCarPlay` source at commit
 `51145ef55f8dd9f1cbadd58353cacb5e0ca215e9` provides comparative protocol names

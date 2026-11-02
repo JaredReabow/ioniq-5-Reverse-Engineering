@@ -1,0 +1,392 @@
+{
+  "anchors": {
+    "absent_or_none_encryption_skips_key_install": {
+      "bytes_hex": "837c2450004989c50f854102000083f8010f8438020000",
+      "size": 23,
+      "subject": "airplay",
+      "va": "0x103d7"
+    },
+    "accept_has_null_peer_address_output": {
+      "bytes_hex": "8bbbc01a000031c9be0a000000488d54240ce8be54ffff",
+      "size": 23,
+      "subject": "airplay",
+      "va": "0x1361b"
+    },
+    "accepted_socket_reaches_process_frames": {
+      "bytes_hex": "488b4310488bb3c81a0000488bbbb81a00008b90ac000000e8ab5fffff",
+      "size": 29,
+      "subject": "airplay",
+      "va": "0x137c8"
+    },
+    "aes_ctr_enabled_after_init": {
+      "bytes_hex": "4889efe8cd9afeff89c585c07428488d0da0c200005031d289ee6a004c8d0d62c7000031ff31c041b831010000e833a6feff5a59eb07c683e801000001",
+      "size": 61,
+      "subject": "airplay",
+      "va": "0x1f19b"
+    },
+    "chacha_verify_or_aes_ctr_before_parser": {
+      "bytes_hex": "80bbf0010000000f8403010000837b480f0f86310100004c8d83180300004c8db3f80100004c89c24c89442438488db3f80200004c89f7e8ef90feff4c89feba800000004c89f7e86f91feff8b43484889e94889ee4c89f78d50f0e85b8ffeff488d4c24444c89f74989c78b43484a8d743d008d50f04801eae85d99feff8b7424444c01f84c8b44243885f6741f41b81c020000415131d26a004c8d0d1ac20000488d0dc3bd0000e9e50000008b4b4883e9104839c8743941b81d0200005631ff31f66a004c8d0defc1000031c0488d0d96bd0000488d15f0be0000e83aa1feffc744245496e5ffff5f4158e99d030000894b4831c0418a0c008d51014188140084d2754348ffc04883f80875e8eb3880bbe801000000742f8b5348488dbbc80000004889e94889eee82da2feff8944244485c07412",
+      "size": 310,
+      "subject": "airplay",
+      "va": "0x1f5e5"
+    },
+    "fresh_session_body_is_zeroed": {
+      "bytes_hex": "31c931ffbad81a000089c6e80c1effff4885c0753731c031f6415631ff6a004c8d0d3644010041b889010000bdb8e5ffff488d0d1a120100488d15c0010100e8f828ffff415f58e982030000488d50084889c3b9b60600004889d731c0f3ab",
+      "size": 95,
+      "subject": "airplay",
+      "va": "0x16ec4"
+    },
+    "ipv4_sockaddr_is_zeroed_before_wildcard_bind": {
+      "bytes_hex": "89eac1fa1f4189d74131ef4129d74183fc020f85ce0100004c8d64241cb904000000ba100000004c89e74c89e64589f9f3ab89df66c744241c02006641c1c9086644894c241ee8c154f9ff",
+      "size": 75,
+      "subject": "coreutils",
+      "va": "0x88fe4"
+    },
+    "missing_dictionary_integer_sets_error": {
+      "bytes_hex": "4885ff742ae8c67bfdff4885c07420488b4c24086448330c2528000000752d4883c4104889de4889c75be9119bfdff4885db7406c703b9e5ffff",
+      "size": 58,
+      "subject": "coreutils",
+      "va": "0x43d30"
+    },
+    "negative_preferred_port_falls_back_to_dynamic": {
+      "bytes_hex": "c1ed1f0f84e8feffffba100000004c89e689df66c744241e0000e86f53f9ff",
+      "size": 31,
+      "subject": "coreutils",
+      "va": "0x89162"
+    },
+    "nonzero_stream_connection_id_required": {
+      "bytes_hex": "488d3553eb000031d24c89efe853d2feff4889c64885c075364c8d0d64f70000415031ff31c06a0041b800110000bdc5e5ffff488d0db0c90000488d1594e20000e88ee0feff4159415ae916020000",
+      "size": 79,
+      "subject": "airplay",
+      "va": "0x1b72c"
+    },
+    "null_pair_verify_derives_aes_from_session_key": {
+      "bytes_hex": "4c8dac24780100004889c2be100000004c8db424280100004d89e8488dbb600200004c89f1e808cdfeff488bbbb81a00004c89ea4c89f6e8f6d2feff",
+      "size": 60,
+      "subject": "airplay",
+      "va": "0x1b7ee"
+    },
+    "only_direct_base_key_store_site": {
+      "bytes_hex": "4c89a358020000410f10060f118360020000410f104d000f118b70020000",
+      "size": 30,
+      "subject": "airplay",
+      "va": "0x17593"
+    },
+    "pair_verify_selects_32_byte_stream_key": {
+      "bytes_hex": "4883bb700400000074694c8dac249801000031c931d2488dbb700400004d89e8e826b3ffff89c585c074154c8d0d03f700005741b8051100006a00e9be010000488bbbb81a0000ba200000004c89eee8e1d3feff89c585c0",
+      "size": 88,
+      "subject": "airplay",
+      "va": "0x1b77b"
+    },
+    "response_advertises_type_and_data_port": {
+      "bytes_hex": "8bbbc01a0000be0c000000e873e2feffba6e0000004c89e7488d352fe90000e89fe1feff48639424dc000000488d3558ea00004c89e7e888e1feff488b7c24084c89e6e828a1ffff",
+      "size": 72,
+      "subject": "airplay",
+      "va": "0x1b8bd"
+    },
+    "screen_derivation_uses_named_salts_and_supplied_inputs": {
+      "bytes_hex": "41574d89c74989d041564989ce4155488d0da1a800004989f5be0100000041544989fc55534889d3488d155a7a00004883ec2864488b042528000000488944241831c0488d7c240848c74424080000000048c744241000000000e8c779feff488d7c24104989d8be01000000488d0d55a800004863e831c0488d150a7a0000e8a279feff41574889e94c89ee41564c8b4424204863d84c89e7488b5424184989d9e86072feff",
+      "size": 166,
+      "subject": "airplay",
+      "va": "0x2135a"
+    },
+    "screen_stream_type_0x6e_dispatch": {
+      "bytes_hex": "488d35c502010031d24889c7e840eafeff4989c683f866741e770e83f8640f83550d0000e9971a000083f86e0f84f4160000",
+      "size": 50,
+      "subject": "airplay",
+      "va": "0x19f3f"
+    },
+    "secondary_server_socket_open": {
+      "bytes_hex": "ba0600000041b90040fdffb972e8ffff0fb7bbe400000050488d83c01a0000be01000000504c8d8424ec000000e800d4feff",
+      "size": 50,
+      "subject": "airplay",
+      "va": "0x1b86e"
+    },
+    "setup_called_after_skip_branch": {
+      "bytes_hex": "488b7b10488d5424704c89e6e8a97fffff",
+      "size": 17,
+      "subject": "airplay",
+      "va": "0x10626"
+    },
+    "sha512_derivation_hashes_salt_then_base_key": {
+      "bytes_hex": "4d85ff7444488d5c24204889dfe81575feff488b5424104889df488b742418e8937afeff4c89f24c89ee4889dfe8857afeff4889de4889efe8fa7bfeff0f108424f8000000410f11074d85e47444488d5c24204889dfe8cc74feff488b5424084889df488b3424e84b7afeff4c89f24c89ee4889dfe83d7afeff4889de4889efe8b27bfeff0f108c24f8000000410f110c24",
+      "size": 146,
+      "subject": "airplay",
+      "va": "0x21289"
+    },
+    "started_session_launches_screen_thread": {
+      "bytes_hex": "80bb3e0400000074374889dfe88e7bffff",
+      "size": 17,
+      "subject": "airplay",
+      "va": "0x1b951"
+    },
+    "stream_socket_listens": {
+      "bytes_hex": "be8000000089dfe89936f9ff85c00f84f6fdffffe8cc45f9ffbe0500000089df4889c5e87d36f9ff",
+      "size": 40,
+      "subject": "coreutils",
+      "va": "0x8925b"
+    }
+  },
+  "assessment": {
+    "classification": "exact-static screen-route prerequisite refinement",
+    "cve_attribution": null,
+    "no_mfi_fallback_candidate": true,
+    "reason": "A fresh session is zero-initialized; absent encryption type or comparative None value 0x01 skips AirPlayReceiverSessionSetSecurityInfo; the type-0x6e screen branch nevertheless derives and installs an AES-CTR screen key from the zero base key and requester-supplied nonzero streamConnectionID.",
+    "relationship_to_prior_parser_finding": "This narrows static prerequisites for the separately byte-bound screen parser read/write candidate; it does not change that finding's impact or CVE boundaries.",
+    "same_peer_enforcement_observed_at_accept_call": false,
+    "wildcard_secondary_listener": true
+  },
+  "boundaries": {
+    "important_qualifications": [
+      "The pair-verify branch requires valid ChaCha20-Poly1305 authentication before parsing.",
+      "The null-pair-verify branch still applies AES-CTR before parsing; the exact no-MFi candidate is about deterministic non-hardware-backed base material, not cleartext socket input.",
+      "Wildcard bind and a null peer-address output do not prove that the port is reachable from an external interface or that no policy exists elsewhere.",
+      "Static route acceptance does not prove a sender can complete every preceding control-session state transition."
+    ],
+    "not_established": [
+      "upstream HTTPConnection authorization state",
+      "live SETUP or session-start acceptance",
+      "runtime listening interface or firewall exposure",
+      "phone, USB/NCM peer, or network-peer delivery",
+      "ability of an unauthenticated peer to learn the returned dataPort",
+      "successful accepted-socket connection",
+      "allocator corruption, process exit, or restart behavior",
+      "reliable code execution, SMACK escape, unrestricted root, or persistence",
+      "installed owner-unit identity or applicability",
+      "CVE-2025-30422 or any other CVE identity"
+    ]
+  },
+  "canonical_sha256": "9e69506830676153ca09737ae86cc28ce88cf4db151e953fa5a57683419cb447",
+  "direct_offset_inventory": {
+    "direct_explicit_read_address_pattern_count": 1,
+    "direct_explicit_read_address_sites_in_complete_libAirPlay_disassembly": [
+      "0x1b809"
+    ],
+    "direct_explicit_store_pattern_count": 1,
+    "direct_explicit_store_sites_in_complete_libAirPlay_disassembly": [
+      "0x1759e"
+    ],
+    "qualification": "direct constant-offset instruction inventory only; it does not exclude indirect aliases or writes in other objects",
+    "session_base_key_offset": "0x260"
+  },
+  "prior_screen_parser_artifact": {
+    "canonical_sha256": "4dbc0a3b6d91cbe988082b271788681380447a6cff2ffeec5258573d63e3822f",
+    "role": "separate exact-static parser bounds finding",
+    "schema": "ioniq-airplay-screen-parser-bounds-audit/v1"
+  },
+  "public_comparator": {
+    "commit": "51145ef55f8dd9f1cbadd58353cacb5e0ca215e9",
+    "common_header": "source/Sources/AirPlayCommon.h",
+    "common_header_sha256": "6774bd04f8889d991caacea613b1873d1ac08e0014f371d8b1c1a42ba86df17d",
+    "repository": "45clouds/WirelessCarPlay",
+    "role": "comparative names and protocol semantics only; recovered bytes and addresses are authoritative",
+    "session_source": "source/Sources/AirPlayReceiverSession.c",
+    "session_source_sha256": "5ed352778a8e786707245ef993994e6e172efd6b89f5fb71893e71e1c8ca3b61"
+  },
+  "ranges": {
+    "derive_aes_key_sha512": {
+      "end_va_exclusive": "0x2135a",
+      "sha256": "b94de2155c65cd4269b8d7d45a55bdd89d514c0c79e06937aa6c1fadd249d60a",
+      "size": 294,
+      "start_va": "0x21234",
+      "subject": "airplay"
+    },
+    "derive_screen_key": {
+      "end_va_exclusive": "0x21478",
+      "sha256": "1e5e4c0fa02925c4985e5adcd42924bac894fa9ab2799095f4a2fdefda9a9c11",
+      "size": 286,
+      "start_va": "0x2135a",
+      "subject": "airplay"
+    },
+    "dictionary_get_int64": {
+      "end_va_exclusive": "0x43d87",
+      "sha256": "be58439ad302800e4b0330e1d8120ff2be822aab800238e7220ee4e71badb202",
+      "size": 111,
+      "start_va": "0x43d18",
+      "subject": "coreutils"
+    },
+    "receiver_session_create": {
+      "end_va_exclusive": "0x172c2",
+      "sha256": "1a4852541d7e277ff9b2de1b7d0cff7bb9795cb930ec5fe178e7be9f11c7bc62",
+      "size": 1074,
+      "start_va": "0x16e90",
+      "subject": "airplay"
+    },
+    "receiver_session_set_security_info": {
+      "end_va_exclusive": "0x175d5",
+      "sha256": "7b8cee275a7702e4c9948e380144ecae461b03dc9a3d336d3e94fb042a9ba64b",
+      "size": 192,
+      "start_va": "0x17515",
+      "subject": "airplay"
+    },
+    "receiver_session_zero_initialization": {
+      "end_va_exclusive": "0x16f23",
+      "sha256": "5790f507c7df6f73bb0f512a7f81454dfca0fd4a2df3ca0d3690a81e50951eda",
+      "size": 95,
+      "start_va": "0x16ec4",
+      "subject": "airplay"
+    },
+    "screen_body_crypto_dispatch": {
+      "end_va_exclusive": "0x1f74c",
+      "sha256": "146bc2d367c4eecb4e4d9822e2f8f47d0e892a34f0376f5595b14628459d67b3",
+      "size": 359,
+      "start_va": "0x1f5e5",
+      "subject": "airplay"
+    },
+    "screen_set_aes_security": {
+      "end_va_exclusive": "0x1f1f6",
+      "sha256": "2b69348fe1442c3935a0fa8af00b68fa0219797d481434e4280b4fb1b72cd3de",
+      "size": 165,
+      "start_va": "0x1f151",
+      "subject": "airplay"
+    },
+    "screen_set_chacha_security": {
+      "end_va_exclusive": "0x1f151",
+      "sha256": "ca7fb1554218e07d51f5f30e7eaa61170c6f75438380293d74c384e87a823e21",
+      "size": 113,
+      "start_va": "0x1f0e0",
+      "subject": "airplay"
+    },
+    "screen_setup_security_and_listener": {
+      "end_va_exclusive": "0x1b92b",
+      "sha256": "494935dce8d51a8da5cb51ebd00fa6d9b5236f5d1e2565bffea52c5c3b4f6b63",
+      "size": 710,
+      "start_va": "0x1b665",
+      "subject": "airplay"
+    },
+    "screen_start_thread": {
+      "end_va_exclusive": "0x135d6",
+      "sha256": "47a54d3ebb0561039dd3fb779d7edbd6f6088d3e39fd4e21dc78c80a42aba59e",
+      "size": 230,
+      "start_va": "0x134f0",
+      "subject": "airplay"
+    },
+    "screen_thread_accept_to_parser": {
+      "end_va_exclusive": "0x138f5",
+      "sha256": "9833c94f4dddfd8ca3199fc34dc146ed4f9d2f129be2133798d39da2bcdaf0f6",
+      "size": 799,
+      "start_va": "0x135d6",
+      "subject": "airplay"
+    },
+    "screen_type_dispatch": {
+      "end_va_exclusive": "0x19f71",
+      "sha256": "24a836755508aba236f508184264747e42fb1d6d3ef8edd7eb91598d26adab7d",
+      "size": 50,
+      "start_va": "0x19f3f",
+      "subject": "airplay"
+    },
+    "server_socket_open": {
+      "end_va_exclusive": "0x89420",
+      "sha256": "2f850a99c9164348285e59b94c967255d8b5f6223912d069ee486ebef77a05ee",
+      "size": 1180,
+      "start_va": "0x88f84",
+      "subject": "coreutils"
+    },
+    "setup_callback_encryption_to_session_setup": {
+      "end_va_exclusive": "0x10637",
+      "sha256": "5cde34310a8cdf36004c110ed3f9656dbdadaacf2b808fb12dc057e1fce57a81",
+      "size": 628,
+      "start_va": "0x103c3",
+      "subject": "airplay"
+    },
+    "socket_accept": {
+      "end_va_exclusive": "0x87ccc",
+      "sha256": "91f051bbf297b0b5adca67abbb9c61cc161f6afa9023ba55228efd226fc343f2",
+      "size": 489,
+      "start_va": "0x87ae3",
+      "subject": "coreutils"
+    }
+  },
+  "route": {
+    "listener": {
+      "accepted_peer_address_requested_by_caller": false,
+      "accepted_socket_reaches_process_frames": true,
+      "family_source": "control session peer address family",
+      "ipv4_bind_address": "INADDR_ANY (zero address)",
+      "ipv6_bind_address": "in6addr_any",
+      "negative_port_allows_dynamic_fallback": true,
+      "preferred_port_argument": -6030,
+      "type": "TCP stream"
+    },
+    "security": {
+      "aes_ctr_branch_has_body_authentication_check": false,
+      "chacha_branch_verifies_tag_before_parser": true,
+      "encryption_type_absent_reaches_session_setup_without_base_key_install": true,
+      "encryption_type_none_0x01_reaches_session_setup_without_base_key_install": true,
+      "fresh_session_base_key_offset": "0x260",
+      "fresh_session_base_key_zero_initialized": true,
+      "pair_verify_absent_with_installed_base_key": "session-base-key-derived AES-CTR without body authentication",
+      "pair_verify_absent_without_installed_base_key": "zero-session-base-key-derived AES-CTR candidate without body authentication",
+      "pair_verify_present": "pair-verify-derived ChaCha20-Poly1305 with tag verification",
+      "screen_body_cleartext_at_parser": true,
+      "screen_key_inputs_in_null_pair_verify_branch": [
+        "16-byte session base key at +0x260",
+        "request streamConnectionID",
+        "literal AirPlayStreamKey salt",
+        "literal AirPlayStreamIV salt"
+      ],
+      "screen_setup_checks_base_key_initialized_marker": false
+    },
+    "setup_stream": {
+      "already_initialized_screen_is_rejected": true,
+      "listener_created_by": "ServerSocketOpen",
+      "requires_nonzero_stream_connection_id": true,
+      "response_advertises": [
+        "type",
+        "dataPort"
+      ],
+      "thread_start_requires_session_started_state": true,
+      "type": "0x6e"
+    }
+  },
+  "schema": "ioniq-airplay-screen-route-security-audit/v1",
+  "subjects": {
+    "airplay": {
+      "basename": "libAirPlay.so",
+      "load_segments": [
+        {
+          "align": 2097152,
+          "filesz": 207588,
+          "flags": 5,
+          "memsz": 207588,
+          "offset": 0,
+          "vaddr": 0
+        },
+        {
+          "align": 2097152,
+          "filesz": 5320,
+          "flags": 6,
+          "memsz": 5472,
+          "offset": 208664,
+          "vaddr": 2305816
+        }
+      ],
+      "sha256": "ef9e69e3b3388d4a7a1d185827c710af25b8ee99d406c60c664a9609b00aada0",
+      "size": 215896
+    },
+    "coreutils": {
+      "basename": "libCoreUtils.so",
+      "load_segments": [
+        {
+          "align": 2097152,
+          "filesz": 1176892,
+          "flags": 5,
+          "memsz": 1176892,
+          "offset": 0,
+          "vaddr": 0
+        },
+        {
+          "align": 2097152,
+          "filesz": 21248,
+          "flags": 6,
+          "memsz": 23368,
+          "offset": 1177208,
+          "vaddr": 3274360
+        }
+      ],
+      "sha256": "9104e2c16ee27e647fac090ee7f3aa4cc686b8caaea1dc24763af2950c0ebfae",
+      "size": 1200368
+    }
+  },
+  "tool_version": "1.0.0"
+}

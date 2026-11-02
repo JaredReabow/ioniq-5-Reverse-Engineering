@@ -4230,3 +4230,12 @@ and are superseded by corrections rather than silently rewritten.
   injection point that can survive the manager's environment handling is replacing the binary with a wrapper; it is installed and not yet proven.
 - Also closed a localization theory before spending longer on it: the archived full-tile run logged the same language-load failure, so raw string keys were never the
   difference.
+
+## 2026-10-31 — I was measuring the wrong thing and calling it black
+
+- A broken pixel metric made two captured frames look empty. Both had content. One of them shows the application's own window with its status bar, spinner and page
+  dots. I had written "still black" about it.
+- The second one is a field of diagonal stripes, which is what a stride mismatch looks like. That is a real, nameable defect and probably the reason a correct window
+  turns into garbage on screen.
+- This is the fourth instrument error in this project: a flooded console, a five second race, a supervising manager, and now a text parser applied to binary data. The
+  habit that catches them is reading the file rather than trusting the summary of it.

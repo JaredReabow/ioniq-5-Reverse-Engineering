@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.50.0 - two gates built and measured; the abort survives both
+
+- **Repaint limit shipped and verified in the guest:** `IAS_REPAINT_OUTPUTS` selects how many outputs composite, defaulting to all. The log now
+  reads `ias-soft: 10 output(s), ivi screen ids 0..9, repainting first 1`, so screens 0–9 still exist while only output 0 renders. The
+  subagent's reasoning for gating only `renderer->repaint_output()` and keeping the frame/finish_frame cycle intact is sound: the core
+  bookkeeping lives in `compositor.c` around that callback, and starving `finish_frame` would stall frame callbacks for those screens.
+- **It did not stop the abort.** With `IAS_REPAINT_OUTPUTS=1` the run still logs `Assertion` 1 and weston is gone. This matches the caveat the
+  subagent raised unprompted: the crash was observed immediately after `repaint output=0`, and pixman clips composites to the output region, so
+  gating outputs 1–9 could not help.
+- **Shim gate shipped and measured too.** Added `IAS_SHIM=0` to disable the research shim that places every surface at (0,0) on `cursor_layer` —
+  the plausible source of bufferless views, and the subagent's own stated next lever. Verified in the guest:
+  `ias-soft: research shim disabled (IAS_SHIM=0)`. **The abort survived that as well** (`Assertion` 1, weston gone).
+- So the trigger is **the ten-screen layout itself**, not our shim and not the extra outputs' compositing. Introducing nine more IVI screens
+  changes what the vendor stack asks clients to do (the earlier trace showed `ivi_controller_surface` destination rectangles being zeroed and
+  `ivi_surface.visibility(0)`), and that is enough to walk the compositor into the `src_format` assertion.
+- Honest position: the multi-output route has produced two verified capabilities (N screens exist; repaint is selectable) and has not produced a
+  stable compositor. The next discriminator is cheap and was not yet run: does the abort happen with ten outputs and **no application at all**
+  (just the chain's own clients)? That separates "the app's traffic provokes it" from "any ten-screen layout provokes it".
+
 ## 2.49.0 - the abort happens mid-repaint over 17 views while a client is mid-buffer
 
 - Captured the compositor log at the instant of death. The sequence immediately before the assert:

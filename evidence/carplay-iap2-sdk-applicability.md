@@ -91,21 +91,19 @@ contains:
 - exact route strings `/auth-setup`, `/command`, `/feedback`, `/info`, `/logs`,
   `/pair-setup`, and `/pair-verify`.
 
-The FDE-bounded request processor identified by its embedded
-`_requestProcessSetupPlist` name occupies `0xf3d1..0x11a3b` (`0x266a` bytes),
-SHA-256
+The FDE-bounded HTTP connection delegate installed at `0xc7a7` contains an
+inlined `_requestProcessSetupPlist` branch and occupies `0xf3d1..0x11a3b`
+(`0x266a` bytes), SHA-256
 `fccea004635853ec3d685f24815e548a227bf8f65853f5e025e4115cda0cfc10`.
-It has a `0x178`-byte stack frame, loads a stack canary, calls the binary-plist
-parser at `0x10032`, `0x107a7`, `0x10b75`, and `0x10e1a`, and reaches
-`CFDictionaryGetTypeID` at five reviewed sites. Its direct call inventory has
-bounded text writers `TruncateUTF8`, `snprintf`, and `strlcpy`, but no direct
-`memcpy`/`strcpy`/`sprintf`/`strcat`-style unbounded copy or concatenation call.
-The three direct repeated-memory operations are `rep stosd` structure clears,
-not input copies. This narrows the top-level dispatcher itself; it does not clear
-the binary-plist parser, dictionary accessors, session methods, or internal
-helper callees. These facts make it a concrete next audit boundary; they do not
-identify a missing check, attacker-controlled field, CVE route, or exploitable
-copy.
+The callback has a `0x178`-byte stack frame and loads a stack canary. Across
+its inlined request branches it calls the binary-plist parser at `0x10032`,
+`0x107a7`, `0x10b75`, and `0x10e1a`, and reaches `CFDictionaryGetTypeID` at
+five reviewed sites. Its direct libc-style call
+inventory has bounded text writers `TruncateUTF8`, `snprintf`, and `strlcpy`, but
+no direct `memcpy`/`strcpy`/`sprintf`/`strcat` call. The three direct
+repeated-memory operations are `rep stosd` structure clears. That inventory did
+not clear internal callees: the deeper encryption-key branch below contains an
+exact unbounded stack write through `MFiSAP_Decrypt` and `AES_CTR_Update`.
 
 At call site `0x10032`, this exact request processor passes the HTTP message's
 `+0x518` body pointer and `+0x530` body length to
@@ -113,6 +111,62 @@ At call site `0x10032`, this exact request processor passes the HTTP message's
 the decoded object is a dictionary at `0x100a3..0x100b6`. This is a static
 request-body-to-parser route. Runtime delivery, route eligibility, and
 authentication remain unobserved.
+
+### Exact setup `ekey` stack-write mechanism
+
+The inlined encryption-key path at `0x103c3..0x10580` is `0x1bd` bytes with
+SHA-256
+`93bcf61544059dc8e162d80012a9527905fc3a26cee51bac471634678b110d67`.
+For encryption type `0x10` (public comparative source names this
+`kAirPlayEncryptionType_MFi_SAPv1`), the recovered bytes:
+
+1. call `CFDictionaryGetData` at `0x1040f` for the setup `ekey` value with a
+   null destination and zero maximum length;
+2. retain the returned full CFData length at stack offset `+0x80` and the
+   underlying data pointer in `rax`;
+3. make no `length == 16` check before calling `MFiSAP_Decrypt` at `0x1048c`;
+4. pass that unchanged length and a destination at stack offset `+0x108`; and
+5. only apply a 16-byte maximum and exact-length check to the separate IV copy
+   at `0x1050d..0x10548`.
+
+The destination at `stack + 0x108` is the 16-byte key buffer; the adjacent
+16-byte IV starts at `+0x118`, and the function canary is at `+0x168`, 0x60
+bytes after the key-buffer start. Exact code passes `+0x108` and `+0x118` as
+the key/IV pair to `AirPlayReceiverSessionSetSecurityInfo`, then clears exactly
+16 bytes from the key address. The call-chain bodies are independently
+byte-bound:
+
+| Reviewed role | Range | SHA-256 |
+|---|---|---|
+| `CFGetData` | `0x47075..0x4720f` | `714c493f4fef6c0807b8fa82458806df30ea98f87cf9a58d84959393c7be7e19` |
+| `CFDictionaryGetData` | `0x472a0..0x4733f` | `615a9d9fde2ef58caf77a8f6cc7a59f1a206bdc7cb885e90a7a06629d49f85f7` |
+| `MFiSAP_Decrypt` | `0x7fa41..0x7fae7` | `d73d2a706aaf00c7eaa472e9c9f2f1110834bc029f59581a7cd7d1f7b1c5e5e7` |
+| `AES_CTR_Update` | `0x1f373..0x1f578` | `6f3b5d9b617ee004f966833d32539166615cc2e12adc0fc9afaeda5bcdbfa610` |
+
+Exact `CFGetData` returns the underlying CFData pointer and full length when its
+destination is null. Exact `MFiSAP_Decrypt` preserves the caller's length and
+destination while forwarding them to `AES_CTR_Update`; exact
+`AES_CTR_Update` emits that many output bytes to the caller destination. No
+destination capacity reaches either cryptographic function. This establishes an
+unbounded stack write in the recovered bytes, not merely architecture overlap.
+
+A public third-party demonstration published in
+`TheGamingGallifreyan/LiberationPlay-CVE-2025-24132-AirBourne-POC` attributes
+CVE-2025-24132 to the same setup `ekey`, MFi-SAP, AES-CTR, and 16-byte-key-buffer
+chain and says its analysis used vulnerable and patched binaries. The reviewed
+snapshot is commit `ffd24a03dc5425dd89f6352bf588fcde5f4081ff`; its public source
+has SHA-256
+`dafbad8b342e705543ee03f132ab09c320fecf719503b735ac8d6d99ba3fb6e7`.
+That is a strong third-party mechanism match. It is not Apple/Oligo confirmation
+of the function, and the claimed patched binary or patch bytes were not
+published for an exact affected-versus-fixed comparison.
+
+Static entry into the write still requires a parsed setup dictionary,
+encryption type `0x10`, a non-null MFiSAP context, and a completed MFiSAP state.
+No live phone delivery, pairing/authentication state, crash, reliable control
+flow, code execution, SMACK escape, unrestricted root, or persistence was
+observed. The canary provides a fail-stop boundary for overwrites reaching it;
+it does not repair the preceding memory corruption.
 
 ### Recovered binary-plist parser
 
@@ -209,11 +263,13 @@ cross-product claims:
   are named.
 
 The reviewed Oligo publication explicitly withholds the detailed route and
-implementation for these newly published flaws. It therefore raises the
-priority of the exact recovered AirPlay/plist processor, but supplies no
-function bytes or patch for an exact match. No mapping from private plug-in
-string `320.17` to R18.1 was found, so neither affected nor fixed status follows
-from the version string.
+implementation for these newly published flaws. A later third-party public
+crash demonstration identifies the setup `ekey`/MFiSAP/AES-CTR mechanism for
+CVE-2025-24132, and that mechanism independently matches the recovered bytes as
+described above. Apple/Oligo have not confirmed this function publicly, and no
+published fixed bytes are available for a first-fixed comparison. No mapping
+from private plug-in string `320.17` to R18.1 was found, so affected or fixed
+status does not follow from the version string alone.
 
 ## Mitigations and impact boundary
 
@@ -229,14 +285,24 @@ so a demonstrated compromise would warrant separate domain-amplification
 analysis. Runtime uid, capabilities, labels, device state, authentication,
 network interface creation, and installed owner-unit hashes remain bench gates.
 
+## Disconnected-bench readiness
+
+`tools/uk_fw/bench_carplay_readiness.py` now consumes the canonical passive
+state bundle and compares the installed owner-unit projection stack against
+these exact identities. It separately gates active service state, EUID/SMACK
+process context, `/dev/mfd-iap2`, device labels, and loaded transport modules.
+It sends no traffic and cannot promote passive prerequisites into CVE
+applicability, code execution, unrestricted root, or persistence. See
+`evidence/carplay-bench-readiness.md`.
+
 ## Artifact
 
 - tool: `tools/uk_fw/carplay_sdk_applicability.py`
 - schema: `ioniq-carplay-sdk-applicability/v1`
 - report: `evidence/artifacts/projection-candidates/carplay-sdk-applicability.json`
-- size: `19,365` bytes
-- file SHA-256: `4fa51c73fc7930aea24fc506d8f5f429c193022e56003ffc41ea45ebf60155ad`
-- canonical SHA-256: `44cc84f3494c9794141b62294cb810ae30f2f4abf27325152b7dedadb4651b13`
+- size: `25,029` bytes
+- file SHA-256: `d6a835f08a4a79966434d4d0309bbe040cd443cfcff0087b96a341106238f03d`
+- canonical SHA-256: `5b1a4d141b2a8a16bfc8f759291186b1e7495bc2f13b576a441225097b425bd3`
 
 ## Sources
 
@@ -245,6 +311,9 @@ network interface creation, and installed owner-unit hashes remain bench gates.
 - `https://securelist.com/mercedes-benz-head-unit-security-research/115218/`
 - `https://support.apple.com/en-us/122403`
 - `https://www.oligo.security/blog/airborne`
+- `https://github.com/TheGamingGallifreyan/LiberationPlay-CVE-2025-24132-AirBourne-POC`
+- comparative Accessory SDK source snapshot at
+  `https://github.com/xueming1988/test1/tree/1b6a732fda35f3423b12edabbaf4bc9389b41a98/middleware/private/mfi_airplay/MapleSDK`
 - NVD records for CVE-2024-23933, CVE-2025-8474, CVE-2024-37602,
   CVE-2025-24132, and CVE-2025-30422
 
@@ -255,16 +324,16 @@ network interface creation, and installed owner-unit hashes remain bench gates.
 2. Audit `iAp2ConectionHandleExternalAccessoryProtocolData`, file-transfer,
    HID, Wi-Fi configuration, and list-update handlers for destination-size
    checks.
-3. Partition `_requestProcessSetupPlist` by route and audit each binary-plist
-   branch, type check, length conversion, and stack/heap destination without
-   constructing protocol input.
-4. Trace consumers of the exact UTF-16 wrap/truncation result in the setup
+3. Trace the setup `ekey` branch's route/authentication gates and seek lawful
+   fixed R18.1 bytes without constructing or sending protocol input.
+4. Partition the remaining `_requestProcessSetupPlist` branches by type check,
+   length conversion, and stack/heap destination.
+5. Trace consumers of the exact UTF-16 wrap/truncation result in the setup
    dictionary; the direct converter OOB hypothesis is excluded, while semantic
    security impact and CVE attribution remain unproved.
-5. Inventory other `libAirPlay.so` HTTP/TLV entry points and their fixed-stack
+6. Inventory other `libAirPlay.so` HTTP/TLV entry points and their fixed-stack
    copies.
-6. Obtain a lawfully available post-R18.1 binary for byte comparison if one
+7. Obtain a lawfully available post-R18.1 binary for byte comparison if one
    becomes available; do not infer lineage from private version strings.
-7. On a disconnected bench, passively capture installed hashes, unit state,
-   uid/capabilities/SMACK labels, module state, and interface metadata before
-   any protocol interaction.
+8. On a disconnected bench, run the prepared passive state capture and
+   CarPlay-readiness assessor before any protocol interaction.

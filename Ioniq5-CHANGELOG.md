@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.77.0 - the chain does create vendor-style surface ids; three attempts to inject the id did not take
+
+- **New measured fact about chain runs:** with the launcher flow, the compositor names surfaces with **vendor-style ids** —
+  `Surface id(1000)`, `Surface id(1001)`, `Surface id(2080)` — and 24 `create_surface` occurrences. Those ids sit in the same range as the recipe's declared home
+  surface id (1007), which means the launcher path does produce real vendor surfaces even though the captured output is black and `weston-screenshooter` fails in
+  this backend.
+- **Three attempts to supply the surface id to the chain-launched application all failed, and the reason is now understood:**
+  1. exporting it in the launcher script — no effect; the application manager builds the child environment itself (established in §2.67.0);
+  2. an `LD_PRELOAD` `setenv()` interposer (`setenv_surface_id_shim.c`) loaded into `AppLauncher` — the shim reached the launcher (verified in the script line and
+     the file is in the image) but **the app's environment still read `QT_WAYLAND_SET_SURFACE_ID=0`**, so the value is set by something other than
+     `AppLauncher`'s own `setenv` path — most likely `ApplicationManager`, which the chain does not start from a line we control;
+  3. so the value is probably seeded inside the vendor Qt platform library rather than by a launcher call, which is consistent with `libivi-platform-interface.so`
+     carrying the variable name in its own strings.
+- **What did work as a mechanism:** replacing `/app/bin/AppHomeScreen` with a small wrapper that exports the id and `exec`s the untouched binary preserved as
+  `AppHomeScreen.real` (the vendor manager execs a path, so this is the one injection point that survives its environment handling). In that run the application
+  was **not alive at the 150-second check**, so the wrapper is installed and unproven — it needs a shorter, better-instrumented run before anything is claimed.
+- **A localization dead end, recorded so it is not retried:** `LANG`/`LC_ALL`/`LANGUAGE` made no difference to the partial render (`docs/vm/13-…png` still showed
+  `STR_HOME_RADIO`, `_MEDIA_OFF`), and the archived run's own log contains `loadSetting() … LANGUAGE LOAD FALSE` while producing the full tile grid — so raw
+  string keys are **not** the difference between the partial and the archived capture, and localization is not the next lever.
+- Honest summary of this stretch: one new fact (vendor surface ids 1000/1001/2080 in chain runs), one mechanism installed but unverified (the wrapper), three
+  dead ends named with their reasons, and no visible home screen in this backend yet. The next run should use the wrapper **and** capture within the first 60
+  seconds, before the application is torn down.
+
 ## 2.76.0 - the iAP2 socket's existence depends on the service's label
 
 - Followed up the offer to obtain labelled identities. Added `tools/uk_fw/ias_backend_soft/unix_connect_probe.c` (connects to a Unix socket and prints the

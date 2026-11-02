@@ -83,6 +83,16 @@ type-17 UEP with a fallback candidate. UEP field `0x20` is a 256-bit OEM-key
 digest and pins the stored `oem.key` public modulus plus exponent before RSA
 verification. A newly self-signed IAS image therefore remains insufficient.
 
+The volatile handoff is no longer an open qualifier for this recovered set.
+Exact BUP writes FIT-base pointer `0xfffe0000` into the tail-placed IBBL image;
+IBBL self-relocation preserves the pointer, then exact IBBL copies and relocates
+the FIT through `0xfef80000` and `0xc10c0` before stage 1 selects usage bit 39.
+The recovered runtime expected digest is therefore exactly
+`9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af`.
+It differs from the package IAS carried-key candidate `437008c1...`. That is an
+exact artifact-set mismatch, although it is not an owner-unit verdict until the
+installed ABL/RBE/BUP/UEP identity and update-component selection are captured.
+
 This narrows, but does not remove, the custom-firmware boundary. A theoretical
 key-reprovisioning path would additionally require proof that the selected UEP
 source is owner-writable, not overridden by real FPFs/fuses, and accepted by all

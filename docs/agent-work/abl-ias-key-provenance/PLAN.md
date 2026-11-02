@@ -18,7 +18,7 @@ Resolve the exact runtime object behind the ABL IAS expected-key digest without 
 1. Identify the exact structure at `0xc10c0`/`0xc10c8` from instruction semantics.
 2. Trace it backward through IBBL to the earliest recovered source address.
 3. Prove whether FIT type `0x0b` payload bytes are copied or merely referenced.
-4. Identify the exact recovered producer of the FIT content and trace its source object back to persistent bytes; distinguish IBBL's now-recovered static self-relocation descriptor at `0xffffe760` from the still-unproved mechanism that populates `0xfef80000`, without conflating public Apollo Lake corroboration with target proof.
+4. Identify the exact recovered producer of the FIT content and trace its source object from persistent bytes through BUP's `0xfffe0000` pointer, IBBL's `0xfef80000` copy, and the low-memory runtime table, while distinguishing the separate IBBL self-relocation and IBB ring paths.
 5. Bind selector `0x27` to its record bit, byte, and mask.
 6. Explain `0xc1060`/`0xc1064` and any exact observation surface.
 7. Keep public names separate from exact target proof.

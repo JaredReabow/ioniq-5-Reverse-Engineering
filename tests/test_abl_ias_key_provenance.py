@@ -51,12 +51,12 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "11ec0d56b7ac912d67588778ce7b09647f7aba34a3ebd0a8973dc9f10dec2044")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "f8a84d935e251da4c838e3664f6fb0c570ace9854307aa357666ab5b7521364d")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "8fd1004319b20acca4877e0dbadfa020177b1b3023c0a47417e358770a606a5d")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "668fb27cfa9b5bd08f9424e3558586a4c9d985a1ddb5b9a99d6ca89146f9872c")
         self.assertNotIn(b"work/", data)
         self.assertNotIn(b"Contents of section", data)
 
@@ -73,6 +73,15 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(relocation["copy_descriptor_dwords"]["source"], 0xFFFFC000)
         self.assertEqual(relocation["copy_size_bytes"], 0x4000)
         self.assertTrue(relocation["static_descriptor_values_recovered"])
+        initial_fit = loader["initial_fit_materialization"]
+        self.assertEqual(initial_fit["ibbl_reads_pointer_from"], 0xFEFFFFC0)
+        self.assertEqual(initial_fit["fit_copy_source"], 0xFFFE0000)
+        self.assertEqual(initial_fit["fit_copy_destination"], 0xFEF80000)
+        self.assertTrue(initial_fit["bup_to_ibbl_fit_mapping_proved"])
+        consumer = loader["exact_cse_ibb_ring_consumer"]
+        self.assertEqual(consumer["destination_base"], 0xFEFBD900)
+        self.assertEqual(consumer["request_capacity"], 0x38000)
+        self.assertTrue(consumer["exact_target_host_code_and_destination_proved"])
         self.assertEqual(loader["relocated_fit_address"], 0xC10C0)
         self.assertEqual(loader["fit_signature"], "_FIT_   ")
         self.assertTrue(loader["type_0b_payload_relocated_if_present"])
@@ -116,7 +125,10 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(producer["source_object_name"], "oem_key_man")
         self.assertEqual(producer["published_fit_address"], 0xFFFE1000)
         self.assertEqual(producer["published_fit_type"], 0x0B)
-        self.assertFalse(producer["final_handoff_address_0xfef80000_mapping_proved"])
+        self.assertTrue(producer["final_handoff_address_0xfef80000_mapping_proved"])
+        fit_pointer = producer["fit_base_pointer_for_ibbl"]
+        self.assertEqual(fit_pointer["buffer_offset"], 0x1FFC0)
+        self.assertEqual(fit_pointer["value"], 0xFFFE0000)
         self.assertTrue(producer["oem_key_man_byte_identity_with_ftpr_oem_key_proved"])
         placement = producer["ibbl_tail_placement"]
         self.assertEqual(placement["exact_buffer_offset"], 0x1C000)
@@ -127,7 +139,11 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(streamer["slot_count"], 4)
         self.assertEqual(streamer["slot_size"], 0x8000)
         self.assertEqual(streamer["ring_buffer_size"], 0x20000)
-        self.assertFalse(streamer["host_destination_address_proved"])
+        self.assertEqual(streamer["encoded_chunk_count_value"], 3)
+        self.assertEqual(streamer["encoded_chunk_count_means_slots"], 4)
+        self.assertTrue(streamer["handshake_uses_low_four_xor_state_bits"])
+        self.assertEqual(streamer["host_destination_address"], 0xFEFBD900)
+        self.assertTrue(streamer["host_destination_address_proved"])
 
     def test_uep_mode_decoder_matches_exact_four_bit_expression(self):
         selected = {5, 6, 7, 9, 10, 11, 13, 14, 15}
@@ -171,14 +187,18 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertFalse(conclusions["package_candidate_matches_stored_usage39_digest"])
         self.assertTrue(conclusions["bup_published_type0b_bound_to_stored_oem_key_manifest"])
         self.assertTrue(conclusions["bup_published_expected_usage39_digest_recovered"])
-        self.assertFalse(conclusions["runtime_fit_type0b_bound_to_stored_oem_key_manifest"])
-        self.assertFalse(conclusions["runtime_expected_digest_bytes_recovered"])
+        self.assertTrue(conclusions["runtime_fit_type0b_bound_to_stored_oem_key_manifest"])
+        self.assertTrue(conclusions["runtime_expected_digest_bytes_recovered"])
+        self.assertEqual(conclusions["runtime_expected_usage39_digest"], M.STORED_USAGE39_DIGEST)
         self.assertTrue(conclusions["bup_places_exact_ibbl_at_0xffffc000_proved"])
         self.assertTrue(conclusions["bup_streams_resolved_ibb_through_four_slot_sram_ring_proved"])
+        self.assertTrue(conclusions["public_apl_host_protocol_matches_exact_bup_bitfields_and_ring_geometry"])
+        self.assertTrue(conclusions["exact_ibbl_host_ring_consumer_and_destination_proved"])
+        self.assertTrue(conclusions["bup_fit_base_pointer_to_ibbl_source_mapping_proved"])
         self.assertTrue(conclusions["ibbl_static_self_relocation_descriptor_recovered"])
         self.assertTrue(conclusions["ibbl_self_relocation_descriptor_is_not_fit_transfer_proved"])
         self.assertTrue(conclusions["apl_public_cse_sram_to_fef80000_handoff_corroborated"])
-        self.assertFalse(conclusions["final_handoff_address_0xfef80000_mapping_proved"])
+        self.assertTrue(conclusions["final_handoff_address_0xfef80000_mapping_proved"])
         self.assertTrue(conclusions["rbe_and_bup_signed_module_byte_chains_proved"])
         self.assertFalse(conclusions["ftpr_manifest_direct_oem_key_coverage_proved"])
         self.assertTrue(conclusions["pre_ibbl_key_manifest_authentication_proved"])
@@ -208,7 +228,8 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(handoff["sram_size"], 0x20000)
         self.assertEqual(handoff["sram_remapping_base"], 0xFFFE0000)
         self.assertEqual(handoff["stage1a_load_base"], 0xFEF80000)
-        self.assertFalse(handoff["exact_target_lineage_or_control_flow_proved"])
+        self.assertTrue(handoff["bitfield_and_ring_geometry_match_exact_bup"])
+        self.assertFalse(handoff["exact_target_host_code_or_destination_proved"])
         self.assertEqual(public["me_analyzer"]["commit"], M.MEA_COMMIT)
         self.assertEqual(public["me_analyzer"]["usage_39_name"], "OS Kernel")
         self.assertIn("public-source corroboration", public["boundary"])

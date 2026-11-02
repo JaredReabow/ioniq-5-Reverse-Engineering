@@ -34,9 +34,12 @@ to match before RSA and extension validation. Exact BUP also resolves `IBBL`
 and places the exact `0x4000`-byte member at buffer offset `0x1c000`, which is
 SRAM alias `0xffffc000`. IBBL's embedded descriptor at runtime `0xffffe760`
 is now recovered as `{ destination=0xfeffc000, count=0x1000 dwords,
-source=0xffffc000 }`: it self-relocates IBBL and is not the FIT transfer to
-`0xfef80000`. That transfer, and the external trust or fuse precedence
-governing the selected UEP bytes, remain unproved.
+source=0xffffc000 }`: it self-relocates IBBL. BUP also writes FIT-base pointer
+`0xfffe0000` at buffer offset `0x1ffc0`; self-relocation carries it to
+`0xfeffffc0`, where exact IBBL reads it and copies/relocates the FIT into
+`0xfef80000`. The persistent-to-runtime type-`0x0b` byte path is therefore
+closed. External trust or fuse precedence governing the selected UEP bytes
+remains unproved.
 
 ## Canonical identities
 
@@ -188,22 +191,30 @@ BUP also supplies the exact IBB producer side. It takes source offset and size
 from the resolved `IBB` member descriptor, divides the same `0x20000`-byte SRAM
 buffer into four `0x8000`-byte slots, reads at most `0x8000` bytes into
 `fit_buffer + (ring_index & 3) * 0x8000`, advances source position, and uses a
-hardware handshake before reusing each slot. This proves the proprietary IBB
-stream source and ring geometry. It does not expose the host destination or show
-that this loop itself transfers the pre-existing FIT table.
+hardware handshake before reusing each slot. Its response encodes chunk-count
+value 3 in bits 29..28 (meaning four slots), IBB size in bits 27..14, and ring
+state through the low four XOR handshake bits. Exact IBBL implements the
+matching consumer through PCI configuration addresses `0x80007870` and
+`0x80007860`, copies ring slots from the `0xfffe0000` SRAM alias into a buffer
+beginning at `0xfefbd900`, acknowledges each slot, and accepts up to `0x38000`
+bytes. This closes the proprietary producer/consumer ring protocol and exact
+host destination.
 
-IBBL's later FIT source remains `0xfef80000`, whereas BUP publishes the key
-manifest at `0xfffe1000`. Historical Apollo Lake Slim Bootloader source at the
-same hash-bound commit defines a `0x20000`-byte CSE SRAM remapping beginning at
-`0xfffe0000`, requests IBB data from CSE, copies ring-buffer chunks from that
-remapping into `IbbDst`, and acknowledges each chunk. Its board configuration
-places Stage1A at `0xfef80000` and Stage1B firmware data at `0xfef88000`.
+The FIT follows a separate, now exact path. BUP writes `0xfffe0000` at buffer
+offset `0x1ffc0`. Because IBBL occupies buffer offset `0x1c000`, the pointer is
+at IBBL-relative offset `0x3fc0`. IBBL self-relocation copies it to
+`0xfeffffc0`. Before requesting the IBB stream, exact IBBL reads that pointer,
+calls its bounded FIT validator/copier with source `0xfffe0000` and destination
+`0xfef80000`, then relocates referenced payloads in mode 0. Later it copies that
+FIT to `0xc10c0` and relocates type `0x0b` in mode 2. This closes the BUP FIT
+buffer to runtime stage-1 key-manifest mapping.
 
-The exact IBBL startup is consistent with those endpoints but does not perform
-that transfer itself. Its descriptor copies only IBBL from `0xffffc000` to
-`0xfeffc000`; afterward it reads `0x4800` dwords at `0xfef80000`. The public
-flow therefore remains comparative support for a CSE-provided IBB transfer,
-not proof that BUP's exact FIT bytes reach `0xfef80000` unchanged.
+Historical Apollo Lake Slim Bootloader source at the same hash-bound commit
+independently matches the exact producer/consumer protocol: chunk-count field,
+value-3-to-four-slots rule, size field, low-four-bit XOR handshake, ring index,
+slot geometry, source expression, acknowledgement, and PCI configuration
+offsets. It is corroboration; the exact target instructions above provide the
+mapping proof.
 
 ## Exact CSE signed-module byte chains
 
@@ -285,12 +296,11 @@ candidate:
 
 `437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06`
 
-This is an exact stored-object mismatch, not a boot verdict. The runtime source
-FIT at `0xfef80000` was not captured. The descriptor at `0xffffe760` is now
-fully recovered but proves only IBBL self-relocation. Exact RBE and BUP bind
-FTPR `oem.key` to BUP's type-`0x0b` payload, while the intervening CSE/host
-transfer still prevents binding that payload byte-for-byte to IBBL's FIT at
-`0xfef80000`. The package may also be applied under an
+This is now an exact mismatch between the recovered ABL's runtime expected
+usage-39 digest and the package IAS carried-key candidate. Exact RBE, BUP, and
+IBBL bind FTPR `oem.key` byte-for-byte to the runtime FIT at `0xfef80000` and
+then to the low-memory table consumed by stage 1. It is still not an
+installed-unit verdict: the package may be applied under an
 already-installed ABL/key manifest rather than the ABL image present in the
 same update archive. Therefore neither package acceptance nor rejection follows
 from the mismatch alone.
@@ -373,9 +383,15 @@ What is now proved:
 - exact BUP places the `0x4000`-byte IBBL at SRAM alias `0xffffc000`;
 - exact BUP streams the resolved `IBB` member through four `0x8000`-byte SRAM
   slots under a hardware handshake;
-- IBBL's static descriptor relocates those exact bytes to `0xfeffc000` and is
-  not the FIT transfer;
-- IBBL copies a FIT from `0xfef80000` to `0xc10c0`;
+- exact IBBL consumes that four-slot ring through PCI configuration space and
+  copies IBB into destination `0xfefbd900` with capacity `0x38000`;
+- hash-bound public Apollo Lake host code independently matches the exact
+  producer/consumer chunk-count, size, ring-state, slot-index, source, and
+  acknowledgement fields bit for bit;
+- IBBL's static descriptor relocates its own exact bytes to `0xfeffc000`;
+- BUP's pointer at buffer offset `0x1ffc0` survives that self-relocation, and
+  exact IBBL uses it to copy the FIT from `0xfffe0000` to `0xfef80000`;
+- IBBL later copies that FIT from `0xfef80000` to `0xc10c0`;
 - IBBL relocates a present type-`0x0b` payload;
 - stage 1 selects FIT type `0x0b` as its IAS key-manifest source;
 - selector `0x27` is usage bit 39;
@@ -389,23 +405,21 @@ What is now proved:
 
 What remains unproved:
 
-- the exact host-side consumer and destination for BUP's proved four-slot IBB
-  stream, and the mechanism that preserves or transfers the FIT table to
-  IBBL's `0xfef80000` source;
 - whether an installed unit executes this exact RBE/BUP/ABL set rather than a
   different installed manifest or firmware generation;
 - whether CSE, Boot Guard, an ACM, ROM, real FPFs, or another earlier stage
   authenticates or overrides the selected UEP source;
-- the actual runtime expected digest on an installed unit;
+- the actual runtime expected digest on an installed unit, although the exact
+  recovered set now proves `9b0a59...` as its own runtime expected value;
 - any writable or replaceable provenance path;
 - custom-image acceptance, boot acceptance, root, persistence, health,
   mark-good, rollback, or recovery.
 
 The exact package carried-key candidate remains
 `437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06`.
-Its absence from the update ABL and mismatch with the stored usage-39 record are
-bounded evidence only until the runtime FIT object and installed ABL identity
-are captured.
+Its mismatch with the exact recovered set's runtime usage-39 record is proved.
+Whether that mismatch affects the owner's unit remains bounded by installed
+ABL/RBE/BUP/UEP identity and update-component selection.
 
 ## Reproduction
 
@@ -419,11 +433,11 @@ are captured.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `25,061`
-  - SHA-256 `11ec0d56b7ac912d67588778ce7b09647f7aba34a3ebd0a8973dc9f10dec2044`
+  - size `28,206`
+  - SHA-256 `f8a84d935e251da4c838e3664f6fb0c570ace9854307aa357666ab5b7521364d`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `82,802`
-  - SHA-256 `8fd1004319b20acca4877e0dbadfa020177b1b3023c0a47417e358770a606a5d`
+  - size `87,570`
+  - SHA-256 `668fb27cfa9b5bd08f9424e3558586a4c9d985a1ddb5b9a99d6ca89146f9872c`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

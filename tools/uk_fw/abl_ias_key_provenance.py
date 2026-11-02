@@ -46,6 +46,8 @@ IBBL_RANGES = {
     "source_fit_handoff_copy": (0x4EF, 0x54C, "c3bd36e3b536f906633be18e362f7744bd845bb505cf11eff8b4af0e46ee4b19"),
     "descriptor_copy_helper": (0x118E, 0x1199, "fa4ff48022ec39639e171133f556be4f08e63ae6eb127b983b39db35f506755a"),
     "cse_sram_to_temp_handoff_setup": (0x269A, 0x275B, "9fb4c68a8041510cbd3fe188a7abc30f0f6be8aa2ef95bc5407af5d773b80fe4"),
+    "exact_cse_ibb_ring_consumer": (0x279, 0x4EF, "2224e3e1026e81972f8b3a24cbfca0945d43e0480f16ba8d21c97e78bf3f7a2f"),
+    "ring_consumer_call_and_fit_dispatch": (0x1199, 0x125B, "0e9116019748b1f7c934cd0d7f2cf3c2e61a1fbe0f5bd7567b4231044e8caed1"),
 }
 STAGE1_RANGES = {
     "ias_key_and_payload_auth": (0x157A3, 0x159FE, "4b71d5c95ff2bcf4210ba23a96883f3ce3524fb31b40f037a00991a6c14a7f30"),
@@ -84,6 +86,7 @@ CSE_BUP_RANGES = {
     "ibb_ring_stream_init": (0x6496, 0x657D, "b5394b6889535d58fedfc076333a14530d2d6f5f638071552a052e7d7a87f41c"),
     "ibb_ring_chunk_loader": (0x657D, 0x66EE, "48a58197fa803564ed3086f2be1c627679b088ce85e6e1bf7dc743c0bb70ecc2"),
     "ibb_ring_completion": (0x66EE, 0x6755, "281a9b2c20a948b461238417e0ff2ccea606e7fda32b015d5ef180396455e537"),
+    "fit_base_pointer_for_ibbl": (0xBE27, 0xBE3F, "f21b32ebbc979ec59183fbb17cfdd8f3bebdb3134fe6b0e24641082ee542a49a"),
 }
 
 
@@ -634,6 +637,9 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     require_once(cse_bup, b"IBB\0", "CSE BUP IBB member name")
     if struct.unpack_from("<III", ibbl, 0x2760) != (0xFEFFC000, 0x1000, 0xFFFFC000):
         raise Failure("IBBL static self-relocation descriptor drift")
+    fit_pointer_sequence = bytes.fromhex("c786c0ff01000000feff")
+    if cse_bup[0xBE27 : 0xBE27 + len(fit_pointer_sequence)] != fit_pointer_sequence:
+        raise Failure("CSE BUP IBBL FIT-base pointer sequence drift")
 
     fit_source = git_blob(sbl_repo, SBL_COMMIT, SBL_FILE, SBL_FILE_SHA256)
     require_once(fit_source, b"#define FIT_TYPE_0B_KEY_MANIFEST            0x0B", "FIT type 0x0b")
@@ -646,6 +652,11 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     for needle, label in (
         (b"#define  SRAM_SIZE              0x20000", "Apollo Lake CSE SRAM size"),
         (b"#define  SRAM_REMAPPING         (0xFFFFFFFF - SRAM_SIZE + 1)", "Apollo Lake CSE SRAM remapping"),
+        (b"HostToCse    = (IbbSize << 4) | 0xC0000000;", "Apollo Lake host request encoding"),
+        (b"ChunkNum   = (CseToHost >> 28) & 3;", "Apollo Lake chunk-count response field"),
+        (b"IbbSizeLeft    = (CseToHost & 0x0FFFC000) >> 4;", "Apollo Lake IBB-size response field"),
+        (b"ChunkSize      = SramSize / NumberOfChunks;", "Apollo Lake ring-slot size"),
+        (b"RingIdx = (UINT8) (ChunkIndex % NumberOfChunks);", "Apollo Lake ring index"),
         (b"Src = (UINT8 *) (SramBase + ChunkSize * RingIdx);", "Apollo Lake CSE SRAM source"),
         (b"Dst = (UINT8 *) (IbbDst  + ChunkSize * ChunkIndex);", "Apollo Lake IBB destination"),
         (b"CopyMem (Dst, Src, Size);", "Apollo Lake CSE-to-IBB copy"),
@@ -653,6 +664,8 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
         require_once(apl_loader_source, needle, label)
     if apl_loader_source.count(b"CSE_HOST2CSE = HostToCse;") != 2:
         raise Failure("Apollo Lake CSE request/ack sequence drift")
+    if apl_loader_source.count(b"State = (CseToHost ^ HostToCse) & 0x0F;") != 2:
+        raise Failure("Apollo Lake ring handshake state sequence drift")
     apl_board_source = git_blob(sbl_repo, SBL_COMMIT, SBL_APL_BOARD_FILE, SBL_APL_BOARD_SHA256)
     require_once(apl_board_source, b"self.STAGE1A_LOAD_BASE    = 0xFEF80000", "Apollo Lake Stage1A load base")
     require_once(apl_board_source, b"self.STAGE1B_FD_BASE      = 0xFEF88000", "Apollo Lake Stage1B flash-device base")
@@ -714,6 +727,33 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                     "post_copy_read_dword_count": 0x4800,
                     "descriptor_directed_copy_path_proved": True,
                     "static_descriptor_values_recovered": True,
+                },
+                "initial_fit_materialization": {
+                    "bup_pointer_storage_buffer_offset": 0x1FFC0,
+                    "bup_pointer_value": 0xFFFE0000,
+                    "pointer_offset_within_tail_placed_ibbl": 0x3FC0,
+                    "pointer_address_after_ibbl_self_relocation": 0xFEFFFFC0,
+                    "ibbl_reads_pointer_from": 0xFEFFFFC0,
+                    "fit_copy_source": 0xFFFE0000,
+                    "fit_copy_destination": 0xFEF80000,
+                    "first_relocation_mode": 0,
+                    "later_low_memory_fit_destination": 0x000C10C0,
+                    "bup_to_ibbl_fit_mapping_proved": True,
+                },
+                "exact_cse_ibb_ring_consumer": {
+                    "pci_config_address_port": 0xCF8,
+                    "pci_config_data_port": 0xCFC,
+                    "host_to_cse_config_address": 0x80007870,
+                    "cse_to_host_config_address": 0x80007860,
+                    "request_capacity": 0x38000,
+                    "destination_base": 0xFEFBD900,
+                    "destination_limit": 0xFEFF5900,
+                    "sram_alias_base": 0xFFFE0000,
+                    "ring_buffer_size": 0x20000,
+                    "chunk_count_and_size_response_decoded": True,
+                    "low_four_bit_xor_handshake_used": True,
+                    "slot_acknowledgements_written": True,
+                    "exact_target_host_code_and_destination_proved": True,
                 },
             },
             "decompressed_stage1": {
@@ -816,6 +856,12 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                     "exact_runtime_address": 0xFFFFC000,
                     "matches_self_relocation_descriptor_source": True,
                 },
+                "fit_base_pointer_for_ibbl": {
+                    "buffer_offset": 0x1FFC0,
+                    "value": 0xFFFE0000,
+                    "lies_at_ibbl_offset": 0x3FC0,
+                    "copied_to_temporary_address": 0xFEFFFFC0,
+                },
                 "ibb_ring_streamer": {
                     "source_member_name": "IBB",
                     "source_offset_from_resolved_member_descriptor": True,
@@ -828,10 +874,16 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                     "maximum_chunk_size": 0x8000,
                     "source_position_advanced_by_chunk": True,
                     "ring_index_advanced_until_full_source_size": True,
-                    "host_destination_address_proved": False,
+                    "cse_response_encoding": "0x30000000 | (((IBB_size >> 10) & 0x3fff) << 14)",
+                    "encoded_chunk_count_value": 3,
+                    "encoded_chunk_count_means_slots": 4,
+                    "encoded_size_field_mask": 0x0FFFC000,
+                    "handshake_uses_low_four_xor_state_bits": True,
+                    "host_destination_address": 0xFEFBD900,
+                    "host_destination_address_proved": True,
                     "fit_table_transfer_by_this_chunk_loop_proved": False,
                 },
-                "final_handoff_address_0xfef80000_mapping_proved": False,
+                "final_handoff_address_0xfef80000_mapping_proved": True,
                 "oem_key_man_byte_identity_with_ftpr_oem_key_proved": True,
             },
             "uep_oem_hash_candidate": uep_oem_hash_candidate,
@@ -860,8 +912,13 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                     "sram_remapping_base": 0xFFFE0000,
                     "stage1a_load_base": 0xFEF80000,
                     "stage1b_fd_base": 0xFEF88000,
+                    "host_request_encoding": "(IbbSize << 4) | 0xc0000000",
+                    "cse_response_chunk_count_field": "(CseToHost >> 28) & 3; value 3 means four chunks",
+                    "cse_response_size_field": "(CseToHost & 0x0fffc000) >> 4",
+                    "ring_handshake_state": "(CseToHost ^ HostToCse) & 0x0f",
                     "semantics": "host requests IBB data from CSE, copies ring-buffer chunks from the 0xfffe0000 SRAM remapping into IbbDst, and acknowledges each chunk",
-                    "exact_target_lineage_or_control_flow_proved": False,
+                    "bitfield_and_ring_geometry_match_exact_bup": True,
+                    "exact_target_host_code_or_destination_proved": False,
                 },
             },
             "me_analyzer": {
@@ -901,15 +958,19 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "runtime_fit_type0b_object_name_oem_key_man_proved": True,
             "bup_published_type0b_bound_to_stored_oem_key_manifest": True,
             "bup_published_expected_usage39_digest_recovered": True,
-            "runtime_fit_type0b_bound_to_stored_oem_key_manifest": False,
-            "runtime_expected_digest_bytes_recovered": False,
+            "runtime_fit_type0b_bound_to_stored_oem_key_manifest": True,
+            "runtime_expected_digest_bytes_recovered": True,
+            "runtime_expected_usage39_digest": STORED_USAGE39_DIGEST,
             "source_fit_content_producer_cse_bup_proved": True,
             "bup_places_exact_ibbl_at_0xffffc000_proved": True,
             "bup_streams_resolved_ibb_through_four_slot_sram_ring_proved": True,
+            "public_apl_host_protocol_matches_exact_bup_bitfields_and_ring_geometry": True,
+            "exact_ibbl_host_ring_consumer_and_destination_proved": True,
+            "bup_fit_base_pointer_to_ibbl_source_mapping_proved": True,
             "ibbl_static_self_relocation_descriptor_recovered": True,
             "ibbl_self_relocation_descriptor_is_not_fit_transfer_proved": True,
             "apl_public_cse_sram_to_fef80000_handoff_corroborated": True,
-            "final_handoff_address_0xfef80000_mapping_proved": False,
+            "final_handoff_address_0xfef80000_mapping_proved": True,
             "rbe_and_bup_signed_module_byte_chains_proved": True,
             "ftpr_manifest_direct_oem_key_coverage_proved": False,
             "pre_ibbl_key_manifest_authentication_proved": True,
@@ -920,19 +981,20 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "Exact CSE RBE code selects FTPR CPD member oem.key, creates object oem_key_man at the exact source length, transfers that exact length without a visible transformation, and requires the destination manifest dword count to match the source length.",
             "Exact CSE BUP code initializes a 0x20000-byte FIT-bearing buffer, copies oem_key_man into payload offset 0x1000, and appends type 0x0b with address 0xfffe1000. Exact IBBL later consumes a FIT at 0xfef80000.",
             "Exact BUP resolves IBBL, bounds its size, and places it at the end of the 0x20000-byte buffer. The exact 0x4000-byte IBBL therefore begins at buffer offset 0x1c000, or SRAM alias 0xffffc000.",
-            "The descriptor at runtime 0xffffe760 is statically embedded at IBBL file offset 0x2760 and contains destination 0xfeffc000, count 0x1000 dwords, source 0xffffc000. It relocates the exact 0x4000-byte IBBL itself and is not the unresolved FIT transfer into 0xfef80000.",
-            "Exact BUP separately streams the resolved IBB member through four 0x8000-byte slots spanning the same 0x20000-byte SRAM buffer, advancing source position and ring index under a hardware handshake. This proves the proprietary CSE producer side of the IBB stream, but not the host destination or an exact FIT-table transfer.",
-            "Hash-bound historical Apollo Lake Slim Bootloader source independently defines a 0x20000-byte CSE SRAM remapping at 0xfffe0000 and copies CSE-provided chunks into IbbDst, while its board config places Stage1A at 0xfef80000. This remains comparative support for the still-unrecovered FIT transfer path.",
+            "The descriptor at runtime 0xffffe760 is statically embedded at IBBL file offset 0x2760 and contains destination 0xfeffc000, count 0x1000 dwords, source 0xffffc000. It relocates the exact 0x4000-byte IBBL itself; the FIT follows the separate proved pointer path through 0xfeffffc0.",
+            "Exact BUP separately streams the resolved IBB member through four 0x8000-byte slots spanning the same 0x20000-byte SRAM buffer. Exact IBBL implements the matching PCI-config host consumer and copies the stream to 0xfefbd900 with a 0x38000-byte capacity.",
+            "BUP writes 0xfffe0000 at buffer offset 0x1ffc0, which is IBBL offset 0x3fc0 after tail placement. IBBL self-relocation carries that pointer to 0xfeffffc0; exact host code reads it and copies/relocates the FIT from 0xfffe0000 to 0xfef80000 before the later low-memory copy. This closes the BUP-to-IBBL FIT mapping.",
+            "Hash-bound historical Apollo Lake Slim Bootloader source independently matches the exact target's chunk-count field, four-slot interpretation, size field, low-four-bit XOR handshake, slot geometry, source expression, acknowledgement, and PCI configuration offsets.",
             "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
-            "The RBE-to-BUP path binds BUP's published oem_key_man payload to exact FTPR oem.key bytes. The exact stored usage-39 digest is therefore recovered for the BUP-published object, but it is not promoted to the IBBL runtime expected digest until the BUP-to-0xfef80000 mapping is proved.",
+            "The RBE-to-BUP-to-IBBL path binds the runtime type-0x0b payload to exact FTPR oem.key bytes. The recovered set's runtime expected usage-39 digest is therefore 9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af.",
             "RBEP.man and FTPR.man embedded signatures verify, and their signed metadata hashes bind exact RBE and BUP bytes through rbe.met and bup.met. These remain self-contained signature chains until their manifest keys are externally anchored.",
             "Exact FTPR.man has no direct oem.key name or digest coverage and FTPR CPD has no oem.key.met member. This bounded absence is not proof that another CSE policy, key manifest, or hardware root leaves oem.key unauthenticated.",
             "Exact RBE creates ifp_uep, obtains a CRC-checked UEP from an exact hardware-window branch or BPDT primary/fallback route, extracts field 0x20 (256 bits) to global 0x6048038, and uses that digest to pin oem.key's modulus-plus-exponent hash before RSA and extension validation.",
             "The OEM key-manifest authentication path is therefore proved before BUP publication. What remains unproved is whether the selected UEP bytes are externally authenticated, fuse-backed, overrideable, or merely CRC-protected flash data on a given installed platform.",
             "The exact flash contains an FTPR oem.key $MN2/Extension-14 manifest with a valid embedded self-signature and usage-39 digest 9b0a59...; the embedded signature still proves self-consistency rather than an external hardware root.",
-            "The stored usage-39 digest does not equal the package carried-key candidate 437008... . Without the missing runtime FIT binding, this mismatch does not prove that the package boots or fails to boot under an installed ABL.",
+            "The recovered runtime usage-39 digest does not equal the package carried-key candidate 437008... . This is an exact artifact-set mismatch, but owner-unit boot acceptance still depends on installed ABL/RBE/BUP/UEP identity and update-component selection.",
             "The recovered IBB stages do not locally authenticate the key manifest before use. Any CSE, Boot Guard, fuse, ACM, or earlier-ROM authentication remains outside the recovered instruction boundary; the embedded manifest signature proves self-consistency only.",
-            "The exact package carried-key candidate digest remains absent verbatim from the update ABL, IBBL, and decompressed stage 1; the installed platform's volatile handoff was not captured.",
+            "The exact package carried-key candidate digest remains absent verbatim from the update ABL, IBBL, and decompressed stage 1; no installed-platform handoff or identity was captured.",
             "No updater, bootloader, target helper, firmware image, flash operation, partition write, selector change, or boot attempt was executed or generated.",
         ],
     }

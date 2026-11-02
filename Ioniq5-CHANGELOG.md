@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.63.0 - why hand-started measurements keep dying: the app manager kills the duplicate
+
+- Attempted to trace the hand-started app's Wayland calls with the chain's compвтороmanager present. It was gone before the 45-second checkpoint, and the kernel
+  log shows **no segfault for it** — the only fault in that window is `AppNavi[815]: segfault at 8 … in libQt5Core.so.5.4.1`, the known boot crash.
+- The explanation fits everything observed today: `ApplicationManager` is running and already supervises an `AppHomeScreen`. Killing that process and starting
+  our own creates a **second instance that the manager does not know about**, and an application manager that supervises window ownership will stop it. That is
+  the same supervision §2.62.0 caught doing its job, now working against the experiment.
+- **Methodological consequence, and it explains several "died before measurement" results**: a hand-started vendor application cannot be measured for long while
+  the chain's application manager is running. Measurement must either
+  1. run fully chain-managed and read the application's log through its DLT path, or
+  2. run **without** `ApplicationManager` (the standalone configuration, which keeps the app alive for 100 s+), or
+  3. start the application before the manager, which the launcher's own ordering makes impractical.
+  Earlier entries that recorded the app dying within 50–75 s of a hand start were very likely this, not the fault under test.
+- That is worth more than the trace I was trying to take: it invalidates a measurement method I have used repeatedly today, and it is the third time in this session
+  that the instrument rather than the subject produced the result.
+
 ## 2.62.0 - the vanishing was management, not a crash; and the stub no longer floods the console
 
 - Instrument fix first: the stub wrote every call to `/dev/ttyS0`, which **flooded the serial console** and swallowed my own markers mid-run. It now writes to

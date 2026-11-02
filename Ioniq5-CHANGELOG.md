@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.44.0 - the app asks the compositor for IVI screen 9, then stops
+
+- Read the compositor-side trace during a hand-started run with assets staged. The app binds the vendor IVI globals and then interrogates
+  the layout controller:
+  - `wl_registry@2.global(12, "ivi_application", 1)`, `global(13, "ivi_window_manager", 1)`,
+    `global(14, "ivi_hmi_requester", 1)`, `global(15, "ivi_info_requester", 1)`, `global(16, "ivi_share", 1)`,
+    `global(17, "ivi_controller", 1)`
+  - `wl_registry@2.bind(12, "ivi_application", 1, …)` and `bind(17, "ivi_controller", 1, …)`
+  - **`ivi_controller@13.screen(9, new id ivi_controller_screen@…)`** followed by `ivi_controller@13.layer(107)`, `layer(112)`,
+    `layer(111)`, `layer(104)`, `layer(113)`, `layer(102)`, `layer(110)`, …
+- So the client is looking for **IVI screen id 9** and then enumerating layer ids in the 102–113 range. It never proceeds to create an
+  `ivi_surface`, which matches the standing measurement that it submits no buffer at all.
+- That makes the remaining fault something much more specific than "the window is never shown": the client goes looking for a layout object in
+  the compositor, does not find what it wants, and stops. The chain's own `launcher-weston.ini` sets `base-layer-id=1000`,
+  `workspace-background-layer-id=2000`, `workspace-layer-id=3000`, `application-layer-id=4000`, so the layer numbering the app is reading
+  is not the numbering that configuration declares — worth confirming directly, since a mismatch here would explain the stop.
+- Also confirmed on the app side that signal connects are self-referential: `NotifyStatusHomeTypeChange` appears **only** in
+  `AppHomeScreen` itself, so its failed connect cannot be a missing external service, and the signal-side theory from §2.43.0 is weaker than
+  it looked.
+- Next: establish which screen and layer ids the running `ivi-shell` actually assigns, and whether screen 9 exists at all; if it does not,
+  determine how the vendor expects it to be created (the IVI shell assigns screen ids at creation, so this is a compositor-configuration
+  question, not an application one).
+
 ## 2.43.0 - the `/tmp/new_gui` symlink is the vendor's own, and assets alone do not unlock the window
 
 - **Provenance settled.** `/app/share/images/new_gui -> /tmp/new_gui` is present in the **raw extraction**

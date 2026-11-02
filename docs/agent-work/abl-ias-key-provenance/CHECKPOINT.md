@@ -8,6 +8,7 @@ Exact CSE RBE persistent-object materialization, BUP FIT content production, run
 
 - Exact `RBEP.man → rbe.met → rbe` and `FTPR.man → bup.met → bup` hash chains are byte-bound; both `$MN2` embedded signatures verify, but their external key anchors remain unproved.
 - Exact FTPR signed-package metadata has no direct `oem.key` name/digest coverage and FTPR CPD has no `oem.key.met`; this bounded absence is not proof of no external authentication.
+- Exact BPDT type-17 UEP contains three copies of the `oem.key` public-key digest, including a contiguous copy at `+0xcc`; comparative Apollo Lake tooling names that field an OEM public-key-hash record, but exact target consumption and fuse/hardware anchoring remain unproved.
 - Exact RBEP CSE RBE SHA-256: `ec4c2ea54c2943f6f6ffed4b4157b7b03cbccf6ca2cc9b21ccc3dd62adc88cc1`.
 - RBE selects FTPR `oem.key`, creates `oem_key_man` at the exact source length, transfers that length without a visible transform, and checks the destination manifest dword length against it.
 - Exact FTPR CSE BUP SHA-256: `cee77bc172a9df1c4088d5f716b9e55cda539a26656d07a92268c3cd5d4f0165`.
@@ -34,8 +35,8 @@ Exact CSE RBE persistent-object materialization, BUP FIT content production, run
 - `tests/test_abl_ias_key_provenance.py`
 - `evidence/abl-ias-key-manifest-provenance.md`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `15,125`
-  - SHA-256 `8f1147474b6e2a412015337d7eac9f0f1cea8fcfbd5beb7dfaab02535fc4d056`
+  - size `16,148`
+  - SHA-256 `7094193b0a52a0abd43885db0ded910e148354dff83055e091b8c09e3b4b74b7`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
   - size `31,647`
   - SHA-256 `f888b0c5b13020625be4550a069ef22a2070cfe4a2e742385b0535b3aeff46de`
@@ -44,18 +45,18 @@ Exact CSE RBE persistent-object materialization, BUP FIT content production, run
 
 - focused package: `12 passed, 7 subtests passed`;
 - ABL/update integration: `55 passed, 23 subtests passed`;
-- canonical suite: `1010 passed, 352213 subtests passed in 171.05s`;
-- canonical log SHA-256: `0c449e5438bd02da37afd53996c7ffd8f77c338d89a633a45ff9af69c1d8bf02`;
+- canonical suite: `1010 passed, 352213 subtests passed in 180.57s`;
+- canonical log SHA-256: `2cd57a3cce2fe811599facb2710f82769838dba205bac131d34df474fbcf989c`;
 - UTF-16 environment determinism, `py_compile`, and `git diff --check` passed.
 
 ## Boundary
 
-Exact CSE RBE now binds stored FTPR `oem.key` bytes to `oem_key_man`, and exact BUP binds that object to its published FIT type `0x0b`. Signed-package metadata binds exact RBE/BUP bytes but gives no direct `oem.key` metadata entry. Recovered code still does not map BUP's table/payload addresses to IBBL's `0xfef80000` or establish the external root that authenticates RBE, FTPR, or the key manifest before use. Boot Guard, ACM, fuse, ROM, and installed-firmware provenance remain open until earlier code or a passive installed-unit capture binds them.
+Exact CSE RBE now binds stored FTPR `oem.key` bytes to `oem_key_man`, and exact BUP binds that object to its published FIT type `0x0b`. Signed-package metadata binds exact RBE/BUP bytes but gives no direct `oem.key` metadata entry. UEP contains the exact OEM key digest candidate, but recovered code still does not prove its proprietary consumer, fuse precedence, map BUP's table/payload addresses to IBBL's `0xfef80000`, or establish the external root. Boot Guard, ACM, fuse, ROM, and installed-firmware provenance remain open until earlier code or a passive installed-unit capture binds them.
 
 ## Next work
 
 1. Trace the mapping from BUP's FIT buffer and `0xfffe1000` payload address to IBBL's `0xfef80000` source through CSE/ROM handoff evidence.
-2. Trace authentication of RBE, FTPR, and `oem.key` through exact RBEP/FTPR manifests, CSE policy, and any fuse- or ROM-backed root.
+2. Trace exact proprietary consumption of BPDT type-17 UEP, including how its `+0xcc` OEM-key digest candidate interacts with FPFs, fuse precedence, and key-manifest verification.
 3. On a future disconnected bench, record `/proc/cmdline` and the exact `ABL.oemkm` value without attempting a physical-memory read unless separately authorized and safely bounded.
 4. Determine whether the installed/runtime OEM key manifest matches the exact stored FTPR object and verify its external provisioning chain host-side.
 5. Keep this separate from boot attempts, image modification, key replacement, flashing, and persistence.

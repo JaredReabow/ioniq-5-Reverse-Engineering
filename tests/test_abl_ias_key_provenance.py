@@ -51,7 +51,7 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "8f1147474b6e2a412015337d7eac9f0f1cea8fcfbd5beb7dfaab02535fc4d056")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "7094193b0a52a0abd43885db0ded910e148354dff83055e091b8c09e3b4b74b7")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
@@ -73,6 +73,12 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(stage["key_manifest"]["entry_size"], 0x44)
         self.assertEqual(stage["key_manifest"]["digest_offset"], 0x24)
         self.assertEqual(stage["key_manifest"]["kernel_command_line_name"], "ABL.oemkm")
+        uep = exact["uep_oem_hash_candidate"]
+        self.assertEqual(uep["candidate_digest"], M.STORED_USAGE39_DIGEST)
+        self.assertEqual(uep["candidate_offsets"], [0x34, 0x7C, 0xCC])
+        self.assertTrue(uep["matches_stored_oem_key_public_key_digest"])
+        self.assertFalse(uep["exact_target_consumer_proved"])
+        self.assertFalse(uep["external_hardware_or_fuse_anchor_proved"])
         module_chains = exact["cse_signed_module_chains"]
         self.assertTrue(module_chains["rbep_manifest_to_rbe_metadata_to_rbe_bytes_proved"])
         self.assertTrue(module_chains["ftpr_manifest_to_bup_metadata_to_bup_bytes_proved"])
@@ -112,6 +118,9 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["cse_bup_resolver_couples_oem_key_and_oem_key_man_names_proved"])
         self.assertTrue(conclusions["source_fit_content_producer_cse_bup_proved"])
         self.assertTrue(conclusions["runtime_fit_type0b_object_name_oem_key_man_proved"])
+        self.assertTrue(conclusions["uep_contains_stored_oem_key_digest_candidate_proved"])
+        self.assertFalse(conclusions["uep_exact_target_consumption_proved"])
+        self.assertFalse(conclusions["uep_external_hardware_anchor_proved"])
         self.assertTrue(conclusions["stored_oem_key_manifest_bytes_recovered"])
         self.assertTrue(conclusions["stored_usage39_digest_recovered"])
         self.assertTrue(conclusions["stored_oem_key_manifest_embedded_signature_valid"])

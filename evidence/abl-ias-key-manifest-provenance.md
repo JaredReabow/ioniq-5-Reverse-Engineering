@@ -191,6 +191,21 @@ or reversed byte order, and FTPR CPD has no `oem.key.met` member. This is bounde
 absence of direct coverage in that signed-package metadata, not proof that no
 other authenticated CSE policy or hardware root covers `oem.key`.
 
+## Exact BPDT type-17 UEP key-hash candidate
+
+The exact BPDT type-17 `UEP` member is at flash `0x100210`, size `0x108`,
+SHA-256 `184e01883e7f9233d5e50104a52620ec45e44c79ae3255fdeeaf8a44d5e8edc3`.
+It stores the exact `oem.key` public-key digest
+`9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af`
+in three records: split across offsets `+0x34` and `+0x40`, split across
+`+0x7c` and `+0x90`, and contiguously at `+0xcc`.
+
+The current public coreboot Apollo Lake/Gemini Lake IFWI constructor's
+`create_uep()` calls the `+0xcc` value an **OEM public-key-hash record** and
+requires a 32-byte public-key hash. That is strong structural corroboration,
+not exact target control-flow proof: the exact proprietary consumer of these
+UEP bytes and any relationship to real fuses or hardware policy remain open.
+
 ## Exact stored FTPR `oem.key` manifest
 
 The exact flash FTPR CPD contains:
@@ -281,6 +296,9 @@ What is now proved:
   but their embedded signing keys remain externally unanchored;
 - exact FTPR signed-package metadata has no direct `oem.key` name/digest entry
   and FTPR CPD has no `oem.key.met` member;
+- exact BPDT type-17 UEP contains three copies of the stored `oem.key` public-key
+  digest; public Apollo Lake tooling calls the `+0xcc` field an OEM public-key
+  hash, while exact target consumption and hardware/fuse anchoring remain open;
 - exact CSE RBE copies FTPR `oem.key` at its exact source length into
   `oem_key_man`, with a matching manifest-length check;
 - exact CSE BUP constructs a FIT type-`0x0b` entry from `oem_key_man` and
@@ -329,8 +347,8 @@ are captured.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `15,125`
-  - SHA-256 `8f1147474b6e2a412015337d7eac9f0f1cea8fcfbd5beb7dfaab02535fc4d056`
+  - size `16,148`
+  - SHA-256 `7094193b0a52a0abd43885db0ded910e148354dff83055e091b8c09e3b4b74b7`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
   - size `31,647`
   - SHA-256 `f888b0c5b13020625be4550a069ef22a2070cfe4a2e742385b0535b3aeff46de`

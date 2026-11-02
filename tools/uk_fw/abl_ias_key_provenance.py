@@ -23,6 +23,9 @@ ABL_SHA256 = "f6fc0373042c27f36e601fe957544582f3b1bd4be3c36659105322304b2dc7ac"
 IBBL_SHA256 = "394c442368c67f82f17e84854575bf07abafac2b8fbf2fda7dca68b182f91b93"
 STAGE1_SHA256 = "3491be59ef865cb376131b02fa1ff6941e37d1c87ae3c4cf7969b5364785b3c2"
 CANDIDATE_OS_KEY_DIGEST = "437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06"
+UEP_OFFSET = 0x100210
+UEP_SIZE = 0x108
+UEP_SHA256 = "184e01883e7f9233d5e50104a52620ec45e44c79ae3255fdeeaf8a44d5e8edc3"
 OEM_KEY_OFFSET = 0x17C000
 OEM_KEY_SIZE = 0x61C
 OEM_KEY_SHA256 = "a72a5d867185852be1466a9d3d2e97bb11bd6b0a89b48f5454220def946814bd"
@@ -381,6 +384,31 @@ def parse_cse_signed_module_chains(abl: bytes, rbe: bytes, bup: bytes) -> dict:
     }
 
 
+def parse_uep_oem_hash_candidate(abl: bytes) -> dict:
+    bpdt = 0x100000
+    entries = [struct.unpack_from("<III", abl, bpdt + 0x18 + index * 12) for index in range(13)]
+    if entries[7] != (17, 0x210, UEP_SIZE):
+        raise Failure("BPDT UEP entry drift")
+    uep = abl[UEP_OFFSET : UEP_OFFSET + UEP_SIZE]
+    if len(uep) != UEP_SIZE or hashlib.sha256(uep).hexdigest() != UEP_SHA256 or uep[:4] != b"$UEP":
+        raise Failure("UEP identity drift")
+    candidates = [uep[0x34:0x3C] + uep[0x40:0x58], uep[0x7C:0x84] + uep[0x90:0xA8], uep[0xCC:0xEC]]
+    if any(candidate.hex() != STORED_USAGE39_DIGEST for candidate in candidates):
+        raise Failure("UEP OEM hash candidate drift")
+    return {
+        "bpdt_type": 17,
+        "flash_offset": UEP_OFFSET,
+        "size": UEP_SIZE,
+        "sha256": UEP_SHA256,
+        "magic": "$UEP",
+        "candidate_offsets": [0x34, 0x7C, 0xCC],
+        "candidate_digest": STORED_USAGE39_DIGEST,
+        "matches_stored_oem_key_public_key_digest": True,
+        "exact_target_consumer_proved": False,
+        "external_hardware_or_fuse_anchor_proved": False,
+    }
+
+
 def parse_stored_oem_key(abl: bytes) -> dict:
     cpd = 0x11E000
     if struct.unpack_from("<IIBBBBI", abl, cpd)[:6] != (0x44504324, 12, 1, 1, 16, 150):
@@ -491,6 +519,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     cse_rbe = extract_cse_rbe(abl)
     cse_bup = extract_cse_bup(abl)
     cse_signed_module_chains = parse_cse_signed_module_chains(abl, cse_rbe, cse_bup)
+    uep_oem_hash_candidate = parse_uep_oem_hash_candidate(abl)
     stored_oem_key = parse_stored_oem_key(abl)
     ibbl_ranges = check_ranges(ibbl, IBBL_RANGES, "IBBL")
     stage_ranges = check_ranges(stage1, STAGE1_RANGES, "stage-1")
@@ -677,6 +706,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                 "final_handoff_address_0xfef80000_mapping_proved": False,
                 "oem_key_man_byte_identity_with_ftpr_oem_key_proved": True,
             },
+            "uep_oem_hash_candidate": uep_oem_hash_candidate,
             "stored_oem_key_manifest": stored_oem_key,
             "package_carried_os_key_candidate_digest": {
                 "sha256": CANDIDATE_OS_KEY_DIGEST,
@@ -719,6 +749,9 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "cse_rbe_copies_ftpr_oem_key_to_oem_key_man_proved": True,
             "cse_bup_constructs_fit_type0b_from_oem_key_man_proved": True,
             "cse_bup_resolver_couples_oem_key_and_oem_key_man_names_proved": True,
+            "uep_contains_stored_oem_key_digest_candidate_proved": True,
+            "uep_exact_target_consumption_proved": False,
+            "uep_external_hardware_anchor_proved": False,
             "stored_oem_key_manifest_bytes_recovered": True,
             "stored_usage39_digest_recovered": True,
             "stored_oem_key_manifest_embedded_signature_valid": True,
@@ -743,6 +776,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "The RBE-to-BUP path binds BUP's published oem_key_man payload to exact FTPR oem.key bytes. The exact stored usage-39 digest is therefore recovered for the BUP-published object, but it is not promoted to the IBBL runtime expected digest until the BUP-to-0xfef80000 mapping is proved.",
             "RBEP.man and FTPR.man embedded signatures verify, and their signed metadata hashes bind exact RBE and BUP bytes through rbe.met and bup.met. These remain self-contained signature chains until their manifest keys are externally anchored.",
             "Exact FTPR.man has no direct oem.key name or digest coverage and FTPR CPD has no oem.key.met member. This bounded absence is not proof that another CSE policy, key manifest, or hardware root leaves oem.key unauthenticated.",
+            "Exact BPDT type-17 UEP stores three copies of the oem.key public-key digest candidate, including a contiguous copy at UEP +0xcc. A comparative public Apollo Lake IFWI constructor labels that offset an OEM public-key-hash record, but exact target consumption and any fuse/hardware anchoring remain unproved.",
             "The exact flash contains an FTPR oem.key $MN2/Extension-14 manifest with a valid embedded self-signature and usage-39 digest 9b0a59...; the embedded signature still proves self-consistency rather than an external hardware root.",
             "The stored usage-39 digest does not equal the package carried-key candidate 437008... . Without the missing runtime FIT binding, this mismatch does not prove that the package boots or fails to boot under an installed ABL.",
             "The recovered IBB stages do not locally authenticate the key manifest before use. Any CSE, Boot Guard, fuse, ACM, or earlier-ROM authentication remains outside the recovered instruction boundary; the embedded manifest signature proves self-consistency only.",

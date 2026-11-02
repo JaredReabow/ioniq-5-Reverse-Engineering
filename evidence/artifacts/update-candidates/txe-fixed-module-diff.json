@@ -1,0 +1,410 @@
+{
+  "boundaries": [
+    "The public later image is Intel TXE 3.1.94.3086, not the first fixed 3.1.55 release; changed bytes cannot be attributed to a specific advisory without an intermediate or first-fixed image.",
+    "Embedded $MN2 verification proves self-consistency and byte binding only, not platform ROM, fuse, Boot Guard, or OEM acceptance.",
+    "This is passive host-side parsing and exact-static comparison; no CSE module or host HECI endpoint was executed or opened."
+  ],
+  "classification": {
+    "cve_2018_12147_exact_bug_identified": false,
+    "cve_2018_3655_exact_storage_bug_identified": false,
+    "exact_first_fixed_3_1_55_build_obtained": false,
+    "exact_signed_later_modules_obtained": true,
+    "later_version_is_at_or_after_intel_sa_00125_first_fixed_3_1_55": true,
+    "simple_oversized_nine_bit_fragment_overflow_observed": false
+  },
+  "comparisons": {
+    "busdrv": {
+      "byte_identical": false,
+      "common_prefix_size": 127,
+      "common_suffix_size": 4686,
+      "differing_bytes_at_same_offsets": 8914,
+      "overlap_size": 24576,
+      "same_size": true
+    },
+    "dal_sdm": {
+      "byte_identical": false,
+      "common_prefix_size": 5,
+      "common_suffix_size": 3568,
+      "differing_bytes_at_same_offsets": 55556,
+      "overlap_size": 57344,
+      "same_size": false
+    },
+    "fpf": {
+      "byte_identical": false,
+      "common_prefix_size": 11,
+      "common_suffix_size": 2040,
+      "differing_bytes_at_same_offsets": 17778,
+      "overlap_size": 24576,
+      "same_size": true
+    },
+    "heci": {
+      "byte_identical": false,
+      "common_prefix_size": 27,
+      "common_suffix_size": 4086,
+      "differing_bytes_at_same_offsets": 27752,
+      "overlap_size": 36864,
+      "same_size": true
+    },
+    "policy": {
+      "byte_identical": false,
+      "common_prefix_size": 85,
+      "common_suffix_size": 3902,
+      "differing_bytes_at_same_offsets": 29645,
+      "overlap_size": 49152,
+      "same_size": true
+    },
+    "storage": {
+      "byte_identical": false,
+      "common_prefix_size": 81,
+      "common_suffix_size": 3888,
+      "differing_bytes_at_same_offsets": 62409,
+      "overlap_size": 69632,
+      "same_size": true
+    },
+    "syslib": {
+      "byte_identical": false,
+      "common_prefix_size": 1,
+      "common_suffix_size": 1092,
+      "differing_bytes_at_same_offsets": 72652,
+      "overlap_size": 77824,
+      "same_size": true
+    }
+  },
+  "inputs": {
+    "affected": {
+      "ftpr_cpd_offset": 1171456,
+      "ftpr_manifest": {
+        "date_bcd": "2017-09-26",
+        "embedded_signature_valid": true,
+        "sha256": "ca4fc90c57b212daa077e8dec1bc7c4827638ff21da0e7224a3bbce2e57efdf4",
+        "signature_boundary": "self-consistency and byte binding only; no external ROM/fuse acceptance is established",
+        "size": 3092,
+        "version": "3.1.50.2222"
+      },
+      "label": "affected-eu-abl",
+      "modules": {
+        "busdrv": {
+          "compressed_sha256": "e58a354055281fe2ab8809ef1d6705b7bdccc8acc11bf20faeaf0187a200eb50",
+          "compressed_size": 8942,
+          "compression": "lzma",
+          "cpd_relative_offset": 98304,
+          "decompressed_sha256": "f226a92dd219a020bca96aeca3b54d8b0870f230128b7cb206c3389d5096ad21",
+          "decompressed_size": 24576,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 7340,
+          "metadata_sha256": "1857be7e234b2d88a9055d91c8bb9f69412d3db494b47f13cf407e9a0677da71",
+          "metadata_size": 608,
+          "strict_decompression": true
+        },
+        "dal_sdm": {
+          "compressed_sha256": "1149c790897678ef5896251e55c038448c7c9fc9424c337e378df07f111f9b8f",
+          "compressed_size": 27418,
+          "compression": "lzma",
+          "cpd_relative_offset": 929792,
+          "decompressed_sha256": "04c4f9833276bc4fe26969ba4fa195b1e330efba4d97f178987c8c4b170335ba",
+          "decompressed_size": 57344,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 15744,
+          "metadata_sha256": "e92963d1b1fd942671b9cb11c1de30312f7a529b1e63bfbf0b26826dd1d9c874",
+          "metadata_size": 252,
+          "strict_decompression": true
+        },
+        "fpf": {
+          "compressed_sha256": "40e9da01431dc7a40e82ba6a33e1ee7d9891c9ffa0cda02efb5ff56387681e47",
+          "compressed_size": 10833,
+          "compression": "lzma",
+          "cpd_relative_offset": 413696,
+          "decompressed_sha256": "9fd694bc90c7433528cfcf80ad265093cc61e086d882a3c52dee152ba64630b9",
+          "decompressed_size": 24576,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 12140,
+          "metadata_sha256": "2f5ecd89cfd900abf8dda056ee19b7d373bdda7a6a1ea0092e38404268de51ec",
+          "metadata_size": 268,
+          "strict_decompression": true
+        },
+        "heci": {
+          "compressed_sha256": "e6e69c0bc6b33ac5d7651cb999da9b6f97c682011fca43800c6ffd1adfab2770",
+          "compressed_size": 16560,
+          "compression": "lzma",
+          "cpd_relative_offset": 221184,
+          "decompressed_sha256": "82b7be7bb8069aebfb2c9f7a0e994500fe10d631e67a16f5a5fec71d29679125",
+          "decompressed_size": 36864,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 9728,
+          "metadata_sha256": "0826dda708681158fa6727e5dd50e5f7b8308869907e5d94dd5b458120429a59",
+          "metadata_size": 460,
+          "strict_decompression": true
+        },
+        "policy": {
+          "compressed_sha256": "c1bc3cf70ae11c394d51a596c16cc6b46afe9a89b18455e95b5facf0fad34ede",
+          "compressed_size": 21966,
+          "compression": "lzma",
+          "cpd_relative_offset": 131072,
+          "decompressed_sha256": "ce25f7a1dc6e6aa4d33d60801a653e36cee0338ba60b3143c596d44ca278c49b",
+          "decompressed_size": 49152,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 9028,
+          "metadata_sha256": "6aa33742c28436cd145ee24593d92bb74d69fe5ef6bf8ecf87ea23c3f93cd20c",
+          "metadata_size": 306,
+          "strict_decompression": true
+        },
+        "storage": {
+          "compressed_sha256": "b5e3800f624e45d39ba5f40f751d5c62f9d4cecc82a77c688d58b3b958aa7a0d",
+          "compressed_size": 37163,
+          "compression": "lzma",
+          "cpd_relative_offset": 241664,
+          "decompressed_sha256": "e7496ebc6f2c8d56ef80f77f8c5638457e1150d57e9afe39887c1c7a5b735ec7",
+          "decompressed_size": 69632,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 10188,
+          "metadata_sha256": "5fc788285b537a6426370fd8e8b478c1ca5508d318c26f08150819c10b59092a",
+          "metadata_size": 722,
+          "strict_decompression": true
+        },
+        "syslib": {
+          "cpd_relative_offset": 81920,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 3538,
+          "metadata_sha256": "32c133377bb1d14c18f5338824dbf7249d270e5b0ce9439d468f6e5353252724",
+          "metadata_size": 100,
+          "sha256": "dba068b882c11783af4e2c0b7911b3a0db90f9b22808f42ac3e8768e2dda961c",
+          "size": 77824
+        }
+      },
+      "nftp_cpd_offset": 2109440,
+      "nftp_manifest": {
+        "date_bcd": "2017-09-26",
+        "embedded_signature_valid": true,
+        "sha256": "d89f510f91eb9191e4b1e4a1a17b4675e3823953067ded257a6d78b2fb340ea4",
+        "signature_boundary": "self-consistency and byte binding only; no external ROM/fuse acceptance is established",
+        "size": 2464,
+        "version": "3.1.50.2222"
+      },
+      "sha256": "f6fc0373042c27f36e601fe957544582f3b1bd4be3c36659105322304b2dc7ac",
+      "size": 8388608
+    },
+    "later": {
+      "ftpr_cpd_offset": 131072,
+      "ftpr_manifest": {
+        "date_bcd": "2023-01-02",
+        "embedded_signature_valid": true,
+        "sha256": "d651c73c596a332b51b08845401a6adbef115765d4576518fdadf7dc856b68ab",
+        "signature_boundary": "self-consistency and byte binding only; no external ROM/fuse acceptance is established",
+        "size": 3092,
+        "version": "3.1.94.3086"
+      },
+      "label": "later-public-apl-ifwi",
+      "modules": {
+        "busdrv": {
+          "compressed_sha256": "01367ced626d1d28d2b7d6b53d6f7a9122b9c3dd9bea44bb60f6e0a842a9a3fc",
+          "compressed_size": 8934,
+          "compression": "lzma",
+          "cpd_relative_offset": 102400,
+          "decompressed_sha256": "9ca422bdab58503743f9c28ddaef42e73b375947c56934057abe1a2627b5180c",
+          "decompressed_size": 24576,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 7394,
+          "metadata_sha256": "8c86c18a719ef594c40caba9289d9568115722812ac11fdca86e8000477ddb3a",
+          "metadata_size": 608,
+          "strict_decompression": true
+        },
+        "dal_sdm": {
+          "compressed_sha256": "6d7ef0c44d54f55d627711290eee32fd2d93a2f63160bc64f9974ed2fa4a58ab",
+          "compressed_size": 30780,
+          "compression": "lzma",
+          "cpd_relative_offset": 954368,
+          "decompressed_sha256": "e68257a6bad5215343bc9e778653c7afab374396251a99883762abb1f5bea6cb",
+          "decompressed_size": 65536,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 15762,
+          "metadata_sha256": "f83fdb07ff68c025061e1d1261165f4810ffcf0db4a2b53e720de08dfb6811db",
+          "metadata_size": 254,
+          "strict_decompression": true
+        },
+        "fpf": {
+          "compressed_sha256": "7399b647bf86025e66b4da4ff8d2c59afdb5103323de06141df07576778fd8d3",
+          "compressed_size": 11396,
+          "compression": "lzma",
+          "cpd_relative_offset": 434176,
+          "decompressed_sha256": "2c188d8f1c0ee1a0eab08e716599149b370305033d2435c3745c7f399909713d",
+          "decompressed_size": 24576,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 12150,
+          "metadata_sha256": "da36c38d3ae4188ef97c5cde88990679ab83d6512b80f07dfe84adfcc819a387",
+          "metadata_size": 268,
+          "strict_decompression": true
+        },
+        "heci": {
+          "compressed_sha256": "476859e3370a40da2e4efd97ae77e185636ed013273609281225679b7bf748aa",
+          "compressed_size": 17501,
+          "compression": "lzma",
+          "cpd_relative_offset": 229376,
+          "decompressed_sha256": "04dceeb0b42db7910d913545b9b2342e9a26349c8e9d2e2bede201af62bf3b8f",
+          "decompressed_size": 36864,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 9776,
+          "metadata_sha256": "4dc5d0526d8ee8702bcf70c85fc221dc519467cd3f28137bb123ae38a836867d",
+          "metadata_size": 460,
+          "strict_decompression": true
+        },
+        "policy": {
+          "compressed_sha256": "11f48d5115b3a808b7d4768c9f80fb587a320838299d6e6e49101a10a438a760",
+          "compressed_size": 22676,
+          "compression": "lzma",
+          "cpd_relative_offset": 135168,
+          "decompressed_sha256": "5de19a139270b6b7f17b6e793868ff98a470255fcf6d5363c14df6cc4347ff7c",
+          "decompressed_size": 49152,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 9074,
+          "metadata_sha256": "366f0affd894114ae8c6cc4a82549824a3e1d7413d5713050458d0916fec6697",
+          "metadata_size": 308,
+          "strict_decompression": true
+        },
+        "storage": {
+          "compressed_sha256": "be230d7138c0b8e1225f261f271fb8eecca972c2feec05ae823b0a54c13806b8",
+          "compressed_size": 37946,
+          "compression": "lzma",
+          "cpd_relative_offset": 249856,
+          "decompressed_sha256": "de773f376beec0e44f7ca60547b1e5a71c1d967672decad34022f882b2cfb871",
+          "decompressed_size": 69632,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 10236,
+          "metadata_sha256": "a20a766ebfb87f6e4a20e7ada9336d2867cbf375f4a962dd69ad13ea97085bfa",
+          "metadata_size": 698,
+          "strict_decompression": true
+        },
+        "syslib": {
+          "cpd_relative_offset": 86016,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 3538,
+          "metadata_sha256": "c8ec94cba63321c61164af57f3e33a33c606b6a0ab232cb7bd1080bd9fe09727",
+          "metadata_size": 100,
+          "sha256": "d0f68eb4c9096ef6d7ed0c3046404b2b70efce9c7b4d065b8dde29f3bde0dfdd",
+          "size": 77824
+        }
+      },
+      "nftp_cpd_offset": 1339392,
+      "nftp_manifest": {
+        "date_bcd": "2023-01-02",
+        "embedded_signature_valid": true,
+        "sha256": "8a4d7cbe064da9bfcc89514e9bcfd56ad068dd04572c5c3a15abaa02d307df95",
+        "signature_boundary": "self-consistency and byte binding only; no external ROM/fuse acceptance is established",
+        "size": 2464,
+        "version": "3.1.94.3086"
+      },
+      "sha256": "75a866331d8f23d023bbdcf9efdfee7b57bf4727eb50f6162940a2a51cb57b4a",
+      "size": 16773120
+    }
+  },
+  "later_heci_exact_static_review": {
+    "advisory_attribution": "The later image adds stricter reserved/header-bit validation and a bounded extended-header parser. Because 3.1.94 is not the first fixed 3.1.55 build and spans years of intervening changes, this comparison does not identify any delta as CVE-2018-12147 or CVE-2018-3655's exact fix.",
+    "code_base": 155648,
+    "exact_static_observations": {
+      "bit_28_extended_header_parser_added": true,
+      "control_header_now_requires_bit_31_and_rejects_extended_bit_28": true,
+      "control_payload_bound_changed_from_4_to_8_bytes_to_4_to_40_bytes": true,
+      "dma_ring_bit_29_now_rejected_before_payload_dispatch": true,
+      "extended_header_parser_checks_encoded_size_against_payload_and_0x1fc_destination": true,
+      "extended_header_parser_requires_exact_single_entry_geometry": true,
+      "fragment_length_above_0x1fc_rejected": true,
+      "nine_bit_fragment_length_retained": true,
+      "primary_payload_copy_still_uses_0x1fc_destination_bound": true
+    },
+    "instruction_ranges": {
+      "client_lookup": {
+        "file_range": [
+          12370,
+          12436
+        ],
+        "runtime_range": [
+          168018,
+          168084
+        ],
+        "sha256": "0b7634ab4b6af9e543ea8afbdd3feedb68c5aada26400b0db8b2ff5af9fa5266",
+        "size": 66
+      },
+      "connection_lookup": {
+        "file_range": [
+          12436,
+          12553
+        ],
+        "runtime_range": [
+          168084,
+          168201
+        ],
+        "sha256": "86f2ac3493e735de1788d98144a0e2480b0801591522ee0a80c04c6056f3ef16",
+        "size": 117
+      },
+      "extended_header_parser": {
+        "file_range": [
+          15058,
+          15370
+        ],
+        "runtime_range": [
+          170706,
+          171018
+        ],
+        "sha256": "f3ed29ecdcd43505ac0824e7b4762bde7bc29c477747a891f5646cb5a3e49e42",
+        "size": 312
+      },
+      "fifo_bounded_copy": {
+        "file_range": [
+          10202,
+          10453
+        ],
+        "runtime_range": [
+          165850,
+          166101
+        ],
+        "sha256": "5b8eafc086806a31c4d8adff2fd079d65b6ab205bd09a730cb7e252df7efa764",
+        "size": 251
+      },
+      "payload_consumer": {
+        "file_range": [
+          11078,
+          12370
+        ],
+        "runtime_range": [
+          166726,
+          168018
+        ],
+        "sha256": "6ef9be6f6d5d37d30dfab717dd8651118a7e8510ccce8455c72d83c473019d9e",
+        "size": 1292
+      },
+      "receive_dispatch": {
+        "file_range": [
+          6298,
+          7928
+        ],
+        "runtime_range": [
+          161946,
+          163576
+        ],
+        "sha256": "4aea1addeb7e4e4fef929be25f3eb879a0114673e7572ec8c4b1d9dcff03fe64",
+        "size": 1630
+      }
+    },
+    "reviewed_signature_occurrences": {
+      "control_maximum_0x28": 1,
+      "control_requires_bit31_and_rejects_bit28": 1,
+      "fragment_maximum_0x1fc": 1,
+      "nine_bit_length_mask": 1,
+      "reject_header_bit_29": 1
+    }
+  },
+  "schema": "ioniq-txe-fixed-module-diff/v1"
+}

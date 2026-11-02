@@ -5,7 +5,7 @@ belongs to the parallel Kona programme and is not modified by IONIQ work.
 
 ## 2.63.0 - why hand-started measurements keep dying: the app manager kills the duplicate
 
-- Attempted to trace the hand-started app's Wayland calls with the chain's compвтороmanager present. It was gone before the 45-second checkpoint, and the kernel
+- Attempted to trace the hand-started app's Wayland calls with the chain's application manager present. It was gone before the 45-second checkpoint, and the kernel
   log shows **no segfault for it** — the only fault in that window is `AppNavi[815]: segfault at 8 … in libQt5Core.so.5.4.1`, the known boot crash.
 - The explanation fits everything observed today: `ApplicationManager` is running and already supervises an `AppHomeScreen`. Killing that process and starting
   our own creates a **second instance that the manager does not know about**, and an application manager that supervises window ownership will stop it. That is

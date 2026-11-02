@@ -63,6 +63,33 @@ recognized 25,147 functions, renamed 25,068, and decompiled 48 of 49 selected
 security-relevant functions. These are static observations; they do not prove
 that a particular interface is reachable from an unprivileged process.
 
+## Exact boot-key provisioning boundary
+
+The recovered `rel.1714-HF3` flash now establishes this exact pre-boot chain:
+
+```text
+selected UEP OEM-key field
+  → RBE modulus-plus-exponent digest comparison
+  → oem.key embedded RSA and Extension-14 validation
+  → exact-length oem_key_man object
+  → BUP FIT type 0x0b publication
+  → IBBL/stage-1 usage-39 IAS carried-key comparison
+```
+
+RBE reads mode nibble `(dword[0xf6170810] >> 24) & 0x0f`. It selects the
+`0xf6170800..0xf61708ff` hardware-window route when at least one of bits 3..2
+and at least one of bits 1..0 are set; otherwise it loads CRC-checked BPDT
+type-17 UEP with a fallback candidate. UEP field `0x20` is a 256-bit OEM-key
+digest and pins the stored `oem.key` public modulus plus exponent before RSA
+verification. A newly self-signed IAS image therefore remains insufficient.
+
+This narrows, but does not remove, the custom-firmware boundary. A theoretical
+key-reprovisioning path would additionally require proof that the selected UEP
+source is owner-writable, not overridden by real FPFs/fuses, and accepted by all
+earlier signed IFWI and Boot Guard stages. None of those conditions is proved.
+No modified UEP, key manifest, boot container, or flash workflow is produced by
+this research.
+
 ## Feasibility paths
 
 | Path | What it could provide | Preconditions | Exact `260128` result |

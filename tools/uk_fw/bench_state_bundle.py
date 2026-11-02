@@ -540,7 +540,7 @@ if [ "$RS_STATE" = present ]; then
     for I_ARG in $I_CMDLINE
     do
         case "$I_ARG" in
-            root=*|rootfstype=*|rootflags=*|rootwait|ro|rw|init=*|console=*|earlycon=*|oemkm=*|security=*|smack*)
+            root=*|rootfstype=*|rootflags=*|rootwait|ro|rw|init=*|console=*|earlycon=*|oemkm=*|ABL.oemkm=*|security=*|smack*)
                 record cmdline-allowlisted "$I_ARG"
                 ;;
         esac

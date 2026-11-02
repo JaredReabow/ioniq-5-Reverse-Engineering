@@ -23,6 +23,9 @@ Downstream callback bodies remain a separate continuation.
     (`kCmdIdentificationUpdate`).
 - Bound plain `%s` logging of length-delimited byte pointers in AppLaunch,
   PlayMediaLibrary, and Communications callers.
+- Bound the complete logger at `0x6fa6..0x7277`: `vsnprintf` limits formatted
+  output to the remainder of a `0x400`-byte canary-protected stack buffer, but
+  plain `%s` remains unaware of the source field's recovered length.
 
 ## Deliverables
 
@@ -34,20 +37,20 @@ Downstream callback bodies remain a separate continuation.
 Artifact:
 
 - schema `ioniq-iap2-marshal-getbytes-audit/v1`;
-- tool version `1.0.0`;
-- size `27,905` bytes;
+- tool version `1.1.0`;
+- size `29,540` bytes;
 - file SHA-256
-  `d5182ffe5700c481a45c568810b00b5813cf027b42ff883ad74b4dfc9df2f5f6`;
+  `20efbb7ce982d12e36ce7537602deb6d918c522a24c326fad157689cd14f8fbf`;
 - canonical SHA-256
-  `ef94c5f75e30855ed0c0cf9f178f9e4f93dcda34ba1a1ce7b205334fe5f0417d`.
+  `d5dc0a104ee3b9de9c148e9bfdbc578b75f54ed66eeb4ddfd3f76de58afceeb6`.
 
 ## Validation
 
 - focused pytest: `4 passed`;
 - projection-focused pytest: `24 passed`;
-- canonical suite: `1094 passed, 352357 subtests passed in 174.44s`;
+- canonical suite: `1094 passed, 352357 subtests passed in 184.21s`;
 - final canonical suite-log SHA-256:
-  `f94a904c811374eac3b9c5c328604577cd8c2f36e89a37503cd251bd81f4ace2`;
+  `c5cc71f824d3bac61345a4df773716f3267b26eceab1737e646c59659cd7d707`;
 - `py_compile`: passed;
 - deterministic reproduction: passed;
 - exclusive no-overwrite output: tested;

@@ -135,10 +135,19 @@ no precision bound such as `%.*s`:
 
 If a received byte field lacks a null terminator within its declared extent,
 plain `%s` can continue reading beyond that logical field until another null is
-encountered. This is an exact-static unbounded-read candidate. Its concrete
-extent and effect depend on transaction allocation, alignment padding, protocol
-conformance, and the logger implementation. No live disclosure, crash, log
-consumer, or attacker-visible boundary is established.
+encountered. This is an exact-static unbounded-source-read candidate.
+
+The logger is now also exact. Its complete FDE is `0x6fa6..0x7277`, SHA-256
+`3a866c421d32438553f151f347a2e7c04fd153a447281aa64625a774d51610ae`.
+It builds a prefix in a `0x400`-byte stack buffer, computes the remaining
+capacity, and calls `vsnprintf` with only that remainder before passing the
+resulting string to the downstream logging sink. A stack canary protects the
+frame. This bounds formatted output and excludes a demonstrated logger
+*destination* overflow on the reviewed path; it does not make plain `%s`
+length-aware with respect to the source field. The source-read extent and effect
+still depend on transaction allocation, alignment padding, protocol conformance,
+and libc formatting behavior. No live disclosure, crash, log consumer, or
+attacker-visible boundary is established.
 
 ## Reproduction
 
@@ -153,10 +162,10 @@ Tracked artifact:
 
 - path: `evidence/artifacts/projection-candidates/iap2-marshal-getbytes-audit.json`
 - schema: `ioniq-iap2-marshal-getbytes-audit/v1`
-- tool version: `1.0.0`
-- size: `27,905` bytes
-- file SHA-256: `d5182ffe5700c481a45c568810b00b5813cf027b42ff883ad74b4dfc9df2f5f6`
-- canonical SHA-256: `ef94c5f75e30855ed0c0cf9f178f9e4f93dcda34ba1a1ce7b205334fe5f0417d`
+- tool version: `1.1.0`
+- size: `29,540` bytes
+- file SHA-256: `20efbb7ce982d12e36ce7537602deb6d918c522a24c326fad157689cd14f8fbf`
+- canonical SHA-256: `d5dc0a104ee3b9de9c148e9bfdbc578b75f54ed66eeb4ddfd3f76de58afceeb6`
 
 The tool uses stable no-follow reads, exact identity checks, ELF PT_LOAD address
 mapping, exact range hashes and instruction anchors, ASCII canonical JSON, and

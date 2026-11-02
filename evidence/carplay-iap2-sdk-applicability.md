@@ -88,9 +88,11 @@ issues remain distinct from the bounded generic helper:
   `kCmdIdentificationUpdate` (`0x2f95`); and
 - AppLaunch, PlayMediaLibrary, and Communications branches pass recovered
   length-delimited byte pointers to plain `%s` logging without a local
-  terminator check or precision bound.
+  terminator check or precision bound. The exact logger uses `vsnprintf` with
+  the remainder of a `0x400`-byte canary-protected output buffer, excluding a
+  demonstrated destination overflow while retaining the source-read question.
 
-These are exact-static denial-of-service and unbounded-read candidates only.
+These are exact-static denial-of-service and unbounded-source-read candidates only.
 Physical delivery, admission, process impact, attacker-visible disclosure, CVE
 identity, and installed-unit applicability remain unproved. This also does
 **not** clear other iAP2 event handlers, downstream callbacks, TLV parsers,

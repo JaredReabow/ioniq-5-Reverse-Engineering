@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "ioniq-iap2-marshal-getbytes-audit/v1"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 MAX_FILE_BYTES = 64 * 1024 * 1024
 ELF_HEADER = struct.Struct("<16sHHIQQQIHHHHHH")
 PROGRAM_HEADER = struct.Struct("<IIQQQQQQ")
@@ -98,6 +98,21 @@ CALL_BYTES = {
     0x4F1C4: "e8d75dfbff", 0x5A4F1: "e8aaaafaff", 0x5A5C1: "e8daa9faff",
     0x5A71A: "e881a8faff", 0x5A873: "e828a7faff", 0x5AB0B: "e890a4faff",
     0x5AD05: "e896a2faff",
+}
+
+SERVICE_SUPPORT_RANGES = {
+    "variadic_logger": (0x6FA6, 0x7277, "3a866c421d32438553f151f347a2e7c04fd153a447281aa64625a774d51610ae"),
+}
+
+SERVICE_SUPPORT_ANCHORS = {
+    "bounded_vsnprintf_dispatch": (
+        0x71BF,
+        "b8000400002b850cfbffff85c07e37b8000400002b850cfbffff4898488d8d30fbffff8b950cfbffff4863d2488d3c11488d8d18fbffff488b95e0faffff4889c6e89bd8ffff",
+    ),
+    "formatted_buffer_length_and_sink": (
+        0x7205,
+        "488d8530fbffff4889c7e80cd7ffff483dfeffff7f760e488d3d55b40600e8a8deffffeb30488d8530fbffff4889c7e8e7d6ffff488d5001488d8d30fbffff8b85fcfaffff4889ce89c7e8b2f7ffff",
+    ),
 }
 
 WRAPPER_CALLER_RANGES = {
@@ -281,6 +296,8 @@ def build_report(framework: bytes, service: bytes) -> dict[str, Any]:
         "framework_ranges": verify_ranges(framework, framework_segments, FRAMEWORK_RANGES),
         "framework_anchors": {name: verify_anchor(framework, framework_segments, va, expected) for name, (va, expected) in FRAMEWORK_ANCHORS.items()},
         "service_caller_ranges": verify_ranges(service, service_segments, CALLER_RANGES),
+        "service_support_ranges": verify_ranges(service, service_segments, SERVICE_SUPPORT_RANGES),
+        "service_support_anchors": {name: verify_anchor(service, service_segments, va, expected) for name, (va, expected) in SERVICE_SUPPORT_ANCHORS.items()},
         "direct_calls": direct_calls,
         "heap_string_wrapper_caller_ranges": verify_ranges(service, service_segments, WRAPPER_CALLER_RANGES),
         "heap_string_wrapper_calls": wrapper_calls,
@@ -321,10 +338,11 @@ def build_report(framework: bytes, service: bytes) -> dict[str, Any]:
                 "impact_boundary": "a faulting libc read is a static candidate; live delivery, process termination, supervisor behavior, and user-visible impact are not demonstrated",
             },
             "percent_s_consumers": {
-                "classification": "exact-static unbounded-string-read candidates",
+                "classification": "exact-static unbounded-source-read candidates with bounded formatted output",
                 "locations": ["SessionAppLaunch command 0x2f45", "SessionPlayMediaLibrary command 0x2f84", "SessionCommunications commands 0x2fa3/0x2fa4/0x2fa5/0x2fa8/0x2faa"],
-                "mechanism": "recovered length-delimited byte pointers are passed to %s logging without a local terminator check or precision bound in the reviewed caller ranges",
-                "impact_boundary": "the exact extent depends on transaction allocation, padding, protocol conformance, and logger implementation; no live disclosure, crash, or cross-boundary log exposure is demonstrated",
+                "mechanism": "recovered length-delimited byte pointers are passed to plain %s logging without a local terminator check or precision bound; the exact logger at 0x6fa6..0x7277 formats through vsnprintf with at most the remainder of a 0x400-byte stack buffer",
+                "output_boundary": "the reviewed logger bounds formatted output and has a stack canary, so this is not a demonstrated logger-destination overflow; plain %s still requires source-string traversal rather than respecting the recovered field length",
+                "impact_boundary": "the exact source-read extent depends on transaction allocation, padding, protocol conformance, and libc formatting behavior; no live disclosure, crash, or cross-boundary log exposure is demonstrated",
             },
         },
         "assessment": {
@@ -333,7 +351,8 @@ def build_report(framework: bytes, service: bytes) -> dict[str, Any]:
                 "31 exact direct PLT calls across 11 reviewed service functions",
                 "22 exact calls to the null-return-consuming heap-string wrapper from two identification-related command handlers",
                 "bounded aligned remaining-length enforcement and absence of a copy in the generic helper",
-                "one exact null-return consumer and multiple exact unbounded %s consumers",
+                "one exact null-return consumer and multiple exact plain-%s consumers",
+                "the exact logger bounds formatted output through vsnprintf to the remainder of a 0x400-byte stack buffer",
             ],
             "not_demonstrated": [
                 "physical phone-to-handler delivery, successful iAP2 admission/authentication, or session eligibility",

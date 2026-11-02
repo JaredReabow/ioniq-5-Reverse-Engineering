@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.64.0 - THE APP COMMITS FRAMES: the vendor shell integration wanted a forced, non-zero surface id
+
+- Found the gate, and it is the environment variable the launcher sets to zero. Running the application standalone (no `ApplicationManager`, ten screens,
+  `hmi-controller` loaded) with `WAYLAND_DEBUG=1` and the tracer attached, the protocol log finally contains what this investigation has been looking for since
+  the beginning:
+  ```
+  -> wl_compositor@4.create_surface(new id wl_surface@42)
+  -> wl_compositor@4.create_surface(new id wl_surface@65)
+  -> ivi_controller@40.surface_create(0, new id ivi_controller_surface@68)
+  -> wl_surface@65.attach(wl_buffer@73, 0, 0)
+  ```
+  Counts in that run: `create_surface` 4, `attach` 1, `commit` 2, `ivi_controller.surface_create` 1.
+- **The difference is two environment variables:**
+  `QT_WAYLAND_SET_SURFACE_ID=1000` **and** `QT_WAYLAND_SET_SURFACE_ID_FORCED=1`. With them, the vendor integration goes through
+  `createShellSurface` → surface creation → buffer attach → commit. Without them, and with the launcher's `QT_WAYLAND_SET_SURFACE_ID=0`, it enters
+  `IviShellIntegration::createShellSurface` and returns **without** calling `IviShellPrivate::createShellSurface` or `HmiRequesterPrivate::requestId` — which the
+  extended tracer confirms (those two never fire, while the integration-level call fires exactly once).
+- So the vendor's IVI integration **silently declines to create a surface unless it is handed a non-zero surface id and told to force it.** That is the whole
+  cause of "the client submits nothing", and it was never a graphics, compositor or QML problem.
+- Caveats recorded honestly: the process was gone by the end of that run, so no frame image exists from it; the surface id `1000` collides with the layer ids in
+  our shell configuration, so whether it is stable, and which id the vendor intends, still needs establishing. Screenshot capture also failed again.
+- Next: find an id that keeps the application alive, capture a frame, and then decide how to supply the variable in the chain. Separately, a client-controlled
+  forced surface id is worth a look from the security side, since it lets a process claim a window identity it was not allocated.
+
 ## 2.63.0 - why hand-started measurements keep dying: the app manager kills the duplicate
 
 - Attempted to trace the hand-started app's Wayland calls with the chain's application manager present. It was gone before the 45-second checkpoint, and the kernel

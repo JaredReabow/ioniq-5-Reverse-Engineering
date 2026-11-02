@@ -4127,3 +4127,11 @@ and are superseded by corrections rather than silently rewritten.
   it did not launch.
 - That single fact quietly undermines a measurement method used all day. Several results were the supervisor, not the hypothesis.
 - Third time today the instrument was the problem: a flooded console, a five-second race, and now a supervisor that treats my experiment as a rogue process.
+
+## 2026-10-31 — the client was never the problem; the environment was
+
+- The application creates surfaces, attaches a buffer and commits the moment it is given a forced, non-zero surface id. Without that it enters the vendor shell
+  integration, declines, and returns.
+- This has been the answer to "why does nothing appear" for the entire investigation, and it is two environment variables set by the vendor launcher to zero.
+- Recorded with its caveats: the process died, no frame was captured, and the id I used collides with our layer numbering. But the surfaces exist now, and they are
+  the application's own.

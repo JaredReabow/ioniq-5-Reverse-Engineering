@@ -99,3 +99,60 @@ void _ZN19IviShellIntegration18createShellSurfaceEP14QWaylandWindowRK7QString(
 		real_create(self, window, title);
 	trace("createShellSurface() return\n");
 }
+
+/* IviShellPrivate::createShellSurface(QWaylandWindow*, unsigned int) — the vendor's
+ * actual surface creator; IviShellIntegration calls into this one, and the surface id
+ * is already an argument here, so logging it tells us what the HMI layer handed over. */
+void _ZN15IviShellPrivate18createShellSurfaceEP14QWaylandWindowj(void *self,
+								 void *window,
+								 unsigned int id)
+{
+	static void (*real_create)(void *, void *, unsigned int);
+	char line[96];
+	int fd;
+
+	fd = open(LOG_PATH, O_WRONLY | O_APPEND | O_CREAT, 0644);
+	if (fd >= 0) {
+		int n = 0;
+		const char *head = "IviShellPrivate::createShellSurface id=";
+
+		write(fd, head, strlen(head));
+		if (id == 0)
+			write(fd, "0\n", 2);
+		else {
+			/* decimal without stdio, to stay allocation-free inside a Qt entry point */
+			char digits[12];
+			int d = 0;
+			unsigned int v = id;
+			while (v && d < 11) { digits[d++] = (char)('0' + (v % 10)); v /= 10; }
+			while (d--) line[n++] = digits[d];
+			line[n++] = '\n';
+			write(fd, line, n);
+		}
+		close(fd);
+	}
+
+	if (!real_create)
+		real_create = dlsym(RTLD_NEXT,
+				    "_ZN15IviShellPrivate18createShellSurfaceEP14QWaylandWindowj");
+	if (real_create)
+		real_create(self, window, id);
+}
+
+/* HmiRequesterPrivate::requestId(QWaylandWindow*, QString const&) — the request for a
+ * surface id from the compositor's HMI layer. Reaching this is the gate; returning from
+ * it is the answer. */
+void _ZN19HmiRequesterPrivate9requestIdEP14QWaylandWindowRK7QString(void *self,
+								  void *window,
+								  const void *name)
+{
+	static void (*real_request)(void *, void *, const void *);
+
+	trace("HmiRequesterPrivate::requestId enter\n");
+	if (!real_request)
+		real_request = dlsym(RTLD_NEXT,
+				     "_ZN19HmiRequesterPrivate9requestIdEP14QWaylandWindowRK7QString");
+	if (real_request)
+		real_request(self, window, name);
+	trace("HmiRequesterPrivate::requestId return\n");
+}

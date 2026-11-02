@@ -83,6 +83,25 @@ Neither CVE by itself proves a way to replace `ipub_key`, UEP, `rot.key`, the
 persistent `/snowball` policy objects, or a signed boot manifest. Those
 consequences require exact client/protocol and write-authority evidence.
 
+## Intel's public recovery tool is not a firmware flasher
+
+Intel's advisory links the public repository
+`intel/INTEL-SA-00086-Linux-Recovery-Tools`, reviewed at commit
+`a36d2c80e4c1782daab8d20d629ca91717fea33c`:
+
+- `README.md` SHA-256
+  `9e8b2aa709392e21c5326d5b860ff9c262c5ff616e4cc046883becfc6e8092fa`;
+- `Intel-SA-00086-Recovery-Tool` SHA-256
+  `be5bcf00ff34171104016232648a2c361745dc9760e247753b5ff6a965be6245`.
+
+The repository describes post-update **platform-key reprovisioning** and
+requires Intel PTT, the TPM CRB driver, `/dev/tpm*`, and the MEI driver. Its
+published tool is a shell workflow around TPM2 and endorsement-certificate
+operations. It neither supplies the TXE firmware update nor documents the
+SA-00125 HECI flaw, `/snowball` access, a CSE filesystem writer, or arbitrary
+key installation. It nevertheless justifies collecting passive TPM/PTT state
+alongside MEI identity on the future bench.
+
 ## Practical research consequence
 
 For a future disconnected bench, the safe order is:

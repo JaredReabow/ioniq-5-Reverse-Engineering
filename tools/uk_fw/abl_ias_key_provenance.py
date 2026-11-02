@@ -94,6 +94,15 @@ CSE_RBE_RANGES = {
     "runtime_object_handoff_append": (0x158C, 0x1654, "ff433d29a0d043f35609d377e51d218be1fe97d2d8c5e170ceabafece459e006"),
     "rot_key_validation": (0x2A9F, 0x2ADA, "1730fad17c09ae4e10d74c21639905acc97efac3298debcbb92e3999936ad083"),
 }
+CSE_FTPR_KERNEL_SHA256 = "cf7dd5fc9918f96ffd2352d09a3e303471a768b3a6ee056089dd7a3d5c00bfdf"
+CSE_FTPR_KERNEL_METADATA_SHA256 = "f6c17c5b9ce1fc218da9608fce470dfa28fe180d4ec8909da71aa93bbb4b75ed"
+CSE_FTPR_KERNEL_CODE_BASE = 0x80000
+CSE_FTPR_KERNEL_RANGES = {
+    "handoff_page_range_setup": (0x4F4, 0x518, "1592ccf012d9a11485556e08672b44da3f5a726769909f8fd9d5d80686ff6996"),
+    "handoff_iterator_init": (0x169F, 0x16D7, "720c7d471eb5cc7c2276dce1304c1b48d1158471beefeb36dbce2c19232f9b78"),
+    "handoff_iterator_advance": (0xEDC6, 0xEE19, "d9f0fbf021d78ba650ff17217081e6ef2985fb952bb747eac6c19347536d32cb"),
+    "handoff_copy": (0xEE19, 0xEE7C, "b7cb1558ae1de8b9d3ecfb93a766dcc5a6427eb83e76f8261044ecf1e59fc1d8"),
+}
 CSE_BUP_SHA256 = "cee77bc172a9df1c4088d5f716b9e55cda539a26656d07a92268c3cd5d4f0165"
 CSE_BUP_CODE_BASE = 0x26000
 CSE_BUP_RANGES = {
@@ -342,6 +351,44 @@ def extract_cse_rbe(abl: bytes) -> bytes:
     if len(rbe) != 0x9000 or hashlib.sha256(rbe).hexdigest() != CSE_RBE_SHA256:
         raise Failure("CSE RBE identity drift")
     return rbe
+
+
+def extract_cse_ftpr_kernel(abl: bytes) -> tuple[bytes, bytes, bytes]:
+    cpd = 0x11E000
+    if struct.unpack_from("<IIBBBBI", abl, cpd)[:6] != (0x44504324, 12, 1, 1, 16, 150):
+        raise Failure("FTPR CPD header drift")
+    entries = []
+    for index in range(12):
+        raw_name, raw_offset, size, _ = struct.unpack_from("<12sIII", abl, cpd + 0x10 + index * 24)
+        entries.append((raw_name.rstrip(b"\0").decode("ascii"), raw_offset & 0x1FFFFFF, size))
+    expected = {
+        "FTPR.man": (0x130, 0xC14),
+        "kernel": (0x2000, 0x12000),
+        "kernel.met": (0xD44, 0x8E),
+    }
+    selected = {name: (offset, size) for name, offset, size in entries if name in expected}
+    if selected != expected:
+        raise Failure("FTPR kernel members drift")
+    manifest = abl[cpd + 0x130 : cpd + 0x130 + 0xC14]
+    metadata = abl[cpd + 0xD44 : cpd + 0xD44 + 0x8E]
+    kernel = abl[cpd + 0x2000 : cpd + 0x2000 + 0x12000]
+    if hashlib.sha256(metadata).hexdigest() != CSE_FTPR_KERNEL_METADATA_SHA256:
+        raise Failure("FTPR kernel metadata identity drift")
+    if hashlib.sha256(kernel).hexdigest() != CSE_FTPR_KERNEL_SHA256:
+        raise Failure("FTPR kernel identity drift")
+    if manifest.count(hashlib.sha256(metadata).digest()[::-1]) != 1:
+        raise Failure("FTPR manifest to kernel metadata binding drift")
+    if metadata.count(hashlib.sha256(kernel).digest()[::-1]) != 1:
+        raise Failure("FTPR kernel metadata to kernel binding drift")
+    extensions = parse_metadata_extensions(metadata, "FTPR kernel metadata")
+    if sorted(extensions) != [5, 10, 11]:
+        raise Failure("FTPR kernel metadata extension set drift")
+    process = extensions[5]
+    if struct.unpack_from("<I", process, 0x10)[0] != CSE_FTPR_KERNEL_CODE_BASE:
+        raise Failure("FTPR kernel code base drift")
+    if struct.unpack_from("<I", process, 0x24)[0] != CSE_FTPR_KERNEL_CODE_BASE:
+        raise Failure("FTPR kernel entry point drift")
+    return kernel, metadata, manifest
 
 
 def extract_cse_bup(abl: bytes) -> bytes:
@@ -915,6 +962,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     abl = archive_one(update)
     ibbl, stage1 = extract_ibb(abl)
     cse_rbe = extract_cse_rbe(abl)
+    cse_ftpr_kernel, cse_ftpr_kernel_metadata, _cse_ftpr_manifest = extract_cse_ftpr_kernel(abl)
     cse_bup = extract_cse_bup(abl)
     cse_signed_module_chains = parse_cse_signed_module_chains(abl, cse_rbe, cse_bup)
     cse_root_and_boot_policy_chains = parse_cse_root_and_boot_policy_chains(abl)
@@ -924,6 +972,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     ibbl_ranges = check_ranges(ibbl, IBBL_RANGES, "IBBL")
     stage_ranges = check_ranges(stage1, STAGE1_RANGES, "stage-1")
     cse_rbe_ranges = check_ranges(cse_rbe, CSE_RBE_RANGES, "CSE RBE")
+    cse_ftpr_kernel_ranges = check_ranges(cse_ftpr_kernel, CSE_FTPR_KERNEL_RANGES, "CSE FTPR kernel")
     cse_bup_ranges = check_ranges(cse_bup, CSE_BUP_RANGES, "CSE BUP")
 
     # Fixed exact instruction and string anchors within the hash-bound ranges.
@@ -986,6 +1035,12 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
         raise Failure("CSE RBE runtime-object first-entry reference drift")
     if cse_rbe[0x7F74:0x7F78] != bytes.fromhex("60010001"):
         raise Failure("CSE RBE UEP OEM-hash field descriptor drift")
+    if cse_ftpr_kernel[0x4F4:0x503] != bytes.fromhex("68008020086800002008e875feffff"):
+        raise Failure("CSE FTPR kernel handoff range setup drift")
+    if cse_ftpr_kernel[0x169F:0x16D7].count(struct.pack("<I", 0x08200008)) != 2:
+        raise Failure("CSE FTPR kernel handoff iterator first-entry references drift")
+    if cse_ftpr_kernel[0x16AC:0x16B3] != bytes.fromhex("833d0000200808"):
+        raise Failure("CSE FTPR kernel handoff minimum-size check drift")
     if cse_rbe[0x3AF3:0x3B13] != bytes.fromhex(
         "8a45f26838800406c0e8046800010000a2588004066a2056e83b3c000083c410"
     ):
@@ -1224,6 +1279,37 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                 "transformation_before_publication_observed": False,
                 "source_to_destination_exact_length_copy_proved": True,
             },
+            "cse_ftpr_kernel_handoff_consumer": {
+                "cpd": "FTPR",
+                "member": "kernel",
+                "flash_offset": 0x120000,
+                "size": len(cse_ftpr_kernel),
+                "sha256": CSE_FTPR_KERNEL_SHA256,
+                "metadata_member": "kernel.met",
+                "metadata_flash_offset": 0x11ED44,
+                "metadata_size": len(cse_ftpr_kernel_metadata),
+                "metadata_sha256": CSE_FTPR_KERNEL_METADATA_SHA256,
+                "code_base": CSE_FTPR_KERNEL_CODE_BASE,
+                "main_thread_entry": CSE_FTPR_KERNEL_CODE_BASE,
+                "instruction_ranges": cse_ftpr_kernel_ranges,
+                "ftpr_manifest_binds_kernel_metadata_reverse_sha256": True,
+                "kernel_metadata_binds_kernel_reverse_sha256": True,
+                "handoff_range_start": 0x08200000,
+                "handoff_range_end": 0x08208000,
+                "handoff_base_global": 0x99DEC,
+                "handoff_entry_global": 0x99DF4,
+                "handoff_payload_cursor_global": 0x99DF0,
+                "minimum_nonempty_total_size": 8,
+                "first_entry": 0x08200008,
+                "entry_total_size_offset": 0x0E,
+                "entry_state_offset": 0x0D,
+                "entry_state_mask": 0x03,
+                "accepted_entry_state": 1,
+                "same_handoff_geometry_as_rbe_proved": True,
+                "handoff_survives_into_ftpr_kernel_proved": True,
+                "pre_rbe_producer_or_hardware_anchor_proved": False,
+                "boundary": "the signed FTPR kernel consumes the same 0x08200000 runtime-object geometry after RBE; this continuity does not identify or authenticate the pre-RBE producer",
+            },
             "cse_bup_fit_producer": {
                 "cpd": "FTPR",
                 "member": "bup",
@@ -1369,6 +1455,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "rbe_and_bup_signed_module_byte_chains_proved": True,
             "rbe_runtime_ipub_key_pins_rot_key_proved": True,
             "rbe_ipub_key_consumed_from_incoming_0x08200000_handoff_proved": True,
+            "same_handoff_consumed_by_signed_ftpr_kernel_proved": True,
             "pre_rbe_handoff_producer_or_authenticator_proved": False,
             "shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved": True,
             "bup_ipub_key_runtime_object_or_snowball_resolution_proved": True,
@@ -1396,7 +1483,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "Hash-bound historical Apollo Lake Slim Bootloader source independently matches the exact target's chunk-count field, four-slot interpretation, size field, low-four-bit XOR handshake, slot geometry, source expression, acknowledgement, and PCI configuration offsets.",
             "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
             "The RBE-to-BUP-to-IBBL path binds the runtime type-0x0b payload to exact FTPR oem.key bytes. The recovered set's runtime expected usage-39 digest is therefore 9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af.",
-            "Exact RBE looks up ipub_key in an incoming bounded runtime-object handoff at 0x08200000, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. RBE can append other handoff objects but its ipub_key path does not create that entry. Exact BUP's corresponding manifest path resolves ipub_key either from a runtime object or from /snowball/ipub_key depending on global 0xa014c, then accepts a selector no greater than 0x23 and supplies a selected 32-byte digest to its verifier. The exact Intel digest occurs statically only in rot.key's Extension-14 record. These paths do not prove who populated or authenticated the pre-RBE handoff, that it is immutable, or that the snowball branch is active, writable, or unauthenticated.",
+            "Exact RBE looks up ipub_key in an incoming bounded runtime-object handoff at 0x08200000, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. RBE can append other handoff objects but its ipub_key path does not create that entry. The FTPR manifest and kernel metadata bind the exact signed FTPR kernel, which later consumes the same handoff base, first-entry address, state byte, and +0x0e entry-size geometry. Exact BUP's corresponding manifest path resolves ipub_key either from a runtime object or from /snowball/ipub_key depending on global 0xa014c, then accepts a selector no greater than 0x23 and supplies a selected 32-byte digest to its verifier. The exact Intel digest occurs statically only in rot.key's Extension-14 record. These paths do not prove who populated or authenticated the pre-RBE handoff, that it is immutable, or that the snowball branch is active, writable, or unauthenticated.",
             "Exact BUP selects oem.key usage bit 32, compares the IBBP.man modulus-plus-exponent digest before RSA verification, verifies IBBP.man, checks its signed BPM.met hash, and checks BPM.met's exact IBBL and IBB SHA-256 values. This closes the selected-UEP-to-exact-IBB byte chain for the recovered set.",
             "Exact RBE materializes the selected 0x100-byte UEP payload in the 0x108-byte ifp_uep object, with a hardware-route REAL header or the validated flash-route $UEP/CRC header. Exact BUP records whether the header is REAL without rejecting the alternative in this range, initially copies the payload byte-for-byte into its FPF shadow, may update that shadow through later field assembly, and publishes the resulting 0x880-byte bup_fpf special file. The signed NFTP fpf module requires that exact-size input and uses the resulting shadow while its hardware-mode global is zero.",
             "The signed NFTP fpf module exposes fpf and fpf_hw_use special files, opens /dev/flash/uep, and switches its field-read path between the BUP-provided shadow and hardware access. Its OemLock callback sets hardware mode before processing a fixed field sequence. This later provisioning state is not yet proved byte-identical to RBE's earlier 0xf6170800 hardware window.",

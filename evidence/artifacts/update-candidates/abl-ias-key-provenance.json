@@ -40,6 +40,7 @@
     "runtime_fit_type0b_bound_to_stored_oem_key_manifest": true,
     "runtime_fit_type0b_object_name_oem_key_man_proved": true,
     "runtime_key_manifest_layout_proved": true,
+    "same_handoff_consumed_by_signed_ftpr_kernel_proved": true,
     "selected_uep_to_bup_fpf_to_signed_nftp_fpf_shadow_proved": true,
     "selector_0x27_is_usage_bit_39_proved": true,
     "shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved": true,
@@ -223,6 +224,58 @@
       "sha256": "cee77bc172a9df1c4088d5f716b9e55cda539a26656d07a92268c3cd5d4f0165",
       "size": 208896,
       "source_object_name": "oem_key_man"
+    },
+    "cse_ftpr_kernel_handoff_consumer": {
+      "accepted_entry_state": 1,
+      "boundary": "the signed FTPR kernel consumes the same 0x08200000 runtime-object geometry after RBE; this continuity does not identify or authenticate the pre-RBE producer",
+      "code_base": 524288,
+      "cpd": "FTPR",
+      "entry_state_mask": 3,
+      "entry_state_offset": 13,
+      "entry_total_size_offset": 14,
+      "first_entry": 136314888,
+      "flash_offset": 1179648,
+      "ftpr_manifest_binds_kernel_metadata_reverse_sha256": true,
+      "handoff_base_global": 630252,
+      "handoff_entry_global": 630260,
+      "handoff_payload_cursor_global": 630256,
+      "handoff_range_end": 136347648,
+      "handoff_range_start": 136314880,
+      "handoff_survives_into_ftpr_kernel_proved": true,
+      "instruction_ranges": {
+        "handoff_copy": {
+          "file_end": 61052,
+          "file_start": 60953,
+          "sha256": "b7cb1558ae1de8b9d3ecfb93a766dcc5a6427eb83e76f8261044ecf1e59fc1d8"
+        },
+        "handoff_iterator_advance": {
+          "file_end": 60953,
+          "file_start": 60870,
+          "sha256": "d9f0fbf021d78ba650ff17217081e6ef2985fb952bb747eac6c19347536d32cb"
+        },
+        "handoff_iterator_init": {
+          "file_end": 5847,
+          "file_start": 5791,
+          "sha256": "720c7d471eb5cc7c2276dce1304c1b48d1158471beefeb36dbce2c19232f9b78"
+        },
+        "handoff_page_range_setup": {
+          "file_end": 1304,
+          "file_start": 1268,
+          "sha256": "1592ccf012d9a11485556e08672b44da3f5a726769909f8fd9d5d80686ff6996"
+        }
+      },
+      "kernel_metadata_binds_kernel_reverse_sha256": true,
+      "main_thread_entry": 524288,
+      "member": "kernel",
+      "metadata_flash_offset": 1174852,
+      "metadata_member": "kernel.met",
+      "metadata_sha256": "f6c17c5b9ce1fc218da9608fce470dfa28fe180d4ec8909da71aa93bbb4b75ed",
+      "metadata_size": 142,
+      "minimum_nonempty_total_size": 8,
+      "pre_rbe_producer_or_hardware_anchor_proved": false,
+      "same_handoff_geometry_as_rbe_proved": true,
+      "sha256": "cf7dd5fc9918f96ffd2352d09a3e303471a768b3a6ee056089dd7a3d5c00bfdf",
+      "size": 73728
     },
     "cse_rbe_key_manifest_materializer": {
       "code_base": 262144,
@@ -909,7 +962,7 @@
     "Hash-bound historical Apollo Lake Slim Bootloader source independently matches the exact target's chunk-count field, four-slot interpretation, size field, low-four-bit XOR handshake, slot geometry, source expression, acknowledgement, and PCI configuration offsets.",
     "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
     "The RBE-to-BUP-to-IBBL path binds the runtime type-0x0b payload to exact FTPR oem.key bytes. The recovered set's runtime expected usage-39 digest is therefore 9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af.",
-    "Exact RBE looks up ipub_key in an incoming bounded runtime-object handoff at 0x08200000, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. RBE can append other handoff objects but its ipub_key path does not create that entry. Exact BUP's corresponding manifest path resolves ipub_key either from a runtime object or from /snowball/ipub_key depending on global 0xa014c, then accepts a selector no greater than 0x23 and supplies a selected 32-byte digest to its verifier. The exact Intel digest occurs statically only in rot.key's Extension-14 record. These paths do not prove who populated or authenticated the pre-RBE handoff, that it is immutable, or that the snowball branch is active, writable, or unauthenticated.",
+    "Exact RBE looks up ipub_key in an incoming bounded runtime-object handoff at 0x08200000, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. RBE can append other handoff objects but its ipub_key path does not create that entry. The FTPR manifest and kernel metadata bind the exact signed FTPR kernel, which later consumes the same handoff base, first-entry address, state byte, and +0x0e entry-size geometry. Exact BUP's corresponding manifest path resolves ipub_key either from a runtime object or from /snowball/ipub_key depending on global 0xa014c, then accepts a selector no greater than 0x23 and supplies a selected 32-byte digest to its verifier. The exact Intel digest occurs statically only in rot.key's Extension-14 record. These paths do not prove who populated or authenticated the pre-RBE handoff, that it is immutable, or that the snowball branch is active, writable, or unauthenticated.",
     "Exact BUP selects oem.key usage bit 32, compares the IBBP.man modulus-plus-exponent digest before RSA verification, verifies IBBP.man, checks its signed BPM.met hash, and checks BPM.met's exact IBBL and IBB SHA-256 values. This closes the selected-UEP-to-exact-IBB byte chain for the recovered set.",
     "Exact RBE materializes the selected 0x100-byte UEP payload in the 0x108-byte ifp_uep object, with a hardware-route REAL header or the validated flash-route $UEP/CRC header. Exact BUP records whether the header is REAL without rejecting the alternative in this range, initially copies the payload byte-for-byte into its FPF shadow, may update that shadow through later field assembly, and publishes the resulting 0x880-byte bup_fpf special file. The signed NFTP fpf module requires that exact-size input and uses the resulting shadow while its hardware-mode global is zero.",
     "The signed NFTP fpf module exposes fpf and fpf_hw_use special files, opens /dev/flash/uep, and switches its field-read path between the BUP-provided shadow and hardware access. Its OemLock callback sets hardware mode before processing a fixed field sequence. This later provisioning state is not yet proved byte-identical to RBE's earlier 0xf6170800 hardware window.",

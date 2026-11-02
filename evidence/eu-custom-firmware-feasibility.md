@@ -89,9 +89,12 @@ incoming bounded runtime-object handoff at `0x08200000` and uses its selected
 `rot.key`, `RBEP.man`, `FTPR.man`, and `NFTP.man` share the pinned CSE
 signing-key digest. Separately, BUP selects OEM usage bit 32, pins and verifies
 `IBBP.man`, verifies its signed `BPM.met` hash, and checks the metadata's exact
-IBBL/IBB hashes. The remaining earlier-stage questions are who populates and
-authenticates the handoff before RBE, whether that memory is immutable, and
-whether the selected UEP source is ROM/fuse authenticated or overrideable.
+IBBL/IBB hashes. The exact manifest-bound FTPR kernel later consumes the same
+handoff base, first-entry address, `+0x0d` state byte, and `+0x0e` entry-size
+geometry, proving cross-stage continuity but not earlier authority. The
+remaining questions are who populates and authenticates the handoff before RBE,
+whether that memory is immutable, and whether the selected UEP source is
+ROM/fuse authenticated or overrideable.
 
 Exact BUP adds a bounded lead: its generic manifest path can resolve `ipub_key`
 from a runtime object or construct `/snowball/ipub_key`, then selects a 32-byte

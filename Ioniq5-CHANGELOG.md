@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.53.1 - provenance note: `tools/uk_fw/ias_backend_soft/as-uid` entered the repository in 802ab5b
+
+- That commit was intended to contain the changelog, the history entry and two source files. It also carried
+  `tools/uk_fw/ias_backend_soft/as-uid`, a 12 KB x86-64 ELF that had been sitting **staged in the shared index** from the earlier V-028 escalation
+  work. I printed `git diff --cached --name-only` before committing and then committed without acting on what it showed; that is the same mistake
+  this project has made twice before, and it is recorded rather than quietly dropped.
+- **Kept, deliberately.** The file is the tool used for the measurement recorded in the register that a uid-1000 process cannot reach the session
+  bus (`V-028` escalation exclusion), and keeping the executed artifact is the more honest option than deleting evidence of a measurement that is
+  cited elsewhere.
+- **Its limitation, stated:** there is **no source file in the repository** for it, so it is not rebuildable from what is committed. Anyone
+  reproducing that measurement would have to rebuild an equivalent setuid-drop helper. A future entry should either add the source or replace the
+  binary with a documented one-liner.
+
 ## 2.53.0 - the pixman abort is fixed: the vendor shell's solid fills had no format
 
 - **Diagnosis, from instrumenting our own backend.** Logging every view in the compositor's view list at repaint, with the wayland client

@@ -95,6 +95,7 @@ def positive_report() -> dict[str, object]:
             "files": {
                 "/dev/mfd-iap2": "present|660|0|0|0|character special file|f4|0|",
                 "/dev/ttyIAP20": "present|660|0|0|0|character special file|f5|0|",
+                "/dev/i2c-1": "present|660|0|0|0|character special file|59|1|",
             },
             "smack_xattrs": {
                 "/app/bin/iAP2Service-2.0": {"SMACK64": label("App::projection")},
@@ -126,6 +127,7 @@ class BenchCarplayReadinessTests(unittest.TestCase):
         self.assertTrue(verdict["configured_uid_zero_and_projection_process_observed"])
         self.assertTrue(verdict["iap2_device_boundary_observed"])
         self.assertTrue(verdict["alternate_tty_iap2_endpoint_observed"])
+        self.assertTrue(verdict["mfi_auth_i2c_transport_observed"])
         self.assertTrue(verdict["transport_modules_observed"])
         self.assertTrue(verdict["airplay_port_7000_observed"])
         for key in (
@@ -199,6 +201,7 @@ class BenchCarplayReadinessTests(unittest.TestCase):
         self.assertEqual(statuses["capture.complete"], "pass")
         self.assertEqual(statuses["transport.modules"], "unknown")
         self.assertEqual(statuses["listener.airplay_7000"], "unknown")
+        self.assertEqual(statuses["device.i2c-1"], "unknown")
         self.assertEqual(statuses["process.iap2_service"], "fail")
         self.assertFalse(result["verdict"]["installed_reference_stack_matches"])
         self.assertFalse(result["verdict"]["active_wired_carplay_prerequisites_observed"])

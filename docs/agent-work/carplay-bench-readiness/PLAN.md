@@ -12,7 +12,7 @@ execution, root, and persistence as separate claims.
 ## Non-goals
 
 - No USB, iAP2, AirPlay, HTTP, RTSP, pairing, media, or authentication traffic.
-- No opening `/dev/mfd-iap2` or `/dev/ttyIAP20`.
+- No opening `/dev/mfd-iap2`, `/dev/ttyIAP20`, or `/dev/i2c-1`.
 - No service start/stop/restart, module loading, network or radio changes, uevent,
   mount, target-file write, or package installation.
 - No malformed descriptors or protocol inputs, exploit, crash reproducer,
@@ -30,6 +30,8 @@ execution, root, and persistence as separate claims.
   `/app/bin/iAP2Service-2.0` after `/etc/iap2_mod.sh`.
 - The normal script path selects `usb_f_ncm`, `usb_f_iap2`, and `mfd-iap2`.
 - The service uses `/dev/mfd-iap2`; `/dev/ttyIAP20` is an alternate endpoint.
+- The exact MFi certificate/signature implementation opens `/dev/i2c-1`; passive
+  node metadata cannot prove that an authentication chip or exchange is present.
 - Intended SMACK labels are `App::projection` for the service and
   `System::iap20` for the iAP2 devices.
 - Exact service, application, library, policy, and module hashes are already
@@ -43,7 +45,7 @@ execution, root, and persistence as separate claims.
 1. Extend `tools/uk_fw/bench_state_bundle.py` to passively capture:
    - CarPlay/iAP2 and mDNS unit state;
    - relevant process command lines and PATH values;
-   - iAP2 device metadata and SMACK xattrs;
+   - iAP2 device metadata and SMACK xattrs, plus passive `/dev/i2c-1` metadata;
    - exact service, script, policy, application, library, and module hashes;
    - parsed `/proc/modules` facts.
 2. Add `tools/uk_fw/bench_carplay_readiness.py`:
@@ -67,8 +69,8 @@ execution, root, and persistence as separate claims.
 - The active-prerequisite verdict requires exact hashes, the active service,
   an EUID-zero `App::projection` service process, `/dev/mfd-iap2` with
   `System::iap20`, and all three normal transport modules.
-- `/dev/ttyIAP20`, mDNS, and port 7000 remain separately reported and do not
-  overconstrain the recovered wired path.
+- `/dev/ttyIAP20`, `/dev/i2c-1`, mDNS, and port 7000 remain separately reported
+  and do not overconstrain the recovered wired path.
 - No positive gate can set CVE applicability, code execution, root, or
   persistence true.
 - Focused tests, `py_compile`, encoding checks, `git diff --check`, and the

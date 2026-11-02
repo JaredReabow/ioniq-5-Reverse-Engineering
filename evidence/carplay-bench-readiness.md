@@ -13,8 +13,10 @@ needed to separate five questions:
 1. Does the installed stack byte-match recovered EU `260128`?
 2. Is the exact service active with the expected credentials and SMACK domain?
 3. Are the normal wired iAP2/NCM modules and device boundary present?
-4. Is an AirPlay port-7000 listener visible? This is informational only.
-5. Has a public CVE, code execution, unrestricted root, or persistence been
+4. Is the exact `/dev/i2c-1` MFi certificate/signature transport present as a
+   character device? This remains prerequisite-only.
+5. Is an AirPlay port-7000 listener visible? This is informational only.
+6. Has a public CVE, code execution, unrestricted root, or persistence been
    demonstrated? The passive assessor always answers no.
 
 ## Capture additions
@@ -28,6 +30,7 @@ adds passive metadata, hashes, or state for:
 - the exact iAP2, AirPlay, CoreUtils, AirPlaySupport, and CarPlay libraries;
 - shipped `usb_f_ncm.ko`, `usb_f_iap2.ko`, and `mfd-iap2.ko`;
 - `/dev/mfd-iap2` and alternate `/dev/ttyIAP20` metadata and `SMACK64` state;
+- `/dev/i2c-1` metadata and `SMACK64` state, without opening it;
 - command lines/PATH for running projection processes; and
 - parsed `/proc/modules` lines in the canonical `facts.modules` array.
 
@@ -55,13 +58,17 @@ modules. It then evaluates:
   `App::projection`;
 - `/dev/mfd-iap2` as a character device with `System::iap20`;
 - loaded `usb_f_ncm`, `usb_f_iap2`, and `mfd_iap2` modules;
+- `/dev/i2c-1` as a separately reported character-device prerequisite for the
+  exact MFi certificate/signature path;
 - the alternate tty endpoint and mDNS state separately; and
 - an optional local `:7000` listener as an informational observation.
 
 `active_wired_carplay_prerequisites_observed` deliberately does not require
-`/dev/ttyIAP20`, mDNS, or port 7000. The exact service names `/dev/mfd-iap2`, and
-public generic AirPlay port behavior must not be imposed on the recovered wired
-path without runtime evidence.
+`/dev/ttyIAP20`, `/dev/i2c-1`, mDNS, or port 7000. The MFi I2C node is reported
+separately because node presence does not establish an authentication chip or a
+successful certificate/signature exchange. The exact service names
+`/dev/mfd-iap2`, and public generic AirPlay port behavior must not be imposed on
+the recovered wired path without runtime evidence.
 
 ## Interpretation boundary
 

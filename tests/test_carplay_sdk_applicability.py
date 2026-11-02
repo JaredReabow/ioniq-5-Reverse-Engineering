@@ -97,6 +97,9 @@ def test_canonical_carplay_report_matches_reviewed_artifact():
         "CVE-2025-24132", "CVE-2025-30422",
     }
     assert report["transport_configuration"]["exact_module_files_bound"] is True
+    assert report["transport_configuration"]["mfi_auth_chip_device_path_in_core_utils"] == (
+        "/dev/i2c-1"
+    )
     airplay = report["airplay_http_plist_review"]
     request = airplay["request_processor"]
     assert request["start"] == "0xf3d1"
@@ -132,6 +135,36 @@ def test_canonical_carplay_report_matches_reviewed_artifact():
     body_path = airplay["request_body_to_parser_path"]
     assert body_path["body_pointer_field"] == "HTTP message + 0x518"
     assert body_path["body_length_field"] == "HTTP message + 0x530"
+    route = airplay["setup_route_and_mfisap_review"]
+    assert route["airplay_ranges"]["setup_method_and_plist_dispatch"]["sha256"] == (
+        "c208fb3bb3d4ff1c63a25e39dc7b2263aed1258cd62d73797bd591576f52304a"
+    )
+    assert route["airplay_ranges"]["post_auth_setup_dispatch"]["sha256"] == (
+        "4220993de1cc6fd57f9cfd5234217482a5001b5dffe8e5b4604b08cd94a87163"
+    )
+    assert route["airplay_ranges"]["setup_prekey_metadata_and_session"]["sha256"] == (
+        "44ad05b420c93321d8bef6dd724d52eed547ca9e0274ef8399f8424f5e368b39"
+    )
+    fields = {entry["name"]: entry for entry in route["setup_prekey_field_inventory"]["fields"]}
+    assert fields["name"]["destination_capacity_bytes"] == 128
+    assert fields["sessionUUID"]["destination_capacity_bytes"] == 16
+    assert fields["sessionUUID"]["post_copy_exact_length_check"] == "0x10192"
+    assert route["setup_prekey_field_inventory"]["downstream_session_setup_handlers_reviewed_by_this_inventory"] is False
+    assert route["auth_setup_dispatch"]["requires_nonempty_body"] is True
+    assert route["auth_setup_dispatch"]["creates_server_mfisap_version"] == 1
+    assert route["mfisap_state_machine"]["successful_server_m1_advances_to_server_done_state"] == 6
+    assert route["mfisap_state_machine"]["decrypt_accepts_states"] == [4, 6]
+    assert route["mfisap_state_machine"]["mfi_platform_device_path"] == "/dev/i2c-1"
+    assert route["local_callback_gate_review"]["http_authorization_check_before_setup_observed"] is False
+    assert route["local_callback_gate_review"]["homekit_pair_verify_context_presence_diverts_away_from_ekey_path"] is True
+    assert route["local_callback_gate_review"]["completed_mfisap_required_when_encryption_type_is_0x10"] is True
+    assert route["runtime_mfi_chip_or_protocol_success_observed"] is False
+    assert route["core_utils_ranges"]["MFiSAP_Exchange"]["sha256"] == (
+        "366334d17eabce1093798b600a43004e4b8140230ecb8fb4c178421899d63a6c"
+    )
+    assert route["core_utils_ranges"]["MFiPlatform_CreateSignature"]["sha256"] == (
+        "923e37d7fd3828db659fd135fd652a0c35b9e6f17f030946d1bf702a21648677"
+    )
     parser = airplay["binary_plist_parser_review"]
     assert parser["ranges"]["CFBinaryPlistV0CreateWithData"]["sha256"] == (
         "c03a2284cb4fcc1b8fc71dd44653d9250c74e8149d285efd8b87296527c2e625"

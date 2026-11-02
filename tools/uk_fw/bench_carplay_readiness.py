@@ -23,7 +23,7 @@ from typing import Any
 
 INPUT_SCHEMA = "ioniq-bench-state/v1"
 OUTPUT_SCHEMA = "ioniq-bench-carplay-readiness/v1"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 MAX_INPUT_BYTES = 64 * 1024 * 1024
 HEX64_RE = re.compile(r"[0-9a-f]{64}")
 VALID_STATES = frozenset(("pass", "fail", "unknown"))
@@ -515,6 +515,7 @@ def assess(report: dict[str, Any]) -> dict[str, Any]:
     process_gate = _process_gate(processes, credentials, security)
     mfd_gate = _device_gate(files, "/dev/mfd-iap2")
     tty_gate = _device_gate(files, "/dev/ttyIAP20")
+    mfi_i2c_gate = _device_gate(files, "/dev/i2c-1")
     exe_label_gate = _smack_gate(smack, "/app/bin/iAP2Service-2.0", "App::projection")
     mfd_label_gate = _smack_gate(smack, "/dev/mfd-iap2", "System::iap20")
     tty_label_gate = _smack_gate(smack, "/dev/ttyIAP20", "System::iap20")
@@ -529,6 +530,7 @@ def assess(report: dict[str, Any]) -> dict[str, Any]:
         process_gate,
         mfd_gate,
         tty_gate,
+        mfi_i2c_gate,
         exe_label_gate,
         mfd_label_gate,
         tty_label_gate,
@@ -574,6 +576,7 @@ def assess(report: dict[str, Any]) -> dict[str, Any]:
             "alternate_tty_iap2_endpoint_observed": all(
                 gate["status"] == "pass" for gate in (tty_gate, tty_label_gate)
             ),
+            "mfi_auth_i2c_transport_observed": mfi_i2c_gate["status"] == "pass",
             "transport_modules_observed": module_gate["status"] == "pass",
             "airplay_port_7000_observed": listener_gate["status"] == "pass",
             "exact_public_cve_code_match_established": False,
@@ -587,6 +590,7 @@ def assess(report: dict[str, Any]) -> dict[str, Any]:
         "boundaries": [
             "A positive installed-stack verdict binds only exact passive file identities from the owner-controlled disconnected bench.",
             "An active-prerequisite verdict records the exact service, process, module, /dev/mfd-iap2, and SMACK state; the alternate /dev/ttyIAP20 endpoint is reported but not required.",
+            "The exact setup-auth implementation names /dev/i2c-1 for MFi certificate/signature operations. Its character-device metadata is reported separately and does not prove that an authentication chip or valid exchange is present.",
             "Active prerequisites do not prove phone authentication or attacker-selected bytes reaching a parser.",
             "Port 7000 is informational and is not required for the recovered wired CarPlay path.",
             "Configured EUID zero remains constrained by the observed App::projection SMACK domain and is not an unrestricted-root finding.",

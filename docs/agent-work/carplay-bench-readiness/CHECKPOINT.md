@@ -14,8 +14,10 @@
   - loaded/active service, EUID/SMACK process, device, module, alternate tty,
     mDNS, and informational port-7000 gates;
   - exclusive no-overwrite output.
-- Kept `/dev/ttyIAP20`, mDNS, and port 7000 separate from the exact wired
-  `/dev/mfd-iap2` prerequisite contract.
+- Added passive `/dev/i2c-1` metadata/SMACK capture and a separate character-node
+  verdict for the exact MFi certificate/signature transport.
+- Kept `/dev/ttyIAP20`, `/dev/i2c-1`, mDNS, and port 7000 separate from the exact
+  wired `/dev/mfd-iap2` prerequisite contract.
 - Added focused positive, mismatch, missing-field, malformed-input, no-follow,
   encoding, and no-overwrite tests.
 - Added evidence prose and integrated the assessor into the disconnected bench
@@ -36,16 +38,16 @@
 
 ## Validation
 
-- focused CarPlay/state scope: `37 passed, 20 subtests passed in 2.01s`;
+- focused CarPlay/state scope: `37 passed, 20 subtests passed in 1.52s`;
 - `py_compile`: passed;
 - path-limited `git diff --check`: passed;
 - emitted probe audit and `/bin/sh -n`: passed; probe SHA-256
-  `77d77a36f71ede78f0bc4a9b54fcc39b3c10853e58ebecf0e6270f03eeabeb8b`;
-- normal-versus-UTF-16 assessor output: byte-identical, SHA-256
-  `09611825c8d5f2583fb29f2338820ef6b4638e2aa5d5c8437877b75d63af5f71`;
-- canonical suite: `1074 passed, 352357 subtests passed in 174.10s (0:02:54)`;
+  `77f3439cf5238c4b8320698abac4a71148757dbcba3b4e09a31b19060d406c63`;
+- positive fixture assessor output SHA-256:
+  `5238691b464b0400eee976c43602757ef7062d1b309a86f25fa53d5d6657c138`;
+- canonical suite: `1074 passed, 352357 subtests passed in 173.07s (0:02:53)`;
   log SHA-256
-  `fc46638764d0a4c7890aa1bb68e6d6a138f85cce20263843be2e6d43febbf9a2`.
+  `cd2a3534b0a9d13edbd484673e7c1a33b5567331f2dcb6ae103078b5952ddacd`.
 
 ## Files
 

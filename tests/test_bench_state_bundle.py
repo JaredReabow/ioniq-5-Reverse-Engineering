@@ -185,6 +185,7 @@ class BenchStateBundleTests(unittest.TestCase):
             "/lib/modules/4.1.27-abl/kernel/drivers/lge/mfd/mfd-iap2.ko",
             "/dev/mfd-iap2",
             "/dev/ttyIAP20",
+            "/dev/i2c-1",
         ):
             self.assertIn(carplay_path, script)
         self.assertIn("carplay_iAP2.service", script)

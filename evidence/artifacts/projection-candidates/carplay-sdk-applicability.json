@@ -266,11 +266,160 @@
         "stack_canary_checked_at": "0x11728..0x11742"
       },
       "static_preconditions": [
+        "the HTTP callback has received a SETUP request with a recognized plist content type",
         "the setup body has parsed as a dictionary",
+        "the connection has no HomeKit pair-verify security context; a non-null context takes the alternate security-context branch at 0x103a9..0x103c3",
         "the encryption type is 0x10",
         "the connection has a non-null MFiSAP context",
-        "MFiSAP state is client-done or server-done"
+        "MFiSAP state is client-done or server-done; the exact server route reaches server-done only after successful POST /auth-setup certificate/signature exchange"
       ]
+    },
+    "setup_route_and_mfisap_review": {
+      "airplay_ranges": {
+        "post_auth_setup_dispatch": {
+          "end": "0x10b3f",
+          "sha256": "4220993de1cc6fd57f9cfd5234217482a5001b5dffe8e5b4604b08cd94a87163",
+          "size": 498,
+          "start": "0x1094d"
+        },
+        "setup_method_and_plist_dispatch": {
+          "end": "0x100b6",
+          "sha256": "c208fb3bb3d4ff1c63a25e39dc7b2263aed1258cd62d73797bd591576f52304a",
+          "size": 425,
+          "start": "0xff0d"
+        },
+        "setup_prekey_metadata_and_session": {
+          "end": "0x103c3",
+          "sha256": "44ad05b420c93321d8bef6dd724d52eed547ca9e0274ef8399f8424f5e368b39",
+          "size": 800,
+          "start": "0x100a3"
+        }
+      },
+      "auth_setup_dispatch": {
+        "completed_context_is_deleted_before_restart": true,
+        "creates_server_mfisap_version": 1,
+        "exchange_call_site": "0x10a8f",
+        "exchange_receives_http_body_pointer_and_length": true,
+        "exchange_writes_connection_done_flag": "connection + 0xe8",
+        "method": "POST",
+        "method_compare_call_site": "0x1095b",
+        "path_compare_call_site": "0x10975",
+        "path_suffix": "/auth-setup",
+        "requires_nonempty_body": true,
+        "success_response_content_type": "application/octet-stream"
+      },
+      "core_utils_ranges": {
+        "MFiPlatform_CopyCertificate": {
+          "end": "0x8129f",
+          "sha256": "0b1160862646812e44f1e019eab17f6545cc4e58c601611e8ddb758e994c035e",
+          "size": 1331,
+          "start": "0x80d6c"
+        },
+        "MFiPlatform_CreateSignature": {
+          "end": "0x80d6c",
+          "sha256": "923e37d7fd3828db659fd135fd652a0c35b9e6f17f030946d1bf702a21648677",
+          "size": 1762,
+          "start": "0x8068a"
+        },
+        "MFiSAP_Exchange": {
+          "end": "0x7f99b",
+          "sha256": "366334d17eabce1093798b600a43004e4b8140230ecb8fb4c178421899d63a6c",
+          "size": 205,
+          "start": "0x7f8ce"
+        },
+        "MFiSAP_server_M1": {
+          "end": "0x7f6d2",
+          "sha256": "82f0acf4129488fd468c797af0ab57fc997ec9f8900558ff1537f437d312c00d",
+          "size": 1358,
+          "start": "0x7f184"
+        }
+      },
+      "fixed_r18_1_bytes_available": false,
+      "local_callback_gate_review": {
+        "completed_mfisap_required_when_encryption_type_is_0x10": true,
+        "homekit_pair_verify_context_null_check": "0x103a9..0x103c3",
+        "homekit_pair_verify_context_presence_diverts_away_from_ekey_path": true,
+        "http_authorization_check_before_setup_observed": false,
+        "interpretation": "The exact callback directly dispatches SETUP by method and plist content type. For encryption type 0x10, MFiSAP_Decrypt independently requires state 4 or 6; the normal exact route to server-done state 6 is a successful POST /auth-setup exchange backed by certificate/signature operations on /dev/i2c-1. No HTTP Authorization or pair-verify state check appears in the reviewed callback before SETUP, but an upstream generic HTTPConnection gate outside this callback has not been excluded.",
+        "pair_verify_or_pair_setup_state_required_before_setup_observed": false
+      },
+      "mfisap_state_machine": {
+        "decrypt_accepts_states": [
+          4,
+          6
+        ],
+        "exchange_error_invalidates_state": true,
+        "mfi_platform_device_path": "/dev/i2c-1",
+        "non_null_input_selects_server_m1_state": 5,
+        "server_m1_requires_exact_version1_plus_32_byte_public_key": true,
+        "server_m1_uses_mfi_platform_certificate_and_signature": true,
+        "successful_server_m1_advances_to_server_done_state": 6,
+        "successful_server_m1_sets_connection_done_flag": true
+      },
+      "runtime_mfi_chip_or_protocol_success_observed": false,
+      "setup_dispatch": {
+        "accepted_content_types": [
+          "application/x-apple-binary-plist",
+          "text/x-apple-plist+xml"
+        ],
+        "content_type_header_lookup": "0xff2f..0xff5e",
+        "method": "SETUP",
+        "method_compare_call_site": "0xff1b",
+        "plist_parse_call_site": "0x10032",
+        "url_specific_acceptance_gate_observed": false
+      },
+      "setup_prekey_field_inventory": {
+        "capacity_argument_absent_for_reviewed_direct_string_or_data_writes": false,
+        "downstream_session_setup_handlers_reviewed_by_this_inventory": false,
+        "fields": [
+          {
+            "call_site": "0x100f2",
+            "name": "deviceID",
+            "operation": "six-byte hardware address conversion to scalar"
+          },
+          {
+            "call_site": "0x10122",
+            "destination_capacity_bytes": 17,
+            "name": "interfaceName",
+            "operation": "snprintf"
+          },
+          {
+            "call_site": "0x10146",
+            "destination_capacity_bytes": 6,
+            "name": "macAddress",
+            "operation": "hardware-address copy"
+          },
+          {
+            "call_site": "0x10161",
+            "destination_capacity_bytes": 128,
+            "name": "name",
+            "operation": "CFDictionaryGetCString"
+          },
+          {
+            "call_site": "0x10186",
+            "destination_capacity_bytes": 16,
+            "name": "sessionUUID",
+            "operation": "CFDictionaryGetData",
+            "post_copy_exact_length_check": "0x10192"
+          },
+          {
+            "call_site": "0x10207",
+            "destination_capacity_bytes": 64,
+            "name": "sourceVersion",
+            "operation": "CFDictionaryGetCString"
+          },
+          {
+            "call_site": "0x10245",
+            "destination_capacity_bytes": 64,
+            "name": "model",
+            "operation": "CFDictionaryGetCString"
+          }
+        ],
+        "interpretation": "The direct pre-key setup metadata writes carry explicit capacities, and sessionUUID is additionally required to return exactly 16 bytes. This closes only the listed callback-local field handling; CF helper implementations and downstream AirPlayReceiverSession setup consumers remain separate review surfaces.",
+        "range": "0x100a3..0x103c3",
+        "session_create_call_site": "0x10333",
+        "session_create_parameter_structure_cleared_before_population": true
+      }
     }
   },
   "boundaries": [
@@ -279,11 +428,13 @@
     "Apple's public SDK advisory names fixed AirPlay and CarPlay SDK releases, but the recovered private 320.17 lineage string has no public version mapping to those releases.",
     "Oligo classifies CVE-2025-24132 as CarPlay stack-overflow RCE and CVE-2025-30422 as potential integer-overflow RCE, but withholds the exact vulnerable route and implementation details in the reviewed publication.",
     "A later public third-party demonstration attributes CVE-2025-24132 to the same setup ekey/MFiSAP/AES-CTR chain found independently in the recovered bytes; this is strong comparative mechanism evidence, not vendor confirmation or a fixed-byte match.",
-    "The exact unbounded stack write does not by itself establish live route reachability, authentication state, reliable code execution, or impact beyond the configured App::projection process context.",
+    "The exact callback routes SETUP by method and plist content type and has no observed local HTTP-Authorization or pair-state gate before that branch; this does not exclude an upstream generic HTTPConnection gate outside the callback.",
+    "For encryption type 0x10, decryption still requires a completed MFiSAP state. The exact server path reaches that state only after POST /auth-setup successfully obtains certificate/signature results through /dev/i2c-1; static node strings and code do not prove a chip, certificate, exchange, or phone is present at runtime.",
+    "The exact unbounded stack write does not by itself establish live route reachability, authentication bypass, reliable code execution, or impact beyond the configured App::projection process context.",
     "Stack canary, non-executable stack, RELRO, or fortify references constrain some outcomes but do not prove parser safety.",
     "No target executable, module, service, USB device, network endpoint, parser, or malformed input was executed by this audit."
   ],
-  "canonical_sha256": "5b1a4d141b2a8a16bfc8f759291186b1e7495bc2f13b576a441225097b425bd3",
+  "canonical_sha256": "c2f25b6489a0853dfc598e499d02e0fb2ff92de5f83dce29f4f50e1690dd31e2",
   "elf_static_properties": {
     "app/bin/AppProjection": {
       "elf_type": 3,
@@ -570,10 +721,11 @@
     "service_exec_label": "App::projection",
     "service_to_iap2_device_access": "rw----"
   },
-  "tool_version": "1.2.0",
+  "tool_version": "1.3.0",
   "transport_configuration": {
     "device_path_in_service_binary": "/dev/mfd-iap2",
     "exact_module_files_bound": true,
+    "mfi_auth_chip_device_path_in_core_utils": "/dev/i2c-1",
     "normal_script_branch_modules": [
       "usb_f_ncm",
       "usb_f_iap2",

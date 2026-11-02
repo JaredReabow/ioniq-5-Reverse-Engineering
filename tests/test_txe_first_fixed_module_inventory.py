@@ -96,6 +96,11 @@ def test_canonical_inventory_matches_reviewed_artifact():
         "0x101_to_0x104": 1,
         "0x102_to_0x105": 4,
     }
+    producers = kernel_review["first_fixed_inserted_status_producer_candidates"]
+    assert producers["status_0x100"]["direct_call_sites"] == [0x85E86, 0x85EC9, 0x880BA]
+    assert producers["status_0x101"]["direct_call_sites"] == [0x85936]
+    assert producers["status_0x100"]["sha256"] == "b12ad8b0c4e784655e76de10ba1977c906bb55c14d0b7eccfd2c62479b96d930"
+    assert producers["status_0x101"]["sha256"] == "004b911c32d58e78d2ffb3aab766308fb6b9168b35781208021eeabeb2f0f10e"
     census = kernel_review["kernel_global_immediate_census"]
     assert census["affected_total_site_count"] == 15
     assert census["first_fixed_total_site_count"] == 15

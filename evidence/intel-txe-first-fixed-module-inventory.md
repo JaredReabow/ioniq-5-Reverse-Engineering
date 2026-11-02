@@ -165,6 +165,22 @@ reviewed differences outside the immediate are confined to two nearby call
 address operands. This strongly supports insertion of three ordinal statuses at
 or below the old sentinel rather than an isolated constant replacement.
 
+Two first-fixed functions produce values in those newly available positions:
+
+- `0x824cb..0x82557`, SHA-256
+  `b12ad8b0c4e784655e76de10ba1977c906bb55c14d0b7eccfd2c62479b96d930`,
+  examines a page-table entry at `0x08002000`, validates state and index bounds,
+  returns `0x100` when a secondary table byte has bits `0..5` set, and otherwise
+  can clear the entry and invalidate the page; and
+- `0x8580b..0x85869`, SHA-256
+  `004b911c32d58e78d2ffb3aab766308fb6b9168b35781208021eeabeb2f0f10e`,
+  scans 128 entries, appends selected indexes to an output array, and returns
+  `0x101` when the output count exceeds 62.
+
+These are exact memory-management/resource-status candidates for two of the
+three inserted ordinals. They do not establish vendor names, affected semantic
+counterparts, or advisory attribution.
+
 Together, the queue-like helper and epilogue behavior support a deferred or
 nonordinary-completion sentinel interpretation. It still does **not** establish
 the vendor's semantic name, identify the three inserted statuses or exact
@@ -180,8 +196,8 @@ exact CVE-2018-3655 candidate.
 
 - `evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json`
 - schema `ioniq-txe-first-fixed-module-inventory/v1`
-- size `114,906` bytes
-- SHA-256 `e031bf789b38c1797e61d82b04a923c80d0322a7a44bef2f40d5885ad4e38770`
+- size `116,223` bytes
+- SHA-256 `e2e7a6a0e0c08fee5c03b2950e5227fccac9028ec7c6dee17dd15b292513f0dc`
 
 Embedded `$MN2` signatures establish self-consistency and byte binding only.
 They do not establish platform ROM/fuse/OEM acceptance or installed-unit

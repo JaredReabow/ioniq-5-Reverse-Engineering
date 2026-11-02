@@ -542,6 +542,33 @@ def kernel_message_submit_selector_review(
             "first_fixed_value": new_value,
         })
 
+    status_0x100_body = first_fixed_kernel[0x824CB - KERNEL_BASE : 0x82557 - KERNEL_BASE]
+    status_0x101_body = first_fixed_kernel[0x8580B - KERNEL_BASE : 0x85869 - KERNEL_BASE]
+    if (
+        len(status_0x100_body) != 0x8C
+        or sha256(status_0x100_body) != "b12ad8b0c4e784655e76de10ba1977c906bb55c14d0b7eccfd2c62479b96d930"
+        or status_0x100_body[0x44] != 0xB8
+        or struct.unpack_from("<I", status_0x100_body, 0x45)[0] != 0x100
+        or len(status_0x101_body) != 0x5E
+        or sha256(status_0x101_body) != "004b911c32d58e78d2ffb3aab766308fb6b9168b35781208021eeabeb2f0f10e"
+        or status_0x101_body[0x52] != 0xB8
+        or struct.unpack_from("<I", status_0x101_body, 0x53)[0] != 0x101
+    ):
+        raise Failure("first-fixed inserted-status producer candidate drift")
+
+    producer_callers: dict[int, list[int]] = {0x824CB: [], 0x8580B: []}
+    for offset in range(len(first_fixed_kernel) - 4):
+        if first_fixed_kernel[offset] != 0xE8:
+            continue
+        target = KERNEL_BASE + offset + 5 + struct.unpack_from("<i", first_fixed_kernel, offset + 1)[0]
+        if target in producer_callers:
+            producer_callers[target].append(KERNEL_BASE + offset)
+    if producer_callers != {
+        0x824CB: [0x85E86, 0x85EC9, 0x880BA],
+        0x8580B: [0x85936],
+    }:
+        raise Failure("first-fixed inserted-status producer caller drift")
+
     affected_epilogue = affected_kernel[0x8BDB0 - KERNEL_BASE : 0x8BDCF - KERNEL_BASE]
     first_epilogue = first_fixed_kernel[0x8BD52 - KERNEL_BASE : 0x8BD71 - KERNEL_BASE]
     if (
@@ -624,6 +651,23 @@ def kernel_message_submit_selector_review(
                 "0x102_to_0x105": 4,
             },
             "interpretation_boundary": "The reviewed adjacent values shift by the same plus-three translation as the 0xff sentinel, supporting insertion of three ordinal statuses at or below the old sentinel. The new status names and exact insertion point remain unknown.",
+        },
+        "first_fixed_inserted_status_producer_candidates": {
+            "status_0x100": {
+                "runtime_range": [0x824CB, 0x82557],
+                "size": len(status_0x100_body),
+                "sha256": sha256(status_0x100_body),
+                "direct_call_sites": producer_callers[0x824CB],
+                "bounded_behavior": "examines a page-table entry at 0x08002000, validates state and index bounds, returns 0x100 when a secondary table byte has bits 0..5 set, and otherwise can clear the entry and invalidate its page",
+            },
+            "status_0x101": {
+                "runtime_range": [0x8580B, 0x85869],
+                "size": len(status_0x101_body),
+                "sha256": sha256(status_0x101_body),
+                "direct_call_sites": producer_callers[0x8580B],
+                "bounded_behavior": "scans 128 table entries, appends selected indexes to an output array, and returns 0x101 when the output count exceeds 62",
+            },
+            "interpretation_boundary": "These are exact first-fixed producers for two values inside the three newly available ordinal positions. They are memory-management/resource-status candidates; no vendor status names, affected counterparts, or relationship to either SA-00125 CVE is established.",
         },
         "kernel_global_immediate_census": {
             **global_immediates,

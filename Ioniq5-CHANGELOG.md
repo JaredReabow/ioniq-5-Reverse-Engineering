@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.72.0 - two independent crash paths: removing the weather widget just reveals the other one
+
+- Tried to keep the application alive past its ~70 s death by disabling the crashing plugin. Two failed attempts, both instructive:
+  - `chmod 0000` on `libWeatherWidget.so.1.0.0` **has no effect**: the application runs as root, and root opens files regardless of permission bits
+    (`CAP_DAC_OVERRIDE`). Obvious in hindsight; recorded because it cost a run.
+  - removing `/app/plugins/WeatherWidget/libWeatherWidget.so.1.0.0` from the working clone **does** take effect — and the crash simply changed site:
+    ```
+    AppHomeScreen[780]: segfault at 7f2ae0f16ff8 ip …8e4 … in libc-2.25.so    ← free()+0x14
+    ```
+    instead of `WeatherWidget::~WeatherWidget()+0x53`.
+- So the application has **at least two independent crash paths**, both reached within ~70 s of start in this configuration: a null dereference in the weather
+  widget's destructor, and a heap corruption inside `free()`. Suppressing one reveals the other. That is a stronger statement than "the app crashes": this
+  environment is killing it for two unrelated reasons, which is consistent with the earlier observation that `AppCamera` dies in `free()` too and that a stock
+  single-output run kills `AppNavi` in `libQt5Core`.
+- State of the display work unchanged by this: surfaces are created and committed, `ivi_wm`'s placement requests are accepted, and the composited output measures
+  `max=8`, `bright=0` — no visible picture. The capture window remains bounded by these crashes.
+- Honest assessment of where this leaves the goal: the graphics chain is **solved and verified as far as the client is concerned** (it draws), the window-manager
+  interface is **driven**, and what stands between that and a visible home screen is the application surviving long enough and whatever else has to place the
+  surface on the screen the compositor actually shows — with two independent vendor crash paths in the way.
+
 ## 2.71.0 - the placement requests are accepted and the screen is still black
 
 - `ivi_wm` runs correctly against the live compositor. Its own output for a placement attempt:

@@ -4186,3 +4186,9 @@ and are superseded by corrections rather than silently rewritten.
 - Worth recording that I measured it rather than eyeballing a screenshot and calling a dark frame "the night theme".
 - One incidental observation for the security entry: requests naming surfaces the caller does not own were accepted. That is suggestive, and it is written down as
   suggestive, not as proof.
+
+## 2026-10-31 — behind one crash is another
+
+- Suppressing the weather widget's destructor fault revealed a heap corruption in free(). Two unrelated ways for the application to die, both inside a minute.
+- Also learned that chmod cannot disable anything for a process running as root, which cost a run to re-learn.
+- The honest position: the client draws and the window manager is driven. What is missing is a stable application and a surface actually shown on the screen.

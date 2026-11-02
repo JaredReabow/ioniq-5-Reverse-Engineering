@@ -104,3 +104,39 @@ From `/etc/smack_setup.sh`:
   `/proc/<pid>/status`, `/proc/<pid>/attr/current`, `/proc/<pid>/exe`, `ls -l` on the socket and `/proc/net/unix`.
 - The socket was **not** present at a 5-second check in the first probe attempt and **was** present within 5 seconds in the second; the difference between
   the two attempts is not established, so treat "created within 5 s" as observed rather than guaranteed.
+
+## 7. Labelled-process measurements (added after a second probe round)
+
+The request asked for the labelled runtime identities. These were obtained by setting the process label explicitly before `exec`, which is the only way to
+probe labelling under this research init (there is no systemd here to do it). Two rounds, both on the same pristine-derived clone.
+
+**Round 1 — process labelled `System::iap20`, no SMACK rules loaded:**
+
+| Observation | Value |
+| --- | --- |
+| process label | `System::iap20` (set and confirmed via `/proc/<pid>/attr/current`) |
+| process identity | uid 0 / gid 0 |
+| `/tmp/iAp2Socket` | **not created** (`SOCK=no`) |
+
+**Round 2 — same label, with two permissive rules loaded into `/sys/fs/smackfs/load2`** (`System::iap20 _ rwxa`, `_ System::iap20 rwxa`; both accepted,
+`RULE*_RC=0`):
+
+| Observation | Value |
+| --- | --- |
+| process label | `System::iap20` |
+| `/tmp/iAp2Socket` | **still not created** |
+
+Both rounds contrast with the unlabelled runs in §2, where the service creates the socket within seconds and it appears as
+`srwxrwxrwx root root … LISTENING`. So:
+
+- **The service creates `/tmp/iAp2Socket` when running under the default label `_`, and does not when running under `System::iap20`**, even with rules that
+  permit that label to reach the default label. This is a real, reproducible difference across three runs (two labelled, one unlabelled).
+- **Do not over-read it.** Ruling out the obvious causes would need the vehicle's full policy rather than my two rules; the service may also be failing for a
+  reason unrelated to SMACK once its label changes (it keeps running — the process was alive at the check — but publishes nothing and logs nothing, so the
+  failure is silent). What is established is the dependency, not its mechanism.
+- **Consequence for the admission question, and it is a useful one:** whatever label the service carries on the vehicle **must be one that permits creating a
+  socket under `/tmp`**, otherwise it would never publish the socket at all — and the shipped unit names no label, so the label must come from systemd's
+  default. That narrows what the vehicle's label can be, and it argues that the socket is probably *not* published under a `System::iap20` confinement.
+- **Admission itself remains unmeasured.** Every connect attempt in both rounds returned `errno=2 (No such file or directory)` — because there was no socket to
+  connect to — so they test nothing about SMACK's verdict on an existing socket. The one admission measurement that does exist is §2's: with the socket present
+  and mode `0777` root-owned, filesystem permissions are not the gate.

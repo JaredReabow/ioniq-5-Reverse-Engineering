@@ -51,12 +51,15 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "ebfda04945ffff19bbb0a18eb78925a19e266bf0a18f22cb1b5ee2361f10cdca")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "fffcde68f746704bde88a9165c2c738c61a6ed6d9d9163eebd9c5198e32c59f5")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "26c95b5a9e4a2c2292e8da74533b0431e43e30bfabd246ae8559d2c1f3ec41f7")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "17cc8bb7d3919fa2525bf1b947ad6ca9e702c584b48d4adb5f3389f0fdb8e723")
+        self.assertIn(b"RBE incoming runtime-object handoff lookup", data)
+        self.assertIn(b"mov     ebx, 0x8200008", data)
+        self.assertIn(b"RBE runtime-object handoff append", data)
         self.assertNotIn(b"work/", data)
         self.assertNotIn(b"Contents of section", data)
 
@@ -126,6 +129,23 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(intel["rot_key_extension14_cse_bup_main_record"]["usage_bits"], [0, 1])
         self.assertTrue(intel["shared_public_modulus_and_exponent_bytes_identical"])
         self.assertTrue(intel["rbe_ipub_key_to_rot_key_pin_proved"])
+        handoff = intel["rbe_runtime_object_handoff"]
+        self.assertEqual(handoff["base"], 0x08200000)
+        self.assertEqual(handoff["maximum_total_size"], 0x8000)
+        self.assertEqual(handoff["first_entry"], 0x08200008)
+        self.assertEqual(handoff["name_compare_size"], 0x0C)
+        self.assertEqual(handoff["enabled_flag_offset"], 0x0D)
+        self.assertEqual(handoff["entry_total_size_offset"], 0x0E)
+        self.assertEqual(handoff["payload_offset"], 0x12)
+        self.assertEqual(handoff["first_rbe_append_name"], "cld_rst_blk")
+        self.assertEqual(
+            handoff["required_existing_entry_names"],
+            ["bpdt", "pm_trans", "ftpm_fuses", "sss_em", "rbe.man", "pmc_ipc", "ipub_key"],
+        )
+        self.assertTrue(handoff["optional_missing_pmc_msg_is_appended_by_rbe"])
+        self.assertTrue(handoff["rbe_ipub_key_path_uses_lookup_not_append"])
+        self.assertFalse(handoff["pre_rbe_producer_identity_proved"])
+        self.assertFalse(handoff["external_authentication_or_immutability_proved"])
         self.assertEqual(intel["exact_abl_static_digest_occurrences"], [M.ROT_KEY_OFFSET + 0x2CC])
         self.assertTrue(intel["exact_abl_static_digest_occurs_only_in_rot_key_record"])
         self.assertEqual(intel["bup_runtime_root_object_name"], "ipub_key")
@@ -260,6 +280,8 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["final_handoff_address_0xfef80000_mapping_proved"])
         self.assertTrue(conclusions["rbe_and_bup_signed_module_byte_chains_proved"])
         self.assertTrue(conclusions["rbe_runtime_ipub_key_pins_rot_key_proved"])
+        self.assertTrue(conclusions["rbe_ipub_key_consumed_from_incoming_0x08200000_handoff_proved"])
+        self.assertFalse(conclusions["pre_rbe_handoff_producer_or_authenticator_proved"])
         self.assertTrue(conclusions["shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved"])
         self.assertTrue(conclusions["bup_ipub_key_runtime_object_or_snowball_resolution_proved"])
         self.assertFalse(conclusions["bup_snowball_ipub_key_selected_at_runtime_proved"])

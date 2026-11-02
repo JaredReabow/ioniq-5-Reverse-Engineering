@@ -90,6 +90,8 @@ CSE_RBE_RANGES = {
     "mn2_key_hash_and_signature_validator": (0x2768, 0x2A9F, "7746354214d3c192aad6b206cb7ab3f41157168d3ad3c700eb26a3bbda4c8fee"),
     "uep_bitfield_extractor": (0x774B, 0x78F4, "91cc564e915b626697b61a885197c85d75bfa565e8509472f9359a61687e836b"),
     "ipub_key_materialization": (0x3C5, 0x3FD, "2a68ab7b0a996caa89a80a3c99e49ad56ab74b2394d70f37b1e0040d59713c57"),
+    "runtime_object_handoff_lookup": (0x153A, 0x158C, "dc887474f92cbeb125aca70955ab23f66cfbfb4f70d0cdef69ea15aa20aba38f"),
+    "runtime_object_handoff_append": (0x158C, 0x1654, "ff433d29a0d043f35609d377e51d218be1fe97d2d8c5e170ceabafece459e006"),
     "rot_key_validation": (0x2A9F, 0x2ADA, "1730fad17c09ae4e10d74c21639905acc97efac3298debcbb92e3999936ad083"),
 }
 CSE_BUP_SHA256 = "cee77bc172a9df1c4088d5f716b9e55cda539a26656d07a92268c3cd5d4f0165"
@@ -714,6 +716,23 @@ def parse_cse_root_and_boot_policy_chains(abl: bytes) -> dict:
             "shared_public_modulus_and_exponent_bytes_identical": True,
             "rot_key_extension14_cse_bup_main_record": rot_records[0],
             "rbe_ipub_key_to_rot_key_pin_proved": True,
+            "rbe_runtime_object_handoff": {
+                "base": 0x08200000,
+                "maximum_total_size": 0x8000,
+                "first_entry": 0x08200008,
+                "name_compare_size": 0x0C,
+                "enabled_flag_offset": 0x0D,
+                "enabled_flag_mask": 0x01,
+                "entry_total_size_offset": 0x0E,
+                "payload_offset": 0x12,
+                "lookup_returns_existing_entry": True,
+                "first_rbe_append_name": "cld_rst_blk",
+                "required_existing_entry_names": ["bpdt", "pm_trans", "ftpm_fuses", "sss_em", "rbe.man", "pmc_ipc", "ipub_key"],
+                "optional_missing_pmc_msg_is_appended_by_rbe": True,
+                "rbe_ipub_key_path_uses_lookup_not_append": True,
+                "pre_rbe_producer_identity_proved": False,
+                "external_authentication_or_immutability_proved": False,
+            },
             "rot_key_embedded_signature_valid": True,
             "rbep_ftpr_nftp_embedded_signatures_valid": True,
             "exact_abl_static_digest_occurrences": intel_digest_offsets,
@@ -729,7 +748,7 @@ def parse_cse_root_and_boot_policy_chains(abl: bytes) -> dict:
             "bup_snowball_path_selected_at_runtime_proved": False,
             "bup_snowball_object_writable_or_untrusted_proved": False,
             "ipub_key_producer_or_hardware_anchor_proved": False,
-            "boundary": "exact RBE trusts a runtime ipub_key object supplied before its recovered instruction boundary; its producer and ROM/fuse provenance remain unproved",
+            "boundary": "exact RBE looks up ipub_key in an incoming bounded runtime-object handoff at 0x08200000; RBE can append later objects but its ipub_key path does not create that entry. The pre-RBE producer, authentication, mutability, and ROM/fuse provenance remain unproved",
         },
         "oem_boot_policy_chain": {
             "uep_and_oem_key_digest": STORED_USAGE39_DIGEST,
@@ -944,8 +963,27 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
         raise Failure("CSE RBE key-manifest destination string drift")
     if cse_rbe.find(b"ifp_uep\0") != 0x7AE0:
         raise Failure("CSE RBE UEP object string drift")
-    if cse_rbe.find(b"ipub_key\0") != 0x7930:
-        raise Failure("CSE RBE runtime Intel public-key object string drift")
+    required_handoff_names = {
+        b"bpdt\0": 0x7900,
+        b"pm_trans\0": 0x7905,
+        b"ftpm_fuses\0": 0x790E,
+        b"sss_em\0": 0x7919,
+        b"rbe.man\0": 0x7920,
+        b"pmc_ipc\0": 0x7928,
+        b"ipub_key\0": 0x7930,
+    }
+    if any(cse_rbe.find(name) != offset for name, offset in required_handoff_names.items()):
+        raise Failure("CSE RBE required incoming handoff object strings drift")
+    if cse_rbe.find(b"pmc_msg\0") != 0x7939:
+        raise Failure("CSE RBE optional appended handoff object string drift")
+    if cse_rbe.find(b"cld_rst_blk\0") != 0x78F4:
+        raise Failure("CSE RBE first appended runtime-object name drift")
+    handoff_base = struct.pack("<I", 0x08200000)
+    handoff_refs = [index for index in range(len(cse_rbe)) if cse_rbe.startswith(handoff_base, index)]
+    if handoff_refs != [0x1540, 0x1552, 0x15BF, 0x15D6, 0x1645]:
+        raise Failure("CSE RBE runtime-object handoff base references drift")
+    if cse_rbe.find(struct.pack("<I", 0x08200008)) != 0x1557:
+        raise Failure("CSE RBE runtime-object first-entry reference drift")
     if cse_rbe[0x7F74:0x7F78] != bytes.fromhex("60010001"):
         raise Failure("CSE RBE UEP OEM-hash field descriptor drift")
     if cse_rbe[0x3AF3:0x3B13] != bytes.fromhex(
@@ -1330,6 +1368,8 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "final_handoff_address_0xfef80000_mapping_proved": True,
             "rbe_and_bup_signed_module_byte_chains_proved": True,
             "rbe_runtime_ipub_key_pins_rot_key_proved": True,
+            "rbe_ipub_key_consumed_from_incoming_0x08200000_handoff_proved": True,
+            "pre_rbe_handoff_producer_or_authenticator_proved": False,
             "shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved": True,
             "bup_ipub_key_runtime_object_or_snowball_resolution_proved": True,
             "bup_snowball_ipub_key_selected_at_runtime_proved": False,
@@ -1356,7 +1396,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "Hash-bound historical Apollo Lake Slim Bootloader source independently matches the exact target's chunk-count field, four-slot interpretation, size field, low-four-bit XOR handshake, slot geometry, source expression, acknowledgement, and PCI configuration offsets.",
             "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
             "The RBE-to-BUP-to-IBBL path binds the runtime type-0x0b payload to exact FTPR oem.key bytes. The recovered set's runtime expected usage-39 digest is therefore 9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af.",
-            "Exact RBE resolves runtime object ipub_key, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. Exact BUP's corresponding manifest path resolves ipub_key either from a runtime object or from /snowball/ipub_key depending on global 0xa014c, then accepts a selector no greater than 0x23 and supplies a selected 32-byte digest to its verifier. The exact Intel digest occurs statically only in rot.key's Extension-14 record. These paths do not prove that the snowball branch is active, writable, unauthenticated, or the producer used by earlier RBE.",
+            "Exact RBE looks up ipub_key in an incoming bounded runtime-object handoff at 0x08200000, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. RBE can append other handoff objects but its ipub_key path does not create that entry. Exact BUP's corresponding manifest path resolves ipub_key either from a runtime object or from /snowball/ipub_key depending on global 0xa014c, then accepts a selector no greater than 0x23 and supplies a selected 32-byte digest to its verifier. The exact Intel digest occurs statically only in rot.key's Extension-14 record. These paths do not prove who populated or authenticated the pre-RBE handoff, that it is immutable, or that the snowball branch is active, writable, or unauthenticated.",
             "Exact BUP selects oem.key usage bit 32, compares the IBBP.man modulus-plus-exponent digest before RSA verification, verifies IBBP.man, checks its signed BPM.met hash, and checks BPM.met's exact IBBL and IBB SHA-256 values. This closes the selected-UEP-to-exact-IBB byte chain for the recovered set.",
             "Exact RBE materializes the selected 0x100-byte UEP payload in the 0x108-byte ifp_uep object, with a hardware-route REAL header or the validated flash-route $UEP/CRC header. Exact BUP records whether the header is REAL without rejecting the alternative in this range, initially copies the payload byte-for-byte into its FPF shadow, may update that shadow through later field assembly, and publishes the resulting 0x880-byte bup_fpf special file. The signed NFTP fpf module requires that exact-size input and uses the resulting shadow while its hardware-mode global is zero.",
             "The signed NFTP fpf module exposes fpf and fpf_hw_use special files, opens /dev/flash/uep, and switches its field-read path between the BUP-provided shadow and hardware access. Its OemLock callback sets hardware mode before processing a fixed field sequence. This later provisioning state is not yet proved byte-identical to RBE's earlier 0xf6170800 hardware window.",

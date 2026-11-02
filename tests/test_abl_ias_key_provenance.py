@@ -51,7 +51,7 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "86f3936c41b75fde136bdd68e24a0253a5192072ea9eb06d0b30148908b9014b")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "8f1147474b6e2a412015337d7eac9f0f1cea8fcfbd5beb7dfaab02535fc4d056")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
@@ -73,6 +73,14 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(stage["key_manifest"]["entry_size"], 0x44)
         self.assertEqual(stage["key_manifest"]["digest_offset"], 0x24)
         self.assertEqual(stage["key_manifest"]["kernel_command_line_name"], "ABL.oemkm")
+        module_chains = exact["cse_signed_module_chains"]
+        self.assertTrue(module_chains["rbep_manifest_to_rbe_metadata_to_rbe_bytes_proved"])
+        self.assertTrue(module_chains["ftpr_manifest_to_bup_metadata_to_bup_bytes_proved"])
+        self.assertFalse(module_chains["ftpr_manifest_direct_oem_key_name_or_digest_coverage_found"])
+        self.assertFalse(module_chains["ftpr_cpd_oem_key_metadata_member_present"])
+        self.assertFalse(module_chains["external_manifest_key_anchor_proved"])
+        self.assertTrue(module_chains["members"]["rbep_manifest"]["manifest"]["embedded_signature_valid"])
+        self.assertTrue(module_chains["members"]["ftpr_manifest"]["manifest"]["embedded_signature_valid"])
         materializer = exact["cse_rbe_key_manifest_materializer"]
         self.assertEqual(materializer["sha256"], M.CSE_RBE_SHA256)
         self.assertEqual(materializer["source_cpd_member"], "oem.key")
@@ -113,6 +121,8 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertFalse(conclusions["runtime_fit_type0b_bound_to_stored_oem_key_manifest"])
         self.assertFalse(conclusions["runtime_expected_digest_bytes_recovered"])
         self.assertFalse(conclusions["final_handoff_address_0xfef80000_mapping_proved"])
+        self.assertTrue(conclusions["rbe_and_bup_signed_module_byte_chains_proved"])
+        self.assertFalse(conclusions["ftpr_manifest_direct_oem_key_coverage_proved"])
         self.assertFalse(conclusions["pre_ibbl_key_manifest_authentication_proved"])
         self.assertFalse(conclusions["custom_signed_image_acceptance_proved"])
         self.assertFalse(conclusions["boot_root_or_persistence_proved"])

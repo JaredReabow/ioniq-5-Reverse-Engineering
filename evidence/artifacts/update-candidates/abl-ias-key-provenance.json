@@ -8,11 +8,13 @@
     "cse_rbe_copies_ftpr_oem_key_to_oem_key_man_proved": true,
     "custom_signed_image_acceptance_proved": false,
     "final_handoff_address_0xfef80000_mapping_proved": false,
+    "ftpr_manifest_direct_oem_key_coverage_proved": false,
     "ibbl_copies_fit_and_relocates_type_0b_payload_proved": true,
     "oem_key_manifest_kernel_command_line_export_proved": true,
     "package_candidate_matches_stored_usage39_digest": false,
     "pre_ibbl_fit_handoff_address_proved": true,
     "pre_ibbl_key_manifest_authentication_proved": false,
+    "rbe_and_bup_signed_module_byte_chains_proved": true,
     "runtime_descriptor_is_fit_entry_type_0b_proved": true,
     "runtime_expected_digest_bytes_recovered": false,
     "runtime_fit_type0b_bound_to_stored_oem_key_manifest": false,
@@ -123,6 +125,54 @@
       "source_partition_index": 0,
       "source_to_destination_exact_length_copy_proved": true,
       "transformation_before_publication_observed": false
+    },
+    "cse_signed_module_chains": {
+      "external_manifest_key_anchor_proved": false,
+      "ftpr_cpd_oem_key_metadata_member_present": false,
+      "ftpr_manifest_direct_oem_key_name_or_digest_coverage_found": false,
+      "ftpr_manifest_to_bup_metadata_to_bup_bytes_proved": true,
+      "members": {
+        "bup_metadata": {
+          "flash_offset": 1175094,
+          "sha256": "7ef14c9991d3fb702131b3fc3da96c382e9eb294a054bf4bceeb78245df4941b",
+          "size": 1190
+        },
+        "ftpr_manifest": {
+          "flash_offset": 1171760,
+          "manifest": {
+            "embedded_signature_boundary": "self-consistency only; no external root established",
+            "embedded_signature_valid": true,
+            "exponent": 65537,
+            "header_size": 644,
+            "public_key_size": 256,
+            "tag": "$MN2",
+            "total_size": 3092
+          },
+          "sha256": "ca4fc90c57b212daa077e8dec1bc7c4827638ff21da0e7224a3bbce2e57efdf4",
+          "size": 3092
+        },
+        "rbe_metadata": {
+          "flash_offset": 1065796,
+          "sha256": "85f66e7be721e913665f5ffb9a0aca1d8e5d811ac8cb4f0e702bc0a3dec656c0",
+          "size": 174
+        },
+        "rbep_manifest": {
+          "flash_offset": 1065048,
+          "manifest": {
+            "embedded_signature_boundary": "self-consistency only; no external root established",
+            "embedded_signature_valid": true,
+            "exponent": 65537,
+            "header_size": 644,
+            "public_key_size": 256,
+            "tag": "$MN2",
+            "total_size": 748
+          },
+          "sha256": "80b5c254b9349d3bb716122f8dce36873e0ecb1a0576231fc74057eb90fcde79",
+          "size": 748
+        }
+      },
+      "rbep_manifest_to_rbe_metadata_to_rbe_bytes_proved": true,
+      "stored_hash_encoding": "reverse(SHA-256 bytes)"
     },
     "decompressed_stage1": {
       "fit_table": {
@@ -246,6 +296,8 @@
     "Exact CSE BUP code initializes a FIT, copies oem_key_man into its payload area, and appends type 0x0b with address 0xfffe1000. Exact IBBL later consumes a FIT at 0xfef80000, but the physical mapping between those addresses is not yet recovered.",
     "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
     "The RBE-to-BUP path binds BUP's published oem_key_man payload to exact FTPR oem.key bytes. The exact stored usage-39 digest is therefore recovered for the BUP-published object, but it is not promoted to the IBBL runtime expected digest until the BUP-to-0xfef80000 mapping is proved.",
+    "RBEP.man and FTPR.man embedded signatures verify, and their signed metadata hashes bind exact RBE and BUP bytes through rbe.met and bup.met. These remain self-contained signature chains until their manifest keys are externally anchored.",
+    "Exact FTPR.man has no direct oem.key name or digest coverage and FTPR CPD has no oem.key.met member. This bounded absence is not proof that another CSE policy, key manifest, or hardware root leaves oem.key unauthenticated.",
     "The exact flash contains an FTPR oem.key $MN2/Extension-14 manifest with a valid embedded self-signature and usage-39 digest 9b0a59...; the embedded signature still proves self-consistency rather than an external hardware root.",
     "The stored usage-39 digest does not equal the package carried-key candidate 437008... . Without the missing runtime FIT binding, this mismatch does not prove that the package boots or fails to boot under an installed ABL.",
     "The recovered IBB stages do not locally authenticate the key manifest before use. Any CSE, Boot Guard, fuse, ACM, or earlier-ROM authentication remains outside the recovered instruction boundary; the embedded manifest signature proves self-consistency only.",

@@ -3907,3 +3907,11 @@ and are superseded by corrections rather than silently rewritten.
 - Removing the preload in the direct configuration makes it paint; removing it inside the full chain does not. The difference
   between the two is ApplicationManager, which narrows the remaining problem to appbase rather than to graphics.
 - Recorded as a negative result, because the chain fix I expected to work did not.
+
+## 2026-10-31 — a plan corrected before it wasted a night
+
+- Inside the chain the app does more than standalone: it creates and shares an IVI surface. It still commits no buffer, so the surface
+  is prepared and never given content.
+- The wrapper idea I had committed to would not have worked. In chain mode stderr carries only Wayland protocol debug, because the
+  launcher routes application logging to DLT. Better to find that out from one traced run than to build the wrapper and wonder why the
+  log stayed empty.

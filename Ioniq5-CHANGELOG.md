@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.35.0 - in the chain the app shares surfaces but still commits nothing, and logs nothing to stderr
+
+- Attached `strace -e trace=write` to `AppHomeScreen` inside the chain (pid 802/825, 35 s of traffic, 5,353 traced lines). Two
+  results, one of them a correction to my previous plan.
+- **It is doing IVI surface work:** the traffic includes `ivi_share_surface@59.share_surface_state(1)` and
+  `-> ivi_share_surface@59.destroy()`, plus 1,750 mentions of `surface`. So the app is creating and sharing an IVI surface inside
+  the chain, which it does not do standalone.
+- **It still never commits:** across 40 s of tracing, `attach` count **0** and `.commit` count **0** in the reassembled stream. So the
+  surface exists and is shared, and no buffer is ever delivered to it.
+- **My wrapper plan was wrong in an informative way.** The stderr stream in chain mode contains only `WAYLAND_DEBUG` protocol text
+  (96,948 bytes reassembled) — **no application log lines at all**: `Add Screen` 0, no `FTL` records. In the standalone configuration
+  the same binary writes 830 lines of `[FTL]`/`[ERR]` to stderr. So when the launcher starts it, application logging goes somewhere
+  else — the vendor's DLT path — and stderr carries only libwayland debug. Giving it "a real stdout/stderr" therefore would not have
+  produced the log I expected; the instrument has to be DLT, or the app must be started outside the launcher.
+- That makes the decisive next experiment precise: **keep ApplicationManager running but start `AppHomeScreen` ourselves** (no
+  preload, readable stderr, same compositor). If it then paints, the launcher's invocation is the last fault; if it stays idle, the
+  appbase handshake is.
+
 ## 2.34.0 - the app is healthy and idle; the chain still paints nothing
 
 - **What the app does once it survives.** With the QML path fixed, its log shows normal operation: widget components load

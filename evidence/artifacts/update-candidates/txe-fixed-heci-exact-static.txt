@@ -137,9 +137,26 @@
 #   0x1693c -> 0x1695e      0x17f2e -> 0x17f50
 #
 # Therefore no directly imported syslib destination body contains an opcode or
-# non-address-data change. This does not exclude changed transitive callees,
-# syscall/service implementations, indirect dispatch targets, another signed
-# module, or a downstream HECI client.
+# non-address-data change.
+#
+# Reviewed direct-call continuation:
+# - 105 raw 0xe8 bytes across the 42 destination bodies;
+# - 96 direct call instruction boundaries and nine incidental operand/data
+#   bytes under full linear instruction review;
+# - 33 distinct affected/fixed target pairs;
+# - 12 references to unchanged external gates 0x102e and 0x103d;
+# - six references to already reviewed bodies 0x7972 and 0x118b0;
+# - 78 references to 29 new internal first-level callee bodies;
+# - 3,911 bytes across those 29 new next-entry-bounded bodies;
+# - 34 raw differing bytes, confined to 29 rel32 address operands and four
+#   indexed-table base operands; and
+# - all 29 new body pairs byte-identical after only those address operands are
+#   normalized.
+#
+# This excludes opcode/non-address-data changes in the directly imported bodies
+# and their new direct first-level callees. It does not exclude indirect calls
+# or jumps, indexed dispatch targets, deeper callees, kernel/service handlers
+# behind the external gates, another signed module, or a downstream HECI client.
 
 ## Later 3.1.94.3086 receive dispatcher
 # function 0x2789a..0x27ef8

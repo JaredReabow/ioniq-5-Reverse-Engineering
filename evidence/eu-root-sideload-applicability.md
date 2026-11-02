@@ -19,7 +19,7 @@ operational live-vehicle exploit procedure.
 <!-- disagreement: the parallel repository listed "acceptance of unencrypted updates" among this mechanism's requirements as if established, while this analysis records that complete package acceptance is unproven and that only the FUMO `-un:0` route honours the marker. Both are preserved; see `#### From the parallel repository` below. -->
 | Gen5W Wi-Fi/SSH loop | Post-root access | Requires an already-installed replacement/main-loop mechanism. |
 | CVE-2023-26243 through CVE-2023-26246 | Key disclosure and update signature/version-check bypasses | Demonstrated on `AE_E_PE_EUR.S5W_L001.001.211214`; patch status on `NE_E.EUR.S5W_L.001.001.260128` remains unknown. |
-| NEMESIS | Android/TCC803x root chain | Not directly applicable to this Linux/x86-64 package. |
+| NEMESIS | Android/TCC803x DSP-OTA helper chain | Current upstream commit `b0178ed95a217879e779750d7a28d9f6b677d06f` explicitly requires `S5W_M` Android with OTA support and says `S5W_L` is unsupported because it is a fundamentally different hardware/software combination. It is not directly applicable to this recovered Linux/x86-64 package. |
 | Unsigned modules, kexec, devmem/kmem/kcore, debugfs | Kernel post-entry surfaces | Confirmed compiled into `260128`; no reachable unprivileged entry or permissive SMACK policy is established. |
 
 No inspected public source establishes a stock-to-root path for exactly
@@ -30,12 +30,21 @@ execution has already been obtained.
 
 Application loading is native Linux/Qt deployment, not APK installation.
 Published examples replace rootfs/application files and create systemd units.
-The complete European package now contains `mango-rootfs.tar.gz`,
-`appnavi.tar`, `new_gui.tar.gz`, and update metadata, but those payloads are
-opaque encrypted envelopes rather than directly extractable archives. Exact
-stock launchers, service identities, SMACK rules and application-integrity
-checks therefore still require legitimate plaintext recovery or equivalent
-passive evidence from the owned unit.
+The European `260128` rootfs, AppNavi and GUI userspaces have now been recovered
+and inspected offline, so launchers, service identities, SMACK rules and
+application-integrity checks can be assessed directly. That plaintext recovery
+does not establish a stock-device initial entry, updater acceptance, boot trust,
+or persistence.
+
+Current NEMESIS provenance reinforces the platform boundary. At upstream commit
+`b0178ed95a217879e779750d7a28d9f6b677d06f`, `README.md` SHA-256
+`46cd3c7c76df75ea82e43067a957b5ba1a2349d24f56a47eb57017e1f06046e2`
+requires Android `S5W_M` and explicitly rejects `S5W_L`. Its technical record
+`01-DSP-OTA-troubleShooter.md`, SHA-256
+`4548a537b03993c5d39a219b6b33240f22928dbc7306bf689ba13354d4b382af`,
+binds the demonstrated path to Telechips TCC803x, Android 4.4.2 and firmware
+family `260507`. Those are public observations on a different platform, not
+static or runtime evidence for the recovered x86-64 Linux updater.
 
 Decisive remaining checks are the AppNavi Engineering/SOP gate, the exact
 `DecryptToPIPE` interface, userland installer checks, kernel-keystore

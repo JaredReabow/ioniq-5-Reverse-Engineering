@@ -17,6 +17,9 @@ new exact candidate:
 - all 42 syslib destination bodies directly imported by those HECI branches
   are byte-identical after normalizing 37 reviewed `rel32` address operands
   and one indexed-jump-table base operand;
+- all 29 new internal first-level callees reached by the 96 reviewed direct
+  calls from those bodies are likewise identical after reviewed address
+  normalization;
 - the named RBE/OEM-key-manifest/microcode anti-rollback FPF fields seen in
   `3.1.94` are absent by name from both affected and first-fixed FPF; and
 - first-fixed VFS newly opens the already defined `ndl_critical` and
@@ -28,8 +31,8 @@ are not the `3.1.55` fixes. The VFS/syslib NDL hookup is a high-priority exact
 candidate for CVE-2018-3655's anti-replay/data-integrity repair, but exact
 transaction semantics, physical reachability, and advisory attribution remain
 unproved. CVE-2018-12147 still requires changed-function and reachability
-analysis in transitive syslib callees, syscall/service implementations,
-indirect dispatch targets, another signed module, or downstream signed clients.
+analysis in indirect dispatch targets, deeper syslib callees, kernel/service
+implementations, another signed module, or downstream signed clients.
 
 No firmware module, MEI/HECI endpoint, update capsule, or target executable was
 run. All work was passive host-side parsing, strict decompression, hashing,
@@ -133,15 +136,15 @@ official first-fixed ASUS IFWI, and extracted later NUC IFWI. It:
 Reviewed report:
 
 - path: `evidence/artifacts/update-candidates/txe-fixed-module-diff.json`;
-- schema: `ioniq-txe-fixed-module-diff/v3`;
-- size: `92,615` bytes;
-- SHA-256: `d1043552b8ef772e825dc9e624dc3b62ab57f0fc8496cce7b359fbd5942d5fdb`.
+- schema: `ioniq-txe-fixed-module-diff/v4`;
+- size: `123,241` bytes;
+- SHA-256: `7cd1e22403c3fef4055303918b902108abccb34a9d2dca79ee835021d7b2a885`.
 
 Reviewed byte-free disassembly/decompiler excerpts are retained as:
 
 - path: `evidence/artifacts/update-candidates/txe-fixed-heci-exact-static.txt`;
-- size: `13,209` bytes;
-- SHA-256: `88bb85894ca61bacc009255f55405a8d5f2edf2d6b6bc90af970e39b46e5410e`.
+- size: `14,092` bytes;
+- SHA-256: `ec8901efdd7aa04ceae99e8b6427fc6116d7f3c0653d75e314b41c8cb285e27c`.
 
 The exact decompressed identities are:
 
@@ -225,11 +228,26 @@ locations moving by `+5`, `+8`, or `+34`. Therefore none of the 42 directly
 imported bodies contains an affected-to-first-fixed opcode or non-address-data
 change.
 
-This materially narrows CVE-2018-12147, but does not identify its fix. Several
-of these bodies are wrappers or dispatchers. Changed transitive callees,
-syscall/service implementations, indirect dispatch targets, another signed
-module, and downstream HECI clients remain open. Address normalization proves
-entry-body identity, not end-to-end behavioral identity.
+The 42 bodies contain 105 raw `0xe8` bytes. Full linear instruction review
+classifies 96 as direct-call boundaries and nine as incidental operand/data
+bytes. The 96 calls resolve to 33 target pairs:
+
+- 12 references to unchanged external gates `0x102e` and `0x103d`;
+- six references to already reviewed syslib bodies `0x7972` and `0x118b0`; and
+- 78 references to 29 new internal first-level callees.
+
+The 29 new next-entry-bounded callee bodies add another `3,911` reviewed bytes.
+Their 34 raw differing bytes are wholly contained in 29 reviewed `rel32`
+address operands and four indexed-table base operands. All 29 pairs become
+byte-identical after only those operands are normalized. This excludes an
+opcode or non-address-data change in the directly imported bodies and their
+new direct first-level callees.
+
+This materially narrows CVE-2018-12147, but does not identify its fix. Indirect
+calls/jumps, indexed dispatch targets, deeper callees, kernel/service handlers
+behind `0x102e`/`0x103d`, another signed module, and downstream HECI clients
+remain open. Address normalization proves bounded body identity, not end-to-end
+behavioral identity.
 
 ## Exact first-fixed VFS/syslib NDL integration
 

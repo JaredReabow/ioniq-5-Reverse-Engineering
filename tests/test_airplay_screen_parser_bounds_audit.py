@@ -85,6 +85,20 @@ class AirPlayScreenParserBoundsAuditTests(unittest.TestCase):
         with_header = module.conversion_geometry(8, 4, [0, 0], config_size=9)
         self.assertTrue(with_header["out_of_bounds"])
 
+    def test_declared_extent_distinguishes_synthetic_and_true_ends(self) -> None:
+        beyond_body = module.declared_extent_geometry(8, 0, 4, 16)
+        self.assertEqual(beyond_body["true_remaining"], 8)
+        self.assertEqual(beyond_body["synthetic_extent"], 20)
+        self.assertTrue(beyond_body["body_out_of_bounds"])
+        self.assertEqual(beyond_body["excess_input_bytes"], 12)
+
+        truncated_prefix = module.declared_extent_geometry(8, 7, 4, 0)
+        self.assertTrue(truncated_prefix["prefix_out_of_bounds"])
+        self.assertTrue(truncated_prefix["body_out_of_bounds"])
+
+        bounded = module.declared_extent_geometry(8, 2, 2, 4)
+        self.assertFalse(bounded["body_out_of_bounds"])
+
     def test_geometry_rejects_inconsistent_or_invalid_values(self) -> None:
         with self.assertRaises(module.AuditError):
             module.conversion_geometry(4, 3, [1])
@@ -94,6 +108,10 @@ class AirPlayScreenParserBoundsAuditTests(unittest.TestCase):
             module.conversion_geometry(4, 1, [])
         with self.assertRaises(module.AuditError):
             module.conversion_geometry(True, 1, [0])
+        with self.assertRaises(module.AuditError):
+            module.declared_extent_geometry(4, 4, 1, 0)
+        with self.assertRaises(module.AuditError):
+            module.declared_extent_geometry(4, 0, 3, 0)
 
     @unittest.skipUnless(RECOVERED_PRESENT, "recovered firmware is not present")
     def test_exact_recovered_report(self) -> None:
@@ -116,8 +134,9 @@ class AirPlayScreenParserBoundsAuditTests(unittest.TestCase):
         )
         self.assertEqual(
             report["assessment"]["classification"],
-            "exact-static heap out-of-bounds write candidate",
+            "exact-static heap out-of-bounds read/write candidate",
         )
+        self.assertIn("CWE-125", report["assessment"]["cwe"])
         self.assertIn("CWE-787", report["assessment"]["cwe"])
         self.assertIsNone(report["assessment"]["cve_attribution"])
         self.assertIn(
@@ -143,7 +162,7 @@ class AirPlayScreenParserBoundsAuditTests(unittest.TestCase):
             parsed = json.loads(first.read_text(encoding="ascii"))
             self.assertEqual(
                 parsed["canonical_sha256"],
-                "a01793627cae6f52c6befaf58c4e6c01cabfffd8e5a7494f3801fc00e5dcea54",
+                "4dbc0a3b6d91cbe988082b271788681380447a6cff2ffeec5258573d63e3822f",
             )
             duplicate = subprocess.run(
                 command + ["--output", str(first)],

@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "ioniq-airplay-screen-parser-bounds-audit/v1"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 MAX_FILE_BYTES = 64 * 1024 * 1024
 ELF_HEADER = struct.Struct("<16sHHIQQQIHHHHHH")
 PROGRAM_HEADER = struct.Struct("<IIQQQQQQ")
@@ -83,6 +83,10 @@ RANGES = {
         "media", 0x13825, 0x13ACC,
         "5b983dc3aa1572d143e811607e23d1c8f100e9214240bed3a66bc56e66428ace",
     ),
+    "declared_nal_length_to_synthetic_end": (
+        "media", 0x139AD, 0x13A31,
+        "bdf5cafe0174be2190b610f472ed7db04435ba2eb7a17026c03abb48eef0815b",
+    ),
     "h264_avcc_to_annex_b_header": (
         "coreutils", 0x81F2E, 0x821F4,
         "6ff7467bc1689bb04859aedc693b75f96e96627cb25d497d606c1c2134d53885",
@@ -136,6 +140,14 @@ ANCHORS = {
     "prefix_width_1_2_4_selection": (
         "media", 0x13835,
         "488b85f8feffff488b80900000004883f8017519488b85e8feffff0fb6000fb6c0488985d8feffffe94b010000488b85f8feffff488b80900000004883f8027534488b85e8feffff0fb6000fb6c0c1e00889c2488b85e8feffff4883c0010fb6000fb6c009d00fb7c0488985d8feffffe903010000488b85f8feffff488b80900000004883f804755f",
+    ),
+    "declared_length_forms_helper_end": (
+        "media", 0x139AD,
+        "488b85f8feffff488b9090000000488b85d8feffff4801d048898508ffffff488b85e8feffff488985c0feffff488b95c0feffff488b8508ffffff4801d048898518ffffff488b85f8feffff488b9090000000488b85c0feffff4c8d85c0feffff488dbdd0feffff488d8dc8feffff488bb518ffffff4d89c14989f84889c7",
+    ),
+    "helper_receives_synthetic_end": (
+        "media", 0x139F2,
+        "488b85f8feffff488b9090000000488b85c0feffff4c8d85c0feffff488dbdd0feffff488d8dc8feffff488bb518ffffff4d89c14989f84889c7e86f36ffff",
     ),
     "four_byte_start_code_and_nal_copy": (
         "media", 0x13A3A,
@@ -291,6 +303,41 @@ def conversion_geometry(
     }
 
 
+def declared_extent_geometry(
+    body_size: int,
+    consumed_before: int,
+    prefix_size: int,
+    declared_length: int,
+) -> dict[str, int | bool]:
+    """Model the caller's declared extent versus the true body; no bytes are made."""
+    values = (body_size, consumed_before, prefix_size, declared_length)
+    if any(not isinstance(value, int) or isinstance(value, bool) for value in values):
+        raise AuditError("declared-extent geometry values must be integers")
+    if (
+        body_size <= 0
+        or consumed_before < 0
+        or consumed_before >= body_size
+        or prefix_size not in (1, 2, 4)
+        or declared_length < 0
+    ):
+        raise AuditError("invalid declared-extent geometry")
+    remaining = body_size - consumed_before
+    prefix_out_of_bounds = prefix_size > remaining
+    declared_extent = prefix_size + declared_length
+    body_out_of_bounds = declared_extent > remaining
+    return {
+        "body_size": body_size,
+        "consumed_before": consumed_before,
+        "true_remaining": remaining,
+        "prefix_size": prefix_size,
+        "declared_length": declared_length,
+        "synthetic_extent": declared_extent,
+        "prefix_out_of_bounds": prefix_out_of_bounds,
+        "body_out_of_bounds": body_out_of_bounds,
+        "excess_input_bytes": max(0, declared_extent - remaining),
+    }
+
+
 def _verify_subject(name: str, data: bytes) -> tuple[dict[str, Any], list[dict[str, int]]]:
     expected = SUBJECTS[name]
     if len(data) != expected["size"]:
@@ -391,9 +438,11 @@ def build_report(airplay: bytes, media: bytes, coreutils: bytes) -> dict[str, An
             },
             "writes_without_output_bound": {
                 "config_prepend": "when context+0x98 is 1, 0x13776..0x1379f copies H retained bytes to the output and advances output-used by H without comparing H with capacity",
-                "nal_conversion": "for each accepted NAL, 0x13a3a stores a 4-byte Annex-B start code and 0x13a65 copies the NAL body, then advances output-used by 4+length",
-                "loop_bound": "0x13a9d..0x13ac6 repeats based on consumed input bytes relative to S; it does not compare output-used with context+0xa8",
-                "bounded_input_parser": "H264GetNextNALUnit restricts p to 1, 2, or 4 and ensures each encoded NAL body lies within input, but it accepts length zero and returns an input pointer advanced by p",
+                "declared_extent": "0x13849..0x13911 reads the next p-byte declared NAL length before checking true remaining bytes; 0x139c2 computes p+length and 0x139eb forms a synthetic end pointer from that declared extent",
+                "helper_boundary_mismatch": "0x13a2c passes the synthetic end to H264GetNextNALUnit rather than the true body end; the helper can therefore validate a declared body against caller-invented bounds that extend past the socket allocation",
+                "nal_conversion": "for each helper-accepted NAL, 0x13a3a stores a 4-byte Annex-B start code and 0x13a65 copies the declared NAL body, then advances output-used by 4+length",
+                "late_loop_bound": "only after the copy, 0x13a9d..0x13ac6 compares cumulative declared input consumption with S; it neither prevents an out-of-input read/copy nor compares output-used with context+0xa8",
+                "bounded_helper_scope": "H264GetNextNALUnit restricts p to 1, 2, or 4 and bounds each NAL against the end pointer it is given, but that end is synthetic here; it also accepts length zero and returns an input pointer advanced by p",
             },
         },
         "arithmetic_proof": {
@@ -411,24 +460,28 @@ def build_report(airplay: bytes, media: bytes, coreutils: bytes) -> dict[str, An
             "out_of_bounds_condition": "O > C, equivalently H + (4-p)*N > S",
             "accepted_zero_length_case": "H264GetNextNALUnit accepts zero-length units; with p=1 and N=S, O=H+4*S while C=2*S, so O>C for every S>0",
             "first_frame_header_case": "independently, the unchecked initial memcpy crosses C whenever H>C before NAL conversion begins",
-            "important_correction": "this exact socket path does not establish a size-doubling integer wrap on x86-64; the demonstrated defect is insufficient output-capacity accounting",
+            "declared_extent_failure": "before calling the helper, the caller does not require p+declared_length <= true_remaining; it uses p+declared_length to invent the helper end, so a declared extent past the socket body can be accepted and copied before the late cumulative-consumption comparison",
+            "partial_prefix_failure": "because the outer loop continues while at least one byte remains, p=2 or p=4 can read a truncated final prefix beyond the true body before any helper check",
+            "important_correction": "this exact socket path does not establish a size-doubling integer wrap on x86-64; the demonstrated defects are true-input-bound and output-capacity accounting failures",
         },
         "assessment": {
-            "classification": "exact-static heap out-of-bounds write candidate",
-            "cwe": ["CWE-787"],
+            "classification": "exact-static heap out-of-bounds read/write candidate",
+            "cwe": ["CWE-125", "CWE-787"],
             "demonstrated": [
                 "exact recovered bytes bind socket body reads and opcode dispatch to the media callbacks",
                 "exact recovered bytes bind zeroed initial context, retained AVCC state, and the first-frame flag",
                 "exact recovered bytes bind output allocation to 2*S on the growth path",
-                "exact recovered bytes bind an unchecked retained-header memcpy and an unchecked per-NAL 4-byte expansion",
-                "the exact bounded NAL helper accepts zero length and advances by the configured prefix width",
+                "exact recovered bytes bind declared-length and prefix reads that are not checked against true remaining body bytes",
+                "the caller gives the bounded helper a synthetic end derived from the unchecked declared length, then copies the accepted declared body",
+                "exact recovered bytes bind an unchecked retained-header memcpy and unchecked per-NAL output writes",
+                "the exact NAL helper accepts zero length and advances by the configured prefix width",
                 "the length identities admit accepted parser geometry whose output exceeds the recorded capacity",
             ],
             "prerequisites": [
                 "the three exact recovered library identities",
                 "an established screen-stream NetSocket and successful ScreenStream initialization/start",
                 "accepted video configuration retaining a supported prefix width",
-                "a subsequent video-frame body whose accepted NAL geometry makes H+(4-p)*N exceed S, or whose first-frame retained H exceeds capacity",
+                "a subsequent video-frame body with a declared NAL extent beyond true remaining input, accepted NAL geometry making H+(4-p)*N exceed S, or first-frame retained H exceeding capacity",
                 "the growth/reuse state must leave actual output allocation smaller than produced output; the fresh calloc-zeroed context reaches the exact 2*S growth case",
             ],
             "not_demonstrated": [

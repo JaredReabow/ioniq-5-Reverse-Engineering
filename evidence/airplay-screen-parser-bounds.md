@@ -2,8 +2,8 @@
 
 ## Scope and classification
 
-This note binds an **exact-static heap out-of-bounds write candidate** in the
-recovered EU `260128` projection stack. It does not report a live crash,
+This note binds an **exact-static heap out-of-bounds read/write candidate** in
+the recovered EU `260128` projection stack. It does not report a live crash,
 phone-to-handler delivery, code execution, root access, persistence, or CVE
 identity.
 
@@ -71,7 +71,7 @@ source lengths it consumes and derives `p` in the range `1..4`. The downstream
 NAL helper accepts `1`, `2`, or `4` and rejects `3`. This review does not claim
 an out-of-bounds write inside the converter.
 
-## Exact output-capacity mismatch
+## Exact true-input and output-capacity mismatches
 
 `ScreenStreamProcessData` is exact range `0x133f2..0x13f06`, size 2,836,
 SHA-256
@@ -83,7 +83,25 @@ It rejects a null body and a zero body size. Its output-buffer growth path then:
 - when growth is needed, allocates exactly `2*S` bytes at `0x136a3`;
 - records exactly `2*S` as capacity at `0x1372b`.
 
-Two later writes do not consult that capacity:
+The NAL caller also loses the true socket-body bound before those writes:
+
+- `0x13849..0x13911` reads the next `p`-byte declared NAL length without first
+  checking that `p` bytes remain in the body.
+- `0x139c2` computes `p + declared_length`.
+- `0x139eb` adds that unchecked extent to the current input pointer and treats
+  the result as the NAL helper's end pointer.
+- `0x13a2c` calls `H264GetNextNALUnit` with this **synthetic end**, not the true
+  `body_start + S` end.
+
+For the first NAL inside that declared extent, the helper's body check is
+against an end manufactured from the same declared length. A declared extent
+past the socket body can therefore be accepted, after which `memcpy` reads the
+accepted declared length from beyond the body allocation. The cumulative
+`consumed < S` comparison occurs only later at `0x13a9d..0x13ac6`, after the
+copy. If an outer iteration begins with fewer than `p` bytes remaining, the
+initial prefix read itself is already beyond the true body for `p=2` or `p=4`.
+
+Two output writes do not consult the recorded capacity:
 
 1. If context `+0x98` is `1`, `0x13776..0x1379f` copies all `H` retained
    configuration-header bytes to the output, then advances output-used by `H`.
@@ -95,10 +113,12 @@ Two later writes do not consult that capacity:
 
 `H264GetNextNALUnit`, exact range `0x821f4..0x82295`, size 161, SHA-256
 `4f93ad628a9cfbaf35c18a3e6cc5eca8c3ac67d82c93e56a1bf85607bac93c82`,
-correctly checks that the selected prefix and NAL body lie inside the input. It
-also accepts a zero NAL length and advances the input pointer by the selected
-prefix width. Its input bounds do not provide an output-capacity bound to its
-caller.
+checks that the selected prefix and NAL body lie inside the start/end range it
+is given. It also accepts a zero NAL length and advances the input pointer by
+the selected prefix width. The helper itself is bounded, but this caller gives
+it an end derived from the unchecked declared length rather than the true
+socket-body end. Its checks therefore do not close the caller's true-input or
+output-capacity failures.
 
 ## Length proof
 
@@ -135,12 +155,19 @@ The output crosses the allocation when:
 H + (4-p)*N > S
 ```
 
-This condition is satisfiable by input geometry that the exact bounded helper
-accepts. In particular, because a one-byte prefix and zero NAL length are both
-accepted, the per-NAL four-byte expansion can make output approach four times
-input while the fresh-context growth branch allocates twice input. Separately,
-the first-frame header copy crosses capacity whenever retained `H` alone is
-larger than the current allocation.
+This condition is satisfiable by input geometry that the exact helper accepts.
+In particular, because a one-byte prefix and zero NAL length are both accepted,
+the per-NAL four-byte expansion can make output approach four times input while
+the fresh-context growth branch allocates twice input. Separately, the
+first-frame header copy crosses capacity whenever retained `H` alone is larger
+than the current allocation.
+
+An independent true-input condition is missing: before forming the synthetic
+helper end, the caller never requires
+`p + declared_length <= true_remaining`. When this condition is false, the
+helper can accept and copy a declared extent outside the socket body because it
+was given the synthetic end. This establishes an exact-static out-of-bounds
+read/copy candidate even without relying on the four-byte expansion proof.
 
 No concrete frame, AVCC body, packet, or malformed input was created for this
 analysis.
@@ -156,8 +183,9 @@ S <= 0xffffffff
 ```
 
 The doubling does **not** wrap in 64-bit arithmetic on this route. The exact
-finding is insufficient output-capacity accounting for retained-header and
-per-NAL expansion, not a demonstrated `2*S` integer wrap.
+findings are a missing true-remaining check plus insufficient output-capacity
+accounting for retained-header and per-NAL expansion, not a demonstrated `2*S`
+integer wrap.
 
 ## CVE-2025-30422 boundary
 
@@ -179,8 +207,11 @@ Established statically:
 - exact socket-body dispatch into the reviewed config and frame callbacks;
 - exact zeroed context, retained AVCC state, and first-frame flag;
 - exact `2*S` output allocation on the growth path;
-- exact unchecked header prepend and unchecked NAL expansion writes;
-- accepted bounded-input geometry for which calculated output exceeds capacity.
+- exact declared-prefix/body handling that substitutes a synthetic helper end
+  for the true socket-body end;
+- exact unchecked header prepend and unchecked NAL output writes;
+- accepted parser geometry for which input reads exceed the body or calculated
+  output exceeds capacity.
 
 Not established:
 

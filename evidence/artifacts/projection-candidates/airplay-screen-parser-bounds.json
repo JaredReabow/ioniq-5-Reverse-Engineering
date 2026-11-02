@@ -15,6 +15,15 @@
       "size": 20,
       "subject": "libCarPlayMediaFramework.so"
     },
+    "declared_length_forms_helper_end": {
+      "bytes_hex": "488b85f8feffff488b9090000000488b85d8feffff4801d048898508ffffff488b85e8feffff488985c0feffff488b95c0feffff488b8508ffffff4801d048898518ffffff488b85f8feffff488b9090000000488b85c0feffff4c8d85c0feffff488dbdd0feffff488d8dc8feffff488bb518ffffff4d89c14989f84889c7",
+      "elf_va": "0x139ad",
+      "file_offset": "0x139ad",
+      "matched": true,
+      "sha256": "2b2a91bd7084d6cb2626e4bf42bf2978950488397bb2fa2a5bd0be4665210771",
+      "size": 127,
+      "subject": "libCarPlayMediaFramework.so"
+    },
     "double_body_size_capacity": {
       "bytes_hex": "488b8598feffff488d1400488b85f8feffff488b80a80000004839c20f86f8000000488b8598feffff4801c0",
       "elf_va": "0x13618",
@@ -31,6 +40,15 @@
       "matched": true,
       "sha256": "b7b8ad8c845816e54ea733120855bdf180d09a1db0ce20cd9b2aece2b6e72f89",
       "size": 96,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "helper_receives_synthetic_end": {
+      "bytes_hex": "488b85f8feffff488b9090000000488b85c0feffff4c8d85c0feffff488dbdd0feffff488d8dc8feffff488bb518ffffff4d89c14989f84889c7e86f36ffff",
+      "elf_va": "0x139f2",
+      "file_offset": "0x139f2",
+      "matched": true,
+      "sha256": "c9445de748a867f2f415f6ae8ad1bc56a1e26a1cffe33775286e27a58b166c62",
+      "size": 63,
       "subject": "libCarPlayMediaFramework.so"
     },
     "loop_uses_input_consumption_bound": {
@@ -144,12 +162,14 @@
   },
   "arithmetic_proof": {
     "accepted_zero_length_case": "H264GetNextNALUnit accepts zero-length units; with p=1 and N=S, O=H+4*S while C=2*S, so O>C for every S>0",
+    "declared_extent_failure": "before calling the helper, the caller does not require p+declared_length <= true_remaining; it uses p+declared_length to invent the helper end, so a declared extent past the socket body can be accepted and copied before the late cumulative-consumption comparison",
     "first_frame_header_case": "independently, the unchecked initial memcpy crosses C whenever H>C before NAL conversion begins",
     "growth_capacity": "C = 2*S",
-    "important_correction": "this exact socket path does not establish a size-doubling integer wrap on x86-64; the demonstrated defect is insufficient output-capacity accounting",
+    "important_correction": "this exact socket path does not establish a size-doubling integer wrap on x86-64; the demonstrated defects are true-input-bound and output-capacity accounting failures",
     "input_identity": "S = p*N + L",
     "out_of_bounds_condition": "O > C, equivalently H + (4-p)*N > S",
     "output_identity": "O = H + 4*N + L = H + S + (4-p)*N",
+    "partial_prefix_failure": "because the outer loop continues while at least one byte remains, p=2 or p=4 can read a truncated final prefix beyond the true body before any helper check",
     "symbols": {
       "C": "output capacity after the exact growth branch",
       "H": "retained Annex-B configuration-header bytes prepended on the first-frame branch",
@@ -160,18 +180,21 @@
     }
   },
   "assessment": {
-    "classification": "exact-static heap out-of-bounds write candidate",
+    "classification": "exact-static heap out-of-bounds read/write candidate",
     "cve_2025_30422_boundary": "Apple describes a fixed AirPlay SDK buffer overflow and Oligo classifies that CVE as potential integer-overflow RCE, but neither reviewed source names this function or supplies fixed bytes. This exact socket path has no 64-bit 2*S wrap, so broad class overlap is not attribution.",
     "cve_attribution": null,
     "cwe": [
+      "CWE-125",
       "CWE-787"
     ],
     "demonstrated": [
       "exact recovered bytes bind socket body reads and opcode dispatch to the media callbacks",
       "exact recovered bytes bind zeroed initial context, retained AVCC state, and the first-frame flag",
       "exact recovered bytes bind output allocation to 2*S on the growth path",
-      "exact recovered bytes bind an unchecked retained-header memcpy and an unchecked per-NAL 4-byte expansion",
-      "the exact bounded NAL helper accepts zero length and advances by the configured prefix width",
+      "exact recovered bytes bind declared-length and prefix reads that are not checked against true remaining body bytes",
+      "the caller gives the bounded helper a synthetic end derived from the unchecked declared length, then copies the accepted declared body",
+      "exact recovered bytes bind an unchecked retained-header memcpy and unchecked per-NAL output writes",
+      "the exact NAL helper accepts zero length and advances by the configured prefix width",
       "the length identities admit accepted parser geometry whose output exceeds the recorded capacity"
     ],
     "not_demonstrated": [
@@ -185,11 +208,11 @@
       "the three exact recovered library identities",
       "an established screen-stream NetSocket and successful ScreenStream initialization/start",
       "accepted video configuration retaining a supported prefix width",
-      "a subsequent video-frame body whose accepted NAL geometry makes H+(4-p)*N exceed S, or whose first-frame retained H exceeds capacity",
+      "a subsequent video-frame body with a declared NAL extent beyond true remaining input, accepted NAL geometry making H+(4-p)*N exceed S, or first-frame retained H exceeding capacity",
       "the growth/reuse state must leave actual output allocation smaller than produced output; the fresh calloc-zeroed context reaches the exact 2*S growth case"
     ]
   },
-  "canonical_sha256": "a01793627cae6f52c6befaf58c4e6c01cabfffd8e5a7494f3801fc00e5dcea54",
+  "canonical_sha256": "4dbc0a3b6d91cbe988082b271788681380447a6cff2ffeec5258573d63e3822f",
   "decoded_flow": {
     "output_capacity": {
       "body_symbol": "S",
@@ -211,10 +234,12 @@
       "video_frame": "opcode 0 reaches ScreenStreamProcessData@plt at 0x1f747 with the body pointer and uint32 body size"
     },
     "writes_without_output_bound": {
-      "bounded_input_parser": "H264GetNextNALUnit restricts p to 1, 2, or 4 and ensures each encoded NAL body lies within input, but it accepts length zero and returns an input pointer advanced by p",
+      "bounded_helper_scope": "H264GetNextNALUnit restricts p to 1, 2, or 4 and bounds each NAL against the end pointer it is given, but that end is synthetic here; it also accepts length zero and returns an input pointer advanced by p",
       "config_prepend": "when context+0x98 is 1, 0x13776..0x1379f copies H retained bytes to the output and advances output-used by H without comparing H with capacity",
-      "loop_bound": "0x13a9d..0x13ac6 repeats based on consumed input bytes relative to S; it does not compare output-used with context+0xa8",
-      "nal_conversion": "for each accepted NAL, 0x13a3a stores a 4-byte Annex-B start code and 0x13a65 copies the NAL body, then advances output-used by 4+length"
+      "declared_extent": "0x13849..0x13911 reads the next p-byte declared NAL length before checking true remaining bytes; 0x139c2 computes p+length and 0x139eb forms a synthetic end pointer from that declared extent",
+      "helper_boundary_mismatch": "0x13a2c passes the synthetic end to H264GetNextNALUnit rather than the true body end; the helper can therefore validate a declared body against caller-invented bounds that extend past the socket allocation",
+      "late_loop_bound": "only after the copy, 0x13a9d..0x13ac6 compares cumulative declared input consumption with S; it neither prevents an out-of-input read/copy nor compares output-used with context+0xa8",
+      "nal_conversion": "for each helper-accepted NAL, 0x13a3a stores a 4-byte Annex-B start code and 0x13a65 copies the declared NAL body, then advances output-used by 4+length"
     }
   },
   "public_comparator": {
@@ -227,6 +252,15 @@
     "screen_source_sha256": "c5fc6bca8a6758caaea59394859d5d857e6f9683d079ae3741a35da6f8999bc7"
   },
   "ranges": {
+    "declared_nal_length_to_synthetic_end": {
+      "elf_va_end_exclusive": "0x13a31",
+      "elf_va_start": "0x139ad",
+      "file_offset_start": "0x139ad",
+      "matched": true,
+      "sha256": "bdf5cafe0174be2190b610f472ed7db04435ba2eb7a17026c03abb48eef0815b",
+      "size": 132,
+      "subject": "libCarPlayMediaFramework.so"
+    },
     "double_size_capacity_allocation": {
       "elf_va_end_exclusive": "0x13732",
       "elf_va_start": "0x13618",
@@ -373,6 +407,6 @@
   },
   "tool": {
     "name": "airplay_screen_parser_bounds_audit.py",
-    "version": "1.0.0"
+    "version": "1.1.0"
   }
 }

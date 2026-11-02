@@ -120,6 +120,35 @@ headless_output_repaint(struct weston_output *output_base,
 			   wl_list_length(&ec->layer_list));
 	}
 
+	/* Attribute views to clients. The vendor compositor aborts in
+	 * composite_clipped() on a source image whose format is NULL, and only once
+	 * many screens exist, so the question is *which* client's surface is in that
+	 * state. weston's log never names clients; asking wayland for the
+	 * credentials behind each surface resource does. Each view is reported with
+	 * whether a buffer is attached and whether it is scissored, because
+	 * scissor_enabled is what routes a view through the clipped composite path
+	 * where the assertion lives. */
+	if (composite && output->index == 0 && repaint_count < 8) {
+		struct weston_view *v;
+		int idx = 0;
+		wl_list_for_each(v, &ec->view_list, link) {
+			struct wl_client *client = NULL;
+			pid_t pid = -1;
+			uid_t uid = (uid_t)-1;
+			gid_t gid = (gid_t)-1;
+			if (v->surface && v->surface->resource)
+				client = wl_resource_get_client(v->surface->resource);
+			if (client)
+				wl_client_get_credentials(client, &pid, &uid, &gid);
+			weston_log("ias-soft: view[%d] client=%d buffer=%s alpha=%.2f scissor=%d size=%dx%d\n",
+				   idx++, (int)pid,
+				   (v->surface && v->surface->buffer_ref.buffer) ? "yes" : "no",
+				   v->alpha, v->geometry.scissor_enabled ? 1 : 0,
+				   v->surface ? v->surface->width : 0,
+				   v->surface ? v->surface->height : 0);
+		}
+	}
+
 	if (composite)
 		ec->renderer->repaint_output(&output->base, damage);
 

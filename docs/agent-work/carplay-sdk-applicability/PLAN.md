@@ -17,8 +17,9 @@ cross-product/public-version comparisons.
 - No target execution, service startup, module loading, networking, flashing,
   partition writes, or boot changes.
 - No claim that Sony, Alpine, Mercedes-Benz, or Apple advisory defects exist in
-  the recovered Hyundai build without byte-level lineage or matching vulnerable
-  code.
+  the recovered build without byte-level lineage or a matching vulnerable
+  mechanism; third-party CVE attribution remains distinct from vendor-confirmed
+  function or patch identity.
 
 ## Repository evidence
 
@@ -34,13 +35,16 @@ cross-product/public-version comparisons.
   ZDI-25-763/CVE-2025-8474, CVE-2024-37602, CVE-2025-24132, and
   CVE-2025-30422. Oligo classifies the latter two as CarPlay RCE/potential RCE
   and names R18.1 as fixed, but its reviewed publication withholds their exact
-  routes and implementation details; none establish lineage with this build.
+  routes and implementation details. A later third-party report identifies a
+  candidate CVE-2025-24132 mechanism that must be independently byte-checked.
 - Exact `libAirPlay.so` contains the HTTP/RTSP-style receiver, plist content
-  types/APIs, route markers, and FDE-bounded `_requestProcessSetupPlist` body
-  needed for a bounded static handler audit.
+  types/APIs, route markers, and an FDE-bounded HTTP delegate with an inlined
+  `_requestProcessSetupPlist` branch for bounded static handler audit.
 - Its setup path passes exact HTTP body pointer/length fields to the
-  `libCoreUtils.so` binary-plist parser. Parser bounds checks and any arithmetic
-  candidates must be byte-bound and kept separate from unproved CVE identity.
+  `libCoreUtils.so` binary-plist parser. Parser bounds checks, encryption-key
+  handling, and arithmetic candidates must be byte-bound; exact memory-safety
+  findings must remain separate from runtime delivery and vendor-confirmed CVE
+  identity.
 
 ## Deliverables
 
@@ -62,9 +66,9 @@ cross-product/public-version comparisons.
 
 - Every exact claim is tied to path, SHA-256, build ID, or literal reviewed
   configuration/string evidence.
-- The report proves only recovered-image activation/configuration and static
-  parser/API presence; practical phone delivery and exploitability remain false
-  or unknown.
+- The report may establish exact recovered memory-safety mechanisms, but
+  practical phone delivery, authentication state, exploitability, unrestricted
+  root, and persistence remain false or unknown.
 - Public advisories are recorded as comparators with product and lineage limits.
 - Output is independent of locale/stdout encoding and stable across two runs.
 - Focused tests, `py_compile`, `git diff --check`, and the canonical pytest suite

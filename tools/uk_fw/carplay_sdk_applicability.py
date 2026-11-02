@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "ioniq-carplay-sdk-applicability/v1"
-TOOL_VERSION = "1.1.0"
+TOOL_VERSION = "1.2.0"
 MAX_FILE_BYTES = 128 * 1024 * 1024
 ELF_HEADER = struct.Struct("<16sHHIQQQIHHHHHH")
 PROGRAM_HEADER = struct.Struct("<IIQQQQQQ")
@@ -68,6 +68,17 @@ AIRPLAY_REQUEST_RANGE = (
     0x11A3B,
     "fccea004635853ec3d685f24815e548a227bf8f65853f5e025e4115cda0cfc10",
 )
+SETUP_KEY_PATH_RANGE = (
+    0x103C3,
+    0x10580,
+    "93bcf61544059dc8e162d80012a9527905fc3a26cee51bac471634678b110d67",
+)
+SETUP_KEY_CORE_RANGES = {
+    "CFGetData": (0x47075, 0x4720F, "714c493f4fef6c0807b8fa82458806df30ea98f87cf9a58d84959393c7be7e19"),
+    "CFDictionaryGetData": (0x472A0, 0x4733F, "615a9d9fde2ef58caf77a8f6cc7a59f1a206bdc7cb885e90a7a06629d49f85f7"),
+    "MFiSAP_Decrypt": (0x7FA41, 0x7FAE7, "d73d2a706aaf00c7eaa472e9c9f2f1110834bc029f59581a7cd7d1f7b1c5e5e7"),
+    "AES_CTR_Update": (0x1F373, 0x1F578, "6f3b5d9b617ee004f966833d32539166615cc2e12adc0fc9afaeda5bcdbfa610"),
+}
 BPLIST_RANGES = {
     "CFStringCreateWithBytes": (0x299E4, 0x29B11, "fb6c03d8ad313a1dd91026cece624b2ce1529fb6b56b2bcf2f09deee002c161b"),
     "read_sized_integer": (0x3964B, 0x396DD, "2054c003efe46884944f96f0790084b092a4f8d48c51b923e79d547f74a48c24"),
@@ -385,9 +396,56 @@ def build_report(rootfs: Path) -> dict[str, Any]:
         "_requestProcessSetupPlist",
     )
     if digest(request_body) != request_hash:
-        raise AuditError("_requestProcessSetupPlist: reviewed range identity drift")
+        raise AuditError("HTTP delegate/inlined setup: reviewed range identity drift")
+    key_start, key_end, key_hash = SETUP_KEY_PATH_RANGE
+    key_path_body = elf_vaddr_bytes(
+        airplay_library,
+        key_start,
+        key_end - key_start,
+        "setup encryption-key path",
+    )
+    if digest(key_path_body) != key_hash:
+        raise AuditError("setup encryption-key path: reviewed range identity drift")
+    for pattern, meaning in (
+        (bytes.fromhex("31c931d24c8db424800000004d89f9"), "request ekey with null destination and zero maximum"),
+        (bytes.fromhex("4183fd10"), "select MFi-SAPv1 encryption type 0x10"),
+        (bytes.fromhex("488b942480000000488d8c24080100004889c6"), "pass returned ekey length and rsp+0x108 destination to MFiSAP_Decrypt"),
+        (bytes.fromhex("4883bc248000000010"), "require the separately copied IV length to equal 16"),
+    ):
+        if key_path_body.count(pattern) != 1:
+            raise AuditError(f"setup encryption-key path pattern drift: {meaning}")
+    for pattern, meaning in (
+        (bytes.fromhex("4c8dac2408010000488d9424180100004c89ee"), "pass rsp+0x108 key and rsp+0x118 IV to session security setup"),
+        (bytes.fromhex("498d4c150048ffc24883fa117405c60100"), "securely zero exactly 16 key bytes after session setup"),
+    ):
+        if request_body.count(pattern) != 1:
+            raise AuditError(f"setup encryption-key use pattern drift: {meaning}")
 
     core_utils = files["app/lib/libCoreUtils.so"]
+    setup_key_core_ranges: dict[str, Any] = {}
+    for name, (start, end, expected_hash) in SETUP_KEY_CORE_RANGES.items():
+        body = elf_vaddr_bytes(core_utils, start, end - start, name)
+        if digest(body) != expected_hash:
+            raise AuditError(f"{name}: reviewed setup-key range identity drift")
+        setup_key_core_ranges[name] = {
+            "start": hex(start),
+            "end": hex(end),
+            "size": len(body),
+            "sha256": digest(body),
+        }
+    cf_get_data = elf_vaddr_bytes(core_utils, 0x47075, 0x4720F - 0x47075, "CFGetData")
+    mfi_decrypt = elf_vaddr_bytes(core_utils, 0x7FA41, 0x7FAE7 - 0x7FA41, "MFiSAP_Decrypt")
+    aes_update = elf_vaddr_bytes(core_utils, 0x1F373, 0x1F578 - 0x1F373, "AES_CTR_Update")
+    for body, pattern, meaning in (
+        (cf_get_data, bytes.fromhex("4885db0f84dc000000"), "return CFData bytes without a destination copy when inBuf is null"),
+        (mfi_decrypt, bytes.fromhex("4883c738e8"), "forward caller pointer, length, and destination to AES_CTR_Update"),
+        (aes_update, bytes.fromhex("4889d34883ec38"), "retain the caller-supplied size for the update loops"),
+        (aes_update, bytes.fromhex("41881402"), "store each full-block output byte through the caller destination"),
+        (aes_update, bytes.fromhex("88540500"), "store each trailing output byte through the caller destination"),
+    ):
+        if body.count(pattern) < 1:
+            raise AuditError(f"setup encryption-key callee pattern drift: {meaning}")
+
     bplist_ranges: dict[str, Any] = {}
     for name, (start, end, expected_hash) in BPLIST_RANGES.items():
         body = elf_vaddr_bytes(core_utils, start, end - start, name)
@@ -436,8 +494,8 @@ def build_report(rootfs: Path) -> dict[str, Any]:
         "airplay_http_plist_review": {
             "binary": "app/lib/libAirPlay.so",
             "request_processor": {
-                "reviewed_name": "_requestProcessSetupPlist",
-                "name_evidence": "embedded function-name string referenced inside the FDE-bounded body",
+                "reviewed_name": "HTTP connection delegate containing inlined _requestProcessSetupPlist",
+                "name_evidence": "the FDE starts at the installed HTTP delegate callback; embedded _requestProcessSetupPlist and _requestDecryptKey strings are referenced by assertions in their inlined branches",
                 "start": hex(request_start),
                 "end": hex(request_end),
                 "size": len(request_body),
@@ -455,7 +513,7 @@ def build_report(rootfs: Path) -> dict[str, Any]:
                     {"address": "0xfc4a", "operation": "rep stosd"},
                     {"address": "0x102a3", "operation": "rep stosd"},
                 ],
-                "direct_dispatcher_interpretation": "Reviewed direct calls and repeated-memory instructions show bounded text writes and structure clears, not a direct memcpy/strcpy/sprintf/strcat-style copy. Deeper parser, dictionary, session, and internal helper callees remain open.",
+                "direct_dispatcher_interpretation": "Across the FDE-bounded HTTP callback, the direct libc-style call inventory contains bounded text writes and structure clears rather than memcpy/strcpy/sprintf/strcat. Deeper review of the inlined setup encryption-key branch, however, establishes a distinct unbounded MFiSAP_Decrypt to AES_CTR_Update stack-write chain described below.",
             },
             "protocol_markers": list(AIRPLAY_PROTOCOL_MARKERS),
             "parser_api_markers": list(AIRPLAY_PARSER_API_MARKERS),
@@ -466,6 +524,75 @@ def build_report(rootfs: Path) -> dict[str, Any]:
                 "error_checked_after_call": True,
                 "dictionary_type_checked_at": "0x100a3..0x100b6",
                 "runtime_delivery_observed": False,
+            },
+            "setup_encryption_key_review": {
+                "airplay_binary": "app/lib/libAirPlay.so",
+                "core_utils_binary": "app/lib/libCoreUtils.so",
+                "inlined_path_range": {
+                    "start": hex(key_start),
+                    "end": hex(key_end),
+                    "size": len(key_path_body),
+                    "sha256": digest(key_path_body),
+                },
+                "core_ranges": setup_key_core_ranges,
+                "request_dictionary_field": "ekey",
+                "encryption_type": {"value": 0x10, "comparative_public_name": "kAirPlayEncryptionType_MFi_SAPv1"},
+                "key_retrieval": {
+                    "call_site": "0x1040f",
+                    "destination_argument": None,
+                    "maximum_length_argument": 0,
+                    "full_cfdata_length_returned_at": "stack + 0x80",
+                    "returned_data_pointer_used": True,
+                    "pre_decrypt_length_equals_16_check_present": False,
+                },
+                "decrypt_call": {
+                    "call_site": "0x1048c",
+                    "source_pointer": "CFDictionaryGetData return value",
+                    "length": "stack + 0x80, unchanged",
+                    "destination": "stack + 0x108",
+                    "destination_capacity_bytes": 16,
+                    "capacity_evidence": "the session-security call consumes key at +0x108 and IV at +0x118; the post-call secure-zero loop clears exactly 16 key bytes",
+                },
+                "separate_iv_copy": {
+                    "destination": "stack + 0x118",
+                    "maximum_length_bytes": 16,
+                    "post_copy_length_equals_16_check": "0x1053f",
+                },
+                "stack_geometry": {
+                    "frame_allocation_bytes": 0x178,
+                    "key_buffer_offset": "stack + 0x108",
+                    "iv_buffer_offset": "stack + 0x118",
+                    "canary_offset": "stack + 0x168",
+                    "key_buffer_bytes": 16,
+                    "bytes_from_key_start_to_canary": 0x60,
+                    "stack_canary_checked_at": "0x11728..0x11742",
+                },
+                "callee_semantics": {
+                    "CFGetData_null_destination_returns_underlying_cfdata_pointer_and_full_length": True,
+                    "MFiSAP_Decrypt_forwards_caller_length_and_destination_to_AES_CTR_Update": True,
+                    "AES_CTR_Update_writes_caller_length_bytes_to_destination": True,
+                    "destination_capacity_passed_to_decrypt_or_update": False,
+                },
+                "exact_unbounded_stack_write_mechanism_present": True,
+                "static_preconditions": [
+                    "the setup body has parsed as a dictionary",
+                    "the encryption type is 0x10",
+                    "the connection has a non-null MFiSAP context",
+                    "MFiSAP state is client-done or server-done",
+                ],
+                "runtime_phone_delivery_or_authentication_observed": False,
+                "public_comparison": {
+                    "source": "TheGamingGallifreyan/LiberationPlay-CVE-2025-24132-AirBourne-POC",
+                    "source_url": "https://github.com/TheGamingGallifreyan/LiberationPlay-CVE-2025-24132-AirBourne-POC",
+                    "retrieved": "2026-11-02",
+                    "commit": "ffd24a03dc5425dd89f6352bf588fcde5f4081ff",
+                    "public_source_sha256": "dafbad8b342e705543ee03f132ab09c320fecf719503b735ac8d6d99ba3fb6e7",
+                    "reported_mechanism_matches": ["setup request", "ekey field", "MFi-SAP state", "AES-CTR write into a 16-byte key buffer"],
+                    "third_party_cve_2025_24132_mechanism_match_established": True,
+                    "vendor_confirmed_function_or_patch_match": False,
+                    "interpretation": "A public third-party report that claims vulnerable-versus-patched binary analysis identifies the same field and cryptographic call chain. The recovered bytes independently establish the memory-safety mechanism, but Apple and Oligo have not publicly confirmed this function or supplied fixed bytes for comparison.",
+                },
+                "impact_boundary": "The exact bytes establish an unbounded stack write and a canary-mediated failure boundary. They do not establish live phone-to-handler delivery, authentication bypass, reliable instruction-pointer control, code execution, SMACK escape, unrestricted root, or persistence on the recovered or installed unit.",
             },
             "binary_plist_parser_review": {
                 "binary": "app/lib/libCoreUtils.so",
@@ -493,7 +620,7 @@ def build_report(rootfs: Path) -> dict[str, Any]:
                 },
             },
             "public_architecture_overlap": "The recovered library contains an HTTP/RTSP-style AirPlay receiver, binary/XML plist content types, route strings, and plist/dictionary parser APIs of the same broad class discussed by Oligo.",
-            "limitation": "Architecture and API overlap do not identify either 2025 CVE's exact route, field, or vulnerable instruction sequence; no fixed-build byte comparator is available.",
+            "limitation": "The setup ekey path now has an exact recovered unbounded-stack-write mechanism and a matching third-party CVE-2025-24132 report. No vendor-confirmed function mapping, fixed-build bytes, runtime delivery, or exploitability evidence is available; the CVE identity therefore remains third-party-attributed rather than vendor byte-confirmed.",
         },
         "iap2_marshal_getbytes_review": {
             "ranges": marshal_ranges,
@@ -513,7 +640,10 @@ def build_report(rootfs: Path) -> dict[str, Any]:
             "recovered_iap2_gadget_and_mfd_modules_selected": True,
             "apple_communication_plugin_320_17_string_present": True,
             "generic_iap2_getbytes_unchecked_stack_copy_present": False,
-            "airplay_setup_dispatcher_direct_unbounded_copy_present": False,
+            "airplay_setup_dispatcher_direct_unbounded_libc_copy_present": False,
+            "airplay_setup_ekey_unbounded_stack_write_present": True,
+            "cve_2025_24132_third_party_mechanism_match_present": True,
+            "cve_2025_24132_vendor_confirmed_function_or_patch_match": False,
             "binary_plist_utf16_length_wrap_candidate_present": True,
             "binary_plist_utf16_direct_out_of_bounds_chain_excluded": True,
             "binary_plist_utf16_security_relevant_semantic_truncation_established": False,
@@ -529,7 +659,8 @@ def build_report(rootfs: Path) -> dict[str, Any]:
             "The public Sony and Alpine findings concern different products and disclose no function bytes or patch suitable for an exact code match.",
             "Apple's public SDK advisory names fixed AirPlay and CarPlay SDK releases, but the recovered private 320.17 lineage string has no public version mapping to those releases.",
             "Oligo classifies CVE-2025-24132 as CarPlay stack-overflow RCE and CVE-2025-30422 as potential integer-overflow RCE, but withholds the exact vulnerable route and implementation details in the reviewed publication.",
-            "Recovered AirPlay HTTP/plist architecture overlap prioritizes exact handler review; it does not establish vulnerable lineage, reachability, or exploitability.",
+            "A later public third-party demonstration attributes CVE-2025-24132 to the same setup ekey/MFiSAP/AES-CTR chain found independently in the recovered bytes; this is strong comparative mechanism evidence, not vendor confirmation or a fixed-byte match.",
+            "The exact unbounded stack write does not by itself establish live route reachability, authentication state, reliable code execution, or impact beyond the configured App::projection process context.",
             "Stack canary, non-executable stack, RELRO, or fortify references constrain some outcomes but do not prove parser safety.",
             "No target executable, module, service, USB device, network endpoint, parser, or malformed input was executed by this audit.",
         ],

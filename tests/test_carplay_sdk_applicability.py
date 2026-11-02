@@ -108,6 +108,27 @@ def test_canonical_carplay_report_matches_reviewed_artifact():
     assert request["stack_canary_load_present"] is True
     assert request["direct_unbounded_copy_or_concatenation_callees"] == []
     assert request["bounded_text_write_callees"] == ["TruncateUTF8", "snprintf", "strlcpy"]
+    key_path = airplay["setup_encryption_key_review"]
+    assert key_path["inlined_path_range"] == {
+        "start": "0x103c3",
+        "end": "0x10580",
+        "size": 0x1BD,
+        "sha256": "93bcf61544059dc8e162d80012a9527905fc3a26cee51bac471634678b110d67",
+    }
+    assert key_path["key_retrieval"]["maximum_length_argument"] == 0
+    assert key_path["key_retrieval"]["pre_decrypt_length_equals_16_check_present"] is False
+    assert key_path["decrypt_call"]["destination_capacity_bytes"] == 16
+    assert key_path["stack_geometry"]["bytes_from_key_start_to_canary"] == 0x60
+    assert key_path["callee_semantics"]["AES_CTR_Update_writes_caller_length_bytes_to_destination"] is True
+    assert key_path["exact_unbounded_stack_write_mechanism_present"] is True
+    assert key_path["public_comparison"]["third_party_cve_2025_24132_mechanism_match_established"] is True
+    assert key_path["public_comparison"]["vendor_confirmed_function_or_patch_match"] is False
+    assert key_path["core_ranges"]["MFiSAP_Decrypt"]["sha256"] == (
+        "d73d2a706aaf00c7eaa472e9c9f2f1110834bc029f59581a7cd7d1f7b1c5e5e7"
+    )
+    assert key_path["core_ranges"]["AES_CTR_Update"]["sha256"] == (
+        "6f3b5d9b617ee004f966833d32539166615cc2e12adc0fc9afaeda5bcdbfa610"
+    )
     body_path = airplay["request_body_to_parser_path"]
     assert body_path["body_pointer_field"] == "HTTP message + 0x518"
     assert body_path["body_length_field"] == "HTTP message + 0x530"
@@ -136,7 +157,10 @@ def test_canonical_carplay_report_matches_reviewed_artifact():
         "601fc208cd6c41eb6926c782dcafcedd47c88785516c98c1290ebcdd2e08ac31"
     )
     assert report["verdict"]["generic_iap2_getbytes_unchecked_stack_copy_present"] is False
-    assert report["verdict"]["airplay_setup_dispatcher_direct_unbounded_copy_present"] is False
+    assert report["verdict"]["airplay_setup_dispatcher_direct_unbounded_libc_copy_present"] is False
+    assert report["verdict"]["airplay_setup_ekey_unbounded_stack_write_present"] is True
+    assert report["verdict"]["cve_2025_24132_third_party_mechanism_match_present"] is True
+    assert report["verdict"]["cve_2025_24132_vendor_confirmed_function_or_patch_match"] is False
     assert report["verdict"]["binary_plist_utf16_length_wrap_candidate_present"] is True
     assert report["verdict"]["binary_plist_utf16_direct_out_of_bounds_chain_excluded"] is True
     assert report["verdict"]["binary_plist_utf16_security_relevant_semantic_truncation_established"] is False

@@ -51,12 +51,12 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "0154bec1847242874e032b3e1009ef76bd17c045977606f9f3bf775845f4afb7")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "05be861e74a3739fd32e003c0cf48974a0f745a2e1e2346b553e747ac8635765")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "7550669453ba498fceff2243b48bd0513026ec6a9f833ec1845f7ea8235ecd33")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "3d65b46c3289c5feed238e6b60ce7cedd806b1960ed5ae3c2b114633ada4286e")
         self.assertNotIn(b"work/", data)
         self.assertNotIn(b"Contents of section", data)
 
@@ -138,6 +138,27 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(boot_policy["bpm_metadata_ibb_sha256"], M.IBB_SHA256)
         self.assertTrue(boot_policy["uep_to_oem_key_to_ibbp_to_bpm_to_ibb_bytes_chain_proved"])
         self.assertFalse(boot_policy["uep_external_authentication_or_fuse_precedence_proved"])
+        fpf = exact["cse_uep_to_fpf_provisioning_handoff"]
+        self.assertEqual(fpf["signed_chain"]["fpf_decompressed"]["sha256"], M.FPF_SHA256)
+        self.assertTrue(fpf["signed_chain"]["nftp_manifest_binds_fpf_metadata"])
+        self.assertTrue(fpf["signed_chain"]["fpf_metadata_binds_compressed_fpf"])
+        self.assertEqual(fpf["bup_special_file"]["name"], "bup_fpf")
+        self.assertEqual(fpf["bup_special_file"]["minor"], 7)
+        self.assertEqual([entry["name"] for entry in fpf["fpf_special_files"]["entries"]], ["fpf", "fpf_hw_use"])
+        fpf_handoff = fpf["handoff"]
+        self.assertEqual(fpf_handoff["rbe_output_object"], "ifp_uep")
+        self.assertEqual(fpf_handoff["rbe_hardware_route_marker"], "REAL")
+        self.assertEqual(fpf_handoff["rbe_flash_route_marker"], "$UEP")
+        self.assertEqual(fpf_handoff["bup_real_marker_global"], 0xA4074)
+        self.assertFalse(fpf_handoff["bup_rejects_non_real_marker"])
+        self.assertTrue(fpf_handoff["bup_initial_payload_copy_byte_identity_proved"])
+        self.assertTrue(fpf_handoff["bup_later_field_assembly_can_update_shadow"])
+        self.assertFalse(fpf_handoff["full_initial_payload_byte_identity_at_publication_proved"])
+        self.assertEqual(fpf_handoff["bup_published_size"], 0x880)
+        self.assertEqual(fpf_handoff["fpf_shadow_global"], 0x366E4)
+        self.assertEqual(fpf_handoff["fpf_hardware_mode_global"], 0x36F60)
+        self.assertTrue(fpf_handoff["selected_uep_to_bup_fpf_to_nftp_fpf_shadow_proved"])
+        self.assertFalse(fpf_handoff["nftp_fpf_hardware_state_equated_to_rbe_hardware_window"])
         materializer = exact["cse_rbe_key_manifest_materializer"]
         self.assertEqual(materializer["sha256"], M.CSE_RBE_SHA256)
         self.assertEqual(materializer["source_cpd_member"], "oem.key")
@@ -231,6 +252,8 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["ibbp_manifest_binds_bpm_metadata_proved"])
         self.assertTrue(conclusions["bpm_metadata_binds_exact_ibbl_and_ibb_proved"])
         self.assertTrue(conclusions["uep_to_oem_key_to_ibbp_to_exact_ibb_chain_proved"])
+        self.assertTrue(conclusions["selected_uep_to_bup_fpf_to_signed_nftp_fpf_shadow_proved"])
+        self.assertFalse(conclusions["nftp_fpf_hardware_state_equated_to_rbe_hardware_window"])
         self.assertFalse(conclusions["ftpr_manifest_direct_oem_key_coverage_proved"])
         self.assertTrue(conclusions["pre_ibbl_key_manifest_authentication_proved"])
         self.assertFalse(conclusions["custom_signed_image_acceptance_proved"])

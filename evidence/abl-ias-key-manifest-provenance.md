@@ -320,6 +320,50 @@ This proves the recovered set's byte chain
 `selected UEP digest → oem.key → usage bit 32 → IBBP.man → BPM.met → exact
 IBBL and IBB`. It does not independently authenticate the selected UEP source.
 
+## Exact selected-UEP to NFTP FPF provisioning handoff
+
+The selected UEP also feeds a separate later provisioning path:
+
+1. Exact RBE creates runtime object `ifp_uep` with size `0x108`.
+2. On the hardware-window route RBE places marker `REAL` at object offset zero;
+   on the flash route the validated `$UEP`/CRC header remains there. Both routes
+   place the selected `0x100`-byte payload at offset `+8`.
+3. Exact BUP resolves `ifp_uep`, copies the eight-byte header, compares its first
+   dword with `REAL`, and records the result at global `0x000a4074`. A non-`REAL`
+   header selects zero rather than causing a rejection in this range. BUP then
+   copies the `0x100`-byte payload exactly into global `0x000a37f8`.
+4. BUP's later field-assembly path can update the same shadow, so full initial
+   payload byte identity at final publication is not claimed.
+5. BUP metadata defines special file `bup_fpf`, major 30, minor 7. Exact BUP
+   publishes `0x880` bytes from global `0x000a37f8` through that endpoint.
+6. The exact NFTP `fpf` process requires an exact `0x880`-byte read from
+   `/dev/bup_fpf` into shadow global `0x000366e4` and separately opens
+   `/dev/flash/uep`.
+
+The `fpf` process is itself byte-bound by the signed NFTP chain:
+
+- `NFTP.man`, flash `0x203688`, size `0x9a0`, SHA-256
+  `d89f510f91eb9191e4b1e4a1a17b4675e3823953067ded257a6d78b2fb340ea4`;
+- `fpf.met`, flash `0x205f6c`, size `0x10c`, SHA-256
+  `2f5ecd89cfd900abf8dda056ee19b7d373bdda7a6a1ea0092e38404268de51ec`;
+- compressed `fpf`, flash `0x268000`, size `0x2a51`, SHA-256
+  `40e9da01431dc7a40e82ba6a33e1ee7d9891c9ffa0cda02efb5ff56387681e47`;
+- strictly decompressed `fpf`, size `0x6000`, SHA-256
+  `9fd694bc90c7433528cfcf80ad265093cc61e086d882a3c52dee152ba64630b9`.
+
+`NFTP.man` contains reversed SHA-256 of exact `fpf.met`; `fpf.met` contains
+reversed SHA-256 of the exact compressed module. The metadata exposes `fpf`
+and `fpf_hw_use` as major-23 minors 0 and 1.
+
+Exact `fpf` maintains hardware-mode global `0x00036f60`. Its field-read path
+uses the BUP-provided shadow while that byte is zero and a hardware-access path
+when it is nonzero. The callback associated with table entry `OemLock` sets the
+hardware-mode byte before processing a fixed field sequence. This proves that
+the selected RBE UEP is carried into later signed FPF provisioning logic. It
+does **not** yet prove that NFTP's later hardware state is the producer of, or
+byte-identical to, RBE's earlier `0xf6170800..0xf61708ff` hardware window.
+Nor does it prove that the earlier selected UEP source is fuse-authenticated.
+
 ## Exact stored FTPR `oem.key` manifest
 
 The exact flash FTPR CPD contains:
@@ -430,6 +474,13 @@ What is now proved:
 - exact BUP selects OEM usage bit 32 to pin and verify `IBBP.man`, verifies its
   signed `BPM.met` hash, and verifies the metadata's exact IBBL/IBB hashes;
 - UEP source authentication and hardware/fuse precedence remain open;
+- exact RBE publishes its selected UEP as `ifp_uep`; exact BUP distinguishes a
+  hardware-route `REAL` header from the flash-route header without rejecting the
+  latter, copies the payload, and publishes `0x880` bytes as `bup_fpf`;
+- the signed NFTP `fpf` module consumes that exact-size input and switches its
+  field reads between the BUP shadow and a later hardware-access mode;
+- NFTP's later FPF hardware state is not yet equated with RBE's earlier hardware
+  window;
 - exact CSE RBE copies FTPR `oem.key` at its exact source length into
   `oem_key_man`, with a matching manifest-length check;
 - exact CSE BUP constructs a FIT type-`0x0b` entry from `oem_key_man` and
@@ -462,8 +513,10 @@ What remains unproved:
 
 - whether an installed unit executes this exact RBE/BUP/ABL set rather than a
   different installed manifest or firmware generation;
-- whether CSE, Boot Guard, an ACM, ROM, real FPFs, or another earlier stage
+- whether CSE, Boot Guard, an ACM, ROM, physical FPFs, or another earlier stage
   authenticates or overrides the selected UEP source;
+- the exact producer and immutable provenance of RBE's `0xf6170800` hardware
+  window, despite the now-proved later BUP/NFTP provisioning handoff;
 - the actual runtime expected digest on an installed unit, although the exact
   recovered set now proves `9b0a59...` as its own runtime expected value;
 - any writable or replaceable provenance path;
@@ -488,11 +541,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `36,563`
-  - SHA-256 `0154bec1847242874e032b3e1009ef76bd17c045977606f9f3bf775845f4afb7`
+  - size `42,405`
+  - SHA-256 `05be861e74a3739fd32e003c0cf48974a0f745a2e1e2346b553e747ac8635765`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `93,196`
-  - SHA-256 `7550669453ba498fceff2243b48bd0513026ec6a9f833ec1845f7ea8235ecd33`
+  - size `98,618`
+  - SHA-256 `3d65b46c3289c5feed238e6b60ce7cedd806b1960ed5ae3c2b114633ada4286e`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

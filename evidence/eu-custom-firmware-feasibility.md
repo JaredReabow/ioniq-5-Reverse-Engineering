@@ -91,6 +91,22 @@ its signed `BPM.met` hash, and checks the metadata's exact IBBL/IBB hashes. The
 remaining earlier-stage questions are who produces and anchors `ipub_key`, and
 whether the selected UEP source is ROM/fuse authenticated or overrideable.
 
+A second exact path now shows how the selected UEP reaches later provisioning
+logic. RBE publishes the selected `0x100`-byte payload in `ifp_uep`, using a
+`REAL` header for the hardware route and retaining the validated `$UEP`/CRC
+header for the flash route. BUP resolves that object, records whether the header
+is `REAL` without rejecting the alternative in the recovered range, initially
+copies the payload byte-for-byte into its FPF shadow, and may then update that
+shadow through field assembly before publishing an `0x880`-byte `bup_fpf`
+special file. The signed NFTP `fpf` module requires that exact-size input,
+exposes `fpf` and `fpf_hw_use`, opens
+`/dev/flash/uep`, and changes field reads between the BUP shadow and a hardware
+path according to its hardware-mode global. Its `OemLock` callback enables
+hardware mode before a fixed field sequence. This is exact evidence of a
+provisioning mechanism, but not an owner-writable path: NFTP's later hardware
+state is not yet proved identical to RBE's earlier `0xf6170800` source, and no
+authority or immutability conclusion follows merely from the endpoint names.
+
 The volatile handoff is no longer an open qualifier for this recovered set.
 Exact BUP writes FIT-base pointer `0xfffe0000` into the tail-placed IBBL image;
 IBBL self-relocation preserves the pointer, then exact IBBL copies and relocates
@@ -103,7 +119,7 @@ installed ABL/RBE/BUP/UEP identity and update-component selection are captured.
 
 This narrows, but does not remove, the custom-firmware boundary. A theoretical
 key-reprovisioning path would additionally require proof that the selected UEP
-source is owner-writable, not overridden by real FPFs/fuses, and accepted by all
+source is owner-writable, not overridden by physical FPFs/fuses, and accepted by all
 earlier signed IFWI and Boot Guard stages. None of those conditions is proved.
 No modified UEP, key manifest, boot container, or flash workflow is produced by
 this research.

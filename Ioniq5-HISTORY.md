@@ -4005,3 +4005,10 @@ and are superseded by corrections rather than silently rewritten.
 - Something new and useful came out of it: in this configuration the splash program exits on its own for the first time, which suggests it was
   waiting for a layout it could recognise.
 - The hypothesis about screen nine is still unproven. The compositor fell over first, and that is what the record says.
+
+## 2026-10-31 — ten screens, no crash, no picture
+
+- Running the app alone against ten outputs composites cleanly and produces a wide, pale image. Nothing in it came from the application, which
+  still submits no buffer.
+- The crash in the previous run needed the splash to die mid-composite, which is why it appeared only when the whole chain ran.
+- Honest reading: the layout problem is closer to solved, the application problem has not moved.

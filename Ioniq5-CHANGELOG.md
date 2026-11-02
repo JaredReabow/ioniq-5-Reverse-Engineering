@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.47.0 - ten outputs render without crashing when the app runs alone, and still show nothing of the app
+
+- Re-ran the multi-output backend **without the launcher or the splash** — just our backend, the vendor `ivi-shell`, and `AppHomeScreen`
+  started by hand with the vendor argument list. Result:
+  - `ias-soft: 10 output(s), ivi screen ids 0..9` — screens exist;
+  - **`Assertion` count 0**, weston alive (pid 725), app alive (pid 730) — **no crash**;
+  - `commit` 0, `attach` 0, `ivi_surface` 0 — the app still submits nothing;
+  - **the captured frame is 53,915 bytes at 19200×720** (`docs/vm/11-ten-output-frame-2026-10-31.png`) instead of the 4,117-byte black
+    single-output frame.
+- So the §2.46.0 abort was **not** caused by multi-output as such: it needs the splash program's surface to be destroyed while its view is
+  still composited. With no `early-background` in the run, ten outputs composite happily. That correlates with the log order observed there —
+  `early-background exiting`, then `ivi_surface@7.destroy()`, `wl_buffer@9.destroy()`, `wl_surface@3.destroy()`, then the assertion.
+- The 19,200×720 frame is **light and near-uniform**, i.e. the compositor clearing to its default colour across ten tiled outputs, not
+  application content: the app's own commit count is still zero, so nothing it drew can be in that image. Calling it progress toward a home
+  screen would be wrong; calling it evidence that the ten-screen layout composites cleanly is accurate.
+- `screen(9)` did not appear in this configuration's log, so the app only interrogates the layout controller under conditions this run did not
+  reproduce (most likely when ApplicationManager/launcher traffic is present). The screen-9 hypothesis therefore remains **untested**, not
+  refuted.
+- Next: run the chain (so the app is driven as on the vehicle) with ten outputs and the splash **held alive** to avoid the destroy-while-
+  composited abort, then measure whether the app finally creates an `ivi_surface` and commits.
+
 ## 2.46.0 - ten IVI screens now exist, and pixman aborts on a surface with no buffer
 
 - Subagent-built backend change landed and works at runtime. Our `ias-backend-soft.so` now creates N outputs selected by

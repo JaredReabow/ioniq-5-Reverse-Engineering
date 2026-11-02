@@ -4120,3 +4120,10 @@ and are superseded by corrections rather than silently rewritten.
 - The application that kept disappearing was being stopped by the manager after a sibling died, which is the manager doing its job. No fault, no leak, no OOM.
 - Corrected my own previous entry, which had floated it as a possible defect. The evidence against that was already in the memory numbers.
 - Also fixed a debugging tool that was drowning the console it was supposed to be observed through. Worth remembering that an instrument can be the problem.
+
+## 2026-10-31 — the manager was fighting the experiment
+
+- A hand-started application dies quickly whenever the chain's application manager is running, because the manager supervises the window owner and stops an instance
+  it did not launch.
+- That single fact quietly undermines a measurement method used all day. Several results were the supervisor, not the hypothesis.
+- Third time today the instrument was the problem: a flooded console, a five-second race, and now a supervisor that treats my experiment as a rogue process.

@@ -90,6 +90,30 @@ static int send_bootinfo(DBusConnection *connection, DBusMessage *request,
     return send_message(connection, reply);
 }
 
+/* Variable-length 'ay' reply. The audio and car-information asks declare only an
+ * out argument of type 'ay', so a caller waiting on one of them needs this shape
+ * rather than an empty return. Sizes are placeholders: the app checks whether the
+ * payload is empty and otherwise parses it field by field, and zeroes read as
+ * "nothing to report" for every field we have exercised so far. */
+static int send_bytes(DBusConnection *connection, DBusMessage *request,
+                      const uint8_t *data, size_t len)
+{
+    DBusMessage *reply = dbus_message_new_method_return(request);
+    DBusMessageIter root, array;
+    const uint8_t *p = data;
+    if (reply == NULL)
+        return 0;
+    dbus_message_iter_init_append(reply, &root);
+    if (!dbus_message_iter_open_container(&root, DBUS_TYPE_ARRAY,
+                                           DBUS_TYPE_BYTE_AS_STRING, &array) ||
+        !dbus_message_iter_append_fixed_array(&array, DBUS_TYPE_BYTE, &p, len) ||
+        !dbus_message_iter_close_container(&root, &array)) {
+        dbus_message_unref(reply);
+        return 0;
+    }
+    return send_message(connection, reply);
+}
+
 static int send_string(DBusConnection *connection, DBusMessage *request,
                        const char *value)
 {
@@ -185,6 +209,47 @@ static int is_transport_ack(DBusMessage *request)
             return 1;
     return exact_call(request, CAN_PATH, CAN_INTERFACE,
                       "SetCANFixedMicomRecv", "ayiii");
+}
+
+/* Asks the running home screen issues at startup and then waits on forever when
+ * nothing answers. Taken from the interface XML compiled into the vendor binaries
+ * (`com.lge.car.micom.ihu` and `com.lge.car.micom.audio`): every one of these
+ * declares an out argument of type 'ay' and no input arguments.
+ *
+ * Previously the audio interface appeared in this simulator's introspection
+ * document but had no dispatch branch at all, so a well-formed audio query was
+ * answered with UNKNOWN_METHOD and the caller's pending-call watcher never
+ * completed with data. */
+struct ay_reply {
+    const char *path;
+    const char *iface;
+    const char *member;
+    size_t len;
+};
+
+static const struct ay_reply ay_replies[] = {
+    { IHU_PATH, IHU_INTERFACE, "AskEtcCarInformationRead", 32 },
+    { IHU_PATH, IHU_INTERFACE, "AskFactoryModeInfo", 8 },
+    { AUDIO_PATH, AUDIO_INTERFACE, "AskVolumeInfo", 8 },
+    { AUDIO_PATH, AUDIO_INTERFACE, "AskSoundSetupInfo", 8 },
+    { AUDIO_PATH, AUDIO_INTERFACE, "AskAMPSupportInfo", 4 },
+};
+
+static int serve_ay_reply(DBusConnection *connection, DBusMessage *request)
+{
+    size_t i;
+    uint8_t zeroes[32];
+    memset(zeroes, 0, sizeof zeroes);
+    for (i = 0; i < sizeof ay_replies / sizeof ay_replies[0]; i++) {
+        if (!exact_call(request, ay_replies[i].path, ay_replies[i].iface,
+                        ay_replies[i].member, ""))
+            continue;
+        printf("MICOM_DBUS_SIM_AY path=%s member=%s len=%zu\n",
+               ay_replies[i].path, ay_replies[i].member, ay_replies[i].len);
+        fflush(stdout);
+        return send_bytes(connection, request, zeroes, ay_replies[i].len);
+    }
+    return 0;
 }
 
 int main(int argc, char **argv)
@@ -313,6 +378,8 @@ int main(int argc, char **argv)
                    strcmp(path, IHU_PATH) == 0 &&
                    strcmp(dbus_message_get_signature(request), "") == 0) {
             send_bootinfo(connection, request, bootinfo);
+        } else if (serve_ay_reply(connection, request)) {
+            /* handled inside the helper; marker already printed */
         } else if (is_transport_ack(request)) {
             printf("MICOM_DBUS_SIM_ACK path=%s interface=%s member=%s\n",
                    path, iface, member);

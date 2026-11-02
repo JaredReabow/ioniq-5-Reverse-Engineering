@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.42.0 - the UI images were never staged: a `/tmp` symlink nobody creates
+
+- The app's log names a real failure: `[QtMsg] ASTC: Failed to load ASTC image for
+  "/app/share/images/new_gui/eco3.0/hmc/night/…"`. The images are not missing from the image — **the path they are reached through is
+  broken at runtime.**
+- Measured in the guest filesystem: `/app/share/images/new_gui` is a **symlink to `/tmp/new_gui`**, `/system/new_gui` exists and holds
+  `eco3.0`, `new2.0`, `euradiodb`, `ringtone`, and **nothing in the projection creates `/tmp/new_gui`** — `/tmp` is a fresh tmpfs at
+  boot, so every UI asset is unreachable. This is a boot-time provisioning step that exists on the real unit and is absent here.
+- **Creating `ln -s /system/new_gui /tmp/new_gui` removes every ASTC failure**: 0 occurrences in a 55-second run that previously
+  produced them continuously. So that fault is real, diagnosed, and fixed.
+- It is **not** sufficient on its own: with assets loading, the app still shows `commit` 0 and `attach` 0 over 20 s, and the frame is the
+  splash because `early-background` was deliberately left running in this run. The image path and the missing-surface problem are
+  separate, and this closes the first.
+- **Correction to §2.41.0.** I recorded that the MMUS asks were "asks our stub never replies to". That was wrong, and two measurements
+  say so: `dbus-monitor` shows **one** session-bus message to `com.lge.car.micom` in a 30 s window (not the asks), and on the system bus
+  our simulator *does* reply — with `UNKNOWN_METHOD "method not implemented by micom research simulator"`. The `QDBusPendingCallWatcher`
+  lambda lines in the log are the completions **arriving**, not calls hanging. So the stub coverage gap is real for the audio interface,
+  but it is not what gates the UI, and I should not have said it was.
+- Related: `tools/uk_fw/guest/micom_dbus_sim.c` gained dispatch for the five asks (`AskEtcCarInformationRead`, `AskFactoryModeInfo`,
+  `AskVolumeInfo`, `AskSoundSetupInfo`, `AskAMPSupportInfo`) and a variable-length `ay` reply helper, because the audio interface appeared
+  in its introspection document with **no dispatch branch at all**. That change **has not been built**: cross-compiling it needs
+  `dbus/dbus.h`, which is not present for the `x86_64-linux-gnu` target, so the source is committed unverified and that is stated here
+  rather than implied.
+- Next: with assets loading, re-test whether anything is shown; and find what creates `/tmp/new_gui` on the real unit (a boot script or
+  service) so the provisioning step is reproduced rather than hand-made.
+
 ## 2.41.0 - the pending MMUS calls are asks our own stub does not answer
 
 - Compared what the running projection actually answers against what the app asks. `tools/uk_fw/ias_backend_soft/micom_service.c` —

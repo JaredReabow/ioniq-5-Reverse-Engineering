@@ -281,6 +281,17 @@ kernel. It still does not show who populated or authenticated the table before
 RBE, and the embedded manifest chain remains externally anchored only if the
 incoming `ipub_key` itself is anchored.
 
+Exact BUP exposes a matching ingestion contract. It clears list head `0xa014c`,
+repeatedly calls an external reader until it returns no object, requires an
+exact `0x12`-byte header, obtains total entry size from header `+0x0e`, then
+requires an exact read of `total_size - 0x12` payload bytes before prepending
+the materialized object. This exactly matches the FTPR kernel's sequential
+entry-boundary stream geometry. However, the recovered call/import binding from
+BUP's external reader at `0x659b` to the exact FTPR-kernel stream function is
+not yet closed. Therefore the geometry match does not yet prove that BUP's
+runtime `ipub_key` came from the RBE table or that the `/snowball/ipub_key`
+fallback is unreachable during manifest verification.
+
 A whole-image literal search finds nine byte occurrences of little-endian
 `0x08200000`: five are the exact RBE lookup/append references and three are the
 FTPR-kernel range/iterator references. The ninth starts one byte into PMCP dword
@@ -543,6 +554,9 @@ What is now proved:
 - RBE's `ipub_key` path looks up an existing handoff entry rather than appending
   it, and the exact manifest-bound FTPR kernel later consumes the same base,
   first-entry address, state byte, and entry-size geometry;
+- exact FTPR streaming and BUP runtime-object ingestion agree on `0x12`-byte
+  header, total-size-at-`+0x0e`, payload remainder, and entry boundaries, but
+  their import/function binding remains open;
 - all plain little-endian `0x08200000` byte occurrences in the exact ABL are
   classified as RBE/FTPR consumers or one unaligned cross-dword PMCP match;
 - the pre-RBE handoff producer, authentication, mutability, computed/indirect
@@ -627,11 +641,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `49,530`
-  - SHA-256 `bd8083a1d4f2c3615f4f3e90fe744ef672a0db34d3c65964717bc2a601b254ec`
+  - size `50,561`
+  - SHA-256 `0e80943a5ca734c6323b89d2658058f4f2154095fcdbe1f7ebfee3f90e52eb7f`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `106,756`
-  - SHA-256 `de572636a386de1faca23155cfa1c670b87a9ab08e267c3a1980035106f1641e`
+  - size `109,090`
+  - SHA-256 `6281ca80b93f4cef25421960cd42562ac42b84815aff9ca93c0c327ad149a9f6`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

@@ -2344,6 +2344,32 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
    8ee0e: je      0x8ee17                         # state 1 accepted
    8ee10: call    0x8edc6                         # otherwise advance
 
+## FTPR kernel handoff stream copy (kernel file [0xee19,0xee7c), runtime [0x8ee19,0x8ee7c))
+
+   8ee1f: mov     edi, dword ptr [ebp + 0xc]      # requested byte count
+   8ee22: mov     edx, dword ptr [0x99df4]        # current entry
+   8ee30: movzx   ebx, word ptr [edx + 0xe]       # entry total size
+   8ee34: mov     eax, dword ptr [0x99df0]        # current stream cursor
+   8ee39: add     ebx, edx
+   8ee3b: sub     ebx, eax                        # bytes left in entry
+   8ee3f: cmp     edi, ebx
+   8ee41: jbe     0x8ee45
+   8ee43: mov     esi, ebx                        # clamp to entry boundary
+   8ee45: push    esi
+   8ee46: push    eax
+   8ee47: push    dword ptr [ebp + 0x8]
+   8ee4a: call    0xfff8102e                      # copy current stream bytes
+   8ee52: cmp     esi, ebx
+   8ee54: jne     0x8ee62
+   8ee56: call    0x8edc6                         # advance completed entry
+   8ee5b: call    0x8edfa                         # skip non-state-1 entries
+   8ee62: add     dword ptr [0x99df0], esi
+   8ee68: add     dword ptr [ebp + 0x8], esi
+   8ee6b: sub     edi, esi
+   8ee6d: jmp     0x8ee22
+   8ee6f: mov     eax, dword ptr [ebp + 0xc]
+   8ee75: sub     eax, edi                        # bytes actually copied
+
 # This proves that the exact signed FTPR kernel consumes the same handoff base,
 # first entry, +0x0d state byte, and +0x0e entry-size geometry after RBE. It
 # does not identify or authenticate the producer that populated it before RBE.
@@ -2377,8 +2403,15 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
    28883: push    0x12
    28885: push    edi
    28886: push    0x12
-   28888: call    0x659b               # receive object header
-   288a0: movzx   esi, word ptr [ebp - 0x14]
+   28888: call    0x659b               # external reader API: request 0x12-byte header
+   28890: test    eax, eax
+   28892: jne     0x28900
+   28894: mov     edx, dword ptr [ebp - 0x28] # returned byte count
+   28897: test    edx, edx             # zero terminates ingestion
+   28899: je      0x28902
+   2889b: cmp     edx, 0x12            # header read must be exact
+   2889e: jne     0x28900
+   288a0: movzx   esi, word ptr [ebp - 0x14] # entry total size at header +0xe
    288a4: lea     eax, [esi + 0xe]
    288a7: push    eax
    288a8: call    0x6078               # allocate object
@@ -2388,11 +2421,24 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
    288c2: lea     eax, [ebx + 0x20]
    288c5: mov     dword ptr [ebx + 0x14], esi  # payload size
    288c8: mov     dword ptr [ebx + 0x18], eax  # payload pointer
-   288d2: call    0x659b               # receive payload
+   288d2: call    0x659b               # external reader API: receive payload
+   288da: test    eax, eax
+   288dc: jne     0x288f5
+   288de: cmp     dword ptr [ebp - 0x28], esi # payload read must be exact
+   288e1: jne     0x288f5
    288e3: mov     eax, dword ptr [0xa014c]
    288e8: mov     dword ptr [0xa014c], ebx     # prepend list head
    288ee: mov     dword ptr [ebx + 0x1c], eax  # next pointer
    2891b: mov     dword ptr [0xa014c], 0x0     # initialize empty
+   28927: call    0x28869                      # materialize next object
+   2892c: test    eax, eax
+   2892e: jne     0x28927                     # repeat until null
+
+# FTPR's stream reader and BUP's ingestion agree on a 0x12-byte header, total
+# size at +0x0e, exact payload remainder, and sequential entry boundaries. The
+# exact external-reader import-to-kernel-function binding is not yet closed, so
+# this geometry match does not yet prove BUP's ipub_key came from the RBE table
+# or exclude the /snowball fallback at the later manifest-verification point.
 
 ## BUP runtime-object or /snowball resolver (BUP file [0x2026a,0x2039a), runtime [0x4626a,0x4639a))
 

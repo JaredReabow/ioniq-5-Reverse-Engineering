@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.74.0 - reproduced a visible render from the archived recipe, and it is the application drawing
+
+- The archived authentic home screen (`docs/vm/02-home-screen.png`, added 2026-10-28 with the first README) proved a working configuration existed. Found the
+  recipe in the repository: `vm/repro/vendor-userspace-260128/hmi-wayland-probe.sh`, and read what it does differently from this week's runs:
+  - **`QT_WAYLAND_SET_SURFACE_ID=1007`** — a *specific* id, **without** `QT_WAYLAND_SET_SURFACE_ID_FORCED` (its own comment: "1007 is the home surface id declared
+    by the recovered `weston_1920.ini`");
+  - the application is started with **no arguments**, not the 37-argument variant list;
+  - `/system/new_gui/new2.0/hmc/night` is **bind-mounted** onto `/app/share/images/hmc`;
+  - `weston-headless` with the production IVI shell, `modules=/weston-vm-input.so`, `base-layer-id=1000`, `workspace-background-id=2001`.
+- **Reproduced it cleanly** in a new workspace (`work/vm/hmiprobe`) built from a clone of the **pristine** vendor image, whose sha256 still begins `4953a00568…`, so the
+  reference image was not modified. The run's own markers: `DBUS_RC=0`, `RESOURCE_BIND_RC=0`, `WESTON_PID=727`, `APPHOME_WRAPPER_PID=738`.
+- **Capture: 747,447 bytes at 1920×720, and it contains application content** — `docs/vm/13-home-screen-reproduced-2026-10-31.png`. The frame shows the night
+  background gradient with the wave graphic, `STR_HOME_RADIO` and `_MEDIA_OFF` rendered as large text. That is the application drawing through the vendor stack,
+  captured from the compositor.
+- **Honest limits of what this shows:** it is a *partial* render, not the full tile grid of the archived capture. The visible text is **untranslated string keys**
+  (`STR_HOME_RADIO`, `_MEDIA_OFF`), which indicates localization has not been applied in this configuration, and the tile grid of the archived screenshot came from a
+  more completely provisioned run. So this proves the render path end to end and does not yet reproduce the archived screen in full.
+- Also worth recording: `weston` had exited by the 120-second check while the capture was taken earlier in the run, so this configuration is still not stable over
+  minutes; the capture is valid and the stability question stands.
+- This supersedes the earlier framing of §2.73.0 only in one respect: the id is **not** forced, it is a **specific declared id**. `USE_PID_FOR_SURFACE_ID` and
+  `SET_SURFACE_ID=1007` both avoid the duplicate-id collision; the vendor's own design is the latter.
+
 ## 2.73.0 - the app's death was a duplicate surface id; with pid-derived ids it stays up and its window really exists
 
 - **Root cause of the application's death, found in its own log:**

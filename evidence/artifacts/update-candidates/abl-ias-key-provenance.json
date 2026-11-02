@@ -4,9 +4,12 @@
     "boot_root_or_persistence_proved": false,
     "bpm_metadata_binds_exact_ibbl_and_ibb_proved": true,
     "bup_fit_base_pointer_to_ibbl_source_mapping_proved": true,
+    "bup_ipub_key_runtime_object_or_snowball_resolution_proved": true,
     "bup_places_exact_ibbl_at_0xffffc000_proved": true,
     "bup_published_expected_usage39_digest_recovered": true,
     "bup_published_type0b_bound_to_stored_oem_key_manifest": true,
+    "bup_snowball_ipub_key_selected_at_runtime_proved": false,
+    "bup_snowball_ipub_key_writable_or_untrusted_proved": false,
     "bup_streams_resolved_ibb_through_four_slot_sram_ring_proved": true,
     "cse_bup_constructs_fit_type0b_from_oem_key_man_proved": true,
     "cse_bup_resolver_couples_oem_key_and_oem_key_man_names_proved": true,
@@ -172,6 +175,11 @@
           "file_start": 47682,
           "sha256": "4783f44c2c0c586a5479f365dddc04fbb7d682d6679baa8c2d9df410253de991"
         },
+        "ipub_key_resolver_and_digest_selection": {
+          "file_end": 131214,
+          "file_start": 131127,
+          "sha256": "ca9020f777d74c52f5845af2e4f33780a77987c06dc412bde731bd552acee958"
+        },
         "key_manifest_resolver": {
           "file_end": 129137,
           "file_start": 128398,
@@ -181,6 +189,16 @@
           "file_end": 47860,
           "file_start": 47548,
           "sha256": "e18d11f44ce11a7e405399afba236cab0bdd3ce5b24283ccfb0da79f53469c12"
+        },
+        "runtime_object_list_materializer": {
+          "file_end": 10546,
+          "file_start": 10345,
+          "sha256": "d37feac50e2e690e2b64c1ba2a52fcde736e1a496fec850bdd5e3212e3149318"
+        },
+        "snowball_or_runtime_object_resolver": {
+          "file_end": 131994,
+          "file_start": 131690,
+          "sha256": "949d25fdaaf94939cfeb489dcbd58ee6108340c7ad8802c120f3dd87072ea64f"
         },
         "uep_field_to_fpf_shadow": {
           "file_end": 15231,
@@ -326,6 +344,24 @@
     "cse_root_and_boot_policy_chains": {
       "intel_manifest_key_chain": {
         "boundary": "exact RBE trusts a runtime ipub_key object supplied before its recovered instruction boundary; its producer and ROM/fuse provenance remain unproved",
+        "bup_maximum_accepted_selector": 35,
+        "bup_resolution_rule": "use named runtime-object resolution while list head is nonzero; construct /snowball/<name> only while the list head is zero",
+        "bup_runtime_object_layout": {
+          "next_pointer_offset": 28,
+          "payload_pointer_offset": 24,
+          "payload_size_offset": 20
+        },
+        "bup_runtime_object_list_head_global": 655692,
+        "bup_runtime_object_list_initializes_empty": true,
+        "bup_runtime_root_object_name": "ipub_key",
+        "bup_selected_digest_size": 32,
+        "bup_snowball_fallback_path": "/snowball/ipub_key",
+        "bup_snowball_object_writable_or_untrusted_proved": false,
+        "bup_snowball_path_selected_at_runtime_proved": false,
+        "exact_abl_static_digest_occurrences": [
+          1553100
+        ],
+        "exact_abl_static_digest_occurs_only_in_rot_key_record": true,
         "ipub_key_producer_or_hardware_anchor_proved": false,
         "rbe_ipub_key_to_rot_key_pin_proved": true,
         "rbe_runtime_pointer_array_offset": 22,
@@ -836,7 +872,7 @@
     "Hash-bound historical Apollo Lake Slim Bootloader source independently matches the exact target's chunk-count field, four-slot interpretation, size field, low-four-bit XOR handshake, slot geometry, source expression, acknowledgement, and PCI configuration offsets.",
     "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
     "The RBE-to-BUP-to-IBBL path binds the runtime type-0x0b payload to exact FTPR oem.key bytes. The recovered set's runtime expected usage-39 digest is therefore 9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af.",
-    "Exact RBE resolves runtime object ipub_key, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. rot.key, RBEP.man, FTPR.man, and NFTP.man share digest f2eb8fc4...; the producer and hardware provenance of ipub_key remain outside the recovered boundary.",
+    "Exact RBE resolves runtime object ipub_key, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. Exact BUP's corresponding manifest path resolves ipub_key either from a runtime object or from /snowball/ipub_key depending on global 0xa014c, then accepts a selector no greater than 0x23 and supplies a selected 32-byte digest to its verifier. The exact Intel digest occurs statically only in rot.key's Extension-14 record. These paths do not prove that the snowball branch is active, writable, unauthenticated, or the producer used by earlier RBE.",
     "Exact BUP selects oem.key usage bit 32, compares the IBBP.man modulus-plus-exponent digest before RSA verification, verifies IBBP.man, checks its signed BPM.met hash, and checks BPM.met's exact IBBL and IBB SHA-256 values. This closes the selected-UEP-to-exact-IBB byte chain for the recovered set.",
     "Exact RBE materializes the selected 0x100-byte UEP payload in the 0x108-byte ifp_uep object, with a hardware-route REAL header or the validated flash-route $UEP/CRC header. Exact BUP records whether the header is REAL without rejecting the alternative in this range, initially copies the payload byte-for-byte into its FPF shadow, may update that shadow through later field assembly, and publishes the resulting 0x880-byte bup_fpf special file. The signed NFTP fpf module requires that exact-size input and uses the resulting shadow while its hardware-mode global is zero.",
     "The signed NFTP fpf module exposes fpf and fpf_hw_use special files, opens /dev/flash/uep, and switches its field-read path between the BUP-provided shadow and hardware access. Its OemLock callback sets hardware mode before processing a fixed field sequence. This later provisioning state is not yet proved byte-identical to RBE's earlier 0xf6170800 hardware window.",

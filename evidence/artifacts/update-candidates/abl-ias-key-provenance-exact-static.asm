@@ -2237,3 +2237,78 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 # Exact decompressed FPF data table entry "OemLock" carries callback pointer
 # 0x28d2c. This proves the later FPF transition, but does not equate its
 # hardware state with RBE's earlier 0xf6170800 hardware-window producer.
+
+## BUP ipub_key resolution and digest selection (BUP file [0x20037,0x2008e), runtime [0x46037,0x4608e))
+
+   46037: lea     eax, [ebp - 0x344]
+   4603d: push    0x1
+   4603f: push    eax
+   46040: lea     eax, [ebp - 0x340]
+   46046: push    eax
+   46047: push    0x54284              # "ipub_key"
+   4604c: call    0x4626a              # runtime-object or snowball resolver
+   46054: test    eax, eax
+   46056: jne     0x46061
+   46058: cmp     dword ptr [ebp - 0x344], 0x23  # selector bound
+   4605f: ja      0x46069
+   46061: push    0x0                 # fail closed
+   46063: call    0x619a
+   46069: mov     eax, dword ptr [ebp - 0x340]
+   4606f: push    0x20                # selected digest size
+   46071: movzx   edx, byte ptr [eax] # selector
+   46074: push    dword ptr [eax + 4*edx + 0x4]
+   4607d: call    0x34964              # later manifest verifier path
+
+## BUP runtime-object-list materializer (BUP file [0x2869,0x2932), runtime [0x28869,0x28932))
+
+   28869: push    ebp
+   2887f: lea     eax, [ebp - 0x28]
+   28882: push    eax
+   28883: push    0x12
+   28885: push    edi
+   28886: push    0x12
+   28888: call    0x659b               # receive object header
+   288a0: movzx   esi, word ptr [ebp - 0x14]
+   288a4: lea     eax, [esi + 0xe]
+   288a7: push    eax
+   288a8: call    0x6078               # allocate object
+   288b4: push    0x12
+   288b6: sub     esi, 0x12            # payload length
+   288bd: call    0x6055               # copy object name/header
+   288c2: lea     eax, [ebx + 0x20]
+   288c5: mov     dword ptr [ebx + 0x14], esi  # payload size
+   288c8: mov     dword ptr [ebx + 0x18], eax  # payload pointer
+   288d2: call    0x659b               # receive payload
+   288e3: mov     eax, dword ptr [0xa014c]
+   288e8: mov     dword ptr [0xa014c], ebx     # prepend list head
+   288ee: mov     dword ptr [ebx + 0x1c], eax  # next pointer
+   2891b: mov     dword ptr [0xa014c], 0x0     # initialize empty
+
+## BUP runtime-object or /snowball resolver (BUP file [0x2026a,0x2039a), runtime [0x4626a,0x4639a))
+
+   4628f: cmp     dword ptr [0xa014c], 0x0
+   46296: jne     0x4635c              # named runtime-object branch
+   4629c: lea     esi, [ebp - 0x28]
+   4629f: push    0xb
+   462a1: push    0x54370              # "/snowball/"
+   462a6: push    esi
+   462a7: call    0x102e
+   462b9: lea     eax, [ebp - 0x1e]
+   462bc: push    0xc
+   462be: push    edi                  # caller-provided object name
+   462bf: push    0xc
+   462c1: push    eax
+   462c2: call    0x6055               # append name
+   462ce: push    0x0
+   462d0: push    esi                  # resulting /snowball/ipub_key path
+   462d1: call    0x60c8               # open internal object
+   4635c: push    edi                  # runtime object name
+   4635d: call    0x28cac              # resolve named object
+   4636c: mov     ecx, dword ptr [eax + 0x18]  # payload pointer
+   46373: mov     dword ptr [ebx], ecx
+   4637b: mov     eax, dword ptr [eax + 0x14]  # payload size
+   4637e: mov     dword ptr [edx], eax
+
+# This proves BUP's two resolution branches and selector geometry. It does not
+# prove that /snowball/ipub_key is selected, writable, unauthenticated, or the
+# producer of RBE's earlier runtime ipub_key object.

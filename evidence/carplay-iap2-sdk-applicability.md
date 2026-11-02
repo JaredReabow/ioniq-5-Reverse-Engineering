@@ -126,10 +126,14 @@ The first branch compares the request method with `SETUP` at `0xff1b`, reads
 `Content-Type`, accepts the binary-plist and XML-plist MIME strings, and calls
 the binary-plist parser at `0x10032`. No URL-specific acceptance check, HTTP
 `Authorization` check, or pair-setup/pair-verify state check occurs in this
-reviewed callback before the setup parser. This is a stronger exact local-route
-result than the earlier marker inventory. It does **not** exclude an upstream
-generic `HTTPConnection` gate before the callback is invoked, and it does not
-establish a listening interface or phone delivery.
+reviewed callback before the setup parser. Follow-up exact-static analysis in
+`evidence/airplay-screen-route-security.md` binds the generic
+`HTTPConnection` state machine as well: after a successful message read it maps
+I/O errors, logs the request, and directly invokes the installed AirPlay
+delegate, with no separate post-read authorization check. This closes that
+specific generic-dispatch ambiguity. It still does not establish control-socket
+admission policy outside the reviewed dispatcher, a listening interface, or
+phone delivery.
 
 The direct pre-key field branch is now partitioned as well. It handles
 `deviceID` as a six-byte hardware address, formats `interfaceName` with a

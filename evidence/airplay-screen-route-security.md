@@ -35,6 +35,23 @@ This is static listener construction and caller behavior. It does not establish
 that the listener is live on any externally reachable interface, that a port is
 disclosed to an unauthenticated party, or that no policy is enforced elsewhere.
 
+## Exact generic HTTP dispatch
+
+The exact generic `HTTPConnection` state machine removes one previously retained
+ambiguity. `libAirPlay.so` installs the AirPlay HTTP callback at `0xf3d1` into
+the connection delegate at `0xc7a7`. Exact
+`HTTPConnectionSetDelegate` copies that function pointer to connection offset
+`+0x50`. After `HTTPMessageReadMessage` succeeds, the exact state machine only
+maps I/O errors and calls `LogHTTP` before invoking the function pointer at
+`+0x50`. There is no separate authorization or pair-state check in that
+post-read generic dispatcher.
+
+Together with the previously reviewed callback-local `SETUP` dispatch, this
+closes a distinct generic `HTTPConnection` gate between a completed request and
+the AirPlay callback. It does not establish how a peer reaches the control
+connection, whether admission or policy exists before the generic state machine,
+or whether another component restricts the underlying interface.
+
 ## Exact no-MFi fallback candidate
 
 The screen branch does **not** require that the session's ordinary base-key
@@ -99,6 +116,7 @@ Principal byte-bound ranges are:
 
 | Role | Object | Range | SHA-256 |
 |---|---|---|---|
+| AirPlay HTTP delegate install | `libAirPlay.so` | `0xc750..0xc7d2` | `89012ad230f7302e6d6d77fa90b67db910e417c929eb2ac1208adc6195c75ba5` |
 | callback encryption branch to session setup | `libAirPlay.so` | `0x103c3..0x10637` | `5cde34310a8cdf36004c110ed3f9656dbdadaacf2b808fb12dc057e1fce57a81` |
 | fresh receiver-session creation | `libAirPlay.so` | `0x16e90..0x172c2` | `1a4852541d7e277ff9b2de1b7d0cff7bb9795cb930ec5fe178e7be9f11c7bc62` |
 | explicit fresh-session clear | `libAirPlay.so` | `0x16ec4..0x16f23` | `5790f507c7df6f73bb0f512a7f81454dfca0fd4a2df3ca0d3690a81e50951eda` |
@@ -111,6 +129,8 @@ Principal byte-bound ranges are:
 | SHA-512 key derivation | `libAirPlay.so` | `0x21234..0x2135a` | `b94de2155c65cd4269b8d7d45a55bdd89d514c0c79e06937aa6c1fadd249d60a` |
 | screen salt/ID derivation wrapper | `libAirPlay.so` | `0x2135a..0x21478` | `1e5e4c0fa02925c4985e5adcd42924bac894fa9ab2799095f4a2fdefda9a9c11` |
 | missing-value integer semantics | `libCoreUtils.so` | `0x43d18..0x43d87` | `be58439ad302800e4b0330e1d8120ff2be822aab800238e7220ee4e71badb202` |
+| HTTP delegate setter | `libCoreUtils.so` | `0x75e63..0x75eb1` | `03bbd091b0ecba150867d6a1b022ad866bf2e126b1a151bf5c62039834a1ceaa` |
+| HTTP connection state machine | `libCoreUtils.so` | `0x76e94..0x77153` | `4130bd9de44106e7e08f072cbd83da4fccd2fcacffffb533c23ee3f62a6e473e` |
 | socket accept wrapper | `libCoreUtils.so` | `0x87ae3..0x87ccc` | `91f051bbf297b0b5adca67abbb9c61cc161f6afa9023ba55228efd226fc343f2` |
 | wildcard server socket | `libCoreUtils.so` | `0x88f84..0x89420` | `2f850a99c9164348285e59b94c967255d8b5f6223912d069ee486ebef77a05ee` |
 
@@ -129,7 +149,8 @@ address at accept time.
 
 It does **not** prove:
 
-- an upstream generic `HTTPConnection` authorization bypass;
+- absence of authorization or admission policy before completed-message
+  dispatch or elsewhere outside the reviewed generic `HTTPConnection` path;
 - live `SETUP`, session-start, or secondary-socket eligibility;
 - a reachable listener on USB/NCM, Wi-Fi, Ethernet, or another interface;
 - phone or network-peer delivery, port discovery, or a completed connection;
@@ -146,15 +167,16 @@ route analysis does not promote it to a demonstrated exploit.
 - tool: `tools/uk_fw/airplay_screen_route_security_audit.py`
 - tests: `tests/test_airplay_screen_route_security_audit.py`
 - schema: `ioniq-airplay-screen-route-security-audit/v1`
+- tool version: `1.1.0`
 - report: `evidence/artifacts/projection-candidates/airplay-screen-route-security.json`
-- report size: 16,458 bytes
-- report file SHA-256: `aae4dcec49e0e0a36c86f34cb721cf1f97e4883b656bf2ec5c36ce5fb4433166`
-- embedded canonical SHA-256: `9e69506830676153ca09737ae86cc28ce88cf4db151e953fa5a57683419cb447`
+- report size: 18,738 bytes
+- report file SHA-256: `29c979bbdbdfa3bb3e5b95edc2c0e1204c1d5ae96fd2135602be8c927529d801`
+- embedded canonical SHA-256: `ce6e1747bf5763efe99acff725a6b7598b11397d9626d8dc474b861eb307633b`
 
 Validation passed with 5 focused tests, 20 projection-focused tests, and the
-canonical suite: 1,090 tests plus 352,357 subtests in 161.57 seconds. The full
+canonical suite: 1,090 tests plus 352,357 subtests in 173.51 seconds. The full
 suite log SHA-256 is
-`41633edf1836def9551a721507935e2bd2ac60330241a0aeb130e15b1e2d946a`.
+`03a440e14e6a3f629359a00d04ca7900590d54108a1ed21d191b7ab39411d250`.
 `py_compile`, strict ASCII JSON decoding, deterministic reproduction,
 exclusive no-overwrite behavior, and path-limited `git diff --check` also
 passed.

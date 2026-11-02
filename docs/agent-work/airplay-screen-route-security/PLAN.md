@@ -22,11 +22,12 @@ compared by the reviewed caller.
 
 ## Steps
 
-1. Bind the screen stream-type dispatch and nonzero connection-ID requirement.
-2. Bind pair-verify and null-pair-verify key selection.
-3. Trace fresh session initialization and setup encryption None/error branches.
-4. Bind the exact SHA-512 screen derivation inputs and screen crypto flags.
-5. Bind secondary listener creation, wildcard bind, dynamic fallback, response
+1. Bind the generic HTTP delegate install and completed-message dispatch path.
+2. Bind the screen stream-type dispatch and nonzero connection-ID requirement.
+3. Bind pair-verify and null-pair-verify key selection.
+4. Trace fresh session initialization and setup encryption None/error branches.
+5. Bind the exact SHA-512 screen derivation inputs and screen crypto flags.
+6. Bind secondary listener creation, wildcard bind, dynamic fallback, response
    port, thread start, accept arguments, and parser call.
-6. Implement a deterministic no-follow verifier with exact hashes and anchors.
-7. Add focused tests, a canonical artifact, evidence prose, and validation.
+7. Implement a deterministic no-follow verifier with exact hashes and anchors.
+8. Add focused tests, a canonical artifact, evidence prose, and validation.

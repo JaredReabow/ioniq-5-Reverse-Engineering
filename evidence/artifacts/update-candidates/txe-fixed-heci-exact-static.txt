@@ -112,6 +112,26 @@
 #   first-fixed HECI modules byte-identical.
 # Thus no HECI-local opcode or data byte changed in the first-fixed module.
 
+## Affected-to-first-fixed busdrv module
+# affected decompressed busdrv: size 0x6000, code base 0x26000, SHA-256
+#   f226a92dd219a020bca96aeca3b54d8b0870f230128b7cb206c3389d5096ad21
+# first-fixed decompressed busdrv: size 0x6000, code base 0x26000, SHA-256
+#   0e995c76f16f1f86240f85416059ca32e5c6fd0155eb1d3132b90505e8646fc0
+#
+# Complete module comparison:
+# - 97 raw differing bytes;
+# - every difference lies inside 96 same-offset call rel32 encodings;
+# - all 96 calls target 26 affected external syslib import stubs spanning
+#   0x6465..0x67ad;
+# - every first-fixed target is the corresponding affected target + 5; and
+# - zeroing only those 96 rel32 call immediates makes the complete affected and
+#   first-fixed busdrv modules byte-identical.
+#
+# Therefore no busdrv-local opcode or non-address-data byte changed at the
+# first-fixed boundary. This excludes busdrv-local code as the direct
+# CVE-2018-12147 fix, but not changed transitive syslib/kernel services, another
+# signed module, or downstream clients.
+
 ## Affected-to-first-fixed HECI-imported syslib destinations
 # affected syslib: size 0x13000, code base 0x6000, SHA-256
 #   dba068b882c11783af4e2c0b7911b3a0db90f9b22808f42ac3e8768e2dda961c

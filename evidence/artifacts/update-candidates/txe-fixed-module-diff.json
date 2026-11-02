@@ -2,6 +2,7 @@
   "boundaries": [
     "The official ASUS first-fixed image closes the version-bisect gap for 3.1.55, but attribution still requires exact changed-function and reachability analysis.",
     "The reviewed primary HECI ranges exclude later header/extension changes as the first-fixed primary-path delta; they do not exclude another HECI function or downstream client parser.",
+    "The complete busdrv module also normalizes to byte identity after only 96 external rel32 call displacements are zeroed. All 26 affected targets are syslib import stubs and their first-fixed targets are affected plus five, excluding a busdrv-local opcode or non-address-data fix while leaving its transitive services open.",
     "All 42 syslib bodies directly imported by HECI normalize to byte identity after only reviewed address operands are zeroed. Their 96 reviewed direct calls resolve to two unchanged external gates, two already reviewed bodies, and 29 new internal first-level callee bodies; all 29 new bodies also normalize to identity. This excludes opcode/non-address-data changes in those bounded bodies, but not indirect dispatch, deeper callees, kernel/service handlers, another signed module, or a downstream client.",
     "The named later FPF anti-rollback fields are absent from both affected and first-fixed FPF; this excludes those records as the 3.1.55 fix.",
     "First-fixed VFS newly opens pre-existing ndl_critical and ndl_counting storage channels and passes their descriptors to a new syslib setter. This is an exact anti-replay/data-integrity candidate, not yet proof of CVE-2018-3655 attribution or physical reachability.",
@@ -15,6 +16,7 @@
     "exact_signed_later_modules_obtained": true,
     "first_fixed_all_29_new_first_level_syslib_callees_change_only_address_operands": true,
     "first_fixed_all_42_heci_imported_syslib_bodies_change_only_address_operands": true,
+    "first_fixed_entire_busdrv_module_changes_only_external_rel32_call_immediates": true,
     "first_fixed_entire_heci_module_changes_only_external_rel32_immediates": true,
     "first_fixed_primary_heci_ranges_change_only_rel32_call_immediates": true,
     "first_fixed_vfs_ndl_integration_candidate_identified": true,
@@ -221,6 +223,54 @@
         "same_size": true
       }
     }
+  },
+  "first_fixed_busdrv_exact_static_review": {
+    "affected_external_target_range": [
+      25701,
+      26541
+    ],
+    "affected_external_target_reference_counts": {
+      "0x6465": 9,
+      "0x64ab": 23,
+      "0x64b0": 1,
+      "0x64bf": 1,
+      "0x64ce": 11,
+      "0x64d3": 7,
+      "0x64dd": 1,
+      "0x6591": 17,
+      "0x6604": 2,
+      "0x6690": 1,
+      "0x66a9": 1,
+      "0x66f9": 1,
+      "0x66fe": 1,
+      "0x6703": 1,
+      "0x6708": 1,
+      "0x6717": 1,
+      "0x671c": 1,
+      "0x6726": 1,
+      "0x6730": 4,
+      "0x6735": 3,
+      "0x673f": 3,
+      "0x6753": 1,
+      "0x675d": 1,
+      "0x6776": 1,
+      "0x6794": 1,
+      "0x67ad": 1
+    },
+    "affected_sha256": "f226a92dd219a020bca96aeca3b54d8b0870f230128b7cb206c3389d5096ad21",
+    "all_first_fixed_external_targets_equal_affected_plus_five": true,
+    "attribution_boundary": "The complete affected and first-fixed busdrv modules are byte-identical after normalizing only 96 external call displacements to 26 syslib import stubs, each shifted by the inserted syslib export. This excludes busdrv-local opcode and non-address-data changes as the first-fixed CVE-2018-12147 fix, but does not exclude changed transitive callees, kernel/service handlers, another module, or downstream clients.",
+    "distinct_affected_external_target_count": 26,
+    "equal_after_zeroing_only_selected_external_rel32_call_immediates": true,
+    "exact_static_observations": {
+      "busdrv_local_opcode_or_non_address_data_change_at_first_fixed_boundary": false,
+      "entire_busdrv_module_equal_after_only_external_rel32_call_normalization": true
+    },
+    "external_rel32_call_site_count": 96,
+    "first_fixed_sha256": "0e995c76f16f1f86240f85416059ca32e5c6fd0155eb1d3132b90505e8646fc0",
+    "module_size": 24576,
+    "non_external_rel32_immediate_differing_byte_count": 0,
+    "raw_differing_byte_count": 97
   },
   "first_fixed_heci_exact_static_review": {
     "advisory_attribution": "The entire affected and first-fixed HECI modules become byte-identical after normalizing only 369 external rel32 call/jump immediates; all 377 raw differing bytes lie inside those immediates, and every target moves by exactly five bytes within the external 0x6460..0x67b2 stub range. No HECI-local opcode or data change implements the 3.1.55 fix. The exact defect may instead involve changed external syslib behavior or another signed module/client.",
@@ -3285,5 +3335,5 @@
       "reject_header_bit_29": 1
     }
   },
-  "schema": "ioniq-txe-fixed-module-diff/v4"
+  "schema": "ioniq-txe-fixed-module-diff/v5"
 }

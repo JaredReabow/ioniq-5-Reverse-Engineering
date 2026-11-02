@@ -14,6 +14,9 @@ new exact candidate:
 - the complete affected and first-fixed HECI modules are byte-identical after
   normalizing only 369 external `rel32` call/jump immediates, each of which
   shifts its target by exactly five bytes;
+- the complete affected and first-fixed busdrv modules are likewise identical
+  after normalizing only 96 external `rel32` call immediates to 26 syslib
+  import stubs, again shifted by exactly five bytes;
 - all 42 syslib destination bodies directly imported by those HECI branches
   are byte-identical after normalizing 37 reviewed `rel32` address operands
   and one indexed-jump-table base operand;
@@ -32,7 +35,8 @@ candidate for CVE-2018-3655's anti-replay/data-integrity repair, but exact
 transaction semantics, physical reachability, and advisory attribution remain
 unproved. CVE-2018-12147 still requires changed-function and reachability
 analysis in indirect dispatch targets, deeper syslib callees, kernel/service
-implementations, another signed module, or downstream signed clients.
+implementations, another signed module, or downstream signed clients; local
+busdrv opcodes and non-address data are now excluded too.
 
 No firmware module, MEI/HECI endpoint, update capsule, or target executable was
 run. All work was passive host-side parsing, strict decompression, hashing,
@@ -136,15 +140,15 @@ official first-fixed ASUS IFWI, and extracted later NUC IFWI. It:
 Reviewed report:
 
 - path: `evidence/artifacts/update-candidates/txe-fixed-module-diff.json`;
-- schema: `ioniq-txe-fixed-module-diff/v4`;
-- size: `123,241` bytes;
-- SHA-256: `7cd1e22403c3fef4055303918b902108abccb34a9d2dca79ee835021d7b2a885`.
+- schema: `ioniq-txe-fixed-module-diff/v5`;
+- size: `125,543` bytes;
+- SHA-256: `ed7f9ee0f93d1afa3a353560fe034510ceacc303fa3589405341bb0f62e5171f`.
 
 Reviewed byte-free disassembly/decompiler excerpts are retained as:
 
 - path: `evidence/artifacts/update-candidates/txe-fixed-heci-exact-static.txt`;
-- size: `14,092` bytes;
-- SHA-256: `ec8901efdd7aa04ceae99e8b6427fc6116d7f3c0653d75e314b41c8cb285e27c`.
+- size: `15,113` bytes;
+- SHA-256: `cef4f22d92995e44e18eb75fa024bf6e936581a67d5b8c31cb73bf3029a1cbf3`.
 
 The exact decompressed identities are:
 
@@ -196,6 +200,28 @@ The first-fixed dispatcher also retains the exact affected behavior:
 
 This excludes HECI-local code as the location of CVE-2018-12147's `3.1.55`
 fix.
+
+## Exact affected-to-first-fixed busdrv result
+
+Affected and first-fixed busdrv are both `0x6000` bytes at code base `0x26000`.
+They have SHA-256 identities
+`f226a92dd219a020bca96aeca3b54d8b0870f230128b7cb206c3389d5096ad21`
+and
+`0e995c76f16f1f86240f85416059ca32e5c6fd0155eb1d3132b90505e8646fc0`.
+Across the complete modules:
+
+- 97 raw bytes differ;
+- all differences lie within 96 same-offset call `rel32` encodings;
+- those calls reference 26 affected external syslib import stubs spanning
+  `0x6465..0x67ad`;
+- every first-fixed target is its affected target plus five; and
+- zeroing only those selected call displacements makes both complete modules
+  byte-identical.
+
+Thus no busdrv-local opcode or non-address-data byte changed at the first-fixed
+boundary. This excludes busdrv-local code as the direct CVE-2018-12147 fix,
+without excluding changed transitive syslib or kernel services, another signed
+module, or downstream clients.
 
 ## Exact HECI-imported syslib destination result
 
@@ -427,6 +453,9 @@ comparison. It does not yet show:
   above `0x1fc`; no direct oversized nine-bit stack copy is observed.
 - The entire first-fixed HECI module differs only in 369 external `rel32`
   immediates and retains affected HECI-local code and data exactly after that
+  relocation normalization.
+- The entire first-fixed busdrv module differs only in 96 external `rel32` call
+  immediates and likewise retains affected local code and data after reviewed
   relocation normalization.
 - The later HECI adds exact header-bit validation and bounded extension parsing,
   proving those changes postdate the first-fixed release.

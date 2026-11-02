@@ -54,6 +54,12 @@ def test_canonical_fixed_module_diff_matches_reviewed_artifact():
     assert report["later_heci_exact_static_review"]["exact_static_observations"]["dma_ring_bit_29_now_rejected_before_payload_dispatch"] is True
     assert report["first_fixed_heci_exact_static_review"]["exact_static_observations"]["entire_heci_module_equal_after_only_external_rel32_relocation_normalization"] is True
     assert report["first_fixed_heci_exact_static_review"]["module_wide_relocation_review"]["external_rel32_site_count"] == 369
+    busdrv_review = report["first_fixed_busdrv_exact_static_review"]
+    assert busdrv_review["raw_differing_byte_count"] == 97
+    assert busdrv_review["external_rel32_call_site_count"] == 96
+    assert busdrv_review["distinct_affected_external_target_count"] == 26
+    assert busdrv_review["affected_external_target_range"] == [0x6465, 0x67AD]
+    assert busdrv_review["exact_static_observations"]["busdrv_local_opcode_or_non_address_data_change_at_first_fixed_boundary"] is False
     syslib_review = report["first_fixed_heci_syslib_import_review"]
     assert syslib_review["imported_destination_count"] == 42
     assert syslib_review["heci_external_reference_count"] == 369
@@ -85,4 +91,4 @@ def test_canonical_fixed_module_diff_matches_reviewed_artifact():
     assert report["classification"]["cve_2018_12147_exact_bug_identified"] is False
     assert report["classification"]["cve_2018_3655_exact_storage_bug_identified"] is False
     assert json.loads(ARTIFACT.read_text(encoding="utf-8")) == report
-    assert hashlib.sha256(EXACT_STATIC.read_bytes()).hexdigest() == "ec8901efdd7aa04ceae99e8b6427fc6116d7f3c0653d75e314b41c8cb285e27c"
+    assert hashlib.sha256(EXACT_STATIC.read_bytes()).hexdigest() == "cef4f22d92995e44e18eb75fa024bf6e936581a67d5b8c31cb73bf3029a1cbf3"

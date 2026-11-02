@@ -289,9 +289,25 @@ the materialized object. This exactly matches the FTPR kernel's sequential
 entry-boundary stream geometry. The exact materializer zero-extends the u16
 total and subtracts `0x12` without first requiring `total >= 0x12`; values
 `0..0x11` therefore wrap the requested payload length modulo 2^32. No explicit
-maximum check is observed either. This is an exact parser-integrity dependency,
-but attacker control or runtime reachability of a malformed handoff stream is
-not proved.
+maximum check is observed either.
+
+The FTPR reader does not preserve each entry boundary as a caller read
+boundary. It clamps one copy to the current entry, advances to the next
+accepted entry, and continues filling the same request. A state-1 entry whose
+total is `0x10` or `0x11` can therefore contribute its complete 16 or 17 bytes
+to BUP's 18-byte header request, with the next accepted entry contributing the
+last two or one bytes. The synthesized header still contains total `0x0010` or
+`0x0011`, so BUP would compute payload length `0xfffffffe` or `0xffffffff` if
+its external call uses this exact stream path.
+
+The matching FTPR read handler validates the process buffer before calling the
+stream copier. Its exact validator rejects either destination offset or
+requested length above `0x01800000`; both wrapped payload lengths are therefore
+rejected before stream copying on that standard path, after which BUP takes its
+reader-error cleanup branch. This closes the underflow as a bounded rejection,
+not proved memory corruption, conditional on the still-unresolved import
+binding. Attacker control of the pre-RBE malformed stream also remains
+unproved.
 
 BUP startup also fixes the runtime order. Main calls phase dispatcher `0x28932`
 for phase zero. That phase has 22 functions at table `0x54744`; ingestion
@@ -609,7 +625,11 @@ What is now proved:
 - exact FTPR streaming and BUP runtime-object ingestion agree on `0x12`-byte
   header, total-size-at-`+0x0e`, payload remainder, and entry boundaries;
 - BUP subtracts `0x12` from the zero-extended u16 total without a minimum-size
-  guard, but malformed-stream attacker control or reachability is not proved;
+  guard; FTPR can synthesize a complete BUP header from state-1 totals `0x10`
+  or `0x11` plus the next entry, but its standard process-buffer validator
+  rejects the resulting `0xfffffffe`/`0xffffffff` payload request before copy;
+  the exact BUP import binding and malformed-stream attacker control remain
+  unproved;
 - BUP phase zero ingests that transient object list at function index 7,
   consumes `ifp_uep` at index 10, and frees the list only after the phase;
 - the `ifp_uep` consumer has no lookup-null or payload-size check and duplicate
@@ -703,11 +723,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `56,639`
-  - SHA-256 `69a1e49092cab439869e6b7b1052470639b3632f04732ae4c79f6c5e84570804`
+  - size `58,131`
+  - SHA-256 `9eb350a9b73a6fde4f6168b99acf17cc00db2f606fdbe343d65afdd147429d50`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `115,808`
-  - SHA-256 `5a65ba290f05366e2dafc5cb52637691d2015ba9cd142ec888f8d86285035640`
+  - size `118,126`
+  - SHA-256 `f4ed1845afbffc75646223105132d2c6c9b3fc685fed6dc0df1273d6c68ecf02`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

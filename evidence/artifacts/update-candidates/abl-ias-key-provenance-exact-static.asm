@@ -2370,6 +2370,48 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
    8ee6f: mov     eax, dword ptr [ebp + 0xc]
    8ee75: sub     eax, edi                        # bytes actually copied
 
+# The reader does not preserve an entry boundary as a caller read boundary. If
+# the current accepted entry is shorter than the request, it copies the
+# remainder, advances to the next state-1 entry, and continues filling the same
+# destination. A state-1 entry with total 0x10 or 0x11 therefore contributes
+# its complete 16 or 17 bytes to BUP's 0x12-byte header read, then the next
+# accepted entry contributes the final 2 or 1 bytes. Header bytes +0x0e/+0x0f
+# still encode 0x0010 or 0x0011, so BUP's subtraction can be reached if its
+# external reader is this standard stream path.
+
+## FTPR kernel read handler and process-buffer bound (kernel file [0xa7ff,0xa8c8) and [0xed23,0xedc6))
+
+   8ed51: mov     edx, dword ptr [esi]            # requested length
+   8ed53: mov     ebx, 0x2
+   8ed58: cmp     edx, dword ptr [esi + 0x8]      # caller capacity
+   8ed5b: ja      0x8ed9c
+   8ed64: lea     ecx, [ebp - 0x10]
+   8ed67: push    ecx                             # translated destination out
+   8ed68: push    0x2
+   8ed6a: push    edx                             # requested length
+   8ed6b: push    dword ptr [esi + 0x4]           # process destination
+   8ed6e: push    eax
+   8ed6f: call    0x8a7ff                        # validate/translate buffer
+   8ed79: test    eax, eax
+   8ed7b: jne     0x8ed97                        # no stream copy on rejection
+   8ed7d: push    dword ptr [esi]
+   8ed7f: push    dword ptr [ebp - 0x10]
+   8ed82: call    0x8ee19                        # handoff stream copy
+   8ed8b: mov     dword ptr [esi + 0xc], eax      # returned count
+
+   8a80d: cmp     ebx, 0x1800000                 # destination offset maximum
+   8a813: ja      0x8a8bc
+   8a819: cmp     edx, 0x1800000                 # requested-length maximum
+   8a81f: ja      0x8a8bc
+   8a8bc: mov     eax, 0x102                     # rejected before copy
+
+# For totals 0x10 and 0x11 BUP computes payload requests 0xfffffffe and
+# 0xffffffff. Both exceed 0x01800000 and are rejected by this exact kernel
+# validator before 0x8ee19 is called on the standard syscall path. This bounds
+# the underflow to an error/cleanup path rather than proving memory corruption.
+# The exact relocation/import binding of BUP's call target 0x659b to this
+# standard handler remains open, as does attacker control of the pre-RBE table.
+
 # This proves that the exact signed FTPR kernel consumes the same handoff base,
 # first entry, +0x0d state byte, and +0x0e entry-size geometry after RBE. It
 # does not identify or authenticate the producer that populated it before RBE.

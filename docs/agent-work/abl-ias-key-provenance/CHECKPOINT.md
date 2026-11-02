@@ -10,7 +10,8 @@ Exact CSE RBE incoming-handoff `ipub_key → rot.key` pinning, shared CSE-manife
 - Exact RBE resolves `ipub_key` from a bounded incoming runtime-object handoff at `0x08200000`, copies a selector-chosen 32-byte digest to `0x6047fa8`, and requires `rot.key`'s modulus-plus-exponent digest to match before RSA verification.
 - The handoff lookup caps traversal at `0x8000`, begins entries at `0x08200008`, compares `0x0c`-byte names, tests enabled bit 0 at `+0x0d`, steps by the word at `+0x0e`, and exposes payload at `+0x12`. RBE first appends `cld_rst_blk`, then requires existing `bpdt`, `pm_trans`, `ftpm_fuses`, `sss_em`, `rbe.man`, `pmc_ipc`, and `ipub_key` entries; only missing optional `pmc_msg` is appended.
 - `FTPR.man → kernel.met → kernel` reverse-SHA-256 bindings close the exact FTPR kernel byte chain. That kernel processes `0x08200000..0x08208000`, initializes its first entry at `0x08200008`, and advances using the same `+0x0d` state and `+0x0e` size fields. This proves cross-stage handoff continuity, not the pre-RBE producer/authenticator.
-- BUP clears list head `0xa014c`, loops its object materializer until null, requires an exact `0x12`-byte header with total size at `+0x0e`, and then requires the exact payload remainder. This matches FTPR's handoff stream geometry, but the BUP external-reader import is not yet bound to the exact kernel function, so BUP `ipub_key` provenance and snowball exclusion remain open.
+- BUP clears list head `0xa014c`, loops its object materializer until null, requires an exact `0x12`-byte header with total size at `+0x0e`, and then requires the exact payload remainder. This matches FTPR's handoff stream geometry.
+- Exact startup order is now closed inside BUP: main runs phase zero; its 22-entry function table executes ingestion at index 7 and `ifp_uep` consumption at index 10; main then frees the transient list. The BUP external-reader import is not yet bound to the exact kernel function, so BUP `ipub_key` provenance and snowball exclusion remain open.
 - All nine exact-ABL little-endian `0x08200000` byte occurrences are classified: five RBE consumer references, three FTPR-kernel consumer references, and one unaligned PMCP cross-dword match spanning dwords `0x20000000`/`0xff171908`. No other plain static base literal remains; computed, indirect, ROM, and external producers remain possible.
 - FTPR `rot.key` is at flash `0x17b000`, size `0x3fc`, SHA-256 `5530da6cbec43a441466478a6069b7a5d39afe9453f34923c633ad07b4613a14`.
 - `rot.key`, `RBEP.man`, `FTPR.man`, and `NFTP.man` share public-key digest `f2eb8fc44e30f6132631df884020abd685ce8843ee205d0a22eb6493f78a54cf`; all embedded signatures verify. The runtime producer/authority of `ipub_key` remains open.
@@ -58,18 +59,18 @@ Exact CSE RBE incoming-handoff `ipub_key → rot.key` pinning, shared CSE-manife
 - `tests/test_abl_ias_key_provenance.py`
 - `evidence/abl-ias-key-manifest-provenance.md`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `50,561`
-  - SHA-256 `0e80943a5ca734c6323b89d2658058f4f2154095fcdbe1f7ebfee3f90e52eb7f`
+  - size `51,849`
+  - SHA-256 `35fe6417620f902000a1229f9b9e191a4503d487a582e636908767f19896de25`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `109,090`
-  - SHA-256 `6281ca80b93f4cef25421960cd42562ac42b84815aff9ca93c0c327ad149a9f6`
+  - size `110,948`
+  - SHA-256 `1d971885a9c9510f4d1bec2aacc8a4c045a1da2889c0f45167ce3911f92ae0b3`
 
 ## Validation
 
 - focused package: `13 passed, 10 subtests passed`;
 - selected provenance/trust/bench/MEI integration: `56 passed, 172 subtests passed`;
-- canonical suite: `1019 passed, 352351 subtests passed in 226.51s`;
-- canonical log SHA-256: `43711c7e295651e956592c051bc9da08343c20f48983171ba10b2b8185402f0c`;
+- canonical suite: `1019 passed, 352351 subtests passed in 226.99s`;
+- canonical log SHA-256: `b25d9324ad72e6268d5aa40d33f042b19d7a36c306a505b98ba46a6174f6a25c`;
 - UTF-16 environment determinism, `py_compile`, and `git diff --check` passed.
 
 ## Boundary

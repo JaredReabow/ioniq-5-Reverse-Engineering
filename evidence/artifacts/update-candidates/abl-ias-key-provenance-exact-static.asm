@@ -2434,11 +2434,56 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
    2892c: test    eax, eax
    2892e: jne     0x28927                     # repeat until null
 
-# FTPR's stream reader and BUP's ingestion agree on a 0x12-byte header, total
-# size at +0x0e, exact payload remainder, and sequential entry boundaries. The
-# exact external-reader import-to-kernel-function binding is not yet closed, so
-# this geometry match does not yet prove BUP's ipub_key came from the RBE table
-# or exclude the /snowball fallback at the later manifest-verification point.
+## BUP phase-zero dispatcher and exact ordering
+
+   28939: mov     ebx, dword ptr [ebp + 0x8] # requested phase
+   28970: imul    eax, ebx, 0x14
+   28977: mov     edi, dword ptr [eax + 0x544f0] # phase function table
+   2897d: cmp     esi, dword ptr [ecx + 0x544ec] # phase function count
+   28985: mov     dword ptr [ebp - 0x10], ecx
+   28988: call    dword ptr [edi + 4*esi]     # ascending function index
+   28990: inc     esi
+   28994: jmp     0x2897d
+
+# Phase-zero descriptor at runtime 0x544ec:
+#   count = 0x16; function-pointer table = 0x54744
+# Relevant phase-zero function pointers, in execution order:
+#   index  7, runtime table 0x54760: 0x2891a  # ingest runtime objects
+#   index 10, runtime table 0x5476c: 0x32a1b  # consume "ifp_uep"
+
+   3ac7f: push    0x0
+   3ac81: call    0x28932                     # run phase zero
+   3ac86: call    0x3ac94                     # then free runtime-object list
+   3ac94: push    ebp
+   3ac95: mov     eax, dword ptr [0xa014c]
+   3ac9d: test    eax, eax
+   3ac9f: je      0x3acaf
+   3aca1: mov     ebx, dword ptr [eax + 0x1c]
+   3aca4: push    eax
+   3aca5: call    0x6082                      # free current object
+   3acab: mov     eax, ebx
+   3acad: jmp     0x3ac9d
+   3acaf: mov     dword ptr [0xa014c], 0x0
+
+   32a61: push    0x54aa0                     # "ifp_uep"
+   32a66: call    0x28cac                     # resolve materialized object
+   32a6f: push    dword ptr [eax + 0x18]
+   32a72: push    0xa38fc
+   32a77: call    0x102e                      # copy route header
+   32a7c: push    0x100
+   32a81: mov     eax, dword ptr [ebx + 0x18]
+   32a84: add     eax, 0x8
+   32a87: push    eax
+   32a88: push    0xa37f8
+   32a8d: call    0x102e                      # copy selected UEP payload
+
+# This proves BUP ingestion occurs before the phase-zero ifp_uep consumer and
+# that list cleanup follows phase zero. FTPR's stream reader and BUP ingestion
+# also agree on a 0x12-byte header, total size at +0x0e, exact payload
+# remainder, and sequential entry boundaries. The exact external-reader
+# import-to-kernel-function binding is not yet closed, so this does not yet
+# prove BUP's ipub_key came from the RBE table or exclude the /snowball fallback
+# at the later manifest-verification point.
 
 ## BUP runtime-object or /snowball resolver (BUP file [0x2026a,0x2039a), runtime [0x4626a,0x4639a))
 

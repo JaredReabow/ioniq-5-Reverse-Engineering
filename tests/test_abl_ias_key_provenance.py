@@ -51,12 +51,12 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "0e80943a5ca734c6323b89d2658058f4f2154095fcdbe1f7ebfee3f90e52eb7f")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "35fe6417620f902000a1229f9b9e191a4503d487a582e636908767f19896de25")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "6281ca80b93f4cef25421960cd42562ac42b84815aff9ca93c0c327ad149a9f6")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "1d971885a9c9510f4d1bec2aacc8a4c045a1da2889c0f45167ce3911f92ae0b3")
         self.assertIn(b"RBE incoming runtime-object handoff lookup", data)
         self.assertIn(b"mov     ebx, 0x8200008", data)
         self.assertIn(b"RBE runtime-object handoff append", data)
@@ -192,6 +192,13 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(ingestion["header_read_size"], 0x12)
         self.assertEqual(ingestion["entry_total_size_offset"], 0x0E)
         self.assertTrue(ingestion["payload_read_must_be_exact"])
+        phase_zero = ingestion["phase_zero_order"]
+        self.assertEqual(phase_zero["phase_zero_function_count"], 0x16)
+        self.assertEqual(phase_zero["phase_zero_function_table_runtime"], 0x54744)
+        self.assertEqual(phase_zero["ingestion_function_index"], 7)
+        self.assertEqual(phase_zero["ifp_uep_consumer_index"], 10)
+        self.assertTrue(phase_zero["ingestion_precedes_ifp_uep_consumer"])
+        self.assertTrue(phase_zero["ifp_uep_consumer_precedes_cleanup"])
         self.assertTrue(ingestion["ftpr_stream_to_bup_object_geometry_matches"])
         self.assertFalse(ingestion["external_reader_api_bound_to_exact_ftpr_kernel_function"])
         self.assertFalse(ingestion["bup_ipub_key_source_proved_to_be_rbe_handoff"])
@@ -319,6 +326,7 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["rbe_ipub_key_consumed_from_incoming_0x08200000_handoff_proved"])
         self.assertTrue(conclusions["same_handoff_consumed_by_signed_ftpr_kernel_proved"])
         self.assertTrue(conclusions["ftpr_stream_and_bup_runtime_object_ingestion_geometry_match_proved"])
+        self.assertTrue(conclusions["bup_phase_zero_ingestion_before_ifp_uep_consumption_and_cleanup_proved"])
         self.assertFalse(conclusions["ftpr_stream_reader_to_bup_import_binding_proved"])
         self.assertFalse(conclusions["bup_runtime_ipub_key_proved_to_originate_in_rbe_handoff"])
         self.assertFalse(conclusions["pre_rbe_handoff_producer_or_authenticator_proved"])

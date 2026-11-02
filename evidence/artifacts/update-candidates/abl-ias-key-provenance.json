@@ -5,6 +5,7 @@
     "bpm_metadata_binds_exact_ibbl_and_ibb_proved": true,
     "bup_fit_base_pointer_to_ibbl_source_mapping_proved": true,
     "bup_ipub_key_runtime_object_or_snowball_resolution_proved": true,
+    "bup_phase_zero_ingestion_before_ifp_uep_consumption_and_cleanup_proved": true,
     "bup_places_exact_ibbl_at_0xffffc000_proved": true,
     "bup_published_expected_usage39_digest_recovered": true,
     "bup_published_type0b_bound_to_stored_oem_key_manifest": true,
@@ -191,10 +192,25 @@
           "file_start": 128398,
           "sha256": "5132d70beda6603eaee882917a2723367209c2871a9dc4028ac8602e16b856c3"
         },
+        "main_phase_zero_and_cleanup": {
+          "file_end": 85182,
+          "file_start": 85106,
+          "sha256": "56f2dc85103cc7c322d4feed67e67a2f16b95ceaddcf84b73a2700fe9c1613f0"
+        },
         "oem_key_manifest_fit_publish": {
           "file_end": 47860,
           "file_start": 47548,
           "sha256": "e18d11f44ce11a7e405399afba236cab0bdd3ce5b24283ccfb0da79f53469c12"
+        },
+        "phase_dispatcher": {
+          "file_end": 10750,
+          "file_start": 10546,
+          "sha256": "d3dff85895dd60d11311069a5395990e92139868ff132f298c4bdb4e5fec7578"
+        },
+        "phase_zero_function_table": {
+          "file_end": 190364,
+          "file_start": 190276,
+          "sha256": "57c5e3001f8ff2e41d78af7545d5355c9e177ec5c09a48285c4bc48d932417e0"
         },
         "runtime_object_list_materializer": {
           "file_end": 10546,
@@ -245,6 +261,20 @@
         "materialized_payload_size_offset": 20,
         "payload_length_expression": "entry_total_size - 0x12",
         "payload_read_must_be_exact": true,
+        "phase_zero_order": {
+          "dispatcher_runtime": 166194,
+          "ifp_uep_consumer_index": 10,
+          "ifp_uep_consumer_precedes_cleanup": true,
+          "ifp_uep_consumer_runtime": 207387,
+          "ingestion_function_index": 7,
+          "ingestion_function_runtime": 166170,
+          "ingestion_precedes_ifp_uep_consumer": true,
+          "main_calls_cleanup_after_phase_zero": true,
+          "main_phase_zero_call_runtime": 240769,
+          "phase_zero_function_count": 22,
+          "phase_zero_function_table_runtime": 345924,
+          "runtime_object_cleanup_runtime": 240788
+        },
         "reader_called_until_null": true,
         "snowball_fallback_excluded_during_manifest_verification": false
       },

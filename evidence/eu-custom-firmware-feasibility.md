@@ -94,8 +94,10 @@ handoff base, first-entry address, `+0x0d` state byte, and `+0x0e` entry-size
 geometry, proving cross-stage continuity but not earlier authority. BUP's
 runtime-object ingestion independently expects the same `0x12`-byte header,
 `+0x0e` total size, payload remainder, and sequential entry boundaries, but its
-external-reader import is not yet bound to the exact FTPR-kernel function; BUP
-`ipub_key` provenance and snowball exclusion therefore remain unproved. All
+external-reader import is not yet bound to the exact FTPR-kernel function. BUP
+phase zero nevertheless proves ingestion at function index 7, `ifp_uep`
+consumption at index 10, and list destruction only after the phase. BUP
+`ipub_key` provenance and snowball exclusion still remain unproved. All
 plain little-endian handoff-base occurrences in the exact ABL are classified as these
 consumers or one unaligned cross-dword PMCP match, leaving no other static base
 literal. Computed, indirect, ROM, or external producers remain possible. The

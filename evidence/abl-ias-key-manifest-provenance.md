@@ -302,6 +302,15 @@ runtime-object stream before resolving `ifp_uep`, copies its route header and
 `0x100`-byte payload during phase zero, and only then destroys the transient
 list.
 
+The `ifp_uep` consumer does not test lookup success or payload size before its
+fixed 8-byte header and `0x100`-byte payload copies. The list is built by
+prepending each ingested object, while named lookup returns the first 12-byte
+name match; the last ingested duplicate name therefore wins. Exact RBE creates
+the stock `ifp_uep` at the required `0x108` bytes, which closes the normal
+producer/consumer size contract. No malformed or overriding duplicate object is
+proved attacker-controlled, so the missing consumer checks remain a bounded
+integrity dependency rather than a demonstrated provisioning override.
+
 However, the recovered call/import binding from BUP's external reader at
 `0x659b` to the exact FTPR-kernel stream function is not yet closed. Therefore
 the geometry and order match do not yet prove that BUP's runtime `ipub_key`
@@ -603,6 +612,9 @@ What is now proved:
   guard, but malformed-stream attacker control or reachability is not proved;
 - BUP phase zero ingests that transient object list at function index 7,
   consumes `ifp_uep` at index 10, and frees the list only after the phase;
+- the `ifp_uep` consumer has no lookup-null or payload-size check and duplicate
+  names resolve last-ingested-first, but exact RBE supplies the stock object at
+  the required `0x108` bytes and malformed-object control remains unproved;
 - the BUP reader-import/FTPR-kernel-function binding remains open;
 - signed NFTP `dal_sdm` reads an exact `0x24`-byte
   `/snowball/ipub_key` policy object before OEM authorization objects, but no
@@ -691,11 +703,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `55,994`
-  - SHA-256 `fd01ced30384bff6052ed9aa3b4a40d78aa4dd190c31d043f8356b3ed929afc5`
+  - size `56,639`
+  - SHA-256 `69a1e49092cab439869e6b7b1052470639b3632f04732ae4c79f6c5e84570804`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `114,808`
-  - SHA-256 `9ece68730be6d4836c51ae3757a4b066aa0daeb44198e80da5cfe881ee8be3c4`
+  - size `115,808`
+  - SHA-256 `5a65ba290f05366e2dafc5cb52637691d2015ba9cd142ec888f8d86285035640`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

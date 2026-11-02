@@ -3964,3 +3964,12 @@ and are superseded by corrections rather than silently rewritten.
 - The app's pending calls are asks our stub receives and ignores. Four methods implemented, dozens expected.
 - That reframes the last several hours of graphics work: nothing was wrong with the picture, the system was never told to draw.
   The same lesson as the MICOM transport, arriving from the other end of the stack.
+
+## 2026-10-31 — the pictures were in the machine and unreachable
+
+- The UI images are shipped, but reached through a symlink into /tmp that nothing populates. Pointing it at the real tree removed every
+  texture failure at once.
+- That is the fourth missing boot-time step in this projection, after the splash, the QML variant path and the shared-memory regions, and it
+  is the first one that explains a log line we had been reading past for hours.
+- Also corrected a claim I made an hour earlier: the pending MMUS calls complete, they do not hang. The evidence for that was already in the
+  log and I read it backwards.

@@ -2,12 +2,13 @@
 
 ## Status
 
-Exact CSE RBE `ipub_key → rot.key` pinning, shared CSE-manifest key identity, UEP-field extraction and OEM-key authentication, OEM Boot Policy validation through exact IBBL/IBB bytes, selected-UEP handoff through BUP into signed NFTP FPF shadow state, persistent-object materialization, BUP FIT production, BUP-to-IBBL mapping, IBB ring producer/consumer, runtime type-`0x0b` relocation, selector, stored FTPR `oem.key`, and `ABL.oemkm` export are closed. Installed-unit identity and the external authority supplying `ipub_key` and the selected UEP source remain open.
+Exact CSE RBE incoming-handoff `ipub_key → rot.key` pinning, shared CSE-manifest key identity, UEP-field extraction and OEM-key authentication, OEM Boot Policy validation through exact IBBL/IBB bytes, selected-UEP handoff through BUP into signed NFTP FPF shadow state, persistent-object materialization, BUP FIT production, BUP-to-IBBL mapping, IBB ring producer/consumer, runtime type-`0x0b` relocation, selector, stored FTPR `oem.key`, and `ABL.oemkm` export are closed. Installed-unit identity and the pre-RBE authority supplying the handoff and selected UEP source remain open.
 
 ## Findings
 
 - Exact `RBEP.man → rbe.met → rbe` and `FTPR.man → bup.met → bup` hash chains are byte-bound; both `$MN2` embedded signatures verify.
-- Exact RBE resolves runtime `ipub_key`, copies a selector-chosen 32-byte digest to `0x6047fa8`, and requires `rot.key`'s modulus-plus-exponent digest to match before RSA verification.
+- Exact RBE resolves `ipub_key` from a bounded incoming runtime-object handoff at `0x08200000`, copies a selector-chosen 32-byte digest to `0x6047fa8`, and requires `rot.key`'s modulus-plus-exponent digest to match before RSA verification.
+- The handoff lookup caps traversal at `0x8000`, begins entries at `0x08200008`, compares `0x0c`-byte names, tests enabled bit 0 at `+0x0d`, steps by the word at `+0x0e`, and exposes payload at `+0x12`. RBE first appends `cld_rst_blk`, then requires existing `bpdt`, `pm_trans`, `ftpm_fuses`, `sss_em`, `rbe.man`, `pmc_ipc`, and `ipub_key` entries; only missing optional `pmc_msg` is appended. The pre-RBE producer/authenticator remains open.
 - FTPR `rot.key` is at flash `0x17b000`, size `0x3fc`, SHA-256 `5530da6cbec43a441466478a6069b7a5d39afe9453f34923c633ad07b4613a14`.
 - `rot.key`, `RBEP.man`, `FTPR.man`, and `NFTP.man` share public-key digest `f2eb8fc44e30f6132631df884020abd685ce8843ee205d0a22eb6493f78a54cf`; all embedded signatures verify. The runtime producer/authority of `ipub_key` remains open.
 - Exact BUP initializes global `0xa014c` as an empty runtime-object-list head and materializes received objects with size/pointer/next fields at `+0x14/+0x18/+0x1c`; its generic manifest path resolves `ipub_key` from that list while nonempty or constructs `/snowball/ipub_key` while empty, bounds the selector through `0x23`, and supplies a selected 32-byte digest to its verifier.
@@ -54,27 +55,27 @@ Exact CSE RBE `ipub_key → rot.key` pinning, shared CSE-manifest key identity, 
 - `tests/test_abl_ias_key_provenance.py`
 - `evidence/abl-ias-key-manifest-provenance.md`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `44,433`
-  - SHA-256 `ebfda04945ffff19bbb0a18eb78925a19e266bf0a18f22cb1b5ee2361f10cdca`
+  - size `46,148`
+  - SHA-256 `fffcde68f746704bde88a9165c2c738c61a6ed6d9d9163eebd9c5198e32c59f5`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `101,854`
-  - SHA-256 `26c95b5a9e4a2c2292e8da74533b0431e43e30bfabd246ae8559d2c1f3ec41f7`
+  - size `104,471`
+  - SHA-256 `17cc8bb7d3919fa2525bf1b947ad6ca9e702c584b48d4adb5f3389f0fdb8e723`
 
 ## Validation
 
 - focused package: `13 passed, 10 subtests passed`;
-- ABL/update/bench integration: `136 passed, 53 subtests passed`;
-- canonical suite: `1011 passed, 352216 subtests passed in 170.01s`;
-- canonical log SHA-256: `50591b3da1dbf3df900ca06c7e8ecceb7548a90c9eb7603f651d80e0352dc0cd`;
+- selected ABL/boot/bench/MEI integration: `90 passed, 181 subtests passed`;
+- canonical suite: `1019 passed, 352351 subtests passed in 192.20s`;
+- canonical log SHA-256: `8e5d67c5c3d82a7e88f53017d557deb8f5a81fa9ba631c968de8087c5594ff46`;
 - UTF-16 environment determinism, `py_compile`, and `git diff --check` passed.
 
 ## Boundary
 
-Exact RBE binds `rot.key` to runtime `ipub_key`; the RoT key is shared by RBEP/FTPR/NFTP manifests. Exact RBE separately authenticates FTPR `oem.key` against the selected UEP digest. Exact BUP carries that OEM key through Boot Policy usage bit 32 to signed `IBBP.man`, `BPM.met`, and exact IBBL/IBB bytes, then publishes the OEM manifest through FIT type `0x0b` for stage 1. The selected UEP also reaches BUP's `bup_fpf` output and the signed NFTP `fpf` shadow, but that later hardware-mode state is not yet proved to produce RBE's earlier hardware window. Recovered bytes still do not establish who supplies or authenticates runtime `ipub_key`, whether the selected UEP source is fuse-backed, or installed-unit identity. Boot Guard, ACM, fuse, ROM, and installed-firmware provenance remain open at those earlier boundaries.
+Exact RBE binds `rot.key` to runtime `ipub_key`; the RoT key is shared by RBEP/FTPR/NFTP manifests. Exact RBE separately authenticates FTPR `oem.key` against the selected UEP digest. Exact BUP carries that OEM key through Boot Policy usage bit 32 to signed `IBBP.man`, `BPM.met`, and exact IBBL/IBB bytes, then publishes the OEM manifest through FIT type `0x0b` for stage 1. The selected UEP also reaches BUP's `bup_fpf` output and the signed NFTP `fpf` shadow, but that later hardware-mode state is not yet proved to produce RBE's earlier hardware window. Recovered bytes establish that RBE receives `ipub_key` through the incoming `0x08200000` handoff, but not who populated or authenticated that handoff, whether its memory is immutable, whether the selected UEP source is fuse-backed, or installed-unit identity. Boot Guard, ACM, fuse, ROM, and installed-firmware provenance remain open at those earlier boundaries.
 
 ## Next work
 
-1. Trace the producer and immutable authority of runtime `ipub_key`, including whether ROM, CSE kernel, FPFs, or another authenticated object supplies its selector and digest array; determine what controls BUP global `0xa014c` and authenticates `/snowball/ipub_key` without assuming that fallback is selected or writable.
+1. Trace the pre-RBE producer and immutable authority of the runtime-object handoff at `0x08200000`, including whether ROM, CSE kernel, FPFs, or another authenticated object supplies the `ipub_key` selector and digest array; determine what controls BUP global `0xa014c` and authenticates `/snowball/ipub_key` without assuming that fallback is selected or writable.
 2. Trace exact authentication and FPF/fuse precedence for the hardware-window versus BPDT UEP source, using the closed `ifp_uep → bup_fpf → signed NFTP fpf` path without assuming the later FPF hardware state produced RBE's earlier window.
 3. On a future disconnected bench, record `/proc/cmdline` and the exact `ABL.oemkm` value without attempting a physical-memory read unless separately authorized and safely bounded.
 4. Determine whether the installed/runtime OEM key manifest matches the exact stored FTPR object and verify its external provisioning chain host-side.

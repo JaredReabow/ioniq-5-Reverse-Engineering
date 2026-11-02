@@ -2238,6 +2238,66 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 # 0x28d2c. This proves the later FPF transition, but does not equate its
 # hardware state with RBE's earlier 0xf6170800 hardware-window producer.
 
+## RBE incoming runtime-object handoff lookup (RBE file [0x153a,0x158c), runtime [0x4153a,0x4158c))
+
+   4153f: mov     eax, dword ptr [0x8200000]  # incoming total size
+   41544: cmp     eax, 0x8000
+   41549: jbe     0x41550
+   4154b: mov     eax, 0x8000                 # cap traversal extent
+   41550: lea     esi, [eax + 0x8200000]
+   41556: mov     ebx, 0x8200008              # first entry
+   4155b: cmp     ebx, esi
+   4155d: jae     0x4157f
+   4155f: test    byte ptr [ebx + 0xd], 0x1   # enabled entry
+   41563: je      0x41577
+   41565: push    0xc                         # name comparison size
+   41567: push    ebx
+   41568: push    dword ptr [ebp + 0x8]
+   4156b: call    0x1060
+   41573: test    eax, eax
+   41575: je      0x41583                     # return existing entry
+   41577: movzx   eax, word ptr [ebx + 0xe]  # next-entry distance
+   4157b: add     ebx, eax
+   4157d: jmp     0x4155b
+   4157f: xor     eax, eax
+   41583: mov     eax, ebx
+
+## RBE runtime-object handoff append (RBE file [0x158c,0x1654), runtime [0x4158c,0x41654))
+
+   415a4: lea     eax, [edx + 0x12]           # header plus payload
+   415ad: cmp     edx, 0x8000
+   415b3: ja      0x4164c
+   415b9: movzx   ebx, word ptr [ebp - 0xe]
+   415bd: mov     edi, dword ptr [0x8200000]
+   415c3: lea     edx, [ebx + edi]
+   415c6: cmp     edx, 0x8000
+   415cc: ja      0x4164c
+   415d4: lea     esi, [edi + 0x8200000]      # append at prior total
+   415fe: push    0x12
+   41600: push    0x0
+   41602: push    esi
+   41603: call    0x103d                      # clear entry header
+   4160b: push    0xb
+   4160d: push    dword ptr [ebp + 0x8]       # object name
+   41610: push    esi
+   41611: call    0x1065
+   41616: movzx   edi, byte ptr [esi + 0xd]
+   4161d: or      edi, 0x1                    # enable entry
+   41628: mov     byte ptr [esi + 0xc], 0x1
+   41631: mov     byte ptr [esi + 0xd], al
+   41634: mov     ax, word ptr [ebp - 0xe]
+   41638: mov     word ptr [esi + 0xe], ax    # entry total size
+   4163c: mov     eax, dword ptr [ebp - 0x18]
+   4163f: mov     word ptr [esi + 0x10], ax   # caller metadata
+   41643: add     dword ptr [0x8200000], ebx  # publish new total
+   41649: lea     eax, [esi + 0x12]           # return payload
+
+# RBE appends "cld_rst_blk" before key initialization requires existing bpdt,
+# pm_trans, ftpm_fuses, sss_em, rbe.man, pmc_ipc, and ipub_key entries. Missing
+# optional pmc_msg is appended, but ipub_key only follows the lookup above.
+# This proves an incoming handoff boundary, not who authenticated or populated
+# the table before RBE or whether the underlying memory is immutable.
+
 ## BUP ipub_key resolution and digest selection (BUP file [0x20037,0x2008e), runtime [0x46037,0x4608e))
 
    46037: lea     eax, [ebp - 0x344]

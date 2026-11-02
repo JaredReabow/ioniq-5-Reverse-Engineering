@@ -241,6 +241,26 @@ it to select a pointer at `+0x16 + 4*selector`, and copies exactly 32 bytes to
 to the same fail-closed `$MN2` key-hash/RSA/extension validator with selector
 `5`.
 
+The resolver now narrows the earlier-stage boundary further. It reads a bounded
+runtime-object handoff at `0x08200000`: the first dword supplies total size
+(capped at `0x8000`), entries begin at `0x08200008`, names are compared across
+`0x0c` bytes, enabled bit 0 is tested at entry `+0x0d`, the next-entry distance
+is the word at `+0x0e`, and payload begins at `+0x12`. RBE also contains an
+append routine for this same handoff, but its first early append is named
+`cld_rst_blk`. Key initialization then requires existing entries named `bpdt`,
+`pm_trans`, `ftpm_fuses`, `sss_em`, `rbe.man`, `pmc_ipc`, and `ipub_key`; a
+missing optional `pmc_msg` is instead appended by RBE. The `ipub_key` path calls
+the existing-entry lookup and does not create an `ipub_key` entry. The exact
+RBE has only five direct static references to handoff base `0x08200000`, all in
+these lookup/append routines.
+
+This proves that RBE consumes `ipub_key` through an incoming handoff entry even
+though RBE can append other entries later. It still does not identify who
+populated the table before RBE, authenticate that producer, prove the memory
+immutable, or establish ROM/fuse precedence. Absence of another direct address
+constant cannot rule out an indirect earlier writer outside or inside another
+stage.
+
 Host-side parsing establishes:
 
 - FTPR `rot.key` at flash `0x17b000`, size `0x3fc`, SHA-256
@@ -254,9 +274,10 @@ Host-side parsing establishes:
 
 Thus exact RBE binds `rot.key` to the selected runtime `ipub_key` digest before
 using the RoT manifest to authorize CSE BUP/Main signing keys. The remaining
-boundary has narrowed to the producer and authority of `ipub_key`: the
-recovered RBE consumes it but does not show whether ROM, immutable CSE code,
-fuses, or another earlier authenticated object supplies it.
+boundary has narrowed to the producer and authority of the incoming
+`0x08200000` handoff: the recovered RBE consumes `ipub_key` from it but does not
+show whether ROM, immutable CSE code, fuses, or another earlier authenticated
+object supplies it.
 
 Exact BUP independently exposes more of the same object contract in its generic
 manifest-verification path. Global `0x000a014c` is initialized as an empty
@@ -481,17 +502,19 @@ root.
 What is now proved:
 
 - the runtime descriptor table is FIT-format;
-- exact RBE consumes runtime `ipub_key` and uses its selected 32-byte digest to
-  pin `rot.key` before RSA verification;
+- exact RBE consumes `ipub_key` from a bounded incoming runtime-object handoff
+  at `0x08200000` and uses its selected 32-byte digest to pin `rot.key` before
+  RSA verification;
 - `rot.key`, `RBEP.man`, `FTPR.man`, and `NFTP.man` use the same exact
   modulus-plus-exponent digest `f2eb8fc4...` and have valid embedded signatures;
 - exact BUP can resolve `ipub_key` from a runtime object or
   `/snowball/ipub_key`, accepts selectors only through `0x23`, and passes a
   selected 32-byte digest to its manifest verifier;
 - the exact root digest occurs statically only in `rot.key`; runtime branch
-  selection, snowball writability/authentication, and RBE object provenance
-  remain unproved;
-- the producer and ROM/fuse authority of runtime `ipub_key` remain unproved;
+  selection and snowball writability/authentication remain unproved;
+- RBE's `ipub_key` path looks up an existing handoff entry rather than appending
+  it, but the pre-RBE handoff producer, authentication, mutability, and ROM/fuse
+  authority remain unproved;
 - exact FTPR signed-package metadata has no direct `oem.key` name/digest entry
   and FTPR CPD has no `oem.key.met` member;
 - exact BPDT type-17 UEP contains three copies of the stored `oem.key` public-key
@@ -572,11 +595,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `44,433`
-  - SHA-256 `ebfda04945ffff19bbb0a18eb78925a19e266bf0a18f22cb1b5ee2361f10cdca`
+  - size `46,148`
+  - SHA-256 `fffcde68f746704bde88a9165c2c738c61a6ed6d9d9163eebd9c5198e32c59f5`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `101,854`
-  - SHA-256 `26c95b5a9e4a2c2292e8da74533b0431e43e30bfabd246ae8559d2c1f3ec41f7`
+  - size `104,471`
+  - SHA-256 `17cc8bb7d3919fa2525bf1b947ad6ca9e702c584b48d4adb5f3389f0fdb8e723`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

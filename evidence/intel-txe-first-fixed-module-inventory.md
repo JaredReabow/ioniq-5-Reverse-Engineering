@@ -207,17 +207,40 @@ the vendor status names or full semantics, identify the message recipient or
 appended byte, establish HECI reachability, or attribute the change to
 CVE-2018-12147.
 
-Larger changed modules include plausible service and downstream-parser surfaces
-such as `ipc_drv`, but a module name or diff size is not reachability or advisory
-proof. The already bound first-fixed VFS/NDL integration remains the strongest
-exact CVE-2018-3655 candidate.
+A focused `ipc_drv` review now binds one concrete first-fixed hardening change.
+The affected operation callback at `0x274bd..0x2780d` is `0x350` bytes, SHA-256
+`b7e498a3daa735910a68d49d69beb32b0159611b301e304bf0b5c4ac04c569b9`.
+Its first-fixed counterpart at `0x274e5..0x27849` is `0x364` bytes, SHA-256
+`31079b2150e42e39209b3eed814d1c4de2bfc7875003a7ec8b85f05b41f2436f`.
+Both callback addresses are bound into the same seven-entry operation-table
+position during major-39 special-file registration.
+
+First-fixed newly executes the exact sequence at `0x27508..0x2751b` that passes
+local address `ebp-0x98`, byte value zero, and size `0x88` to external gate
+`0x103d`. The affected complete callback contains no call to that gate. Both
+callbacks subsequently:
+
+1. store a four-byte header at `ebp-0x98`;
+2. reject payload lengths above `0x80`;
+3. bounded-copy at most `0x80` payload bytes into `ebp-0x94`; and
+4. pass the local buffer to syslib wrapper `0x61d6` with both size arguments
+   fixed at `0x88`.
+
+This is an exact stale-stack or partial-initialization information-disclosure
+hardening candidate: the first-fixed code clears the entire fixed-size transfer
+buffer before partially populating it. Static evidence does not yet establish
+which named special-file operation invokes the callback, whether residual stack
+bytes cross a privilege boundary in practice, HECI reachability, attacker
+control, exploitability, or CVE-2018-12147 attribution. The already bound
+first-fixed VFS/NDL integration remains the strongest exact CVE-2018-3655
+candidate.
 
 ## Artifact
 
 - `evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json`
 - schema `ioniq-txe-first-fixed-module-inventory/v1`
-- size `124,860` bytes
-- SHA-256 `0de578c50a7126f1941537b5a90ae5add59cf65bd02513e096f140503055bf3d`
+- size `127,346` bytes
+- SHA-256 `2507d868f76eb9fe098b9044095f1b75f93cbc0b0692472b11cc3d97645b6750`
 
 Embedded `$MN2` signatures establish self-consistency and byte binding only.
 They do not establish platform ROM/fuse/OEM acceptance or installed-unit

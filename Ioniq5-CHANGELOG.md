@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.58.0 - the surface-id overrides are inconclusive because the app dies, and the crashes are not ours
+
+- Both override variants were tested with the tracer attached:
+  - `QT_WAYLAND_USE_PID_FOR_SURFACE_ID=1` → `show()` 1, `createShellSurface()` 1, then **process dead**;
+  - `QT_WAYLAND_SET_SURFACE_ID=1000` → the same: `show()` 1, `createShellSurface()` 1, then **dead**.
+  So the environment variable is still **unproven as the cause**: in both runs the app reached the vendor surface creation and then exited before any
+  surface could be observed. Recorded as inconclusive rather than as a refutation.
+- **The deaths have a signature, and it is a heap fault, not a graphics fault.** Both app crashes report the same instruction offset inside the guest
+  `libc-2.25.so`: `ip - base = 0x7b8e4`, which symbolizes to **`free@@GLIBC_2.2.5` + 0x14**. `AppHomeScreen` and `AppCamera` die at exactly the same
+  offset in `free()` — an invalid or double free, i.e. heap corruption, not a drawing problem.
+- **This instability is not a consequence of the multi-output work.** A run of the original single-output chain shows `segfault` count 1 as well:
+  `AppNavi[795]: segfault at 8 … in libQt5Core.so.5.4.1`. So vendor clients crash in this projection *without* any of today's changes; the ten-screen runs
+  add more of them, they do not create the phenomenon.
+- That reframes a great deal of today's evidence honestly: when the application "died before measurement" in earlier rounds, it was not necessarily the
+  D-Bus call under test — several of these clients are unstable in this environment for reasons that predate the display question, and a heap corruption in
+  `free()` will take an app down at an arbitrary moment, including two milliseconds after it asks to be shown.
+- Next: separate the two failures. Identify what the crashing clients have in common (a shared vendor library, or the projection's own environment), because a
+  client that dies in `free()` cannot be diagnosed for graphics behaviour at all until it stops dying.
+
 ## 2.57.0 - `show()` IS called: the window becomes visible, and the vendor surface creation is the gate
 
 - Built `tools/uk_fw/ias_backend_soft/qt_show_trace.c`, an interposer that logs `QWindow::show()`, `QWindow::isVisible()`,

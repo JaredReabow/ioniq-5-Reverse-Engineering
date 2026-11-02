@@ -3892,3 +3892,10 @@ and are superseded by corrections rather than silently rewritten.
   than another screen capture, and it moved the problem from "nothing renders" to "one component does not exist".
 - Also worth remembering that a probe of mine reported zero seeded bytes because I read the wrong stream; the shim was working
   the first time.
+
+## 2026-10-31 — the application said what was missing, and it was a directory
+
+- Its own log named the file it could not find. The shipped tree has the home screen under qml_new2.0; the binary falls back to an
+  unversioned qml/ path that nothing in the image creates. One symlink and the segfault disappeared.
+- Five independent causes have now been found and removed, each one measured rather than assumed, and the application survives
+  where it used to crash. It does not yet paint, but it no longer dies, and the log is the instrument to use next.

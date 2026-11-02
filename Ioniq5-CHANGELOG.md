@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.33.0 - the missing QML path was the crash; a variant symlink removes it
+
+- The app named its own failure: **`[QtMsg] file:///app/share/AppHomeScreen/qml/HomeScreen/main.qml: File not found`**.
+  The shipped tree contains `qml_new2.0/`, `qml_eco3.0/` and `qml_genesis/`, and the binary carries all four prefixes —
+  including the unversioned `/app/share/AppHomeScreen/qml/` fallback it was falling back to. Nothing in the image creates that
+  path: no script, no unit, no symlink. On the real unit the variant directory is selected at boot; here the selection step was
+  simply absent.
+- **Creating `/app/share/AppHomeScreen/qml -> qml_new2.0` removes the crash.** With it in place:
+  `MAIN_QML=yes`, `File not found` count **0**, `segfault` count **0**, and the app is **still alive at 70 s** where it previously
+  died at 28.4 s. The `qmlEngine()` null dereference is gone because the component it needed now exists.
+- That closes the chain of the previous four causes: splash, discarded diagnostics, libEGL preload, missing shared memory, and now
+  the absent QML variant path. Each was independently measured and each is now removed.
+- Current state after the fix: the app runs past 210 s without crashing and without `Add Screen` reappearing in the log, and the
+  compositor frame is back to the black 4,117-byte output. So it survives, but it has not yet been seen painting a home screen.
+- Next: read the log tail to establish what the app is doing at 210 s now that it no longer dies, rather than capturing frames
+  blindly.
+
 ## 2.32.0 - seeding works, and the crash names itself
 
 - **`ihu-shim` seeding is confirmed working:** the clean run logs `ihu-shim: seeded 35 profile bytes` and `ihu-shim: 6 segment(s)`

@@ -1,0 +1,378 @@
+{
+  "address_model": {
+    "artifact_addresses": "ELF virtual addresses",
+    "file_mapping": "resolved independently through each file-backed PT_LOAD segment",
+    "ghidra_image_base": "0x100000",
+    "ghidra_normalization": "subtract 0x100000 from Ghidra addresses used by the reviewed REA dossiers"
+  },
+  "anchors": {
+    "calloc_zeroed_context": {
+      "bytes_hex": "bec8000000bf01000000e8bf4fffff488945f048",
+      "elf_va": "0x11dc2",
+      "file_offset": "0x11dc2",
+      "matched": true,
+      "sha256": "939ad73ad0c9e00b6144c57fb9a3048472fa08657d769ad96161bda070f4ff3a",
+      "size": 20,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "double_body_size_capacity": {
+      "bytes_hex": "488b8598feffff488d1400488b85f8feffff488b80a80000004839c20f86f8000000488b8598feffff4801c0",
+      "elf_va": "0x13618",
+      "file_offset": "0x13618",
+      "matched": true,
+      "sha256": "ab7263402b26b965c52ff84bb52b61505c46e886b93230a7ba98366d14450d87",
+      "size": 44,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "four_byte_start_code_and_nal_copy": {
+      "bytes_hex": "8b5590488b85e0feffff8910488b95d0feffff488b85c8feffff488b8de0feffff4883c1044889c64889cfe81634ffff488b85d0feffff4883c004480185e0feffff488b95d0feffff488b85f0feffff4801d04883c004488985f0feffffe955",
+      "elf_va": "0x13a3a",
+      "file_offset": "0x13a3a",
+      "matched": true,
+      "sha256": "b7b8ad8c845816e54ea733120855bdf180d09a1db0ce20cd9b2aece2b6e72f89",
+      "size": 96,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "loop_uses_input_consumption_bound": {
+      "bytes_hex": "488b8508ffffff480185e8feffff488b95e8feffff488b85a0feffff4829c24889d0483b8598feffff0f8259fdffff",
+      "elf_va": "0x13a9d",
+      "file_offset": "0x13a9d",
+      "matched": true,
+      "sha256": "41558a6580f9067615fede0897ed254ff6693203c328e67f3d4f6abc944dc6a6",
+      "size": 47,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "one_byte_prefix_zero_length_decode": {
+      "bytes_hex": "48ffcab8cfe5ffff75434c8d57010fb617eb1f0fb6",
+      "elf_va": "0x8222e",
+      "file_offset": "0x8222e",
+      "matched": true,
+      "sha256": "59996a5caa65e2b6eafd112222cb7f9b998863f4e249575f35757b7fe6ff1237",
+      "size": 21,
+      "subject": "libCoreUtils.so"
+    },
+    "prefix_width_1_2_4_selection": {
+      "bytes_hex": "488b85f8feffff488b80900000004883f8017519488b85e8feffff0fb6000fb6c0488985d8feffffe94b010000488b85f8feffff488b80900000004883f8027534488b85e8feffff0fb6000fb6c0c1e00889c2488b85e8feffff4883c0010fb6000fb6c009d00fb7c0488985d8feffffe903010000488b85f8feffff488b80900000004883f804755f",
+      "elf_va": "0x13835",
+      "file_offset": "0x13835",
+      "matched": true,
+      "sha256": "a3905981ff1847862ad8e01da34c525b1a3267b5301cb38bd53722b47b94d42f",
+      "size": 137,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "set_avcc_retains_header_length_and_prefix_width": {
+      "bytes_hex": "488b45e8488b55f048899080000000488b55d8488b45e848899088000000488b55e0488b45e848899090000000",
+      "elf_va": "0x1247b",
+      "file_offset": "0x1247b",
+      "matched": true,
+      "sha256": "397140a286e3f280689072c6bc663111a0a82457fe0c7e1496ff04b81b1f22f2",
+      "size": 45,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "socket_header_read_128_bytes": {
+      "bytes_hex": "518b442418be800000004c89e74c8d7b484531c94531c04c89f9ba800000005041ff542418",
+      "elf_va": "0x1f4b9",
+      "file_offset": "0x1f4b9",
+      "matched": true,
+      "sha256": "346ca554e59dad1bcd3e51ced3c88d1faf383e3d96eb1a9a39626a9d6e577e92",
+      "size": 37,
+      "subject": "libAirPlay.so"
+    },
+    "start_sets_first_frame_flag": {
+      "bytes_hex": "c6809800000001",
+      "elf_va": "0x12598",
+      "file_offset": "0x12598",
+      "matched": true,
+      "sha256": "d71470b8a79d85e9a8f99d8f85a4a3ce80670f866c99ebee1946968b5105f359",
+      "size": 7,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "store_exact_double_capacity": {
+      "bytes_hex": "488b85f8feffff488b9510ffffff488990a8000000",
+      "elf_va": "0x1371d",
+      "file_offset": "0x1371d",
+      "matched": true,
+      "sha256": "4fd8dc4b04e9584fb3ecb1c2b4788c22f59522f85e43f24c0f6dd41b4b3902b0",
+      "size": 21,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "uint32_body_size_and_malloc": {
+      "bytes_hex": "448b73484d85f674494c89f7e8f993feff4989c2",
+      "elf_va": "0x1f4f6",
+      "file_offset": "0x1f4f6",
+      "matched": true,
+      "sha256": "34f85bf4a6d06cdf872973e262ba95f93bf6d064876a298b204cd8c957725f01",
+      "size": 20,
+      "subject": "libAirPlay.so"
+    },
+    "unchecked_first_frame_config_copy": {
+      "bytes_hex": "488b85f8feffff0fb680980000003c010f85af000000488b85f8feffff488b9088000000488b85f8feffff488b8880000000488b85e0feffff4889ce4889c7e8dc36ffff",
+      "elf_va": "0x13760",
+      "file_offset": "0x13760",
+      "matched": true,
+      "sha256": "7afa4bb9b39e391a0500b1aacb56cf7cf69182a3045d4f04b62577eff5efbdf6",
+      "size": 68,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "video_config_set_avcc_call": {
+      "bytes_hex": "3c0175548a434ef3480f2c535cf3480f2c7358488bbb28030000d0e883e001884328e8378dfeff8b534885d27470488bbb280300004889eee80192feff89",
+      "elf_va": "0x1f792",
+      "file_offset": "0x1f792",
+      "matched": true,
+      "sha256": "995f88229bcd9017d6294d4db3c50b217e81c7919a02c7f1f434d1f3cd1e0d88",
+      "size": 62,
+      "subject": "libAirPlay.so"
+    },
+    "video_frame_process_data_call": {
+      "bytes_hex": "41568b53484531c94531c0488bbb280300004c89e96a004889eee8549bfeff89",
+      "elf_va": "0x1f72d",
+      "file_offset": "0x1f72d",
+      "matched": true,
+      "sha256": "bff29754d737a3efaf7c97140b7748ac351af4243ece60a50e536b58630f2b93",
+      "size": 32,
+      "subject": "libAirPlay.so"
+    },
+    "zero_length_accepted_and_input_advanced": {
+      "bytes_hex": "4c29d6b8a2e5ffff4839f2770e4c891131c04989104c01d2498911",
+      "elf_va": "0x82260",
+      "file_offset": "0x82260",
+      "matched": true,
+      "sha256": "ad2c673516cbab59dbd93dc3798ad6f9194f94f152f99c604d410d140517b047",
+      "size": 27,
+      "subject": "libCoreUtils.so"
+    }
+  },
+  "arithmetic_proof": {
+    "accepted_zero_length_case": "H264GetNextNALUnit accepts zero-length units; with p=1 and N=S, O=H+4*S while C=2*S, so O>C for every S>0",
+    "first_frame_header_case": "independently, the unchecked initial memcpy crosses C whenever H>C before NAL conversion begins",
+    "growth_capacity": "C = 2*S",
+    "important_correction": "this exact socket path does not establish a size-doubling integer wrap on x86-64; the demonstrated defect is insufficient output-capacity accounting",
+    "input_identity": "S = p*N + L",
+    "out_of_bounds_condition": "O > C, equivalently H + (4-p)*N > S",
+    "output_identity": "O = H + 4*N + L = H + S + (4-p)*N",
+    "symbols": {
+      "C": "output capacity after the exact growth branch",
+      "H": "retained Annex-B configuration-header bytes prepended on the first-frame branch",
+      "L": "sum of NAL payload lengths",
+      "N": "number of accepted NAL units",
+      "S": "input body bytes",
+      "p": "AVCC length-prefix width in {1,2,4}"
+    }
+  },
+  "assessment": {
+    "classification": "exact-static heap out-of-bounds write candidate",
+    "cve_2025_30422_boundary": "Apple describes a fixed AirPlay SDK buffer overflow and Oligo classifies that CVE as potential integer-overflow RCE, but neither reviewed source names this function or supplies fixed bytes. This exact socket path has no 64-bit 2*S wrap, so broad class overlap is not attribution.",
+    "cve_attribution": null,
+    "cwe": [
+      "CWE-787"
+    ],
+    "demonstrated": [
+      "exact recovered bytes bind socket body reads and opcode dispatch to the media callbacks",
+      "exact recovered bytes bind zeroed initial context, retained AVCC state, and the first-frame flag",
+      "exact recovered bytes bind output allocation to 2*S on the growth path",
+      "exact recovered bytes bind an unchecked retained-header memcpy and an unchecked per-NAL 4-byte expansion",
+      "the exact bounded NAL helper accepts zero length and advances by the configured prefix width",
+      "the length identities admit accepted parser geometry whose output exceeds the recorded capacity"
+    ],
+    "not_demonstrated": [
+      "a physical phone, USB/NCM peer, or network peer can deliver the required sequence to the exact installed unit",
+      "listener/interface exposure, session establishment, pairing, authentication, authorization, or encryption prerequisites",
+      "an observed allocator overwrite, crash, process termination, supervisor behavior, or user-visible denial of service",
+      "reliable control-flow influence, code execution, authentication bypass, root access, SMACK escape, persistence, or firmware modification",
+      "CVE-2025-30422 identity, any other CVE identity, affected-versus-fixed lineage, or impact on the owner's installed firmware"
+    ],
+    "prerequisites": [
+      "the three exact recovered library identities",
+      "an established screen-stream NetSocket and successful ScreenStream initialization/start",
+      "accepted video configuration retaining a supported prefix width",
+      "a subsequent video-frame body whose accepted NAL geometry makes H+(4-p)*N exceed S, or whose first-frame retained H exceeds capacity",
+      "the growth/reuse state must leave actual output allocation smaller than produced output; the fresh calloc-zeroed context reaches the exact 2*S growth case"
+    ]
+  },
+  "canonical_sha256": "a01793627cae6f52c6befaf58c4e6c01cabfffd8e5a7494f3801fc00e5dcea54",
+  "decoded_flow": {
+    "output_capacity": {
+      "body_symbol": "S",
+      "growth_allocation": "when growth is required, 0x13641 computes 2*S, operator new[] receives that value at 0x136a3, and 0x1372b stores the same value as capacity",
+      "growth_test": "0x1361f computes 2*S and compares it with retained capacity at context+0xa8",
+      "no_route_local_doubling_wrap": "for S <= 0xffffffff, 2*S <= 0x1fffffffe, so the 64-bit doubling does not wrap on this route",
+      "upstream_width": "the exact socket route supplies a uint32 body size zero-extended into the x86-64 size_t argument"
+    },
+    "retained_state": {
+      "configuration": "ScreenStreamSetAVCC converts bounded AVCC configuration and stores the Annex-B header pointer at context+0x80, header length H at +0x88, and length-prefix width p at +0x90",
+      "initialization": "ScreenStreamInitialize calls calloc(1,0xc8), so output pointer, capacity, retained AVCC state, and first-frame state begin zeroed",
+      "start": "ScreenStreamStart stores 1 at context+0x98, selecting the one-time retained-header prepend on the next processed frame"
+    },
+    "socket_to_parser": {
+      "body_size": "0x1f4f6 loads the uint32 field at session+0x48 and 0x1f502 allocates that many body bytes",
+      "boundary": "the read is from the already-established screen NetSocket; listener creation, pairing, authentication, encryption state, and live peer control are not established here",
+      "header": "0x1f4b9 requests exactly 0x80 bytes into the retained AirPlayScreenHeader at session+0x48",
+      "video_config": "opcode 1 reaches ScreenStreamSetAVCC@plt at 0x1f7ca when body size is nonzero",
+      "video_frame": "opcode 0 reaches ScreenStreamProcessData@plt at 0x1f747 with the body pointer and uint32 body size"
+    },
+    "writes_without_output_bound": {
+      "bounded_input_parser": "H264GetNextNALUnit restricts p to 1, 2, or 4 and ensures each encoded NAL body lies within input, but it accepts length zero and returns an input pointer advanced by p",
+      "config_prepend": "when context+0x98 is 1, 0x13776..0x1379f copies H retained bytes to the output and advances output-used by H without comparing H with capacity",
+      "loop_bound": "0x13a9d..0x13ac6 repeats based on consumed input bytes relative to S; it does not compare output-used with context+0xa8",
+      "nal_conversion": "for each accepted NAL, 0x13a3a stores a 4-byte Annex-B start code and 0x13a65 copies the NAL body, then advances output-used by 4+length"
+    }
+  },
+  "public_comparator": {
+    "commit": "51145ef55f8dd9f1cbadd58353cacb5e0ca215e9",
+    "common_header": "source/Sources/AirPlayCommon.h",
+    "common_header_sha256": "6774bd04f8889d991caacea613b1873d1ac08e0014f371d8b1c1a42ba86df17d",
+    "repository": "45clouds/WirelessCarPlay",
+    "role": "comparative protocol and semantic names only; recovered bytes and addresses are authoritative",
+    "screen_source": "source/Sources/AirPlayReceiverSessionScreen.c",
+    "screen_source_sha256": "c5fc6bca8a6758caaea59394859d5d857e6f9683d079ae3741a35da6f8999bc7"
+  },
+  "ranges": {
+    "double_size_capacity_allocation": {
+      "elf_va_end_exclusive": "0x13732",
+      "elf_va_start": "0x13618",
+      "file_offset_start": "0x13618",
+      "matched": true,
+      "sha256": "390a45d45346addd1cdf013f6c59ac958e66660537ba5bc3aeb6aeaa85c8d2c6",
+      "size": 282,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "first_frame_config_prepend": {
+      "elf_va_end_exclusive": "0x137dc",
+      "elf_va_start": "0x13760",
+      "file_offset_start": "0x13760",
+      "matched": true,
+      "sha256": "f439933453da8206f9c0f6d40d89cb1a239f03e42d425037dcb15c18258a1aad",
+      "size": 124,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "h264_avcc_to_annex_b_header": {
+      "elf_va_end_exclusive": "0x821f4",
+      "elf_va_start": "0x81f2e",
+      "file_offset_start": "0x81f2e",
+      "matched": true,
+      "sha256": "6ff7467bc1689bb04859aedc693b75f96e96627cb25d497d606c1c2134d53885",
+      "size": 710,
+      "subject": "libCoreUtils.so"
+    },
+    "h264_get_next_nal_unit": {
+      "elf_va_end_exclusive": "0x82295",
+      "elf_va_start": "0x821f4",
+      "file_offset_start": "0x821f4",
+      "matched": true,
+      "sha256": "4f93ad628a9cfbaf35c18a3e6cc5eca8c3ac67d82c93e56a1bf85607bac93c82",
+      "size": 161,
+      "subject": "libCoreUtils.so"
+    },
+    "nal_conversion_loop": {
+      "elf_va_end_exclusive": "0x13acc",
+      "elf_va_start": "0x13825",
+      "file_offset_start": "0x13825",
+      "matched": true,
+      "sha256": "5b983dc3aa1572d143e811607e23d1c8f100e9214240bed3a66bc56e66428ace",
+      "size": 679,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "screen_frame_and_config_dispatch": {
+      "elf_va_end_exclusive": "0x1f7d5",
+      "elf_va_start": "0x1f54a",
+      "file_offset_start": "0x1f54a",
+      "matched": true,
+      "sha256": "fe0f41bc965071aac29d648e87b9862f9c17f859628803769204865aebca4b98",
+      "size": 651,
+      "subject": "libAirPlay.so"
+    },
+    "screen_header_and_body_read": {
+      "elf_va_end_exclusive": "0x1f54a",
+      "elf_va_start": "0x1f4b9",
+      "file_offset_start": "0x1f4b9",
+      "matched": true,
+      "sha256": "5182656ae5329d23d9be03d818905479b578966e9d858efa34e6a973a195e1ef",
+      "size": 145,
+      "subject": "libAirPlay.so"
+    },
+    "screen_socket_process_frames": {
+      "elf_va_end_exclusive": "0x1fa93",
+      "elf_va_start": "0x1f250",
+      "file_offset_start": "0x1f250",
+      "matched": true,
+      "sha256": "51016b6ba869ea0cda6a2940196ced53b1b9957735f3a114935d06d976d1c0b1",
+      "size": 2115,
+      "subject": "libAirPlay.so"
+    },
+    "screen_stream_initialize": {
+      "elf_va_end_exclusive": "0x11fdd",
+      "elf_va_start": "0x11d34",
+      "file_offset_start": "0x11d34",
+      "matched": true,
+      "sha256": "f922e85799a0795d2fd9df80a595d98fe79923023f798853b2ae08bd4e257a3b",
+      "size": 681,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "screen_stream_process_data": {
+      "elf_va_end_exclusive": "0x13f06",
+      "elf_va_start": "0x133f2",
+      "file_offset_start": "0x133f2",
+      "matched": true,
+      "sha256": "f80e0c035321845e4c5e8e0c7d50e8d973e1059725887e509429262cec63af47",
+      "size": 2836,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "screen_stream_set_avcc": {
+      "elf_va_end_exclusive": "0x124c1",
+      "elf_va_start": "0x1227b",
+      "file_offset_start": "0x1227b",
+      "matched": true,
+      "sha256": "60c4af44c4c3634702ba8b20ad1297e2e50d26302ccb4a352149adece798d439",
+      "size": 582,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "screen_stream_start": {
+      "elf_va_end_exclusive": "0x126fc",
+      "elf_va_start": "0x124c1",
+      "file_offset_start": "0x124c1",
+      "matched": true,
+      "sha256": "a05f3a63efd7c708ed916d871d098acf69a42bc916b5ce95bc5b729bf2902516",
+      "size": 571,
+      "subject": "libCarPlayMediaFramework.so"
+    },
+    "zeroed_context_allocation": {
+      "elf_va_end_exclusive": "0x11ee5",
+      "elf_va_start": "0x11dc2",
+      "file_offset_start": "0x11dc2",
+      "matched": true,
+      "sha256": "b766b2197791ab3b2b710e3ac01b9f23cac0a7a16f9bf71e4f06bc3c539682ca",
+      "size": 291,
+      "subject": "libCarPlayMediaFramework.so"
+    }
+  },
+  "safety": {
+    "execution": "no recovered executable, service, parser, or shared-library entry point was executed",
+    "protocol_input": "no screen header, AVCC configuration, frame body, packet, or malformed media input was created or transmitted",
+    "scope": "host-side byte hashing, ELF mapping, disassembly review, and abstract length arithmetic only"
+  },
+  "schema": "ioniq-airplay-screen-parser-bounds-audit/v1",
+  "subjects": {
+    "airplay": {
+      "basename": "libAirPlay.so",
+      "format": "ELF64 little-endian ET_DYN x86-64",
+      "sha256": "ef9e69e3b3388d4a7a1d185827c710af25b8ee99d406c60c664a9609b00aada0",
+      "size": 215896
+    },
+    "coreutils": {
+      "basename": "libCoreUtils.so",
+      "format": "ELF64 little-endian ET_DYN x86-64",
+      "sha256": "9104e2c16ee27e647fac090ee7f3aa4cc686b8caaea1dc24763af2950c0ebfae",
+      "size": 1200368
+    },
+    "media": {
+      "basename": "libCarPlayMediaFramework.so",
+      "format": "ELF64 little-endian ET_DYN x86-64",
+      "sha256": "69690210d1aa4dec33c77b0e80f1d3368f8a70bcb507c1b158b6245dc29eb2f3",
+      "size": 162392
+    }
+  },
+  "tool": {
+    "name": "airplay_screen_parser_bounds_audit.py",
+    "version": "1.0.0"
+  }
+}

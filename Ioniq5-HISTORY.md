@@ -3941,3 +3941,11 @@ and are superseded by corrections rather than silently rewritten.
   with a note rather than quietly edited.
 - On our own problem: the app acknowledges the show request in both boolean states and still paints nothing, so the request is not
   what completes the picture.
+
+## 2026-10-31 — thirty-seven arguments we were not passing
+
+- The launcher hands the home screen a long list of variant flags. We had been starting it bare and wondering why the variant path
+  mattered.
+- Both configurations sit at zero commits in steady state, which also revises what that earlier light frame meant: it was a transient
+  during startup, not a steady state we had achieved.
+- The next comparison is obvious and cheap: the same binary, the same environment, the real argument list.

@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.39.0 - the app is launched with a 37-argument variant configuration; that is how it picks its QML
+
+- **Recovered the exact command line the vendor launcher uses** for the home screen:
+  `/app/bin/AppHomeScreen -cv:5 -vv:38 -sv:1299 -dt:3 -l:2 -ck:0 -pp:0 -usm:1 -et:8 -pt:0 -by:0 -pi:0 -pf:0 -cbp:1 -asvr:0 -gui:3 -sc:1 -vc:65 -kt:0 -dn:0 -nm:0 -p2s2:1 -ke:na -pvv:0x26 -os:1 -osr:1 -un:0 -er:0 -is:0 -isa:0 -isrcv:0 -pitch:0.1269x0.1269 -evm:0 -mp:1 -cnt:1`
+  (`cv`/`vv`/`sv` variants, `gui:3`, `sc:1`, `vc:65`, `usm`, `et`, buyer/region flags, and `-pitch:0.1269x0.1269`).
+- This explains the QML variant question from §2.33.0 properly: the variant directory is **not** selected by a boot-time symlink alone — it
+  is selected from these arguments. The `qml -> qml_new2.0` symlink we added is a fallback that stops the crash, and the argument list is
+  the real mechanism.
+- Both the chain-launched app (pid 805) and a hand-started app with **no** arguments (pid 961) show `commit` 0, `attach` 0 and
+  `ivi_surface` 0 across 18-second traces, so neither is painting during steady state — the earlier 5,469-byte light frame from the
+  hand-started run must have been committed earlier in its life, before it settled into the idle state described in §2.39.0's
+  predecessor.
+- Environment is otherwise identical between the two: both on `wayland-0`, `XDG_RUNTIME_DIR=/run/user/root`,
+  `QT_QPA_PLATFORM=wayland`, `QT_WAYLAND_SHELL_INTEGRATION=ivi`, one compositor socket. So the difference between a painting and a
+  non-painting run is **arguments and timing**, not environment.
+- Next: start the app by hand **with the vendor argument list** instead of without it — the hand-started run is the only configuration
+  in which anything has ever been committed, so giving it the real variant arguments is the obvious next comparison.
+
 ## 2.38.0 - the app's advertised D-Bus contract does not match its dispatch, and V-045 is corrected
 
 - Obtained the app's live introspection (10,990 bytes, saved as

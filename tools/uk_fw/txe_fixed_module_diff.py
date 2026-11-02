@@ -18,7 +18,7 @@ import struct
 import sys
 from pathlib import Path
 
-SCHEMA = "ioniq-txe-fixed-module-diff/v2"
+SCHEMA = "ioniq-txe-fixed-module-diff/v3"
 OLD_SHA256 = "f6fc0373042c27f36e601fe957544582f3b1bd4be3c36659105322304b2dc7ac"
 FIRST_FIXED_SHA256 = "db9325168976e1e68cba25924e82c2aeb2db85fb7a678de5fd66e200ab7643b9"
 LATER_SHA256 = "75a866331d8f23d023bbdcf9efdfee7b57bf4727eb50f6162940a2a51cb57b4a"
@@ -31,6 +31,8 @@ LATER_FTPR = 0x20000
 OLD_HECI_SHA256 = "82b7be7bb8069aebfb2c9f7a0e994500fe10d631e67a16f5a5fec71d29679125"
 FIRST_FIXED_HECI_SHA256 = "16afeb7e9a9328bd22b5c8b383b5e003bcce2e4d46db18ea1737606bffa3ed31"
 LATER_HECI_SHA256 = "04dceeb0b42db7910d913545b9b2342e9a26349c8e9d2e2bede201af62bf3b8f"
+OLD_SYSLIB_SHA256 = "dba068b882c11783af4e2c0b7911b3a0db90f9b22808f42ac3e8768e2dda961c"
+FIRST_FIXED_SYSLIB_SHA256 = "1f4722eeaab64eee5b6febe1b7e6d21565794c929173a56ff4bb9a01f96b00c8"
 OLD_FPF_SHA256 = "9fd694bc90c7433528cfcf80ad265093cc61e086d882a3c52dee152ba64630b9"
 FIRST_FIXED_FPF_SHA256 = "e8f635d1ae1db00fb686fcacece4f2684109b9b8a32f852bc00f383218f784b8"
 LATER_FPF_SHA256 = "2c188d8f1c0ee1a0eab08e716599149b370305033d2435c3745c7f399909713d"
@@ -72,6 +74,66 @@ FIRST_FIXED_HECI_RANGES = {
         (0x2A8A, 0x2B1F, 0x2B42, 0x2B83, 0x2BAF, 0x2C46, 0x2C9E, 0x2CD4,
          0x2D0C, 0x2D96, 0x2DF9),
     ),
+}
+
+# Runtime ranges for all 42 syslib destinations imported by affected HECI.
+# Each end is the next reviewed function entry (or the end of the two-byte
+# interrupt stub at 0x118b0). The first-fixed start is recovered independently
+# from the corresponding HECI import stub at affected address +5.
+SYSLIB_HECI_DESTINATION_RANGES = {
+    0x06ABC: (0x06FBF, 0x06AC1, 0x06FC4),
+    0x07972: (0x07989, 0x07977, 0x0798E),
+    0x07F65: (0x07F80, 0x07F6A, 0x07F85),
+    0x08489: (0x084C6, 0x0848E, 0x084CB),
+    0x084E8: (0x085E0, 0x084ED, 0x085E5),
+    0x08F00: (0x08F0C, 0x08F05, 0x08F11),
+    0x09088: (0x0909D, 0x0908D, 0x090A2),
+    0x090B3: (0x090CB, 0x090B8, 0x090D0),
+    0x09783: (0x097A1, 0x09788, 0x097A6),
+    0x09874: (0x09983, 0x09879, 0x09988),
+    0x09983: (0x099CA, 0x09988, 0x099CF),
+    0x09B51: (0x09B72, 0x09B56, 0x09B77),
+    0x0A274: (0x0A298, 0x0A279, 0x0A29D),
+    0x0A298: (0x0A2A3, 0x0A29D, 0x0A2A8),
+    0x0A2A3: (0x0A2AD, 0x0A2A8, 0x0A2B2),
+    0x0AF34: (0x0AFB4, 0x0AF39, 0x0AFB9),
+    0x0B393: (0x0B43B, 0x0B398, 0x0B440),
+    0x0BD56: (0x0BD98, 0x0BD5B, 0x0BD9D),
+    0x0BDE8: (0x0BDFA, 0x0BDED, 0x0BDFF),
+    0x0BEA2: (0x0BEBC, 0x0BEA7, 0x0BEC1),
+    0x0C7E7: (0x0C7F9, 0x0C7EC, 0x0C7FE),
+    0x0CFB5: (0x0CFC9, 0x0CFBA, 0x0CFCE),
+    0x0D660: (0x0D671, 0x0D665, 0x0D676),
+    0x0D6C2: (0x0D750, 0x0D6C7, 0x0D755),
+    0x0DA93: (0x0DAAA, 0x0DA98, 0x0DAAF),
+    0x0DAAA: (0x0DB68, 0x0DAAF, 0x0DB6D),
+    0x0DE35: (0x0DE5C, 0x0DE3A, 0x0DE61),
+    0x0E0BD: (0x0E105, 0x0E0C2, 0x0E10A),
+    0x0E46D: (0x0E60E, 0x0E472, 0x0E613),
+    0x0EC24: (0x0EC38, 0x0EC29, 0x0EC3D),
+    0x0F8F8: (0x0F9D1, 0x0F8FD, 0x0F9D6),
+    0x103D6: (0x10593, 0x103DB, 0x10598),
+    0x1140A: (0x11427, 0x1140F, 0x1142C),
+    0x118B0: (0x118B2, 0x118B8, 0x118BA),
+    0x164F3: (0x16516, 0x164FB, 0x1651E),
+    0x17D3B: (0x17D46, 0x17D5D, 0x17D68),
+    0x17D46: (0x17D73, 0x17D68, 0x17D95),
+    0x17E3D: (0x17E48, 0x17E5F, 0x17E6A),
+    0x17E48: (0x17E5C, 0x17E6A, 0x17E7E),
+    0x17E5C: (0x17E6D, 0x17E7E, 0x17E8F),
+    0x17F1A: (0x17F2E, 0x17F3C, 0x17F50),
+    0x17FC1: (0x17FE2, 0x17FE3, 0x18004),
+}
+
+SYSLIB_HECI_ALLOWED_REL32_TARGET_PAIRS = {
+    (0x0102E, 0x0102E),
+    (0x0103D, 0x0103D),
+    (0x079E9, 0x079EE),
+    (0x118B0, 0x118B8),
+    (0x120D3, 0x120DB),
+    (0x12C02, 0x12C0A),
+    (0x1693C, 0x1695E),
+    (0x17F2E, 0x17F50),
 }
 
 LATER_FPF_ARB_FIELDS = {
@@ -436,6 +498,194 @@ def module_wide_external_relocation_review(affected: bytes, first_fixed: bytes) 
     }
 
 
+def first_fixed_heci_syslib_import_review(
+    affected_heci: bytes,
+    first_fixed_heci: bytes,
+    affected_syslib: bytes,
+    first_fixed_syslib: bytes,
+) -> dict:
+    if (
+        sha256(affected_heci) != OLD_HECI_SHA256
+        or sha256(first_fixed_heci) != FIRST_FIXED_HECI_SHA256
+        or sha256(affected_syslib) != OLD_SYSLIB_SHA256
+        or sha256(first_fixed_syslib) != FIRST_FIXED_SYSLIB_SHA256
+        or len(affected_syslib) != 0x13000
+        or len(first_fixed_syslib) != 0x13000
+    ):
+        raise Failure("HECI/syslib import-review identity drift")
+
+    relocation_review = module_wide_external_relocation_review(
+        affected_heci, first_fixed_heci
+    )
+    stub_references = {
+        int(address, 16): count
+        for address, count in relocation_review[
+            "affected_external_target_reference_counts"
+        ].items()
+    }
+    destinations: dict[int, tuple[int, int, int]] = {}
+    for affected_stub, reference_count in sorted(stub_references.items()):
+        affected_offset = affected_stub - 0x6000
+        first_fixed_stub = affected_stub + 5
+        first_fixed_offset = first_fixed_stub - 0x6000
+        affected_destination = rel32_target(
+            0x6000, affected_syslib, affected_offset, 0xE9
+        )
+        first_fixed_destination = rel32_target(
+            0x6000, first_fixed_syslib, first_fixed_offset, 0xE9
+        )
+        if affected_destination in destinations:
+            raise Failure("duplicate HECI-imported syslib destination")
+        destinations[affected_destination] = (
+            affected_stub,
+            first_fixed_destination,
+            reference_count,
+        )
+    if set(destinations) != set(SYSLIB_HECI_DESTINATION_RANGES):
+        raise Failure("HECI-imported syslib destination set drift")
+
+    bodies = {}
+    total_bytes = 0
+    total_raw_differences = 0
+    total_rel32_relocations = 0
+    total_absolute_relocations = 0
+    for affected_start in sorted(destinations):
+        affected_end, expected_first_start, first_end = (
+            SYSLIB_HECI_DESTINATION_RANGES[affected_start]
+        )
+        affected_stub, first_start, reference_count = destinations[affected_start]
+        if first_start != expected_first_start:
+            raise Failure("HECI-imported syslib destination mapping drift")
+        affected_body = affected_syslib[
+            affected_start - 0x6000 : affected_end - 0x6000
+        ]
+        first_body = first_fixed_syslib[
+            first_start - 0x6000 : first_end - 0x6000
+        ]
+        if not affected_body or len(affected_body) != len(first_body):
+            raise Failure("HECI-imported syslib body geometry drift")
+
+        actual_differences = {
+            index
+            for index, (left, right) in enumerate(zip(affected_body, first_body))
+            if left != right
+        }
+        allowed_differences: set[int] = set()
+        normalized_affected = bytearray(affected_body)
+        normalized_first = bytearray(first_body)
+        rel32_relocations = []
+        for offset in range(len(affected_body) - 4):
+            opcode = affected_body[offset]
+            if opcode not in (0xE8, 0xE9) or first_body[offset] != opcode:
+                continue
+            if affected_body[offset + 1 : offset + 5] == first_body[offset + 1 : offset + 5]:
+                continue
+            affected_target = (
+                affected_start
+                + offset
+                + 5
+                + struct.unpack_from("<i", affected_body, offset + 1)[0]
+            )
+            first_target = (
+                first_start
+                + offset
+                + 5
+                + struct.unpack_from("<i", first_body, offset + 1)[0]
+            )
+            if (affected_target, first_target) not in SYSLIB_HECI_ALLOWED_REL32_TARGET_PAIRS:
+                raise Failure("HECI-imported syslib rel32 target drift")
+            allowed_differences.update(range(offset + 1, offset + 5))
+            normalized_affected[offset + 1 : offset + 5] = b"\0" * 4
+            normalized_first[offset + 1 : offset + 5] = b"\0" * 4
+            rel32_relocations.append({
+                "affected_runtime_address": affected_start + offset,
+                "first_fixed_runtime_address": first_start + offset,
+                "opcode": opcode,
+                "affected_target": affected_target,
+                "first_fixed_target": first_target,
+            })
+
+        absolute_relocations = []
+        if affected_start == 0x6ABC:
+            operand_offset = 0x1D5
+            affected_value = struct.unpack_from("<I", affected_body, operand_offset)[0]
+            first_value = struct.unpack_from("<I", first_body, operand_offset)[0]
+            if (affected_value, first_value) != (0x18994, 0x189B8):
+                raise Failure("HECI-imported syslib jump-table address drift")
+            allowed_differences.update(range(operand_offset, operand_offset + 4))
+            normalized_affected[operand_offset : operand_offset + 4] = b"\0" * 4
+            normalized_first[operand_offset : operand_offset + 4] = b"\0" * 4
+            absolute_relocations.append({
+                "affected_operand_runtime_range": [0x6C91, 0x6C95],
+                "first_fixed_operand_runtime_range": [0x6C96, 0x6C9A],
+                "affected_value": affected_value,
+                "first_fixed_value": first_value,
+                "instruction": "indexed indirect jump table base",
+            })
+
+        if (
+            not actual_differences <= allowed_differences
+            or normalized_affected != normalized_first
+        ):
+            raise Failure("HECI-imported syslib normalized body drift")
+        normalized_digest = sha256(bytes(normalized_affected))
+        bodies[f"0x{affected_start:x}"] = {
+            "affected_import_stub": affected_stub,
+            "first_fixed_import_stub": affected_stub + 5,
+            "heci_reference_count": reference_count,
+            "affected_runtime_range": [affected_start, affected_end],
+            "first_fixed_runtime_range": [first_start, first_end],
+            "size": len(affected_body),
+            "affected_sha256": sha256(affected_body),
+            "first_fixed_sha256": sha256(first_body),
+            "raw_differing_byte_count": len(actual_differences),
+            "rel32_relocations": rel32_relocations,
+            "absolute_address_relocations": absolute_relocations,
+            "normalized_sha256": normalized_digest,
+            "equal_after_reviewed_address_normalization": True,
+        }
+        total_bytes += len(affected_body)
+        total_raw_differences += len(actual_differences)
+        total_rel32_relocations += len(rel32_relocations)
+        total_absolute_relocations += len(absolute_relocations)
+
+    entry_shift_counts: dict[int, int] = {}
+    for affected_start, (_, first_start, _) in SYSLIB_HECI_DESTINATION_RANGES.items():
+        shift = first_start - affected_start
+        entry_shift_counts[shift] = entry_shift_counts.get(shift, 0) + 1
+    if (
+        len(bodies) != 42
+        or total_bytes != 4410
+        or total_raw_differences != 39
+        or total_rel32_relocations != 37
+        or total_absolute_relocations != 1
+        or entry_shift_counts != {5: 33, 8: 2, 34: 7}
+    ):
+        raise Failure("HECI-imported syslib aggregate drift")
+    return {
+        "syslib_code_base": 0x6000,
+        "affected_syslib_sha256": OLD_SYSLIB_SHA256,
+        "first_fixed_syslib_sha256": FIRST_FIXED_SYSLIB_SHA256,
+        "imported_destination_count": len(bodies),
+        "heci_external_reference_count": sum(stub_references.values()),
+        "reviewed_body_byte_count": total_bytes,
+        "raw_differing_byte_count": total_raw_differences,
+        "rel32_relocation_site_count": total_rel32_relocations,
+        "absolute_address_relocation_site_count": total_absolute_relocations,
+        "destination_entry_shift_counts": {
+            str(shift): entry_shift_counts[shift] for shift in sorted(entry_shift_counts)
+        },
+        "destination_bodies": bodies,
+        "exact_static_observations": {
+            "all_42_heci_import_stubs_resolved_to_syslib_destinations": True,
+            "all_42_destination_bodies_have_equal_reviewed_geometry": True,
+            "all_42_destination_bodies_equal_after_only_reviewed_address_normalization": True,
+            "no_directly_imported_syslib_body_has_an_opcode_or_non_address_data_change": True,
+        },
+        "attribution_boundary": "All 42 syslib bodies directly imported by HECI are unchanged after normalizing 37 reviewed rel32 address operands and one indexed-jump-table base operand. This excludes a direct opcode or non-address data change in those entry bodies; it does not exclude changed transitive callees, syscall/service implementations, indirect dispatch targets, another signed module, or a downstream HECI client.",
+    }
+
+
 def first_fixed_heci_review(affected: bytes, first_fixed: bytes) -> dict:
     if sha256(affected) != OLD_HECI_SHA256 or sha256(first_fixed) != FIRST_FIXED_HECI_SHA256:
         raise Failure("first-fixed HECI identity drift")
@@ -769,6 +1019,12 @@ def build_report(old: bytes, first_fixed: bytes, later: bytes) -> dict:
         "first_fixed_heci_exact_static_review": first_fixed_heci_review(
             old_modules["heci"], first_modules["heci"]
         ),
+        "first_fixed_heci_syslib_import_review": first_fixed_heci_syslib_import_review(
+            old_modules["heci"],
+            first_modules["heci"],
+            old_modules["syslib"],
+            first_modules["syslib"],
+        ),
         "first_fixed_vfs_exact_static_review": first_fixed_vfs_review(
             old_modules["vfs"],
             first_modules["vfs"],
@@ -786,6 +1042,7 @@ def build_report(old: bytes, first_fixed: bytes, later: bytes) -> dict:
             "exact_signed_later_modules_obtained": True,
             "first_fixed_entire_heci_module_changes_only_external_rel32_immediates": True,
             "first_fixed_primary_heci_ranges_change_only_rel32_call_immediates": True,
+            "first_fixed_all_42_heci_imported_syslib_bodies_change_only_address_operands": True,
             "later_heci_header_and_extended_parser_changes_are_the_3_1_55_fix": False,
             "later_fpf_named_anti_rollback_fields_are_the_3_1_55_fix": False,
             "first_fixed_vfs_ndl_integration_candidate_identified": True,
@@ -796,6 +1053,7 @@ def build_report(old: bytes, first_fixed: bytes, later: bytes) -> dict:
         "boundaries": [
             "The official ASUS first-fixed image closes the version-bisect gap for 3.1.55, but attribution still requires exact changed-function and reachability analysis.",
             "The reviewed primary HECI ranges exclude later header/extension changes as the first-fixed primary-path delta; they do not exclude another HECI function or downstream client parser.",
+            "All 42 syslib bodies directly imported by HECI normalize to byte identity after only reviewed address operands are zeroed. This excludes direct opcode/non-address-data changes in those bodies, but not changed transitive callees, syscall/service implementations, indirect dispatch targets, another signed module, or a downstream client.",
             "The named later FPF anti-rollback fields are absent from both affected and first-fixed FPF; this excludes those records as the 3.1.55 fix.",
             "First-fixed VFS newly opens pre-existing ndl_critical and ndl_counting storage channels and passes their descriptors to a new syslib setter. This is an exact anti-replay/data-integrity candidate, not yet proof of CVE-2018-3655 attribution or physical reachability.",
             "Embedded $MN2 verification proves self-consistency and byte binding only, not platform ROM, fuse, Boot Guard, or OEM acceptance.",

@@ -54,6 +54,15 @@ def test_canonical_fixed_module_diff_matches_reviewed_artifact():
     assert report["later_heci_exact_static_review"]["exact_static_observations"]["dma_ring_bit_29_now_rejected_before_payload_dispatch"] is True
     assert report["first_fixed_heci_exact_static_review"]["exact_static_observations"]["entire_heci_module_equal_after_only_external_rel32_relocation_normalization"] is True
     assert report["first_fixed_heci_exact_static_review"]["module_wide_relocation_review"]["external_rel32_site_count"] == 369
+    syslib_review = report["first_fixed_heci_syslib_import_review"]
+    assert syslib_review["imported_destination_count"] == 42
+    assert syslib_review["heci_external_reference_count"] == 369
+    assert syslib_review["reviewed_body_byte_count"] == 4410
+    assert syslib_review["raw_differing_byte_count"] == 39
+    assert syslib_review["rel32_relocation_site_count"] == 37
+    assert syslib_review["absolute_address_relocation_site_count"] == 1
+    assert syslib_review["destination_entry_shift_counts"] == {"5": 33, "8": 2, "34": 7}
+    assert syslib_review["exact_static_observations"]["no_directly_imported_syslib_body_has_an_opcode_or_non_address_data_change"] is True
     assert report["first_fixed_vfs_exact_static_review"]["exact_static_observations"]["first_fixed_vfs_adds_both_ndl_path_consumers"] is True
     assert report["first_fixed_vfs_exact_static_review"]["first_fixed_syslib"]["new_setter_runtime_range"] == [0x16691, 0x166AB]
     assert report["later_fpf_exact_static_review"]["exact_static_observations"]["affected_fpf_lacks_all_six_field_names"] is True
@@ -62,4 +71,4 @@ def test_canonical_fixed_module_diff_matches_reviewed_artifact():
     assert report["classification"]["cve_2018_12147_exact_bug_identified"] is False
     assert report["classification"]["cve_2018_3655_exact_storage_bug_identified"] is False
     assert json.loads(ARTIFACT.read_text(encoding="utf-8")) == report
-    assert hashlib.sha256(EXACT_STATIC.read_bytes()).hexdigest() == "b790530619faa31f7937fadd417131b5196de108431708139c2d807a17731760"
+    assert hashlib.sha256(EXACT_STATIC.read_bytes()).hexdigest() == "88bb85894ca61bacc009255f55405a8d5f2edf2d6b6bc90af970e39b46e5410e"

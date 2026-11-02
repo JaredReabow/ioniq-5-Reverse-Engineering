@@ -194,9 +194,9 @@ image:
 signatures, manifest-to-metadata and metadata-to-module reverse-SHA-256 chains,
 and strict decompression for HECI, busdrv, storage, policy, fpf, dal_sdm, VFS,
 and syslib. Its reviewed report is
-`evidence/artifacts/update-candidates/txe-fixed-module-diff.json`, schema v2,
+`evidence/artifacts/update-candidates/txe-fixed-module-diff.json`, schema v3,
 SHA-256
-`65fe19c7c1a53396d8f0def8e0d8a3f6f40c7faa54844cae6e1d45836ecc18cf`.
+`d1043552b8ef772e825dc9e624dc3b62ab57f0fc8496cce7b359fbd5942d5fdb`.
 
 Across the complete affected and first-fixed HECI modules, all 377 raw
 differing bytes lie inside 369 same-offset external `rel32` encodings—366 calls
@@ -223,8 +223,16 @@ supply bits 28/29 through this path.
 
 The first-fixed comparison proves these `3.1.94` header and extended-parser
 deltas postdate `3.1.55`; they are not the primary-path CVE-2018-12147 fix.
-Another HECI function, downstream parser, or relocated external target remains
-possible.
+
+The relocated syslib targets are now resolved rather than merely suspected.
+Directly decoding all 42 affected and first-fixed import stubs maps 42 unique
+syslib destination bodies. Across 4,410 reviewed body bytes, 39 raw differences
+are wholly explained by 37 `rel32` address operands and one indexed-jump-table
+base operand. All 42 body pairs are byte-identical after only those reviewed
+address operands are normalized. This excludes an opcode or non-address-data
+change in every syslib body directly imported by HECI. It does not exclude a
+changed transitive callee, syscall/service implementation, indirect dispatch
+target, another signed module, or downstream parser.
 
 The exact later signed FPF adds structured `RbeArbEn`, `RbeArbSvn`,
 `OemKmArbEn`, `OemKmArbSvn`, `UcodeArbEn`, and `UcodeArbSvn` records absent by
@@ -289,9 +297,11 @@ The strongest current interpretation is:
 - SA-00086 is a rejected version-only lead for this exact artifact;
 - SA-00125 is an exact advisory-version match and a high-priority future bench
   lead;
-- exact first-fixed comparison excludes HECI-local code/data as the location of
-  the `3.1.55` fix; changed external syslib behavior or another signed
-  module/downstream parser remains open, while later header/extended-parser
+- exact first-fixed comparison excludes HECI-local code/data and opcode or
+  non-address-data changes in all 42 directly imported syslib destination
+  bodies as the location of the `3.1.55` fix; changed transitive callees,
+  syscall/service implementations, indirect dispatch, another signed module,
+  or a downstream parser remain open, while later header/extended-parser
   changes postdate `3.1.55`;
 - CVE-2018-12147 does not solve initial Linux root because it requires a
   privileged local caller;

@@ -110,9 +110,36 @@
 # - every first-fixed target is the corresponding affected target + 5; and
 # - zeroing only those selected rel32 immediates makes the complete affected and
 #   first-fixed HECI modules byte-identical.
-# Thus no HECI-local opcode or data byte changed in the first-fixed module. The
-# advisory fix may instead be in changed external syslib behavior or another
-# signed module/downstream client.
+# Thus no HECI-local opcode or data byte changed in the first-fixed module.
+
+## Affected-to-first-fixed HECI-imported syslib destinations
+# affected syslib: size 0x13000, code base 0x6000, SHA-256
+#   dba068b882c11783af4e2c0b7911b3a0db90f9b22808f42ac3e8768e2dda961c
+# first-fixed syslib: size 0x13000, code base 0x6000, SHA-256
+#   1f4722eeaab64eee5b6febe1b7e6d21565794c929173a56ff4bb9a01f96b00c8
+#
+# Direct decoding of all 42 affected HECI target stubs at 0x6460..0x67b2 and
+# their first-fixed affected+5 counterparts resolves 42 unique destination
+# bodies. Destination-entry shifts are 33 at +5, two at +8, and seven at +34.
+#
+# Exact aggregate comparison of the 42 next-entry-bounded bodies:
+# - 4,410 body bytes reviewed;
+# - 39 raw differing bytes;
+# - 37 reviewed same-relative-position call/jmp rel32 address operands;
+# - one reviewed indexed-jump-table base operand, 0x18994 -> 0x189b8, in
+#   affected body 0x6abc..0x6fbf / first-fixed 0x6ac1..0x6fc4; and
+# - all 42 body pairs byte-identical after zeroing only those address operands.
+#
+# The changed rel32 targets are limited to these reviewed translations:
+#   0x0102e -> 0x0102e      0x0103d -> 0x0103d
+#   0x079e9 -> 0x079ee      0x118b0 -> 0x118b8
+#   0x120d3 -> 0x120db      0x12c02 -> 0x12c0a
+#   0x1693c -> 0x1695e      0x17f2e -> 0x17f50
+#
+# Therefore no directly imported syslib destination body contains an opcode or
+# non-address-data change. This does not exclude changed transitive callees,
+# syscall/service implementations, indirect dispatch targets, another signed
+# module, or a downstream HECI client.
 
 ## Later 3.1.94.3086 receive dispatcher
 # function 0x2789a..0x27ef8

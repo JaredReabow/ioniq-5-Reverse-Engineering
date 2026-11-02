@@ -2,7 +2,7 @@
 
 ## Status
 
-Exact CSE RBE UEP-field extraction and OEM-key authentication, persistent-object materialization, BUP FIT content production, runtime object type, IBBL FIT handoff, type-`0x0b` relocation, selector bit, manifest layout, stored FTPR `oem.key`, and `ABL.oemkm` export are closed. The BUP-to-IBBL address mapping, installed-unit identity, and external trust/fuse precedence governing the selected UEP source remain open.
+Exact CSE RBE UEP-field extraction and OEM-key authentication, persistent-object materialization, BUP FIT content production, BUP-to-IBBL FIT mapping, exact IBB ring producer/consumer, runtime object type, type-`0x0b` relocation, selector bit, manifest layout, stored FTPR `oem.key`, and `ABL.oemkm` export are closed. Installed-unit identity and external trust/fuse precedence governing the selected UEP source remain open.
 
 ## Findings
 
@@ -17,8 +17,10 @@ Exact CSE RBE UEP-field extraction and OEM-key authentication, persistent-object
 - BUP initializes a `0x20000`-byte FIT-bearing buffer, looks up `oem_key_man`, copies it to payload offset `0x1000`, and appends type `0x0b` at published address `0xfffe1000`.
 - Exact BUP resolves `IBBL`/`IBB`, bounds IBBL to at most `0x9000`, and places the exact `0x4000`-byte IBBL at buffer offset `0x1c000`, or SRAM alias `0xffffc000`.
 - IBBL's descriptor at runtime `0xffffe760` is statically embedded at file offset `0x2760` as `{ destination=0xfeffc000, count=0x1000 dwords, source=0xffffc000 }`; it relocates exactly one IBBL image and is not the FIT transfer to `0xfef80000`.
-- Exact BUP separately streams the resolved `IBB` member through four `0x8000`-byte slots spanning its `0x20000`-byte SRAM buffer, with source advancement, ring-index advancement, and hardware handshaking; the host destination and FIT-table preservation remain open.
-- Hash-bound historical Apollo Lake source independently defines `0x20000` bytes of CSE SRAM remapped at `0xfffe0000`, copies CSE IBB chunks into `IbbDst`, and places Stage1A at `0xfef80000`; this remains comparative support for the still-unrecovered FIT transfer.
+- Exact BUP streams the resolved `IBB` member through four `0x8000`-byte slots spanning its `0x20000`-byte SRAM buffer, with source advancement, ring-index advancement, and hardware handshaking.
+- Exact IBBL implements the matching PCI-config consumer at `0x80007870`/`0x80007860`, copies the stream to `0xfefbd900`, and permits `0x38000` bytes.
+- BUP writes pointer `0xfffe0000` at buffer offset `0x1ffc0`; IBBL self-relocation carries it to `0xfeffffc0`, where exact IBBL reads it and copies/relocates the FIT into `0xfef80000`.
+- Hash-bound public Apollo Lake host code independently matches exact BUP/IBBL chunk-count, size, low-four-bit XOR state, ring index, slot geometry, source, acknowledgement, and PCI configuration offsets bit for bit.
 - Combined RBE/BUP instructions prove byte identity between exact FTPR `oem.key` and BUP's published `oem_key_man` payload.
 - IBBL SHA-256: `394c442368c67f82f17e84854575bf07abafac2b8fbf2fda7dca68b182f91b93`.
 - IBBL validates `_FIT_   ` at source `0xfef80000` and copies up to 21 source entries to `0xc10c0`.
@@ -33,7 +35,7 @@ Exact CSE RBE UEP-field extraction and OEM-key authentication, persistent-object
 - Its embedded `$MN2` RSA-2048 signature verifies, proving self-consistency only.
 - Its usage-39 digest is `9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af`, equal to its stored manifest public-key digest.
 - The package carried-key candidate `437008c1...` does not match that stored record and remains absent from the update ABL, IBBL, and decompressed stage 1.
-- Exact RBE/BUP code binds the BUP-published type `0x0b` payload to this stored `oem.key`; the unproved BUP-to-IBBL physical mapping and installed-unit identity still prevent a package boot or rejection verdict.
+- Exact RBE/BUP/IBBL code binds the runtime type `0x0b` payload byte-for-byte to this stored `oem.key`; installed-unit identity still prevents an owner-unit boot or rejection verdict.
 
 ## Frozen artifacts
 
@@ -41,27 +43,27 @@ Exact CSE RBE UEP-field extraction and OEM-key authentication, persistent-object
 - `tests/test_abl_ias_key_provenance.py`
 - `evidence/abl-ias-key-manifest-provenance.md`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `25,061`
-  - SHA-256 `11ec0d56b7ac912d67588778ce7b09647f7aba34a3ebd0a8973dc9f10dec2044`
+  - size `28,206`
+  - SHA-256 `f8a84d935e251da4c838e3664f6fb0c570ace9854307aa357666ab5b7521364d`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `82,802`
-  - SHA-256 `8fd1004319b20acca4877e0dbadfa020177b1b3023c0a47417e358770a606a5d`
+  - size `87,570`
+  - SHA-256 `668fb27cfa9b5bd08f9424e3558586a4c9d985a1ddb5b9a99d6ca89146f9872c`
 
 ## Validation
 
 - focused package: `13 passed, 10 subtests passed`;
 - ABL/update integration: `56 passed, 26 subtests passed`;
-- canonical suite: `1011 passed, 352216 subtests passed in 163.33s`;
-- canonical log SHA-256: `8c2069fff9ab1ac59a82c75dfa616c086c1f8bd0d2f8d5d81b8b813e677d9a28`;
+- canonical suite: `1011 passed, 352216 subtests passed in 172.15s`;
+- canonical log SHA-256: `9b2d0b0db06bb9295c82b452531461bf6d86d50a6dbb352153a94018b87cd2d4`;
 - UTF-16 environment determinism, `py_compile`, and `git diff --check` passed.
 
 ## Boundary
 
-Exact CSE RBE authenticates stored FTPR `oem.key` against the selected UEP OEM-key field, binds those bytes to `oem_key_man`, and exact BUP binds that object to its published FIT type `0x0b`. Signed-package metadata separately binds exact RBE/BUP bytes. Exact BUP/IBBL code now closes IBBL placement and self-relocation, but that descriptor does not transfer the FIT to `0xfef80000`; the intervening CSE/host path remains unresolved. Recovered bytes also do not establish whether the selected UEP source is authenticated or fuse-backed, or bind installed-unit identity. Boot Guard, ACM, fuse, ROM, and installed-firmware provenance remain open.
+Exact CSE RBE authenticates stored FTPR `oem.key` against the selected UEP OEM-key field, binds those bytes to `oem_key_man`, and exact BUP/IBBL code carries that FIT type `0x0b` object through `0xfffe0000`, `0xfef80000`, and `0xc10c0` to stage 1. Exact producer/consumer code also closes the separate IBB ring destination. Recovered bytes still do not establish whether the selected UEP source is authenticated or fuse-backed, or bind installed-unit identity. Boot Guard, ACM, fuse, ROM, and installed-firmware provenance remain open.
 
 ## Next work
 
-1. Trace the exact host-side consumer of BUP's proved four-slot IBB ring and the mechanism that leaves or transfers the FIT table at `0xfef80000`; the recovered `0xffffe760` descriptor is IBBL self-relocation, not that transfer.
+1. Trace external authentication and FPF/fuse precedence for the selected UEP source now that the persistent-to-runtime FIT byte path is closed.
 2. Trace the exact mode source controlling hardware-window versus BPDT UEP selection and determine FPF/fuse precedence or cryptographic protection of the selected UEP bytes.
 3. On a future disconnected bench, record `/proc/cmdline` and the exact `ABL.oemkm` value without attempting a physical-memory read unless separately authorized and safely bounded.
 4. Determine whether the installed/runtime OEM key manifest matches the exact stored FTPR object and verify its external provisioning chain host-side.

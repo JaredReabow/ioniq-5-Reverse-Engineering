@@ -129,6 +129,143 @@
      16f: pop     ebp
      170: ret
 
+## IBBL exact CSE IBB ring consumer
+## File [0x279,0x4ef), SHA-256:
+## 2224e3e1026e81972f8b3a24cbfca0945d43e0480f16ba8d21c97e78bf3f7a2f
+## Selected instructions preserving the request, FIT materialization, ring copy,
+## acknowledgement, and completion semantics.
+
+00000279:
+     279: push    ebp
+     27a: mov     ebp, esp
+     282: mov     esi, 0xcf8
+     287: mov     ecx, dword ptr [ebp + 0xc]
+     28a: sub     ecx, dword ptr [ebp + 0x8]
+     28d: push    0x8
+     28f: add     ecx, 0x3ff
+     295: mov     ebx, ecx
+     2a1: and     ebx, 0xfffffc00
+     2b6: mov     edx, dword ptr [0xfeffffc0]
+     2bc: mov     eax, 0xfef80000
+     2c1: call    0xf3
+     2c6: xor     edx, edx
+     2c8: mov     dword ptr [0xfeffffc0], eax
+     2cd: call    0x40
+     2d9: mov     eax, 0x80007800
+     2de: mov     edx, esi
+     2e0: out     dx, eax
+     2e1: mov     edx, 0xcfc
+     2e6: in      eax, dx
+     2f1: shr     ebx, 0x4
+     2f4: mov     edi, dword ptr [ebp + 0x8]
+     2f7: mov     ecx, ebx
+     2f9: mov     esi, 0xfffc0000
+     2fe: movntdqa xmm0, xmmword ptr [esi]
+     303: movdqa  xmmword ptr [edi], xmm0
+     307: add     esi, 0x10
+     30a: add     edi, 0x10
+     30d: loop    0x2fe
+     314: shl     ebx, 0x4
+     317: mov     eax, 0x80007870
+     31c: mov     ecx, ebx
+     31e: and     ecx, 0xfffc000
+     324: or      ecx, 0xc0000000
+     32a: mov     dword ptr [ebp - 0x10], ecx
+     32d: mov     ecx, 0xcf8
+     334: out     dx, eax
+     335: mov     edx, 0xcfc
+     33a: mov     eax, dword ptr [ebp - 0x10]
+     33d: out     dx, eax
+     348: mov     esi, 0x80007860
+     351: out     dx, eax
+     352: mov     edx, 0xcfc
+     357: in      eax, dx
+     364: shr     eax, 0x18
+     367: test    al, 0x30
+     369: je      0x34d
+     372: mov     ecx, dword ptr [ebp - 0x14]
+     375: mov     eax, 0x1
+     37a: shr     ecx, 0x1c
+     37f: and     ecx, 0x3
+     384: dec     ecx
+     38c: shl     eax, cl
+     38e: mov     dword ptr [ebp - 0x20], eax
+     391: mov     eax, 0x20000
+     396: div     dword ptr [ebp - 0x20]
+     399: mov     dword ptr [ebp - 0x1c], eax
+     39c: mov     eax, dword ptr [ebp - 0x14]
+     39f: shr     eax, 0x4
+     3a2: and     eax, 0xfffc00
+     3a7: mov     dword ptr [ebp - 0x24], eax
+     3b3: mov     eax, dword ptr [ebp - 0x28]
+     3b6: xor     edx, edx
+     3b8: div     dword ptr [ebp - 0x20]
+     3bd: mov     eax, 0x1
+     3c2: shl     eax, cl
+     3c4: mov     dword ptr [ebp - 0x2c], eax
+     3d2: mov     ecx, 0x80007860
+     3d7: mov     eax, dword ptr [ebp - 0x14]
+     3da: xor     eax, dword ptr [ebp - 0x3c]
+     3dd: and     eax, 0xf
+     3e0: test    dword ptr [ebp - 0x2c], eax
+     3e3: jne     0x402
+     402: mov     eax, dword ptr [ebp - 0x24]
+     405: sub     eax, ebx
+     40a: cmp     eax, dword ptr [ebp - 0x1c]
+     415: imul    esi, dword ptr [ebp - 0x1c]
+     419: mov     ecx, dword ptr [ebp - 0x18]
+     41c: mov     edi, dword ptr [ebp + 0x8]
+     41f: shr     ecx, 0x4
+     422: add     edi, ebx
+     424: sub     esi, 0x20000
+     42a: movntdqa xmm0, xmmword ptr [esi]
+     42f: movdqa  xmmword ptr [edi], xmm0
+     433: add     esi, 0x10
+     436: add     edi, 0x10
+     439: loop    0x42a
+     43b: mov     al, byte ptr [ebp - 0x3c]
+     43e: mov     edx, dword ptr [ebp - 0x10]
+     441: xor     eax, dword ptr [ebp - 0x2c]
+     444: and     edx, -0x10
+     447: and     eax, 0xf
+     44a: or      eax, edx
+     454: mov     eax, 0x80007870
+     459: out     dx, eax
+     45f: mov     eax, dword ptr [ebp - 0x10]
+     462: out     dx, eax
+     46b: add     ebx, dword ptr [ebp - 0x18]
+     46e: inc     dword ptr [ebp - 0x28]
+     471: jmp     0x3aa
+     482: mov     esi, 0x80007860
+     48b: out     dx, eax
+     48c: mov     edx, 0xcfc
+     491: in      eax, dx
+     499: movzx   ecx, ch
+     49c: and     ecx, 0x6
+     49f: cmp     cl, 0x6
+     4a2: jne     0x487
+
+## IBBL ring-consumer call and FIT dispatch
+## File [0x1199,0x125b), SHA-256:
+## 0e9116019748b1f7c934cd0d7f2cf3c2e61a1fbe0f5bd7567b4231044e8caed1
+
+00001199:
+    1199: rdtsc
+    11a2: mov     ebx, 0xfeffe5a0
+    11ad: push    0xfefbd880
+    11b2: push    0xfefae140
+    11b7: push    0xfef84000
+    11bc: push    0xfeff5900
+    11c1: push    0xfefbd900
+    11c6: call    0x279
+    1229: call    0x118e
+    122e: push    0xcfe00
+    1233: push    0xcdbc0
+    1238: push    0xc50c0
+    123d: push    0xffe00
+    1242: push    0xe0000
+    1247: call    0x4ef
+
 ## IBBL source-FIT handoff copy (file [0x4ef,0x54c))
 
 000004ef:
@@ -420,6 +557,17 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 
 # runtime strings: 0x55a45 "IBBL", 0x55a4a "IBB",
 #                  0x55a4e "IBBP.man", 0x559f3 "BPM.met"
+
+### BUP publishes the FIT-base pointer inside tail-placed IBBL
+### File [0xbe27,0xbe3f), runtime [0x31e27,0x31e3f)
+### SHA-256: f21b32ebbc979ec59183fbb17cfdd8f3bebdb3134fe6b0e24641082ee542a49a
+
+00031e27:
+   31e27: mov     dword ptr [esi + 0x1ffc0], 0xfffe0000
+   31e31: push    0x1
+   31e33: push    0x20
+   31e35: push    0xd7
+   31e3a: call    0x11be
 
 ### IBBL placement at the end of the 0x20000-byte buffer
 ### File [0xba42,0xba7d), runtime [0x31a42,0x31a7d)

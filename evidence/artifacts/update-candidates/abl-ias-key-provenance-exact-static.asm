@@ -2124,7 +2124,7 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
    439d1: mov     byte ptr [ebp - 0xf], 0x0
    439d5: push    0x0
    439d7: push    0x47ae0              # "ifp_uep"
-   439dc: call    0x4158c              # create runtime object
+   439dc: call    0x4158c              # append at current handoff total
    439e9: mov     edi, eax
    439eb: mov     dword ptr [0x6041030], eax
    439f8: mov     eax, dword ptr [0xf6170810]
@@ -2542,12 +2542,14 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 # then subtracts 0x12 without a minimum-size check, so totals 0..0x11 wrap the
 # requested payload length modulo 2^32. The ifp_uep consumer itself checks
 # neither lookup success nor the 0x108-byte minimum before fixed copies, and
-# duplicate resolution is last-ingested-wins. Exact RBE does allocate and fill
-# the stock ifp_uep at the required 0x108 bytes, so no attacker-controlled
-# malformed or overriding object is proved. The exact external-reader import-
-# to-kernel-function binding is also not yet closed, so this does not prove
-# BUP's ipub_key came from the RBE table or exclude the /snowball fallback at
-# the later manifest-verification point.
+# duplicate resolution is last-ingested-wins. Exact RBE does not reuse an
+# earlier same-name object: 0x4158c appends its new 0x108-byte stock ifp_uep at
+# the handoff's then-current total. With sequence-preserving FTPR/BUP ingestion,
+# that later stock object is prepended after every pre-RBE duplicate and wins
+# first-match lookup. No post-RBE mutation or reordering is proved. The exact
+# external-reader import-to-kernel-function binding is also not yet closed, so
+# this does not prove BUP's ipub_key came from the RBE table or exclude the
+# /snowball fallback at the later manifest-verification point.
 
 ## BUP runtime-object or /snowball resolver (BUP file [0x2026a,0x2039a), runtime [0x4626a,0x4639a))
 

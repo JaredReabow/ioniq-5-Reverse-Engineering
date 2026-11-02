@@ -321,11 +321,13 @@ list.
 The `ifp_uep` consumer does not test lookup success or payload size before its
 fixed 8-byte header and `0x100`-byte payload copies. The list is built by
 prepending each ingested object, while named lookup returns the first 12-byte
-name match; the last ingested duplicate name therefore wins. Exact RBE creates
-the stock `ifp_uep` at the required `0x108` bytes, which closes the normal
-producer/consumer size contract. No malformed or overriding duplicate object is
-proved attacker-controlled, so the missing consumer checks remain a bounded
-integrity dependency rather than a demonstrated provisioning override.
+name match; the last ingested duplicate name therefore wins. Exact RBE appends
+a fresh stock `ifp_uep` at the handoff's then-current end and allocates the
+required `0x108` bytes. Therefore, if FTPR-to-BUP ordering is preserved, this
+stock object is ingested after every pre-RBE same-name entry, prepended later,
+and shadows it during first-match lookup. No post-RBE mutation or reordering is
+proved. The unchecked consumer is thus a bounded integrity dependency rather
+than a demonstrated pre-RBE duplicate override.
 
 However, the recovered call/import binding from BUP's external reader at
 `0x659b` to the exact FTPR-kernel stream function is not yet closed. Therefore
@@ -563,7 +565,7 @@ manifest signature header, or prove that a user-space capture is permitted.
 
 ## Public structure corroboration
 
-Two public sources are hash-bound and kept separate from exact-target proof:
+Three public sources are hash-bound and kept separate from exact-target proof:
 
 1. Slim Bootloader commit
    `5f5c14b10ae6bd3cd0cf7e274142767dc2635a06`:
@@ -584,10 +586,22 @@ Two public sources are hash-bound and kept separate from exact-target proof:
    Its reverse-engineered CSE Extension 14 R1 entry is `0x44` bytes with a
    16-byte usage bitmap and 32-byte hash at offset `0x24`; its usage dictionary
    names bit 39 `OS Kernel`.
+3. `DylanBeMe/Security-Processor-Research` commit
+   `1abcfffb6fa619e135977642453f08a35c1e74bc`:
+   - `ME/README.md`, SHA-256
+     `8475971cb9b90aca25568becded8e02194bad4f855695a4d18b396759818e2bb`;
+   - `ME/notes/09-cve-hunt.md`, SHA-256
+     `c93e2faa28374f092369ce7055ebd704cb565568436cece890208c686b7ec92c`;
+   - its independent CSME 11.8 analysis reports a low syslib region, a
+     five-byte-stride jump PLT, and loader-generated cross-module imports whose
+     mappings are not present in raw process-module blobs. This corroborates why
+     BUP target `0x659b` cannot be bound by treating it as a raw syslib offset;
+     it does not identify this artifact's exact import or handler.
 
-The exact proprietary instructions independently match these structural facts.
-The public names do not prove the target's earlier authentication policy or
-persistent provisioning implementation.
+The exact proprietary instructions independently match the first two sources'
+structural facts. Public names and comparative loader observations do not prove
+the target's earlier authentication policy, persistent provisioning
+implementation, or exact BUP import binding.
 
 A current public coreboot Apollo Lake/Gemini Lake IFWI constructor provides
 separate comparative corroboration:
@@ -633,8 +647,9 @@ What is now proved:
 - BUP phase zero ingests that transient object list at function index 7,
   consumes `ifp_uep` at index 10, and frees the list only after the phase;
 - the `ifp_uep` consumer has no lookup-null or payload-size check and duplicate
-  names resolve last-ingested-first, but exact RBE supplies the stock object at
-  the required `0x108` bytes and malformed-object control remains unproved;
+  names resolve last-ingested-first, but exact RBE appends the stock `0x108`-byte
+  object after all preexisting entries, so it shadows a pre-RBE duplicate when
+  FTPR/BUP sequence is preserved; post-RBE mutation or reordering is unproved;
 - the BUP reader-import/FTPR-kernel-function binding remains open;
 - signed NFTP `dal_sdm` reads an exact `0x24`-byte
   `/snowball/ipub_key` policy object before OEM authorization objects, but no
@@ -723,11 +738,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `58,131`
-  - SHA-256 `9eb350a9b73a6fde4f6168b99acf17cc00db2f606fdbe343d65afdd147429d50`
+  - size `58,530`
+  - SHA-256 `128fdb797dbe679f138bd1efaca75af222c1e8b9625955662cb596b3c1f7c0a2`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `118,126`
-  - SHA-256 `f4ed1845afbffc75646223105132d2c6c9b3fc685fed6dc0df1273d6c68ecf02`
+  - size `118,318`
+  - SHA-256 `4682888b3ce5bcb0ac5ec23f2cd6c19bf7e18c0b74a8136ce544715f097f3aa1`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

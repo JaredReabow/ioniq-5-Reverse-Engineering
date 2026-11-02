@@ -105,8 +105,9 @@ path, however, the exact `0x01800000` process-buffer maximum rejects that
 wrapped payload request before any stream copy; the BUP reader import binding
 is still unresolved. The later `ifp_uep` consumer checks neither lookup success
 nor payload size before fixed `8 + 0x100` byte copies, and duplicate names are
-last-ingested-wins. Exact RBE supplies the stock object at `0x108` bytes;
-malformed-stream or duplicate-object attacker control is not proved. BUP
+last-ingested-wins. Exact RBE appends the stock object at `0x108` bytes after
+all preexisting entries, so sequence-preserving ingestion makes it shadow a
+pre-RBE duplicate; post-RBE mutation or reordering is not proved. BUP
 `ipub_key` provenance and snowball exclusion still remain unproved. Signed
 NFTP `dal_sdm` independently reads an exact `0x24`-byte
 `/snowball/ipub_key` policy object before `/snowball/oem_sign` and

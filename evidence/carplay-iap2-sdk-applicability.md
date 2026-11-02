@@ -179,6 +179,17 @@ accepted state. Static code and a device-path string do not prove that
 `/dev/i2c-1`, an authentication chip, a valid certificate/signature operation,
 or a phone exchange exists at runtime. No exchange was attempted.
 
+That prerequisite is specific to the type-`0x10` setup-key path. Follow-up
+exact-static analysis in `evidence/airplay-screen-route-security.md` shows that
+a fresh null-pair-verify session with a missing encryption type or comparative
+None value `0x01` can still configure the type-`0x6e` screen route. The fresh
+session base key is zero-initialized, the callback skips the base-key setter,
+and the screen branch derives AES-CTR material from that zero base key plus the
+request's nonzero stream connection identifier. This narrows the MFi
+prerequisite for the separate screen-parser finding; it does not establish
+upstream authorization, live listener exposure, accepted-socket delivery, or
+exploitation.
+
 ### Exact setup `ekey` stack-write mechanism
 
 The inlined encryption-key path at `0x103c3..0x10580` is `0x1bd` bytes with

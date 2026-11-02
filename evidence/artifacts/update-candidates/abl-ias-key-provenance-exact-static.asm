@@ -2513,3 +2513,80 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 # This proves BUP's two resolution branches and selector geometry. It does not
 # prove that /snowball/ipub_key is selected, writable, unauthenticated, or the
 # producer of RBE's earlier runtime ipub_key object.
+
+## Signed NFTP dal_sdm /snowball/ipub_key policy consumer
+
+# Exact signed object chain:
+#   NFTP.man @ flash 0x203688, size 0x9a0,
+#     SHA-256 d89f510f91eb9191e4b1e4a1a17b4675e3823953067ded257a6d78b2fb340ea4
+#   -> reverse(SHA-256(dal_sdm.met))
+#   dal_sdm.met @ flash 0x206d80, size 0xfc,
+#     SHA-256 e92963d1b1fd942671b9cb11c1de30312f7a529b1e63bfbf0b26826dd1d9c874
+#   -> reverse(SHA-256(compressed dal_sdm))
+#   compressed dal_sdm @ flash 0x2e6000, size 0x6b1a,
+#     SHA-256 1149c790897678ef5896251e55c038448c7c9fc9424c337e378df07f111f9b8f
+#   -> strict Intel-CSE-LZMA decompressed dal_sdm, size 0xe000,
+#     SHA-256 04c4f9833276bc4fe26969ba4fa195b1e330efba4d97f178987c8c4b170335ba
+
+### Exact ipub policy read (dal_sdm file [0xd0b,0xdcd), runtime [0x26d0b,0x26dcd))
+
+   26d20: push    0x24
+   26d22: push    0x0
+   26d24: push    ebx
+   26d25: call    0x103d              # clear 0x24-byte local object
+   26d2a: push    0x0                 # open flags
+   26d2c: push    0x32466             # "/snowball/ipub_key"
+   26d31: call    0x60c8              # open internal object
+   26d39: call    0x29be6             # validate handle/state
+   26d41: test    eax, eax
+   26d43: jne     0x26d5d
+   26d5d: push    0x24
+   26d5f: push    ebx
+   26d60: push    esi
+   26d61: call    0x60cd              # read exact policy object
+   26d69: mov     ebx, eax
+   26d6b: cmp     eax, 0x24
+   26d6e: je      0x26d8b
+   26d87: mov     bl, 0x1             # error path's bounded boolean
+   26d8b: mov     ebx, 0x1
+   26d90: test    byte ptr [ebp - 0x2f], 0x1 # object byte +1, bit 0
+   26d94: je      0x26d9f
+   26d96: xor     ebx, ebx
+   26d98: cmp     dword ptr [ebp - 0x2c], 0x0 # object dword +4
+   26d9c: sete    bl
+   26d9f: and     ebx, 0x1
+
+### OEM-object gate (dal_sdm file [0x1f0f,0x2025), runtime [0x27f0f,0x28025))
+
+   27f0f: call    0x26d0b             # require ipub policy result
+   27f14: test    al, al
+   27f16: jne     0x27f21
+   27f21: push    0x0
+   27f23: push    0x324d8             # "/snowball/oem_sign"
+   27f28: call    0x60c8
+   27f3c: push    0x1
+   27f3e: push    eax
+   27f3f: push    esi
+   27f40: call    0x60cd              # read exactly one byte
+   27f48: dec     eax
+   27f49: jne     0x28025
+   27f4f: cmp     byte ptr [ebp - 0x5d], 0x0
+   27f53: je      0x28025             # require nonzero oem_sign
+   27f61: push    0x324eb             # "/snowball/oem_key_man"
+   27f66: call    0x60c8
+   27f78: lea     eax, [ebp - 0x54]
+   27f7b: push    eax
+   27f7c: push    esi
+   27f7d: call    0x60ff              # obtain object size
+   27f8c: mov     edx, dword ptr [ebp - 0x40]
+   27f8f: cmp     edx, 0x1000
+   27f95: jle     0x27f9c
+   27f97: mov     edx, 0x1000         # clamp read to 0x1000
+   27fba: call    0x60cd
+   27fc5: cmp     eax, edx            # require exact read
+   27fc7: jne     0x2802c
+
+# This proves the signed NFTP DAL security-data manager reads the same persistent
+# /snowball/ipub_key namespace used by BUP and uses its 0x24-byte policy object
+# before reading OEM authorization material. It does not identify the object's
+# producer, demonstrate a write path, or establish ROM/fuse authority.

@@ -303,6 +303,24 @@ the geometry and order match do not yet prove that BUP's runtime `ipub_key`
 came from the RBE table or that the `/snowball/ipub_key` fallback is unreachable
 during manifest verification.
 
+The signed NFTP `dal_sdm` module independently consumes the same persistent
+namespace:
+
+- `NFTP.man` contains the reversed SHA-256 of exact `dal_sdm.met`;
+- `dal_sdm.met` contains the reversed SHA-256 of the exact compressed module;
+- strict Intel-CSE-LZMA decompression yields the exact `0xe000`-byte module,
+  SHA-256 `04c4f9833276bc4fe26969ba4fa195b1e330efba4d97f178987c8c4b170335ba`;
+- exact code opens `/snowball/ipub_key` with flags zero and follows the content
+  path only after an exact `0x24`-byte read;
+- it tests object byte `+1` bit 0 and, when set, requires dword `+4` to be zero;
+- the result gates later reads of one nonzero byte from `/snowball/oem_sign`
+  and at most `0x1000` bytes from `/snowball/oem_key_man`.
+
+This proves `/snowball/ipub_key` is a shared CSE policy object rather than a
+BUP-only pathname. The exact paths above are reads, not a demonstrated producer
+or write route. They do not establish owner writability, replay behavior, or
+physical ROM/fuse authority.
+
 A whole-image literal search finds nine byte occurrences of little-endian
 `0x08200000`: five are the exact RBE lookup/append references and three are the
 FTPR-kernel range/iterator references. The ninth starts one byte into PMCP dword
@@ -570,6 +588,9 @@ What is now proved:
 - BUP phase zero ingests that transient object list at function index 7,
   consumes `ifp_uep` at index 10, and frees the list only after the phase;
 - the BUP reader-import/FTPR-kernel-function binding remains open;
+- signed NFTP `dal_sdm` reads an exact `0x24`-byte
+  `/snowball/ipub_key` policy object before OEM authorization objects, but no
+  producer or write path is proved;
 - all plain little-endian `0x08200000` byte occurrences in the exact ABL are
   classified as RBE/FTPR consumers or one unaligned cross-dword PMCP match;
 - the pre-RBE handoff producer, authentication, mutability, computed/indirect
@@ -654,11 +675,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `51,849`
-  - SHA-256 `35fe6417620f902000a1229f9b9e191a4503d487a582e636908767f19896de25`
+  - size `54,554`
+  - SHA-256 `2af6d075bb78bde3c91c6eedce90a98005f2b302ffcc61c840e42d4e326e0b11`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `110,948`
-  - SHA-256 `1d971885a9c9510f4d1bec2aacc8a4c045a1da2889c0f45167ce3911f92ae0b3`
+  - size `114,098`
+  - SHA-256 `fc5db0009fa0e879e674dd80d841bdcb93c3211bc82e98b4dfc34b23434c4dd4`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

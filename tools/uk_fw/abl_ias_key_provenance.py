@@ -39,6 +39,14 @@ IBBP_MAN_SHA256 = "f224328529c3662c8c3ba490ad2a3c8143a34d0c9a531d2568f94d639058f
 BPM_MET_SHA256 = "4a82dcd20e5ad30e80b11637c767a9a9140b3e570d5144cda9407390b9618738"
 IBB_SHA256 = "4fba3004219bbfe3a94baa23467c7076d87f4ad76fdb6687ccdbf93455e365ed"
 NFTP_MAN_SHA256 = "d89f510f91eb9191e4b1e4a1a17b4675e3823953067ded257a6d78b2fb340ea4"
+DAL_SDM_COMPRESSED_OFFSET = 0x2E6000
+DAL_SDM_COMPRESSED_SIZE = 0x6B1A
+DAL_SDM_COMPRESSED_SHA256 = "1149c790897678ef5896251e55c038448c7c9fc9424c337e378df07f111f9b8f"
+DAL_SDM_MET_OFFSET = 0x206D80
+DAL_SDM_MET_SIZE = 0xFC
+DAL_SDM_MET_SHA256 = "e92963d1b1fd942671b9cb11c1de30312f7a529b1e63bfbf0b26826dd1d9c874"
+DAL_SDM_SIZE = 0xE000
+DAL_SDM_SHA256 = "04c4f9833276bc4fe26969ba4fa195b1e330efba4d97f178987c8c4b170335ba"
 FPF_MET_OFFSET = 0x205F6C
 FPF_MET_SIZE = 0x10C
 FPF_MET_SHA256 = "2f5ecd89cfd900abf8dda056ee19b7d373bdda7a6a1ea0092e38404268de51ec"
@@ -129,6 +137,10 @@ CSE_BUP_RANGES = {
     "phase_dispatcher": (0x2932, 0x29FE, "d3dff85895dd60d11311069a5395990e92139868ff132f298c4bdb4e5fec7578"),
     "main_phase_zero_and_cleanup": (0x14C72, 0x14CBE, "56f2dc85103cc7c322d4feed67e67a2f16b95ceaddcf84b73a2700fe9c1613f0"),
     "phase_zero_function_table": (0x2E744, 0x2E79C, "57c5e3001f8ff2e41d78af7545d5355c9e177ec5c09a48285c4bc48d932417e0"),
+}
+DAL_SDM_RANGES = {
+    "snowball_ipub_key_policy_read": (0xD0B, 0xDCD, "b83ee973e1fe7333ed95b3d58d277b0dee99a9029f9c13ad79e3f4e8aaa5eef1"),
+    "oem_sign_and_key_manifest_gate": (0x1F0F, 0x2025, "e7e55402a39184b7ffcf7691991bfc2ffd4eebfdef8f5e888c54ce37e0c60bcc"),
 }
 FPF_RANGES = {
     "startup_bup_fpf_and_flash_uep_inputs": (0x200, 0x313, "8d864579abfd7f4226c633aedcbf3e16468ae662c8c8f19be4624d09bfed4ed3"),
@@ -448,6 +460,100 @@ def parse_special_files(extension: bytes, label: str) -> dict:
             }
         )
     return {"major": major, "entries": entries}
+
+
+def extract_dal_sdm_snowball_policy(abl: bytes) -> dict:
+    cpd = 0x203000
+    entries = []
+    for index in range(69):
+        raw_name, raw_offset, size, _ = struct.unpack_from("<12sIII", abl, cpd + 0x10 + index * 24)
+        entries.append((raw_name.rstrip(b"\0").decode("ascii"), raw_offset & 0x1FFFFFF, size))
+    selected = [entry for entry in entries if entry[0] in ("dal_sdm", "dal_sdm.met")]
+    if selected != [("dal_sdm", 0xE3000, DAL_SDM_COMPRESSED_SIZE), ("dal_sdm.met", 0x3D80, DAL_SDM_MET_SIZE)]:
+        raise Failure("NFTP dal_sdm CPD entries drift")
+
+    compressed = abl[DAL_SDM_COMPRESSED_OFFSET : DAL_SDM_COMPRESSED_OFFSET + DAL_SDM_COMPRESSED_SIZE]
+    metadata = abl[DAL_SDM_MET_OFFSET : DAL_SDM_MET_OFFSET + DAL_SDM_MET_SIZE]
+    manifest = abl[0x203688 : 0x203688 + 0x9A0]
+    for blob, size, digest, label in (
+        (compressed, DAL_SDM_COMPRESSED_SIZE, DAL_SDM_COMPRESSED_SHA256, "compressed dal_sdm"),
+        (metadata, DAL_SDM_MET_SIZE, DAL_SDM_MET_SHA256, "dal_sdm.met"),
+        (manifest, 0x9A0, NFTP_MAN_SHA256, "NFTP.man"),
+    ):
+        if len(blob) != size or hashlib.sha256(blob).hexdigest() != digest:
+            raise Failure(f"{label} identity drift")
+    if manifest.count(hashlib.sha256(metadata).digest()[::-1]) != 1:
+        raise Failure("NFTP.man to dal_sdm.met signed hash chain drift")
+
+    extensions = parse_metadata_extensions(metadata, "dal_sdm.met")
+    module = extensions.get(10)
+    if module is None or len(module) != 0x38:
+        raise Failure("dal_sdm.met module extension drift")
+    compression = module[8]
+    uncompressed_size, compressed_size = struct.unpack_from("<II", module, 0x0C)
+    if (
+        compression != 2
+        or uncompressed_size != DAL_SDM_SIZE
+        or compressed_size != DAL_SDM_COMPRESSED_SIZE
+        or module[0x18:0x38] != hashlib.sha256(compressed).digest()[::-1]
+    ):
+        raise Failure("dal_sdm.met compressed module binding drift")
+    if not compressed.startswith(bytes.fromhex("3600400000")) or compressed[0x0E:0x11] != b"\0\0\0":
+        raise Failure("dal_sdm Intel CSE LZMA header drift")
+    try:
+        decoder = lzma.LZMADecompressor()
+        dal_sdm = decoder.decompress(compressed[:0x0E] + compressed[0x11:])
+    except lzma.LZMAError as exc:
+        raise Failure(f"dal_sdm LZMA decompression failure: {exc}") from exc
+    if (
+        not decoder.eof
+        or decoder.unused_data
+        or len(dal_sdm) != DAL_SDM_SIZE
+        or hashlib.sha256(dal_sdm).hexdigest() != DAL_SDM_SHA256
+    ):
+        raise Failure("decompressed dal_sdm identity drift")
+    strings = {
+        "ipub_key": (0xC466, b"/snowball/ipub_key\0"),
+        "uniquepid": (0xC49C, b"/snowball/uniquepid\0"),
+        "oem_sign": (0xC4D8, b"/snowball/oem_sign\0"),
+        "oem_key_man": (0xC4EB, b"/snowball/oem_key_man\0"),
+    }
+    for label, (offset, value) in strings.items():
+        if dal_sdm[offset : offset + len(value)] != value or dal_sdm.count(value) != 1:
+            raise Failure(f"dal_sdm {label} string drift")
+
+    return {
+        "signed_chain": {
+            "nftp_manifest": {"flash_offset": 0x203688, "size": 0x9A0, "sha256": NFTP_MAN_SHA256},
+            "dal_sdm_metadata": {"flash_offset": DAL_SDM_MET_OFFSET, "size": DAL_SDM_MET_SIZE, "sha256": DAL_SDM_MET_SHA256},
+            "dal_sdm_compressed": {"flash_offset": DAL_SDM_COMPRESSED_OFFSET, "size": DAL_SDM_COMPRESSED_SIZE, "sha256": DAL_SDM_COMPRESSED_SHA256},
+            "dal_sdm_decompressed": {"size": DAL_SDM_SIZE, "sha256": DAL_SDM_SHA256},
+            "nftp_manifest_binds_dal_sdm_metadata": True,
+            "dal_sdm_metadata_binds_compressed_module": True,
+        },
+        "instruction_ranges": check_ranges(dal_sdm, DAL_SDM_RANGES, "NFTP dal_sdm"),
+        "snowball_paths": {label: {"file_offset": offset, "runtime_address": 0x26000 + offset} for label, (offset, _) in strings.items()},
+        "ipub_key_policy": {
+            "open_flags": 0,
+            "exact_read_size": 0x24,
+            "requires_exact_read": True,
+            "state_bit_offset": 1,
+            "state_bit_mask": 1,
+            "conditional_dword_offset": 4,
+            "when_state_bit_clear_result": True,
+            "when_state_bit_set_requires_dword_zero": True,
+            "ipub_key_write_observed_in_range": False,
+        },
+        "oem_gate": {
+            "ipub_policy_checked_before_oem_objects": True,
+            "oem_sign_exact_read_size": 1,
+            "oem_sign_must_be_nonzero": True,
+            "oem_key_manifest_max_read": 0x1000,
+        },
+        "snowball_ipub_key_is_shared_cse_policy_object_proved": True,
+        "snowball_ipub_key_producer_or_writability_proved": False,
+        "physical_fuse_or_rom_authority_proved": False,
+    }
 
 
 def extract_fpf_provisioning_handoff(abl: bytes, bup: bytes) -> dict:
@@ -982,6 +1088,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     cse_signed_module_chains = parse_cse_signed_module_chains(abl, cse_rbe, cse_bup)
     cse_root_and_boot_policy_chains = parse_cse_root_and_boot_policy_chains(abl)
     fpf_provisioning_handoff = extract_fpf_provisioning_handoff(abl, cse_bup)
+    dal_sdm_snowball_policy = extract_dal_sdm_snowball_policy(abl)
     uep_oem_hash_candidate = parse_uep_oem_hash_candidate(abl)
     stored_oem_key = parse_stored_oem_key(abl)
     ibbl_ranges = check_ranges(ibbl, IBBL_RANGES, "IBBL")
@@ -1261,6 +1368,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "cse_signed_module_chains": cse_signed_module_chains,
             "cse_root_and_boot_policy_chains": cse_root_and_boot_policy_chains,
             "cse_uep_to_fpf_provisioning_handoff": fpf_provisioning_handoff,
+            "nftp_dal_sdm_snowball_policy": dal_sdm_snowball_policy,
             "cse_rbe_uep_oem_key_authentication": {
                 "uep_object_name": "ifp_uep",
                 "object_size": UEP_SIZE,
@@ -1511,6 +1619,8 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "bup_phase_zero_ingestion_before_ifp_uep_consumption_and_cleanup_proved": True,
             "ftpr_stream_reader_to_bup_import_binding_proved": False,
             "bup_runtime_ipub_key_proved_to_originate_in_rbe_handoff": False,
+            "signed_nftp_dal_sdm_reads_exact_snowball_ipub_key_policy_object_proved": True,
+            "snowball_ipub_key_producer_or_writability_proved": False,
             "pre_rbe_handoff_producer_or_authenticator_proved": False,
             "shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved": True,
             "bup_ipub_key_runtime_object_or_snowball_resolution_proved": True,

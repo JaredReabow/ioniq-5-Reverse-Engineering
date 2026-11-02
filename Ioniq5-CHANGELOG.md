@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.60.0 - the persistence stub crashed at four seconds, so the hypothesis is still untested
+
+- Injected the stub and ran the ten-screen chain with it starting immediately after the system bus. Result:
+  ```
+  persistence-adm[723]: segfault at 7f8ca00a8000 ip 00007f8ca00a8000 sp 00007fff99273c60 error 15
+   in persistence-admin-stub[7f8ca00a8000+2000]
+  ```
+  The faulting instruction pointer **equals the module's own load base**, which means control was transferred to offset 0 of the binary — a call through a
+  null or uninitialised function pointer, not a mis-resolved symbol name.
+- Checked that specifically: all **19** `dbus_*` symbol names the stub references exist in the guest `/usr/lib/libdbus-1.so.3` export table, so `dlsym` by
+  name is not the problem. The likely causes are a pointer used before `resolve()`, a failed `dlopen` that was not treated as fatal, a partially
+  initialised function-pointer table, or prototypes that differ from libdbus's real ones.
+- Consequently **the service was never provided** in that run (`org.genivi.persistence.admin` still absent, `STUB=` empty), so the question the stub exists to
+  answer — whether supplying persistence stops the heap corruption — remains **open and untested**.
+- One observation worth recording without over-reading it: in this run **all three** of the previously crashing clients were still alive at 150 s
+  (`AppHomeScreen` 807, `AppCamera` 783, `AppOSDManager` 800). Earlier `AppCamera` deaths occurred around 173–178 s, which is *after* this measurement point,
+  so this is not evidence that anything improved — only that the measurement window was shorter than the failure latency.
+- Sent the crash back to the subagent with the specific diagnostics to add: log `dlopen`/`dlerror()`, prove the first line of `main()` reaches `/dev/ttyS0`, and
+  check every function pointer for a NULL check before use.
+
 ## 2.59.0 - the crashing clients share three vendor libraries, and one of their services is missing entirely
 
 - Compared the dynamic dependencies of the applications that die in `free()`:

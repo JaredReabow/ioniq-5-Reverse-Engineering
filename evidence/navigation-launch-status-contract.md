@@ -351,36 +351,77 @@ Retained latest-run logs positively show `onVisibleChanged(1)` around 00:03:21,
 zero-size parent configure. A later branch compares elapsed time against 49,999
 ms, but its downstream purpose has not been recovered; no timing patch is proposed.
 
-Next identify the source/connection of this visibility callback and inspect the
-**parent Qt window** hide path separately from native map-screen clear/swap. Then
-correlate actual Wayland attach/detach/commit evidence rather than equating an
-application visibility boolean with compositor unmapping.
+The callback connection and both direct parent-window hide producers are now
+resolved below. The remaining runtime boundary is to distinguish those producers
+and observe the downstream Wayland/EGL lifecycle rather than equating the
+application visibility Boolean with compositor unmapping.
 
-## Explicit Qt hide path located; primary-screen invocation not demonstrated
+## Two explicit Qt hide paths located; runtime producer remains unproved
 
 Retained symbol inventory and bounded function listings under
 `navigation-contract-audit/`: `appnavi-symbols.txt`,
 `appnavi-create-window.asm`, `appnavi-foreground.asm`, and
-`appnavi-base-foreground.asm`.
+`appnavi-base-foreground.asm`. The current exact-static producer record is
+`evidence/artifacts/application-candidates/navigation-hide-backend-exact-static.txt`.
 
-`NimoExSLScreenLinux::onForeground(bool,bool)` at `0x3361df0` contains a real
-`QWindow::hide()` call at **`0x3362275`**. It is reached for a false foreground
-request only after the base `NimoExSLScreen::onForeground` returns a true result
-and screen-ID branching admits it. The diagnostic immediately preceding the
-hide call decodes as `set hide NimoExSLScreen(%d)` (`0x60b812e`). Thus there is
-an authentic Qt hide path; it must not be replaced with renderer clear/swap.
+A complete recovered-AppNavi direct-call inventory finds exactly two calls to
+its `QWindow::hide()` import:
 
-A bounded scan of the latest retained DLT for PID 908's `onForeground` diagnostics
-shows native widget screen 6 and screens 9/10, but no corresponding primary
-screen-1 foreground or `set hide NimoExSLScreen(1)` diagnostic. This is log
-coverage, not proof that no such invocation occurred. The creation function also
-contains genuine `QWindow::show()` calls for its screen-specific branches.
+- `0x3362275` in `NimoExSLScreenLinux::onForeground(bool,bool)`;
+- `0x3365140` in
+  `NimoExSLScreenLinux::dispatchNotifyEvent(ExSLNotifyEvent const*)`.
 
-**Next:** inspect the constructor's Qt signal connections to establish exactly
-which signal produces `onVisibleChanged`, and trace primary-screen foreground
-requests/base deduplication separately from map-widget screen 6. A Wayland
-null-buffer trace remains necessary to determine whether actual Qt hiding is
-requested but not delivered, versus no parent hide being requested at all.
+The first route is narrower than previously recorded. Linux `onForeground` calls
+`NimoExSLScreen::onForeground` at `0x3361e27`; that base calls
+`ExSLScreen::onForeground` at `0x33712c3`. The direct Linux hide branch is taken
+when the returned Boolean is true, then only for screen IDs 1, 2, or 4 with
+logical foreground false. The preceding diagnostic is
+`set hide NimoExSLScreen(%d)` (`0x60b812e`).
+
+The second route consumes a visibility event. `dispatchNotifyEvent` selects
+event type `0x103` at `0x33650f3..0x33650f8`; its format string is
+`setVisible screenId(%d) value(%d)`. Event value zero calls hide at `0x3365140`,
+while nonzero calls show at `0x3365338`. `ExSLScreen::onForeground`, body
+`[0x2607730,0x2607c85)`, contains one genuine local producer: on its bounded
+Gen5/platform-specific same-state branch it constructs type `0x103`, copies the
+requested Boolean into event field `+0x34`, and queues the event back to the same
+screen at `0x2607af7`. That local producer returns false after queueing, so Linux
+`onForeground` skips its direct-hide branch and the event consumer remains a
+separate visibility route. Static construction does not prove that every
+matching event has this local origin or that the retained run executed this
+branch.
+
+The complete direct-call inventory for `SessionInteraction::setForegroundStatus`
+at `0x1c3a930` has six sites: `0x1c3bca7` in
+`SessionInteraction::updateServiceState`, two in
+`CSystemControl::onSplitScreenStateChanged`, and three in
+`CSystemControl::changeWindowStatus`. Only `0x1c3bca7` passes
+`beforeNotify=false`; on its exact branch, parsed-event result bit `0x100` and
+`isUnificationPlatform()` gate the call, and event type `0x0a` selects true
+status. The other five direct calls pass `beforeNotify=true`. Retained
+`beforeNotify(0)` diagnostics are therefore consistent with `0x1c3bca7` among
+the recovered direct callers, not proof of runtime callsite identity or direct-
+caller completeness across indirect invocation.
+
+The latest retained DLT orders Weston AppNavi FG at `00:04:02.050`,
+`onVisibleChanged(false)` at `00:04:02.071`, and accepted status 5/window 0 at
+`00:04:02.198`. Its first retained `setForegroundStatus` change is later, at
+`00:04:04.585` for screen 6/true. Later false calls concern screen 9 (explicitly
+ignored), screen 6, and screen 10 (explicitly ignored); there is no retained
+primary-screen false call or `set hide NimoExSLScreen(1)` diagnostic. The saved
+ordering therefore does not bind the first false-visibility callback to a logged
+`onForeground(false)` call. Missing type-`0x103` handler diagnostics and possible
+log loss keep both runtime producer identity and invocation unproved.
+
+The retained order nevertheless resolves directionality. On first false
+visibility, `onVisibleChanged` reaches the existing one-shot launch-notification
+call at `0x335c228` when its launch gate is set; manager status 5 follows the
+callback. Hide/false visibility is therefore upstream of the accepted status in
+this launch handoff, not a response to it. If authentic BG arrives later, the
+manager's already-bound setter replay handles the cached-status ordering.
+
+A Wayland null-buffer trace remains necessary to determine whether authentic Qt
+hiding reaches EGL invalidation and compositor BG.
 
 ## Constructor wiring and QtWayland hide branch — 2026-10-27
 
@@ -791,11 +832,283 @@ intermediaries are forbidden fallbacks. The live tool rejects
 both tasks blocked. Do not implement or launch the experiment until a supported
 direct route is available or the owner explicitly selects another direct model.
 
+## Status-5 consumer semantics and exact branch matrix
+
+A fresh read-only LLVM pass over the same ApplicationManager artifact resolves
+the decisive ambiguity. The compact exact-static record is retained at
+`evidence/artifacts/application-candidates/navigation-launch-consumer-exact-static.txt`.
+ApplicationManager remains 3,956,056 bytes, SHA-256
+`5d71539f61a3982b8aac6132a2de14c083fa9ac129792bae750a526ebd771cbc`,
+Build ID `fd5b023c1b1dcf0b5bc0f1e85e82226fb3da5c7f`.
+
+Unwind metadata binds the four relevant routines:
+
+- notification consumer `[0x287e70,0x28806c)`;
+- window setter `[0x288070,0x28819b)`;
+- `NaviMapApplication` launch callback `[0x2c5900,0x2c5c4f)`;
+- `NaviMenuApplication` launch callback `[0x2c5df0,0x2c613f)`.
+
+The consumer first stores status at `this+0x1c`. A null controller lookup or
+zero `this+0x20` window byte returns before either application callback. With a
+nonzero window byte it looks up application IDs `30` and `32` and conditionally
+invokes virtual slot `+0x110`. Status `5` additionally clears two list fields of
+the ID-35 loading object before joining that dispatch.
+
+RTTI and relocation binding identify the concrete implementations. The primary
+vtable address points for `NaviMapApplication` and `NaviMenuApplication` are
+`0x5bd910` and `0x5bdba0`; their `+0x110` relocations resolve to `0x2c5900` and
+`0x2c5df0`. `NaviLoadingApplication`'s corresponding slot resolves to default
+no-op `0x289390`.
+
+Both concrete navigation callbacks use the same decisive status test:
+
+- if their internal `object+0x60+0x92` play-enable byte is already nonzero,
+  they log that current was play-enable true and return;
+- any status **other than 5** clears that byte and returns;
+- status **5** sets that byte to one and enters controller-mediated handoff
+  logic involving loading application ID `35`.
+
+The map path uses event constants `0x12e`/`0x135`; the menu path uses
+`0x12e`/`0x13f`. Additional virtual predicates remain in both paths, so static
+reachability is not proof that a runtime transition completed.
+
+This yields the exact local matrix:
+
+| Cached/received status | Window byte | Local consumer result |
+|---|---:|---|
+| any | `0` | cache status; stop before ID-30/ID-32 callbacks |
+| not `5` | nonzero | callbacks clear play-enable and stop before their positive handoff blocks |
+| `5` | nonzero | clear ID-35 lists; callbacks set play-enable and enter controller-mediated handoff logic |
+| cached `5`, then setter input `1` | becomes `1` | replay cached `5` through the positive branch |
+| any cached value, then setter input `0` | becomes `0` | replay only as far as the window gate |
+
+**Correction to the earlier unresolved interpretation:** in these exact receiver
+callbacks, integer `5` is the sole accepted positive launch value. The sender's
+literal signal name containing `Fail` does not determine its receiver-side enum
+semantics. The runtime pair `notifyNaviLaunched[5] window[0]` therefore means
+**accepted launch status blocked by an unset window latch**, not two independent
+failure values. Extending the launch deadline could not fix that missing latch.
+
+The inspected consumer and callback routines contain no direct transition to
+Home ID `11`. In the retained Home→Navigation→Home harness, the later return was
+explicitly requested by event `302`, reason `322`; it is not evidence of an
+autonomous Navigation loading/fallback timeout. Conversely, the positive
+callback path is controller-mediated and does not by itself prove
+current/drawing ID `30`, composition, or successful Home↔Navigation operation.
+
+The authentic remaining producer chain is now narrow: an AppNavi BG event must
+satisfy `slotNotifyBGInfo`, which calls the window setter with literal `1`; the
+setter writes `this+0x20=1` and replays cached status `5`. Saved VM runs show FG
+but no AppNavi BG. No synthetic BG/FG notification, forced byte, fabricated
+status, or enum patch is an acceptable substitute.
+
+## Primary surface 3000 is Qt Quick OpenGL/EGL
+
+The earlier Shm/Egl instance-class ambiguity is resolved statically. AppNavi's
+`NimoExSLScreenLinux` constructor at `0x335b080` constructs `QQuickView`; the
+recovered `QQuickView(QWindow*)` constructor at `0x2735d0` reaches
+`QQuickWindowPrivate::init` at `0x1b0160`. That initializer calls
+`QWindow::setSurfaceType` at `0x1b02f6` with the render loop's
+`windowSurfaceType()` result. The exact recovered implementation at `0x178680`
+returns `1`, Qt's `QSurface::OpenGLSurface` value. AppLauncher and Weston
+independently bind the resulting primary AppNavi window to IVI surface `3000`.
+The separate `createExSLEglSurface(type=2)` call is an ExSL enum and is not the
+Qt surface-type proof.
+
+For the recovered QtWayland client, common `QWaylandWindow::setVisible(false)`
+uses virtual `windowType()` slot `+0x60`: only Shm/zero reaches explicit null
+attach `0x63ea9` and commit `0x63eb2`. The recovered Shm implementation at
+`0x67870` returns zero; the recovered EGL implementation at `0x80e0` returns
+one. The primary Qt Quick surface therefore needs the EGL invalidation route,
+not the common Shm detach branch.
+
+## Basic render-loop hide stops before EGL invalidation
+
+Both recovered AppNavi parent-window producers are authentic:
+`NimoExSLScreenLinux::onForeground` calls `QWindow::hide()` at `0x3362275`, and
+type-`0x103` handling in `NimoExSLScreenLinux::dispatchNotifyEvent` calls it at
+`0x3365140` when the event value is zero. Constructor connections bind
+`visibleChanged(bool)` to `onVisibleChanged(bool)` at `0x335be80`. Retained logs
+include an AppNavi `onVisibleChanged(false)` callback, but do not prove which
+producer invoked hide; notably, that callback precedes every retained
+`setForegroundStatus`/Linux-screen `onForeground` diagnostic in its launch
+interval.
+
+Recovered `QQuickWindow::hideEvent` at `0x1aa7d0` dispatches render-loop virtual
+slot `+0x68`. The retained integrated Home→Navigation runs under diagnosis
+explicitly export `QSG_RENDER_LOOP=basic`. The selected basic-loop vtable
+address point `0x60fce0` has its `+0x68` relocation at `0x60fd48`, resolving to
+`0x178730`.
+Public QtDeclarative v5.4.1 identifies this as
+`QSGGuiThreadRenderLoop::hide(QQuickWindow*)`; the exact recovered body obtains
+`QQuickWindowPrivate` and tail-jumps to `sceneGraphAboutToStop` at `0x1aacd0`.
+It does not remove the window, release the scene graph, call
+`QOpenGLContext::doneCurrent()`, invalidate EGL, or attach a null Wayland
+buffer. In the basic loop, that cleanup belongs to `windowDestroyed()`, not
+ordinary hide.
+
+This is the harness-specific semantic mismatch: common false visibility skips
+the detach because surface 3000 is EGL, while the forced basic hide stops at
+`fireAboutToStop()`. A genuine false-visibility callback can therefore coexist
+with no EGL invalidation and no compositor BG.
+
+## Threaded obscure reaches the recovered EGL null-attachment path
+
+Public QtDeclarative v5.4.1 commit
+`aebdf4649934e65bdab94d799da5afb2da145a37` supplies the semantic map for the
+exact recovered bytes. Threaded-loop vtable address point `0x61df58` has its
+`+0x68` relocation at `0x61dfc0`, resolving to `0x1802a0`. When the window is
+exposed, `QSGThreadedRenderLoop::hide` calls `handleObscurity`, whose
+`WM_Obscure` render-thread path calls `fireAboutToStop()`, then
+`QOpenGLContext::doneCurrent()`, then clears the active window. The recovered
+event-handler sequence contains the corresponding `doneCurrent` import call at
+`0x1831f6` and active-window clear at `0x1831fb`.
+
+The exact backend chain is now closed:
+
+1. recovered QtGui `QOpenGLContext::doneCurrent()` at `0x121380` calls platform-
+   context virtual slot `+0x30` at `0x1213d4`;
+2. Wayland EGL platform-context relocation `0x20d2d0` resolves that slot to
+   `0x6aa0`, which clears EGL current state and invokes associated-window slot
+   `+0xf8` at `0x6ad3`;
+3. `QWaylandEglWindow` relocation `0x20d630` resolves `+0xf8` to `0x82c0`;
+4. `0x82c0` destroys the EGL surface when present, calls
+   `attach(nullptr,0,0)` at `0x8310`, commits at `0x8319`, and flushes the
+   display.
+
+The recovered vendor `0x82c0` body is stronger than public QtWayland v5.4.1's
+`invalidateSurface()` body, which only destroys the EGL surface. The distinct
+destructor region at `0x8120` also destroys the native `wl_egl_window` and must
+not be conflated with ordinary invalidation. Full source identities and recovered
+artifact identities are retained in
+`evidence/artifacts/application-candidates/navigation-hide-backend-exact-static.txt`.
+
+**Result:** the basic-loop uncertainty is resolved. The harness-forced basic
+loop omits the exact threaded `WM_Obscure → doneCurrent → EGL invalidation →
+null attachment/commit` route capable of producing the zero-size/BG event that
+sets ApplicationManager's window latch. This directly explains the retained
+basic-loop behavior, but does not prove it is the only runtime issue or that a
+future threaded run will complete Navigation. Exposure state, actual
+`WM_Obscure` execution, the mixed vendor-EGL/project-Mesa stack, compositor
+delivery, setter replay, callback completion, and visible ID `30` remain
+observational boundaries. Child stderr routing is resolved statically below.
+
+## Hide-producer comparison matrix
+
+The two authentic producers can be distinguished only by evidence upstream of
+the shared visibility callback:
+
+| Property | Direct Linux foreground route | Queued visibility route |
+|---|---|---|
+| Entry | `NimoExSLScreenLinux::onForeground` | `ExSLScreen::onForeground` same-state branch, then `dispatchNotifyEvent` |
+| Required state | true base return; screen ID 1, 2, or 4; requested foreground false | requested foreground equals byte `+0x18`, differs from byte `+0x4c`; platform 6/generation 5 |
+| Intermediate object | none proved | event type `0x103`, requested Boolean at event `+0x34`, queued to the same screen |
+| Producer return | true reaches the Linux direct branch | local producer returns false, so Linux direct branch is skipped |
+| Distinguishing diagnostic | `set hide NimoExSLScreen(%d)` | `setVisible screenId(%d) value(%d)` |
+| Qt hide call | `0x3362275` | zero value reaches `0x3365140` |
+| Shared downstream evidence | `visibleChanged(false)` and `onVisibleChanged(false)` | `visibleChanged(false)` and `onVisibleChanged(false)` |
+
+The shared callback does not identify the route. A dropped diagnostic also
+prevents a negative conclusion: absence of either string is not proof that its
+route did not execute. A future classification must preserve screen/value,
+producer diagnostic, false-visibility callback, one-shot launch notification,
+and manager-status ordering in one bounded timeline.
+
+## Read-only threaded-harness and child-stderr review
+
+Two retained scripts were compared without running either:
+
+- the 349-line integrated basic/deadline script has SHA-256
+  `906e734012a9a9cac35aed2e9258674215b407a93cdce9e58024a2f78bf8dd9f`;
+- the 199-line threaded pointer-confirm script has SHA-256
+  `004c4d47f4271301ecc88ea2676eb0fc9ad0a0116dc44327b8e0878259f4e6f7`.
+
+The threaded pointer-confirm script is not an admissible Navigation comparison.
+It bind-mounts modified `/AppNavi-egl-no-msaa-v2`, selects softpipe with one
+worker instead of llvmpipe with two, uses a different Standby observation QML,
+omits the three AppNavi compatibility opt-ins and launcher-local liveness
+preload, and contains neither the Home→Navigation request nor the explicit
+Navigation→Home return. Its name and `QSG_RENDER_LOOP=threaded` setting do not
+supply the missing integrated stock-AppNavi evidence.
+
+A future comparison must start from the integrated script, retain the authentic
+`/navi/Bin/AppNavi`, identical graphics driver/thread count, QML overlays,
+timing controls, genuine manager messages, observation intervals, and explicit
+Home return, and disclose render-loop scope. Merely replacing the global
+`QSG_RENDER_LOOP` value affects every descendant Qt Quick process, not only
+AppNavi, so it is not a clean AppNavi-only variable. Altering the existing
+launcher interposer or adding a wrapper to rewrite only AppNavi's environment
+would itself be a new operational adaptation. No such script, wrapper, or
+interposer was created here.
+
+The lack of AppNavi `WAYLAND_DEBUG` output now has an exact static explanation.
+Recovered AppLauncher remains 407,720 bytes, SHA-256
+`c8d6d56bc254ad0731e81f40bd83aa9b3be6b49bcbd8efb291157a06c4a84268`,
+Build ID `0452df1033bd1bbae15727a83d4d56576d8b9444`. In its process-start body
+`[0x163f0,0x18550)`, app ID at `AppProcess+0x20` is tested at `0x16f78`.
+For IDs at most 40, only 17, 22, and 40 are exempted by the mask at
+`0x17a48`; ID 30 is not. The remaining exemption requires
+`AppProcess+0x50 == 2` at `0x16f84`. The ordinary app-data construction branch
+sets that field to 1 at `0x23b23`; only app ID 310 takes the nearby value-2
+branch at `0x23b17`/`0x24000`.
+
+The ordinary ID-30 path therefore constructs `/dev/null` from literal
+`0x46fab` and passes it to both `QProcess::setStandardOutputFile` at `0x16fbd`
+and `QProcess::setStandardErrorFile` at `0x17007`. This predicts that the
+launcher-owned AppNavi's stdout and stderr, including client-side
+`WAYLAND_DEBUG`, are discarded rather than inherited by `launcher.log`.
+Static control flow does not by itself prove a particular runtime object was
+unmodified or that both calls returned successfully, but it explains why the
+retained log location was the wrong observation point.
+
+The current integrated script also exports `WAYLAND_DEBUG=1` only after Weston
+has already started. Consequently it neither enables server-side protocol
+logging in that Weston process nor overcomes AppLauncher's child-channel
+redirection. The least intrusive future observation design is compositor-side:
+start the otherwise identical Weston process with server-side Wayland protocol
+logging directed to its existing bounded log, correlate the client object to
+IVI surface 3000, and look for the genuine null-buffer attach followed by
+commit. This can establish the protocol-visible terminal effect without
+changing AppNavi or fabricating an event. It cannot directly prove the internal
+`WM_Obscure` or `doneCurrent` instruction; those remain exact-static links that
+must not be relabelled as dynamically observed. No server trace or runner was
+created or executed in this review.
+
 ## Next exact actions / acceptance
 
-1. **Done:** resolved exact method/signal strings and retained artifact identity and address mapping above.
-2. **Partially done:** exact slot subscription and diagnostic routine identified; trace caller `0x19108d` into the window-create setter and confirm the Qt dispatch mapping. Recover the status-5 branch semantics and other message senders.
-3. Inspect all callers of this one-shot function and the normal first-window/initialize callback ordering; reuse the existing `appnavi-sendfail-callers-33b49.asm` and `appnavi-sendfail-caller-335c228.asm` before generating new analysis.
-4. Only then define a narrowly observed VM run proving the authentic transition `35 → 30`, current/drawing Navigation, valid surface composition and return to Home. No synthetic success notification or patched enum is acceptable evidence.
+1. **Done:** resolved sender identity, hard-coded status producer, receiver slot,
+   BG-driven window producer, status semantics, concrete map/menu callbacks, the
+   local status/window matrix, primary Qt OpenGL/EGL classification, selected
+   basic-loop hide target, and threaded EGL invalidation path.
+2. **Done statically:** identified both direct AppNavi `QWindow::hide()`
+   producers, the local `onForeground → type-0x103 event → dispatchNotifyEvent`
+   visibility route, and the discriminating producer matrix. The retained first
+   false-visibility callback precedes all retained Linux-screen foreground
+   diagnostics, so a primary `onForeground(false,...)` log is no longer the
+   sole producer target.
+3. **Done statically:** resolved ordinary AppLauncher ID-30 stdout/stderr routing
+   to `/dev/null`; client-side `WAYLAND_DEBUG` is not expected in
+   `launcher.log`.
+4. **Reviewed, not executed:** rejected the retained threaded pointer-confirm
+   script as a full-chain stock-AppNavi comparison and defined the controls a
+   valid comparison must preserve. No replacement runner was created.
+5. Passively distinguish direct `onForeground` hide from type-`0x103` event
+   handling in retained/future evidence, including event screen/value and exact
+   ordering. Do not synthesize the event or infer invocation from the callback
+   alone.
+6. If a future disconnected run is separately authorized, prefer bounded
+   compositor-side protocol observation over modifying AppNavi. Require the
+   selected hide producer, null attach/commit or equivalent zero-size evidence,
+   AppNavi BG, setter input `1`, cached-status replay, map/menu callbacks,
+   current/drawing Navigation ID `30`, and valid composition. Keep static
+   `WM_Obscure`/`doneCurrent` reachability distinct from protocol-visible runtime
+   effects.
+7. Keep the return-to-Home acceptance step explicit: use the already retained
+   authentic event `302`/reason `322` path and do not relabel it as an autonomous
+   fallback.
+8. Treat mixed vendor-EGL/project-Mesa compatibility as an unproved runtime
+   boundary, not a cause established by static reachability.
 
-No firmware/image changes, new processes, child threads, or security findings were produced by this static review.
+No firmware/image change, guest execution, D-Bus request, fabricated compositor
+event, runner, operational interposer, commit, push, child thread, or security
+finding was produced by this continuation.

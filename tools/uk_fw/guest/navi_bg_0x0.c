@@ -480,6 +480,8 @@ static int read_arguments(const char *signature, va_list source,
             args[count++].u = va_arg(source, uint32_t);
             break;
         case 'f':
+            /* |'f'| is wl_fixed_t: a 24.8 fixed-point *integer*, not a C float, so it
+             * travels in an integer slot like 'i' and no promotion happens. */
             args[count++].f = va_arg(source, int32_t);
             break;
         case 's':
@@ -537,9 +539,10 @@ static void prove_marshal_interposition(void)
 }
 
 /* Last-resort pass-through. On this ABI every message argument occupies one
- * integer slot and a message never carries more than eight, so an unreadable
- * signature is still forwarded instead of losing the client's request: the callee
- * consumes exactly its own signature's count and ignores the rest. */
+ * integer slot — |'f'| is fixed point, not a C float — and a message never carries
+ * more than eight, so an unreadable signature is still forwarded instead of losing
+ * the client's request: the callee consumes exactly its own signature's count and
+ * ignores the rest. */
 static void call_vararg(marshal_fn next_marshal, void *proxy, uint32_t opcode,
                         const intptr_t *slot)
 {

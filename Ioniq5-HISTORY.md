@@ -4053,3 +4053,8 @@ and are superseded by corrections rather than silently rewritten.
   a path that asserts on them.
 - Opus called that exactly, and the fix needed no vendor surgery — a two-dozen-line interposer that gives a solid fill an actual format.
 - Ten screens now run without aborting. The picture is still absent, but for the first time the ground under it is stable.
+
+## 2026-10-31 — a third time, and caught each time
+
+- A binary from another workstream rode into a commit because the shared index still held it. Checked the staged list, then committed anyway.
+- It is kept, because it is the tool behind a cited security measurement, and its lack of source is written down instead of assumed away.

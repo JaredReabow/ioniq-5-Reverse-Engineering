@@ -227,7 +227,19 @@ headless_backend_create_output(struct headless_backend *b,
 	/* Give every output a distinct name: the output is identified by name in
 	 * logs and by the screenshooter, and duplicate names would make a
 	 * multi-output run unreadable. weston_output_destroy() frees this. */
-	snprintf(name, sizeof name, "IAS-%d", index);
+	/* The vendor layout names its screens by output name (the shipped
+	 * /etc/xdg/weston/weston_1920.ini declares [output] name=HDMI1 and HDMI2), and
+	 * ivi-window-manager resolves them by that name. Presenting outputs called
+	 * IAS-0 makes it find no screen at all and publish a primary screen size of
+	 * 0x0. Naming them as the vendor config expects is what lets the layout
+	 * resolve its screens. IAS_OUTPUT_NAMES=ias restores the old naming. */
+	{
+		const char *style = getenv("IAS_OUTPUT_NAMES");
+		if (style && strcmp(style, "ias") == 0)
+			snprintf(name, sizeof name, "IAS-%d", index);
+		else
+			snprintf(name, sizeof name, "HDMI%d", index + 1);
+	}
 	output->base.name = strdup(name);
 
 	output->mode.flags =

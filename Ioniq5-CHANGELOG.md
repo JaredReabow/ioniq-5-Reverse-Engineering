@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.80.0 - the vendor's real weston config, and three refuted explanations for the zero screen size
+
+- Found the vehicle's actual compositor configuration: **`/etc/xdg/weston/weston_1920.ini`**. It settles several open questions at once:
+  - `shell=ivi-shell.so`, **`backend=ias-backend.so`** (the vendor backend this project has been reimplementing), `ivi-module=ivi-window-manager.so,ivi-controller.so`;
+  - **`home-id=1007`** — this is where the "home surface id" in the working recipe comes from, now sourced rather than inferred;
+  - `base-layer-id=1000`, `workspace-background-layer-id=2000`, `workspace-layer-id=3000`, `application-layer-id=4000`, `workspace-background-color=0x99000000`,
+    `workspace-background-id=2001` — the values our hand-written configs had been guessing at;
+  - **two outputs**: `[output] name=HDMI1 mode=1920x720` and `[output] name=HDMI2 mode=mode=1280x720` (the doubled `mode=` is the vendor's own typo). **The vehicle has two
+    screens**, not one;
+  - `ivi-shell-user-interface=/usr/lib/weston/weston-ivi-shell-user-interface` — and **that path does not exist in the image**; the binary is at
+    `/usr/libexec/weston-ivi-shell-user-interface`. So either the vehicle provides a symlink this projection lost, or the vendor config is stale there. Either way, our
+    `/bin/true` substitution was standing in for a client that the shipped config names at a path which is absent.
+- **Three explanations for the zero primary screen size, all tested and refuted:**
+  1. multi-output backend — refuted: `(0, 0)` on a single-output headless compositor too (§2.79.0);
+  2. restoring the vendor HMI client — refuted: it exits immediately with no arguments, size stays `(0, 0)` (§2.79.0);
+  3. **output naming** — the vendor config resolves screens by output name (`HDMI1`/`HDMI2`), so our `IAS-0`/`headless` names were a plausible cause. Renamed our
+     backend's outputs to `HDMI1…` (with `IAS_OUTPUT_NAMES=ias` restoring the old behaviour) **and** matched the config to `name=HDMI1`: **still `(0, 0)`**.
+- So `primary_screen_size` is not driven by output count, by the HMI client being present, or by output names. What it needs is something else in the vendor path — with
+  the config now in hand, the natural next candidates are that it is populated by `ias-backend.so` itself (which we do not run, being on headless), or by an
+  `update_layout` handshake from the missing user-interface client at the path the config names.
+- Backend change kept: outputs are now named `HDMI1…` by default to match the vendor configuration, with `IAS_OUTPUT_NAMES=ias` as the escape hatch. That is a
+  correctness improvement regardless of whether it fixes the size, and the three refutations above are recorded so they are not retried.
+
 ## 2.79.0 - the compositor reports a primary screen size of zero, in every configuration tried
 
 - Chasing the stride mismatch from §2.78.0, queried the vendor interface the application itself uses:

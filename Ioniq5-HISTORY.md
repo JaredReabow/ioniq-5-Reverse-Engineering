@@ -4247,3 +4247,11 @@ and are superseded by corrections rather than silently rewritten.
 - The vendor's own HMI client exists in the image and is the obvious thing to restore, but restoring it is not enough: started with no arguments it exits at once, so it needs
   the invocation the real unit uses.
 - Recorded as an open lead with its failed first test, rather than as progress it is not.
+
+## 2026-10-31 — the vendor config answered questions and killed three theories
+
+- The real weston configuration was in the image all along. It explains the mysterious surface id (home-id 1007), gives the layer ids we had been guessing, and reveals that
+  the vehicle has two screens, not one.
+- It also let three plausible explanations for the zero screen size be tested and killed in sequence: output count, the HMI client, and output naming.
+- What remains is narrower and specific: either the vendor DRM backend supplies that size, or the user-interface client at the path the config names does. Neither is running
+  here, and the config names a path the image does not contain.

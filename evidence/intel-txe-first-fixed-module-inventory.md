@@ -226,7 +226,7 @@ callbacks subsequently:
 4. pass the local buffer to syslib wrapper `0x61d6` with both size arguments
    fixed at `0x88`.
 
-The callback's dispatch and transfer boundaries are now narrower. Affected and
+The callback's dispatch, transfer, and recipient boundaries are now narrower. Affected and
 first-fixed `ipc_drv.met` both define CSE-internal major 39 with six mode-`0660`
 special files: `ipc_boot` minor 1, `ipc_mctp` minor 2, `ipc_dd` minor 3,
 `ipc_pmc` minor 4, `ipc_prtc` minor 5, and `ipc_iun` minor 6. The exact static
@@ -254,26 +254,44 @@ flag `0x202`.
 
 Consequently, reviewed message value `0x02000200` supplies process identifier
 `0x0200`, whose table index is 2, to this transfer path. The message dword's high
-16 bits are not consumed by this callback's transfer wrapper. This is a bounded
-process-identifier role, not a vendor process, recipient, or endpoint name.
+16 bits are not consumed by this callback's transfer wrapper.
+
+The vendor process name is now exact. In both builds, VFS startup calls the
+translated syslib current-identity export (`0x67b2` affected, `0x67b7`
+first-fixed) and requires return value `0x02000200`; its mismatch path reports
+that same expected value and returns failure. PM startup independently calls the
+same translated export and requires `0x01000100`. The export's affected/fixed
+bodies are byte-identical (SHA-256
+`7f59ad5a4926a195de4fba5e9ec57eb623c56238ceddd8dc7995fb9294a5e235`):
+they push selector one and call a byte-identical helper which dereferences the
+thread-local value at `gs:0 - 4`. The paired startup checks therefore bind low
+16-bit process identifier `0x0200` to VFS rather than inferring a name from load
+order or public source.
+
+The signed VFS process-attribute extension in both builds declares user ID
+`0x0000`, permanent and single-instance status, trusted send/receive and notify
+sender permissions, public send/receive and notify receiver permissions, and
+reset-system fault handling. PM is a distinct process with identifier `0x0100`
+and metadata user ID `0x0053`. Thus the callback's exact alternate transfer is
+to the UID-0 VFS process. This names the recipient and metadata owner; it does
+not establish external reachability or an exploitable privilege crossing.
 
 The first-fixed change is therefore an exact stale-stack/partial-initialization
 information-disclosure hardening mechanism at an internal transfer boundary:
 the complete fixed-size `0x88` output is cleared before a four-byte header and
 at most `0x80` payload bytes are populated and transferred. Open-handle and
 state checks still mediate the event-`0xf4` callback, and static evidence does
-not identify one reachable named minor, name internal selector `0x0200`, order
-the privilege of the participating CSE domains, establish HECI reachability or
-external attacker control, prove exploitability, or attribute the change to
-CVE-2018-12147. The already bound first-fixed VFS/NDL integration remains the
+not identify one reachable named minor, establish HECI reachability or external
+attacker control, prove an exploitable privilege crossing, or attribute the
+change to CVE-2018-12147. The already bound first-fixed VFS/NDL integration remains the
 strongest exact CVE-2018-3655 candidate.
 
 ## Artifact
 
 - `evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json`
 - schema `ioniq-txe-first-fixed-module-inventory/v1`
-- size `132,693` bytes
-- SHA-256 `db71e88285c5be0538699182a6700d094748a6f9cecbcbe3e2ca6f5572c552f0`
+- size `140,099` bytes
+- SHA-256 `e9ba5a22b8ab00c2028234719f8446d4b70cbd1e45167bae071b2f074f879ad7`
 
 Embedded `$MN2` signatures establish self-consistency and byte binding only.
 They do not establish platform ROM/fuse/OEM acceptance or installed-unit

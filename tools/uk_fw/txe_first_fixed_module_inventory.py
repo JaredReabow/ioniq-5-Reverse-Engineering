@@ -144,6 +144,46 @@ def _special_files(metadata: bytes, label: str) -> dict:
     return {"major": major, "entries": entries}
 
 
+def _process_attributes(metadata: bytes, label: str) -> dict:
+    values = [value for tag, value in fixed.metadata_extensions(metadata, label) if tag == 5]
+    if len(values) != 1:
+        raise Failure(f"{label} process-attribute extension count drift")
+    extension = values[0]
+    if len(extension) < 0x44 or (len(extension) - 0x44) % 2:
+        raise Failure(f"{label} process-attribute extension size drift")
+    flags, main_thread, code_base, code_size, cm0_heap, bss_size, default_heap, main_entry = struct.unpack_from(
+        "<IIIIIIII", extension, 8
+    )
+    user_id = struct.unpack_from("<H", extension, 0x34)[0]
+    reserved0 = struct.unpack_from("<I", extension, 0x36)[0]
+    reserved1 = struct.unpack_from("<H", extension, 0x3A)[0]
+    reserved2 = struct.unpack_from("<Q", extension, 0x3C)[0]
+    if reserved0 or reserved1 or reserved2 or flags >> 7:
+        raise Failure(f"{label} process-attribute reserved field drift")
+    groups = list(struct.unpack_from(
+        "<" + "H" * ((len(extension) - 0x44) // 2), extension, 0x44
+    ))
+    return {
+        "flags_raw": flags,
+        "fault_tolerant_action": "terminate-process" if flags & 1 else "reset-system",
+        "permanent_process": bool(flags & 2),
+        "single_instance": bool(flags & 4),
+        "trusted_send_receive_sender": bool(flags & 8),
+        "trusted_notify_sender": bool(flags & 0x10),
+        "public_send_receive_receiver": bool(flags & 0x20),
+        "public_notify_receiver": bool(flags & 0x40),
+        "main_thread_id": main_thread,
+        "code_base_address": code_base,
+        "code_size_uncompressed": code_size,
+        "cm0_heap_size": cm0_heap,
+        "bss_size": bss_size,
+        "default_heap_size": default_heap,
+        "main_thread_entry": main_entry,
+        "user_id": user_id,
+        "group_ids": groups,
+    }
+
+
 def _partition_context(image: bytes, offset: int, label: str) -> dict:
     entries = fixed.parse_cpd(image, offset, b"NFTP")
     manifest = fixed.member(image, offset, entries, "NFTP.man")
@@ -403,6 +443,138 @@ def minimal_length_delta_review(
         "all_reviewed_lengths_increment_by_one": True,
         "sites": sites,
         "attribution_boundary": "The eleven residual bytes in ish_srv, loadmgr, gpio, and pm are exact one-byte increases in serialized message-length fields whose message dword zero is 0x02000200. The separate ipc_drv review proves that value's low half 0x0200 selects an alternate internal transfer path in one callback, but does not name the selector/domain or prove these constructors reach that callback. Recipient identity, added-byte meaning, attacker control, HECI reachability, and CVE attribution remain unproved.",
+    }
+
+
+def vfs_process_identity_review(
+    affected_vfs: bytes,
+    first_fixed_vfs: bytes,
+    affected_pm: bytes,
+    first_fixed_pm: bytes,
+    affected_syslib: bytes,
+    first_fixed_syslib: bytes,
+    affected_vfs_attributes: dict,
+    first_fixed_vfs_attributes: dict,
+    affected_pm_attributes: dict,
+    first_fixed_pm_attributes: dict,
+) -> dict:
+    """Bind process identifier 0x0200 to VFS through both startup checks."""
+    expected_attributes = {
+        "vfs": {
+            "user_id": 0,
+            "fault_tolerant_action": "reset-system",
+            "permanent_process": True,
+            "single_instance": True,
+            "trusted_send_receive_sender": True,
+            "trusted_notify_sender": True,
+            "public_send_receive_receiver": True,
+            "public_notify_receiver": True,
+            "main_thread_id": 0,
+            "code_base_address": 0x26000,
+        },
+        "pm": {
+            "user_id": 0x53,
+            "fault_tolerant_action": "reset-system",
+            "permanent_process": True,
+            "single_instance": True,
+            "trusted_send_receive_sender": False,
+            "trusted_notify_sender": True,
+            "public_send_receive_receiver": True,
+            "public_notify_receiver": False,
+            "main_thread_id": 0,
+            "code_base_address": 0x26000,
+        },
+    }
+    for name, pairs in (
+        ("vfs", (affected_vfs_attributes, first_fixed_vfs_attributes)),
+        ("pm", (affected_pm_attributes, first_fixed_pm_attributes)),
+    ):
+        for attributes in pairs:
+            for field, expected in expected_attributes[name].items():
+                if attributes.get(field) != expected:
+                    raise Failure(f"{name} process attribute {field} drift")
+
+    identity_export_bodies = []
+    for label, syslib, export_body, helper_body, tls_body in (
+        ("affected", affected_syslib, 0x8F00, 0x7963, 0x7972),
+        ("first_fixed", first_fixed_syslib, 0x8F05, 0x7968, 0x7977),
+    ):
+        export = syslib[export_body - SYSLIB_BASE : export_body - SYSLIB_BASE + 0x0C]
+        helper = syslib[helper_body - SYSLIB_BASE : helper_body - SYSLIB_BASE + 0x0F]
+        tls = syslib[tls_body - SYSLIB_BASE : tls_body - SYSLIB_BASE + 0x17]
+        if sha256(export) != "7f59ad5a4926a195de4fba5e9ec57eb623c56238ceddd8dc7995fb9294a5e235":
+            raise Failure(f"{label} current-identity export body drift")
+        if sha256(helper) != "67068e986ef3af7fae0df545b3cd0bf256e176d523883e8b9c5a0e9e2f839ad1":
+            raise Failure(f"{label} current-identity helper body drift")
+        if sha256(tls) != "a614c935a5ff4d20bdaaa5225b0cc3a1adad58c977725666f79042108ff56bc5":
+            raise Failure(f"{label} TLS accessor body drift")
+        identity_export_bodies.append({
+            "label": label,
+            "export_body_runtime_range": [export_body, export_body + 0x0C],
+            "export_body_sha256": sha256(export),
+            "identity_helper_runtime_range": [helper_body, helper_body + 0x0F],
+            "identity_helper_sha256": sha256(helper),
+            "tls_accessor_runtime_range": [tls_body, tls_body + 0x17],
+            "tls_accessor_sha256": sha256(tls),
+            "tls_value_source": "dereference of gs:0 minus four bytes",
+        })
+
+    reviews = []
+    for label, module, start, end, expected_hash, identity_export, expected_identity in (
+        ("affected_vfs", affected_vfs, 0x30FCF, 0x31013, "a1dc6b8b03d4eefa1b3ab310daa4b3d19aba36072dc3230d32af5b6cae53869d", 0x67B2, 0x02000200),
+        ("first_fixed_vfs", first_fixed_vfs, 0x3161F, 0x31663, "4d787ea547a302609a2788ca5bf51442e7a64ca8a3ce7b438f9b26c7bac02662", 0x67B7, 0x02000200),
+        ("affected_pm", affected_pm, 0x29C68, 0x29C93, "c63a436bca0b2c43eb9ec366cf142ed62ceb8c4be3f17d957bc0f5c8f27d0574", 0x67B2, 0x01000100),
+        ("first_fixed_pm", first_fixed_pm, 0x29C68, 0x29C93, "7030304216fc4b72a1e34569ea0b47f99268d81b2f410f2b032a29908a139d7a", 0x67B7, 0x01000100),
+    ):
+        body = module[start - 0x26000 : end - 0x26000]
+        if len(body) != end - start or sha256(body) != expected_hash:
+            raise Failure(f"{label} startup identity range drift")
+        export_calls = []
+        for offset in range(len(body) - 4):
+            if body[offset] != 0xE8:
+                continue
+            runtime = start + offset
+            target = runtime + 5 + struct.unpack_from("<i", body, offset + 1)[0]
+            if target == identity_export:
+                export_calls.append(runtime)
+        if len(export_calls) != 1:
+            raise Failure(f"{label} current-identity export call drift")
+        encoded = struct.pack("<I", expected_identity)
+        compare_offsets = [
+            offset for offset in range(len(body) - 4)
+            if body[offset] == 0x3D and body[offset + 1 : offset + 5] == encoded
+        ]
+        if len(compare_offsets) != 1:
+            raise Failure(f"{label} expected identity comparison drift")
+        reviews.append({
+            "label": label,
+            "startup_runtime_range": [start, end],
+            "startup_size": len(body),
+            "startup_sha256": expected_hash,
+            "current_identity_export_stub_runtime_address": identity_export,
+            "current_identity_call_runtime_address": export_calls[0],
+            "expected_identity_comparison_runtime_address": start + compare_offsets[0],
+            "expected_current_identity": expected_identity,
+            "expected_process_identifier_low_16_bits": expected_identity & 0xFFFF,
+        })
+
+    return {
+        "syslib_current_identity_exports": identity_export_bodies,
+        "startup_identity_checks": reviews,
+        "vfs_process_identifier": 0x0200,
+        "vfs_current_identity_value": 0x02000200,
+        "pm_process_identifier": 0x0100,
+        "pm_current_identity_value": 0x01000100,
+        "vfs_process_attributes": {
+            "affected": affected_vfs_attributes,
+            "first_fixed": first_fixed_vfs_attributes,
+        },
+        "pm_process_attributes": {
+            "affected": affected_pm_attributes,
+            "first_fixed": first_fixed_pm_attributes,
+        },
+        "bounded_interpretation": "Affected and first-fixed VFS startup call the same translated syslib current-identity export and require value 0x02000200; PM startup uses that export and separately requires 0x01000100. The low 16-bit process identifier 0x0200 consumed by the reviewed ipc_drv transfer therefore names the VFS process, whose signed metadata declares CSE user ID 0, permanent/single-instance status, trusted send/notify sender permissions, public send/receive and notify receiver permissions, and reset-system fault handling.",
+        "attribution_boundary": "This names the internal recipient process and its signed metadata attributes. It does not prove which major-39 minor reaches event 0xf4, HECI/MEI reachability, external control, an exploitable privilege crossing, CVE-2018-12147 attribution, or installed-unit identity.",
     }
 
 
@@ -684,7 +856,7 @@ def ipc_drv_stack_initialization_review(
             "kernel_process_table_index": 2,
             "zero_low_half_selects_local_descriptor_path": True,
             "nonzero_low_half_selects_alternate_transfer_path": True,
-            "vendor_process_or_recipient_name": None,
+            "vendor_process_or_recipient_name": "vfs",
         },
         "first_fixed_new_initialization": {
             "local_buffer_stack_range": "ebp-0x98 through ebp-0x11",
@@ -700,8 +872,8 @@ def ipc_drv_stack_initialization_review(
             "fixed_transfer_size": 0x88,
             "fixed_transfer_call_runtime_addresses": [0x2770C, 0x27748],
         },
-        "bounded_interpretation": "The first-fixed callback newly clears its complete 0x88-byte local transfer buffer before storing a four-byte header, bounded-copying at most 0x80 payload bytes, and transferring the complete fixed-size buffer through syslib export 0x61d6. Syslib event byte 0xf4 dispatches to this exact operation-table slot and supplies message dword zero; the transfer wrapper consumes its low 16 bits. Value 0x02000200 therefore supplies process identifier 0x0200, process-table index 2, to kernel selector 7 in this callback. The affected callback has no call to gate 0x103d in its complete hash-bound body.",
-        "attribution_boundary": "This is an exact first-fixed stale-stack/partial-initialization information-disclosure hardening mechanism inside ipc_drv and an exact internal process-transfer boundary. The common major-39 operation table covers six metadata-defined internal CSE special files; static bytes do not reduce event-0xf4 reachability to one named minor or identify the vendor process represented by 0x0200. HECI reachability, external attacker control, privilege ordering between internal processes, exploitability, and CVE-2018-12147 attribution remain unproved.",
+        "bounded_interpretation": "The first-fixed callback newly clears its complete 0x88-byte local transfer buffer before storing a four-byte header, bounded-copying at most 0x80 payload bytes, and transferring the complete fixed-size buffer through syslib export 0x61d6. Syslib event byte 0xf4 dispatches to this exact operation-table slot and supplies message dword zero; the transfer wrapper consumes its low 16 bits. Value 0x02000200 therefore supplies VFS process identifier 0x0200, process-table index 2, to kernel selector 7 in this callback. The affected callback has no call to gate 0x103d in its complete hash-bound body.",
+        "attribution_boundary": "This is an exact first-fixed stale-stack/partial-initialization information-disclosure hardening mechanism inside ipc_drv and an exact internal transfer to the signed UID-0 VFS process. The common major-39 operation table covers six metadata-defined internal CSE special files; static bytes do not reduce event-0xf4 reachability to one named minor. HECI reachability, external attacker control, an exploitable privilege crossing, CVE-2018-12147 attribution, and installed-unit identity remain unproved.",
     }
 
 
@@ -1301,6 +1473,29 @@ def build_report(affected_image: bytes, first_fixed_image: bytes) -> dict:
     if set(class_names["opaque_changed"]) != EXPECTED_OPAQUE:
         raise Failure("opaque module classification drift")
 
+    process_attributes = {}
+    for module_name in ("vfs", "pm"):
+        process_attributes[module_name] = {
+            "affected": _process_attributes(
+                fixed.member(
+                    affected_image,
+                    fixed.OLD_NFTP,
+                    affected_context["entries"],
+                    f"{module_name}.met",
+                ),
+                f"affected {module_name}.met",
+            ),
+            "first_fixed": _process_attributes(
+                fixed.member(
+                    first_fixed_image,
+                    fixed.FIRST_FIXED_NFTP,
+                    first_context["entries"],
+                    f"{module_name}.met",
+                ),
+                f"first-fixed {module_name}.met",
+            ),
+        }
+
     return {
         "schema": SCHEMA,
         "inputs": {
@@ -1349,6 +1544,18 @@ def build_report(affected_image: bytes, first_fixed_image: bytes) -> dict:
             first_kernel,
             affected_syslib,
             first_syslib,
+        ),
+        "vfs_process_identity_review": vfs_process_identity_review(
+            decoded_modules["vfs"][0],
+            decoded_modules["vfs"][1],
+            decoded_modules["pm"][0],
+            decoded_modules["pm"][1],
+            affected_syslib,
+            first_syslib,
+            process_attributes["vfs"]["affected"],
+            process_attributes["vfs"]["first_fixed"],
+            process_attributes["pm"]["affected"],
+            process_attributes["pm"]["first_fixed"],
         ),
         "ipc_drv_stack_initialization_review": ipc_drv_stack_initialization_review(
             decoded_modules["ipc_drv"][0],

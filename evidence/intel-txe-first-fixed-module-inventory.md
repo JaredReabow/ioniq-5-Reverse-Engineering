@@ -147,15 +147,29 @@ bodies are byte-identical. The handler tail reaches a shared return epilogue at
 
 A complete-kernel instruction census finds the same numeric transition in 15
 sites in each build: two `mov eax, immediate`, one `mov edx, immediate`, and
-twelve `cmp eax, immediate` sites. The `mov edx` site is the return path in the
-helper called by selector `0x10`, and its result reaches the handler's changed
-comparison. Thus the selector-`0x10` uses are part of a
-kernel-wide status/sentinel-renumbering candidate, not isolated evidence of
-message-validation logic. This proves a real first-fixed semantic delta on the
-exact path used by the eleven reviewed length sites, but does **not** name the
-value, explain why it increased by three, identify the message recipient or
-appended byte, establish HECI reachability, or attribute the change to
-CVE-2018-12147.
+twelve `cmp eax, immediate` sites. The `mov edx` site is in the helper directly
+called by selector `0x10`.
+
+That entire helper, `0x8bfe7..0x8c099` / `0x8bf89..0x8c03b`, is `0xb2` bytes.
+Its only two raw differing bytes encode `mov edx, 0xff → 0x102`. Immediately
+beforeward, exact instructions walk `+0x50`/`+0x28` links until a null tail,
+store the source pointer at that tail, and then return the reviewed value through
+`eax`. The shared epilogue stores that result at `0x98384`; zero and the reviewed
+value both take the path that clears `eax` and returns, while other nonzero
+values call a separate handler.
+
+Seven context-bound sites immediately above the old sentinel show the same
+translation: two uses of `0x100 → 0x103`, one of `0x101 → 0x104`, and four of
+`0x102 → 0x105`. Each is the same `mov` instruction in matching local context;
+reviewed differences outside the immediate are confined to two nearby call
+address operands. This strongly supports insertion of three ordinal statuses at
+or below the old sentinel rather than an isolated constant replacement.
+
+Together, the queue-like helper and epilogue behavior support a deferred or
+nonordinary-completion sentinel interpretation. It still does **not** establish
+the vendor's semantic name, identify the three inserted statuses or exact
+insertion point, identify the message recipient or appended byte, establish
+HECI reachability, or attribute the change to CVE-2018-12147.
 
 Larger changed modules include plausible service and downstream-parser surfaces
 such as `ipc_drv`, but a module name or diff size is not reachability or advisory
@@ -166,8 +180,8 @@ exact CVE-2018-3655 candidate.
 
 - `evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json`
 - schema `ioniq-txe-first-fixed-module-inventory/v1`
-- size `111,740` bytes
-- SHA-256 `e3ee05715b3ed657e511f9f9ad108b6954bbace7a88ce88e69eaf0669d6ff2ba`
+- size `114,906` bytes
+- SHA-256 `e031bf789b38c1797e61d82b04a923c80d0322a7a44bef2f40d5885ad4e38770`
 
 Embedded `$MN2` signatures establish self-consistency and byte binding only.
 They do not establish platform ROM/fuse/OEM acceptance or installed-unit

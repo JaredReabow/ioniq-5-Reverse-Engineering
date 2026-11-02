@@ -251,6 +251,31 @@ first-level callees. It does not exclude indirect dispatch targets, deeper
 callees, kernel/service handlers behind the external gates, another signed
 module, or downstream parser.
 
+A complete signed-NFTP inventory now adds a wider boundary. Of 34 paired
+modules, `ish_bup` is byte-identical and nine are wholly syslib-relocation-only:
+`adspa`, `busdrv`, `evtdisp`, `hci`, `heci`, `pmdrv`, `tcb`, `tls_iso`, and
+`vdm`. Twenty-three modules retain unexplained bytes, while `pavp` remains
+explicitly opaque because its nonzero module-extension byte `+9` is outside the
+reviewed transform.
+
+The eleven smallest residual bytes in `ish_srv`, `loadmgr`, `gpio`, and `pm`
+are one-byte increases in serialized lengths for blocks whose dword zero is
+`0x02000200`. Their exact submit wrapper reaches FTPR kernel selector `0x10`
+with syscall value `0x10010040`. The complete selector handler differs only in
+two reviewed call operands and two uses of immediate `0xff → 0x102`. Its
+directly called `0xb2`-byte helper differs only in `mov edx, 0xff → 0x102`:
+after walking `+0x50`/`+0x28` links to a null tail, it stores a source pointer
+there and returns that value through `eax`. The shared epilogue handles zero and
+the reviewed value alike, unlike other nonzero results. A complete-kernel
+census finds the same numeric transition at 15 MOV/CMP sites. Seven matching
+instruction contexts also translate adjacent values `0x100 → 0x103`,
+`0x101 → 0x104`, and `0x102 → 0x105`, strongly supporting insertion of three
+ordinal statuses at or below the old sentinel. This is a deferred/nonordinary-
+completion sentinel-renumbering candidate, not isolated proof of an input-
+validation fix. The vendor name, inserted status identities, exact insertion
+point, recipient, added-byte semantics, HECI reachability, and CVE attribution
+remain unproved. See `evidence/intel-txe-first-fixed-module-inventory.md`.
+
 The exact later signed FPF adds structured `RbeArbEn`, `RbeArbSvn`,
 `OemKmArbEn`, `OemKmArbSvn`, `UcodeArbEn`, and `UcodeArbSvn` records absent by
 name from both affected and first-fixed signed FPF. This proves the named

@@ -488,6 +488,60 @@ def kernel_message_submit_selector_review(
         if found != global_immediates[key]:
             raise Failure(f"kernel global immediate census drift: {key}")
 
+    affected_helper = affected_kernel[0x8BFE7 - KERNEL_BASE : 0x8C099 - KERNEL_BASE]
+    first_helper = first_fixed_kernel[0x8BF89 - KERNEL_BASE : 0x8C03B - KERNEL_BASE]
+    helper_prefix = bytes.fromhex("8d57508b475085c074088d50288b4028ebf48932ba")
+    if (
+        len(affected_helper) != 0xB2
+        or len(first_helper) != 0xB2
+        or sha256(affected_helper) != "140dff321f92ee9e8fc551ff9e28e7501a97ab81b4b4e5c0f73ed52648cd3cea"
+        or sha256(first_helper) != "0a10e5956f69381c8c455af7c14b72320d844709a9304af0ff439d38dfa7c196"
+        or affected_helper[0x8F : 0x8F + len(helper_prefix)] != helper_prefix
+        or first_helper[0x8F : 0x8F + len(helper_prefix)] != helper_prefix
+        or struct.unpack_from("<I", affected_helper, 0xA4)[0] != 0xFF
+        or struct.unpack_from("<I", first_helper, 0xA4)[0] != 0x102
+        or affected_helper[:0xA4] != first_helper[:0xA4]
+        or affected_helper[0xA8:] != first_helper[0xA8:]
+    ):
+        raise Failure("selector 0x10 directly called helper drift")
+
+    ordinal_pairs = (
+        (0x8A3F4, 0x8A396, 0x100, 0x103, {9, 19, 20}),
+        (0x873D4, 0x874B7, 0x100, 0x103, {9}),
+        (0x8A872, 0x8A814, 0x101, 0x104, {9, 16, 17}),
+        (0x8A47D, 0x8A41F, 0x102, 0x105, {9}),
+        (0x8A4A5, 0x8A447, 0x102, 0x105, {9}),
+        (0x8A835, 0x8A7D7, 0x102, 0x105, {9}),
+        (0x8A8BC, 0x8A85E, 0x102, 0x105, {9}),
+    )
+    ordinal_shift_sites = []
+    for old_address, new_address, old_value, new_value, expected_window_differences in ordinal_pairs:
+        old_offset = old_address - KERNEL_BASE
+        new_offset = new_address - KERNEL_BASE
+        old_opcode = affected_kernel[old_offset]
+        new_opcode = first_fixed_kernel[new_offset]
+        if old_opcode != new_opcode or old_opcode not in (0xB8, 0xBA):
+            raise Failure("kernel post-sentinel ordinal opcode drift")
+        if struct.unpack_from("<I", affected_kernel, old_offset + 1)[0] != old_value:
+            raise Failure("affected kernel post-sentinel ordinal drift")
+        if struct.unpack_from("<I", first_fixed_kernel, new_offset + 1)[0] != new_value:
+            raise Failure("first-fixed kernel post-sentinel ordinal drift")
+        old_window = affected_kernel[old_offset - 8 : old_offset + 13]
+        new_window = first_fixed_kernel[new_offset - 8 : new_offset + 13]
+        window_differences = {
+            index for index, pair in enumerate(zip(old_window, new_window))
+            if pair[0] != pair[1]
+        }
+        if window_differences != expected_window_differences:
+            raise Failure("kernel post-sentinel instruction-context drift")
+        ordinal_shift_sites.append({
+            "instruction": "mov_eax_imm32" if old_opcode == 0xB8 else "mov_edx_imm32",
+            "affected_runtime_address": old_address,
+            "first_fixed_runtime_address": new_address,
+            "affected_value": old_value,
+            "first_fixed_value": new_value,
+        })
+
     affected_epilogue = affected_kernel[0x8BDB0 - KERNEL_BASE : 0x8BDCF - KERNEL_BASE]
     first_epilogue = first_fixed_kernel[0x8BD52 - KERNEL_BASE : 0x8BD71 - KERNEL_BASE]
     if (
@@ -540,18 +594,42 @@ def kernel_message_submit_selector_review(
         "reviewed_rel32_sites": rel32_sites,
         "semantic_immediate_sites": semantic_sites,
         "only_handler_semantic_change_after_rel32_normalization": "two uses of the same immediate change from 0x000000ff to 0x00000102",
+        "directly_called_helper": {
+            "affected_runtime_range": [0x8BFE7, 0x8C099],
+            "first_fixed_runtime_range": [0x8BF89, 0x8C03B],
+            "size": len(affected_helper),
+            "affected_sha256": sha256(affected_helper),
+            "first_fixed_sha256": sha256(first_helper),
+            "only_raw_differences": "two bytes inside MOV EDX immediate 0x000000ff to 0x00000102",
+            "bounded_behavior": "after walking +0x50/+0x28 links to a null tail, the helper stores the source pointer at the tail, loads the reviewed immediate into EDX, then returns it through EAX",
+        },
         "shared_return_epilogue": {
             "affected_runtime_range": [0x8BDB0, 0x8BDCF],
             "first_fixed_runtime_range": [0x8BD52, 0x8BD71],
             "affected_sha256": sha256(affected_epilogue),
             "first_fixed_sha256": sha256(first_epilogue),
             "only_change": "cmp eax immediate 0x000000ff to 0x00000102",
+            "bounded_behavior": "stores EAX at 0x98384; zero and the reviewed immediate both take the path that clears EAX and returns, while other nonzero values call a separate handler",
+        },
+        "adjacent_ordinal_shift_review": {
+            "site_count": len(ordinal_shift_sites),
+            "sites": ordinal_shift_sites,
+            "all_reviewed_values_increase_by_three": all(
+                site["first_fixed_value"] == site["affected_value"] + 3
+                for site in ordinal_shift_sites
+            ),
+            "affected_to_first_fixed_value_counts": {
+                "0x100_to_0x103": 2,
+                "0x101_to_0x104": 1,
+                "0x102_to_0x105": 4,
+            },
+            "interpretation_boundary": "The reviewed adjacent values shift by the same plus-three translation as the 0xff sentinel, supporting insertion of three ordinal statuses at or below the old sentinel. The new status names and exact insertion point remain unknown.",
         },
         "kernel_global_immediate_census": {
             **global_immediates,
             "affected_total_site_count": 15,
             "first_fixed_total_site_count": 15,
-            "interpretation_boundary": "The same numeric change occurs in fifteen MOV/CMP sites across each complete kernel, so the selector-0x10 uses are part of a kernel-wide status/sentinel renumbering candidate rather than isolated proof of message-validation logic.",
+            "interpretation_boundary": "The same numeric change occurs in fifteen MOV/CMP sites across each complete kernel. The exact selector-0x10 helper returns it after linking an object into a queue-like structure, and the shared epilogue handles it like zero rather than other nonzero values. This supports a deferred/nonordinary-completion sentinel interpretation, but does not establish the vendor name or CVE attribution.",
         },
         "affected_syslib_selector_wrapper_runtime_range": [0x16F8F, 0x16FB3],
         "first_fixed_syslib_selector_wrapper_runtime_range": [0x16FB1, 0x16FD5],

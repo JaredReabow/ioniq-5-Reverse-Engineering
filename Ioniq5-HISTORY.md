@@ -3982,3 +3982,10 @@ and are superseded by corrections rather than silently rewritten.
   narrow, stubborn, and out of reach of the instruments the image provides: there is no debugger in it.
 - Astra's probe needs a gdbserver we do not have. Rather than pretend otherwise, the next attempt goes at the signal side, which is the only
   other surface left that can change the application's state from outside.
+
+## 2026-10-31 — it was asking for a screen that may not exist
+
+- The client binds the layout controller, requests screen nine, enumerates layers, and gives up. That is the first concrete thing it has been
+  seen to look for and not find.
+- It also weakens yesterday's signal theory: the signal it could not connect is its own.
+- If the vendor expects a screen id this compositor never creates, then the fault is configuration on our side again, which is familiar ground.

@@ -1,0 +1,167 @@
+{
+  "canonical_rootfs": {
+    "archive": {
+      "sha256": "423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84",
+      "size": 879109759
+    },
+    "engineering_script": {
+      "gid": 0,
+      "member": "app/share/AppEngineerMode/constants/iasimage_update.sh",
+      "mode": 420,
+      "normal_action": "copy p2/iasImage to p1/iasImage",
+      "sha256": "a22efabdf3604cc57777fdba10ea00119bdc4721a5df8cecc1669b8480a78c2f",
+      "size": 1224,
+      "sub_action": "copy p2/iasImage_sub to p1/iasImage",
+      "uid": 0
+    },
+    "esinit": {
+      "commented_index_map": {
+        "2": "PLK1",
+        "3": "PLK2"
+      },
+      "fallback_detection": "ABL.bdev=mmc2:/iasImage",
+      "fallback_repair": "copy p2/iasImage to p1/iasImage",
+      "gid": 0,
+      "member": "lib/systemd/esinit",
+      "mode": 493,
+      "sha256": "9f39947ec144322b29c0366bb681f0452ae3696139589bc2f4a2f05bf44afa52",
+      "size": 17894,
+      "uid": 0
+    }
+  },
+  "conclusions": {
+    "abl_configuration_directly_selects_iasimage_sub": false,
+    "attempt_counter_proved": false,
+    "boot_index_2_maps_to_primary_iasimage_record": true,
+    "boot_index_3_maps_to_secondary_iasimage_record": true,
+    "custom_image_acceptance_root_or_persistence_proved": false,
+    "engineering_script_promotes_sub_by_overwriting_primary_basename": true,
+    "health_or_mark_good_proved": false,
+    "kernel_cmdline_distinguishes_selected_index_from_actual_device": true,
+    "persistent_boot_index_source_proved": false,
+    "rollback_policy_proved": false,
+    "selected_primary_failure_can_fall_forward_to_secondary_record": true,
+    "userspace_repairs_primary_from_successful_secondary_fallback": true
+  },
+  "exact_update": {
+    "abl": {
+      "member": "abl/bin/104096/abl1714-Batch10-Ver.11.00-sign-8MB.bin",
+      "sha256": "f6fc0373042c27f36e601fe957544582f3b1bd4be3c36659105322304b2dc7ac",
+      "size": 8388608
+    },
+    "archive": {
+      "sha256": "1e67344a714708733a9158a52ef5d4def95b126e5725d070669ea64e0644c4c8",
+      "size": 42101042
+    },
+    "config_container": {
+      "boot_records": [
+        {
+          "basename": "iasImage",
+          "boot_index": 2,
+          "descriptor_kind": 2,
+          "device_instance": 1,
+          "predicate": "pcbver=10 lge.sign=1",
+          "record_offset": 52,
+          "record_sha256": "959a9fcc3f3dfd935f494c3c7d597951db8485572af9c0e109f1095983e0b0cb",
+          "record_size": 44
+        },
+        {
+          "basename": "iasImage",
+          "boot_index": 3,
+          "descriptor_kind": 2,
+          "device_instance": 2,
+          "predicate": "pcbver=10 lge.sign=1",
+          "record_offset": 96,
+          "record_sha256": "bdb672f3ae65298ca83e4f4e820e57ea5a301a85ebc338cd33a1e0038b986868",
+          "record_size": 44
+        }
+      ],
+      "direct_sub_literal_present": false,
+      "flash_offset": 1060458,
+      "header_crc32c": "a242938d",
+      "image_type": "0x60000 (ABL configuration)",
+      "payload_crc32c": "dd7740d8",
+      "payload_size": 2664,
+      "sha256": "c9a592afcecb6adefc678d5503f98e946370948264690ef46c2bf39a7c718a9a",
+      "size_with_payload_crc": 2696
+    },
+    "decompressed_stage": {
+      "boot_record_callback_returns_zero_after_returned_load_failure": true,
+      "boot_state_address": "0x000c0214",
+      "boot_state_reference_file_offsets": [
+        1289,
+        1530,
+        1553,
+        1727,
+        44577,
+        48251,
+        78799,
+        78806,
+        78824,
+        78865,
+        78887,
+        78912,
+        79004
+      ],
+      "config_iterator_callback_zero_continues_to_next_record": true,
+      "direct_sub_literal_present": false,
+      "kernel_cmdline_actual_device_field": "ABL.bdev=<actual device and path>",
+      "kernel_cmdline_selected_field": "ABL.boot=<selected index in hexadecimal>",
+      "later_records_remain_eligible_after_a_returned_failure": true,
+      "load_base": 917504,
+      "ranges": {
+        "boot_dispatch_tail": {
+          "file_end": 1805,
+          "file_start": 1722,
+          "runtime_end": 919309,
+          "runtime_start": 919226,
+          "sha256": "bc0cbc9edeeebf6249d1dfa868827cbc6d18fade68d8ae6d03f221665e52144b"
+        },
+        "boot_iterator_wrapper": {
+          "file_end": 45148,
+          "file_start": 45108,
+          "runtime_end": 962652,
+          "runtime_start": 962612,
+          "sha256": "c6fd0193fe3ef42ea3de8d622c218ae9c39f4af9aba828f30291ebb242ac8a46"
+        },
+        "boot_record_callback": {
+          "file_end": 45047,
+          "file_start": 44566,
+          "runtime_end": 962551,
+          "runtime_start": 962070,
+          "sha256": "aa556ed1727d5ea006f9211c536fdc387f117665291b929871b07cbb2b0f0e89"
+        },
+        "cmdline_builder": {
+          "file_end": 48345,
+          "file_start": 48224,
+          "runtime_end": 965849,
+          "runtime_start": 965728,
+          "sha256": "62c47e95d1a3637d3bbc6e9c3cb6e3ab8d775f1af28d482f615b125cb1eb4892"
+        },
+        "config_iterator": {
+          "file_end": 54923,
+          "file_start": 54646,
+          "runtime_end": 972427,
+          "runtime_start": 972150,
+          "sha256": "6272cdba6a4cc163d822e6e92defb5508ded69ed86ad2ab969937bbea3c4789d"
+        }
+      },
+      "selected_index_expression": "byte[0x000c0214] & 0x1f",
+      "selected_index_skips_earlier_records": true,
+      "sha256": "3491be59ef865cb376131b02fa1ff6941e37d1c87ae3c4cf7969b5364785b3c2",
+      "size": 130560
+    }
+  },
+  "limitations": [
+    "The exact stage proves ordered record selection and forward eligibility after a returned failure; it does not prove which individual load or authentication failures occurred on a physical unit.",
+    "The source and persistence semantics of the runtime boot-state byte at 0x000c0214 remain unresolved.",
+    "The exact ABL configuration and recovered stage contain no direct _sub pathname. The stock engineering script supplies a separate userspace promotion route by copying p2/iasImage_sub over p1/iasImage; this does not prove that no dynamically constructed proprietary route exists elsewhere.",
+    "The userspace recovery copy is attempted after a secondary boot; successful mount, copy, sync, durable repair, future selection, health, mark-good, and rollback are not proved by static code.",
+    "No updater, bootloader, target helper, image, mount, copy, flash operation, reset, selector change, or boot attempt was executed."
+  ],
+  "schema": "abl-boot-selection/v1",
+  "tool": {
+    "name": "abl-boot-selection",
+    "version": "1.0.0"
+  }
+}

@@ -426,7 +426,7 @@
     ],
     "affected_syslib_selector_wrapper_sha256": "58a75d3146459c122d603c5d17d231129c9fe3226ebe51b777f8b8cbc8c593c1",
     "affected_table_runtime_address": 593188,
-    "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed message-length sites, but the same 0xff-to-0x102 change appears at fifteen MOV/CMP sites kernel-wide, including the directly called helper's MOV EDX return path. Three numeric ordinal insertions are now bound to first-fixed status-return sites at 0xc4, 0xc5, and 0xc9, but their vendor names and semantics, message dword-zero meaning, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
+    "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed VFS event-ordinal sites, but the same 0xff-to-0x102 change appears at fifteen MOV/CMP sites kernel-wide, including the directly called helper's MOV EDX return path. Three numeric ordinal insertions are now bound to first-fixed status-return sites at 0xc4, 0xc5, and 0xc9, but their vendor names and semantics, the vendor meaning of inserted VFS event 0x0b, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
     "directly_called_helper": {
       "affected_runtime_range": [
         573415,
@@ -773,147 +773,6 @@
     },
     "syscall_argument_size": 64,
     "syslib_wrapper_builds_syscall_value": "(selector_byte << 24) | 0x00010000 | argument_size_word"
-  },
-  "minimal_length_delta_review": {
-    "affected_constructor_runtime_range": [
-      36490,
-      36563
-    ],
-    "all_reviewed_lengths_increment_by_one": true,
-    "attribution_boundary": "The eleven residual bytes in ish_srv, loadmgr, gpio, and pm are exact one-byte increases in serialized message-length fields whose message dword zero is 0x02000200. The separate ipc_drv review proves that value's low half 0x0200 selects an alternate internal transfer path in one callback, but does not name the selector/domain or prove these constructors reach that callback. Recipient identity, added-byte meaning, attacker control, HECI reachability, and CVE attribution remain unproved.",
-    "constructor_sha256": "1a9f71789daff697fe6ac80b110101ecc63d84bbc3759c6a869bfc648a6d8c28",
-    "constructor_stores_second_argument_low_byte_at_message_offset_four": true,
-    "first_fixed_constructor_runtime_range": [
-      36495,
-      36568
-    ],
-    "message_dword_zero": 33554944,
-    "module_count": 4,
-    "site_count": 11,
-    "sites": [
-      {
-        "affected_length": 19,
-        "affected_syslib_stub": 24756,
-        "encoding": "push_imm8",
-        "first_fixed_length": 20,
-        "first_fixed_syslib_stub": 24756,
-        "module": "ish_srv",
-        "module_relative_call_offset": 16922,
-        "module_relative_immediate_offset": 16908,
-        "runtime_immediate_address": 172556
-      },
-      {
-        "affected_length": 21,
-        "affected_syslib_stub": 24756,
-        "encoding": "push_imm8",
-        "first_fixed_length": 22,
-        "first_fixed_syslib_stub": 24756,
-        "module": "loadmgr",
-        "module_relative_call_offset": 9742,
-        "module_relative_immediate_offset": 9728,
-        "runtime_immediate_address": 165376
-      },
-      {
-        "affected_length": 22,
-        "affected_syslib_stub": 24756,
-        "encoding": "push_imm8",
-        "first_fixed_length": 23,
-        "first_fixed_syslib_stub": 24756,
-        "module": "gpio",
-        "module_relative_call_offset": 10476,
-        "module_relative_immediate_offset": 10470,
-        "runtime_immediate_address": 166118
-      },
-      {
-        "affected_length": 14,
-        "affected_syslib_stub": 24756,
-        "encoding": "push_imm8",
-        "first_fixed_length": 15,
-        "first_fixed_syslib_stub": 24756,
-        "module": "gpio",
-        "module_relative_call_offset": 10699,
-        "module_relative_immediate_offset": 10690,
-        "runtime_immediate_address": 166338
-      },
-      {
-        "affected_length": 11,
-        "affected_syslib_stub": 24756,
-        "encoding": "push_imm8",
-        "first_fixed_length": 12,
-        "first_fixed_syslib_stub": 24756,
-        "module": "pm",
-        "module_relative_call_offset": 2116,
-        "module_relative_immediate_offset": 2098,
-        "runtime_immediate_address": 157746
-      },
-      {
-        "affected_length": 13,
-        "affected_syslib_stub": 24756,
-        "encoding": "push_imm8",
-        "first_fixed_length": 14,
-        "first_fixed_syslib_stub": 24756,
-        "module": "pm",
-        "module_relative_call_offset": 6197,
-        "module_relative_immediate_offset": 6179,
-        "runtime_immediate_address": 161827
-      },
-      {
-        "affected_length": 16,
-        "affected_syslib_stub": 26121,
-        "encoding": "mov_byte_imm8",
-        "first_fixed_length": 17,
-        "first_fixed_syslib_stub": 26126,
-        "module": "pm",
-        "module_relative_call_offset": 6367,
-        "module_relative_immediate_offset": 6342,
-        "runtime_immediate_address": 161990
-      },
-      {
-        "affected_length": 24,
-        "affected_syslib_stub": 26121,
-        "encoding": "mov_byte_imm8",
-        "first_fixed_length": 25,
-        "first_fixed_syslib_stub": 26126,
-        "module": "pm",
-        "module_relative_call_offset": 6497,
-        "module_relative_immediate_offset": 6492,
-        "runtime_immediate_address": 162140
-      },
-      {
-        "affected_length": 14,
-        "affected_syslib_stub": 24756,
-        "encoding": "push_imm8",
-        "first_fixed_length": 15,
-        "first_fixed_syslib_stub": 24756,
-        "module": "pm",
-        "module_relative_call_offset": 9451,
-        "module_relative_immediate_offset": 9442,
-        "runtime_immediate_address": 165090
-      },
-      {
-        "affected_length": 19,
-        "affected_syslib_stub": 24756,
-        "encoding": "push_imm8",
-        "first_fixed_length": 20,
-        "first_fixed_syslib_stub": 24756,
-        "module": "pm",
-        "module_relative_call_offset": 9804,
-        "module_relative_immediate_offset": 9790,
-        "runtime_immediate_address": 165438
-      },
-      {
-        "affected_length": 21,
-        "affected_syslib_stub": 24756,
-        "encoding": "push_imm8",
-        "first_fixed_length": 22,
-        "first_fixed_syslib_stub": 24756,
-        "module": "pm",
-        "module_relative_call_offset": 10979,
-        "module_relative_immediate_offset": 10965,
-        "runtime_immediate_address": 166613
-      }
-    ],
-    "submit_wrapper_stores_first_argument_dword_at_message_offset_zero": true
   },
   "modules": {
     "adspa": {
@@ -3421,6 +3280,208 @@
         "unexplained_differing_byte_count": 11035
       }
     ]
+  },
+  "vfs_event_ordinal_delta_review": {
+    "affected_completion_length_runtime_ranges": [
+      [
+        575229,
+        575242
+      ],
+      [
+        575247,
+        575276
+      ]
+    ],
+    "affected_constructor_runtime_range": [
+      36490,
+      36563
+    ],
+    "affected_kernel_event_comparison_runtime_range": [
+      575724,
+      575751
+    ],
+    "affected_kernel_input_geometry_runtime_range": [
+      575323,
+      575376
+    ],
+    "all_reviewed_event_ordinals_increment_by_one": true,
+    "attribution_boundary": "The vendor name and full semantics of inserted VFS event 0x0b, its downstream handler, the producer-to-ipc_drv-event-0xf4 relationship, attacker control, HECI reachability, and CVE attribution remain unproved.",
+    "bounded_interpretation": "The eleven residual bytes are VFS event ordinals at message offset +4, not serialized lengths. Offset +5 is the distinct bounded payload-length field. Every reviewed ordinal increases by one at the first-fixed boundary. The old PM event 0x0b becomes 0x0c, while first-fixed Maestro adds an exact zero-initialized VFS event-0x0b producer, binding the inserted numeric event ordinal to 0x0b. No appended payload byte is introduced by these deltas.",
+    "constructor_sha256": "1a9f71789daff697fe6ac80b110101ecc63d84bbc3759c6a869bfc648a6d8c28",
+    "constructor_stores_second_argument_low_byte_at_message_offset_four": true,
+    "first_fixed_completion_length_runtime_ranges": [
+      [
+        575135,
+        575148
+      ],
+      [
+        575153,
+        575182
+      ]
+    ],
+    "first_fixed_constructor_runtime_range": [
+      36495,
+      36568
+    ],
+    "first_fixed_inserted_event_producer": {
+      "caller_condition": "eax equals 2 at runtime 0x27b13..0x27b24",
+      "caller_runtime_addresses": [
+        162596
+      ],
+      "clear_gate_runtime_address": 4157,
+      "cleared_local_message_size": 64,
+      "function_runtime_range": [
+        170320,
+        170384
+      ],
+      "function_sha256": "0be9ef6f8034023db17a6c6740045b7523198fdb73d11098fb92e49d67c0e903",
+      "function_size": 64,
+      "inserted_event_ordinal": 11,
+      "module": "maestro",
+      "recipient_current_identity": 33554944,
+      "recipient_process": "vfs",
+      "submit_stub_runtime_address": 24756
+    },
+    "first_fixed_kernel_event_comparison_runtime_range": [
+      575630,
+      575657
+    ],
+    "first_fixed_kernel_input_geometry_runtime_range": [
+      575229,
+      575282
+    ],
+    "kernel_completion_length_combined_sha256": "c3657583d0ab581cf42929bc2d75eb34eac1208fbf2778734179aa15300cd92a",
+    "kernel_event_comparison_sha256": "f2b6d021795f99db36b5502fc22d61ca56a148b40fdbd83f6f88bf5e467fb43f",
+    "kernel_input_geometry_sha256": "e527f5d670d725147c91ea62459bfde546253bbd8ecab5c7f1602ba49061f96a",
+    "message_dword_zero": 33554944,
+    "message_offset_five_role": "separate payload-length byte bounded at 0x38 and used as copy length plus eight on completion",
+    "message_offset_four_role": "VFS event ordinal retained in kernel state and compared with event values 0xf4 and 0xf5",
+    "module_count": 4,
+    "site_count": 11,
+    "sites": [
+      {
+        "affected_event_ordinal": 19,
+        "affected_syslib_stub": 24756,
+        "encoding": "push_imm8",
+        "first_fixed_event_ordinal": 20,
+        "first_fixed_syslib_stub": 24756,
+        "module": "ish_srv",
+        "module_relative_call_offset": 16922,
+        "module_relative_immediate_offset": 16908,
+        "runtime_immediate_address": 172556
+      },
+      {
+        "affected_event_ordinal": 21,
+        "affected_syslib_stub": 24756,
+        "encoding": "push_imm8",
+        "first_fixed_event_ordinal": 22,
+        "first_fixed_syslib_stub": 24756,
+        "module": "loadmgr",
+        "module_relative_call_offset": 9742,
+        "module_relative_immediate_offset": 9728,
+        "runtime_immediate_address": 165376
+      },
+      {
+        "affected_event_ordinal": 22,
+        "affected_syslib_stub": 24756,
+        "encoding": "push_imm8",
+        "first_fixed_event_ordinal": 23,
+        "first_fixed_syslib_stub": 24756,
+        "module": "gpio",
+        "module_relative_call_offset": 10476,
+        "module_relative_immediate_offset": 10470,
+        "runtime_immediate_address": 166118
+      },
+      {
+        "affected_event_ordinal": 14,
+        "affected_syslib_stub": 24756,
+        "encoding": "push_imm8",
+        "first_fixed_event_ordinal": 15,
+        "first_fixed_syslib_stub": 24756,
+        "module": "gpio",
+        "module_relative_call_offset": 10699,
+        "module_relative_immediate_offset": 10690,
+        "runtime_immediate_address": 166338
+      },
+      {
+        "affected_event_ordinal": 11,
+        "affected_syslib_stub": 24756,
+        "encoding": "push_imm8",
+        "first_fixed_event_ordinal": 12,
+        "first_fixed_syslib_stub": 24756,
+        "module": "pm",
+        "module_relative_call_offset": 2116,
+        "module_relative_immediate_offset": 2098,
+        "runtime_immediate_address": 157746
+      },
+      {
+        "affected_event_ordinal": 13,
+        "affected_syslib_stub": 24756,
+        "encoding": "push_imm8",
+        "first_fixed_event_ordinal": 14,
+        "first_fixed_syslib_stub": 24756,
+        "module": "pm",
+        "module_relative_call_offset": 6197,
+        "module_relative_immediate_offset": 6179,
+        "runtime_immediate_address": 161827
+      },
+      {
+        "affected_event_ordinal": 16,
+        "affected_syslib_stub": 26121,
+        "encoding": "mov_byte_imm8",
+        "first_fixed_event_ordinal": 17,
+        "first_fixed_syslib_stub": 26126,
+        "module": "pm",
+        "module_relative_call_offset": 6367,
+        "module_relative_immediate_offset": 6342,
+        "runtime_immediate_address": 161990
+      },
+      {
+        "affected_event_ordinal": 24,
+        "affected_syslib_stub": 26121,
+        "encoding": "mov_byte_imm8",
+        "first_fixed_event_ordinal": 25,
+        "first_fixed_syslib_stub": 26126,
+        "module": "pm",
+        "module_relative_call_offset": 6497,
+        "module_relative_immediate_offset": 6492,
+        "runtime_immediate_address": 162140
+      },
+      {
+        "affected_event_ordinal": 14,
+        "affected_syslib_stub": 24756,
+        "encoding": "push_imm8",
+        "first_fixed_event_ordinal": 15,
+        "first_fixed_syslib_stub": 24756,
+        "module": "pm",
+        "module_relative_call_offset": 9451,
+        "module_relative_immediate_offset": 9442,
+        "runtime_immediate_address": 165090
+      },
+      {
+        "affected_event_ordinal": 19,
+        "affected_syslib_stub": 24756,
+        "encoding": "push_imm8",
+        "first_fixed_event_ordinal": 20,
+        "first_fixed_syslib_stub": 24756,
+        "module": "pm",
+        "module_relative_call_offset": 9804,
+        "module_relative_immediate_offset": 9790,
+        "runtime_immediate_address": 165438
+      },
+      {
+        "affected_event_ordinal": 21,
+        "affected_syslib_stub": 24756,
+        "encoding": "push_imm8",
+        "first_fixed_event_ordinal": 22,
+        "first_fixed_syslib_stub": 24756,
+        "module": "pm",
+        "module_relative_call_offset": 10979,
+        "module_relative_immediate_offset": 10965,
+        "runtime_immediate_address": 166613
+      }
+    ],
+    "submit_wrapper_stores_first_argument_dword_at_message_offset_zero": true
   },
   "vfs_process_identity_review": {
     "attribution_boundary": "This names the internal recipient process and its signed metadata attributes. It does not prove which major-39 minor reaches event 0xf4, HECI/MEI reachability, external control, an exploitable privilege crossing, CVE-2018-12147 attribution, or installed-unit identity.",

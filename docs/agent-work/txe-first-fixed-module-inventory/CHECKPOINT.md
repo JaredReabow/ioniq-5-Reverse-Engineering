@@ -12,8 +12,10 @@ Accepted locally. The deterministic inventory covers every paired NFTP module in
 - `ish_bup` is byte-identical.
 - Nine complete modules are syslib-relocation-only after fail-closed target validation: `adspa`, `busdrv`, `evtdisp`, `hci`, `heci`, `pmdrv`, `tcb`, `tls_iso`, and `vdm`.
 - 23 modules retain bytes beyond that address normalization and remain review priorities, not vulnerability claims.
-- The eleven smallest residual bytes across `ish_srv`, `loadmgr`, `gpio`, and `pm` are exact one-byte increases in serialized message-length fields whose message dword zero is `0x02000200`.
-- Exact syslib constructor `0x8e8a..0x8ed3` / `0x8e8f..0x8ed8`, SHA-256 `1a9f71789daff697fe6ac80b110101ecc63d84bbc3759c6a869bfc648a6d8c28`, stores the supplied length byte at message offset `+4`; submit wrappers store first-argument dword `0x02000200` at offset zero.
+- The eleven smallest residual bytes across `ish_srv`, `loadmgr`, `gpio`, and `pm` are exact one-byte increases in VFS event ordinals whose message dword zero is `0x02000200`; they are not serialized-length changes.
+- Exact syslib constructor `0x8e8a..0x8ed3` / `0x8e8f..0x8ed8`, SHA-256 `1a9f71789daff697fe6ac80b110101ecc63d84bbc3759c6a869bfc648a6d8c28`, stores the supplied event ordinal at message offset `+4`; submit wrappers store first-argument dword `0x02000200` at offset zero.
+- Byte-identical selector-`0x10` kernel geometry copies message `+4` to retained state `+0x60`, separately copies message `+5`, and bounds `+5` at `0x38` (SHA-256 `e527f5d670d725147c91ea62459bfde546253bbd8ecab5c7f1602ba49061f96a`). Retained `+4` is compared with events `0xf4`/`0xf5`; `+5` supplies completion copy length plus eight. No appended payload byte is introduced by the eleven deltas.
+- The inserted numeric event ordinal is `0x0b`: old PM event `0x0b` shifts to `0x0c`, while first-fixed Maestro function `0x29950..0x29990`, SHA-256 `0be9ef6f8034023db17a6c6740045b7523198fdb73d11098fb92e49d67c0e903`, clears a `0x40`-byte message and submits VFS event `0x0b` when its sole direct caller takes the `eax == 2` branch.
 - The submit wrapper calls syslib selector wrapper `0x16f8f` / `0x16fb1` with selector `0x10` and argument size `0x40`, producing syscall value `0x10010040`.
 - The complete hash-bound selector-`0x10` kernel handlers are each `0x28e` bytes. Seven raw bytes differ: three call-relocation bytes plus two uses of immediate `0xff → 0x102` (`mov` and `cmp`). No other handler bytes remain after reviewed normalization.
 - The shared return epilogue uses the same changed comparison. A complete-kernel census finds three `mov` and twelve `cmp` sites using `0xff` in the affected build and `0x102` in the first-fixed build.
@@ -29,7 +31,7 @@ Accepted locally. The deterministic inventory covers every paired NFTP module in
 - Signed VFS metadata declares CSE user ID `0x0000`, permanent/single-instance status, trusted send/receive and notify sender permissions, public send/receive and notify receiver permissions, and reset-system fault handling. PM is distinct at process identifier `0x0100` and metadata user ID `0x0053`.
 - Exact metadata defines common CSE-internal major 39 files `ipc_boot`, `ipc_mctp`, `ipc_dd`, `ipc_pmc`, `ipc_prtc`, and `ipc_iun`; the static context template groups their minors as `[1,2,3]`, `[4,5]`, and `[6]`. The changed common callback is not reduced to one named minor.
 - The `ipc_drv` delta is an exact stale-stack/partial-initialization information-disclosure hardening mechanism at an internal transfer boundary to UID-0 VFS. It does not prove one reachable major-39 minor, HECI reachability, external attacker control, an exploitable privilege crossing, or CVE-2018-12147 attribution.
-- The analysis does not establish the vendor status names or full semantics, determine the appended byte, establish HECI reachability, or attribute the change to CVE-2018-12147.
+- The analysis does not establish the vendor name or full semantics of inserted VFS event `0x0b`, establish HECI reachability, or attribute the change to CVE-2018-12147.
 
 ## Artifacts
 
@@ -38,21 +40,21 @@ Accepted locally. The deterministic inventory covers every paired NFTP module in
 - `evidence/intel-txe-first-fixed-module-inventory.md`
 - `evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json`
   - schema `ioniq-txe-first-fixed-module-inventory/v1`
-  - size `140,099`
-  - SHA-256 `e9ba5a22b8ab00c2028234719f8446d4b70cbd1e45167bae071b2f074f879ad7`
+  - size `142,376`
+  - SHA-256 `c4acdb4ec3775c53523e6abb094ddf3845e1816ba75aa5596ef4063c8966f184`
 
 ## Validation
 
 - focused tests: `3 passed in 0.20s`;
-- canonical suite: `1062 passed, 352357 subtests passed in 164.58s (0:02:44)`;
-- canonical log SHA-256: `d4314508b7a339f255631b37b8c7cbe44f18d05216f644f88ec39e6f938d111f`;
+- canonical suite: `1062 passed, 352357 subtests passed in 158.14s (0:02:38)`;
+- canonical log SHA-256: `e5ef0e3ef58cfe5407f2760966866d04a29ac9c72c09e907d76dced6084f6716`;
 - normal versus UTF-16 environment output: byte-identical;
 - `py_compile` and `git diff --check`: passed.
 
 ## Next work
 
 1. Recover the vendor names and full semantics of the queue/deferred sentinel and inserted ordinals `0xc4`, `0xc5`, and `0xc9`.
-2. Determine the appended byte's meaning and whether the eleven changed constructors reach the reviewed VFS transfer callback, without sending a request.
+2. Recover the vendor semantics and downstream handler of inserted VFS event `0x0b`, and determine whether the eleven renumbered constructors reach the reviewed VFS event-`0xf4` transfer callback, without sending a request.
 3. Trace the open-handle/state path for syslib event `0xf4` to determine which of the six major-39 minors can reach the callback and whether any route continues to HECI.
 4. Extend the same exact inventory to the remaining FTPR `kernel`, `bup`, and `syslib` service-handler mappings.
 5. Continue first-fixed NDL transaction/counter analysis for CVE-2018-3655.

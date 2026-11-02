@@ -259,9 +259,13 @@ explicitly opaque because its nonzero module-extension byte `+9` is outside the
 reviewed transform.
 
 The eleven smallest residual bytes in `ish_srv`, `loadmgr`, `gpio`, and `pm`
-are one-byte increases in serialized lengths for blocks whose dword zero is
-`0x02000200`. Their exact submit wrapper reaches FTPR kernel selector `0x10`
-with syscall value `0x10010040`. The complete selector handler differs only in
+are one-byte increases in VFS event ordinals for messages whose dword zero is
+`0x02000200`; they are not serialized-length changes. Their constructor stores
+the changed ordinal at message `+4`. Byte-identical selector-`0x10` kernel
+geometry retains `+4` as the event byte, separately bounds message `+5` as the
+payload length, and later uses that length plus eight for completion copies.
+The exact submit wrapper reaches FTPR kernel selector `0x10` with syscall value
+`0x10010040`. The complete selector handler differs only in
 two reviewed call operands and two uses of immediate `0xff → 0x102`. Its
 directly called `0xb2`-byte helper differs only in `mov edx, 0xff → 0x102`:
 after walking `+0x50`/`+0x28` links to a null tail, it stores a source pointer
@@ -278,8 +282,12 @@ roles: three producers, ten repeated zero-or-sentinel completion filters, one
 selector-helper acceptance comparison, and one central-dispatcher comparison
 that continues pending-work dequeue. This is a deferred/nonordinary-completion
 sentinel-renumbering candidate, not isolated proof of an input-validation fix.
-The vendor status names and full semantics, recipient, added-byte semantics,
-HECI reachability, and CVE attribution remain unproved.
+The eleven event deltas prove a coordinated VFS event-table insertion and
+introduce no appended payload byte. The old PM event `0x0b` becomes `0x0c`,
+while a new first-fixed Maestro function at `0x29950` clears a `0x40`-byte
+message and submits VFS event `0x0b`, binding the inserted numeric ordinal. Its
+vendor event/status name and full semantics, HECI reachability, and CVE
+attribution remain unproved.
 
 A separate first-fixed `ipc_drv` callback change is now exact. The affected
 `0x350`-byte callback at `0x274bd` has no call to gate `0x103d`; its `0x364`-byte

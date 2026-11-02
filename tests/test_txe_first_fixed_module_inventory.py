@@ -13,7 +13,7 @@ FIRST_FIXED = ROOT / "work/online-fixed-txe-search-20261102/X541NA-AS.321-ifwi.b
 ARTIFACT = ROOT / "evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json"
 
 
-def test_differing_byte_count_includes_length_delta():
+def test_differing_byte_count_includes_one_byte_delta():
     assert inventory.differing_byte_count(b"abc", b"axc!") == 2
 
 
@@ -70,13 +70,24 @@ def test_canonical_inventory_matches_reviewed_artifact():
     ]
     assert report["modules"]["heci"]["relocation_review"]["equal_after_reviewed_external_rel32_normalization"] is True
     assert report["modules"]["pavp"]["affected"]["module_extension_flag_byte_9"] == 1
-    length_review = report["minimal_length_delta_review"]
-    assert length_review["module_count"] == 4
-    assert length_review["site_count"] == 11
-    assert length_review["message_dword_zero"] == 0x02000200
-    assert length_review["all_reviewed_lengths_increment_by_one"] is True
-    assert length_review["submit_wrapper_stores_first_argument_dword_at_message_offset_zero"] is True
-    assert length_review["constructor_stores_second_argument_low_byte_at_message_offset_four"] is True
+    event_review = report["vfs_event_ordinal_delta_review"]
+    assert event_review["module_count"] == 4
+    assert event_review["site_count"] == 11
+    assert event_review["message_dword_zero"] == 0x02000200
+    assert event_review["all_reviewed_event_ordinals_increment_by_one"] is True
+    assert event_review["submit_wrapper_stores_first_argument_dword_at_message_offset_zero"] is True
+    assert event_review["constructor_stores_second_argument_low_byte_at_message_offset_four"] is True
+    assert event_review["message_offset_four_role"].startswith("VFS event ordinal")
+    assert event_review["message_offset_five_role"].startswith("separate payload-length byte")
+    assert event_review["kernel_input_geometry_sha256"] == "e527f5d670d725147c91ea62459bfde546253bbd8ecab5c7f1602ba49061f96a"
+    assert [site["affected_event_ordinal"] for site in event_review["sites"]] == [
+        0x13, 0x15, 0x16, 0x0E, 0x0B, 0x0D, 0x10, 0x18, 0x0E, 0x13, 0x15,
+    ]
+    inserted_event = event_review["first_fixed_inserted_event_producer"]
+    assert inserted_event["module"] == "maestro"
+    assert inserted_event["inserted_event_ordinal"] == 0x0B
+    assert inserted_event["recipient_process"] == "vfs"
+    assert inserted_event["function_sha256"] == "0be9ef6f8034023db17a6c6740045b7523198fdb73d11098fb92e49d67c0e903"
     kernel_review = report["kernel_message_submit_selector_0x10_review"]
     assert kernel_review["selector"] == 0x10
     assert kernel_review["syscall_argument_size"] == 0x40

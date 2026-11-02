@@ -75,7 +75,7 @@ EXPECTED_RELOCATION_ONLY = {
     "vdm",
 }
 EXPECTED_OPAQUE = {"pavp"}
-MINIMAL_LENGTH_DELTA_SITES = {
+VFS_EVENT_ORDINAL_DELTA_SITES = {
     "ish_srv": ((0x420C, 0x13, 0x14, "push_imm8", 0x421A, 0x60B4, 0x60B4),),
     "loadmgr": ((0x2600, 0x15, 0x16, "push_imm8", 0x260E, 0x60B4, 0x60B4),),
     "gpio": (
@@ -356,19 +356,21 @@ def _rel32_call_target(module: bytes, call_offset: int) -> int:
     return MODULE_BASE + call_offset + 5 + struct.unpack_from("<i", module, call_offset + 1)[0]
 
 
-def minimal_length_delta_review(
+def vfs_event_ordinal_delta_review(
     decoded_modules: dict[str, tuple[bytes, bytes]],
     module_reports: dict,
     affected_syslib: bytes,
     first_fixed_syslib: bytes,
+    affected_kernel: bytes,
+    first_fixed_kernel: bytes,
 ) -> dict:
     sites = []
-    for name, expected_sites in MINIMAL_LENGTH_DELTA_SITES.items():
+    for name, expected_sites in VFS_EVENT_ORDINAL_DELTA_SITES.items():
         affected, first_fixed = decoded_modules[name]
         review = module_reports[name]["relocation_review"]
         expected_offsets = {site[0] for site in expected_sites}
         if set(review.get("unexplained_module_relative_offsets", ())) != expected_offsets:
-            raise Failure(f"{name} minimal length-delta offset drift")
+            raise Failure(f"{name} VFS event-ordinal offset drift")
         for (
             immediate_offset,
             old_value,
@@ -379,9 +381,9 @@ def minimal_length_delta_review(
             first_fixed_stub,
         ) in expected_sites:
             if affected[immediate_offset] != old_value or first_fixed[immediate_offset] != new_value:
-                raise Failure(f"{name} reviewed length immediate drift")
+                raise Failure(f"{name} reviewed event-ordinal immediate drift")
             if new_value != old_value + 1:
-                raise Failure(f"{name} reviewed length translation drift")
+                raise Failure(f"{name} reviewed event-ordinal translation drift")
             if encoding == "push_imm8":
                 if affected[immediate_offset - 1] != 0x6A or first_fixed[immediate_offset - 1] != 0x6A:
                     raise Failure(f"{name} push-imm8 encoding drift")
@@ -406,8 +408,8 @@ def minimal_length_delta_review(
                 "module_relative_immediate_offset": immediate_offset,
                 "runtime_immediate_address": MODULE_BASE + immediate_offset,
                 "encoding": encoding,
-                "affected_length": old_value,
-                "first_fixed_length": new_value,
+                "affected_event_ordinal": old_value,
+                "first_fixed_event_ordinal": new_value,
                 "module_relative_call_offset": call_offset,
                 "affected_syslib_stub": affected_stub,
                 "first_fixed_syslib_stub": first_fixed_stub,
@@ -429,10 +431,51 @@ def minimal_length_delta_review(
         or _syslib_stub_destination(affected_syslib, 0x6609) != 0x7F38
         or _syslib_stub_destination(first_fixed_syslib, 0x660E) != 0x7F3D
     ):
-        raise Failure("reviewed serialized-length constructor drift")
+        raise Failure("reviewed VFS event constructor drift")
+
+    affected_input_geometry = affected_kernel[0x8C75B - KERNEL_BASE : 0x8C790 - KERNEL_BASE]
+    first_input_geometry = first_fixed_kernel[0x8C6FD - KERNEL_BASE : 0x8C732 - KERNEL_BASE]
+    affected_event_comparisons = affected_kernel[0x8C8EC - KERNEL_BASE : 0x8C907 - KERNEL_BASE]
+    first_event_comparisons = first_fixed_kernel[0x8C88E - KERNEL_BASE : 0x8C8A9 - KERNEL_BASE]
+    affected_completion_length = (
+        affected_kernel[0x8C6FD - KERNEL_BASE : 0x8C70A - KERNEL_BASE]
+        + affected_kernel[0x8C70F - KERNEL_BASE : 0x8C72C - KERNEL_BASE]
+    )
+    first_completion_length = (
+        first_fixed_kernel[0x8C69F - KERNEL_BASE : 0x8C6AC - KERNEL_BASE]
+        + first_fixed_kernel[0x8C6B1 - KERNEL_BASE : 0x8C6CE - KERNEL_BASE]
+    )
+    if (
+        sha256(affected_input_geometry) != "e527f5d670d725147c91ea62459bfde546253bbd8ecab5c7f1602ba49061f96a"
+        or first_input_geometry != affected_input_geometry
+        or sha256(affected_event_comparisons) != "f2b6d021795f99db36b5502fc22d61ca56a148b40fdbd83f6f88bf5e467fb43f"
+        or first_event_comparisons != affected_event_comparisons
+        or sha256(affected_completion_length) != "c3657583d0ab581cf42929bc2d75eb34eac1208fbf2778734179aa15300cd92a"
+        or first_completion_length != affected_completion_length
+    ):
+        raise Failure("kernel VFS message-field geometry drift")
+
+    first_fixed_maestro = decoded_modules["maestro"][1]
+    maestro_new_event = first_fixed_maestro[0x3950:0x3990]
+    maestro_callers = [
+        MODULE_BASE + offset
+        for offset in range(len(first_fixed_maestro) - 4)
+        if first_fixed_maestro[offset] == 0xE8
+        and MODULE_BASE + offset + 5 + struct.unpack_from("<i", first_fixed_maestro, offset + 1)[0]
+        == 0x29950
+    ]
+    if (
+        sha256(maestro_new_event) != "0be9ef6f8034023db17a6c6740045b7523198fdb73d11098fb92e49d67c0e903"
+        or _rel32_call_target(first_fixed_maestro, 0x3969) != 0x103D
+        or first_fixed_maestro[0x3964:0x3969] != b"\x6a\x40\x6a\x00\x53"
+        or first_fixed_maestro[0x396E:0x3976] != b"\x53\x6a\x0b\x68\x00\x02\x00\x02"
+        or _rel32_call_target(first_fixed_maestro, 0x3976) != 0x60B4
+        or maestro_callers != [0x27B24]
+    ):
+        raise Failure("first-fixed Maestro event-0x0b producer drift")
 
     return {
-        "module_count": len(MINIMAL_LENGTH_DELTA_SITES),
+        "module_count": len(VFS_EVENT_ORDINAL_DELTA_SITES),
         "site_count": len(sites),
         "message_dword_zero": 0x02000200,
         "affected_constructor_runtime_range": [0x8E8A, 0x8ED3],
@@ -440,9 +483,35 @@ def minimal_length_delta_review(
         "constructor_sha256": sha256(affected_constructor),
         "submit_wrapper_stores_first_argument_dword_at_message_offset_zero": True,
         "constructor_stores_second_argument_low_byte_at_message_offset_four": True,
-        "all_reviewed_lengths_increment_by_one": True,
+        "message_offset_four_role": "VFS event ordinal retained in kernel state and compared with event values 0xf4 and 0xf5",
+        "message_offset_five_role": "separate payload-length byte bounded at 0x38 and used as copy length plus eight on completion",
+        "affected_kernel_input_geometry_runtime_range": [0x8C75B, 0x8C790],
+        "first_fixed_kernel_input_geometry_runtime_range": [0x8C6FD, 0x8C732],
+        "kernel_input_geometry_sha256": sha256(affected_input_geometry),
+        "affected_kernel_event_comparison_runtime_range": [0x8C8EC, 0x8C907],
+        "first_fixed_kernel_event_comparison_runtime_range": [0x8C88E, 0x8C8A9],
+        "kernel_event_comparison_sha256": sha256(affected_event_comparisons),
+        "affected_completion_length_runtime_ranges": [[0x8C6FD, 0x8C70A], [0x8C70F, 0x8C72C]],
+        "first_fixed_completion_length_runtime_ranges": [[0x8C69F, 0x8C6AC], [0x8C6B1, 0x8C6CE]],
+        "kernel_completion_length_combined_sha256": sha256(affected_completion_length),
+        "all_reviewed_event_ordinals_increment_by_one": True,
         "sites": sites,
-        "attribution_boundary": "The eleven residual bytes in ish_srv, loadmgr, gpio, and pm are exact one-byte increases in serialized message-length fields whose message dword zero is 0x02000200. The separate ipc_drv review proves that value's low half 0x0200 selects an alternate internal transfer path in one callback, but does not name the selector/domain or prove these constructors reach that callback. Recipient identity, added-byte meaning, attacker control, HECI reachability, and CVE attribution remain unproved.",
+        "first_fixed_inserted_event_producer": {
+            "module": "maestro",
+            "function_runtime_range": [0x29950, 0x29990],
+            "function_size": 0x40,
+            "function_sha256": sha256(maestro_new_event),
+            "caller_runtime_addresses": maestro_callers,
+            "caller_condition": "eax equals 2 at runtime 0x27b13..0x27b24",
+            "cleared_local_message_size": 0x40,
+            "clear_gate_runtime_address": 0x103D,
+            "recipient_current_identity": 0x02000200,
+            "recipient_process": "vfs",
+            "inserted_event_ordinal": 0x0B,
+            "submit_stub_runtime_address": 0x60B4,
+        },
+        "bounded_interpretation": "The eleven residual bytes are VFS event ordinals at message offset +4, not serialized lengths. Offset +5 is the distinct bounded payload-length field. Every reviewed ordinal increases by one at the first-fixed boundary. The old PM event 0x0b becomes 0x0c, while first-fixed Maestro adds an exact zero-initialized VFS event-0x0b producer, binding the inserted numeric event ordinal to 0x0b. No appended payload byte is introduced by these deltas.",
+        "attribution_boundary": "The vendor name and full semantics of inserted VFS event 0x0b, its downstream handler, the producer-to-ipc_drv-event-0xf4 relationship, attacker control, HECI reachability, and CVE attribution remain unproved.",
     }
 
 
@@ -1382,7 +1451,7 @@ def kernel_message_submit_selector_review(
         "first_fixed_syslib_selector_wrapper_sha256": sha256(first_wrapper),
         "syslib_wrapper_builds_syscall_value": "(selector_byte << 24) | 0x00010000 | argument_size_word",
         "reviewed_submit_syscall_value": 0x10010040,
-        "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed message-length sites, but the same 0xff-to-0x102 change appears at fifteen MOV/CMP sites kernel-wide, including the directly called helper's MOV EDX return path. Three numeric ordinal insertions are now bound to first-fixed status-return sites at 0xc4, 0xc5, and 0xc9, but their vendor names and semantics, message dword-zero meaning, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
+        "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed VFS event-ordinal sites, but the same 0xff-to-0x102 change appears at fifteen MOV/CMP sites kernel-wide, including the directly called helper's MOV EDX return path. Three numeric ordinal insertions are now bound to first-fixed status-return sites at 0xc4, 0xc5, and 0xc9, but their vendor names and semantics, the vendor meaning of inserted VFS event 0x0b, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
     }
 
 
@@ -1533,11 +1602,13 @@ def build_report(affected_image: bytes, first_fixed_image: bytes) -> dict:
                 key=lambda entry: (entry["unexplained_differing_byte_count"], entry["name"]),
             )[:10],
         },
-        "minimal_length_delta_review": minimal_length_delta_review(
+        "vfs_event_ordinal_delta_review": vfs_event_ordinal_delta_review(
             decoded_modules,
             modules,
             affected_syslib,
             first_syslib,
+            affected_kernel,
+            first_kernel,
         ),
         "kernel_message_submit_selector_0x10_review": kernel_message_submit_selector_review(
             affected_kernel,

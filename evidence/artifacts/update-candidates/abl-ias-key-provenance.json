@@ -26,6 +26,9 @@
     "stored_oem_key_manifest_embedded_signature_valid": true,
     "stored_usage39_digest_recovered": true,
     "type_0b_symbolic_name_key_manifest_publicly_corroborated": true,
+    "uep_contains_stored_oem_key_digest_candidate_proved": true,
+    "uep_exact_target_consumption_proved": false,
+    "uep_external_hardware_anchor_proved": false,
     "usage_bit_39_os_kernel_name_publicly_corroborated": true
   },
   "exact_update": {
@@ -289,6 +292,22 @@
       "member_cpd_offset": 385024,
       "sha256": "a72a5d867185852be1466a9d3d2e97bb11bd6b0a89b48f5454220def946814bd",
       "size": 1564
+    },
+    "uep_oem_hash_candidate": {
+      "bpdt_type": 17,
+      "candidate_digest": "9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af",
+      "candidate_offsets": [
+        52,
+        124,
+        204
+      ],
+      "exact_target_consumer_proved": false,
+      "external_hardware_or_fuse_anchor_proved": false,
+      "flash_offset": 1049104,
+      "magic": "$UEP",
+      "matches_stored_oem_key_public_key_digest": true,
+      "sha256": "184e01883e7f9233d5e50104a52620ec45e44c79ae3255fdeeaf8a44d5e8edc3",
+      "size": 264
     }
   },
   "limitations": [
@@ -298,6 +317,7 @@
     "The RBE-to-BUP path binds BUP's published oem_key_man payload to exact FTPR oem.key bytes. The exact stored usage-39 digest is therefore recovered for the BUP-published object, but it is not promoted to the IBBL runtime expected digest until the BUP-to-0xfef80000 mapping is proved.",
     "RBEP.man and FTPR.man embedded signatures verify, and their signed metadata hashes bind exact RBE and BUP bytes through rbe.met and bup.met. These remain self-contained signature chains until their manifest keys are externally anchored.",
     "Exact FTPR.man has no direct oem.key name or digest coverage and FTPR CPD has no oem.key.met member. This bounded absence is not proof that another CSE policy, key manifest, or hardware root leaves oem.key unauthenticated.",
+    "Exact BPDT type-17 UEP stores three copies of the oem.key public-key digest candidate, including a contiguous copy at UEP +0xcc. A comparative public Apollo Lake IFWI constructor labels that offset an OEM public-key-hash record, but exact target consumption and any fuse/hardware anchoring remain unproved.",
     "The exact flash contains an FTPR oem.key $MN2/Extension-14 manifest with a valid embedded self-signature and usage-39 digest 9b0a59...; the embedded signature still proves self-consistency rather than an external hardware root.",
     "The stored usage-39 digest does not equal the package carried-key candidate 437008... . Without the missing runtime FIT binding, this mismatch does not prove that the package boots or fails to boot under an installed ABL.",
     "The recovered IBB stages do not locally authenticate the key manifest before use. Any CSE, Boot Guard, fuse, ACM, or earlier-ROM authentication remains outside the recovered instruction boundary; the embedded manifest signature proves self-consistency only.",

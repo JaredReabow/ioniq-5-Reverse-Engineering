@@ -4040,3 +4040,9 @@ and are superseded by corrections rather than silently rewritten.
 - Ten screens, one splash, no application: everything survives. Add the application stack and the compositor dies.
 - So the last several hours of layout work were not wasted but they were not the fault either. The fault travels with a client.
 - The question is now small enough to bisect by disabling one program at a time, which is the sort of question that has an answer.
+
+## 2026-10-31 — not that one either
+
+- Remove the home screen and the compositor still dies, so the thing we have been trying to see is not the thing that kills it.
+- Also caught myself trusting a probe whose baseline was wrong: weston was reported dead because it had not started yet. Two runs lost to a five-second
+  race, and the record says so.

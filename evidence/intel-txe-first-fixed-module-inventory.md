@@ -226,21 +226,54 @@ callbacks subsequently:
 4. pass the local buffer to syslib wrapper `0x61d6` with both size arguments
    fixed at `0x88`.
 
-This is an exact stale-stack or partial-initialization information-disclosure
-hardening candidate: the first-fixed code clears the entire fixed-size transfer
-buffer before partially populating it. Static evidence does not yet establish
-which named special-file operation invokes the callback, whether residual stack
-bytes cross a privilege boundary in practice, HECI reachability, attacker
-control, exploitability, or CVE-2018-12147 attribution. The already bound
-first-fixed VFS/NDL integration remains the strongest exact CVE-2018-3655
-candidate.
+The callback's dispatch and transfer boundaries are now narrower. Affected and
+first-fixed `ipc_drv.met` both define CSE-internal major 39 with six mode-`0660`
+special files: `ipc_boot` minor 1, `ipc_mctp` minor 2, `ipc_dd` minor 3,
+`ipc_pmc` minor 4, `ipc_prtc` minor 5, and `ipc_iun` minor 6. The exact static
+context template copied from runtime `0x29000` to BSS `0x34000` groups those
+minors as `[1,2,3]`, `[4,5]`, and `[6]`. The common operation table therefore
+does not by itself reduce the changed callback to one named file.
+
+In both syslib builds, event byte `0xf4` dispatches through object offset
+`+0x10`: affected compare/call sites are `0x86a6`/`0x8815`, and first-fixed
+sites are `0x86ab`/`0x881a`. The registered operation array begins at object
+`+8`, so this is operation-table index 2, exactly the slot containing the
+changed callback. The dispatcher supplies message fields `+0x08`, `+0x00`,
+`+0x10`, and `+0x14` as callback arguments.
+
+The callback then passes the signed low 16 bits of message dword zero as the
+first argument to syslib export `0x61d6`, whose affected/fixed bodies begin at
+`0x7849`/`0x784e`. A zero low half selects its local-descriptor copy path;
+nonzero selects an alternate transfer body that invokes kernel selector `7`
+with a `0x20`-byte argument block. The exact selector-7 handlers are affected
+`0x8bbc2..0x8bce1` and first-fixed `0x8bb64..0x8bc83`, each `0x11f` bytes. They
+consume the 16-bit process identifier at argument offset `+0x0c`, derive a
+process-table index from its high byte, require index `1..47`, compare the full
+identifier with the table entry, check table state, and reach a copy helper with
+flag `0x202`.
+
+Consequently, reviewed message value `0x02000200` supplies process identifier
+`0x0200`, whose table index is 2, to this transfer path. The message dword's high
+16 bits are not consumed by this callback's transfer wrapper. This is a bounded
+process-identifier role, not a vendor process, recipient, or endpoint name.
+
+The first-fixed change is therefore an exact stale-stack/partial-initialization
+information-disclosure hardening mechanism at an internal transfer boundary:
+the complete fixed-size `0x88` output is cleared before a four-byte header and
+at most `0x80` payload bytes are populated and transferred. Open-handle and
+state checks still mediate the event-`0xf4` callback, and static evidence does
+not identify one reachable named minor, name internal selector `0x0200`, order
+the privilege of the participating CSE domains, establish HECI reachability or
+external attacker control, prove exploitability, or attribute the change to
+CVE-2018-12147. The already bound first-fixed VFS/NDL integration remains the
+strongest exact CVE-2018-3655 candidate.
 
 ## Artifact
 
 - `evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json`
 - schema `ioniq-txe-first-fixed-module-inventory/v1`
-- size `127,346` bytes
-- SHA-256 `2507d868f76eb9fe098b9044095f1b75f93cbc0b0692472b11cc3d97645b6750`
+- size `132,693` bytes
+- SHA-256 `db71e88285c5be0538699182a6700d094748a6f9cecbcbe3e2ca6f5572c552f0`
 
 Embedded `$MN2` signatures establish self-consistency and byte binding only.
 They do not establish platform ROM/fuse/OEM acceptance or installed-unit

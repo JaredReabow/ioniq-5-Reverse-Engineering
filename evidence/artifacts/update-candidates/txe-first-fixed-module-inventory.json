@@ -50,8 +50,8 @@
     ],
     "affected_callback_sha256": "b7e498a3daa735910a68d49d69beb32b0159611b301e304bf0b5c4ac04c569b9",
     "affected_callback_size": 848,
-    "attribution_boundary": "This is an exact first-fixed stale-stack or partial-initialization information-disclosure hardening candidate inside ipc_drv. Static bytes alone do not establish which special-file operation invokes the callback, whether uninitialized bytes cross a privilege boundary in practice, HECI reachability, attacker control, exploitability, or attribution to CVE-2018-12147.",
-    "bounded_interpretation": "The first-fixed callback newly clears its complete 0x88-byte local transfer buffer before storing a four-byte header, bounded-copying at most 0x80 payload bytes, and passing the buffer to a wrapper with both size arguments fixed at 0x88. The affected callback has no call to gate 0x103d in its complete hash-bound body.",
+    "attribution_boundary": "This is an exact first-fixed stale-stack/partial-initialization information-disclosure hardening mechanism inside ipc_drv and an exact internal process-transfer boundary. The common major-39 operation table covers six metadata-defined internal CSE special files; static bytes do not reduce event-0xf4 reachability to one named minor or identify the vendor process represented by 0x0200. HECI reachability, external attacker control, privilege ordering between internal processes, exploitability, and CVE-2018-12147 attribution remain unproved.",
+    "bounded_interpretation": "The first-fixed callback newly clears its complete 0x88-byte local transfer buffer before storing a four-byte header, bounded-copying at most 0x80 payload bytes, and transferring the complete fixed-size buffer through syslib export 0x61d6. Syslib event byte 0xf4 dispatches to this exact operation-table slot and supplies message dword zero; the transfer wrapper consumes its low 16 bits. Value 0x02000200 therefore supplies process identifier 0x0200, process-table index 2, to kernel selector 7 in this callback. The affected callback has no call to gate 0x103d in its complete hash-bound body.",
     "first_fixed_call_sites": {
       "bounded_copy_0x6055": [
         161559
@@ -75,6 +75,54 @@
       "size": 136,
       "zero_fill_call_runtime_address": 161046,
       "zero_fill_target": 4157
+    },
+    "kernel_selector_7_transfer_handlers": [
+      {
+        "accepted_process_table_index_range": [
+          1,
+          47
+        ],
+        "argument_size": 32,
+        "copy_helper_flag": 514,
+        "dispatch_table_runtime_address": 593188,
+        "full_process_identifier_comparison_runtime_address": 572490,
+        "handler_runtime_range": [
+          572354,
+          572641
+        ],
+        "handler_sha256": "9559b5e7075342b3ea2ec8e141a900aad93d81f7a8da8a32c05a9ba7b903cc6a",
+        "handler_size": 287,
+        "process_identifier_argument_offset": 12,
+        "process_table_index_source": "high byte of 16-bit process identifier"
+      },
+      {
+        "accepted_process_table_index_range": [
+          1,
+          47
+        ],
+        "argument_size": 32,
+        "copy_helper_flag": 514,
+        "dispatch_table_runtime_address": 593120,
+        "full_process_identifier_comparison_runtime_address": 572396,
+        "handler_runtime_range": [
+          572260,
+          572547
+        ],
+        "handler_sha256": "26e9aaf080e5dfc5a40309cd24ee2cf0ca9decd89f06bc52768bdad931f0f91b",
+        "handler_size": 287,
+        "process_identifier_argument_offset": 12,
+        "process_table_index_source": "high byte of 16-bit process identifier"
+      }
+    ],
+    "message_dword_zero_transfer_role": {
+      "high_16_bits_not_consumed_by_this_transfer_wrapper": 512,
+      "kernel_process_table_index": 2,
+      "kernel_selector_7_process_identifier": 512,
+      "low_16_bits_consumed_by_transfer_wrapper": 512,
+      "nonzero_low_half_selects_alternate_transfer_path": true,
+      "value": 33554944,
+      "vendor_process_or_recipient_name": null,
+      "zero_low_half_selects_local_descriptor_path": true
     },
     "operation_table_callback_pointer_sites": [
       {
@@ -101,7 +149,124 @@
         161514
       ],
       "payload_bound": 128
-    }
+    },
+    "special_file_metadata": {
+      "entries": [
+        {
+          "access_mode": 432,
+          "group_id": 147,
+          "minor": 1,
+          "name": "ipc_boot",
+          "reserved": 0,
+          "user_id": 58
+        },
+        {
+          "access_mode": 432,
+          "group_id": 148,
+          "minor": 2,
+          "name": "ipc_mctp",
+          "reserved": 0,
+          "user_id": 58
+        },
+        {
+          "access_mode": 432,
+          "group_id": 149,
+          "minor": 3,
+          "name": "ipc_dd",
+          "reserved": 0,
+          "user_id": 58
+        },
+        {
+          "access_mode": 432,
+          "group_id": 363,
+          "minor": 4,
+          "name": "ipc_pmc",
+          "reserved": 0,
+          "user_id": 58
+        },
+        {
+          "access_mode": 432,
+          "group_id": 364,
+          "minor": 5,
+          "name": "ipc_prtc",
+          "reserved": 0,
+          "user_id": 58
+        },
+        {
+          "access_mode": 432,
+          "group_id": 365,
+          "minor": 6,
+          "name": "ipc_iun",
+          "reserved": 0,
+          "user_id": 58
+        }
+      ],
+      "major": 39
+    },
+    "static_context_minor_groups": [
+      [
+        1,
+        2,
+        3
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        6
+      ]
+    ],
+    "syslib_event_0xf4_dispatch_sites": [
+      {
+        "argument_push_runtime_address": 34827,
+        "event_compare_runtime_address": 34470,
+        "indirect_call_runtime_address": 34837,
+        "message_fields_passed": [
+          "+0x14",
+          "+0x10",
+          "+0x00",
+          "+0x08"
+        ],
+        "object_callback_offset": 16,
+        "operation_table_index": 2
+      },
+      {
+        "argument_push_runtime_address": 34832,
+        "event_compare_runtime_address": 34475,
+        "indirect_call_runtime_address": 34842,
+        "message_fields_passed": [
+          "+0x14",
+          "+0x10",
+          "+0x00",
+          "+0x08"
+        ],
+        "object_callback_offset": 16,
+        "operation_table_index": 2
+      }
+    ],
+    "syslib_fixed_transfer_exports": [
+      {
+        "alternate_transfer_body_runtime_address": 30665,
+        "alternate_transfer_call_runtime_address": 30918,
+        "alternate_transfer_syscall_argument_size": 32,
+        "alternate_transfer_syscall_call_runtime_address": 30736,
+        "alternate_transfer_syscall_selector": 7,
+        "body_runtime_address": 30793,
+        "export_stub_runtime_address": 25046,
+        "low_16_bit_zero_test_runtime_address": 30844
+      },
+      {
+        "alternate_transfer_body_runtime_address": 30670,
+        "alternate_transfer_call_runtime_address": 30923,
+        "alternate_transfer_syscall_argument_size": 32,
+        "alternate_transfer_syscall_call_runtime_address": 30741,
+        "alternate_transfer_syscall_selector": 7,
+        "body_runtime_address": 30798,
+        "export_stub_runtime_address": 25046,
+        "low_16_bit_zero_test_runtime_address": 30849
+      }
+    ]
   },
   "kernel_message_submit_selector_0x10_review": {
     "adjacent_ordinal_shift_review": {
@@ -615,7 +780,7 @@
       36563
     ],
     "all_reviewed_lengths_increment_by_one": true,
-    "attribution_boundary": "The eleven residual bytes in ish_srv, loadmgr, gpio, and pm are exact one-byte increases in serialized message-length fields whose message dword zero is 0x02000200. This is a coordinated interface delta, but the dword's semantics, recipient, added byte meaning, attacker control, HECI reachability, and CVE attribution remain unproved.",
+    "attribution_boundary": "The eleven residual bytes in ish_srv, loadmgr, gpio, and pm are exact one-byte increases in serialized message-length fields whose message dword zero is 0x02000200. The separate ipc_drv review proves that value's low half 0x0200 selects an alternate internal transfer path in one callback, but does not name the selector/domain or prove these constructors reach that callback. Recipient identity, added-byte meaning, attacker control, HECI reachability, and CVE attribution remain unproved.",
     "constructor_sha256": "1a9f71789daff697fe6ac80b110101ecc63d84bbc3759c6a869bfc648a6d8c28",
     "constructor_stores_second_argument_low_byte_at_message_offset_four": true,
     "first_fixed_constructor_runtime_range": [

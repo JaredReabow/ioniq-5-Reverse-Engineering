@@ -285,13 +285,31 @@ A separate first-fixed `ipc_drv` callback change is now exact. The affected
 `0x350`-byte callback at `0x274bd` has no call to gate `0x103d`; its `0x364`-byte
 first-fixed counterpart at `0x274e5` newly clears a complete `0x88`-byte local
 buffer through `0x103d`. Both then store a four-byte header, bounded-copy at
-most `0x80` payload bytes, and pass the buffer to syslib wrapper `0x61d6` with
-both size arguments fixed at `0x88`. This is a stale-stack or partial-
-initialization information-disclosure hardening candidate. It is not proof of
-the privileged-local HECI input-validation path described by CVE-2018-12147:
-the named operation, boundary crossing, HECI reachability, attacker control,
-and practical disclosure remain unresolved. See
-`evidence/intel-txe-first-fixed-module-inventory.md`.
+most `0x80` payload bytes, and transfer the complete buffer through syslib
+export `0x61d6` with both size arguments fixed at `0x88`.
+
+The dispatch boundary is also byte-bound. Syslib event byte `0xf4` invokes
+object callback offset `+0x10`, operation-table index 2, exactly the changed
+slot. It supplies message dword zero to the callback; transfer wrapper `0x61d6`
+consumes that field's signed low 16 bits. Zero chooses a local-descriptor path,
+while reviewed value `0x02000200` supplies nonzero selector `0x0200` and takes
+an alternate transfer body that invokes kernel selector `7` with a `0x20`-byte
+argument block. Both exact selector-7 handlers consume a 16-bit process
+identifier at argument offset `+0x0c`, derive and validate process-table index 2
+from identifier `0x0200`, compare the full identifier, check table state, and
+reach a copy helper with flag `0x202`. The message dword's high half is not
+consumed by this wrapper. Affected and first-fixed metadata identically define common CSE
+major 39 with six internal files, `ipc_boot`, `ipc_mctp`, `ipc_dd`, `ipc_pmc`,
+`ipc_prtc`, and `ipc_iun`; the static context template maps their minors as
+`[1,2,3]`, `[4,5]`, and `[6]`.
+
+This is an exact stale-stack/partial-initialization information-disclosure
+hardening mechanism at an internal transfer boundary, but it is not yet proof
+of the privileged-local HECI input-validation path described by
+CVE-2018-12147. Static evidence does not select one named minor, identify
+vendor selector/domain `0x0200`, order internal privileges, establish HECI
+reachability or external attacker control, prove exploitability, or establish
+advisory attribution. See `evidence/intel-txe-first-fixed-module-inventory.md`.
 
 The exact later signed FPF adds structured `RbeArbEn`, `RbeArbSvn`,
 `OemKmArbEn`, `OemKmArbSvn`, `UcodeArbEn`, and `UcodeArbSvn` records absent by

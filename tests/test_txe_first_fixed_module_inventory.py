@@ -139,4 +139,27 @@ def test_canonical_inventory_matches_reviewed_artifact():
     assert ipc["first_fixed_new_initialization"]["size"] == 0x88
     assert ipc["shared_buffer_use"]["payload_bound"] == 0x80
     assert ipc["shared_buffer_use"]["fixed_transfer_size"] == 0x88
+    assert ipc["special_file_metadata"]["major"] == 39
+    assert [entry["name"] for entry in ipc["special_file_metadata"]["entries"]] == [
+        "ipc_boot", "ipc_mctp", "ipc_dd", "ipc_pmc", "ipc_prtc", "ipc_iun",
+    ]
+    assert ipc["static_context_minor_groups"] == [[1, 2, 3], [4, 5], [6]]
+    assert [site["operation_table_index"] for site in ipc["syslib_event_0xf4_dispatch_sites"]] == [2, 2]
+    assert [site["body_runtime_address"] for site in ipc["syslib_fixed_transfer_exports"]] == [
+        0x7849, 0x784E,
+    ]
+    assert [site["alternate_transfer_syscall_selector"] for site in ipc["syslib_fixed_transfer_exports"]] == [7, 7]
+    assert [site["alternate_transfer_syscall_argument_size"] for site in ipc["syslib_fixed_transfer_exports"]] == [0x20, 0x20]
+    selector_7 = ipc["kernel_selector_7_transfer_handlers"]
+    assert [site["handler_runtime_range"] for site in selector_7] == [
+        [0x8BBC2, 0x8BCE1], [0x8BB64, 0x8BC83],
+    ]
+    assert [site["process_identifier_argument_offset"] for site in selector_7] == [0x0C, 0x0C]
+    assert [site["accepted_process_table_index_range"] for site in selector_7] == [[1, 47], [1, 47]]
+    transfer_role = ipc["message_dword_zero_transfer_role"]
+    assert transfer_role["value"] == 0x02000200
+    assert transfer_role["low_16_bits_consumed_by_transfer_wrapper"] == 0x0200
+    assert transfer_role["kernel_selector_7_process_identifier"] == 0x0200
+    assert transfer_role["kernel_process_table_index"] == 2
+    assert transfer_role["vendor_process_or_recipient_name"] is None
     assert json.loads(ARTIFACT.read_text(encoding="utf-8")) == report

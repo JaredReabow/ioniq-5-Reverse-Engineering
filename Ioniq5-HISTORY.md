@@ -4087,3 +4087,10 @@ and are superseded by corrections rather than silently rewritten.
 - Every earlier conclusion that the window "is never shown" was an inference from the absence of a surface. The absence is real; the cause is one layer
   further down, in code that ships as a library and reads an environment variable the launcher sets to zero.
 - Astra's warning was the useful part: not having a surface does not mean nobody asked for one.
+
+## 2026-10-31 — two failures, not one
+
+- The environment-variable experiment could not conclude, because the application died at the moment it reached the thing being tested.
+- The deaths are heap corruption inside free(), at an identical offset in two different vendor applications. They also happen in the untouched single-output
+  configuration, to a third application we were not even looking at.
+- So this environment has been quietly killing its clients all along, and several "no result" observations today were that, not a failure of the hypothesis.

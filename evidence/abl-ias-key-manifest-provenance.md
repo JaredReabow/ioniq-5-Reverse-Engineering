@@ -23,11 +23,12 @@ digest. Public Intel FIT definitions name type `0x0b`
 addresses, layout, bit selection, digest offset, and compare path are proved by
 exact target instructions.
 
-This closes the runtime object type and the in-ABL handoff path. The exact flash
-also contains an FTPR `oem.key` `$MN2`/Extension-14 manifest with a usage-39
-digest, but recovered code does **not** yet prove that the runtime FIT type-`0x0b`
-entry points to that stored object. The source-table producer and any earlier
-CSE, Boot Guard, ACM, fuse, or ROM authentication remain unresolved.
+The exact CSE BUP now closes the FIT content producer: it initializes a FIT,
+looks up an object named `oem_key_man`, copies it into the FIT payload area, and
+publishes a type-`0x0b` entry at `0xfffe1000`. IBBL later consumes the handoff at
+`0xfef80000`. The physical mapping between those addresses and byte identity
+between `oem_key_man` and stored FTPR `oem.key` remain unproved, as does any
+earlier CSE, Boot Guard, ACM, fuse, or ROM authentication.
 
 ## Canonical identities
 
@@ -111,6 +112,36 @@ and payload verifier. The selected digest is then compared with SHA-256 over
 verification follows only after equality, as established in the earlier key
 trust package.
 
+## Exact CSE BUP FIT producer
+
+The exact FTPR CPD also contains executable member `bup`:
+
+- flash offset `0x145000`;
+- size `0x33000` (`208,896`);
+- SHA-256 `cee77bc172a9df1c4088d5f716b9e55cda539a26656d07a92268c3cd5d4f0165`;
+- code base `0x26000` from its exact process metadata.
+
+Its exact code:
+
+1. initializes `_FIT_   ` and count 1 in an allocated table buffer;
+2. looks up object `oem_key_man` and obtains its data pointer;
+3. requires its dword length to fit in `0x1000` bytes;
+4. copies the object to the FIT payload area at buffer offset `0x1000`;
+5. appends a FIT entry with address `0xfffe1000`, the object length converted
+   from dwords to bytes, and type `0x0b`; and
+6. increments the FIT count through its generic 16-byte entry appender.
+
+A separate exact BUP resolver couples names `rot.key`/`oem.key` with
+`rot_key_man`/`oem_key_man`, locates Extension 14, validates key type 1 versus
+2, and materializes usage/hash records. This proves that CSE BUP constructs the
+type-`0x0b` content from an object named `oem_key_man` and knows the persistent
+member name `oem.key`. It does not prove the two objects are byte-identical in
+the executed path.
+
+IBBL's later source table is at `0xfef80000`, whereas BUP publishes the payload
+address as `0xfffe1000`. The intervening physical mapping or handoff is not yet
+recovered, so the exact address chain remains bounded at both ends.
+
 ## Exact stored FTPR `oem.key` manifest
 
 The exact flash FTPR CPD contains:
@@ -184,7 +215,10 @@ persistent provisioning implementation.
 What is now proved:
 
 - the runtime descriptor table is FIT-format;
-- IBBL copies it from `0xfef80000` to `0xc10c0`;
+- exact CSE BUP constructs a FIT type-`0x0b` entry from `oem_key_man` and
+  publishes payload address `0xfffe1000`;
+- exact CSE BUP couples names `oem.key` and `oem_key_man` in its key resolver;
+- IBBL copies a FIT from `0xfef80000` to `0xc10c0`;
 - IBBL relocates a present type-`0x0b` payload;
 - stage 1 selects FIT type `0x0b` as its IAS key-manifest source;
 - selector `0x27` is usage bit 39;
@@ -198,8 +232,10 @@ What is now proved:
 
 What remains unproved:
 
-- who or what creates the source FIT at `0xfef80000`;
-- whether the source FIT type-`0x0b` payload is the exact stored FTPR `oem.key`,
+- how CSE BUP's FIT/payload addresses are mapped into IBBL's source handoff at
+  `0xfef80000`;
+- whether the published `oem_key_man` payload is byte-identical to exact stored
+  FTPR `oem.key`,
   a different installed manifest, or another provisioned object;
 - whether and how CSE, Boot Guard, an ACM, ROM, or another earlier stage verifies
   it before IBBL;
@@ -226,11 +262,11 @@ are captured.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `8,102`
-  - SHA-256 `0c561c953d6478edf6343388dd89fb05a7d5c59c8a800b6cbddbd44c6ff4eea5`
+  - size `10,382`
+  - SHA-256 `73459a4376b9ae12f0fcf3d4828960859eefe4e1683c2cc3033988e14addb984`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `8,637`
-  - SHA-256 `8f415147ce70f627787d9a482c21a88f1135bf8fdd03aefd9d595f9a77263dac`
+  - size `17,667`
+  - SHA-256 `56ea91be8c7b7f03a71e042a3129ed0df096e4331b02af2ef62a26444386c666`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

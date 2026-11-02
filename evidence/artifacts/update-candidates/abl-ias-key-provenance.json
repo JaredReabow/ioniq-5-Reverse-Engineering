@@ -1,18 +1,22 @@
 {
   "conclusions": {
     "boot_root_or_persistence_proved": false,
+    "cse_bup_constructs_fit_type0b_from_oem_key_man_proved": true,
+    "cse_bup_resolver_couples_oem_key_and_oem_key_man_names_proved": true,
     "custom_signed_image_acceptance_proved": false,
+    "final_handoff_address_0xfef80000_mapping_proved": false,
     "ibbl_copies_fit_and_relocates_type_0b_payload_proved": true,
     "oem_key_manifest_kernel_command_line_export_proved": true,
     "package_candidate_matches_stored_usage39_digest": false,
     "pre_ibbl_fit_handoff_address_proved": true,
     "pre_ibbl_key_manifest_authentication_proved": false,
-    "producer_of_source_fit_at_0xfef80000_proved": false,
     "runtime_descriptor_is_fit_entry_type_0b_proved": true,
     "runtime_expected_digest_bytes_recovered": false,
     "runtime_fit_type0b_bound_to_stored_oem_key_manifest": false,
+    "runtime_fit_type0b_object_name_oem_key_man_proved": true,
     "runtime_key_manifest_layout_proved": true,
     "selector_0x27_is_usage_bit_39_proved": true,
+    "source_fit_content_producer_cse_bup_proved": true,
     "stored_oem_key_manifest_bytes_recovered": true,
     "stored_oem_key_manifest_embedded_signature_valid": true,
     "stored_usage39_digest_recovered": true,
@@ -28,6 +32,50 @@
     "archive": {
       "sha256": "1e67344a714708733a9158a52ef5d4def95b126e5725d070669ea64e0644c4c8",
       "size": 42101042
+    },
+    "cse_bup_fit_producer": {
+      "code_base": 155648,
+      "cpd": "FTPR",
+      "final_handoff_address_0xfef80000_mapping_proved": false,
+      "fit_header_initialized": true,
+      "flash_offset": 1331200,
+      "instruction_ranges": {
+        "fit_buffer_allocation": {
+          "file_end": 46013,
+          "file_start": 45936,
+          "sha256": "a48c73940cd5b9d3c8757edc1d16b29d06bb0a9a15a7e026fa56957346b7e51b"
+        },
+        "fit_entry_append": {
+          "file_end": 37455,
+          "file_start": 37353,
+          "sha256": "a46d35702e79df2cf542d8e9c01e7c55d1a09d9e0357638a4262aab5e05932ef"
+        },
+        "fit_header_init": {
+          "file_end": 82127,
+          "file_start": 82077,
+          "sha256": "8429773135288206a92ebdfd3fd4afd5719a9da046f1265d691f32cd40f31f90"
+        },
+        "key_manifest_resolver": {
+          "file_end": 129137,
+          "file_start": 128398,
+          "sha256": "5132d70beda6603eaee882917a2723367209c2871a9dc4028ac8602e16b856c3"
+        },
+        "oem_key_manifest_fit_publish": {
+          "file_end": 47860,
+          "file_start": 47548,
+          "sha256": "e18d11f44ce11a7e405399afba236cab0bdd3ce5b24283ccfb0da79f53469c12"
+        }
+      },
+      "member": "bup",
+      "oem_key_man_byte_identity_with_ftpr_oem_key_proved": false,
+      "payload_copy_destination_offset": 4096,
+      "persistent_member_name_coupled_by_resolver": "oem.key",
+      "published_fit_address": 4294840320,
+      "published_fit_type": 11,
+      "published_length_source": "oem_key_man object dword count at +0x18, multiplied by four",
+      "sha256": "cee77bc172a9df1c4088d5f716b9e55cda539a26656d07a92268c3cd5d4f0165",
+      "size": 208896,
+      "source_object_name": "oem_key_man"
     },
     "decompressed_stage1": {
       "fit_table": {
@@ -147,9 +195,10 @@
     }
   },
   "limitations": [
-    "Exact IBBL code proves that a pre-existing FIT-format table at 0xfef80000 is validated structurally, copied to 0xc10c0, and has non-type-1 payloads relocated; it does not identify the code or hardware that produced the source table.",
+    "Exact CSE BUP code initializes a FIT, copies an object named oem_key_man into its payload area, and appends type 0x0b with address 0xfffe1000. Exact IBBL later consumes a FIT at 0xfef80000, but the physical mapping between those addresses is not yet recovered.",
     "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
-    "The exact flash contains an FTPR oem.key $MN2/Extension-14 manifest with a valid embedded self-signature and usage-39 digest 9b0a59...; exact recovered code does not prove that the runtime FIT type-0x0b entry points to this stored object.",
+    "Exact CSE BUP key-resolution code couples the names oem.key and oem_key_man and validates Extension 14, but the recovered static path does not prove byte identity between the published oem_key_man object and the exact FTPR oem.key member.",
+    "The exact flash contains an FTPR oem.key $MN2/Extension-14 manifest with a valid embedded self-signature and usage-39 digest 9b0a59...; exact recovered code does not yet prove that the published oem_key_man object contains these exact bytes.",
     "The stored usage-39 digest does not equal the package carried-key candidate 437008... . Without the missing runtime FIT binding, this mismatch does not prove that the package boots or fails to boot under an installed ABL.",
     "The recovered IBB stages do not locally authenticate the key manifest before use. Any CSE, Boot Guard, fuse, ACM, or earlier-ROM authentication remains outside the recovered instruction boundary; the embedded manifest signature proves self-consistency only.",
     "The exact package carried-key candidate digest remains absent verbatim from the update ABL, IBBL, and decompressed stage 1; the installed platform's volatile handoff was not captured.",

@@ -268,3 +268,278 @@
 # Stage strings:
 # runtime 0xfc85b: "%x@%x"
 # runtime 0xfc861: "ABL.oemkm"
+
+## Exact CSE BUP provenance
+# FTPR member: bup
+# Flash offset: 0x145000
+# Size: 0x33000
+# SHA-256: cee77bc172a9df1c4088d5f716b9e55cda539a26656d07a92268c3cd5d4f0165
+# Code base: 0x26000
+
+### FIT buffer allocation (file [0xb370,0xb3bd), runtime [0x31370,0x313bd))
+
+00031370:
+   31370: push    0x1000
+   31375: push    0x20000
+   3137a: push    0x0
+   3137c: call    0x6087
+   31381: add     esp, 0x10
+   31384: mov     dword ptr [0xa4aa0], eax
+   31389: test    eax, eax
+   3138b: jne     0x313a3
+   3138d: or      byte ptr [0xa4c81], 0x40
+   31394: mov     dword ptr [0xa4b54], 0x1
+   3139e: jmp     0x31efd
+   313a3: push    0x20000
+   313a8: push    0x0
+   313aa: push    eax
+   313ab: call    0x103d
+   313b0: push    0x2
+   313b2: mov     ebx, dword ptr [0xa4aa0]
+   313b8: call    0x27e30
+
+### FIT header initialization (file [0x1409d,0x140cf), runtime [0x3a09d,0x3a0cf))
+
+0003a09d:
+   3a09d: push    ebp
+   3a09e: mov     ebp, esp
+   3a0a0: mov     eax, dword ptr [ebp + 0x8]
+   3a0a3: mov     edx, dword ptr [eax + 0x8]
+   3a0a6: mov     dword ptr [eax], 0x5449465f
+   3a0ac: and     edx, 0xff000000
+   3a0b2: mov     dword ptr [eax + 0x4], 0x2020205f
+   3a0b9: or      edx, 0x1
+   3a0bc: mov     word ptr [eax + 0xc], 0x100
+   3a0c2: mov     dword ptr [eax + 0x8], edx
+   3a0c5: mov     byte ptr [eax + 0xe], 0x0
+   3a0c9: mov     byte ptr [eax + 0xb], 0x0
+   3a0cd: pop     ebp
+   3a0ce: ret
+
+### Generic FIT entry append (file [0x91e9,0x924f), runtime [0x2f1e9,0x2f24f))
+
+0002f1e9:
+   2f1e9: push    ebp
+   2f1ea: mov     ebp, esp
+   2f1ec: push    ebx
+   2f1ed: mov     ecx, dword ptr [ebp + 0x8]
+   2f1f0: mov     edx, dword ptr [ebp + 0xc]
+   2f1f3: mov     eax, dword ptr [ecx + 0x8]
+   2f1f6: and     eax, 0xffffff
+   2f1fb: shl     eax, 0x4
+   2f1fe: add     eax, ecx
+   2f200: mov     dword ptr [eax], edx
+   2f202: mov     dword ptr [eax + 0x4], 0x0
+   2f209: mov     edx, dword ptr [ebp + 0x14]
+   2f20c: mov     ebx, dword ptr [eax + 0x8]
+   2f20f: mov     word ptr [eax + 0xc], dx
+   2f213: mov     dl, byte ptr [ebp + 0x18]
+   2f216: and     edx, 0x7f
+   2f219: and     ebx, 0xff000000
+   2f21f: mov     byte ptr [eax + 0xe], dl
+   2f222: mov     edx, dword ptr [ebp + 0x10]
+   2f225: and     edx, 0xffffff
+   2f22b: or      edx, ebx
+   2f22d: mov     dword ptr [eax + 0x8], edx
+   2f230: mov     edx, dword ptr [ebp + 0x1c]
+   2f233: mov     byte ptr [eax + 0xb], dl
+   2f236: mov     eax, dword ptr [ecx + 0x8]
+   2f239: lea     edx, [eax + 0x1]
+   2f23c: and     eax, 0xff000000
+   2f241: and     edx, 0xffffff
+   2f247: or      eax, edx
+   2f249: mov     dword ptr [ecx + 0x8], eax
+   2f24c: pop     ebx
+   2f24d: pop     ebp
+   2f24e: ret
+
+### `oem_key_man` FIT type-0x0b publication
+### file [0xb9bc,0xbaf4), runtime [0x319bc,0x31af4)
+
+000319bc:
+   319bc: push    0x55a60                 # "oem_key_man"
+   319c1: call    0x28cac
+   319c6: pop     ecx
+   319c7: test    eax, eax
+   319c9: jne     0x319e1
+   319cb: or      byte ptr [0xa4c82], 0x10
+   319d2: mov     dword ptr [0xa4b54], 0x24
+   319dc: jmp     0x31efd
+   319e1: mov     eax, dword ptr [eax + 0x18]
+   319e4: mov     dword ptr [0xa4aa4], eax
+   319e9: test    eax, eax
+   319eb: je      0x319cb
+   319ed: mov     eax, dword ptr [eax + 0x18]
+   319f0: shl     eax, 0x2
+   319f3: cmp     eax, 0x1000
+   319f8: jbe     0x31a10
+   319fa: or      byte ptr [0xa4c82], 0x20
+   31a01: mov     dword ptr [0xa4b54], 0x25
+   31a0b: jmp     0x31efd
+   31a10: test    byte ptr [0xa4b38], 0x8
+   31a17: je      0x31a1e
+   31a19: call    0x5191a
+   31a1e: test    byte ptr [0xa4b38], 0x4
+   31a25: je      0x31a42
+   31a27: push    0xc
+   31a29: call    0x27e30
+   31a2e: call    0x514dc
+   31a33: pop     edx
+   31a34: test    eax, eax
+   31a36: je      0x31a42
+   31a38: mov     dword ptr [0xa4b54], eax
+   31a3d: jmp     0x31efd
+   31a42: push    0xd
+   31a44: mov     edi, 0x20000
+   31a49: call    0x27e30
+   31a4e: mov     edx, dword ptr [0xa4ad0]
+   31a54: mov     eax, dword ptr [0xa4acc]
+   31a59: sub     edi, edx
+   31a5b: and     eax, 0x1ffffff
+   31a60: add     edi, dword ptr [0xa4aa0]
+   31a66: add     eax, dword ptr [0xa4ab8]
+   31a6c: push    0x0
+   31a6e: mov     dword ptr [ebp - 0x38], edi
+   31a71: push    edx
+   31a72: push    eax
+   31a73: push    edx
+   31a74: push    edi
+   31a75: call    0x2c316
+   31a7a: add     esp, 0x18
+   31a7d: test    eax, eax
+   31a7f: jne     0x314b0
+   31a85: push    0x10
+   31a87: call    0x27e30
+   31a8c: mov     esi, dword ptr [0xa4aa0]
+   31a92: push    esi
+   31a93: call    0x3a09d               # initialize `_FIT_   ` header
+   31a98: pop     ecx
+   31a99: test    byte ptr [0xa4c79], 0x2
+   31aa0: pop     edi
+   31aa1: jne     0x31af4
+   31aa3: cmp     byte ptr [0xa4c7b], 0x0
+   31aaa: js      0x31b93
+   31ab0: mov     edx, dword ptr [0xa4aa4]
+   31ab6: mov     eax, dword ptr [edx + 0x18]
+   31ab9: shl     eax, 0x2
+   31abc: push    eax
+   31abd: lea     eax, [ebx + 0x1000]
+   31ac3: push    edx
+   31ac4: push    0x1000
+   31ac9: push    eax
+   31aca: call    0x6055                # copy oem_key_man payload
+   31acf: mov     eax, dword ptr [0xa4aa4]
+   31ad4: push    0x0
+   31ad6: push    0xb                   # FIT type 0x0b
+   31ad8: push    0x0
+   31ada: mov     eax, dword ptr [eax + 0x18]
+   31add: shl     eax, 0x2
+   31ae0: push    eax                   # object dword count -> bytes
+   31ae1: push    0xfffe1000            # published FIT payload address
+   31ae6: push    esi                   # FIT table
+   31ae7: call    0x2f1e9               # append entry and increment count
+   31aec: add     esp, 0x28
+   31aef: jmp     0x31b93
+
+### Key-manifest source-name coupling and Extension-14 resolver
+### file [0x1f58e,0x1f871), runtime [0x4558e,0x45871)
+
+0004558e:
+   4558e: push    ebp
+   4558f: mov     ebp, esp
+   45591: push    edi
+   45592: push    esi
+   45593: push    ebx
+   45594: sub     esp, 0x78
+   45597: mov     dword ptr [ebp - 0x6c], 0x0
+   4559e: mov     eax, dword ptr [0x100c]
+   455a3: mov     dword ptr [ebp - 0x10], eax
+   455a6: xor     eax, eax
+   455a8: lea     eax, [ebp - 0x30]
+   455ab: push    0x20
+   455ad: mov     dword ptr [ebp - 0x68], 0x5422d  # "rot.key"
+   455b4: push    0x0
+   455b6: mov     dword ptr [ebp - 0x64], 0x54235  # "oem.key"
+   455bd: push    eax
+   455be: mov     dword ptr [ebp - 0x60], 0x5423d  # "rot_key_man"
+   455c5: mov     dword ptr [ebp - 0x5c], 0x54249  # "oem_key_man"
+   455cc: mov     dword ptr [ebp - 0x58], 0x0
+   455d3: mov     dword ptr [ebp - 0x54], 0x0
+   455da: call    0x103d
+   455df: lea     eax, [ebp - 0x50]
+   455e2: push    0x10
+   455e4: push    0x0
+   455e6: push    eax
+   455e7: call    0x103d
+   455ec: push    0x4000
+   455f1: call    0x6078
+   455f6: add     esp, 0x1c
+   455f9: mov     dword ptr [ebp - 0x70], eax
+   455fc: mov     eax, 0xfffffff4
+   45601: cmp     dword ptr [ebp - 0x70], 0x0
+   45605: je      0x45859
+   4560b: lea     eax, [ebp - 0x30]
+   4560e: mov     esi, dword ptr [ebp - 0x70]
+   45611: mov     dword ptr [ebp - 0x7c], eax
+   45614: mov     edi, eax
+   45616: xor     ebx, ebx
+   45618: cmp     dword ptr [ebp + 0x8], 0x0
+   4561c: jne     0x45631
+   4561e: lea     eax, [ebp - 0x6c]
+   45621: push    eax
+   45622: push    esi
+   45623: push    dword ptr [ebp + 4*ebx - 0x60] # *_key_man names
+   45627: call    0x453b4
+   4562c: add     esp, 0xc
+   4562f: jmp     0x45646
+   45631: lea     ecx, [ebp - 0x6c]
+   45634: mov     eax, dword ptr [ebp + 4*ebx - 0x68] # *.key names
+   45638: push    ecx
+   45639: mov     edx, 0x2
+   4563e: mov     ecx, esi
+   45640: call    0x4549a
+   45645: pop     ecx
+   45646: mov     eax, dword ptr [ebp - 0x6c]
+   45649: test    eax, eax
+   4564b: jne     0x4567f
+   4564d: cmp     ebx, 0x1
+   45650: je      0x4565c
+   45652: mov     ebx, 0x63
+   45657: jmp     0x4584e
+   4565c: call    0x45239
+   45661: test    al, al
+   45663: je      0x45652
+   45665: add     edi, 0x10
+   45668: add     esi, 0x2000
+   4566e: dec     ebx
+   4566f: je      0x45678
+   45671: mov     ebx, 0x1
+   45676: jmp     0x45618
+   45678: xor     eax, eax
+   4567a: jmp     0x45705
+   4567f: sub     eax, 0x284
+   45684: push    0xe
+   45686: push    eax
+   45687: lea     eax, [esi + 0x284]
+   4568d: push    eax
+   4568e: call    0x60b9               # locate extension tag 0x0e
+   45693: add     esp, 0xc
+   45696: mov     dword ptr [ebp + 4*ebx - 0x58], eax
+   4569a: test    eax, eax
+   4569c: jne     0x456a8
+   4569e: mov     ebx, 0x16
+   456a3: jmp     0x4584e
+   456a8: mov     ecx, dword ptr [eax + 0x4]
+   456ab: lea     edx, [ecx - 0x24]
+   456ae: cmp     edx, 0x2200
+   456b4: ja      0x4569e
+   456b6: test    ebx, ebx
+   456b8: jne     0x456c0
+   456ba: cmp     dword ptr [eax + 0x8], 0x1
+   456be: jmp     0x456c4
+   456c0: cmp     dword ptr [eax + 0x8], 0x2
+   456c4: jne     0x4569e
+
+# The remaining hash-bound resolver range merges non-overlapping usage bitmaps
+# and materializes 0x34-byte hash records. It does not by itself establish byte
+# identity between the object named `oem_key_man` and FTPR member `oem.key`.

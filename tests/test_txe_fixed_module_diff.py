@@ -59,6 +59,7 @@ def test_canonical_fixed_module_diff_matches_reviewed_artifact():
     assert busdrv_review["external_rel32_call_site_count"] == 96
     assert busdrv_review["distinct_affected_external_target_count"] == 26
     assert busdrv_review["affected_external_target_range"] == [0x6465, 0x67AD]
+    assert busdrv_review["all_affected_and_first_fixed_external_targets_are_syslib_rel32_export_stubs"] is True
     assert busdrv_review["exact_static_observations"]["busdrv_local_opcode_or_non_address_data_change_at_first_fixed_boundary"] is False
     syslib_review = report["first_fixed_heci_syslib_import_review"]
     assert syslib_review["imported_destination_count"] == 42

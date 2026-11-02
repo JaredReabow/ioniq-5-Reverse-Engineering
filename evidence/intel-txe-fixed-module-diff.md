@@ -141,8 +141,8 @@ Reviewed report:
 
 - path: `evidence/artifacts/update-candidates/txe-fixed-module-diff.json`;
 - schema: `ioniq-txe-fixed-module-diff/v5`;
-- size: `125,543` bytes;
-- SHA-256: `ed7f9ee0f93d1afa3a353560fe034510ceacc303fa3589405341bb0f62e5171f`.
+- size: `125,632` bytes;
+- SHA-256: `0415fd5146a433bd1c2ea19e394419ee5124fe1de0d0172c84182ddde5cf0d72`.
 
 Reviewed byte-free disassembly/decompiler excerpts are retained as:
 

@@ -258,6 +258,7 @@
       "0x67ad": 1
     },
     "affected_sha256": "f226a92dd219a020bca96aeca3b54d8b0870f230128b7cb206c3389d5096ad21",
+    "all_affected_and_first_fixed_external_targets_are_syslib_rel32_export_stubs": true,
     "all_first_fixed_external_targets_equal_affected_plus_five": true,
     "attribution_boundary": "The complete affected and first-fixed busdrv modules are byte-identical after normalizing only 96 external call displacements to 26 syslib import stubs, each shifted by the inserted syslib export. This excludes busdrv-local opcode and non-address-data changes as the first-fixed CVE-2018-12147 fix, but does not exclude changed transitive callees, kernel/service handlers, another module, or downstream clients.",
     "distinct_affected_external_target_count": 26,

@@ -76,8 +76,8 @@ Exact CSE RBE incoming-handoff `ipub_key → rot.key` pinning, shared CSE-manife
 - `evidence/intel-txe-fixed-module-diff.md`
 - `evidence/artifacts/update-candidates/txe-fixed-module-diff.json`
   - schema `ioniq-txe-fixed-module-diff/v5`
-  - size `125,543`
-  - SHA-256 `ed7f9ee0f93d1afa3a353560fe034510ceacc303fa3589405341bb0f62e5171f`
+  - size `125,632`
+  - SHA-256 `0415fd5146a433bd1c2ea19e394419ee5124fe1de0d0172c84182ddde5cf0d72`
 - `evidence/artifacts/update-candidates/txe-fixed-heci-exact-static.txt`
   - size `15,113`
   - SHA-256 `cef4f22d92995e44e18eb75fa024bf6e936581a67d5b8c31cb73bf3029a1cbf3`
@@ -86,8 +86,8 @@ Exact CSE RBE incoming-handoff `ipub_key → rot.key` pinning, shared CSE-manife
 
 - affected/first-fixed/later diff tests: `3 passed in 0.14s`;
 - combined diff and provenance package: `16 passed, 10 subtests passed`;
-- canonical suite: `1022 passed, 352351 subtests passed in 168.63s`;
-- canonical log SHA-256: `8b2c0c66fba9cc9fdc172aea50e6c1c81b1f746f56f484a562a8f03dbea80441`;
+- canonical suite: `1022 passed, 352351 subtests passed in 170.54s`;
+- canonical log SHA-256: `69ef054889fcc270bae55c6fff3a0e7c388fdeadee8ab45f09ca69cf0c9f6f83`;
 - UTF-16 environment determinism, `py_compile`, and `git diff --check` passed.
 
 ## Boundary

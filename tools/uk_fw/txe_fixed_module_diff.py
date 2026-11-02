@@ -590,12 +590,21 @@ def module_wide_external_relocation_review(affected: bytes, first_fixed: bytes) 
     }
 
 
-def first_fixed_busdrv_review(affected: bytes, first_fixed: bytes) -> dict:
+def first_fixed_busdrv_review(
+    affected: bytes,
+    first_fixed: bytes,
+    affected_syslib: bytes,
+    first_fixed_syslib: bytes,
+) -> dict:
     if (
         sha256(affected) != OLD_BUSDRV_SHA256
         or sha256(first_fixed) != FIRST_FIXED_BUSDRV_SHA256
+        or sha256(affected_syslib) != OLD_SYSLIB_SHA256
+        or sha256(first_fixed_syslib) != FIRST_FIXED_SYSLIB_SHA256
         or len(affected) != 0x6000
         or len(first_fixed) != 0x6000
+        or len(affected_syslib) != 0x13000
+        or len(first_fixed_syslib) != 0x13000
     ):
         raise Failure("first-fixed busdrv identity drift")
 
@@ -629,6 +638,15 @@ def first_fixed_busdrv_review(affected: bytes, first_fixed: bytes) -> dict:
         normalized_first_fixed[offset + 1 : offset + 5] = b"\0" * 4
         sites.append(offset)
 
+    for affected_stub in target_counts:
+        first_fixed_stub = affected_stub + 5
+        rel32_target(
+            0x6000, affected_syslib, affected_stub - 0x6000, 0xE9
+        )
+        rel32_target(
+            0x6000, first_fixed_syslib, first_fixed_stub - 0x6000, 0xE9
+        )
+
     if (
         len(actual_differences) != 97
         or len(sites) != 96
@@ -650,6 +668,7 @@ def first_fixed_busdrv_review(affected: bytes, first_fixed: bytes) -> dict:
         "distinct_affected_external_target_count": len(target_counts),
         "affected_external_target_range": [min(target_counts), max(target_counts)],
         "all_first_fixed_external_targets_equal_affected_plus_five": True,
+        "all_affected_and_first_fixed_external_targets_are_syslib_rel32_export_stubs": True,
         "equal_after_zeroing_only_selected_external_rel32_call_immediates": True,
         "affected_external_target_reference_counts": {
             f"0x{target:x}": target_counts[target] for target in sorted(target_counts)
@@ -1429,7 +1448,10 @@ def build_report(old: bytes, first_fixed: bytes, later: bytes) -> dict:
             old_modules["heci"], first_modules["heci"]
         ),
         "first_fixed_busdrv_exact_static_review": first_fixed_busdrv_review(
-            old_modules["busdrv"], first_modules["busdrv"]
+            old_modules["busdrv"],
+            first_modules["busdrv"],
+            old_modules["syslib"],
+            first_modules["syslib"],
         ),
         "first_fixed_heci_syslib_import_review": first_fixed_heci_syslib_import_review(
             old_modules["heci"],

@@ -13,9 +13,13 @@ Consequently, the twelve package signatures prove more than self-consistency
 only when their carried key also matches the provisioned digest. An arbitrary
 new self-signed IAS key is not accepted by this exact code path.
 
-The persistent object that supplies the runtime descriptor/hash table is not yet
-identified. Therefore the expected digest's storage and authenticated delivery
-remain open even though the exact compare-before-RSA behavior is now closed.
+A follow-on exact-static package now identifies the runtime descriptor as a FIT
+type-`0x0b` key manifest copied by IBBL from a pre-existing FIT handoff at
+`0xfef80000` to `0xc10c0`. The exact flash also contains an FTPR `oem.key`
+Extension-14 manifest whose usage-39 digest differs from the package carried-key
+candidate, but recovered code does not yet bind that stored object to the
+runtime FIT pointer. The handoff producer and pre-IBBL authentication remain
+open. See `evidence/abl-ias-key-manifest-provenance.md`.
 
 ## Canonical identities
 
@@ -107,9 +111,11 @@ little-endian exponent bytes. Its candidate digest is:
 
 The exact ABL routine uses the same hash input. The candidate is not present
 verbatim in the stored 8 MiB flash or any of the three decompressed IBB stages.
-That is bounded negative evidence only: manifests, CSE/HOB delivery, a
-transformed representation, or another authenticated source can populate the
-runtime descriptor/hash table.
+That is bounded negative evidence only. Follow-on exact instructions prove that
+IBBL copies a pre-existing FIT handoff from `0xfef80000`, including a present
+type-`0x0b` payload, before stage 1 consumes the key manifest. The exact flash's
+stored FTPR `oem.key` has usage-39 digest `9b0a59...`, not the package candidate
+`437008...`; the runtime binding and earlier authentication remain unresolved.
 
 ## Stock constructor boundary
 
@@ -143,8 +149,11 @@ The latter performs this order:
 
 This source remains comparative for names and provisioning architecture, but
 its key-hash-before-RSA order is now independently corroborated by exact
-`rel.1714-HF3` instructions. The exact code does not by itself name the
-persistent source that populates its descriptor type `0x0b` hash records.
+`rel.1714-HF3` instructions. Follow-on exact IBBL analysis identifies the
+descriptor as FIT type `0x0b` and its immediate source as a volatile handoff at
+`0xfef80000`. It also recovers a stored FTPR `oem.key` candidate, but does not
+prove the runtime pointer selects that object or prove the earlier
+authentication of the handoff.
 
 ## Conclusions
 
@@ -156,8 +165,9 @@ persistent source that populates its descriptor type `0x0b` hash records.
   `0x27`.
 - Acceptance of an arbitrary embedded key is rejected by the exact
   compare-before-RSA path.
-- The persistent origin and authenticated delivery of the expected digest remain
-  unknown.
+- The immediate runtime source is a FIT type-`0x0b` key manifest copied from
+  `0xfef80000`; a stored FTPR `oem.key` candidate is recovered, but its runtime
+  binding, handoff producer, and pre-IBBL authentication remain unknown.
 - Custom signed-image acceptance, boot acceptance, root, persistence,
   mark-good, rollback, and recovery are **not proved**.
 

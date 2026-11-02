@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.32.0 - seeding works, and the crash names itself
+
+- **`ihu-shim` seeding is confirmed working:** the clean run logs `ihu-shim: seeded 35 profile bytes` and `ihu-shim: 6 segment(s)`
+  to `/dev/ttyS0` (the earlier `SEEDED=0` was my error — I grepped the shim's stdout, but it logs to the console),
+  `/micom-profile.bin` is present in the image at 35 bytes, and in the combined run the app's
+  **nine `Cannot attach to shared memory` failures drop to zero** (656 log lines, `SHM_ERR=0`).
+- **The app then dies, and the kernel says exactly where:**
+  `AppHomeScreen[735]: segfault at 8 ip 00007fdbca0ee6e4 sp 00007fffc4743da0 error 4 in libQt5Qml.so.5.4.1[7fdbc9ea3000+43b000]`
+  — a null dereference at offset 8, i.e. reading a member through a null pointer.
+- Symbolized against the vendor `/usr/lib/libQt5Qml.so.5.4.1`: `ip - base = 0x24b6e4`, which falls **+0x14 into
+  `QtQml::qmlEngine(QObject const*)`** (previous dynamic symbol `0x24b6d0`, next `0x24b730 qmlContext`).
+- `qmlEngine()` dereferences the object it is handed, so the crash means **vendor code called `qmlEngine()` on an invalid
+  `QObject` while adding home screen 129** — the classic consequence of a QML component that failed to instantiate and whose
+  null result was used unguarded. The app reaches `AppHomeEngine::addNewScrStack … Add Screen: 129` at 28.427 s and segfaults
+  at 28.429 s: two milliseconds later.
+- That relocates the fault precisely: not the compositor, not the preload, not the shared memory — those are all now fixed
+  points — but **one home-screen component that fails to create**. The next step is to identify it from the QML errors the
+  direct run now writes to a readable log.
+
 ## 2.31.0 - the app's own log is readable at last, and it names what the widgets are missing
 
 - Running the app directly instead of through the launcher has a second payoff beyond rendering: **its log is now a file we can

@@ -3875,3 +3875,11 @@ and are superseded by corrections rather than silently rewritten.
 - That is the most consequential line of the day, and it arrived from Astra's ranked list, tested rather than believed. Its
   advice to ignore the splash until frames appeared was equally load-bearing: chasing the splash would have hidden this.
 - The honest summary of the blank screen is now three independent faults and no fault in the display stack.
+
+## 2026-10-31 — the application finally gets to speak
+
+- Bypassing the launcher stopped it throwing away the app's diagnostics. Reading them for the first time shows nine widgets
+  failing on missing shared-memory keys, which is the same region family the MICOM work had already mapped.
+- So the rendering fault and the simulation work were never separate problems. The screen is blank for want of data, and the data
+  is the thing this project spent its effort learning to fabricate.
+- The combination attempt was inconclusive and is recorded as such rather than as a result.

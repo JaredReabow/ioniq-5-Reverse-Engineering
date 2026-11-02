@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.31.0 - the app's own log is readable at last, and it names what the widgets are missing
+
+- Running the app directly instead of through the launcher has a second payoff beyond rendering: **its log is now a file we can
+  read** (`/tmp/app-direct.log`, 830 lines within 70 s) instead of `/dev/null`. This is the first time in the investigation the
+  application has been able to tell us anything about itself.
+- What it says is specific and actionable. Every widget that needs vehicle state fails at startup:
+  `BTBCallWidget`, `ClimateWidget`, `CPCallWidget`, `CPCallWidget::initBuyer`, `ElectricityUseWidget`,
+  `PHEVVehicleOSDWidget`, `PHEVVehicleWidget`, `PHEVWidget`, `WeatherWidget` — each reporting
+  **`Cannot attach to shared memory to update! ERROR: "QSharedMemory::handle:: UNIX key file doesn't exist"`**.
+- Those are exactly the shared-memory regions `ihu-shim` creates. The same family that the MICOM chain work identified is what
+  the home-screen widgets need to load their boot info, so the earlier region discovery and the current rendering problem are
+  the same problem seen from two ends.
+- Also measured: with the preload removed the app commits a frame that is uniform light colour (5,469 bytes at 60/120/180/240/300 s,
+  byte-identical), never reaches tiles, and **exits before 300 s**.
+- So the remaining content fault is a data fault, not a rendering one: the scene is built, the surface is committed, and the
+  widgets have nothing to render because the shared-memory keys are absent.
+- First attempt at combining `ihu-shim` with the direct-app configuration was inconclusive — the shim printed no `seeded` line and
+  the app was not running at the 75-second check — so that combination needs a cleaner run before anything is claimed about it.
+
 ## 2.30.0 - found it: the launcher's `LD_PRELOAD` stops the app rendering at all
 
 - The app never attaching a buffer was traced to the vendor launcher's environment. `AppLauncher.sh` exports

@@ -675,7 +675,8 @@ class PrivacyTests(unittest.TestCase):
             (root / "evidence").mkdir()
             (root / "evidence" / "protocol.md").write_text(
                 "wl_surface@3.attach(wl_buffer@9, 0, 0)\n"
-                "ivi_controller@13.surface(30000)\n",
+                "ivi_controller@13.surface(30000)\n"
+                "`wl_surface@N.attach` calls: **0** · `wl_surface@N.commit` calls: **0**\n",
                 encoding="utf-8",
             )
             result = privacy.privacy_scan(root)

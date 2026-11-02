@@ -16,7 +16,8 @@ TEXT_SUFFIXES = frozenset(
     {".md", ".json", ".txt", ".yaml", ".yml", ".toml", ".csv", ".tsv", ".gitignore"}
 )
 PUBLIC_TEXT_SUFFIXES = TEXT_SUFFIXES | frozenset(
-    {".py", ".sh", ".asm", ".log", ".java", ".c", ".s", ".inf", ".update", ".qml", ".js", ".conf"}
+    {".py", ".sh", ".asm", ".log", ".java", ".c", ".s", ".inf", ".update",
+     ".qml", ".js", ".conf", ".cmd", ".cmds"}
 )
 PUBLIC_RAW_SUFFIXES = frozenset({".zip", ".gz", ".dlt", ".dat", ".dump", ".core"})
 PUBLIC_PERSONAL_HOME = re.compile(r"/Users/(?!researcher/|USER/|example/)[^/\s]+/")
@@ -63,6 +64,10 @@ PUBLIC_CODE_CREDENTIAL = re.compile(
 # this constraint every captured protocol log is reported as a leaked address.
 EMAIL_PATTERN = re.compile(
     r"\b[A-Za-z0-9._%+-]+@[A-Za-z][A-Za-z0-9-]*(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b")
+# Notes and protocol dumps also write the notation with a symbolic identifier:
+# "wl_surface@N.attach", "ivi_window_manager@N.set(...)". The local part is a
+# Wayland interface name, so the token is an object reference, not an address.
+WAYLAND_LOCAL_PATTERN = re.compile(r"^(?:wl|ivi|zwp|wp|xdg)_[a-z0-9_]+$")
 
 VIN_PATTERN = re.compile(r"\b[A-HJ-NPR-Z0-9]{17}\b")
 MAX_FINDINGS = 200
@@ -83,7 +88,10 @@ def privacy_scope_files(root: Path, *, tracked_only: bool = False) -> list[Path]
             for path in paths
             if path
             and not set(Path(path).parts) & EXCLUDED_PARTS
-            and (Path(path).parent == Path(".") or Path(path).parts[0] in {"evidence", "council", "tools", "vm"})
+            and (
+                Path(path).parent == Path(".")
+                or Path(path).parts[0] in {"evidence", "council", "tools", "vm"}
+            )
         ]
     for path in sorted(root.iterdir()):
         if path.is_file():
@@ -105,6 +113,11 @@ def privacy_email_allowed(address: str) -> bool:
     """True for reserved or public no-reply domains used as provenance."""
     domain = address.rsplit("@", 1)[-1].lower()
     return any(domain == allowed or domain.endswith("." + allowed) for allowed in EMAIL_ALLOWLIST)
+
+
+def privacy_wayland_notation(address: str) -> bool:
+    """True when an address-shaped token is a Wayland object reference."""
+    return bool(WAYLAND_LOCAL_PATTERN.match(address.rsplit("@", 1)[0]))
 
 
 def privacy_vin_like(token: str) -> bool:
@@ -178,6 +191,8 @@ def privacy_scan(root: Path) -> dict:
                 if pattern.search(line):
                     add(path, category, common.STATUS_FAIL, number)
             for match in EMAIL_PATTERN.finditer(line):
+                if privacy_wayland_notation(match.group(0)):
+                    continue
                 category = (
                     "public-noreply-email"
                     if privacy_email_allowed(match.group(0))

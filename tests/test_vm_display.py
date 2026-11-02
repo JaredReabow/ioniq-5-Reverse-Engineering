@@ -3,11 +3,15 @@ from __future__ import annotations
 
 import io
 import json
+import os
 from pathlib import Path
+import pty
+import select
 import struct
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 import zlib
 
@@ -245,12 +249,36 @@ class LauncherTests(unittest.TestCase):
             VM.qemu_command(PROJECT, "qemu", True, "vnc=0.0.0.0:0")
 
     def test_child_input_cannot_eat_status_commands(self):
-        cmd = "read -r line; printf 'CHILD:%s\\n' \"$line\""
-        script = VM.shell_script(cmd, "END") + "PAYLOAD\n"
-        result = subprocess.run(["/bin/sh"], input=script, text=True, capture_output=True)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("CHILD:PAYLOAD\n", result.stdout)
-        self.assertIn("\nEND:0\n", result.stdout)
+        cmd = "printf 'READY\\n'; read -r line; printf 'CHILD:%s\\n' \"$line\""
+        master, slave = pty.openpty()
+        process = subprocess.Popen(
+            ["/bin/sh", "-i"], stdin=slave, stdout=slave, stderr=slave
+        )
+        os.close(slave)
+        output = bytearray()
+
+        def read_until(marker):
+            deadline = time.monotonic() + 5
+            while marker not in output and time.monotonic() < deadline:
+                ready, _, _ = select.select([master], [], [], 0.1)
+                if ready:
+                    output.extend(os.read(master, 4096))
+            self.assertIn(marker, output)
+
+        try:
+            os.write(master, VM.shell_script(cmd, "END").encode())
+            read_until(b"READY\r\n")
+            os.write(master, b"PAYLOAD\n")
+            read_until(b"END:0\r\n")
+            self.assertIn(b"CHILD:PAYLOAD\r\n", output)
+        finally:
+            process.terminate()
+            try:
+                process.wait(timeout=1)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+            os.close(master)
 
     def test_group_preserves_command_failure(self):
         result = subprocess.run(["/bin/sh"], input=VM.shell_script("false", "END"),

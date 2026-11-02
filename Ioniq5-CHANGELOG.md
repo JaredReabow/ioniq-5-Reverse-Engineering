@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.59.0 - the crashing clients share three vendor libraries, and one of their services is missing entirely
+
+- Compared the dynamic dependencies of the applications that die in `free()`:
+  - `AppHomeScreen`: `libBigInfo.so.1`, `libImageProvider.so.1`, `libpersistence_client_library.so.7`
+  - `AppCamera`: the same three, plus `libivi-window-manager-api.so.1` and the GStreamer stack
+  - `AppOSDManager`: the same three, plus `libivi-window-manager-api.so.1`
+  So the common vendor surface is exactly **`libBigInfo.so.1`, `libImageProvider.so.1`, `libpersistence_client_library.so.7`** plus Qt.
+- **The persistence service is not running, and nothing in the image provides it.** `libpersistence_client_library.so.7` is a symlink to `.so.7.1.1`
+  and speaks D-Bus to **`org.genivi.persistence.admin`** at `/org/genivi/persistence/admin`. On the live system bus that name returns
+  `org.freedesktop.DBus.Error.ServiceUnknown`, and the image ships only the client library, the interface XML
+  (`/usr/share/dbus-1/interfaces/org.genivi.persistence.admin.xml`) and the policy files — **no daemon binary at all**.
+- The interface is small and fully specified in the shipped XML: `RegisterPersAdminNotification`, `UnRegisterPersAdminNotification` and
+  `PersistenceAdminRequestCompleted` on `org.genivi.persistence.admin`, plus `PersistenceAdminRequest` on `org.genivi.persistence.adminconsumer`.
+- That makes it another missing adaptor of exactly the kind this project exists to build, and a concrete suspect for the heap corruption: a client whose
+  persistence client cannot reach its service may later free state it never successfully initialised. **That is a hypothesis**, and the stub being built
+  is what tests it — no claim is made yet that supplying the service stops the crashes.
+- Delegated: `persistence_admin_stub.c`, following the existing `micom_service.c` pattern (no dbus headers, everything resolved through `dlopen`), to own
+  the name on the system bus, answer the declared methods, and reply with a real error to anything it does not recognise so nothing hangs.
+
 ## 2.58.0 - the surface-id overrides are inconclusive because the app dies, and the crashes are not ours
 
 - Both override variants were tested with the tracer attached:

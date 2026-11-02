@@ -4094,3 +4094,9 @@ and are superseded by corrections rather than silently rewritten.
 - The deaths are heap corruption inside free(), at an identical offset in two different vendor applications. They also happen in the untouched single-output
   configuration, to a third application we were not even looking at.
 - So this environment has been quietly killing its clients all along, and several "no result" observations today were that, not a failure of the hypothesis.
+
+## 2026-10-31 — the missing service in the middle of everything
+
+- Three applications die in free(), and the vendor libraries they share turn out to depend on a service that is simply not present in this projection. The
+  image ships the client, the interface and the policy, and no daemon.
+- That is the same shape of gap this project has closed before, so it is worth a stub. Whether it explains the heap corruption is a question a run will answer.

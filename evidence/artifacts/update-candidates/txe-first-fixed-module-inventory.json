@@ -40,15 +40,15 @@
       36563
     ],
     "all_reviewed_lengths_increment_by_one": true,
-    "attribution_boundary": "The eleven residual bytes in ish_srv, loadmgr, gpio, and pm are exact one-byte increases in serialized message-length fields for destination dword 0x02000200. This is a coordinated interface delta, but the recipient, added byte semantics, attacker control, HECI reachability, and CVE attribution remain unproved.",
+    "attribution_boundary": "The eleven residual bytes in ish_srv, loadmgr, gpio, and pm are exact one-byte increases in serialized message-length fields whose message dword zero is 0x02000200. This is a coordinated interface delta, but the dword's semantics, recipient, added byte meaning, attacker control, HECI reachability, and CVE attribution remain unproved.",
     "constructor_sha256": "1a9f71789daff697fe6ac80b110101ecc63d84bbc3759c6a869bfc648a6d8c28",
-    "constructor_stores_destination_dword_at_message_offset_zero": true,
+    "constructor_stores_first_argument_dword_at_message_offset_zero": true,
     "constructor_stores_second_argument_low_byte_at_message_offset_four": true,
-    "destination_dword": 33554944,
     "first_fixed_constructor_runtime_range": [
       36495,
       36568
     ],
+    "message_dword_zero": 33554944,
     "module_count": 4,
     "site_count": 11,
     "sites": [

@@ -316,11 +316,11 @@ def minimal_length_delta_review(
                     raise Failure(f"{name} mov-byte-imm8 encoding drift")
             else:
                 raise Failure(f"{name} unknown reviewed immediate encoding")
-            destination_push = b"\x68\x00\x02\x00\x02"
-            if affected[max(0, call_offset - 32) : call_offset].count(destination_push) != 1:
-                raise Failure(f"{name} affected destination dword drift")
-            if first_fixed[max(0, call_offset - 32) : call_offset].count(destination_push) != 1:
-                raise Failure(f"{name} first-fixed destination dword drift")
+            message_word_push = b"\x68\x00\x02\x00\x02"
+            if affected[max(0, call_offset - 32) : call_offset].count(message_word_push) != 1:
+                raise Failure(f"{name} affected message dword-zero drift")
+            if first_fixed[max(0, call_offset - 32) : call_offset].count(message_word_push) != 1:
+                raise Failure(f"{name} first-fixed message dword-zero drift")
             if _rel32_call_target(affected, call_offset) != affected_stub:
                 raise Failure(f"{name} affected reviewed call target drift")
             if _rel32_call_target(first_fixed, call_offset) != first_fixed_stub:
@@ -360,15 +360,15 @@ def minimal_length_delta_review(
     return {
         "module_count": len(MINIMAL_LENGTH_DELTA_SITES),
         "site_count": len(sites),
-        "destination_dword": 0x02000200,
+        "message_dword_zero": 0x02000200,
         "affected_constructor_runtime_range": [0x8E8A, 0x8ED3],
         "first_fixed_constructor_runtime_range": [0x8E8F, 0x8ED8],
         "constructor_sha256": sha256(affected_constructor),
-        "constructor_stores_destination_dword_at_message_offset_zero": True,
+        "constructor_stores_first_argument_dword_at_message_offset_zero": True,
         "constructor_stores_second_argument_low_byte_at_message_offset_four": True,
         "all_reviewed_lengths_increment_by_one": True,
         "sites": sites,
-        "attribution_boundary": "The eleven residual bytes in ish_srv, loadmgr, gpio, and pm are exact one-byte increases in serialized message-length fields for destination dword 0x02000200. This is a coordinated interface delta, but the recipient, added byte semantics, attacker control, HECI reachability, and CVE attribution remain unproved.",
+        "attribution_boundary": "The eleven residual bytes in ish_srv, loadmgr, gpio, and pm are exact one-byte increases in serialized message-length fields whose message dword zero is 0x02000200. This is a coordinated interface delta, but the dword's semantics, recipient, added byte meaning, attacker control, HECI reachability, and CVE attribution remain unproved.",
     }
 
 

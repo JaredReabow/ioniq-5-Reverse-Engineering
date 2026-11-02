@@ -67,7 +67,15 @@ read-only values of `kexec_load_disabled`, `modules_disabled`,
 securebits, so those remain a separate observation rather than being inferred
 from capability masks. Linux v4.1 also does not normally expose `NoNewPrivs` in
 that file; the collector records it as unavailable unless a vendor backport
-provides it. Update-specific records include the live
+provides it. For the newly bounded CSE trust questions, the same identity
+section passively records metadata for `/dev/mei{,0,1}`, the shipped
+`mei.ko`/`mei-me.ko`/`mei-txe.ko` files and module-load configuration, plus each
+observed `/sys/class/mei/*` entry's metadata, device link, device-number text,
+and device `uevent` text. It never opens a MEI character device, issues an
+ioctl, writes sysfs, or transmits a firmware message. These records can identify
+which host interface exists on a future disconnected bench; they do not expose
+CSE `/snowball` storage, prove a client UUID, authenticate `ipub_key`, or permit
+safe protocol interaction. Update-specific records include the live
 command lines for AppLauncher/AppDMClient/AppScomoDM/AppUpgrade and hashes for
 BusyBox, both unzip providers, those applications, `CarOption.csv`,
 `DecryptToPIPE`, and `teruten5_pub.key`. For V-028 it also records

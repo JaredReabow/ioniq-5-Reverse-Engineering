@@ -25,6 +25,11 @@ and process capability/persistence-gate capture; locally validated on 2026-11-08
     capture so configured PTY exposure can be separated from runtime state;
   - records `/proc/modules` and hashes exact `unix.ko` without loading it, so
     AF_UNIX static findings can be compared with observed module state;
+  - passively inventories `/dev/mei{,0,1}`, shipped Intel MEI modules and
+    module-load configuration, and `/sys/class/mei/*` metadata/device links/dev
+    numbers/uevents without opening a MEI device, issuing an ioctl, writing
+    sysfs, or sending a CSE message; this establishes host-interface presence
+    only, not `/snowball` access or an authenticated client protocol;
   - records the scalar `/proc/sys/kernel/perf_event_paranoid` runtime policy
     without calling `perf_event_open`, running `perf`, creating an event, or
     starting a thread;
@@ -112,6 +117,15 @@ subtests`, and the complete suite passed `906 tests, 351663 subtests` in
 `ffecb19856528e01cf2ad81812d339e32913176094446b78f65714605babde8c`.
 No physical unit, target network, radio, modem, firmware update, recovered
 executable, or active exploit input was used.
+
+The current passive MEI inventory extension adds only device/module/sysfs
+metadata and text reads; it never opens a MEI endpoint or sends firmware
+traffic. Focused collector/readiness validation passed `40 tests, 22 subtests`,
+and the canonical suite passed `1011 tests, 352216 subtests` in `189.08s`.
+The emitted probe is 26,920 bytes with SHA-256
+`aac40edb593a3b26f125c1120e69b7901d4fe38c80c1f8e82f1681e7e697ba6b`;
+the canonical log SHA-256 is
+`bb2fd330490303cc88057f615be199913cd346093c3f65b5843f6fb047c31d08`.
 
 ## Delegation/routing
 

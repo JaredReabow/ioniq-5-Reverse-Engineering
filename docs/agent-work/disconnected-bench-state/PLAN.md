@@ -54,8 +54,9 @@ The parser treats all input as data.
 - it covers identity, process credentials/capability masks/effective SMACK
   labels, parent relationships, optional no-new-privileges and required seccomp
   state, unit activation, listeners/interfaces, passive Wi-Fi/P2P state, oFono
-  state, local Bluetooth registration, Dropbear completeness, A/B flags, and
-  exact binary hashes;
+  state, local Bluetooth registration, Dropbear completeness, A/B flags, exact
+  binary hashes, and passive Intel MEI device/module/sysfs identity without
+  opening a MEI endpoint or sending firmware traffic;
 - it records metadata, hashes, `SMACK64`, and `SMACK64EXEC` state for the stock
   direct-transition anchor, shell/interpreter chain, dynamic loader, fixed
   `date` candidates, and the relabel/setup scripts without executing them;

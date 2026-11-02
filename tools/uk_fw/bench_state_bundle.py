@@ -584,6 +584,21 @@ for I_PATH in /etc/version /etc/issue /app/etc/version /app/share/version /updat
 do
     capture_file identity-file "$I_PATH"
 done
+# Passive Intel MEI/CSE inventory only: metadata and sysfs text are read, but
+# no MEI character device is opened and no firmware message is transmitted.
+for I_MEI_PATH in /dev/mei /dev/mei0 /dev/mei1 /lib/modules/4.1.27-abl/kernel/drivers/misc/mei/mei.ko /lib/modules/4.1.27-abl/kernel/drivers/misc/mei/mei-me.ko /lib/modules/4.1.27-abl/kernel/drivers/misc/mei/mei-txe.ko /etc/modules-load.d/lge-intel-mei-mod.conf
+ do
+    file_meta "$I_MEI_PATH"
+ done
+for I_MEI_DIR in /sys/class/mei/*
+ do
+    [ -e "$I_MEI_DIR" ] || continue
+    file_meta "$I_MEI_DIR"
+    read_link_value mei-device "$I_MEI_DIR/device"
+    record mei-device-link "$I_MEI_DIR|$RL_STATE|$RL_VALUE"
+    capture_file mei-dev-number "$I_MEI_DIR/dev"
+    capture_file mei-device-uevent "$I_MEI_DIR/device/uevent"
+ done
 end_section identity 0
 
 begin_section processes

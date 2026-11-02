@@ -8,12 +8,13 @@ import json
 import os
 import stat
 import struct
+import subprocess
 import sys
 import tarfile
 from pathlib import Path
 
 SCHEMA = "abl-boot-selection/v1"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 UPDATE_SIZE = 42_101_042
 UPDATE_SHA256 = "1e67344a714708733a9158a52ef5d4def95b126e5725d070669ea64e0644c4c8"
 ABL_MEMBER = "abl/bin/104096/abl1714-Batch10-Ver.11.00-sign-8MB.bin"
@@ -40,6 +41,11 @@ CONFIG_OFFSET = 0x102E6A
 CONFIG_TOTAL_SIZE = 0xA88
 CONFIG_SHA256 = "c9a592afcecb6adefc678d5503f98e946370948264690ef46c2bf39a7c718a9a"
 STAGE_SHA256 = "3491be59ef865cb376131b02fa1ff6941e37d1c87ae3c4cf7969b5364785b3c2"
+SBL_COMMIT = "5f5c14b10ae6bd3cd0cf7e274142767dc2635a06"
+SBL_FILES = {
+    "Platform/ApollolakeBoardPkg/Include/ConfigDataDefs.h": "40e988111adf1c01da3598a163f6041eca49b4a55ad5dc4b06898d046f40971c",
+    "Platform/ApollolakeBoardPkg/Library/Stage1BBoardInitLib/Stage1BBoardInitLib.c": "e4497d268b295720a3ad40239fa5702b2ba7b72d7128bc3fa31a485337288d9d",
+}
 STAGE_RANGES = {
     "boot_record_callback": (0xAE16, 0xAFF7, "aa556ed1727d5ea006f9211c536fdc387f117665291b929871b07cbb2b0f0e89"),
     "boot_dispatch_tail": (0x6BA, 0x70D, "bc0cbc9edeeebf6249d1dfa868827cbc6d18fade68d8ae6d03f221665e52144b"),
@@ -244,6 +250,22 @@ def one_count(data: bytes, needle: bytes, label: str) -> None:
         raise Failure(f"semantic anchor multiplicity drift: {label}")
 
 
+def git_blob(repo: Path, name: str, digest: str) -> bytes:
+    try:
+        process = subprocess.run(
+            ["git", "-C", str(repo), "show", f"{SBL_COMMIT}:{name}"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise Failure(f"public source read failed: {exc}") from exc
+    if process.returncode or hashlib.sha256(process.stdout).hexdigest() != digest:
+        raise Failure(f"public source identity mismatch: {name}")
+    return process.stdout
+
+
 def extract_stage(abl: bytes) -> bytes:
     if struct.unpack_from("<7I", abl, 0x18B440) != (0x2E6B7069, 0, 0, 0x33CD4, 0x2C, 0x33CD4, 0xF753ACFA):
         raise Failure("IBB IAS header drift")
@@ -260,7 +282,7 @@ def extract_stage(abl: bytes) -> bytes:
     return stage
 
 
-def analyze(update_archive: Path, rootfs_archive: Path) -> dict:
+def analyze(update_archive: Path, rootfs_archive: Path, sbl_repo: Path) -> dict:
     update_spec = {
         ABL_MEMBER: {"size": 8_388_608, "mode": 0o755, "uid": 8100, "gid": 8100, "sha256": ABL_SHA256}
     }
@@ -321,6 +343,14 @@ def analyze(update_archive: Path, rootfs_archive: Path) -> dict:
     ]
     if actual != expected:
         raise Failure("ABL boot-option records drift")
+    boot_gpio = records[5]
+    if (boot_gpio["offset"], boot_gpio["size"], boot_gpio["tag"], boot_gpio["variant"]) != (0xA8, 0x14, 0x4E, 1):
+        raise Failure("ABL BOOT_MODE_GPIO record drift")
+    gpio_payload = payload[0xB0:0xBC]
+    if struct.unpack("<6H", gpio_payload) != (0x0000, 0x0003, 0xFFFF, 0xFFFF, 0xC184, 0xC103):
+        raise Failure("ABL BOOT_MODE_GPIO payload drift")
+    if stage[0x1DB80:0x1DB90] != struct.pack("<IIII", 0x4D, 0xFD7F7, 0x4E, 0xFD800) or stage[0x1D800:0x1D80F] != b"BOOT_MODE_GPIO\0":
+        raise Failure("ABL config-tag name table drift")
     if b"iasImage_sub" in config or b"_sub" in config or b"iasImage_sub" in abl or b"_sub" in stage:
         raise Failure("unexpected direct _sub literal in exact ABL evidence")
 
@@ -334,6 +364,15 @@ def analyze(update_archive: Path, rootfs_archive: Path) -> dict:
         one_count(esinit, needle_text, label)
     one_count(engineer, b"cp -vf ./p2/iasImage_sub ./p1/iasImage", "engineering sub promotion")
     one_count(engineer, b"cp -vf ./p2/iasImage ./p1/iasImage", "engineering normal promotion")
+
+    public_sources = {name: git_blob(sbl_repo, name, digest) for name, digest in SBL_FILES.items()}
+    defs = public_sources["Platform/ApollolakeBoardPkg/Include/ConfigDataDefs.h"]
+    board = public_sources["Platform/ApollolakeBoardPkg/Library/Stage1BBoardInitLib/Stage1BBoardInitLib.c"]
+    one_count(defs, b"#define  ABL_CDATA_BOOT_MODE_GPIO_TAG   0x04E", "public BOOT_MODE_GPIO tag")
+    if board.count(b"GetBootModeOption (") != 2:
+        raise Failure("public GPIO decoder anchor multiplicity drift")
+    one_count(board, b"*BootModeOption = (Data16 ^ BootModeGpio->Invert);", "public GPIO boot option result")
+    one_count(board, b"PlatformData->BootModeOption.Uint16 = BootModeOption;", "public platform boot option write")
 
     selected_records = [
         {
@@ -373,6 +412,17 @@ def analyze(update_archive: Path, rootfs_archive: Path) -> dict:
                 "header_crc32c": f"{header_crc:08x}",
                 "payload_crc32c": f"{payload_crc:08x}",
                 "boot_records": selected_records,
+                "boot_mode_gpio_record": {
+                    "tag": "0x04e",
+                    "record_offset": boot_gpio["offset"],
+                    "record_size": boot_gpio["size"],
+                    "record_sha256": boot_gpio["sha256"],
+                    "invert": 0,
+                    "mask": 3,
+                    "alignment": "0xffff",
+                    "output_pin": "0xffff",
+                    "input_pins": ["0xc184", "0xc103"],
+                },
                 "direct_sub_literal_present": False,
             },
             "decompressed_stage": {
@@ -389,8 +439,17 @@ def analyze(update_archive: Path, rootfs_archive: Path) -> dict:
                 "later_records_remain_eligible_after_a_returned_failure": True,
                 "kernel_cmdline_selected_field": "ABL.boot=<selected index in hexadecimal>",
                 "kernel_cmdline_actual_device_field": "ABL.bdev=<actual device and path>",
+                "config_tag_name_table": {"0x04e": "BOOT_MODE_GPIO"},
                 "direct_sub_literal_present": False,
             },
+        },
+        "comparative_public_slim_bootloader": {
+            "commit": SBL_COMMIT,
+            "files": SBL_FILES,
+            "platform": "Apollo Lake public source",
+            "tag_0x04e_name": "ABL_CDATA_BOOT_MODE_GPIO_TAG",
+            "semantics": "decode masked/inverted GPIO input bits and store BootModeOption in platform data",
+            "exact_runtime_equivalence_proved": False,
         },
         "canonical_rootfs": {
             "archive": {"size": ROOTFS_SIZE, "sha256": ROOTFS_SHA256},
@@ -416,6 +475,9 @@ def analyze(update_archive: Path, rootfs_archive: Path) -> dict:
             "userspace_repairs_primary_from_successful_secondary_fallback": True,
             "abl_configuration_directly_selects_iasimage_sub": False,
             "engineering_script_promotes_sub_by_overwriting_primary_basename": True,
+            "exact_config_contains_boot_mode_gpio_record": True,
+            "exact_stage_maps_tag_0x04e_to_boot_mode_gpio": True,
+            "exact_runtime_boot_state_populated_from_gpio_proved": False,
             "persistent_boot_index_source_proved": False,
             "attempt_counter_proved": False,
             "health_or_mark_good_proved": False,
@@ -424,7 +486,7 @@ def analyze(update_archive: Path, rootfs_archive: Path) -> dict:
         },
         "limitations": [
             "The exact stage proves ordered record selection and forward eligibility after a returned failure; it does not prove which individual load or authentication failures occurred on a physical unit.",
-            "The source and persistence semantics of the runtime boot-state byte at 0x000c0214 remain unresolved.",
+            "The exact configuration contains tag 0x04e with mask 0x0003 and two GPIO inputs, and the exact stage names tag 0x04e BOOT_MODE_GPIO. Historical public Apollo Lake source decodes that tag into platform BootModeOption, but exact runtime population of 0x000c0214 and persistence semantics remain unproved.",
             "The exact ABL configuration and recovered stage contain no direct _sub pathname. The stock engineering script supplies a separate userspace promotion route by copying p2/iasImage_sub over p1/iasImage; this does not prove that no dynamically constructed proprietary route exists elsewhere.",
             "The userspace recovery copy is attempted after a secondary boot; successful mount, copy, sync, durable repair, future selection, health, mark-good, and rollback are not proved by static code.",
             "No updater, bootloader, target helper, image, mount, copy, flash operation, reset, selector change, or boot attempt was executed.",
@@ -456,10 +518,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--update-archive", type=Path, required=True)
     parser.add_argument("--rootfs", type=Path, required=True)
+    parser.add_argument("--sbl-repo", type=Path, required=True)
     parser.add_argument("-o", "--output", type=Path)
     args = parser.parse_args(argv)
     try:
-        data = encode(analyze(args.update_archive, args.rootfs))
+        data = encode(analyze(args.update_archive, args.rootfs, args.sbl_repo))
         if args.output:
             exclusive(args.output, data)
         else:

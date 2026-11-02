@@ -29,6 +29,17 @@
       "uid": 0
     }
   },
+  "comparative_public_slim_bootloader": {
+    "commit": "5f5c14b10ae6bd3cd0cf7e274142767dc2635a06",
+    "exact_runtime_equivalence_proved": false,
+    "files": {
+      "Platform/ApollolakeBoardPkg/Include/ConfigDataDefs.h": "40e988111adf1c01da3598a163f6041eca49b4a55ad5dc4b06898d046f40971c",
+      "Platform/ApollolakeBoardPkg/Library/Stage1BBoardInitLib/Stage1BBoardInitLib.c": "e4497d268b295720a3ad40239fa5702b2ba7b72d7128bc3fa31a485337288d9d"
+    },
+    "platform": "Apollo Lake public source",
+    "semantics": "decode masked/inverted GPIO input bits and store BootModeOption in platform data",
+    "tag_0x04e_name": "ABL_CDATA_BOOT_MODE_GPIO_TAG"
+  },
   "conclusions": {
     "abl_configuration_directly_selects_iasimage_sub": false,
     "attempt_counter_proved": false,
@@ -36,6 +47,9 @@
     "boot_index_3_maps_to_secondary_iasimage_record": true,
     "custom_image_acceptance_root_or_persistence_proved": false,
     "engineering_script_promotes_sub_by_overwriting_primary_basename": true,
+    "exact_config_contains_boot_mode_gpio_record": true,
+    "exact_runtime_boot_state_populated_from_gpio_proved": false,
+    "exact_stage_maps_tag_0x04e_to_boot_mode_gpio": true,
     "health_or_mark_good_proved": false,
     "kernel_cmdline_distinguishes_selected_index_from_actual_device": true,
     "persistent_boot_index_source_proved": false,
@@ -54,6 +68,20 @@
       "size": 42101042
     },
     "config_container": {
+      "boot_mode_gpio_record": {
+        "alignment": "0xffff",
+        "input_pins": [
+          "0xc184",
+          "0xc103"
+        ],
+        "invert": 0,
+        "mask": 3,
+        "output_pin": "0xffff",
+        "record_offset": 168,
+        "record_sha256": "6d96b15c74ecc2e02381a1d9357fc0507ca04e0b74935ef0ccb5c89a49f62a12",
+        "record_size": 20,
+        "tag": "0x04e"
+      },
       "boot_records": [
         {
           "basename": "iasImage",
@@ -104,6 +132,9 @@
         79004
       ],
       "config_iterator_callback_zero_continues_to_next_record": true,
+      "config_tag_name_table": {
+        "0x04e": "BOOT_MODE_GPIO"
+      },
       "direct_sub_literal_present": false,
       "kernel_cmdline_actual_device_field": "ABL.bdev=<actual device and path>",
       "kernel_cmdline_selected_field": "ABL.boot=<selected index in hexadecimal>",
@@ -154,7 +185,7 @@
   },
   "limitations": [
     "The exact stage proves ordered record selection and forward eligibility after a returned failure; it does not prove which individual load or authentication failures occurred on a physical unit.",
-    "The source and persistence semantics of the runtime boot-state byte at 0x000c0214 remain unresolved.",
+    "The exact configuration contains tag 0x04e with mask 0x0003 and two GPIO inputs, and the exact stage names tag 0x04e BOOT_MODE_GPIO. Historical public Apollo Lake source decodes that tag into platform BootModeOption, but exact runtime population of 0x000c0214 and persistence semantics remain unproved.",
     "The exact ABL configuration and recovered stage contain no direct _sub pathname. The stock engineering script supplies a separate userspace promotion route by copying p2/iasImage_sub over p1/iasImage; this does not prove that no dynamically constructed proprietary route exists elsewhere.",
     "The userspace recovery copy is attempted after a secondary boot; successful mount, copy, sync, durable repair, future selection, health, mark-good, and rollback are not proved by static code.",
     "No updater, bootloader, target helper, image, mount, copy, flash operation, reset, selector change, or boot attempt was executed."
@@ -162,6 +193,6 @@
   "schema": "abl-boot-selection/v1",
   "tool": {
     "name": "abl-boot-selection",
-    "version": "1.0.0"
+    "version": "1.1.0"
   }
 }

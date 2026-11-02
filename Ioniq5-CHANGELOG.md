@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.75.0 - admission facts recorded for the iAP2 line: the socket is root-owned and world-writable
+
+- At the requesting workstream's behest, recorded what can be obtained passively about the iAP2 service's admission surface, in
+  **`evidence/iap2-admission-facts.md`**. The facts that matter for their marshal work:
+  - `/tmp/iAp2Socket` is created by the service within seconds and is a **Unix stream socket with mode 0777, owned by root** (`srwxrwxrwx`; `/proc/net/unix`
+    shows `0001` SOCK_STREAM, state `01` LISTENING). **File permissions impose no barrier on connecting** — whatever admission control exists is not `mode`.
+  - The service runs **as root** (real/effective/saved/fs UID all 0), and its systemd unit sets **no** `User=`, `CapabilityBoundingSet=`, `NoNewPrivileges=`,
+    `PrivateTmp=` or **`SmackProcessLabel=`**. There is no per-service confinement declared in the unit at all.
+  - SMACK policy labels only the **device nodes** — `/dev/ttyIAP20` and `/dev/mfd-iap2` → `System::iap20` — and makes **no `chsmack` call on any application
+    binary or library**; the `AppProjection` data directory's label assignment is **commented out** in `smack_setup.sh`.
+  - The path string exists in exactly one shipped binary (`/app/bin/iAP2Service-2.0`), so there is a single writer and any other participant is a client.
+- **What I could not measure, stated in the document rather than left implicit:** the **vehicle's** runtime label for the process and the socket. My runtime
+  observation gives `_` (the research init's default) because the probe did not apply the vehicle's boot-time labelling; reporting that as the vehicle's label
+  would be wrong. Effective capabilities on a systemd boot are likewise unmeasured, as is whether `AppProjection` connects at all and as which UID.
+- Method and its limits are in the document: single probe script, started the service directly rather than under systemd, and the socket appeared within 5 s in
+  one attempt and not at the 5 s check in another, so "created within 5 s" is recorded as observed rather than guaranteed.
+
 ## 2.74.0 - reproduced a visible render from the archived recipe, and it is the application drawing
 
 - The archived authentic home screen (`docs/vm/02-home-screen.png`, added 2026-10-28 with the first README) proved a working configuration existed. Found the

@@ -4034,3 +4034,9 @@ and are superseded by corrections rather than silently rewritten.
 - What it says is that the ten-screen layout changes how the vendor stack talks to its clients, and the crash comes from that, not from anything
   we added.
 - The next question is small and cheap: does it die with ten screens and no application at all?
+
+## 2026-10-31 — the layout is innocent
+
+- Ten screens, one splash, no application: everything survives. Add the application stack and the compositor dies.
+- So the last several hours of layout work were not wasted but they were not the fault either. The fault travels with a client.
+- The question is now small enough to bisect by disabling one program at a time, which is the sort of question that has an answer.

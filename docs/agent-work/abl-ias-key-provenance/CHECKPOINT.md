@@ -16,7 +16,7 @@ Exact CSE RBE incoming-handoff `ipub_key → rot.key` pinning, shared CSE-manife
 - All nine exact-ABL little-endian `0x08200000` byte occurrences are classified: five RBE consumer references, three FTPR-kernel consumer references, and one unaligned PMCP cross-dword match spanning dwords `0x20000000`/`0xff171908`. No other plain static base literal remains; computed, indirect, ROM, and external producers remain possible.
 - FTPR `rot.key` is at flash `0x17b000`, size `0x3fc`, SHA-256 `5530da6cbec43a441466478a6069b7a5d39afe9453f34923c633ad07b4613a14`.
 - `rot.key`, `RBEP.man`, `FTPR.man`, and `NFTP.man` share public-key digest `f2eb8fc44e30f6132631df884020abd685ce8843ee205d0a22eb6493f78a54cf`; all embedded signatures verify. The runtime producer/authority of `ipub_key` remains open.
-- Exact BUP initializes global `0xa014c` as an empty runtime-object-list head and materializes received objects with size/pointer/next fields at `+0x14/+0x18/+0x1c`; its generic manifest path resolves `ipub_key` from that list while nonempty or constructs `/snowball/ipub_key` while empty, bounds the selector through `0x23`, and supplies a selected 32-byte digest to its verifier.
+- Exact BUP initializes global `0xa014c` as an empty runtime-object-list head and materializes received objects with size/pointer/next fields at `+0x14/+0x18/+0x1c`; its generic manifest path resolves `ipub_key` from that list while nonempty or constructs `/snowball/ipub_key` while empty. Correction: the `0x23` comparison requires resolved length greater than `0x23` (runtime payload size or snowball read return count); it is not a selector bound. BUP then uses byte 0 as an unchecked selector for the pointer at `4 + 4*selector` and supplies 32 bytes from that pointer to its verifier. Neither selector nor pointer-field bounds are checked in this path; attacker-controlled malformed-object reachability remains unproved.
 - Digest `f2eb8fc4...` occurs statically in the exact ABL only in `rot.key` at `0x17b2cc`; BUP branch selection, snowball writability/authentication, and identity with RBE's earlier object remain unproved.
 - Exact FTPR signed-package metadata has no direct `oem.key` name/digest coverage and FTPR CPD has no `oem.key.met`; this bounded absence is not proof of no external authentication.
 - Exact BPDT type-17 UEP contains three copies of the `oem.key` public-key digest, including a contiguous copy at `+0xcc`; comparative Apollo Lake tooling names that field an OEM public-key-hash record.
@@ -60,18 +60,18 @@ Exact CSE RBE incoming-handoff `ipub_key → rot.key` pinning, shared CSE-manife
 - `tests/test_abl_ias_key_provenance.py`
 - `evidence/abl-ias-key-manifest-provenance.md`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `54,554`
-  - SHA-256 `2af6d075bb78bde3c91c6eedce90a98005f2b302ffcc61c840e42d4e326e0b11`
+  - size `55,514`
+  - SHA-256 `5a803cb5d4baba39ca79e835f7cd2c3ad86689bd2d61cc3fa5a56806bdf67ec8`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `114,098`
-  - SHA-256 `fc5db0009fa0e879e674dd80d841bdcb93c3211bc82e98b4dfc34b23434c4dd4`
+  - size `114,579`
+  - SHA-256 `4169d65333fbbad8ad2556b58fe04b02ac9149287d425232921e7ec085678673`
 
 ## Validation
 
 - focused package: `13 passed, 10 subtests passed`;
 - selected provenance/trust/bench/MEI integration: `56 passed, 172 subtests passed`;
-- canonical suite: `1019 passed, 352351 subtests passed in 228.14s`;
-- canonical log SHA-256: `20e0ece2dcebf0136a7b734fc8c90c9b343e8e385dc76dd67068e0e3cc6fdc12`;
+- canonical suite: `1019 passed, 352351 subtests passed in 174.99s`;
+- canonical log SHA-256: `1fdea6a0077e4b6e101a3b53d542e37d43e380f533794548c2987e27921bedf2`;
 - UTF-16 environment determinism, `py_compile`, and `git diff --check` passed.
 
 ## Boundary

@@ -2385,14 +2385,14 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
    4604c: call    0x4626a              # runtime-object or snowball resolver
    46054: test    eax, eax
    46056: jne     0x46061
-   46058: cmp     dword ptr [ebp - 0x344], 0x23  # selector bound
-   4605f: ja      0x46069
-   46061: push    0x0                 # fail closed
+   46058: cmp     dword ptr [ebp - 0x344], 0x23  # returned object size/count
+   4605f: ja      0x46069             # accept only when size > 0x23
+   46061: push    0x0                 # fail closed on resolver failure/short object
    46063: call    0x619a
-   46069: mov     eax, dword ptr [ebp - 0x340]
+   46069: mov     eax, dword ptr [ebp - 0x340] # object pointer
    4606f: push    0x20                # selected digest size
-   46071: movzx   edx, byte ptr [eax] # selector
-   46074: push    dword ptr [eax + 4*edx + 0x4]
+   46071: movzx   edx, byte ptr [eax] # selector; no upper-bound check here
+   46074: push    dword ptr [eax + 4*edx + 0x4] # no object-bounds check here
    4607d: call    0x34964              # later manifest verifier path
 
 ## BUP runtime-object-list materializer (BUP file [0x2869,0x2932), runtime [0x28869,0x28932))
@@ -2510,9 +2510,13 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
    4637b: mov     eax, dword ptr [eax + 0x14]  # payload size
    4637e: mov     dword ptr [edx], eax
 
-# This proves BUP's two resolution branches and selector geometry. It does not
-# prove that /snowball/ipub_key is selected, writable, unauthenticated, or the
-# producer of RBE's earlier runtime ipub_key object.
+# This proves BUP's two resolution branches, minimum object-size check, and
+# unchecked selector-derived pointer lookup. For the minimum accepted 0x24-byte
+# object, only selectors 0..7 keep the 4-byte pointer at 4+4*selector inside the
+# object, but this path checks neither that selector bound nor the computed
+# pointer-field boundary. It does not prove that a malformed object is reachable
+# or attacker-controlled, that /snowball/ipub_key is selected or writable, or
+# that it produced RBE's earlier runtime ipub_key object.
 
 ## Signed NFTP dal_sdm /snowball/ipub_key policy consumer
 

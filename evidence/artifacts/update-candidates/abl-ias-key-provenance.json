@@ -1,0 +1,184 @@
+{
+  "conclusions": {
+    "boot_root_or_persistence_proved": false,
+    "custom_signed_image_acceptance_proved": false,
+    "ibbl_copies_fit_and_relocates_type_0b_payload_proved": true,
+    "oem_key_manifest_kernel_command_line_export_proved": true,
+    "package_candidate_matches_stored_usage39_digest": false,
+    "pre_ibbl_fit_handoff_address_proved": true,
+    "pre_ibbl_key_manifest_authentication_proved": false,
+    "producer_of_source_fit_at_0xfef80000_proved": false,
+    "runtime_descriptor_is_fit_entry_type_0b_proved": true,
+    "runtime_expected_digest_bytes_recovered": false,
+    "runtime_fit_type0b_bound_to_stored_oem_key_manifest": false,
+    "runtime_key_manifest_layout_proved": true,
+    "selector_0x27_is_usage_bit_39_proved": true,
+    "stored_oem_key_manifest_bytes_recovered": true,
+    "stored_oem_key_manifest_embedded_signature_valid": true,
+    "stored_usage39_digest_recovered": true,
+    "type_0b_symbolic_name_key_manifest_publicly_corroborated": true,
+    "usage_bit_39_os_kernel_name_publicly_corroborated": true
+  },
+  "exact_update": {
+    "abl": {
+      "member": "abl/bin/104096/abl1714-Batch10-Ver.11.00-sign-8MB.bin",
+      "sha256": "f6fc0373042c27f36e601fe957544582f3b1bd4be3c36659105322304b2dc7ac",
+      "size": 8388608
+    },
+    "archive": {
+      "sha256": "1e67344a714708733a9158a52ef5d4def95b126e5725d070669ea64e0644c4c8",
+      "size": 42101042
+    },
+    "decompressed_stage1": {
+      "fit_table": {
+        "base": 790720,
+        "entry_size": 16,
+        "header_size_count_address": 790728,
+        "selected_type": 11,
+        "type_mask": 127,
+        "type_offset": 14
+      },
+      "instruction_ranges": {
+        "ias_key_and_payload_auth": {
+          "file_end": 88574,
+          "file_start": 87971,
+          "sha256": "4b71d5c95ff2bcf4210ba23a96883f3ce3524fb31b40f037a00991a6c14a7f30"
+        },
+        "oemkm_command_line_export": {
+          "file_end": 48912,
+          "file_start": 48805,
+          "sha256": "f37111948019b765312545efc1c3472d488b4fef7a3a322f86e5df92a722e40b"
+        }
+      },
+      "key_manifest": {
+        "cached_extension_pointer_address": 790624,
+        "cached_extension_size_address": 790628,
+        "digest_offset": 36,
+        "digest_size": 32,
+        "entry_array_offset": 680,
+        "entry_size": 68,
+        "extension_offset": 644,
+        "extension_size_offset": 648,
+        "kernel_command_line_format": "%x@%x",
+        "kernel_command_line_name": "ABL.oemkm",
+        "pointer_from_fit_entry_offset": 0
+      },
+      "load_base": 917504,
+      "sha256": "3491be59ef865cb376131b02fa1ff6941e37d1c87ae3c4cf7969b5364785b3c2",
+      "size": 130560,
+      "type3_os_selector": {
+        "public_me_analyzer_name": "OS Kernel",
+        "usage_bit_index": 39,
+        "usage_byte_index": 4,
+        "usage_byte_mask": 128,
+        "value": 39
+      }
+    },
+    "ibb_loader": {
+      "appended_entry_type": 127,
+      "fit_signature": "_FIT_   ",
+      "instruction_ranges": {
+        "fit_payload_relocator": {
+          "file_end": 243,
+          "file_start": 64,
+          "sha256": "688cec0863886aa5a7ca6ed5cb1b9333c8112cd1babb4af2c79a07ebb80cb35a"
+        },
+        "fit_table_validator_and_copy": {
+          "file_end": 369,
+          "file_start": 243,
+          "sha256": "a83c5a32fb4e8b8157769332a6f27ba7484b1e55948228b1ce9cd45e0fb41ea8"
+        },
+        "source_fit_handoff_copy": {
+          "file_end": 1356,
+          "file_start": 1263,
+          "sha256": "c3bd36e3b536f906633be18e362f7744bd845bb505cf11eff8b4af0e46ee4b19"
+        }
+      },
+      "maximum_accepted_source_entries": 21,
+      "relocated_fit_address": 790720,
+      "relocation_mode": 2,
+      "relocation_skips_type": 1,
+      "sha256": "394c442368c67f82f17e84854575bf07abafac2b8fbf2fda7dca68b182f91b93",
+      "size": 16384,
+      "source_fit_address": 4277665792,
+      "type_0b_payload_relocated_if_present": true
+    },
+    "package_carried_os_key_candidate_digest": {
+      "matches_stored_oem_key_usage39_digest": false,
+      "present_verbatim_in_ibbl": false,
+      "present_verbatim_in_stage1": false,
+      "present_verbatim_in_update_abl": false,
+      "sha256": "437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06"
+    },
+    "stored_oem_key_manifest": {
+      "cpd": "FTPR",
+      "cpd_offset": 1171456,
+      "extension": {
+        "key_type": 2,
+        "manifest_public_key_digest": "9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af",
+        "record_count": 13,
+        "size": 920,
+        "tag": 14,
+        "usage39_digest_equals_manifest_public_key_digest": true,
+        "usage39_record": {
+          "digest": "9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af",
+          "index": 2,
+          "usage_bits": [
+            39
+          ]
+        }
+      },
+      "flash_offset": 1556480,
+      "manifest": {
+        "embedded_signature": "RSA-2048 PKCS#1 v1.5 SHA-256",
+        "embedded_signature_boundary": "self-consistency only; no external root established",
+        "embedded_signature_valid": true,
+        "exponent": 65537,
+        "header_size": 644,
+        "public_key_size": 256,
+        "tag": "$MN2",
+        "total_size": 1564,
+        "vendor_id": 32902
+      },
+      "member": "oem.key",
+      "member_cpd_offset": 385024,
+      "sha256": "a72a5d867185852be1466a9d3d2e97bb11bd6b0a89b48f5454220def946814bd",
+      "size": 1564
+    }
+  },
+  "limitations": [
+    "Exact IBBL code proves that a pre-existing FIT-format table at 0xfef80000 is validated structurally, copied to 0xc10c0, and has non-type-1 payloads relocated; it does not identify the code or hardware that produced the source table.",
+    "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
+    "The exact flash contains an FTPR oem.key $MN2/Extension-14 manifest with a valid embedded self-signature and usage-39 digest 9b0a59...; exact recovered code does not prove that the runtime FIT type-0x0b entry points to this stored object.",
+    "The stored usage-39 digest does not equal the package carried-key candidate 437008... . Without the missing runtime FIT binding, this mismatch does not prove that the package boots or fails to boot under an installed ABL.",
+    "The recovered IBB stages do not locally authenticate the key manifest before use. Any CSE, Boot Guard, fuse, ACM, or earlier-ROM authentication remains outside the recovered instruction boundary; the embedded manifest signature proves self-consistency only.",
+    "The exact package carried-key candidate digest remains absent verbatim from the update ABL, IBBL, and decompressed stage 1; the installed platform's volatile handoff was not captured.",
+    "No updater, bootloader, target helper, firmware image, flash operation, partition write, selector change, or boot attempt was executed or generated."
+  ],
+  "public_structure_corroboration": {
+    "boundary": "Names and pre-IBBL authentication semantics are public-source corroboration; exact target instructions independently prove the layout, selector, copy, and compare path.",
+    "me_analyzer": {
+      "commit": "d27ccdba0aadbad490f47b5b631c369b682a7ef5",
+      "digest_offset": 36,
+      "digest_size": 32,
+      "entry_size": 68,
+      "file": "MEA.py",
+      "file_sha256": "ed2dfb3b9efe58431609b4d3eefe6908b3124228288163dd4fd667dd17d5f4ef",
+      "structure": "CSE Extension 14 R1 key-manifest entry",
+      "usage_39_name": "OS Kernel",
+      "usage_bitmap_size": 16
+    },
+    "slim_bootloader": {
+      "commit": "5f5c14b10ae6bd3cd0cf7e274142767dc2635a06",
+      "file": "BootloaderCorePkg/Include/FirmwareInterfaceTable.h",
+      "file_sha256": "0e0f1fff576e4edc48d2918d14bb1292526d3c01d3547d38305ea435543722ef",
+      "type_0b_name": "FIT_TYPE_0B_KEY_MANIFEST",
+      "type_10_name": "FIT_TYPE_10_CSE_SECURE_BOOT"
+    }
+  },
+  "schema": "abl-ias-key-provenance/v1",
+  "tool": {
+    "name": "abl-ias-key-provenance",
+    "version": "1.0.0"
+  }
+}

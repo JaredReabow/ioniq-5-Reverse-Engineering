@@ -2,7 +2,10 @@
 
 ## Status
 
-Exact proprietary ABL carried-key pinning is closed; expected-digest provisioning remains open.
+Exact proprietary ABL carried-key pinning is closed. Follow-on work identifies
+a FIT type-`0x0b` runtime key manifest, its immediate `0xfef80000` handoff, and
+a stored FTPR `oem.key` candidate. Runtime binding and pre-IBBL authentication
+remain open.
 
 ## Frozen evidence
 
@@ -44,15 +47,19 @@ The exact `rel.1714-HF3` LGE ABL hashes the carried modulus/exponent, compares
 that digest with a selected 32-byte runtime hash record, fails on mismatch, and
 only then performs RSA payload verification. Its type-3 OS path uses this
 routine with selector `0x27`. Arbitrary carried-key acceptance is therefore
-rejected by the exact path. The persistent source and authenticated delivery of
-the expected digest are not yet identified.
+rejected by the exact path. Follow-on exact analysis identifies the runtime
+record source as a FIT type-`0x0b` key manifest copied from `0xfef80000`. The
+exact flash also contains a stored FTPR `oem.key` candidate whose usage-39
+digest differs from the package carried-key candidate; its runtime binding and
+pre-IBBL authentication are not yet identified.
 
 ## Next exact work
 
-1. Trace the runtime descriptor table at `0xc10c0`/`0xc10c8` back to its
-   persistent source and authenticated delivery path.
-2. Recover selector `0x27`'s exact semantic name and matching hash record.
-3. Determine normal-versus-`_sub` image selection, attempt counters, health,
-   mark-good, rollback, and recovery.
-4. Bind the expected digest bytes if they are present in a manifest, SMIP,
-   `rot.key`, `oem.key`, or a CSE-supplied object.
+1. Trace the producer and authentication of the pre-IBBL FIT handoff at
+   `0xfef80000`, and prove or reject its binding to FTPR `oem.key`, without
+   assuming public-source equivalence.
+2. Recover the installed usage-39 record and expected digest from a future
+   passive flash/runtime capture.
+3. Determine attempt counters, health, mark-good, rollback, and recovery.
+4. Reconcile the FIT key-manifest path with exact CSE/PDR configuration while
+   preserving the boundary between public nomenclature and target proof.

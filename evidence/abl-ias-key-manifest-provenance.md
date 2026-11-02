@@ -1,0 +1,238 @@
+# Exact ABL IAS key-manifest handoff provenance
+
+## Result
+
+The runtime table used by the exact `rel.1714-HF3` IAS verifier is now
+identified: it is an Intel Firmware Interface Table (FIT), and the selected
+runtime object is FIT type `0x0b`.
+
+The exact IBB loader (`IBBL`) accepts a pre-existing FIT-format handoff at
+physical address `0xfef80000`, checks its `_FIT_   ` header and bounded entry
+count, copies the table to `0x000c10c0`, appends a type-`0x7f` entry, and
+relocates referenced payloads into the low-memory copy. Its relocation mode
+skips FIT type `1`, but not type `0x0b`; a present type-`0x0b` payload is
+therefore copied and its FIT address rewritten.
+
+The decompressed stage then walks that relocated table, selects type `0x0b`,
+parses a key-manifest extension at offsets matching a CSE Extension 14 R1 key
+manifest, applies selector `0x27` as usage bit **39**, and copies the selected
+record's 32-byte digest before comparing it with the carried IAS public-key
+digest. Public Intel FIT definitions name type `0x0b`
+`FIT_TYPE_0B_KEY_MANIFEST`; hash-bound ME Analyzer source names usage 39
+`OS Kernel`. The latter names are public-source corroboration, while the table
+addresses, layout, bit selection, digest offset, and compare path are proved by
+exact target instructions.
+
+This closes the runtime object type and the in-ABL handoff path. The exact flash
+also contains an FTPR `oem.key` `$MN2`/Extension-14 manifest with a usage-39
+digest, but recovered code does **not** yet prove that the runtime FIT type-`0x0b`
+entry points to that stored object. The source-table producer and any earlier
+CSE, Boot Guard, ACM, fuse, or ROM authentication remain unresolved.
+
+## Canonical identities
+
+The result binds the canonical decrypted update archive:
+
+- `HU/firmware/update.tar.gz`
+- size `42,101,042`
+- SHA-256 `1e67344a714708733a9158a52ef5d4def95b126e5725d070669ea64e0644c4c8`
+
+It uniquely selects:
+
+- `./abl/bin/104096/abl1714-Batch10-Ver.11.00-sign-8MB.bin`
+- size `8,388,608`
+- SHA-256 `f6fc0373042c27f36e601fe957544582f3b1bd4be3c36659105322304b2dc7ac`
+- build `rel.1714-HF3 / release/GP1.0.1_LGE`
+
+Relevant exact stages are:
+
+| Object | Size | SHA-256 |
+|---|---:|---|
+| IBB loader (`IBBL`) | `16,384` (`0x4000`) | `394c442368c67f82f17e84854575bf07abafac2b8fbf2fda7dca68b182f91b93` |
+| decompressed IBB stage 1 | `130,560` (`0x1fe00`) | `3491be59ef865cb376131b02fa1ff6941e37d1c87ae3c4cf7969b5364785b3c2` |
+
+## Exact IBBL FIT handoff
+
+The IBBL routine at file range `[0xf3,0x171)`:
+
+1. checks source dwords for `_FIT_   `;
+2. reads the FIT header's 24-bit size/count field;
+3. accepts at most 21 source entries;
+4. copies `count * 0x10` bytes to the destination;
+5. appends a zeroed type-`0x7f` entry;
+6. stores the payload-relocation destination in that appended entry; and
+7. increments the copied FIT header count.
+
+The caller at `[0x4ef,0x54c)` supplies:
+
+- source `0xfef80000`;
+- destination `0x000c10c0`;
+- relocation mode `2`.
+
+The relocator at `[0x40,0xf3)` walks entries after the header and before the
+appended final entry. In mode 2 it skips type `1` and copies other referenced
+payloads, rewrites their entry addresses, and advances the packed destination
+with 16-byte alignment. FIT type `0x0b` is therefore included when present.
+
+This establishes a volatile handoff and low-memory copy. It does not establish
+where the bytes at `0xfef80000` originated or whether its type-`0x0b` payload is
+the exact stored `oem.key` described below. The package carried-key candidate
+digest remains absent verbatim from the stored update ABL, IBBL, and
+decompressed stage 1.
+
+## Exact stage-1 key-manifest consumer
+
+The exact IAS authentication routine reads:
+
+- FIT count from `0x000c10c8 & 0x00ffffff`;
+- FIT entries from `0x000c10c0` in `0x10`-byte strides;
+- entry type from offset `0x0e`, masked by `0x7f`;
+- selected type `0x0b`;
+- manifest pointer from entry offset `0`.
+
+For the selected manifest it uses:
+
+| Field | Exact offset/value |
+|---|---:|
+| extension start | `manifest + 0x284` |
+| extension size | dword at `manifest + 0x288` |
+| first entry | `manifest + 0x2a8` |
+| entry size | `0x44` |
+| digest | entry `+ 0x24`, 32 bytes |
+
+For selector `0x27`, the routine computes:
+
+- byte index `0x27 >> 3 = 4`;
+- mask `1 << (0x27 & 7) = 0x80`.
+
+The exact type-3 OS caller pushes this selector before calling the carried-key
+and payload verifier. The selected digest is then compared with SHA-256 over
+`reverse(stored 256-byte IAS modulus) || stored four-byte exponent`; RSA payload
+verification follows only after equality, as established in the earlier key
+trust package.
+
+## Exact stored FTPR `oem.key` manifest
+
+The exact flash FTPR CPD contains:
+
+- member `oem.key`;
+- CPD-relative offset `0x5e000`;
+- flash offset `0x17c000`;
+- size `0x61c` (`1,564`);
+- SHA-256 `a72a5d867185852be1466a9d3d2e97bb11bd6b0a89b48f5454220def946814bd`.
+
+It is a `$MN2` manifest with a `0x284`-byte header and Extension 14 of size
+`0x398`, containing thirteen `0x44`-byte key records. Host-side RSA-2048
+PKCS#1 v1.5 SHA-256 verification of the embedded manifest signature succeeds
+over the header-before-RSA plus protected extension bytes. This proves embedded
+self-consistency, not an external root of trust.
+
+Exactly one record sets usage bit 39. Its digest is:
+
+`9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af`
+
+That value also equals SHA-256 over the stored manifest public modulus plus its
+stored four-byte exponent. It does **not** equal the package IAS carried-key
+candidate:
+
+`437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06`
+
+This is an exact stored-object mismatch, not a boot verdict. The source FIT at
+`0xfef80000` was not captured, and exact recovered code has not yet bound its
+type-`0x0b` pointer to FTPR `oem.key`. The package may also be applied under an
+already-installed ABL/key manifest rather than the ABL image present in the
+same update archive. Therefore neither package acceptance nor rejection follows
+from the mismatch alone.
+
+## `ABL.oemkm` export
+
+When the routine first obtains the type-`0x0b` object, it caches:
+
+- extension pointer at global `0x000c1060`;
+- extension size at global `0x000c1064`.
+
+Later exact stage code formats those values as `%x@%x` and adds the kernel
+command-line field `ABL.oemkm`. This proves an exact observation lead for a
+future disconnected bench: `/proc/cmdline` may disclose the installed runtime
+extension's size and address. It does not make the memory readable, recover the
+manifest signature header, or prove that a user-space capture is permitted.
+
+## Public structure corroboration
+
+Two public sources are hash-bound and kept separate from exact-target proof:
+
+1. Slim Bootloader commit
+   `5f5c14b10ae6bd3cd0cf7e274142767dc2635a06`, file
+   `BootloaderCorePkg/Include/FirmwareInterfaceTable.h`, SHA-256
+   `0e0f1fff576e4edc48d2918d14bb1292526d3c01d3547d38305ea435543722ef`.
+   It defines 16-byte FIT entries, the `_FIT_   ` signature, type `0x0b` as
+   `FIT_TYPE_0B_KEY_MANIFEST`, and type `0x10` as
+   `FIT_TYPE_10_CSE_SECURE_BOOT`.
+2. ME Analyzer commit
+   `d27ccdba0aadbad490f47b5b631c369b682a7ef5`, file `MEA.py`, SHA-256
+   `ed2dfb3b9efe58431609b4d3eefe6908b3124228288163dd4fd667dd17d5f4ef`.
+   Its reverse-engineered CSE Extension 14 R1 entry is `0x44` bytes with a
+   16-byte usage bitmap and 32-byte hash at offset `0x24`; its usage dictionary
+   names bit 39 `OS Kernel`.
+
+The exact proprietary instructions independently match these structural facts.
+The public names do not prove the target's earlier authentication policy or
+persistent provisioning implementation.
+
+## Security boundary
+
+What is now proved:
+
+- the runtime descriptor table is FIT-format;
+- IBBL copies it from `0xfef80000` to `0xc10c0`;
+- IBBL relocates a present type-`0x0b` payload;
+- stage 1 selects FIT type `0x0b` as its IAS key-manifest source;
+- selector `0x27` is usage bit 39;
+- the record and digest layout are exact;
+- the extension pointer/size are exported as `ABL.oemkm`;
+- the exact flash contains a self-consistent, embedded-signature-valid FTPR
+  `oem.key` Extension-14 manifest with usage bit 39;
+- its stored usage-39 digest is `9b0a59...` and differs from the package
+  carried-key candidate `437008...`;
+- the selected runtime digest gates the later IAS RSA signature verification.
+
+What remains unproved:
+
+- who or what creates the source FIT at `0xfef80000`;
+- whether the source FIT type-`0x0b` payload is the exact stored FTPR `oem.key`,
+  a different installed manifest, or another provisioned object;
+- whether and how CSE, Boot Guard, an ACM, ROM, or another earlier stage verifies
+  it before IBBL;
+- the actual runtime expected digest on an installed unit;
+- any writable or replaceable provenance path;
+- custom-image acceptance, boot acceptance, root, persistence, health,
+  mark-good, rollback, or recovery.
+
+The exact package carried-key candidate remains
+`437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06`.
+Its absence from the update ABL and mismatch with the stored usage-39 record are
+bounded evidence only until the runtime FIT object and installed ABL identity
+are captured.
+
+## Reproduction
+
+```sh
+<platformio-env>/bin/python3 tools/uk_fw/abl_ias_key_provenance.py \
+  --update-archive work/decrypted-eu-260128/HU/firmware/update.tar.gz \
+  --sbl-repo work/online-slimbootloader-20261110 \
+  --mea-repo work/online-meanalyzer-20261111
+```
+
+Tracked deterministic evidence:
+
+- `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
+  - size `8,102`
+  - SHA-256 `0c561c953d6478edf6343388dd89fb05a7d5c59c8a800b6cbddbd44c6ff4eea5`
+- `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
+  - size `8,637`
+  - SHA-256 `8f415147ce70f627787d9a482c21a88f1135bf8fdd03aefd9d595f9a77263dac`
+
+The analyzer is read-only with respect to all inputs. It does not execute an
+updater, bootloader, target helper, image constructor, firmware image, or target
+binary and does not produce a modified image, signature bypass, flash procedure,
+or persistence mechanism.

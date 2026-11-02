@@ -109,18 +109,19 @@ as generic differences:
 - `pm`: seven change `0x0b → 0x0c`, `0x0d → 0x0e`, `0x10 → 0x11`,
   `0x18 → 0x19`, `0x0e → 0x0f`, `0x13 → 0x14`, and `0x15 → 0x16`.
 
-All eleven are one-byte increases in messages carrying destination dword
+All eleven are one-byte increases in messages whose dword at offset zero is
 `0x02000200`. Nine are `push imm8` arguments to syslib stub `0x60b4`; exact
 constructor `0x8e8a..0x8ed3` / `0x8e8f..0x8ed8`, SHA-256
 `1a9f71789daff697fe6ac80b110101ecc63d84bbc3759c6a869bfc648a6d8c28`,
 stores that argument's low byte at message offset `+4`. The two remaining PM
 sites write the byte at local message offset `+4` directly and preserve their
 submit API through syslib-stub translation `0x6609 → 0x660e`. Exact submit
-wrappers store destination dword `0x02000200` at message offset zero.
+wrappers store first-argument dword `0x02000200` at message offset zero.
 
 This is a coordinated serialized-interface change, not a generic address
-relocation. Its recipient, added-byte semantics, attacker control, HECI
-reachability, and advisory identity remain unresolved; it must not yet be called
+relocation. The meaning of dword zero, recipient, added-byte semantics,
+attacker control, HECI reachability, and advisory identity remain unresolved;
+it must not yet be called
 the CVE-2018-12147 fix.
 
 Larger changed modules include plausible service and downstream-parser surfaces
@@ -132,8 +133,8 @@ exact CVE-2018-3655 candidate.
 
 - `evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json`
 - schema `ioniq-txe-first-fixed-module-inventory/v1`
-- size `107,304` bytes
-- SHA-256 `5ced3ef503b104bf2e6afe331c8c30329b4dfb36c0e2803acaf78df32e8d06a3`
+- size `107,331` bytes
+- SHA-256 `e9194799468fbde8c0e1acd3739943e6c02f413dd3a84d6ce9ac1fcdcbeafd13`
 
 Embedded `$MN2` signatures establish self-consistency and byte binding only.
 They do not establish platform ROM/fuse/OEM acceptance or installed-unit

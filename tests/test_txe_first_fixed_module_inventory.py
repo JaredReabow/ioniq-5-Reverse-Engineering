@@ -73,8 +73,8 @@ def test_canonical_inventory_matches_reviewed_artifact():
     length_review = report["minimal_length_delta_review"]
     assert length_review["module_count"] == 4
     assert length_review["site_count"] == 11
-    assert length_review["destination_dword"] == 0x02000200
+    assert length_review["message_dword_zero"] == 0x02000200
     assert length_review["all_reviewed_lengths_increment_by_one"] is True
-    assert length_review["constructor_stores_destination_dword_at_message_offset_zero"] is True
+    assert length_review["constructor_stores_first_argument_dword_at_message_offset_zero"] is True
     assert length_review["constructor_stores_second_argument_low_byte_at_message_offset_four"] is True
     assert json.loads(ARTIFACT.read_text(encoding="utf-8")) == report

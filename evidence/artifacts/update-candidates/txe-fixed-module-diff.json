@@ -2,6 +2,7 @@
   "boundaries": [
     "The official ASUS first-fixed image closes the version-bisect gap for 3.1.55, but attribution still requires exact changed-function and reachability analysis.",
     "The reviewed primary HECI ranges exclude later header/extension changes as the first-fixed primary-path delta; they do not exclude another HECI function or downstream client parser.",
+    "All 42 syslib bodies directly imported by HECI normalize to byte identity after only reviewed address operands are zeroed. This excludes direct opcode/non-address-data changes in those bodies, but not changed transitive callees, syscall/service implementations, indirect dispatch targets, another signed module, or a downstream client.",
     "The named later FPF anti-rollback fields are absent from both affected and first-fixed FPF; this excludes those records as the 3.1.55 fix.",
     "First-fixed VFS newly opens pre-existing ndl_critical and ndl_counting storage channels and passes their descriptors to a new syslib setter. This is an exact anti-replay/data-integrity candidate, not yet proof of CVE-2018-3655 attribution or physical reachability.",
     "Embedded $MN2 verification proves self-consistency and byte binding only, not platform ROM, fuse, Boot Guard, or OEM acceptance.",
@@ -12,6 +13,7 @@
     "cve_2018_3655_exact_storage_bug_identified": false,
     "exact_signed_first_fixed_3_1_55_build_obtained": true,
     "exact_signed_later_modules_obtained": true,
+    "first_fixed_all_42_heci_imported_syslib_bodies_change_only_address_operands": true,
     "first_fixed_entire_heci_module_changes_only_external_rel32_immediates": true,
     "first_fixed_primary_heci_ranges_change_only_rel32_call_immediates": true,
     "first_fixed_vfs_ndl_integration_candidate_identified": true,
@@ -543,6 +545,1200 @@
       "fragment_maximum_0x1fc": 1,
       "nine_bit_length_mask": 1
     }
+  },
+  "first_fixed_heci_syslib_import_review": {
+    "absolute_address_relocation_site_count": 1,
+    "affected_syslib_sha256": "dba068b882c11783af4e2c0b7911b3a0db90f9b22808f42ac3e8768e2dda961c",
+    "attribution_boundary": "All 42 syslib bodies directly imported by HECI are unchanged after normalizing 37 reviewed rel32 address operands and one indexed-jump-table base operand. This excludes a direct opcode or non-address data change in those entry bodies; it does not exclude changed transitive callees, syscall/service implementations, indirect dispatch targets, another signed module, or a downstream HECI client.",
+    "destination_bodies": {
+      "0x103d6": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26501,
+        "affected_runtime_range": [
+          66518,
+          66963
+        ],
+        "affected_sha256": "29fee96930dd0a17cc82bbcfcb74b8179ea992933dd958b5f97bee69a45fbf82",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26506,
+        "first_fixed_runtime_range": [
+          66523,
+          66968
+        ],
+        "first_fixed_sha256": "709d1d34826304056406bcbe955c6f4a11a7088d89ae2ac5368eb0c8ff747540",
+        "heci_reference_count": 2,
+        "normalized_sha256": "a1ffcd522c58389a7130e5d19cdebd495ae547ab69bab49af5ce21bb15b3e017",
+        "raw_differing_byte_count": 2,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 66920,
+            "affected_target": 98094,
+            "first_fixed_runtime_address": 66925,
+            "first_fixed_target": 98128,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 66950,
+            "affected_target": 71856,
+            "first_fixed_runtime_address": 66955,
+            "first_fixed_target": 71864,
+            "opcode": 232
+          }
+        ],
+        "size": 445
+      },
+      "0x1140a": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 25826,
+        "affected_runtime_range": [
+          70666,
+          70695
+        ],
+        "affected_sha256": "160736ea1bc7643212e97b6e822f8332e5974a69859b53ddbf25e54461ac37f4",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 25831,
+        "first_fixed_runtime_range": [
+          70671,
+          70700
+        ],
+        "first_fixed_sha256": "160736ea1bc7643212e97b6e822f8332e5974a69859b53ddbf25e54461ac37f4",
+        "heci_reference_count": 6,
+        "normalized_sha256": "160736ea1bc7643212e97b6e822f8332e5974a69859b53ddbf25e54461ac37f4",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 29
+      },
+      "0x118b0": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26001,
+        "affected_runtime_range": [
+          71856,
+          71858
+        ],
+        "affected_sha256": "da5f62e03b96f0a3c5539160afb30e2960cdb16830c55923a41b99ed175fe095",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26006,
+        "first_fixed_runtime_range": [
+          71864,
+          71866
+        ],
+        "first_fixed_sha256": "da5f62e03b96f0a3c5539160afb30e2960cdb16830c55923a41b99ed175fe095",
+        "heci_reference_count": 39,
+        "normalized_sha256": "da5f62e03b96f0a3c5539160afb30e2960cdb16830c55923a41b99ed175fe095",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 2
+      },
+      "0x164f3": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 25836,
+        "affected_runtime_range": [
+          91379,
+          91414
+        ],
+        "affected_sha256": "5417e889d4c13e78494846279e588b8d8e0f7109e7f0d3415c7fa49b0f03f2ad",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 25841,
+        "first_fixed_runtime_range": [
+          91387,
+          91422
+        ],
+        "first_fixed_sha256": "2bbbee3736a4f826596dd6d9a72f58620098e62e0b52f1d2c2dc3e1dd5133d26",
+        "heci_reference_count": 2,
+        "normalized_sha256": "6a3da365602938f34948eabb7b972201a23ca61af6a36911d765cbd28f956259",
+        "raw_differing_byte_count": 1,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 91407,
+            "affected_target": 31209,
+            "first_fixed_runtime_address": 91415,
+            "first_fixed_target": 31214,
+            "opcode": 232
+          }
+        ],
+        "size": 35
+      },
+      "0x17d3b": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26321,
+        "affected_runtime_range": [
+          97595,
+          97606
+        ],
+        "affected_sha256": "13445936e0715866011c30ff3cf72e6b06743e616aff2e5de8ca211b70e1962b",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26326,
+        "first_fixed_runtime_range": [
+          97629,
+          97640
+        ],
+        "first_fixed_sha256": "13445936e0715866011c30ff3cf72e6b06743e616aff2e5de8ca211b70e1962b",
+        "heci_reference_count": 8,
+        "normalized_sha256": "13445936e0715866011c30ff3cf72e6b06743e616aff2e5de8ca211b70e1962b",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 11
+      },
+      "0x17d46": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26336,
+        "affected_runtime_range": [
+          97606,
+          97651
+        ],
+        "affected_sha256": "a32fd1f18a76c0b72d3006602f58d378eaca38a7067dec43e42aa5fc452ceb07",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26341,
+        "first_fixed_runtime_range": [
+          97640,
+          97685
+        ],
+        "first_fixed_sha256": "a32fd1f18a76c0b72d3006602f58d378eaca38a7067dec43e42aa5fc452ceb07",
+        "heci_reference_count": 3,
+        "normalized_sha256": "a32fd1f18a76c0b72d3006602f58d378eaca38a7067dec43e42aa5fc452ceb07",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 45
+      },
+      "0x17e3d": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26386,
+        "affected_runtime_range": [
+          97853,
+          97864
+        ],
+        "affected_sha256": "fc4ba260f683bee7919afbcca9829d598396ea1b20e4ce2aba4b3915171cb892",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26391,
+        "first_fixed_runtime_range": [
+          97887,
+          97898
+        ],
+        "first_fixed_sha256": "fc4ba260f683bee7919afbcca9829d598396ea1b20e4ce2aba4b3915171cb892",
+        "heci_reference_count": 1,
+        "normalized_sha256": "fc4ba260f683bee7919afbcca9829d598396ea1b20e4ce2aba4b3915171cb892",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 11
+      },
+      "0x17e48": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26371,
+        "affected_runtime_range": [
+          97864,
+          97884
+        ],
+        "affected_sha256": "4ee3e7d06e965c21228457781c88b7c75215db72d245ebb1d57eac411e31db25",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26376,
+        "first_fixed_runtime_range": [
+          97898,
+          97918
+        ],
+        "first_fixed_sha256": "a81a47fc0eb468a14ea4e9dc6ac6aeb643333f574837c0032fa4daa1b2afadae",
+        "heci_reference_count": 1,
+        "normalized_sha256": "c699d49cfb17e1bff38bcd151e76318d992b883259baa2669fc14f92c2ce0aff",
+        "raw_differing_byte_count": 1,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 97874,
+            "affected_target": 4157,
+            "first_fixed_runtime_address": 97908,
+            "first_fixed_target": 4157,
+            "opcode": 232
+          }
+        ],
+        "size": 20
+      },
+      "0x17e5c": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26486,
+        "affected_runtime_range": [
+          97884,
+          97901
+        ],
+        "affected_sha256": "fb6f90804fa616fd899f5d719002bb15fb7ca5b07e79506cac8cb8c4bc310f8b",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26491,
+        "first_fixed_runtime_range": [
+          97918,
+          97935
+        ],
+        "first_fixed_sha256": "fb6f90804fa616fd899f5d719002bb15fb7ca5b07e79506cac8cb8c4bc310f8b",
+        "heci_reference_count": 1,
+        "normalized_sha256": "fb6f90804fa616fd899f5d719002bb15fb7ca5b07e79506cac8cb8c4bc310f8b",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 17
+      },
+      "0x17f1a": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26391,
+        "affected_runtime_range": [
+          98074,
+          98094
+        ],
+        "affected_sha256": "721c17554a0b2b3e41f6f6008b0b93995b77c1ab81c377ffd8c922e9b48d4e4f",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26396,
+        "first_fixed_runtime_range": [
+          98108,
+          98128
+        ],
+        "first_fixed_sha256": "721c17554a0b2b3e41f6f6008b0b93995b77c1ab81c377ffd8c922e9b48d4e4f",
+        "heci_reference_count": 1,
+        "normalized_sha256": "721c17554a0b2b3e41f6f6008b0b93995b77c1ab81c377ffd8c922e9b48d4e4f",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 20
+      },
+      "0x17fc1": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26516,
+        "affected_runtime_range": [
+          98241,
+          98274
+        ],
+        "affected_sha256": "bb1a0413e80c4d104aa833f070ca44319ce74bf1a0e0de17f17499e19688ab2d",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26521,
+        "first_fixed_runtime_range": [
+          98275,
+          98308
+        ],
+        "first_fixed_sha256": "6ed5aec96e78f4009c7bcaebcef897da153befa8863b243557a5213a4ce6a9d3",
+        "heci_reference_count": 1,
+        "normalized_sha256": "cd11d9a7f0347c69081ac2e7fe26c7f4664ae86eda71cf16ccabdb1d6bd8db98",
+        "raw_differing_byte_count": 1,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 98262,
+            "affected_target": 4157,
+            "first_fixed_runtime_address": 98296,
+            "first_fixed_target": 4157,
+            "opcode": 232
+          }
+        ],
+        "size": 33
+      },
+      "0x6abc": {
+        "absolute_address_relocations": [
+          {
+            "affected_operand_runtime_range": [
+              27793,
+              27797
+            ],
+            "affected_value": 100756,
+            "first_fixed_operand_runtime_range": [
+              27798,
+              27802
+            ],
+            "first_fixed_value": 100792,
+            "instruction": "indexed indirect jump table base"
+          }
+        ],
+        "affected_import_stub": 26461,
+        "affected_runtime_range": [
+          27324,
+          28607
+        ],
+        "affected_sha256": "f3ee08df362f2d473f865f1e0cd9a358e7957bad2cc5a965c7076df1eea69e88",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26466,
+        "first_fixed_runtime_range": [
+          27329,
+          28612
+        ],
+        "first_fixed_sha256": "b86d3f0ad407f8cd3d7cbba63e7d7b04cbd948de5bc2bb274e881be5a991f820",
+        "heci_reference_count": 1,
+        "normalized_sha256": "1948a0f0e8a7cccdf2e69f371009e2e695d46385c9ba31ba8596656d23970f53",
+        "raw_differing_byte_count": 13,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 27600,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 27605,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 27628,
+            "affected_target": 4142,
+            "first_fixed_runtime_address": 27633,
+            "first_fixed_target": 4142,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 27646,
+            "affected_target": 4142,
+            "first_fixed_runtime_address": 27651,
+            "first_fixed_target": 4142,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 27664,
+            "affected_target": 4142,
+            "first_fixed_runtime_address": 27669,
+            "first_fixed_target": 4142,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 27752,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 27757,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 28108,
+            "affected_target": 4142,
+            "first_fixed_runtime_address": 28113,
+            "first_fixed_target": 4142,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 28401,
+            "affected_target": 4142,
+            "first_fixed_runtime_address": 28406,
+            "first_fixed_target": 4142,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 28411,
+            "affected_target": 4157,
+            "first_fixed_runtime_address": 28416,
+            "first_fixed_target": 4157,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 28545,
+            "affected_target": 76802,
+            "first_fixed_runtime_address": 28550,
+            "first_fixed_target": 76810,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 28556,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 28561,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 28576,
+            "affected_target": 71856,
+            "first_fixed_runtime_address": 28581,
+            "first_fixed_target": 71864,
+            "opcode": 232
+          }
+        ],
+        "size": 1283
+      },
+      "0x7972": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26536,
+        "affected_runtime_range": [
+          31090,
+          31113
+        ],
+        "affected_sha256": "a614c935a5ff4d20bdaaa5225b0cc3a1adad58c977725666f79042108ff56bc5",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26541,
+        "first_fixed_runtime_range": [
+          31095,
+          31118
+        ],
+        "first_fixed_sha256": "a614c935a5ff4d20bdaaa5225b0cc3a1adad58c977725666f79042108ff56bc5",
+        "heci_reference_count": 15,
+        "normalized_sha256": "a614c935a5ff4d20bdaaa5225b0cc3a1adad58c977725666f79042108ff56bc5",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 23
+      },
+      "0x7f65": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 25786,
+        "affected_runtime_range": [
+          32613,
+          32640
+        ],
+        "affected_sha256": "7f183e3ca963d19ee78743a03017bf3d2c734ed4e23e5c71b1605e369f79f112",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 25791,
+        "first_fixed_runtime_range": [
+          32618,
+          32645
+        ],
+        "first_fixed_sha256": "7f183e3ca963d19ee78743a03017bf3d2c734ed4e23e5c71b1605e369f79f112",
+        "heci_reference_count": 31,
+        "normalized_sha256": "7f183e3ca963d19ee78743a03017bf3d2c734ed4e23e5c71b1605e369f79f112",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 27
+      },
+      "0x8489": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26431,
+        "affected_runtime_range": [
+          33929,
+          33990
+        ],
+        "affected_sha256": "11c1b842b48e128a13f5fbb10e1897daba040769a71ab5f1ad83a48699a18783",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26436,
+        "first_fixed_runtime_range": [
+          33934,
+          33995
+        ],
+        "first_fixed_sha256": "11c1b842b48e128a13f5fbb10e1897daba040769a71ab5f1ad83a48699a18783",
+        "heci_reference_count": 2,
+        "normalized_sha256": "11c1b842b48e128a13f5fbb10e1897daba040769a71ab5f1ad83a48699a18783",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 61
+      },
+      "0x84e8": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26406,
+        "affected_runtime_range": [
+          34024,
+          34272
+        ],
+        "affected_sha256": "fd4ff83ff453b8cfed07e739ca9417d26e095a73dc89e2ac4cef5bd64cdbcd81",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26411,
+        "first_fixed_runtime_range": [
+          34029,
+          34277
+        ],
+        "first_fixed_sha256": "a37096982d815e2281cfb0552fc03eddaad653abd5441621e5c8962ed92a6c8e",
+        "heci_reference_count": 4,
+        "normalized_sha256": "4a7a13cc8a5e02aaf5ef8adc22bbb9b64cf86edf8cabf66d016ce671e203dfc9",
+        "raw_differing_byte_count": 2,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 34085,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 34090,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 34247,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 34252,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          }
+        ],
+        "size": 248
+      },
+      "0x8f00": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26546,
+        "affected_runtime_range": [
+          36608,
+          36620
+        ],
+        "affected_sha256": "7f59ad5a4926a195de4fba5e9ec57eb623c56238ceddd8dc7995fb9294a5e235",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26551,
+        "first_fixed_runtime_range": [
+          36613,
+          36625
+        ],
+        "first_fixed_sha256": "7f59ad5a4926a195de4fba5e9ec57eb623c56238ceddd8dc7995fb9294a5e235",
+        "heci_reference_count": 3,
+        "normalized_sha256": "7f59ad5a4926a195de4fba5e9ec57eb623c56238ceddd8dc7995fb9294a5e235",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 12
+      },
+      "0x9088": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 25776,
+        "affected_runtime_range": [
+          37000,
+          37021
+        ],
+        "affected_sha256": "c68aa1378e77caa90298e07971acb8285c74ec67d29a006e6d2ab41661b12be1",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 25781,
+        "first_fixed_runtime_range": [
+          37005,
+          37026
+        ],
+        "first_fixed_sha256": "c68aa1378e77caa90298e07971acb8285c74ec67d29a006e6d2ab41661b12be1",
+        "heci_reference_count": 65,
+        "normalized_sha256": "c68aa1378e77caa90298e07971acb8285c74ec67d29a006e6d2ab41661b12be1",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 21
+      },
+      "0x90b3": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 25781,
+        "affected_runtime_range": [
+          37043,
+          37067
+        ],
+        "affected_sha256": "c621adc00f67cc46a34945f14f0e406e34490dd2ec06bf386f36eebdf21944a4",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 25786,
+        "first_fixed_runtime_range": [
+          37048,
+          37072
+        ],
+        "first_fixed_sha256": "c621adc00f67cc46a34945f14f0e406e34490dd2ec06bf386f36eebdf21944a4",
+        "heci_reference_count": 48,
+        "normalized_sha256": "c621adc00f67cc46a34945f14f0e406e34490dd2ec06bf386f36eebdf21944a4",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 24
+      },
+      "0x9783": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 25791,
+        "affected_runtime_range": [
+          38787,
+          38817
+        ],
+        "affected_sha256": "b8578a8da11ab8209260ea4db3cfdcf5207da87e3b206a3e7d5bf36f63fae5ca",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 25796,
+        "first_fixed_runtime_range": [
+          38792,
+          38822
+        ],
+        "first_fixed_sha256": "b8578a8da11ab8209260ea4db3cfdcf5207da87e3b206a3e7d5bf36f63fae5ca",
+        "heci_reference_count": 12,
+        "normalized_sha256": "b8578a8da11ab8209260ea4db3cfdcf5207da87e3b206a3e7d5bf36f63fae5ca",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 30
+      },
+      "0x9874": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26451,
+        "affected_runtime_range": [
+          39028,
+          39299
+        ],
+        "affected_sha256": "8cc64ed7d7c2afa8853ae63669bc9885ab9a34df30330adcccfbfddf8fd619c7",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26456,
+        "first_fixed_runtime_range": [
+          39033,
+          39304
+        ],
+        "first_fixed_sha256": "3512921a7614f8692176a3628f3bc2d068ac59932da29f15be53dc0248adc198",
+        "heci_reference_count": 1,
+        "normalized_sha256": "f5c87d4ca8c191ad08788f1227123e2173ab76c620165044d3b24cf6c341295a",
+        "raw_differing_byte_count": 3,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 39083,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 39088,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 39267,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 39272,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 39286,
+            "affected_target": 71856,
+            "first_fixed_runtime_address": 39291,
+            "first_fixed_target": 71864,
+            "opcode": 232
+          }
+        ],
+        "size": 271
+      },
+      "0x9983": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26411,
+        "affected_runtime_range": [
+          39299,
+          39370
+        ],
+        "affected_sha256": "8688eb5211f38d9e5b1af5408ef416207c419c929738ff3f86ddb6ea27f57e2a",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26416,
+        "first_fixed_runtime_range": [
+          39304,
+          39375
+        ],
+        "first_fixed_sha256": "8688eb5211f38d9e5b1af5408ef416207c419c929738ff3f86ddb6ea27f57e2a",
+        "heci_reference_count": 3,
+        "normalized_sha256": "8688eb5211f38d9e5b1af5408ef416207c419c929738ff3f86ddb6ea27f57e2a",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 71
+      },
+      "0x9b51": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 25796,
+        "affected_runtime_range": [
+          39761,
+          39794
+        ],
+        "affected_sha256": "f7e17e0bc5847564059bea4b8200452d3c407d083937c7424703a0e4ebc3a8ae",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 25801,
+        "first_fixed_runtime_range": [
+          39766,
+          39799
+        ],
+        "first_fixed_sha256": "f7e17e0bc5847564059bea4b8200452d3c407d083937c7424703a0e4ebc3a8ae",
+        "heci_reference_count": 5,
+        "normalized_sha256": "f7e17e0bc5847564059bea4b8200452d3c407d083937c7424703a0e4ebc3a8ae",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 33
+      },
+      "0xa274": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 25801,
+        "affected_runtime_range": [
+          41588,
+          41624
+        ],
+        "affected_sha256": "f89cc0bdf11c4b363d466c9ad195f02b82210cc1e473cdd71b346baf08aad8c9",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 25806,
+        "first_fixed_runtime_range": [
+          41593,
+          41629
+        ],
+        "first_fixed_sha256": "f89cc0bdf11c4b363d466c9ad195f02b82210cc1e473cdd71b346baf08aad8c9",
+        "heci_reference_count": 4,
+        "normalized_sha256": "f89cc0bdf11c4b363d466c9ad195f02b82210cc1e473cdd71b346baf08aad8c9",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 36
+      },
+      "0xa298": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26341,
+        "affected_runtime_range": [
+          41624,
+          41635
+        ],
+        "affected_sha256": "d3c2ea3edae8cfaebdef527befc32cf812c2d61dfcccbf83d739a8a6bc98cdb0",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26346,
+        "first_fixed_runtime_range": [
+          41629,
+          41640
+        ],
+        "first_fixed_sha256": "d3c2ea3edae8cfaebdef527befc32cf812c2d61dfcccbf83d739a8a6bc98cdb0",
+        "heci_reference_count": 1,
+        "normalized_sha256": "d3c2ea3edae8cfaebdef527befc32cf812c2d61dfcccbf83d739a8a6bc98cdb0",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 11
+      },
+      "0xa2a3": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26306,
+        "affected_runtime_range": [
+          41635,
+          41645
+        ],
+        "affected_sha256": "8966cbb366c4f3f4e4de27506c242cd89e78d8e4970ef87b208ff6416fcb0ce4",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26311,
+        "first_fixed_runtime_range": [
+          41640,
+          41650
+        ],
+        "first_fixed_sha256": "8966cbb366c4f3f4e4de27506c242cd89e78d8e4970ef87b208ff6416fcb0ce4",
+        "heci_reference_count": 11,
+        "normalized_sha256": "8966cbb366c4f3f4e4de27506c242cd89e78d8e4970ef87b208ff6416fcb0ce4",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 10
+      },
+      "0xaf34": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26421,
+        "affected_runtime_range": [
+          44852,
+          44980
+        ],
+        "affected_sha256": "195f3955ab7040e33c698e58afebcdb65a27ac024d94f8d8ddadc9d4b88da0b5",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26426,
+        "first_fixed_runtime_range": [
+          44857,
+          44985
+        ],
+        "first_fixed_sha256": "840e8f3498f0ef8df3d59c3e15877f260517875174286510cbfb2fdd03bc9a8b",
+        "heci_reference_count": 1,
+        "normalized_sha256": "b4e470f2549ab7fb1ea9795f13585851087dd6e9248056c63343e25dc709b80b",
+        "raw_differing_byte_count": 2,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 44890,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 44895,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 44961,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 44966,
+            "first_fixed_target": 73947,
+            "opcode": 233
+          }
+        ],
+        "size": 128
+      },
+      "0xb393": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 25696,
+        "affected_runtime_range": [
+          45971,
+          46139
+        ],
+        "affected_sha256": "d5d502066c4f1319cb0e801a44f8b5f1272ecf554b73496acf862f432e3c7f88",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 25701,
+        "first_fixed_runtime_range": [
+          45976,
+          46144
+        ],
+        "first_fixed_sha256": "8f57acdd99022044b28f6e0358be0f98bac708bdf1515fbe4edfd7d159ac1b23",
+        "heci_reference_count": 2,
+        "normalized_sha256": "0b068d4c5d86143e8f4e500f13570602bbb7c643f0ffeebc5920e6343b2e6481",
+        "raw_differing_byte_count": 1,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 46114,
+            "affected_target": 92476,
+            "first_fixed_runtime_address": 46119,
+            "first_fixed_target": 92510,
+            "opcode": 232
+          }
+        ],
+        "size": 168
+      },
+      "0xbd56": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26331,
+        "affected_runtime_range": [
+          48470,
+          48536
+        ],
+        "affected_sha256": "dc06de4a0cb80ff84bca7260eb0e6428a2164ba170e1d121f87622c683a38537",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26336,
+        "first_fixed_runtime_range": [
+          48475,
+          48541
+        ],
+        "first_fixed_sha256": "dc06de4a0cb80ff84bca7260eb0e6428a2164ba170e1d121f87622c683a38537",
+        "heci_reference_count": 2,
+        "normalized_sha256": "dc06de4a0cb80ff84bca7260eb0e6428a2164ba170e1d121f87622c683a38537",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 66
+      },
+      "0xbde8": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26326,
+        "affected_runtime_range": [
+          48616,
+          48634
+        ],
+        "affected_sha256": "9d8cf8f2634aad12aa9badd146d64404cf1e7604fcc9cf82ba2051ed7cac1a0c",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26331,
+        "first_fixed_runtime_range": [
+          48621,
+          48639
+        ],
+        "first_fixed_sha256": "9d8cf8f2634aad12aa9badd146d64404cf1e7604fcc9cf82ba2051ed7cac1a0c",
+        "heci_reference_count": 9,
+        "normalized_sha256": "9d8cf8f2634aad12aa9badd146d64404cf1e7604fcc9cf82ba2051ed7cac1a0c",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 18
+      },
+      "0xbea2": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 25821,
+        "affected_runtime_range": [
+          48802,
+          48828
+        ],
+        "affected_sha256": "0518d33bc59f49af200722c3a67d8299296da5b0d14cf1b2335f8c2a19169bf2",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 25826,
+        "first_fixed_runtime_range": [
+          48807,
+          48833
+        ],
+        "first_fixed_sha256": "0518d33bc59f49af200722c3a67d8299296da5b0d14cf1b2335f8c2a19169bf2",
+        "heci_reference_count": 23,
+        "normalized_sha256": "0518d33bc59f49af200722c3a67d8299296da5b0d14cf1b2335f8c2a19169bf2",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 26
+      },
+      "0xc7e7": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 25771,
+        "affected_runtime_range": [
+          51175,
+          51193
+        ],
+        "affected_sha256": "e50c48f437c12c75c2fdd7870dbb4b2a05f680fad6be8abfc8ce05efb760eb5d",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 25776,
+        "first_fixed_runtime_range": [
+          51180,
+          51198
+        ],
+        "first_fixed_sha256": "e50c48f437c12c75c2fdd7870dbb4b2a05f680fad6be8abfc8ce05efb760eb5d",
+        "heci_reference_count": 9,
+        "normalized_sha256": "e50c48f437c12c75c2fdd7870dbb4b2a05f680fad6be8abfc8ce05efb760eb5d",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 18
+      },
+      "0xcfb5": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 25811,
+        "affected_runtime_range": [
+          53173,
+          53193
+        ],
+        "affected_sha256": "27699ebd84a86153c215e83f39848278cea3593c31fa3746691bff90007aca23",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 25816,
+        "first_fixed_runtime_range": [
+          53178,
+          53198
+        ],
+        "first_fixed_sha256": "27699ebd84a86153c215e83f39848278cea3593c31fa3746691bff90007aca23",
+        "heci_reference_count": 13,
+        "normalized_sha256": "27699ebd84a86153c215e83f39848278cea3593c31fa3746691bff90007aca23",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 20
+      },
+      "0xd660": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26541,
+        "affected_runtime_range": [
+          54880,
+          54897
+        ],
+        "affected_sha256": "af68d441b2b89e1ca3333e0280090b5ed079d8d7eac46a9b850f7794c0db216b",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26546,
+        "first_fixed_runtime_range": [
+          54885,
+          54902
+        ],
+        "first_fixed_sha256": "af68d441b2b89e1ca3333e0280090b5ed079d8d7eac46a9b850f7794c0db216b",
+        "heci_reference_count": 1,
+        "normalized_sha256": "af68d441b2b89e1ca3333e0280090b5ed079d8d7eac46a9b850f7794c0db216b",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 17
+      },
+      "0xd6c2": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26416,
+        "affected_runtime_range": [
+          54978,
+          55120
+        ],
+        "affected_sha256": "1fdde3ae42d9c59a9aa053f78189804bcab5e9aeeac54174709f3a20afdb7406",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26421,
+        "first_fixed_runtime_range": [
+          54983,
+          55125
+        ],
+        "first_fixed_sha256": "ee60c8bac406cc3c702d40146187090bb5d76180c6631b4dd233c830d7ccb4bf",
+        "heci_reference_count": 1,
+        "normalized_sha256": "d87930150d7cbba8286aff179f8053b2af04421f558b313fdb364a8d2f8cac5f",
+        "raw_differing_byte_count": 2,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 55013,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 55018,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 55105,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 55110,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          }
+        ],
+        "size": 142
+      },
+      "0xda93": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 25816,
+        "affected_runtime_range": [
+          55955,
+          55978
+        ],
+        "affected_sha256": "f5454c1a224e1f4cb558297e1cd890bdaa69c6010ef5cb471ca72f7c365bdd23",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 25821,
+        "first_fixed_runtime_range": [
+          55960,
+          55983
+        ],
+        "first_fixed_sha256": "f5454c1a224e1f4cb558297e1cd890bdaa69c6010ef5cb471ca72f7c365bdd23",
+        "heci_reference_count": 26,
+        "normalized_sha256": "f5454c1a224e1f4cb558297e1cd890bdaa69c6010ef5cb471ca72f7c365bdd23",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 23
+      },
+      "0xdaaa": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26256,
+        "affected_runtime_range": [
+          55978,
+          56168
+        ],
+        "affected_sha256": "b39bcc63bea976b61ef437aaed69d66d7decdf32efae5abbcee50c2c714075dc",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26261,
+        "first_fixed_runtime_range": [
+          55983,
+          56173
+        ],
+        "first_fixed_sha256": "22fb3353ea5f1fce84a2bfb7960edf564029fecc5f62767bb1dcd6438232f112",
+        "heci_reference_count": 1,
+        "normalized_sha256": "abd621f4fc5e3fbd85565946cdd5b82d3cc43fa09ff7dff04a7747f5718ea91d",
+        "raw_differing_byte_count": 2,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 56011,
+            "affected_target": 4157,
+            "first_fixed_runtime_address": 56016,
+            "first_fixed_target": 4157,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 56155,
+            "affected_target": 71856,
+            "first_fixed_runtime_address": 56160,
+            "first_fixed_target": 71864,
+            "opcode": 232
+          }
+        ],
+        "size": 190
+      },
+      "0xde35": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26361,
+        "affected_runtime_range": [
+          56885,
+          56924
+        ],
+        "affected_sha256": "9c79ec91b936a3e81e69761f59d04760254749c13046aa6d49ff6863de9498e4",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26366,
+        "first_fixed_runtime_range": [
+          56890,
+          56929
+        ],
+        "first_fixed_sha256": "9c79ec91b936a3e81e69761f59d04760254749c13046aa6d49ff6863de9498e4",
+        "heci_reference_count": 1,
+        "normalized_sha256": "9c79ec91b936a3e81e69761f59d04760254749c13046aa6d49ff6863de9498e4",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 39
+      },
+      "0xe0bd": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26436,
+        "affected_runtime_range": [
+          57533,
+          57605
+        ],
+        "affected_sha256": "43f205045732bcaf685efec15cd2b23a9fadfcefb46ea67ba7f148b9c69ad6b7",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26441,
+        "first_fixed_runtime_range": [
+          57538,
+          57610
+        ],
+        "first_fixed_sha256": "43f205045732bcaf685efec15cd2b23a9fadfcefb46ea67ba7f148b9c69ad6b7",
+        "heci_reference_count": 1,
+        "normalized_sha256": "43f205045732bcaf685efec15cd2b23a9fadfcefb46ea67ba7f148b9c69ad6b7",
+        "raw_differing_byte_count": 0,
+        "rel32_relocations": [],
+        "size": 72
+      },
+      "0xe46d": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26366,
+        "affected_runtime_range": [
+          58477,
+          58894
+        ],
+        "affected_sha256": "95a19c6572cd42187b3b772a472b8ffbb2fdc6375be613efe0fca6bd50e243c2",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26371,
+        "first_fixed_runtime_range": [
+          58482,
+          58899
+        ],
+        "first_fixed_sha256": "b182d029c570e373ffb2764bf6ddf732da13d4fb1823e427b08200c7e5809231",
+        "heci_reference_count": 1,
+        "normalized_sha256": "7f9457f8cc4f0adb008ed9e63a9d8f7c90d420c20bc8735613e386f1511b6dcb",
+        "raw_differing_byte_count": 6,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 58532,
+            "affected_target": 4142,
+            "first_fixed_runtime_address": 58537,
+            "first_fixed_target": 4142,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 58628,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 58633,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 58690,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 58695,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 58748,
+            "affected_target": 4157,
+            "first_fixed_runtime_address": 58753,
+            "first_fixed_target": 4157,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 58867,
+            "affected_target": 76802,
+            "first_fixed_runtime_address": 58872,
+            "first_fixed_target": 76810,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 58878,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 58883,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          }
+        ],
+        "size": 417
+      },
+      "0xec24": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26301,
+        "affected_runtime_range": [
+          60452,
+          60472
+        ],
+        "affected_sha256": "7dec5eccc713539e2fd185eb1aad56a8d811a6c452ddeaca40e31993f47aa05a",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26306,
+        "first_fixed_runtime_range": [
+          60457,
+          60477
+        ],
+        "first_fixed_sha256": "1dc892e57db3cc13d4344cd19480eb9023eb45553f14e3979a4f94a3c5075376",
+        "heci_reference_count": 6,
+        "normalized_sha256": "be03f3686e9372ff0031d5be9c8916eed89a4adc6c14be3c310a44dcf258e682",
+        "raw_differing_byte_count": 1,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 60462,
+            "affected_target": 4157,
+            "first_fixed_runtime_address": 60467,
+            "first_fixed_target": 4157,
+            "opcode": 232
+          }
+        ],
+        "size": 20
+      },
+      "0xf8f8": {
+        "absolute_address_relocations": [],
+        "affected_import_stub": 26396,
+        "affected_runtime_range": [
+          63736,
+          63953
+        ],
+        "affected_sha256": "735ba93ca7d3f6e202236ca708fd15675c525f02b9f5f1706ba03fe1ca36d035",
+        "equal_after_reviewed_address_normalization": true,
+        "first_fixed_import_stub": 26401,
+        "first_fixed_runtime_range": [
+          63741,
+          63958
+        ],
+        "first_fixed_sha256": "4ef84a448a85496e4b3e2f51abd11b6da2a33e35d4e9315d2be5560a122cb4fe",
+        "heci_reference_count": 1,
+        "normalized_sha256": "1996b7f99365341195f19a2e67096aecf7c11e601a5ec59f5b2aabc3f75cdc79",
+        "raw_differing_byte_count": 2,
+        "rel32_relocations": [
+          {
+            "affected_runtime_address": 63796,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 63801,
+            "first_fixed_target": 73947,
+            "opcode": 232
+          },
+          {
+            "affected_runtime_address": 63940,
+            "affected_target": 73939,
+            "first_fixed_runtime_address": 63945,
+            "first_fixed_target": 73947,
+            "opcode": 233
+          }
+        ],
+        "size": 217
+      }
+    },
+    "destination_entry_shift_counts": {
+      "34": 7,
+      "5": 33,
+      "8": 2
+    },
+    "exact_static_observations": {
+      "all_42_destination_bodies_equal_after_only_reviewed_address_normalization": true,
+      "all_42_destination_bodies_have_equal_reviewed_geometry": true,
+      "all_42_heci_import_stubs_resolved_to_syslib_destinations": true,
+      "no_directly_imported_syslib_body_has_an_opcode_or_non_address_data_change": true
+    },
+    "first_fixed_syslib_sha256": "1f4722eeaab64eee5b6febe1b7e6d21565794c929173a56ff4bb9a01f96b00c8",
+    "heci_external_reference_count": 369,
+    "imported_destination_count": 42,
+    "raw_differing_byte_count": 39,
+    "rel32_relocation_site_count": 37,
+    "reviewed_body_byte_count": 4410,
+    "syslib_code_base": 24576
   },
   "first_fixed_vfs_exact_static_review": {
     "advisory_attribution": "This is an exact first-fixed VFS/syslib integration delta for pre-existing ndl_critical and ndl_counting storage channels, accompanied by a new 25-entry critical-name table. Its names and timing make it a high-priority CVE-2018-3655 anti-replay/data-file-integrity candidate, but exact transaction semantics, physical reachability, and advisory attribution are not yet proved.",
@@ -1240,5 +2436,5 @@
       "reject_header_bit_29": 1
     }
   },
-  "schema": "ioniq-txe-fixed-module-diff/v2"
+  "schema": "ioniq-txe-fixed-module-diff/v3"
 }

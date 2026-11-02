@@ -14,6 +14,9 @@ new exact candidate:
 - the complete affected and first-fixed HECI modules are byte-identical after
   normalizing only 369 external `rel32` call/jump immediates, each of which
   shifts its target by exactly five bytes;
+- all 42 syslib destination bodies directly imported by those HECI branches
+  are byte-identical after normalizing 37 reviewed `rel32` address operands
+  and one indexed-jump-table base operand;
 - the named RBE/OEM-key-manifest/microcode anti-rollback FPF fields seen in
   `3.1.94` are absent by name from both affected and first-fixed FPF; and
 - first-fixed VFS newly opens the already defined `ndl_critical` and
@@ -25,7 +28,8 @@ are not the `3.1.55` fixes. The VFS/syslib NDL hookup is a high-priority exact
 candidate for CVE-2018-3655's anti-replay/data-integrity repair, but exact
 transaction semantics, physical reachability, and advisory attribution remain
 unproved. CVE-2018-12147 still requires changed-function and reachability
-analysis in HECI dependencies or downstream signed clients.
+analysis in transitive syslib callees, syscall/service implementations,
+indirect dispatch targets, another signed module, or downstream signed clients.
 
 No firmware module, MEI/HECI endpoint, update capsule, or target executable was
 run. All work was passive host-side parsing, strict decompression, hashing,
@@ -129,15 +133,15 @@ official first-fixed ASUS IFWI, and extracted later NUC IFWI. It:
 Reviewed report:
 
 - path: `evidence/artifacts/update-candidates/txe-fixed-module-diff.json`;
-- schema: `ioniq-txe-fixed-module-diff/v2`;
-- size: `48,625` bytes;
-- SHA-256: `65fe19c7c1a53396d8f0def8e0d8a3f6f40c7faa54844cae6e1d45836ecc18cf`.
+- schema: `ioniq-txe-fixed-module-diff/v3`;
+- size: `92,615` bytes;
+- SHA-256: `d1043552b8ef772e825dc9e624dc3b62ab57f0fc8496cce7b359fbd5942d5fdb`.
 
 Reviewed byte-free disassembly/decompiler excerpts are retained as:
 
 - path: `evidence/artifacts/update-candidates/txe-fixed-heci-exact-static.txt`;
-- size: `11,817` bytes;
-- SHA-256: `b790530619faa31f7937fadd417131b5196de108431708139c2d807a17731760`.
+- size: `13,209` bytes;
+- SHA-256: `88bb85894ca61bacc009255f55405a8d5f2edf2d6b6bc90af970e39b46e5410e`.
 
 The exact decompressed identities are:
 
@@ -188,8 +192,44 @@ The first-fixed dispatcher also retains the exact affected behavior:
   maximum, or extended-header parser.
 
 This excludes HECI-local code as the location of CVE-2018-12147's `3.1.55`
-fix. It does not exclude changed behavior behind the relocated external syslib
-stubs or another signed module/downstream client.
+fix.
+
+## Exact HECI-imported syslib destination result
+
+The 42 affected HECI external targets are syslib export stubs at
+`0x6460..0x67b2`. The corresponding first-fixed stubs are each at affected+5.
+Directly decoding every affected/fixed `jmp rel32` stub resolves 42 unique
+syslib destination bodies. Their entry-address movement is structural rather
+than a logic signal:
+
+- 33 destination entries move by `+5`;
+- two move by `+8`; and
+- seven move by `+34` (`0x22`).
+
+The deterministic report binds each affected and first-fixed runtime range,
+raw range hash, HECI reference count, and normalized range hash. Across the 42
+next-entry-bounded bodies:
+
+- `4,410` body bytes are reviewed;
+- only `39` raw bytes differ;
+- 37 same-relative-position `call/jmp rel32` operands account for all but one
+  changed address operand;
+- the remaining changed operand is the indexed-jump-table base
+  `0x18994 → 0x189b8` in body `0x6abc..0x6fbf`; and
+- after zeroing only those reviewed address operands, all 42 body pairs are
+  byte-identical.
+
+The changed `rel32` targets are themselves restricted to reviewed address
+translations: unchanged kernel/syscall gates `0x102e` and `0x103d`, or syslib
+locations moving by `+5`, `+8`, or `+34`. Therefore none of the 42 directly
+imported bodies contains an affected-to-first-fixed opcode or non-address-data
+change.
+
+This materially narrows CVE-2018-12147, but does not identify its fix. Several
+of these bodies are wrappers or dispatchers. Changed transitive callees,
+syscall/service implementations, indirect dispatch targets, another signed
+module, and downstream HECI clients remain open. Address normalization proves
+entry-body identity, not end-to-end behavioral identity.
 
 ## Exact first-fixed VFS/syslib NDL integration
 

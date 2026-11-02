@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.57.0 - `show()` IS called: the window becomes visible, and the vendor surface creation is the gate
+
+- Built `tools/uk_fw/ias_backend_soft/qt_show_trace.c`, an interposer that logs `QWindow::show()`, `QWindow::isVisible()`,
+  `IviShellIntegration::waitForGetSurfaceId()` and `IviShellIntegration::createShellSurface()`, forwarding each to the real symbol through
+  `RTLD_NEXT` so behaviour is unchanged. Astra recommended exactly this instrument and warned that "no surface" does not prove `show()` was never
+  entered — it was right on both counts.
+- **First run under the tracer settles the question this investigation has been asking for many rounds:**
+  ```
+  1  show()
+  5  isVisible() -> true
+  8  isVisible() -> false
+  1  createShellSurface() enter
+  1  createShellSurface() return
+  ```
+  So the application **does** call `QWindow::show()`, the window **does** report itself visible, and Qt **does** call into the vendor
+  `IviShellIntegration::createShellSurface()`. `waitForGetSurfaceId()` never appears, so that was not the stall.
+- That means the missing Wayland surface is not an application hesitation at all: it is the **vendor shell integration returning without creating one.**
+  The integration is `libivi-platform-interface.so`, whose strings include `QT_WAYLAND_SET_SURFACE_ID`, `QT_WAYLAND_SET_SURFACE_ID_FORCED` and
+  `QT_WAYLAND_USE_PID_FOR_SURFACE_ID`, and whose exports include `IviShellPrivate::isNeedToGetSurfaceIdFromEnvValue()` and
+  `getSurfaceIdFromEnvValue()`. The launcher exports **`QT_WAYLAND_SET_SURFACE_ID=0`** to every child, which is the most likely reason it bails.
+- A first attempt at overriding it (`QT_WAYLAND_SET_SURFACE_ID=1001` + `QT_WAYLAND_SET_SURFACE_ID_FORCED=1`) ended with the app gone before the
+  first measurement, so it is **inconclusive**: the value may be rejected, may collide with the compositor's `surface-id-offset=1000` allocation, or
+  may simply be the wrong knob. Next variations to try are `QT_WAYLAND_USE_PID_FOR_SURFACE_ID=1`, ids at or above the offset, and forced versus
+  unforced, each with the trace shim attached so the outcome is observable rather than inferred.
+- Sharpest statement of the remaining fault: **the application asks to be shown and the vendor integration declines to create the surface.**
+
 ## 2.56.0 - four ways in, all closed: ignition signals, the show call, the right appid, and foreground contention
 
 - **Ignition signals are subscribable but inert.** The app registers signal matches with **no sender constraint**:

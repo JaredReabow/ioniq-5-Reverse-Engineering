@@ -129,6 +129,28 @@ def test_canonical_inventory_matches_reviewed_artifact():
     assert census["first_fixed_mov_edx_0x102"] == [0x8C02C]
     assert len(census["affected_cmp_eax_0xff"]) == 12
     assert len(census["first_fixed_cmp_eax_0x102"]) == 12
+    identity = report["vfs_process_identity_review"]
+    assert identity["vfs_process_identifier"] == 0x0200
+    assert identity["vfs_current_identity_value"] == 0x02000200
+    assert identity["pm_process_identifier"] == 0x0100
+    assert identity["pm_current_identity_value"] == 0x01000100
+    assert [site["export_body_sha256"] for site in identity["syslib_current_identity_exports"]] == [
+        "7f59ad5a4926a195de4fba5e9ec57eb623c56238ceddd8dc7995fb9294a5e235",
+        "7f59ad5a4926a195de4fba5e9ec57eb623c56238ceddd8dc7995fb9294a5e235",
+    ]
+    assert [site["tls_value_source"] for site in identity["syslib_current_identity_exports"]] == [
+        "dereference of gs:0 minus four bytes", "dereference of gs:0 minus four bytes",
+    ]
+    assert [site["expected_current_identity"] for site in identity["startup_identity_checks"]] == [
+        0x02000200, 0x02000200, 0x01000100, 0x01000100,
+    ]
+    assert [site["current_identity_export_stub_runtime_address"] for site in identity["startup_identity_checks"]] == [
+        0x67B2, 0x67B7, 0x67B2, 0x67B7,
+    ]
+    assert identity["vfs_process_attributes"]["affected"]["user_id"] == 0
+    assert identity["vfs_process_attributes"]["first_fixed"]["trusted_send_receive_sender"] is True
+    assert identity["pm_process_attributes"]["affected"]["user_id"] == 0x53
+    assert identity["pm_process_attributes"]["first_fixed"]["trusted_send_receive_sender"] is False
     ipc = report["ipc_drv_stack_initialization_review"]
     assert ipc["affected_callback_runtime_range"] == [0x274BD, 0x2780D]
     assert ipc["first_fixed_callback_runtime_range"] == [0x274E5, 0x27849]
@@ -161,5 +183,5 @@ def test_canonical_inventory_matches_reviewed_artifact():
     assert transfer_role["low_16_bits_consumed_by_transfer_wrapper"] == 0x0200
     assert transfer_role["kernel_selector_7_process_identifier"] == 0x0200
     assert transfer_role["kernel_process_table_index"] == 2
-    assert transfer_role["vendor_process_or_recipient_name"] is None
+    assert transfer_role["vendor_process_or_recipient_name"] == "vfs"
     assert json.loads(ARTIFACT.read_text(encoding="utf-8")) == report

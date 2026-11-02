@@ -298,18 +298,27 @@ argument block. Both exact selector-7 handlers consume a 16-bit process
 identifier at argument offset `+0x0c`, derive and validate process-table index 2
 from identifier `0x0200`, compare the full identifier, check table state, and
 reach a copy helper with flag `0x202`. The message dword's high half is not
-consumed by this wrapper. Affected and first-fixed metadata identically define common CSE
-major 39 with six internal files, `ipc_boot`, `ipc_mctp`, `ipc_dd`, `ipc_pmc`,
+consumed by this wrapper.
+
+The recipient name is now exact. Affected and first-fixed VFS startup both call
+the translated syslib current-identity export and require `0x02000200`; PM
+startup uses the same export and separately requires `0x01000100`. Thus process
+identifier `0x0200` is VFS, not a name inferred from load order. Signed VFS
+metadata declares user ID `0x0000`, permanent/single-instance status, trusted
+send/receive and notify sender permissions, public send/receive and notify
+receiver permissions, and reset-system fault handling.
+
+Affected and first-fixed metadata identically define common CSE major 39 with
+six internal files, `ipc_boot`, `ipc_mctp`, `ipc_dd`, `ipc_pmc`,
 `ipc_prtc`, and `ipc_iun`; the static context template maps their minors as
 `[1,2,3]`, `[4,5]`, and `[6]`.
 
 This is an exact stale-stack/partial-initialization information-disclosure
 hardening mechanism at an internal transfer boundary, but it is not yet proof
 of the privileged-local HECI input-validation path described by
-CVE-2018-12147. Static evidence does not select one named minor, identify
-vendor selector/domain `0x0200`, order internal privileges, establish HECI
-reachability or external attacker control, prove exploitability, or establish
-advisory attribution. See `evidence/intel-txe-first-fixed-module-inventory.md`.
+CVE-2018-12147. Static evidence does not select one named minor, establish HECI
+reachability or external attacker control, prove an exploitable privilege
+crossing, or establish advisory attribution. See `evidence/intel-txe-first-fixed-module-inventory.md`.
 
 The exact later signed FPF adds structured `RbeArbEn`, `RbeArbSvn`,
 `OemKmArbEn`, `OemKmArbSvn`, `UcodeArbEn`, and `UcodeArbSvn` records absent by

@@ -50,8 +50,8 @@
     ],
     "affected_callback_sha256": "b7e498a3daa735910a68d49d69beb32b0159611b301e304bf0b5c4ac04c569b9",
     "affected_callback_size": 848,
-    "attribution_boundary": "This is an exact first-fixed stale-stack/partial-initialization information-disclosure hardening mechanism inside ipc_drv and an exact internal process-transfer boundary. The common major-39 operation table covers six metadata-defined internal CSE special files; static bytes do not reduce event-0xf4 reachability to one named minor or identify the vendor process represented by 0x0200. HECI reachability, external attacker control, privilege ordering between internal processes, exploitability, and CVE-2018-12147 attribution remain unproved.",
-    "bounded_interpretation": "The first-fixed callback newly clears its complete 0x88-byte local transfer buffer before storing a four-byte header, bounded-copying at most 0x80 payload bytes, and transferring the complete fixed-size buffer through syslib export 0x61d6. Syslib event byte 0xf4 dispatches to this exact operation-table slot and supplies message dword zero; the transfer wrapper consumes its low 16 bits. Value 0x02000200 therefore supplies process identifier 0x0200, process-table index 2, to kernel selector 7 in this callback. The affected callback has no call to gate 0x103d in its complete hash-bound body.",
+    "attribution_boundary": "This is an exact first-fixed stale-stack/partial-initialization information-disclosure hardening mechanism inside ipc_drv and an exact internal transfer to the signed UID-0 VFS process. The common major-39 operation table covers six metadata-defined internal CSE special files; static bytes do not reduce event-0xf4 reachability to one named minor. HECI reachability, external attacker control, an exploitable privilege crossing, CVE-2018-12147 attribution, and installed-unit identity remain unproved.",
+    "bounded_interpretation": "The first-fixed callback newly clears its complete 0x88-byte local transfer buffer before storing a four-byte header, bounded-copying at most 0x80 payload bytes, and transferring the complete fixed-size buffer through syslib export 0x61d6. Syslib event byte 0xf4 dispatches to this exact operation-table slot and supplies message dword zero; the transfer wrapper consumes its low 16 bits. Value 0x02000200 therefore supplies VFS process identifier 0x0200, process-table index 2, to kernel selector 7 in this callback. The affected callback has no call to gate 0x103d in its complete hash-bound body.",
     "first_fixed_call_sites": {
       "bounded_copy_0x6055": [
         161559
@@ -121,7 +121,7 @@
       "low_16_bits_consumed_by_transfer_wrapper": 512,
       "nonzero_low_half_selects_alternate_transfer_path": true,
       "value": 33554944,
-      "vendor_process_or_recipient_name": null,
+      "vendor_process_or_recipient_name": "vfs",
       "zero_low_half_selects_local_descriptor_path": true
     },
     "operation_table_callback_pointer_sites": [
@@ -3421,5 +3421,210 @@
         "unexplained_differing_byte_count": 11035
       }
     ]
+  },
+  "vfs_process_identity_review": {
+    "attribution_boundary": "This names the internal recipient process and its signed metadata attributes. It does not prove which major-39 minor reaches event 0xf4, HECI/MEI reachability, external control, an exploitable privilege crossing, CVE-2018-12147 attribution, or installed-unit identity.",
+    "bounded_interpretation": "Affected and first-fixed VFS startup call the same translated syslib current-identity export and require value 0x02000200; PM startup uses that export and separately requires 0x01000100. The low 16-bit process identifier 0x0200 consumed by the reviewed ipc_drv transfer therefore names the VFS process, whose signed metadata declares CSE user ID 0, permanent/single-instance status, trusted send/notify sender permissions, public send/receive and notify receiver permissions, and reset-system fault handling.",
+    "pm_current_identity_value": 16777472,
+    "pm_process_attributes": {
+      "affected": {
+        "bss_size": 10816,
+        "cm0_heap_size": 0,
+        "code_base_address": 155648,
+        "code_size_uncompressed": 17678,
+        "default_heap_size": 77824,
+        "fault_tolerant_action": "reset-system",
+        "flags_raw": 54,
+        "group_ids": [
+          2,
+          25,
+          46,
+          213
+        ],
+        "main_thread_entry": 170997,
+        "main_thread_id": 0,
+        "permanent_process": true,
+        "public_notify_receiver": false,
+        "public_send_receive_receiver": true,
+        "single_instance": true,
+        "trusted_notify_sender": true,
+        "trusted_send_receive_sender": false,
+        "user_id": 83
+      },
+      "first_fixed": {
+        "bss_size": 10816,
+        "cm0_heap_size": 0,
+        "code_base_address": 155648,
+        "code_size_uncompressed": 17678,
+        "default_heap_size": 77824,
+        "fault_tolerant_action": "reset-system",
+        "flags_raw": 54,
+        "group_ids": [
+          2,
+          25,
+          46,
+          213
+        ],
+        "main_thread_entry": 170997,
+        "main_thread_id": 0,
+        "permanent_process": true,
+        "public_notify_receiver": false,
+        "public_send_receive_receiver": true,
+        "single_instance": true,
+        "trusted_notify_sender": true,
+        "trusted_send_receive_sender": false,
+        "user_id": 83
+      }
+    },
+    "pm_process_identifier": 256,
+    "startup_identity_checks": [
+      {
+        "current_identity_call_runtime_address": 200669,
+        "current_identity_export_stub_runtime_address": 26546,
+        "expected_current_identity": 33554944,
+        "expected_identity_comparison_runtime_address": 200675,
+        "expected_process_identifier_low_16_bits": 512,
+        "label": "affected_vfs",
+        "startup_runtime_range": [
+          200655,
+          200723
+        ],
+        "startup_sha256": "a1dc6b8b03d4eefa1b3ab310daa4b3d19aba36072dc3230d32af5b6cae53869d",
+        "startup_size": 68
+      },
+      {
+        "current_identity_call_runtime_address": 202285,
+        "current_identity_export_stub_runtime_address": 26551,
+        "expected_current_identity": 33554944,
+        "expected_identity_comparison_runtime_address": 202291,
+        "expected_process_identifier_low_16_bits": 512,
+        "label": "first_fixed_vfs",
+        "startup_runtime_range": [
+          202271,
+          202339
+        ],
+        "startup_sha256": "4d787ea547a302609a2788ca5bf51442e7a64ca8a3ce7b438f9b26c7bac02662",
+        "startup_size": 68
+      },
+      {
+        "current_identity_call_runtime_address": 171119,
+        "current_identity_export_stub_runtime_address": 26546,
+        "expected_current_identity": 16777472,
+        "expected_identity_comparison_runtime_address": 171125,
+        "expected_process_identifier_low_16_bits": 256,
+        "label": "affected_pm",
+        "startup_runtime_range": [
+          171112,
+          171155
+        ],
+        "startup_sha256": "c63a436bca0b2c43eb9ec366cf142ed62ceb8c4be3f17d957bc0f5c8f27d0574",
+        "startup_size": 43
+      },
+      {
+        "current_identity_call_runtime_address": 171119,
+        "current_identity_export_stub_runtime_address": 26551,
+        "expected_current_identity": 16777472,
+        "expected_identity_comparison_runtime_address": 171125,
+        "expected_process_identifier_low_16_bits": 256,
+        "label": "first_fixed_pm",
+        "startup_runtime_range": [
+          171112,
+          171155
+        ],
+        "startup_sha256": "7030304216fc4b72a1e34569ea0b47f99268d81b2f410f2b032a29908a139d7a",
+        "startup_size": 43
+      }
+    ],
+    "syslib_current_identity_exports": [
+      {
+        "export_body_runtime_range": [
+          36608,
+          36620
+        ],
+        "export_body_sha256": "7f59ad5a4926a195de4fba5e9ec57eb623c56238ceddd8dc7995fb9294a5e235",
+        "identity_helper_runtime_range": [
+          31075,
+          31090
+        ],
+        "identity_helper_sha256": "67068e986ef3af7fae0df545b3cd0bf256e176d523883e8b9c5a0e9e2f839ad1",
+        "label": "affected",
+        "tls_accessor_runtime_range": [
+          31090,
+          31113
+        ],
+        "tls_accessor_sha256": "a614c935a5ff4d20bdaaa5225b0cc3a1adad58c977725666f79042108ff56bc5",
+        "tls_value_source": "dereference of gs:0 minus four bytes"
+      },
+      {
+        "export_body_runtime_range": [
+          36613,
+          36625
+        ],
+        "export_body_sha256": "7f59ad5a4926a195de4fba5e9ec57eb623c56238ceddd8dc7995fb9294a5e235",
+        "identity_helper_runtime_range": [
+          31080,
+          31095
+        ],
+        "identity_helper_sha256": "67068e986ef3af7fae0df545b3cd0bf256e176d523883e8b9c5a0e9e2f839ad1",
+        "label": "first_fixed",
+        "tls_accessor_runtime_range": [
+          31095,
+          31118
+        ],
+        "tls_accessor_sha256": "a614c935a5ff4d20bdaaa5225b0cc3a1adad58c977725666f79042108ff56bc5",
+        "tls_value_source": "dereference of gs:0 minus four bytes"
+      }
+    ],
+    "vfs_current_identity_value": 33554944,
+    "vfs_process_attributes": {
+      "affected": {
+        "bss_size": 95884,
+        "cm0_heap_size": 0,
+        "code_base_address": 155648,
+        "code_size_uncompressed": 62276,
+        "default_heap_size": 53248,
+        "fault_tolerant_action": "reset-system",
+        "flags_raw": 126,
+        "group_ids": [
+          43,
+          175,
+          512
+        ],
+        "main_thread_entry": 200543,
+        "main_thread_id": 0,
+        "permanent_process": true,
+        "public_notify_receiver": true,
+        "public_send_receive_receiver": true,
+        "single_instance": true,
+        "trusted_notify_sender": true,
+        "trusted_send_receive_sender": true,
+        "user_id": 0
+      },
+      "first_fixed": {
+        "bss_size": 99524,
+        "cm0_heap_size": 0,
+        "code_base_address": 155648,
+        "code_size_uncompressed": 68536,
+        "default_heap_size": 53248,
+        "fault_tolerant_action": "reset-system",
+        "flags_raw": 126,
+        "group_ids": [
+          43,
+          175,
+          383,
+          512
+        ],
+        "main_thread_entry": 202159,
+        "main_thread_id": 0,
+        "permanent_process": true,
+        "public_notify_receiver": true,
+        "public_send_receive_receiver": true,
+        "single_instance": true,
+        "trusted_notify_sender": true,
+        "trusted_send_receive_sender": true,
+        "user_id": 0
+      }
+    },
+    "vfs_process_identifier": 512
   }
 }

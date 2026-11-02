@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.48.0 - the app really does ask for screen 9 in chain runs, and the abort does not need the splash
+
+- Disabled `early-background` entirely (mode set to 0000 in the clone) so no splash surface could be destroyed, then ran the ten-output chain.
+  Two results:
+  - **`screen(9` appears 10 times in the compositor log** — the app genuinely interrogates IVI screen 9 when driven by the launcher, which the
+    isolated app-only run did not provoke. So the premise of the screen-9 hypothesis is now **measured in the configuration that matters**, not
+    just observed once.
+  - **`Assertion` count is still 1 and weston is gone**, with the app dead as well. So the pixman assertion does **not** require the splash:
+    some other client's surface is destroyed while its view is still being composited. The splash was one instance of the trigger, not the
+    cause.
+- That reclassifies the blocker: it is a **use-after-free in the vendor compositor** on surface destruction, visible in `pixman-renderer.c`
+  where `draw_view()` guards `if (!ps->image) return;` but `composite_clipped()` then asserts `src_format` — i.e. the state survives with an
+  image whose format is no longer valid. It is not something to patch from outside the compositor, and it is reached only with the multi-output
+  layout.
+- Practical position: ten screens are required for the app's request to be satisfiable, and ten screens reliably walk the vendor compositor into
+  this abort once a client destroys a surface. The next step is to identify **which** client destroys a surface immediately before the assert,
+  from the compositor log tail, rather than guessing.
+
 ## 2.47.0 - ten outputs render without crashing when the app runs alone, and still show nothing of the app
 
 - Re-ran the multi-output backend **without the launcher or the splash** — just our backend, the vendor `ivi-shell`, and `AppHomeScreen`

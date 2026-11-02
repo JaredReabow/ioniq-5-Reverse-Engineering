@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ivi_controller / ivi_share — the vendor Gen5W window-management protocol.
+
+  PROVENANCE. The vendor does not ship this XML in the guest rootfs; the
+  compiled vendor build only kept the generated headers
+  (`ivi-controller-server-protocol.h`, `ivi-share-server-protocol.h`, both named
+  in the DWARF line tables of /usr/lib/weston/ivi-controller.so, compiled from
+  `./protocol`). This file is therefore a reconstruction: every interface name,
+  version, request/event name, opcode order, signature and object-interface
+  token was read out of the `wl_interface` / `wl_message` tables inside the
+  shipped binary
+
+      work/decrypted-eu-260128/extracted-safe/mango-rootfs/usr/lib/weston/ivi-controller.so
+
+  (it is unstripped and exports ivi_controller_interface,
+  ivi_controller_layer_interface, ivi_controller_surface_interface,
+  ivi_controller_screen_interface, ivi_share_interface,
+  ivi_share_surface_interface). Nothing here is copied from upstream
+  wayland-ivi-extension; the two agree, which is itself a useful result, but the
+  binary is what this file answers to. Regenerate the C with:
+
+      wayland-scanner client-header ivi-controller.xml ivi-controller-client-protocol.h
+      wayland-scanner code          ivi-controller.xml ivi-controller-protocol.c
+
+  NOTE ON layer.screen. In the shipped binary that event's `types[]` slot is
+  NULL, i.e. the vendor compiled it as `type="object"` with no `interface`
+  token, so it is reproduced that way below. It only affects optional
+  interface-name validation, not the wire format, and this client never
+  consumes the event.
+-->
+<protocol name="ivi_controller">
+
+  <copyright>
+    Interface definitions reconstructed from the vendor Gen5W build of
+    weston 1.10 (ivi-controller.so). The protocol itself is the GENIVI
+    IVI layer management controller interface (DENSO CORPORATION / BMW Car IT
+    GmbH, MIT).
+  </copyright>
+
+  <!-- ===================== controller (the global) ===================== -->
+
+  <interface name="ivi_controller" version="1">
+    <description summary="layer management controller"/>
+    <request name="commit_changes">
+      <description summary="apply all pending layout changes"/>
+    </request>
+
+    <request name="layer_create">
+      <description summary="create a layer, or get a handle for an existing one">
+        The vendor implementation (controller_layer_create in ivi-controller.so)
+        first looks the id up with ivi_extension_get_layer_from_id() and only
+        calls ivi_extension_layer_create_with_dimension() when it does not
+        exist, so calling this for an existing layer id returns a handle to that
+        layer and width/height are ignored. Nothing is posted on failure; a
+        failure is only written to the weston log.
+      </description>
+      <arg name="id_layer" type="uint"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+      <arg name="id" type="new_id" interface="ivi_controller_layer"/>
+    </request>
+
+    <request name="surface_create">
+      <description summary="get a controller handle for an existing ivi surface">
+        This does NOT create a surface. controller_surface_create() resolves
+        id_surface with ivi_extension_get_surface_from_id() and, when the answer
+        is NULL, silently returns without creating the object and without
+        posting an error. The ivi surface itself must already exist, i.e. the
+        client must have called ivi_application.surface_create() with this same
+        id. Consequence: a wrong or zero id yields no object at all, and the
+        only way a client can tell is that none of the property events arrive.
+      </description>
+      <arg name="id_surface" type="uint"/>
+      <arg name="id" type="new_id" interface="ivi_controller_surface"/>
+    </request>
+
+    <event name="screen">
+      <arg name="id_screen" type="uint"/>
+      <arg name="id" type="new_id" interface="ivi_controller_screen"/>
+    </event>
+
+    <event name="layer">
+      <arg name="id_layer" type="uint"/>
+    </event>
+
+    <event name="surface">
+      <arg name="id_surface" type="uint"/>
+    </event>
+
+    <event name="error">
+      <arg name="object_id" type="int"/>
+      <arg name="object_type" type="int"/>
+      <arg name="error" type="int"/>
+      <arg name="message" type="string" allow-null="true"/>
+    </event>
+  </interface>
+
+  <!-- ===================== layer ===================== -->
+
+  <interface name="ivi_controller_layer" version="1">
+    <request name="set_visibility">
+      <arg name="is_visible" type="uint"/>
+    </request>
+    <request name="set_opacity">
+      <arg name="opacity" type="fixed"/>
+    </request>
+    <request name="set_source_rectangle">
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+    <request name="set_destination_rectangle">
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+    <request name="set_configuration">
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+    <request name="set_orientation">
+      <arg name="orientation" type="int"/>
+    </request>
+    <request name="screenshot">
+      <arg name="output" type="string"/>
+    </request>
+    <request name="clear_surfaces"/>
+    <request name="add_surface">
+      <arg name="id_surface" type="object" interface="ivi_controller_surface"/>
+    </request>
+    <request name="remove_surface">
+      <arg name="id_surface" type="object" interface="ivi_controller_surface"/>
+    </request>
+    <request name="set_render_order">
+      <arg name="id_surfaces" type="array"/>
+    </request>
+    <request name="destroy">
+      <arg name="id" type="int"/>
+    </request>
+
+    <event name="visibility">
+      <arg name="is_visible" type="int"/>
+    </event>
+    <event name="opacity">
+      <arg name="opacity" type="fixed"/>
+    </event>
+    <event name="source_rectangle">
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </event>
+    <event name="destination_rectangle">
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </event>
+    <event name="configuration">
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </event>
+    <event name="orientation">
+      <arg name="orientation" type="int"/>
+    </event>
+    <event name="screen">
+      <arg name="id_screen" type="object" allow-null="true"/>
+    </event>
+    <event name="destroyed"/>
+  </interface>
+
+  <!-- ===================== surface ===================== -->
+
+  <interface name="ivi_controller_surface" version="1">
+    <request name="set_visibility">
+      <arg name="is_visible" type="uint"/>
+    </request>
+    <request name="set_opacity">
+      <arg name="opacity" type="fixed"/>
+    </request>
+    <request name="set_source_rectangle">
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+    <request name="set_destination_rectangle">
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+    <request name="set_configuration">
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+    <request name="set_orientation">
+      <arg name="orientation" type="int"/>
+    </request>
+    <request name="screenshot">
+      <arg name="output" type="string"/>
+    </request>
+    <request name="send_stats"/>
+    <request name="destroy">
+      <arg name="id" type="int"/>
+    </request>
+
+    <event name="visibility">
+      <arg name="is_visible" type="int"/>
+    </event>
+    <event name="opacity">
+      <arg name="opacity" type="fixed"/>
+    </event>
+    <event name="source_rectangle">
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </event>
+    <event name="destination_rectangle">
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </event>
+    <event name="configuration">
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </event>
+    <event name="orientation">
+      <arg name="orientation" type="int"/>
+    </event>
+    <event name="pixelformat">
+      <arg name="pixelformat" type="int"/>
+    </event>
+    <event name="layer">
+      <arg name="id_layer" type="object" interface="ivi_controller_layer" allow-null="true"/>
+    </event>
+    <event name="stats">
+      <arg name="number_of_frames" type="uint"/>
+      <arg name="frame_counter" type="uint"/>
+      <arg name="frame_delta_nsec" type="uint"/>
+      <arg name="last_frame_delta_nsec" type="uint"/>
+      <arg name="process_name" type="string" allow-null="true"/>
+    </event>
+    <event name="destroyed"/>
+    <event name="content">
+      <arg name="content_state" type="int"/>
+    </event>
+  </interface>
+
+  <!-- ===================== screen ===================== -->
+
+  <interface name="ivi_controller_screen" version="1">
+    <request name="destroy" type="destructor"/>
+    <request name="clear"/>
+    <request name="add_layer">
+      <arg name="id_layer" type="object" interface="ivi_controller_layer"/>
+    </request>
+    <request name="screenshot">
+      <arg name="output" type="string"/>
+    </request>
+    <request name="set_render_order">
+      <arg name="id_layers" type="array"/>
+    </request>
+  </interface>
+
+  <!-- ===================== ivi_share (vendor side protocol) ===================== -->
+
+  <interface name="ivi_share" version="1">
+    <request name="get_ivi_share_surface">
+      <arg name="id" type="new_id" interface="ivi_share_surface"/>
+      <arg name="id_surface" type="uint"/>
+    </request>
+  </interface>
+
+  <interface name="ivi_share_surface" version="1">
+    <request name="destroy" type="destructor"/>
+    <!-- Argument NAMES on the ivi_share_surface touch requests are cosmetic
+         (only the types u,i,f,f / u,i / i,f,f were recovered from the
+         binary); this client never sends them. -->
+    <request name="redirect_touch_down">
+      <arg name="touch_id" type="uint"/>
+      <arg name="x" type="int"/>
+      <arg name="y" type="fixed"/>
+      <arg name="arg4" type="fixed"/>
+    </request>
+    <request name="redirect_touch_up">
+      <arg name="touch_id" type="uint"/>
+      <arg name="arg2" type="int"/>
+    </request>
+    <request name="redirect_touch_motion">
+      <arg name="x" type="int"/>
+      <arg name="y" type="fixed"/>
+      <arg name="arg3" type="fixed"/>
+    </request>
+    <request name="redirect_touch_frame"/>
+    <request name="redirect_touch_cancel"/>
+
+    <event name="damage">
+      <arg name="frame" type="uint"/>
+    </event>
+    <event name="configure">
+      <arg name="width" type="uint"/>
+      <arg name="height" type="uint"/>
+      <arg name="stride_align" type="uint"/>
+      <arg name="pixel_format" type="uint"/>
+      <arg name="frame_count" type="uint"/>
+    </event>
+    <event name="input_capabilities">
+      <arg name="caps" type="uint"/>
+    </event>
+    <event name="share_surface_state">
+      <arg name="state" type="uint"/>
+    </event>
+  </interface>
+
+</protocol>

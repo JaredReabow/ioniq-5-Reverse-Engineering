@@ -4143,3 +4143,10 @@ and are superseded by corrections rather than silently rewritten.
 - The surface question is closed. What is left is a plugin teardown fault that happens after the first frame, which is a different and much smaller problem than the
   one we have been carrying for days.
 - Noted for the security side: if a signal can trigger that teardown, it is a way to take the display down.
+
+## 2026-10-31 — the four megabyte black rectangle
+
+- Eight identical frames, four megabytes each, and I nearly wrote "captured the home screen" in this log. Every pixel was zero. The file was large because it was
+  text, not because it was detailed.
+- The honest finding is better anyway: the application draws and commits, and nothing places its surface on a layer, so the screen stays black.
+- Removed the mislabelled artifact. A wrong file in the record is worse than a missing one.

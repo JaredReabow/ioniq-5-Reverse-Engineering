@@ -4178,3 +4178,11 @@ and are superseded by corrections rather than silently rewritten.
   control unless it is checked somewhere, and nothing in the description suggests it is.
 - It is filed as a candidate with every caveat attached: no cross-client attempt has been made, and the tool that would make one is the tool just built.
 - Worth recording that this came out of solving a display problem rather than from looking for vulnerabilities. The register grows where the work goes.
+
+## 2026-10-31 — accepted, and still black
+
+- The compositor takes the placement requests without complaint, and the frame changes from exactly zero to single digits out of 255. Nothing above nine. That is not a
+  picture.
+- Worth recording that I measured it rather than eyeballing a screenshot and calling a dark frame "the night theme".
+- One incidental observation for the security entry: requests naming surfaces the caller does not own were accepted. That is suggestive, and it is written down as
+  suggestive, not as proof.

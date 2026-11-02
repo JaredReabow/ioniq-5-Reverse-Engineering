@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.71.0 - the placement requests are accepted and the screen is still black
+
+- `ivi_wm` runs correctly against the live compositor. Its own output for a placement attempt:
+  ```
+  ivi_wm: request ivi_window_manager.request_fg(0, 4001)
+  ivi_wm: request_fg sent and flushed
+  ivi_wm: done: surface 4001 layout (0,0,1920,720), visible 1, fg on plane 0
+  ivi_wm: this tool cannot observe the panel; visibility is unverified here
+  ```
+  It sends `set_surface_layout`, `set_surface_visible` and `request_fg` and flushes them without protocol errors. The tool says plainly that it cannot observe the
+  panel — that verification is mine.
+- **Measured on the captured output, using max pixel value as the metric** (0 = black, 255 = white):
+  - baseline, before any placement: **max = 0**
+  - after `ivi-wm 0`: max **8**; after `ivi-wm 1`: max **9**; after `ivi-wm 4001`: max **9**; after `ivi-wm <app pid>`: max **9**
+  - and with `/tmp/GUI_THEME_DAY` created before launch (the app reads `/tmp/GUI_THEME_DAY` / `/tmp/GUI_THEME_NIGHT`): max **9**, **zero pixels above 32**.
+- So the output changes from exactly zero to single-digit values, and **no pixel ever exceeds 9 of 255**. That is not a visible picture; it is at most a nearly black
+  surface, and quite possibly rounding or a faint clear colour rather than content. Calling it progress toward a home screen would be wrong. What is established is
+  that the compositor **accepts** the placement requests and that they have **some** effect on the output.
+- **A note bearing on V-046:** `request_fg` and `set_surface_visible` were accepted for ids `0`, `1` and `<pid>` — surfaces this tool does **not** own and did not
+  create — with no protocol error. That is mild supporting evidence that the compositor does not reject requests naming surfaces the caller does not own. It is
+  **not** proof of the vulnerability: acceptance of a request is not proof of effect, and the visual outcome above is inconclusive. V-046 stays a candidate.
+- Limiting factor for the next attempt: the application itself dies at roughly 100 s in this configuration (the `WeatherWidget::~WeatherWidget()` fault), so the
+  capture window is short and one run in this batch lost the app entirely before the first placement (pid empty at the 16-second checkpoint).
+
 ## 2.70.0 - the window-manager client is built, and the interface it drives has a security question attached
 
 - `ivi_wm.c` is built and injected (`ivi_wm`, 42,656 bytes): it binds `ivi_window_manager`, can query `get_primary_screen_size`, and issues

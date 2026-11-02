@@ -4071,3 +4071,11 @@ and are superseded by corrections rather than silently rewritten.
 - The static analysis then dismantled a claim I had repeated: the D-Bus reply I read as acknowledgement is only the echo of an argument I passed. Several
   entries in this log leaned on it. They are corrected here rather than left standing.
 - What actually gates the picture is ignition status, which the application says it cannot obtain. That line has been in the log for hours.
+
+## 2026-10-31 — four doors, all locked
+
+- Emitting the ignition signals changed nothing, and the app already receives a power status of one. The correct app id in the show call changed nothing.
+  Removing the competing application changed nothing.
+- Each of those was a reasonable theory and each is now closed by measurement rather than by argument.
+- What remains is the internal condition the static analysis could reach but not resolve: which reason and app id the app itself uses when the home screen
+  is genuinely current. It also produced a second way to kill the process, which widens the security entry rather than narrowing it.

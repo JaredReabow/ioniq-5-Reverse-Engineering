@@ -51,12 +51,12 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "f8a84d935e251da4c838e3664f6fb0c570ace9854307aa357666ab5b7521364d")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "0154bec1847242874e032b3e1009ef76bd17c045977606f9f3bf775845f4afb7")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "668fb27cfa9b5bd08f9424e3558586a4c9d985a1ddb5b9a99d6ca89146f9872c")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "7550669453ba498fceff2243b48bd0513026ec6a9f833ec1845f7ea8235ecd33")
         self.assertNotIn(b"work/", data)
         self.assertNotIn(b"Contents of section", data)
 
@@ -114,6 +114,30 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertFalse(module_chains["external_manifest_key_anchor_proved"])
         self.assertTrue(module_chains["members"]["rbep_manifest"]["manifest"]["embedded_signature_valid"])
         self.assertTrue(module_chains["members"]["ftpr_manifest"]["manifest"]["embedded_signature_valid"])
+        root_chains = exact["cse_root_and_boot_policy_chains"]
+        intel = root_chains["intel_manifest_key_chain"]
+        self.assertEqual(intel["rbe_runtime_root_object_name"], "ipub_key")
+        self.assertEqual(intel["rbe_runtime_root_digest_destination"], 0x6047FA8)
+        self.assertEqual(intel["shared_manifest_public_key_digest"], M.INTEL_ROOT_KEY_DIGEST)
+        self.assertEqual(
+            intel["shared_by"],
+            ["rot_key", "rbep_manifest", "ftpr_manifest", "nftp_manifest"],
+        )
+        self.assertEqual(intel["rot_key_extension14_cse_bup_main_record"]["usage_bits"], [0, 1])
+        self.assertTrue(intel["shared_public_modulus_and_exponent_bytes_identical"])
+        self.assertTrue(intel["rbe_ipub_key_to_rot_key_pin_proved"])
+        self.assertFalse(intel["ipub_key_producer_or_hardware_anchor_proved"])
+        boot_policy = root_chains["oem_boot_policy_chain"]
+        self.assertEqual(boot_policy["uep_and_oem_key_digest"], M.STORED_USAGE39_DIGEST)
+        self.assertEqual(boot_policy["oem_key_usage_bit_for_boot_policy"], 32)
+        self.assertTrue(boot_policy["ibbp_and_oem_key_public_modulus_and_exponent_bytes_identical"])
+        self.assertTrue(boot_policy["bup_selects_usage_bit_32_record"])
+        self.assertTrue(boot_policy["bup_compares_ibbp_modulus_plus_exponent_hash_before_rsa"])
+        self.assertTrue(boot_policy["ibbp_manifest_binds_bpm_metadata_reverse_sha256"])
+        self.assertEqual(boot_policy["bpm_metadata_ibbl_sha256"], M.IBBL_SHA256)
+        self.assertEqual(boot_policy["bpm_metadata_ibb_sha256"], M.IBB_SHA256)
+        self.assertTrue(boot_policy["uep_to_oem_key_to_ibbp_to_bpm_to_ibb_bytes_chain_proved"])
+        self.assertFalse(boot_policy["uep_external_authentication_or_fuse_precedence_proved"])
         materializer = exact["cse_rbe_key_manifest_materializer"]
         self.assertEqual(materializer["sha256"], M.CSE_RBE_SHA256)
         self.assertEqual(materializer["source_cpd_member"], "oem.key")
@@ -200,6 +224,13 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["apl_public_cse_sram_to_fef80000_handoff_corroborated"])
         self.assertTrue(conclusions["final_handoff_address_0xfef80000_mapping_proved"])
         self.assertTrue(conclusions["rbe_and_bup_signed_module_byte_chains_proved"])
+        self.assertTrue(conclusions["rbe_runtime_ipub_key_pins_rot_key_proved"])
+        self.assertTrue(conclusions["shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved"])
+        self.assertFalse(conclusions["ipub_key_external_hardware_anchor_proved"])
+        self.assertTrue(conclusions["oem_key_usage32_pins_ibbp_manifest_proved"])
+        self.assertTrue(conclusions["ibbp_manifest_binds_bpm_metadata_proved"])
+        self.assertTrue(conclusions["bpm_metadata_binds_exact_ibbl_and_ibb_proved"])
+        self.assertTrue(conclusions["uep_to_oem_key_to_ibbp_to_exact_ibb_chain_proved"])
         self.assertFalse(conclusions["ftpr_manifest_direct_oem_key_coverage_proved"])
         self.assertTrue(conclusions["pre_ibbl_key_manifest_authentication_proved"])
         self.assertFalse(conclusions["custom_signed_image_acceptance_proved"])

@@ -1947,3 +1947,154 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 
 # Input is (dword[0xf6170810] >> 24) & 0x0f.
 # Result is true exactly when at least one of bits 3..2 and at least one of bits 1..0 are set.
+
+### RBE runtime `ipub_key` digest materialization (file [0x3c5,0x3fd), runtime [0x403c5,0x403fd))
+
+   403c5: push    0x47930                 # "ipub_key"
+   403ca: mov     byte ptr [0x6041008], al
+   403cf: call    0x4153a
+   403d4: pop     ecx
+   403d5: test    eax, eax
+   403d7: je      0x40333
+   403dd: mov     word ptr [0x6047fa6], 0x20
+   403e6: movzx   edx, byte ptr [eax + 0x12]
+   403ea: push    0x20
+   403ec: push    dword ptr [eax + 4*edx + 0x16]
+   403f0: push    0x6047fa8
+   403f5: call    0x102e
+   403fa: add     esp, 0xc
+
+### RBE `rot.key` validation against `ipub_key` (file [0x2a9f,0x2ada), runtime [0x42a9f,0x42ada))
+
+   42a9f: xor     eax, eax
+   42aa1: test    byte ptr [0x6041008], 0x40
+   42aa8: jne     0x42ad9
+   42aaa: push    ebp
+   42aab: mov     ebp, esp
+   42aad: push    0x0
+   42aaf: push    0x5
+   42ab1: push    0x6047fa8
+   42ab6: push    dword ptr [0x6041028]  # materialized rot_key_man
+   42abc: call    0x42768                # modulus+exponent pin, RSA, extension checks
+   42ac1: add     esp, 0x10
+   42ac4: test    eax, eax
+   42ac6: jne     0x42ad8
+   42ac8: mov     eax, dword ptr [0x6041028]
+   42acd: mov     edx, 0x5
+   42ad2: leave
+   42ad3: jmp     0x412da
+   42ad8: leave
+   42ad9: ret
+
+### BUP Boot Policy usage-bit-32 record selector (file [0x2b4bd,0x2b4dc), runtime [0x514bd,0x514dc))
+
+   514bd: push    ebp
+   514be: mov     ebp, esp
+   514c0: mov     edx, dword ptr [ebp + 0x8]
+   514c3: lea     eax, [edx + 0x24]
+   514c6: add     edx, dword ptr [edx + 0x4]
+   514c9: cmp     eax, edx
+   514cb: jae     0x514d8
+   514cd: test    byte ptr [eax + 0x4], 0x1  # usage bit 32
+   514d1: jne     0x514da
+   514d3: add     eax, 0x44
+   514d6: jmp     0x514c9
+   514d8: xor     eax, eax
+   514da: pop     ebp
+   514db: ret
+
+### BUP IBBP key pin and RSA path (selected instructions from file [0x2b4dc,0x2b7db))
+
+   51537: mov     ebx, dword ptr [0xa4aa0]
+   51542: cmp     dword ptr [ebx + 0x1c], 0x324e4d24  # "$MN2"
+   5154f: cmp     dword ptr [ebx + 0x10], 0x8086
+   5155c: cmp     dword ptr [ebx], 0x4
+   51565: cmp     dword ptr [ebx + 0x8], 0x10000
+   51572: cmp     dword ptr [ebx + 0x4], 0xa1
+   5157f: mov     eax, dword ptr [ebx + 0x18]
+   51592: cmp     dword ptr [ebx + 0x78], 0x40
+   5159c: cmp     dword ptr [ebx + 0x7c], 0x1
+   515a6: lea     edi, [ebx + 0x80]      # IBBP public modulus
+   515d5: mov     eax, dword ptr [0xa4aa4]  # OEM key-manifest extension
+   515ef: push    0xe
+   515f1: push    eax
+   515f2: call    0x60c3                # find Extension 14
+   5166b: push    eax
+   5166c: call    0x514bd               # select usage-bit-32 record
+   51678: lea     ecx, [ebp - 0x30]
+   5169a: add     edx, 0x24             # selected expected digest
+   516a3: push    0x20
+   516ab: push    edx
+   516ac: push    ecx
+   516ad: call    0x604b                # expected-digest copy
+   516c6: push    0x20
+   516c8: push    esi                   # calculated modulus+exponent digest
+   516c9: push    edx                   # expected OEM usage-32 digest
+   516ca: call    0x10a6               # compare before RSA
+   516d2: test    eax, eax
+   516d4: je      0x516e7
+   516e7: mov     eax, dword ptr [ebx + 0x180]
+   516ed: bswap   eax
+   516ef: mov     dword ptr [ebx + 0x180], eax
+   516f5: push    0x100
+   516fa: push    edi
+   516fb: call    0x51493               # reverse modulus
+   51700: lea     eax, [ebx + 0x184]
+   51706: push    0x100
+   51711: push    eax
+   51712: call    0x51493               # reverse signature
+   51717: mov     ecx, dword ptr [ebx + 0x18]
+   5172c: lea     eax, [4*ecx + 0x80]
+   5179c: lea     eax, [ebx + 0x180]
+   517a8: push    eax                   # exponent
+   517a9: push    edi                   # modulus
+   517aa: push    dword ptr [ebp - 0xa0]  # signature
+   517b0: push    dword ptr [ebp - 0xa4]  # signed data size
+   517b6: push    edx                   # staged manifest
+   517b7: push    0x1
+   517b9: push    0x100
+   517be: call    0x46a2a               # RSA verification
+   517c6: test    eax, eax
+   517c8: je      0x517db
+
+### BUP signed BPM metadata hash check (file [0x2b81a,0x2b8e9), runtime [0x5181a,0x518e9))
+
+   5181a: push    0x559f3               # "BPM.met"
+   5181f: push    ebx
+   51820: call    0x60be
+   51825: mov     ebx, eax
+   51828: test    ebx, ebx
+   5182b: jne     0x5183e
+   5183e: mov     eax, dword ptr [0xa4b18]
+   51843: cmp     eax, 0x1000
+   5185b: push    0x1
+   5185d: push    eax
+   5185e: mov     eax, dword ptr [0xa4b14]
+   51869: and     eax, 0x1ffffff
+   51874: add     eax, dword ptr [0xa4ab8]
+   51880: push    eax
+   51881: push    0x1e000
+   51886: push    edi
+   51887: call    0x2c316               # stage BPM.met bytes
+   51897: lea     edi, [ebp - 0x50]
+   5189a: push    edi
+   5189b: push    dword ptr [ebp - 0x9c]
+   518a1: push    dword ptr [0xa4b18]
+   518a7: push    0x1
+   518a9: call    0x2cbe8               # SHA-256 BPM.met
+   518c0: add     ebx, 0x14             # signed expected digest
+   518c3: push    0x20
+   518c5: push    edi
+   518c6: call    0x51493               # reverse calculated digest
+   518cb: push    0x20
+   518cd: push    ebx
+   518ce: push    edi
+   518cf: call    0x10a6               # compare signed hash
+   518d7: test    eax, eax
+   518d9: je      0x518e9
+
+# Exact static object chain recovered from the same flash:
+# runtime ipub_key digest -> rot.key public-key digest f2eb8fc4...
+# rot.key / RBEP.man / FTPR.man / NFTP.man use that same public key.
+# selected UEP digest 9b0a59c8... -> oem.key -> usage bit 32 -> IBBP.man.
+# IBBP.man signs reverse(SHA-256(BPM.met)); BPM.met binds exact IBBL and IBB SHA-256.

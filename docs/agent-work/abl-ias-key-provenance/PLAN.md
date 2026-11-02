@@ -25,6 +25,7 @@ Resolve the exact runtime object behind the ABL IAS expected-key digest without 
 8. Fail closed on canonical-archive drift and source drift.
 9. Emit deterministic UTF-8/LF evidence and focused tests.
 10. Trace pre-IBBL OEM-key authentication while separating exact UEP consumption from still-unproved external UEP authentication and fuse precedence.
+11. Trace the CSE signing-key and Boot Policy chains through runtime `ipub_key`, `rot.key`, OEM usage bit 32, `IBBP.man`, `BPM.met`, and exact IBBL/IBB bytes without claiming an external ROM/fuse anchor that is not recovered.
 
 ## Safety boundary
 

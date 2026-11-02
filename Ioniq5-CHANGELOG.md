@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.51.0 - ten screens on their own are stable; the abort needs a client
+
+- Ran the discriminator: **ten outputs, `IAS_REPAINT_OUTPUTS=1`, `IAS_SHIM=0`, the `ivi-shell`, and `early-background` — and no other
+  application at all.**
+  - `ias-soft: 10 output(s), ivi screen ids 0..9, repainting first 1`
+  - `ias-soft: research shim disabled (IAS_SHIM=0)`
+  - **`Assertion` count 0**, weston alive (pid 717), splash running (pid 729) after 55 seconds.
+- So the ten-screen layout is **not** sufficient to provoke the pixman abort. It needs a client's surface traffic on top of that layout. Combined
+  with §2.50.0 (the abort survives both our gates), the picture is now precise: ten screens are safe, our shim is irrelevant to it, and something
+  in the **application stack's** surface lifecycle under ten screens reaches `composite_clipped` with a surface that has no buffer.
+- That is a much narrower question than "multi-output is unstable", and it converts the next step into a clean bisection: run ten outputs with
+  the launcher but with `AppHomeScreen` made non-executable, then with `AppNavi` disabled, and so on, until the abort stops. The first client whose
+  removal prevents the abort is the one whose surface lifecycle the vendor compositor mishandles.
+- Worth noting the shape of today's results honestly: three changes were built (repaint limit, shim gate, multi-output), two gates were measured
+  as ineffective against the crash, and one discriminator finally separated "the layout" from "the clients". The layout is innocent.
+
 ## 2.50.0 - two gates built and measured; the abort survives both
 
 - **Repaint limit shipped and verified in the guest:** `IAS_REPAINT_OUTPUTS` selects how many outputs composite, defaulting to all. The log now

@@ -3,6 +3,34 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.73.0 - the app's death was a duplicate surface id; with pid-derived ids it stays up and its window really exists
+
+- **Root cause of the application's death, found in its own log:**
+  ```
+  [QtMsg] The Wayland connection experienced a fatal error (Protocol error)
+  [FTL]   virtual AVOffWidget::~AVOffWidget() 0
+  [QtMsg] QThread: Destroyed while thread is still running
+  ```
+  and the compositor's matching line:
+  ```
+  id_surface(1) is already created
+  ```
+  So the process was not dying of graphics or of a widget bug: **forcing one surface id onto an application that creates several surfaces makes them collide**, the compositor
+  raises a fatal protocol error, the connection dies, Qt tears everything down mid-flight, and the teardown is where the `free()` fault and the `WeatherWidget` destructor fault
+  actually occur. The "two independent crash paths" of §2.72.0 are **two symptoms of one protocol violation**.
+- **The fix is the other environment variable.** `QT_WAYLAND_USE_PID_FOR_SURFACE_ID=1` gives each application a **unique** id derived from its pid:
+  - `surface_create(778` — the id is the application's own pid;
+  - **the application stayed alive at 20/40/60/80/100 s**, where every previous configuration died within ~70 s;
+  - `surface_create` 5, `commit` 3, and **no `already created` error** (the only such line is `id_layer` at compositor startup, unrelated).
+- **And the window genuinely exists in the compositor**, which now names it:
+  ```
+  [00:01:24.291] Surface id(778), Weston surface W(1926), H(753)
+  ```
+  A real surface, with real dimensions, belonging to the application.
+- What is still not achieved, stated plainly: the captured output measures `max=8`, `bright=0` — **black**. The surface exists and is committed; it is not composited into the frame that
+  `ias-shot` captures, and `ivi_wm`'s placement requests do not change that. Note the surface is 1926×753, **larger than the 1920×720 output**, which is consistent with it
+  belonging to a screen geometry rather than to the output being captured.
+
 ## 2.72.0 - two independent crash paths: removing the weather widget just reveals the other one
 
 - Tried to keep the application alive past its ~70 s death by disabling the crashing plugin. Two failed attempts, both instructive:

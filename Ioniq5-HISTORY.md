@@ -4192,3 +4192,11 @@ and are superseded by corrections rather than silently rewritten.
 - Suppressing the weather widget's destructor fault revealed a heap corruption in free(). Two unrelated ways for the application to die, both inside a minute.
 - Also learned that chmod cannot disable anything for a process running as root, which cost a run to re-learn.
 - The honest position: the client draws and the window manager is driven. What is missing is a stable application and a surface actually shown on the screen.
+
+## 2026-10-31 — one violation, not two bugs
+
+- The application was never crashing for two unrelated reasons. Forcing a single surface id onto a multi-surface application made the surfaces collide, the compositor raised a fatal
+  protocol error, and everything that looked like a crash was teardown happening after the connection had already been killed.
+- Using the pid as the id removes the collision: the application stays up, creates its surfaces, commits, and the compositor names a window with real dimensions.
+- The screen is still black. But for the first time the thing that should be on it exists in the compositor, and the reason it is not there is a placement question rather than a
+  survival one.

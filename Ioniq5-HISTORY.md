@@ -3867,3 +3867,11 @@ and are superseded by corrections rather than silently rewritten.
   software GL stack and the IVI layer assignment were all being investigated for a fault that lives entirely in the client.
 - The honest version of today's earlier entries is that they were describing the absence of a frame in ever finer detail. This
   is the first one that names the party responsible.
+
+## 2026-10-31 — three causes, and the last one was a single environment variable
+
+- The vendor launcher preloads its own libEGL into every child. With that in place the application never commits a frame, no
+  matter how long it runs; without it, the same binary against the same compositor builds the home screen and paints.
+- That is the most consequential line of the day, and it arrived from Astra's ranked list, tested rather than believed. Its
+  advice to ignore the splash until frames appeared was equally load-bearing: chasing the splash would have hidden this.
+- The honest summary of the blank screen is now three independent faults and no fault in the display stack.

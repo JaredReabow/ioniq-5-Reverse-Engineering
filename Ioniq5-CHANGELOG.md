@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.30.0 - found it: the launcher's `LD_PRELOAD` stops the app rendering at all
+
+- The app never attaching a buffer was traced to the vendor launcher's environment. `AppLauncher.sh` exports
+  **`LD_PRELOAD=/usr/lib/libEGL.so.1`** (the vendor's own libEGL) for its children, while the GL stack is otherwise Mesa
+  software from `/opt/software-egl18`. With that preload present, `AppHomeScreen` binds `ivi_application`, stays alive, builds
+  widgets, and **never attaches or commits a surface — zero, for 480 seconds**.
+- **Removing only that preload changes the outcome completely.** Running the app directly against the same
+  `weston-headless` + `ivi-shell.so` configuration, with the chain's own environment otherwise unchanged:
+  - the app's log shows it constructing the home screen: `vcrmCommMgr::setCurrentHomePage`, then
+    `AppHomeEngine::addNewScrStack … Add Screen: 129`;
+  - the compositor output changes from the 4,117-byte black frame to a **5,469-byte frame containing a full-surface light
+    window** (`docs/vm/10-direct-app-2026-10-31.png`) — i.e. a surface is now created and committed.
+- So the blank screen had **three** contributing causes, each independent and each now measured: `early-background` holding
+  the splash forever; the launcher redirecting the app's diagnostics to `/dev/null`; and the vendor `libEGL` preload preventing
+  the client from rendering at all. The compositor, backend, pixman, softpipe and the IVI layer path were never at fault.
+- Astra's ranked cause #3 — "EGL/context creation fails before the first frame; the `LD_PRELOAD` is suspicious" — was correct,
+  and its warning to keep `early-background` out of the diagnosis until buffers appear was right too.
+- Next: run the direct-app configuration long enough to reach home tiles, and re-test with the preload replaced by the
+  software EGL so the vendor fidelity question is answered rather than bypassed.
+
 ## 2.29.0 - the app never submits a buffer; the compositor is exonerated
 
 - Captured the app's Wayland traffic from the buffers the launcher discards to `/dev/null`. Against `AppHomeScreen`

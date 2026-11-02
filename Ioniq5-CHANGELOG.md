@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.78.0 - CORRECTION: two frames I called "black" were not black, and one of them is the application's window
+
+- My frame metric was wrong. I had been judging PPM captures with an awk scan of whitespace-separated numbers after the header. That is valid only for **P3**
+  (ASCII) PPM; `ias-shot` also emits **P6** (binary), where the same scan reads raw bytes as decimal text and produces meaningless numbers. The tell was a
+  reported `max=999` on an 8-bit image — impossible for a byte. Recorded because it invalidated conclusions, not just numbers.
+- Wrote `tools/uk_fw/ppm_stats.py`, which parses the header of both P3 and P6 and reports statistics over the real payload, then re-measured every frame still on
+  disk. Two results that **withdraw earlier conclusions**:
+  - **`vm-pid.ppm`** — which §2.73.0 recorded as "captured output measures `max=8`, `bright=0` — black" — is in fact `peak=255`, **100.00% nonzero**, 4.35% bright.
+    It is saved as **`docs/vm/14-app-window-pid-id-2026-10-31.png`** and it shows a **real application window**: the blue top status bar with window buttons, the
+    top bar with loading placeholders, a cyan loading spinner, and the two page-indicator dots at the bottom. That is the home screen's own chrome, drawn by the
+    application, captured from the compositor.
+  - **`vm-day.ppm`** — recorded in §2.71.0 as "max=9, zero pixels above 32" — is `peak=255`, 42.33% nonzero. It is saved as
+    **`docs/vm/15-app-frame-stride-mismatch-2026-10-31.png`** and it is **not** a picture of the UI: it is full of diagonal colour stripes, which is the signature
+    of a **stride mismatch** — a surface being read at one line length while it was rendered at another. That is consistent with the compositor's own report of the
+    application's surface as **W(1926) H(753)** against a 1920-wide capture.
+- So, corrected honestly: **the application has been producing a real window in the captured output since §2.73.0**, and my "still black" statements about the
+  pid-id and day-theme runs were measurement errors, not observations. What remains genuinely unresolved is different and more specific: the window's **geometry**
+  (1926×753 surface vs 1920×720 output) shears or crops its content, and the launcher-chain runs still capture the boot splash rather than the application.
+- The stride mismatch is now a concrete, named bug to chase, and it explains why a window that draws correctly in isolation looks like garbage or nothing at all
+  once it is composited into the 1920-wide output.
+- Method note for future entries: every frame claim in this log that was made with the awk scan is suspect unless the file was P3. Going forward, `ppm_stats.py`
+  output is quoted alongside the frame path, and a frame is not described as "black", "content" or "garbage" without it.
+
 ## 2.77.0 - the chain does create vendor-style surface ids; three attempts to inject the id did not take
 
 - **New measured fact about chain runs:** with the launcher flow, the compositor names surfaces with **vendor-style ids** —

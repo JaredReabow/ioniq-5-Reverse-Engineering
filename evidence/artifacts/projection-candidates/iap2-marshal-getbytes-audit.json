@@ -11,7 +11,8 @@
       "31 exact direct PLT calls across 11 reviewed service functions",
       "22 exact calls to the null-return-consuming heap-string wrapper from two identification-related command handlers",
       "bounded aligned remaining-length enforcement and absence of a copy in the generic helper",
-      "one exact null-return consumer and multiple exact unbounded %s consumers"
+      "one exact null-return consumer and multiple exact plain-%s consumers",
+      "the exact logger bounds formatted output through vsnprintf to the remainder of a 0x400-byte stack buffer"
     ],
     "not_demonstrated": [
       "physical phone-to-handler delivery, successful iAP2 admission/authentication, or session eligibility",
@@ -109,7 +110,7 @@
       "handling": "frees the previous pointer, obtains pointer+uint32 length, allocates length+1, zeroes the allocation, then strncpy-copies exactly length bytes"
     }
   },
-  "canonical_sha256": "ef94c5f75e30855ed0c0cf9f178f9e4f93dcda34ba1a1ce7b205334fe5f0417d",
+  "canonical_sha256": "d5dc0a104ee3b9de9c148e9bfdbc578b75f54ed66eeb4ddfd3f76de58afceeb6",
   "coverage": {
     "boundary": "does not exclude calls through previously captured function pointers, symbol-name-free wrappers, runtime-generated code, files outside extracted-safe, or alternate builds",
     "direct_static_call_count": 31,
@@ -424,14 +425,15 @@
       "mechanism": "a malformed declared byte length can be stored before the helper returns null; the consumer allocates declared_length+1 and, if allocation succeeds, calls strncpy with the null source and declared length without rejecting the null return"
     },
     "percent_s_consumers": {
-      "classification": "exact-static unbounded-string-read candidates",
-      "impact_boundary": "the exact extent depends on transaction allocation, padding, protocol conformance, and logger implementation; no live disclosure, crash, or cross-boundary log exposure is demonstrated",
+      "classification": "exact-static unbounded-source-read candidates with bounded formatted output",
+      "impact_boundary": "the exact source-read extent depends on transaction allocation, padding, protocol conformance, and libc formatting behavior; no live disclosure, crash, or cross-boundary log exposure is demonstrated",
       "locations": [
         "SessionAppLaunch command 0x2f45",
         "SessionPlayMediaLibrary command 0x2f84",
         "SessionCommunications commands 0x2fa3/0x2fa4/0x2fa5/0x2fa8/0x2faa"
       ],
-      "mechanism": "recovered length-delimited byte pointers are passed to %s logging without a local terminator check or precision bound in the reviewed caller ranges"
+      "mechanism": "recovered length-delimited byte pointers are passed to plain %s logging without a local terminator check or precision bound; the exact logger at 0x6fa6..0x7277 formats through vsnprintf with at most the remainder of a 0x400-byte stack buffer",
+      "output_boundary": "the reviewed logger bounds formatted output and has a stack canary, so this is not a demonstrated logger-destination overflow; plain %s still requires source-string traversal rather than respecting the recovered field length"
     }
   },
   "framework_anchors": {
@@ -785,6 +787,34 @@
       "size": 299
     }
   },
+  "service_support_anchors": {
+    "bounded_vsnprintf_dispatch": {
+      "bytes_hex": "b8000400002b850cfbffff85c07e37b8000400002b850cfbffff4898488d8d30fbffff8b950cfbffff4863d2488d3c11488d8d18fbffff488b95e0faffff4889c6e89bd8ffff",
+      "elf_va": "0x71bf",
+      "file_offset": "0x71bf",
+      "matched": true,
+      "sha256": "780a2ff0ae93903556b354abe7a5d2325b046fe39c082cfebd7f67520dd103ca",
+      "size": 70
+    },
+    "formatted_buffer_length_and_sink": {
+      "bytes_hex": "488d8530fbffff4889c7e80cd7ffff483dfeffff7f760e488d3d55b40600e8a8deffffeb30488d8530fbffff4889c7e8e7d6ffff488d5001488d8d30fbffff8b85fcfaffff4889ce89c7e8b2f7ffff",
+      "elf_va": "0x7205",
+      "file_offset": "0x7205",
+      "matched": true,
+      "sha256": "2b93e4c4f4213a631a83a3052ea91865c0110775efb68bffd9767f89f292e436",
+      "size": 79
+    }
+  },
+  "service_support_ranges": {
+    "variadic_logger": {
+      "elf_va_end_exclusive": "0x7277",
+      "elf_va_start": "0x6fa6",
+      "file_offset_start": "0x6fa6",
+      "matched": true,
+      "sha256": "3a866c421d32438553f151f347a2e7c04fd153a447281aa64625a774d51610ae",
+      "size": 721
+    }
+  },
   "subjects": {
     "framework": {
       "basename": "libiAP2AppFramework-2.0.so",
@@ -801,6 +831,6 @@
   },
   "tool": {
     "name": "iap2_marshal_getbytes_audit.py",
-    "version": "1.0.0"
+    "version": "1.1.0"
   }
 }

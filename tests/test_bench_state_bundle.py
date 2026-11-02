@@ -59,6 +59,7 @@ class BenchStateBundleTests(unittest.TestCase):
             self.assertIn(f"begin_section {section}", script)
         self.assertIn("systemctl show", script)
         self.assertIn("Dbuslaunch.service", script)
+        self.assertIn("debug-shell.service", script)
         self.assertIn("file_meta /tmp/session_appmgr\n", script)
         self.assertIn("file_meta /tmp/session_appmgr.env", script)
         self.assertIn("oemkm=*|ABL.oemkm=*", script)
@@ -154,8 +155,19 @@ class BenchStateBundleTests(unittest.TestCase):
         self.assertIn('P_GID_STATUS=$?', script)
         self.assertIn('P_GROUPS_STATUS=$?', script)
         self.assertIn('U_STATUS=$?', script)
-        for pty_path in ("/dev/ptmx", "/dev/pts", "/dev/pts/ptmx"):
+        for pty_path in ("/dev/ptmx", "/dev/pts", "/dev/pts/ptmx", "/dev/tty9"):
             self.assertIn(pty_path, script)
+        for physical_root_path in (
+            "/lib/systemd/systemd-udevd",
+            "/lib/udev/scsi_id",
+            "/lib/udev/v4l_id",
+            "/lib/udev/rules.d/50-udev-default.rules",
+            "/lib/udev/rules.d/60-persistent-storage.rules",
+            "/lib/udev/rules.d/60-persistent-v4l.rules",
+            "/lib/udev/rules.d/99-systemd.rules",
+            "/lib/systemd/system/debug-shell.service",
+        ):
+            self.assertIn(physical_root_path, script)
         self.assertIn("capture_file modules /proc/modules", script)
         self.assertIn("read_scalar perf-event-paranoid /proc/sys/kernel/perf_event_paranoid", script)
         self.assertIn("/lib/modules/4.1.27-abl/kernel/net/unix/unix.ko", script)

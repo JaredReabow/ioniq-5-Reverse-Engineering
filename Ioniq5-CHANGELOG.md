@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.46.0 - ten IVI screens now exist, and pixman aborts on a surface with no buffer
+
+- Subagent-built backend change landed and works at runtime. Our `ias-backend-soft.so` now creates N outputs selected by
+  `IAS_OUTPUT_COUNT` (default 1, so previous runs are unchanged), each with a distinct name and tiled geometry so per-output regions are
+  disjoint, created in ascending order because that order is what numbers IVI screens.
+- **Measured in the guest:** `ias-soft: 10 output(s), ivi screen ids 0..9`, then
+  `ias-soft: shim mapped surface … (1 total)`, then `ias-soft: repaint output=0 views=6 layers=3`. So screens 0 through 9 genuinely exist
+  for the first time. The request the app makes — `ivi_controller.screen(9)` — is now satisfiable in principle.
+- **And weston aborts:** `weston: src/pixman-renderer.c:277: composite_clipped: Assertion 'src_format' failed.` followed by `abort`.
+  `composite_clipped` asserts that the source surface has a format; a view whose surface carries **no buffer** reaches the compositor. With
+  one output that path was never exercised; with ten it is, and the compositor dies before the app can paint anything.
+- **One incidental and interesting observation:** in this configuration `early-background exiting` appears in the log, and the log shows
+  `ivi_surface@7.destroy()` / `wl_buffer@9.destroy()` — the splash program *does* exit cleanly when the compositor is laid out this way,
+  which it never did under single-output headless. That is consistent with it waiting on something layout-related rather than a timer.
+- Honest state: the screen-9 hypothesis is **not yet tested to a conclusion**, because the compositor crashed first. What is established is
+  that (a) the screens now exist, (b) the crash is a pixman assertion on a bufferless surface, and (c) the splash now exits.
+- Next: find which surface reaches `composite_clipped` without a buffer and stop it being composited — most likely an `ivi_share` surface
+  that is created but never given content, which is the same class of fault the app itself was suffering.
+
 ## 2.45.0 - screen 9 cannot exist: IVI numbers screens by output order, and we have one output
 
 - Traced the screen-id question to source. `work/weston-source-1.10/full/ivi-shell/ivi-layout.c`, `create_screen()`:

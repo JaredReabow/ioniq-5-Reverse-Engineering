@@ -3997,3 +3997,11 @@ and are superseded by corrections rather than silently rewritten.
 - That converts the problem into something we control. Our backend can present more outputs; the vendor shell will number them; the app will
   find the one it asks for.
 - The measurement is the request. The explanation is a hypothesis until a ten-output compositor says otherwise.
+
+## 2026-10-31 — ten screens, and a compositor that stops on the first empty one
+
+- The multi-output backend works: the layout finally has the screens the vendor app asks for. It also walked the compositor into an assertion it
+  had never reached before, on a surface with no buffer.
+- Something new and useful came out of it: in this configuration the splash program exits on its own for the first time, which suggests it was
+  waiting for a layout it could recognise.
+- The hypothesis about screen nine is still unproven. The compositor fell over first, and that is what the record says.

@@ -196,7 +196,7 @@ and strict decompression for HECI, busdrv, storage, policy, fpf, dal_sdm, VFS,
 and syslib. Its reviewed report is
 `evidence/artifacts/update-candidates/txe-fixed-module-diff.json`, schema v5,
 SHA-256
-`ed7f9ee0f93d1afa3a353560fe034510ceacc303fa3589405341bb0f62e5171f`.
+`0415fd5146a433bd1c2ea19e394419ee5124fe1de0d0172c84182ddde5cf0d72`.
 
 Across the complete affected and first-fixed HECI modules, all 377 raw
 differing bytes lie inside 369 same-offset external `rel32` encodings—366 calls

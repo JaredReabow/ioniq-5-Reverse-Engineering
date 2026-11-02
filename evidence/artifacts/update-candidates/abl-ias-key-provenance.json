@@ -23,6 +23,7 @@
     "cse_bup_resolver_couples_oem_key_and_oem_key_man_names_proved": true,
     "cse_rbe_copies_ftpr_oem_key_to_oem_key_man_proved": true,
     "custom_signed_image_acceptance_proved": false,
+    "cve_2018_12147_exact_bug_identified": false,
     "exact_ftpr_txe_version_3_1_50_2222_proved": true,
     "exact_ibbl_host_ring_consumer_and_destination_proved": true,
     "final_handoff_address_0xfef80000_mapping_proved": true,
@@ -36,7 +37,9 @@
     "ibbl_static_self_relocation_descriptor_recovered": true,
     "ibbp_manifest_binds_bpm_metadata_proved": true,
     "ipub_key_external_hardware_anchor_proved": false,
+    "linux_mei_client_uuid_or_protocol_grammar_recovered": false,
     "nftp_fpf_hardware_state_equated_to_rbe_hardware_window": false,
+    "nftp_heci_simple_oversize_fragment_stack_copy_observed": false,
     "oem_key_manifest_kernel_command_line_export_proved": true,
     "oem_key_usage32_pins_ibbp_manifest_proved": true,
     "package_candidate_matches_stored_usage39_digest": false,
@@ -65,6 +68,7 @@
     "selector_0x27_is_usage_bit_39_proved": true,
     "shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved": true,
     "signed_nftp_dal_sdm_reads_exact_snowball_ipub_key_policy_object_proved": true,
+    "signed_nftp_heci_receive_fragment_bounds_proved": true,
     "snowball_ipub_key_producer_or_writability_proved": false,
     "source_fit_content_producer_cse_bup_proved": true,
     "stored_oem_key_manifest_bytes_recovered": true,
@@ -1230,6 +1234,220 @@
         }
       }
     },
+    "nftp_heci_transport_bounds": {
+      "boundary": "The signed NFTP HECI transport proves bounded 9-bit fragment handling and client/message-capacity checks on the recovered receive path. These checks reject a simple oversized-fragment copy theory, but do not identify Intel-SA-00125's proprietary input-validation defect, prove that another state or client parser is safe, or establish a Linux MEI client UUID and message grammar.",
+      "host_boundary": {
+        "linux_mei_client_uuid_or_protocol_grammar_recovered": false,
+        "metadata_special_file_ids_are_cse_internal_user_and_group_ids": true,
+        "metadata_special_files_are_linux_dev_mei_nodes": false,
+        "privileged_linux_caller_reachability_proved": false
+      },
+      "instruction_ranges": {
+        "bus_driver_open": {
+          "file_end": 8916,
+          "file_start": 8886,
+          "sha256": "ecde2c77c8f6e68da1583e68f3b3bfa3d4d0dcd2348e981ae01011f3803b7d4d"
+        },
+        "client_lookup": {
+          "file_end": 11962,
+          "file_start": 11896,
+          "sha256": "2307a27ca1a786e8a8326c5e91cd1205e1054ca4d46006c3c4ee5b19794c0392"
+        },
+        "connection_lookup": {
+          "file_end": 12079,
+          "file_start": 11962,
+          "sha256": "d59454fd7e80f04f93e2839222d771a0d762fa2ab3592f8b97cc9eb068718b4b"
+        },
+        "fifo_bounded_copy": {
+          "file_end": 10167,
+          "file_start": 9869,
+          "sha256": "d8df2a82e6f71db82616c63898b8e3a3cb46cf4bb524ae5bd93d573ad889e362"
+        },
+        "payload_fragment_consumer": {
+          "file_end": 11896,
+          "file_start": 10797,
+          "sha256": "5c77d1e0db46ff8847d0a232ef6efa074767d5fe24aaa41727f595997831c419"
+        },
+        "transport_receive_dispatch": {
+          "file_end": 7625,
+          "file_start": 6088,
+          "sha256": "89d34094c7c72571ae5a5790b95c1570a81acc31a48105aa0092fb3017f05dc7"
+        }
+      },
+      "internal_bus_driver": {
+        "code_base": 155648,
+        "heci_bus_drv_path_runtime_address": 184642,
+        "heci_opens_bus_drv": true,
+        "host_protocol_boundary": "busdrv is an internal CSE MMIO/interrupt/power driver reached by HECI through /dev/bus_drv; its internal operation dispatcher is not a Linux MEI client grammar.",
+        "internal_special_files": [
+          "bus_drv",
+          "bus_mstro",
+          "bus_prman"
+        ],
+        "main_thread_entry": 163138,
+        "signed_chain": {
+          "compressed": {
+            "flash_offset": 2207744,
+            "sha256": "e58a354055281fe2ab8809ef1d6705b7bdccc8acc11bf20faeaf0187a200eb50",
+            "size": 8942
+          },
+          "decompressed": {
+            "sha256": "f226a92dd219a020bca96aeca3b54d8b0870f230128b7cb206c3389d5096ad21",
+            "size": 24576
+          },
+          "metadata": {
+            "flash_offset": 2116780,
+            "sha256": "1857be7e234b2d88a9055d91c8bb9f69412d3db494b47f13cf407e9a0677da71",
+            "size": 608
+          },
+          "metadata_binds_compressed_module": true,
+          "nftp_manifest_binds_metadata": true
+        }
+      },
+      "internal_paths": {
+        "bup_handoff": {
+          "file_offset": 28944,
+          "runtime_address": 184592
+        },
+        "bus_bup_driver": {
+          "file_offset": 29022,
+          "runtime_address": 184670
+        },
+        "bus_driver": {
+          "file_offset": 28994,
+          "runtime_address": 184642
+        },
+        "bus_power_manager": {
+          "file_offset": 29007,
+          "runtime_address": 184655
+        },
+        "events": {
+          "file_offset": 28958,
+          "runtime_address": 184606
+        },
+        "power_context": {
+          "file_offset": 29038,
+          "runtime_address": 184686
+        }
+      },
+      "internal_special_files": [
+        {
+          "entries": [
+            {
+              "access_mode": 432,
+              "group_id": 5,
+              "minor": 0,
+              "name": "heci1",
+              "reserved": 0,
+              "user_id": 47
+            },
+            {
+              "access_mode": 432,
+              "group_id": 5,
+              "minor": 1,
+              "name": "heci1ose",
+              "reserved": 0,
+              "user_id": 47
+            },
+            {
+              "access_mode": 432,
+              "group_id": 5,
+              "minor": 2,
+              "name": "hecisoh",
+              "reserved": 0,
+              "user_id": 47
+            },
+            {
+              "access_mode": 432,
+              "group_id": 8,
+              "minor": 3,
+              "name": "heci1handoff",
+              "reserved": 0,
+              "user_id": 47
+            }
+          ],
+          "flags": 1,
+          "major": 6
+        },
+        {
+          "entries": [
+            {
+              "access_mode": 432,
+              "group_id": 6,
+              "minor": 0,
+              "name": "heci2",
+              "reserved": 0,
+              "user_id": 47
+            }
+          ],
+          "flags": 1,
+          "major": 7
+        },
+        {
+          "entries": [
+            {
+              "access_mode": 432,
+              "group_id": 7,
+              "minor": 0,
+              "name": "heci3",
+              "reserved": 0,
+              "user_id": 47
+            }
+          ],
+          "flags": 1,
+          "major": 8
+        }
+      ],
+      "process": {
+        "code_base": 155648,
+        "code_size": 28857,
+        "fault_policy": "reset system",
+        "main_thread_entry": 167957,
+        "permanent": true,
+        "user_id": 47
+      },
+      "signed_chain": {
+        "heci_compressed": {
+          "flash_offset": 2330624,
+          "sha256": "e6e69c0bc6b33ac5d7651cb999da9b6f97c682011fca43800c6ffd1adfab2770",
+          "size": 16560
+        },
+        "heci_decompressed": {
+          "sha256": "82b7be7bb8069aebfb2c9f7a0e994500fe10d631e67a16f5a5fec71d29679125",
+          "size": 36864
+        },
+        "heci_metadata": {
+          "flash_offset": 2119168,
+          "sha256": "0826dda708681158fa6727e5dd50e5f7b8308869907e5d94dd5b458120429a59",
+          "size": 460
+        },
+        "heci_metadata_binds_compressed_module": true,
+        "nftp_manifest": {
+          "flash_offset": 2111112,
+          "sha256": "d89f510f91eb9191e4b1e4a1a17b4675e3823953067ded257a6d78b2fb340ea4",
+          "size": 2464
+        },
+        "nftp_manifest_binds_heci_metadata": true
+      },
+      "transport_receive_bounds": {
+        "client_lookup_requires_enabled_client": true,
+        "connection_lookup_result_checked_before_use": true,
+        "continuation_fragment_compared_to_remaining_message_capacity": true,
+        "control_payload_maximum": 8,
+        "control_payload_minimum": 4,
+        "control_payload_requires_dword_alignment": true,
+        "copy_length_is_current_bounded_fragment_length": true,
+        "cve_2018_12147_exact_bug_identified": false,
+        "cve_2018_12147_rejected_for_exact_module": false,
+        "first_fragment_compared_to_client_max_message_size": true,
+        "fixed_local_fragment_buffer_size": 508,
+        "maximum_fragment_length": 508,
+        "payload_length_expression": "(header >> 16) & 0x1ff",
+        "requires_available_words_for_header_and_rounded_payload": true,
+        "simple_oversize_fragment_stack_copy_observed": false,
+        "transport_header_size": 4
+      }
+    },
     "package_carried_os_key_candidate_digest": {
       "matches_stored_oem_key_usage39_digest": false,
       "present_verbatim_in_ibbl": false,
@@ -1305,6 +1523,7 @@
     "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
     "The RBE-to-BUP-to-IBBL path binds the runtime type-0x0b payload to exact FTPR oem.key bytes. The recovered set's runtime expected usage-39 digest is therefore 9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af.",
     "Exact BUP calls 0x659b for both runtime-object reads. With the exact syslib at runtime base 0x6000, this is raw stub +0x59b, which jumps to the wrapper at raw +0x10fb3. That wrapper encodes selector 0, argument size 0x10 as syscall value 0x00010010 and invokes int 0x80. Exact kernel dispatch uses the high byte as its 12-byte table index; entry zero is flags 5, size 0x10, handler 0x8ed23. This closes BUP's reader import to the exact previously analyzed FTPR handler. Consequently totals 0x10/0x11 reach the synthetic-header underflow, but the resulting 0xfffffffe/0xffffffff payload read is rejected by the exact process-buffer validator before stream copy.",
+    "The signed NFTP HECI module decodes a 9-bit transport payload length, rejects fragments above 0x1fc, checks FIFO word availability before extraction, bounds control payloads to aligned lengths 4..8, copies host fragments through a fixed 0x1fc-byte local buffer, and checks first-fragment and continuation lengths against client message capacity. This rejects a simple oversized-fragment stack-copy theory for the exact receive path. It does not identify CVE-2018-12147's proprietary defect, prove every state/client parser safe, or recover a Linux MEI client UUID or protocol grammar. Metadata names heci1/heci2/heci3 are CSE-internal special files with CSE user/group IDs, not Linux /dev/mei node permissions.",
     "Exact RBE looks up ipub_key in an incoming bounded runtime-object handoff at 0x08200000, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. Its iterator does not require a nonzero or minimum entry total or enough remaining bytes for an entry header; a zero-total nonmatch does not progress, while a short total can step into the current entry. Its first append trusts the incoming 32-bit current total and bounds only the wrapped sum with the 0x13-byte new entry; totals 0xffffffed..0xffffffff can therefore pass and place the write at 0x081fffed..0x081fffff, partly outside the declared handoff. After an ipub_key name match, RBE checks neither the entry total nor selector range, pointer-field containment, or selected-pointer range before its fixed 32-byte copy from dword[entry + 0x16 + 4*selector]. RBE can append other handoff objects but its ipub_key path does not create that entry. The FTPR manifest and kernel metadata bind the exact signed FTPR kernel, which later consumes the same handoff base, first-entry address, state byte, and +0x0e entry-size geometry. Exact BUP's corresponding manifest path resolves ipub_key either from a runtime object or from /snowball/ipub_key depending on global 0xa014c. It requires the returned object size to be greater than 0x23, then uses byte 0 as an unchecked selector for the pointer at offset 4 + 4*selector and supplies 32 bytes from that pointer to its verifier. No selector upper bound or selected-pointer-within-object check is observed in this path. These are exact parser-integrity findings, but reachable attacker control of either object source is not proved. The exact Intel digest occurs statically only in rot.key's Extension-14 record. These paths do not prove who populated or authenticated the pre-RBE handoff, that it is immutable, or that the snowball branch is active, writable, or unauthenticated.",
     "Exact BUP selects oem.key usage bit 32, compares the IBBP.man modulus-plus-exponent digest before RSA verification, verifies IBBP.man, checks its signed BPM.met hash, and checks BPM.met's exact IBBL and IBB SHA-256 values. This closes the selected-UEP-to-exact-IBB byte chain for the recovered set.",
     "Exact RBE materializes the selected 0x100-byte UEP payload in the 0x108-byte ifp_uep object, with a hardware-route REAL header or the validated flash-route $UEP/CRC header. Exact BUP records whether the header is REAL without rejecting the alternative in this range, initially copies the payload byte-for-byte into its FPF shadow, may update that shadow through later field assembly, and publishes the resulting 0x880-byte bup_fpf special file. The signed NFTP fpf module requires that exact-size input and uses the resulting shadow while its hardware-mode global is zero.",

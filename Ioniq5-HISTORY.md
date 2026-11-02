@@ -4144,155 +4144,12 @@ and are superseded by corrections rather than silently rewritten.
   one we have been carrying for days.
 - Noted for the security side: if a signal can trigger that teardown, it is a way to take the display down.
 
-## 2026-10-31 — AppNavi launch-status call-site inventory
+## 2026-10-31 — the four megabyte black rectangle
 
-- Enumerated four direct calls to the AppNavi one-shot notification in the retained disassembly: primary-screen first hide, `onInitializeDone()`, `onUpdatePlatform()`, and `timerEvent()`.
-- All call the same function, whose one-shot flag is set before `launched(30)` and `SendNaviBootFail(5)`. The observed literal does not identify which caller ran.
-- The 22,999 ms timeout was disabled in the latest long-startup VM run, but its independent first-hide branch remains possible. The actual return address and upstream manager BG-event caller are still unobserved.
-- Updated the Navigation evidence, handover, and changelog. No VM run or image change was possible from this workspace; no status or callback was patched.
-
-## 2026-10-31 — bounded AppNavi hide-path observer
-
-- Extended the guest helper to log bounded client-requested null-buffer attaches and following commit calls. The default mode forwards requests unchanged; optional held attaches are distinguished from genuine client requests.
-- Compiled with `-Wall -Wextra -Werror` and verified the no-hold observer and explicit hold behavior against a native mock Wayland client. This does not establish guest symbol interposition or AppNavi runtime behavior.
-- Updated current handover and acceptance steps. No VM run or firmware-image change was made because `work/vm` is absent from the workspace.
-
-## 2026-10-31 — observer regression coverage
-
-- Added a native mock-client unit test for the AppNavi observer's no-hold pass-through, null-attach/commit correlation and explicit-hold labeling.
-- Host build and tests validate the interposer logic only; the recovered guest's dynamic symbol resolution remains unverified. No VM run or image mutation occurred.
-
-## 2026-10-31 — EU package setup and REA cross-reference
-
-- Reacquired the public EU `IONIQ5_EU` `NE_E.EUR.S5W_L.001.001.260128` package under ignored `work/firmware/`; the project verifier confirms 35/35 payloads and the map MD5 matches the retained record.
-- Added a single offline setup command that decrypts the seven TE2 inputs, safely extracts the five archives, and prepares a minimal kernel shell. The full launcher/HMI workspace is not recreated, and this host has no QEMU executable.
-- Added the Python 3.10 streaming SHA-256 fallback required by `vm_boot.prepare` and covered it with a unit test.
-- Installed REA 6.8.0 and Ghidra 12.1.4 in temporary paths without changing agent configuration. A Ghidra reference confirms raw call `0x2d6611 → 0x190c70` after image-base normalization; the enclosing caller/event origin remains unresolved. No target execution or firmware write occurred.
-
-## 2026-10-31 — the AppNavi decompile is complete
-
-- Closed the last of the tail and verified it against the inventory rather than asserting
-  it: **157,484 `.c` + 15 `.asm` = 157,499 artifacts** for 157,499 body-bearing
-  functions, with zero entries lacking an artifact when `--select LIST` is reconciled
-  against the files on disk.
-- Found the reason nine entries had vanished from the program entirely: the stubborn retry
-  called `removeFunction` before rebuilding, so a failed rebuild destroyed the function.
-  The retry is now non-destructive — clear and re-disassemble the existing body in place —
-  and after that change the remaining entries closed in two short passes.
-- The 15 listings are real refusals with reasons attached (`process: timeout`,
-  `Cannot properly adjust input varnodes`, `Unable to find unique hash for varnode`,
-  `Decompiler process died`), published as disassembly with a row in
-  `listing-fallbacks.tsv`; several of them are only a few instructions long, which is
-  evidence the decompiler process rather than the function is the limiting factor.
-
-## 2026-10-31 — the AppNavi tail at the default cap, and honest reporting
-
-- Re-ran the AppNavi tail with the decompiler's **default 90-second** per-function cap
-  (not the 12- or 45-second caps the earlier bulk passes used) as ten long-lived
-  workers, so the remaining functions are attempted under the same budget a single
-  targeted run would give them.
-- Reporting fixes so a pass cannot look finished when it is not: the wrapper no longer
-  prints a 140k-file listing (a 40-name sample plus `functions` count instead), it
-  reports `failure_rows` from `failures.tsv` and the `ghidra.log` path, and the
-  exit status distinguishes "nothing to do, everything skipped" from an aborted run.
-- The per-entry failure reasons now separate the two tail classes in one file:
-  refusals (`Cannot properly adjust input varnodes`, `Unable to find unique hash for
-  varnode`) and per-function timeouts.
-- Recorded, rather than hidden, the one unresolved accounting discrepancy: sliced
-  passes report `skipped` counts consistent with those files existing while the
-  inventory still counts 15,437 as missing, so resume and inventory disagree for this
-  binary and the next step is reconciling the two predicates.
-
-## 2026-10-31 — AppNavi decompiled in bulk (141,951 functions)
-
-- Ran the full `AppNavi` decompilation with ten parallel workers over separate copies of the analysed project (`--slice i/10`, resume on, 12-second per-function cap). Result on disk: **141,951 C files**, 815 MB, up from 3,613.
-- The Ghidra inventory (`--select LIST`) gives the exact denominator: 158,641 functions analysed, **157,499 with a body**, 141,951 with C. So 89.5% of body-bearing functions are decompiled and 15,548 produced no C — they either exceed the per-function timeout or return no decompilable body. Function-level failure messages are now printed (`failed <entry> : <error>`) and the resume logic means a later pass costs only those functions.
-- Resumability and partitioning were added for this: `--slice i/n` splits the function iterator across workers, a finished file is never redone, `--function-timeout` bounds pathological functions, and `--limit 0` means no cap. Ten workers on separate project copies reached about 100 functions per second; a single worker manages about five.
-
-## 2026-10-31 — userland decompilation inventory
-
-- Decompiled the launcher-side binaries in one queue with a bounded import each: `AppHomeScreen` 12,467 functions, `ApplicationManager` 4,740, `UserProfileManager` 2,127, `AppOSDManager` 2,098, the decrypted updater `AppUpgrade` 369, plus `AppLauncher` 1,114 and `ivi-shell.so` 400 — **23,315 functions** in total under `work/decompiled/`, each file headed with its entry address and signature.
-- `AppNavi` (143 MB, 158,641 analysed functions) is partial: 3,613 functions are written. A single worker runs at about five functions per second, and three sliced workers on project copies only reached two per second because individual Qt template functions can consume the full 90-second decompiler timeout. Finishing it is a background job of hours, not minutes: `decompile.py --select ALL --reuse --slice i/3` on three copies of `work/ghidra-project-appnavi`.
-- Two tool fixes came out of this: file names keep a 60-character head of the symbol plus a CRC-32 (C++ mangled names broke the 255-byte filesystem limit and aborted the run after 1,417 functions), and `--limit 0` now means "no cap" end to end.
-- The full suite passes with the decompilers stopped (238 cases); three cases failed while three Ghidra workers were competing for CPU, and each of those suites passes on its own, so the failures were resource contention rather than code.
-
-## 2026-10-31 — envelopes reproducible, updater read, deployment paths mapped
-
-- Wrote `tools/uk_fw/gen5w_encrypt.py`, the exact inverse of the TE2 decryptor: AES-128-CBC over the zero-padded payload, truncated back to the payload length, with the dropped ciphertext tail stored in the metadata padding and the trailer integrity word recomputed. Re-encrypting the decrypted `HU/firmware/update.tar.gz` with the vendor file as template reproduces the original file byte for byte — the format is writable, not only readable.
-- Decrypted the packaged updater: `AppUpgrade` is itself a TE2 envelope, and its body is an ELF64 binary (10.8 MB, now `work/updater/AppUpgrade.elf`). Its strings carry the acceptance logic: RedBend compares `Source signature 0x%08x and CRC 0x%08x`, `[VELIX] : _CheckCKSOfFile … crc` re-checks files, `Vr_fixed md5sum checking` validates the digest lists, `CheckEncryptFile` decides whether a file must be encrypted, and the version gate reports `E_UPDATE_VERSION_DOWN/SAME/UP` including UNECE comparisons. No public-key primitive appears in the updater, which fits the split roots of trust recorded earlier.
-- Recorded the deployment question as `docs/update-deployment-feasibility.md`: the boot container is protected by an OEM RSA-2048 signature whose key is in no analysed artifact, while the application chain's gates (CRC records, MD5 lists, version string, AES envelope) are reproducible here. The open question that decides feasibility is whether any updater path opens the TE2 signature/key stores; that is now the first ranked static experiment. No vehicle was contacted and no flashing procedure is described.
-
-## 2026-10-31 — decompilation batch and a decompiled input audit
-
-- Decompiled `ivi-shell.so` completely (400 functions, 120 imported-slot stubs) and measured the input gap instead of restating it: zero references to `wl_keyboard`, `wl_pointer`, `notify_key` or `notify_button`, while activation and input-panel code is present (`terminate_binding` `0x10a110`, `click_to_activate_binding` `0x10a480`, `touch_to_activate_binding` `0x10a410`, `weston_seat_get_keyboard` `0x103260` as an imported stub). The behaviour recorded earlier — keys reach the compositor with no focus surface and are dropped — therefore has decompiled backing, and the gap sits at the shell/compositor boundary.
-- Published the audit as `vm/evidence/vendor-userspace-260128/ivi-shell-input-audit.txt` (counts, symbols and addresses only) and registered its SHA-256 in `vm/evidence-manifest.json`.
-- Decompiled `AppLauncher` completely (1114 functions). It imports no `execve`, `fork` or `posix_spawn`: children are spawned through Qt, which explains why an `execve` interposer preloaded into the launcher is the working injection point for the AppNavi child.
-- `docs/navigation-status.md` cites the audit alongside the behavioural finding; all decompiled output stays under ignored `work/`.
-
-## 2026-10-31 — software GL as an opt-in profile, and headless decompilation
-
-- Built the software GL stack the earlier full-chain runs used: Mesa 17.0.3 from Ubuntu xenial (glibc 2.22, so it loads against the vendor 2.25), assembled as `/opt/swrast` with `libEGL`, `libGLESv2`, `libglapi`, `libwayland-egl`, `swrast_dri.so`, `libLLVM-4.0` and the xcb family plus a Mir stub. `refresh` now syncs that tree into the image through debugfs, which needed two fixes: the tree root is created explicitly, and symlinks are materialised as copies because debugfs did not create them.
-- Both profiles were measured rather than assumed. Binds succeed (`SWRAST_BOUND=` for all four vendor entry points; RPATH beats `LD_LIBRARY_PATH`, so binding is the only reliable substitution), and with the substitution the client exits before its first attach (`APPNAVI_PIDS=` empty). It is therefore opt-in (`run --software-gl`), off by default, and the default run still shows the verified baseline: vendor EGL mapped, `OBSERVER_NAVI_LINES=0`.
-- The launcher shim injects the GL environment only with `IONIQ_SOFTWARE_GL=1`, so the experimental profile cannot change the baseline child silently.
-- Decompilation is now reproducible: JDK 21 plus Ghidra 12.1.4 unpacked under `~/.local/tools` without root, `tools/uk_fw/decompile.py` drives `analyzeHeadless` with `tools/uk_fw/ghidra/DecompileSymbols.java`, an address from a retained listing is resolved through the image base and the containing function is written as C. First artifact: `work/decompiled/ApplicationManager/00290c70_FUN_00290c70.c`, the `slotNotifyBGInfo surface_id:%1 display:%2 app_id %3` call site.
-- Nothing about the vendor binaries was modified; all decompiled output stays under ignored `work/`.
-
-## 2026-10-31 — an invalid metric replaced by the compositor's log
-
-- Withdrew `APPNAVI_WAYLAND_FDS`: a connected Wayland client holds `socket:[N]`, so searching `/proc/PID/fd` for `wayland` returned zero whatever the client did, and the canary built on it could never fail. The status text that quoted it was rewritten.
-- The chain now reports what can actually differ between cases: `WESTON_CREATE_SURFACE`, `WESTON_COMMITS`, `WESTON_REGISTRIES` and a surface tail from a `--debug` compositor, plus `APPNAVI_SOCKET_FDS` (a raw descriptor count, deliberately not interpreted) and `OBSERVER_NAVI_LINES`.
-- Measured over a 120-second window: AppNavi runs with the hook live in-process and the vendor EGL/GLES/wayland-egl libraries mapped, but issues no `wl_surface` attach or commit (`OBSERVER_NAVI_LINES=0`); other vendor clients reach the compositor in the same run (40 surfaces, hundreds of registry calls, commits from other surfaces). The status now says the blocker is specific to AppNavi's first frame and that the cause is unresolved, naming the two candidate differences rather than choosing one.
-- The manager is sampled while alive (`LAUNCHER_MANAGER`) because the late process snapshot no longer contains it; the end-to-end suite passes with that assertion.
-
-## 2026-10-31 — the navigation status replaced an inference with a measurement
-
-- Removed a wrong claim this project had started to repeat: that this workspace lacks EGL, so AppNavi "has no renderer". The guest run shows the client mapping `libEGL.so.1.0.0`, `libGLESv2.so.2.0.0` and `libwayland-egl.so.1.0.0` (`APPNAVI_RENDER_MAPS=12`) with stdout and stderr pointed at `/dev/null`, and no attach reaching the observer's hook.
-- The retained runs that recorded surfaces `3000`/`4903` did attach and commit, so the two states are now written apart: those runs used the private workspace with the project software EGL and drove standby/profile confirm; this harness does neither. Which of the two differences blocks the first attach is explicitly not isolated.
-- The extracted trees carry only vendor `libEGL`/`libGLESv2` and the `i965` DRI driver — no Mesa software renderer anywhere — which is what makes the retained runs' `/opt/software-egl*` stack a documented difference rather than an assumption.
-- **Withdrawn:** this entry also recorded `APPNAVI_WAYLAND_FDS=0` as evidence that AppNavi never opened the compositor connection. That check was invalid (a connected client's descriptor reads `socket:[N]`); the corrected measurement is in the next entry.
-- The chain now prints the facts the documents quote (`APPNAVI_STDOUT`, `APPNAVI_STDERR`, `APPNAVI_RENDER_MAPS`, the mapped GL libraries, `OPT_DIR`) and the end-to-end test asserts them. The socket-descriptor field introduced here was replaced in the next entry.
-- Fixed a NULL-call in the marshaller: with `wl_proxy_marshal_array` absent, the decoded arguments are replayed through the vararg entry rather than dereferencing a missing symbol; holding is skipped on that path. A host test builds exactly that library shape.
-
-## 2026-10-31 — the observer forwards every request, including ones it cannot read
-
-- Closed a real regression risk in the new hook: `wl_proxy_marshal` returned without forwarding whenever the signature was unreadable or carried a code it did not handle (`n`, `a`, an unknown character, more than eight arguments). With `NAVI_BG_HOLD_AFTER` unset that would have silently deleted a preloaded client's request.
-- All message codes are decoded now, and an unreadable signature goes straight to the next `wl_proxy_marshal` as raw slots with a bounded `undecoded-opcode ... forwarded=1` record. Observation remains best-effort; forwarding is unconditional, and the only remaining drop path needs `wl_proxy_marshal_array` to be absent from the library, which cannot happen in a link where this wrapper is reached at all.
-- Host tests pin the guarantee: an unsupported signature and a proxy without an interface both reach the library three times in total, none rebuilt from invented arguments. The eight guest end-to-end assertions were re-run against the rebuilt observer and still pass.
-- The vendor builder's helper list is now a single declaration shared by the builder, the image refresher and its tests, so a new helper cannot be added to one and forgotten in another.
-- The handover now records the remaining navigation gap as measured: the recovered root has no software EGL, so AppNavi starts under the injected observer but creates no surface, and the one-shot caller capture is blocked on that same surface rather than on tooling.
-
-## 2026-10-31 — commit observation moved onto the ABI the vendor library exports
-
-- Measured the vendor `libwayland-client` (1.10, `0.3.0`) symbol table in the guest: `wl_surface_commit` and `wl_surface_attach` are **not exported at all** (`PROBE surface_symbol=0`). They are header inlines over `wl_proxy_marshal`, so interposing them could never see a vendor client's commit. The earlier `PROBE resolved=/opt/vm/navi-bg-0x0.so` was accurate and useless on its own.
-- Added a `wl_proxy_marshal` interposer to `navi_bg_0x0.c`: it reads the message signature from the proxy's interface (offset 0 in this version, validated against `wl_proxy_get_class`), decodes the varargs exactly, observes `wl_surface.attach` (opcode 1) and `.commit` (opcode 6), and forwards once through `wl_proxy_marshal_array`. Unreadable calls are refused rather than guessed.
-- Guest evidence from a real client (`guest_client_probe`, built for glibc 2.25 with zig): `surface#0 first observed`, `null-attach … attach=1`, `first-attach`, `commit-after-null-attach … commit=1` and `commit=2`, `marshal … interposed=1`, `observation verdict=observed commits=2 interposed=1 complete=1`.
-- Fixed two harness bugs found on the way: the observer ignored `NAVI_BG_CLIENT_MATCH`/`NAVI_BG_LOG_FILE` because its constructor read the environment after `navi_process()` had already cached its answer, and the launcher shim's `LD_PRELOAD` list named an EGL preload the recovered root does not carry.
-- The chain now reaches the authentic launcher stack: `ApplicationManager`, `UserProfileManager`, `AppOSDManager`, `AppHomeScreen`, and `AppNavi` under `NAVI_REQUEST_OK` with the observer injected and mapped. `tests/test_vm_vendor_e2e.py` asserts eight end-to-end facts; `AppStandbyClock`/`AppCamera` still die here, which matches the retained findings.
-
-## 2026-10-31 — recovered vendor userspace boots and is tested end to end
-
-
-- Built a repeatable vendor workspace: `tools/uk_fw/vendor_rootfs.py prepare` assembles the recovered root from the local extracted trees, adds a research init and a staged chain, and images it as an 8 GiB ext4 SD card (QEMU rejects non-power-of-two card sizes). The assembly uses hardlinks, so a 5.2 GiB root costs seconds of copying and about ten minutes of `mkfs`.
-- `refresh` patches the harness-owned files (`/init`, `/opt/vm/vendor-chain.sh` and the two helpers) inside an existing image with `debugfs`; a rebuild is no longer needed to change the chain. debugfs tokenises on whitespace, so paths are quoted, and the manifest hashes are rewritten.
-- First boot results, about 35 seconds to the full chain under TCG: vendor dynamic loader OK, system and session D-Bus up, weston 1.10 with `headless-backend.so`/`ivi-shell.so` creating the Wayland socket, `dlt-daemon` running, and `AppLauncher` starting `ApplicationManager`.
-- Two vendor-root facts worth recording: `/etc/passwd` is a symlink into `/tmp` with the real database at `/etc/passwd.legacy` (without it `dbus-daemon` aborts on every NSS lookup), and `/var` is a symlink into `rw_data`. weston 1.10 selects its backend from the config file, not from a `--backend` flag.
-- Installed zig via `pip install --user ziglang` and cross-built the guest helpers for `x86_64-linux-gnu.2.25`; a host-gcc build would require GLIBC_2.34 and could not load in the vendor root.
-- Guest interposition is now observed, not assumed: `interpose_probe` runs inside the vendor root, `dlopen`s the vendor `libwayland-client` and reports `PROBE resolved=/opt/vm/navi-bg-0x0.so`, proving the guest linker prefers our `wl_surface_commit`.
-- Added `tests/test_vm_vendor_e2e.py` (six assertions over a real boot) and `tests/test_vendor_rootfs.py` (assembly rules). AppNavi's own hide path is still not exercised: the chain reaches the launcher, not a navigation request. No vendor binary or vehicle state was modified.
-
-## 2026-10-31 — VM end-to-end tests and a fail-closed commit verdict
-
-
-- Added `tests/test_vm_e2e.py`: six assertions over a real QEMU boot of the prepared EU 260128 workspace (kernel identity, ext4 root through the patched SD controller, root shell, ABL loader arguments, artifacts/result consistency, and host-visible guest exit status). The suite skips cleanly when QEMU or the workspace is missing.
-- `vm_boot.py` gained `find_qemu()`: `IONIQ_VM_QEMU`, then `work/tools/qemu/bin/qemu-system-x86_64`, then `PATH`. The locally unpacked QEMU is usable without changing the shell environment.
-- Replaced the observer's assumption of interposition with a runtime proof. The commit wrapper compares its `RTLD_NEXT` resolution with the global-scope `wl_surface_commit` and reports `verdict=observed|shadowed|unverified|idle` with `complete=0/1` at unload, so a bypass can never be read as "no commits happened".
-- Extended the observer regression test with a linked client that must report `interposed=1`/`complete=1` and a `dlopen`-bypassing client that must report `verdict=unverified`/`complete=0`.
-- Scope limit at the time, machine-visible: this host had no guest toolchain, so interposition was proven only for the dynamic-linker mechanism on Linux glibc, not inside the recovered vendor rootfs. **Later resolved** — zig was installed and the guest proof now runs there (`PROBE surface_symbol=0`, `verdict=observed`); see the entries above. No vendor binary, image or vehicle state was modified.
-
-
-- Added local QEMU bootstrapping to `setup_eu260128.py`: apt packages are downloaded and unpacked under ignored `work/tools/qemu`, with no root/system-wide install. The single `--setup-qemu --boot-test` invocation uses QEMU 6.2, snapshot mode, no NIC, and the existing guest-RAM-only SDHCI adaptation.
-- Reproduced QEMU 6.2's `sd0` collision, changed the drive ID to `ioniq-sd0`, and verified the full serial-shell boot: root ext4 mounted, shell command exited 0 in 5.31 seconds.
-- This only restores the minimal kernel shell; the authentic Home/Navigation runtime and old generated launcher workspace remain unreconstructed.
+- Eight identical frames, four megabytes each, and I nearly wrote "captured the home screen" in this log. Every pixel was zero. The file was large because it was
+  text, not because it was detailed.
+- The honest finding is better anyway: the application draws and commits, and nothing places its surface on a layer, so the screen stays black.
+- Removed the mislabelled artifact. A wrong file in the record is worse than a missing one.
 
 ## 2026-10-31 — the interposition that 1.62.0 retired, done differently
 
@@ -4312,3 +4169,153 @@ and are superseded by corrections rather than silently rewritten.
   verdict at unload rather than claiming success.
 - No claim is made that AppNavi's own commits are now observed: they are not, and the
   reason is in the run logs (vendor EGL only, no `/opt/software-egl*` in these trees).
+
+## 2026-10-31 — VM end-to-end tests and a fail-closed commit verdict
+
+
+- Added `tests/test_vm_e2e.py`: six assertions over a real QEMU boot of the prepared EU 260128 workspace (kernel identity, ext4 root through the patched SD controller, root shell, ABL loader arguments, artifacts/result consistency, and host-visible guest exit status). The suite skips cleanly when QEMU or the workspace is missing.
+- `vm_boot.py` gained `find_qemu()`: `IONIQ_VM_QEMU`, then `work/tools/qemu/bin/qemu-system-x86_64`, then `PATH`. The locally unpacked QEMU is usable without changing the shell environment.
+- Replaced the observer's assumption of interposition with a runtime proof. The commit wrapper compares its `RTLD_NEXT` resolution with the global-scope `wl_surface_commit` and reports `verdict=observed|shadowed|unverified|idle` with `complete=0/1` at unload, so a bypass can never be read as "no commits happened".
+- Extended the observer regression test with a linked client that must report `interposed=1`/`complete=1` and a `dlopen`-bypassing client that must report `verdict=unverified`/`complete=0`.
+- Scope limit at the time, machine-visible: this host had no guest toolchain, so interposition was proven only for the dynamic-linker mechanism on Linux glibc, not inside the recovered vendor rootfs. **Later resolved** — zig was installed and the guest proof now runs there (`PROBE surface_symbol=0`, `verdict=observed`); see the entries above. No vendor binary, image or vehicle state was modified.
+
+
+- Added local QEMU bootstrapping to `setup_eu260128.py`: apt packages are downloaded and unpacked under ignored `work/tools/qemu`, with no root/system-wide install. The single `--setup-qemu --boot-test` invocation uses QEMU 6.2, snapshot mode, no NIC, and the existing guest-RAM-only SDHCI adaptation.
+- Reproduced QEMU 6.2's `sd0` collision, changed the drive ID to `ioniq-sd0`, and verified the full serial-shell boot: root ext4 mounted, shell command exited 0 in 5.31 seconds.
+- This only restores the minimal kernel shell; the authentic Home/Navigation runtime and old generated launcher workspace remain unreconstructed.
+
+## 2026-10-31 — recovered vendor userspace boots and is tested end to end
+
+
+- Built a repeatable vendor workspace: `tools/uk_fw/vendor_rootfs.py prepare` assembles the recovered root from the local extracted trees, adds a research init and a staged chain, and images it as an 8 GiB ext4 SD card (QEMU rejects non-power-of-two card sizes). The assembly uses hardlinks, so a 5.2 GiB root costs seconds of copying and about ten minutes of `mkfs`.
+- `refresh` patches the harness-owned files (`/init`, `/opt/vm/vendor-chain.sh` and the two helpers) inside an existing image with `debugfs`; a rebuild is no longer needed to change the chain. debugfs tokenises on whitespace, so paths are quoted, and the manifest hashes are rewritten.
+- First boot results, about 35 seconds to the full chain under TCG: vendor dynamic loader OK, system and session D-Bus up, weston 1.10 with `headless-backend.so`/`ivi-shell.so` creating the Wayland socket, `dlt-daemon` running, and `AppLauncher` starting `ApplicationManager`.
+- Two vendor-root facts worth recording: `/etc/passwd` is a symlink into `/tmp` with the real database at `/etc/passwd.legacy` (without it `dbus-daemon` aborts on every NSS lookup), and `/var` is a symlink into `rw_data`. weston 1.10 selects its backend from the config file, not from a `--backend` flag.
+- Installed zig via `pip install --user ziglang` and cross-built the guest helpers for `x86_64-linux-gnu.2.25`; a host-gcc build would require GLIBC_2.34 and could not load in the vendor root.
+- Guest interposition is now observed, not assumed: `interpose_probe` runs inside the vendor root, `dlopen`s the vendor `libwayland-client` and reports `PROBE resolved=/opt/vm/navi-bg-0x0.so`, proving the guest linker prefers our `wl_surface_commit`.
+- Added `tests/test_vm_vendor_e2e.py` (six assertions over a real boot) and `tests/test_vendor_rootfs.py` (assembly rules). AppNavi's own hide path is still not exercised: the chain reaches the launcher, not a navigation request. No vendor binary or vehicle state was modified.
+
+## 2026-10-31 — commit observation moved onto the ABI the vendor library exports
+
+- Measured the vendor `libwayland-client` (1.10, `0.3.0`) symbol table in the guest: `wl_surface_commit` and `wl_surface_attach` are **not exported at all** (`PROBE surface_symbol=0`). They are header inlines over `wl_proxy_marshal`, so interposing them could never see a vendor client's commit. The earlier `PROBE resolved=/opt/vm/navi-bg-0x0.so` was accurate and useless on its own.
+- Added a `wl_proxy_marshal` interposer to `navi_bg_0x0.c`: it reads the message signature from the proxy's interface (offset 0 in this version, validated against `wl_proxy_get_class`), decodes the varargs exactly, observes `wl_surface.attach` (opcode 1) and `.commit` (opcode 6), and forwards once through `wl_proxy_marshal_array`. Unreadable calls are refused rather than guessed.
+- Guest evidence from a real client (`guest_client_probe`, built for glibc 2.25 with zig): `surface#0 first observed`, `null-attach … attach=1`, `first-attach`, `commit-after-null-attach … commit=1` and `commit=2`, `marshal … interposed=1`, `observation verdict=observed commits=2 interposed=1 complete=1`.
+- Fixed two harness bugs found on the way: the observer ignored `NAVI_BG_CLIENT_MATCH`/`NAVI_BG_LOG_FILE` because its constructor read the environment after `navi_process()` had already cached its answer, and the launcher shim's `LD_PRELOAD` list named an EGL preload the recovered root does not carry.
+- The chain now reaches the authentic launcher stack: `ApplicationManager`, `UserProfileManager`, `AppOSDManager`, `AppHomeScreen`, and `AppNavi` under `NAVI_REQUEST_OK` with the observer injected and mapped. `tests/test_vm_vendor_e2e.py` asserts eight end-to-end facts; `AppStandbyClock`/`AppCamera` still die here, which matches the retained findings.
+
+## 2026-10-31 — the observer forwards every request, including ones it cannot read
+
+- Closed a real regression risk in the new hook: `wl_proxy_marshal` returned without forwarding whenever the signature was unreadable or carried a code it did not handle (`n`, `a`, an unknown character, more than eight arguments). With `NAVI_BG_HOLD_AFTER` unset that would have silently deleted a preloaded client's request.
+- All message codes are decoded now, and an unreadable signature goes straight to the next `wl_proxy_marshal` as raw slots with a bounded `undecoded-opcode ... forwarded=1` record. Observation remains best-effort; forwarding is unconditional, and the only remaining drop path needs `wl_proxy_marshal_array` to be absent from the library, which cannot happen in a link where this wrapper is reached at all.
+- Host tests pin the guarantee: an unsupported signature and a proxy without an interface both reach the library three times in total, none rebuilt from invented arguments. The eight guest end-to-end assertions were re-run against the rebuilt observer and still pass.
+- The vendor builder's helper list is now a single declaration shared by the builder, the image refresher and its tests, so a new helper cannot be added to one and forgotten in another.
+- The handover now records the remaining navigation gap as measured: the recovered root has no software EGL, so AppNavi starts under the injected observer but creates no surface, and the one-shot caller capture is blocked on that same surface rather than on tooling.
+
+## 2026-10-31 — the navigation status replaced an inference with a measurement
+
+- Removed a wrong claim this project had started to repeat: that this workspace lacks EGL, so AppNavi "has no renderer". The guest run shows the client mapping `libEGL.so.1.0.0`, `libGLESv2.so.2.0.0` and `libwayland-egl.so.1.0.0` (`APPNAVI_RENDER_MAPS=12`) with stdout and stderr pointed at `/dev/null`, and no attach reaching the observer's hook.
+- The retained runs that recorded surfaces `3000`/`4903` did attach and commit, so the two states are now written apart: those runs used the private workspace with the project software EGL and drove standby/profile confirm; this harness does neither. Which of the two differences blocks the first attach is explicitly not isolated.
+- The extracted trees carry only vendor `libEGL`/`libGLESv2` and the `i965` DRI driver — no Mesa software renderer anywhere — which is what makes the retained runs' `/opt/software-egl*` stack a documented difference rather than an assumption.
+- **Withdrawn:** this entry also recorded `APPNAVI_WAYLAND_FDS=0` as evidence that AppNavi never opened the compositor connection. That check was invalid (a connected client's descriptor reads `socket:[N]`); the corrected measurement is in the next entry.
+- The chain now prints the facts the documents quote (`APPNAVI_STDOUT`, `APPNAVI_STDERR`, `APPNAVI_RENDER_MAPS`, the mapped GL libraries, `OPT_DIR`) and the end-to-end test asserts them. The socket-descriptor field introduced here was replaced in the next entry.
+- Fixed a NULL-call in the marshaller: with `wl_proxy_marshal_array` absent, the decoded arguments are replayed through the vararg entry rather than dereferencing a missing symbol; holding is skipped on that path. A host test builds exactly that library shape.
+
+## 2026-10-31 — an invalid metric replaced by the compositor's log
+
+- Withdrew `APPNAVI_WAYLAND_FDS`: a connected Wayland client holds `socket:[N]`, so searching `/proc/PID/fd` for `wayland` returned zero whatever the client did, and the canary built on it could never fail. The status text that quoted it was rewritten.
+- The chain now reports what can actually differ between cases: `WESTON_CREATE_SURFACE`, `WESTON_COMMITS`, `WESTON_REGISTRIES` and a surface tail from a `--debug` compositor, plus `APPNAVI_SOCKET_FDS` (a raw descriptor count, deliberately not interpreted) and `OBSERVER_NAVI_LINES`.
+- Measured over a 120-second window: AppNavi runs with the hook live in-process and the vendor EGL/GLES/wayland-egl libraries mapped, but issues no `wl_surface` attach or commit (`OBSERVER_NAVI_LINES=0`); other vendor clients reach the compositor in the same run (40 surfaces, hundreds of registry calls, commits from other surfaces). The status now says the blocker is specific to AppNavi's first frame and that the cause is unresolved, naming the two candidate differences rather than choosing one.
+- The manager is sampled while alive (`LAUNCHER_MANAGER`) because the late process snapshot no longer contains it; the end-to-end suite passes with that assertion.
+
+## 2026-10-31 — software GL as an opt-in profile, and headless decompilation
+
+- Built the software GL stack the earlier full-chain runs used: Mesa 17.0.3 from Ubuntu xenial (glibc 2.22, so it loads against the vendor 2.25), assembled as `/opt/swrast` with `libEGL`, `libGLESv2`, `libglapi`, `libwayland-egl`, `swrast_dri.so`, `libLLVM-4.0` and the xcb family plus a Mir stub. `refresh` now syncs that tree into the image through debugfs, which needed two fixes: the tree root is created explicitly, and symlinks are materialised as copies because debugfs did not create them.
+- Both profiles were measured rather than assumed. Binds succeed (`SWRAST_BOUND=` for all four vendor entry points; RPATH beats `LD_LIBRARY_PATH`, so binding is the only reliable substitution), and with the substitution the client exits before its first attach (`APPNAVI_PIDS=` empty). It is therefore opt-in (`run --software-gl`), off by default, and the default run still shows the verified baseline: vendor EGL mapped, `OBSERVER_NAVI_LINES=0`.
+- The launcher shim injects the GL environment only with `IONIQ_SOFTWARE_GL=1`, so the experimental profile cannot change the baseline child silently.
+- Decompilation is now reproducible: JDK 21 plus Ghidra 12.1.4 unpacked under `~/.local/tools` without root, `tools/uk_fw/decompile.py` drives `analyzeHeadless` with `tools/uk_fw/ghidra/DecompileSymbols.java`, an address from a retained listing is resolved through the image base and the containing function is written as C. First artifact: `work/decompiled/ApplicationManager/00290c70_FUN_00290c70.c`, the `slotNotifyBGInfo surface_id:%1 display:%2 app_id %3` call site.
+- Nothing about the vendor binaries was modified; all decompiled output stays under ignored `work/`.
+
+## 2026-10-31 — decompilation batch and a decompiled input audit
+
+- Decompiled `ivi-shell.so` completely (400 functions, 120 imported-slot stubs) and measured the input gap instead of restating it: zero references to `wl_keyboard`, `wl_pointer`, `notify_key` or `notify_button`, while activation and input-panel code is present (`terminate_binding` `0x10a110`, `click_to_activate_binding` `0x10a480`, `touch_to_activate_binding` `0x10a410`, `weston_seat_get_keyboard` `0x103260` as an imported stub). The behaviour recorded earlier — keys reach the compositor with no focus surface and are dropped — therefore has decompiled backing, and the gap sits at the shell/compositor boundary.
+- Published the audit as `vm/evidence/vendor-userspace-260128/ivi-shell-input-audit.txt` (counts, symbols and addresses only) and registered its SHA-256 in `vm/evidence-manifest.json`.
+- Decompiled `AppLauncher` completely (1114 functions). It imports no `execve`, `fork` or `posix_spawn`: children are spawned through Qt, which explains why an `execve` interposer preloaded into the launcher is the working injection point for the AppNavi child.
+- `docs/navigation-status.md` cites the audit alongside the behavioural finding; all decompiled output stays under ignored `work/`.
+
+## 2026-10-31 — envelopes reproducible, updater read, deployment paths mapped
+
+- Wrote `tools/uk_fw/gen5w_encrypt.py`, the exact inverse of the TE2 decryptor: AES-128-CBC over the zero-padded payload, truncated back to the payload length, with the dropped ciphertext tail stored in the metadata padding and the trailer integrity word recomputed. Re-encrypting the decrypted `HU/firmware/update.tar.gz` with the vendor file as template reproduces the original file byte for byte — the format is writable, not only readable.
+- Decrypted the packaged updater: `AppUpgrade` is itself a TE2 envelope, and its body is an ELF64 binary (10.8 MB, now `work/updater/AppUpgrade.elf`). Its strings carry the acceptance logic: RedBend compares `Source signature 0x%08x and CRC 0x%08x`, `[VELIX] : _CheckCKSOfFile … crc` re-checks files, `Vr_fixed md5sum checking` validates the digest lists, `CheckEncryptFile` decides whether a file must be encrypted, and the version gate reports `E_UPDATE_VERSION_DOWN/SAME/UP` including UNECE comparisons. No public-key primitive appears in the updater, which fits the split roots of trust recorded earlier.
+- Recorded the deployment question as `docs/update-deployment-feasibility.md`: the boot container is protected by an OEM RSA-2048 signature whose key is in no analysed artifact, while the application chain's gates (CRC records, MD5 lists, version string, AES envelope) are reproducible here. The open question that decides feasibility is whether any updater path opens the TE2 signature/key stores; that is now the first ranked static experiment. No vehicle was contacted and no flashing procedure is described.
+
+## 2026-10-31 — userland decompilation inventory
+
+- Decompiled the launcher-side binaries in one queue with a bounded import each: `AppHomeScreen` 12,467 functions, `ApplicationManager` 4,740, `UserProfileManager` 2,127, `AppOSDManager` 2,098, the decrypted updater `AppUpgrade` 369, plus `AppLauncher` 1,114 and `ivi-shell.so` 400 — **23,315 functions** in total under `work/decompiled/`, each file headed with its entry address and signature.
+- `AppNavi` (143 MB, 158,641 analysed functions) is partial: 3,613 functions are written. A single worker runs at about five functions per second, and three sliced workers on project copies only reached two per second because individual Qt template functions can consume the full 90-second decompiler timeout. Finishing it is a background job of hours, not minutes: `decompile.py --select ALL --reuse --slice i/3` on three copies of `work/ghidra-project-appnavi`.
+- Two tool fixes came out of this: file names keep a 60-character head of the symbol plus a CRC-32 (C++ mangled names broke the 255-byte filesystem limit and aborted the run after 1,417 functions), and `--limit 0` now means "no cap" end to end.
+- The full suite passes with the decompilers stopped (238 cases); three cases failed while three Ghidra workers were competing for CPU, and each of those suites passes on its own, so the failures were resource contention rather than code.
+
+## 2026-10-31 — AppNavi decompiled in bulk (141,951 functions)
+
+- Ran the full `AppNavi` decompilation with ten parallel workers over separate copies of the analysed project (`--slice i/10`, resume on, 12-second per-function cap). Result on disk: **141,951 C files**, 815 MB, up from 3,613.
+- The Ghidra inventory (`--select LIST`) gives the exact denominator: 158,641 functions analysed, **157,499 with a body**, 141,951 with C. So 89.5% of body-bearing functions are decompiled and 15,548 produced no C — they either exceed the per-function timeout or return no decompilable body. Function-level failure messages are now printed (`failed <entry> : <error>`) and the resume logic means a later pass costs only those functions.
+- Resumability and partitioning were added for this: `--slice i/n` splits the function iterator across workers, a finished file is never redone, `--function-timeout` bounds pathological functions, and `--limit 0` means no cap. Ten workers on separate project copies reached about 100 functions per second; a single worker manages about five.
+
+## 2026-10-31 — the AppNavi tail at the default cap, and honest reporting
+
+- Re-ran the AppNavi tail with the decompiler's **default 90-second** per-function cap
+  (not the 12- or 45-second caps the earlier bulk passes used) as ten long-lived
+  workers, so the remaining functions are attempted under the same budget a single
+  targeted run would give them.
+- Reporting fixes so a pass cannot look finished when it is not: the wrapper no longer
+  prints a 140k-file listing (a 40-name sample plus `functions` count instead), it
+  reports `failure_rows` from `failures.tsv` and the `ghidra.log` path, and the
+  exit status distinguishes "nothing to do, everything skipped" from an aborted run.
+- The per-entry failure reasons now separate the two tail classes in one file:
+  refusals (`Cannot properly adjust input varnodes`, `Unable to find unique hash for
+  varnode`) and per-function timeouts.
+- Recorded, rather than hidden, the one unresolved accounting discrepancy: sliced
+  passes report `skipped` counts consistent with those files existing while the
+  inventory still counts 15,437 as missing, so resume and inventory disagree for this
+  binary and the next step is reconciling the two predicates.
+
+## 2026-10-31 — the AppNavi decompile is complete
+
+- Closed the last of the tail and verified it against the inventory rather than asserting
+  it: **157,484 `.c` + 15 `.asm` = 157,499 artifacts** for 157,499 body-bearing
+  functions, with zero entries lacking an artifact when `--select LIST` is reconciled
+  against the files on disk.
+- Found the reason nine entries had vanished from the program entirely: the stubborn retry
+  called `removeFunction` before rebuilding, so a failed rebuild destroyed the function.
+  The retry is now non-destructive — clear and re-disassemble the existing body in place —
+  and after that change the remaining entries closed in two short passes.
+- The 15 listings are real refusals with reasons attached (`process: timeout`,
+  `Cannot properly adjust input varnodes`, `Unable to find unique hash for varnode`,
+  `Decompiler process died`), published as disassembly with a row in
+  `listing-fallbacks.tsv`; several of them are only a few instructions long, which is
+  evidence the decompiler process rather than the function is the limiting factor.
+
+## 2026-10-31 — EU package setup and REA cross-reference
+
+- Reacquired the public EU `IONIQ5_EU` `NE_E.EUR.S5W_L.001.001.260128` package under ignored `work/firmware/`; the project verifier confirms 35/35 payloads and the map MD5 matches the retained record.
+- Added a single offline setup command that decrypts the seven TE2 inputs, safely extracts the five archives, and prepares a minimal kernel shell. The full launcher/HMI workspace is not recreated, and this host has no QEMU executable.
+- Added the Python 3.10 streaming SHA-256 fallback required by `vm_boot.prepare` and covered it with a unit test.
+- Installed REA 6.8.0 and Ghidra 12.1.4 in temporary paths without changing agent configuration. A Ghidra reference confirms raw call `0x2d6611 → 0x190c70` after image-base normalization; the enclosing caller/event origin remains unresolved. No target execution or firmware write occurred.
+
+## 2026-10-31 — observer regression coverage
+
+- Added a native mock-client unit test for the AppNavi observer's no-hold pass-through, null-attach/commit correlation and explicit-hold labeling.
+- Host build and tests validate the interposer logic only; the recovered guest's dynamic symbol resolution remains unverified. No VM run or image mutation occurred.
+
+## 2026-10-31 — bounded AppNavi hide-path observer
+
+- Extended the guest helper to log bounded client-requested null-buffer attaches and following commit calls. The default mode forwards requests unchanged; optional held attaches are distinguished from genuine client requests.
+- Compiled with `-Wall -Wextra -Werror` and verified the no-hold observer and explicit hold behavior against a native mock Wayland client. This does not establish guest symbol interposition or AppNavi runtime behavior.
+- Updated current handover and acceptance steps. No VM run or firmware-image change was made because `work/vm` is absent from the workspace.
+
+## 2026-10-31 — AppNavi launch-status call-site inventory
+
+- Enumerated four direct calls to the AppNavi one-shot notification in the retained disassembly: primary-screen first hide, `onInitializeDone()`, `onUpdatePlatform()`, and `timerEvent()`.
+- All call the same function, whose one-shot flag is set before `launched(30)` and `SendNaviBootFail(5)`. The observed literal does not identify which caller ran.
+- The 22,999 ms timeout was disabled in the latest long-startup VM run, but its independent first-hide branch remains possible. The actual return address and upstream manager BG-event caller are still unobserved.
+- Updated the Navigation evidence, handover, and changelog. No VM run or image change was possible from this workspace; no status or callback was patched.

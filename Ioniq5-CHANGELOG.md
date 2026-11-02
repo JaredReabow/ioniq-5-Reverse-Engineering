@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.69.0 - the vendor ships its own window-manager protocol, and it has exactly the requests we need
+
+- While looking for how a surface id is agreed, found the vendor's own protocol description at
+  **`/usr/share/ivi-window-manager/ivi-window-manager.xml`** — a `ivi_window_manager` interface that is not upstream `ivi-controller` and is far more directly
+  useful:
+  - `set_surface_visible(surface_id:uint, is_visible:uint)`
+  - `set_surface_layout(surface_id:uint, x:int, y:int, width:int, height:int)`
+  - `request_fg(display_plane_idx:int, surface_id:uint)`
+  - `set_visible_for_qtwayland(surface_id:uint, isVisible:int)`
+  - `set_surface_to_full_screen(surface_id:uint)`, `set_surface_to_top_order_within_layer(surface_id:uint)`,
+    `set_surface_alpha`, `set_parent_child_surface(parent, child)`, `show_notification`, `show_PAS`, `expand_drawer`
+  - `get_primary_screen_size()` → `primary_screen_size(width, height)`, and `update_layout(arg)`
+- **This is the missing placement adaptor, in the vendor's own vocabulary.** Making a drawn surface visible on the vehicle is
+  `set_surface_visible(id, 1)` plus `request_fg(plane, id)` — not the generic `ivi-controller` layer dance this project was about to build.
+- The vendor shell also contains the string `[%s] app_surface_created should be visible at Foreground`, which says the *real* window manager makes new app
+  surfaces foreground automatically when it sees them — i.e. on the vehicle this is done by the `ivi-window-manager` module that our projection loads but never
+  drives.
+- The id convention is still the open question: the app's `ivi_controller.surface_create(0, …)` sends **0**, and the vendor library's own strings reference
+  `PID(%d), DID(%d), master_id(%d), clone_id(%d)` for clone surfaces, so ids are not simply the environment value.
+- Delegated: a tool that speaks **`ivi_window_manager`** (generated from the vendor XML) and issues `request_fg` + `set_surface_visible` + `set_surface_layout`
+  for a given id, so that once the id is known the surface can be made visible without touching the compositor.
+
 ## 2.68.0 - the placement tool works, and the vendor protocol tells a late client nothing
 
 - `ivi_place.c` (written by subagent, built and injected as `/usr/bin/ivi-place`) connects correctly and enumerates:

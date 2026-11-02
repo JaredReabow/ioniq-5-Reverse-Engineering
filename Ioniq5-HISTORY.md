@@ -4164,3 +4164,10 @@ and are superseded by corrections rather than silently rewritten.
   says nothing to a client that arrives afterwards.
 - It also turned up a correction: the layer ids in our own configuration are not the layer ids the vendor layout uses.
 - So this is blocked on discovering an id, not on building anything. That is a smaller and more honest problem than the one at the start of the day.
+
+## 2026-10-31 — the vendor had a word for what we were missing
+
+- The thing this project kept trying to build by hand already exists as a shipped protocol, with requests named for exactly what we want: make this surface visible,
+  put it in the foreground, lay it out at this rectangle.
+- That changes the shape of the remaining work from inventing a mechanism to driving the vendor's own one, which is the same lesson as the MICOM transport and the
+  environment variable: the machinery is usually there, and the missing part is the driver for it.

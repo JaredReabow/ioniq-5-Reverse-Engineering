@@ -286,7 +286,12 @@ repeatedly calls an external reader until it returns no object, requires an
 exact `0x12`-byte header, obtains total entry size from header `+0x0e`, then
 requires an exact read of `total_size - 0x12` payload bytes before prepending
 the materialized object. This exactly matches the FTPR kernel's sequential
-entry-boundary stream geometry.
+entry-boundary stream geometry. The exact materializer zero-extends the u16
+total and subtracts `0x12` without first requiring `total >= 0x12`; values
+`0..0x11` therefore wrap the requested payload length modulo 2^32. No explicit
+maximum check is observed either. This is an exact parser-integrity dependency,
+but attacker control or runtime reachability of a malformed handoff stream is
+not proved.
 
 BUP startup also fixes the runtime order. Main calls phase dispatcher `0x28932`
 for phase zero. That phase has 22 functions at table `0x54744`; ingestion
@@ -594,6 +599,8 @@ What is now proved:
   first-entry address, state byte, and entry-size geometry;
 - exact FTPR streaming and BUP runtime-object ingestion agree on `0x12`-byte
   header, total-size-at-`+0x0e`, payload remainder, and entry boundaries;
+- BUP subtracts `0x12` from the zero-extended u16 total without a minimum-size
+  guard, but malformed-stream attacker control or reachability is not proved;
 - BUP phase zero ingests that transient object list at function index 7,
   consumes `ifp_uep` at index 10, and frees the list only after the phase;
 - the BUP reader-import/FTPR-kernel-function binding remains open;
@@ -684,11 +691,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `55,514`
-  - SHA-256 `5a803cb5d4baba39ca79e835f7cd2c3ad86689bd2d61cc3fa5a56806bdf67ec8`
+  - size `55,994`
+  - SHA-256 `fd01ced30384bff6052ed9aa3b4a40d78aa4dd190c31d043f8356b3ed929afc5`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `114,579`
-  - SHA-256 `4169d65333fbbad8ad2556b58fe04b02ac9149287d425232921e7ec085678673`
+  - size `114,808`
+  - SHA-256 `9ece68730be6d4836c51ae3757a4b066aa0daeb44198e80da5cfe881ee8be3c4`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

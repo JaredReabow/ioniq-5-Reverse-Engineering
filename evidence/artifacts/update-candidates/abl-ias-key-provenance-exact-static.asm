@@ -2411,12 +2411,12 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
    28899: je      0x28902
    2889b: cmp     edx, 0x12            # header read must be exact
    2889e: jne     0x28900
-   288a0: movzx   esi, word ptr [ebp - 0x14] # entry total size at header +0xe
+   288a0: movzx   esi, word ptr [ebp - 0x14] # u16 entry total size at header +0xe
    288a4: lea     eax, [esi + 0xe]
    288a7: push    eax
    288a8: call    0x6078               # allocate object
    288b4: push    0x12
-   288b6: sub     esi, 0x12            # payload length
+   288b6: sub     esi, 0x12            # payload length; no prior total>=0x12 check
    288bd: call    0x6055               # copy object name/header
    288c2: lea     eax, [ebx + 0x20]
    288c5: mov     dword ptr [ebx + 0x14], esi  # payload size
@@ -2480,10 +2480,12 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 # This proves BUP ingestion occurs before the phase-zero ifp_uep consumer and
 # that list cleanup follows phase zero. FTPR's stream reader and BUP ingestion
 # also agree on a 0x12-byte header, total size at +0x0e, exact payload
-# remainder, and sequential entry boundaries. The exact external-reader
-# import-to-kernel-function binding is not yet closed, so this does not yet
-# prove BUP's ipub_key came from the RBE table or exclude the /snowball fallback
-# at the later manifest-verification point.
+# remainder, and sequential entry boundaries. BUP zero-extends the u16 total
+# then subtracts 0x12 without a minimum-size check, so totals 0..0x11 wrap the
+# requested payload length modulo 2^32. No attacker-controlled malformed stream
+# is proved. The exact external-reader import-to-kernel-function binding is not
+# yet closed, so this does not prove BUP's ipub_key came from the RBE table or
+# exclude the /snowball fallback at the later manifest-verification point.
 
 ## BUP runtime-object or /snowball resolver (BUP file [0x2026a,0x2039a), runtime [0x4626a,0x4639a))
 

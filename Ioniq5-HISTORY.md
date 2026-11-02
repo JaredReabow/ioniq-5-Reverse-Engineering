@@ -3989,3 +3989,11 @@ and are superseded by corrections rather than silently rewritten.
   seen to look for and not find.
 - It also weakens yesterday's signal theory: the signal it could not connect is its own.
 - If the vendor expects a screen id this compositor never creates, then the fault is configuration on our side again, which is familiar ground.
+
+## 2026-10-31 — the screen it wants is a position in a list
+
+- Read the shell source and found the whole mystery of "screen nine": screens are numbered by output order, so a single-output compositor can
+  only ever have screen zero.
+- That converts the problem into something we control. Our backend can present more outputs; the vendor shell will number them; the app will
+  find the one it asks for.
+- The measurement is the request. The explanation is a hypothesis until a ten-output compositor says otherwise.

@@ -51,12 +51,12 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "9eb350a9b73a6fde4f6168b99acf17cc00db2f606fdbe343d65afdd147429d50")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "128fdb797dbe679f138bd1efaca75af222c1e8b9625955662cb596b3c1f7c0a2")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "f4ed1845afbffc75646223105132d2c6c9b3fc685fed6dc0df1273d6c68ecf02")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "4682888b3ce5bcb0ac5ec23f2cd6c19bf7e18c0b74a8136ce544715f097f3aa1")
         self.assertIn(b"RBE incoming runtime-object handoff lookup", data)
         self.assertIn(b"mov     ebx, 0x8200008", data)
         self.assertIn(b"RBE runtime-object handoff append", data)
@@ -259,6 +259,10 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(fpf_handoff["bup_named_lookup_returns_first_match"])
         self.assertTrue(fpf_handoff["bup_last_ingested_duplicate_name_wins"])
         self.assertTrue(fpf_handoff["rbe_stock_producer_allocates_exact_required_size"])
+        self.assertTrue(fpf_handoff["rbe_appends_stock_ifp_uep_after_all_preexisting_handoff_entries"])
+        self.assertFalse(fpf_handoff["preexisting_duplicate_ifp_uep_overrides_rbe_stock_object"])
+        self.assertTrue(fpf_handoff["preexisting_duplicate_shadowed_if_ftpr_to_bup_sequence_is_preserved"])
+        self.assertFalse(fpf_handoff["post_rbe_handoff_mutation_or_reordering_proved"])
         self.assertFalse(fpf_handoff["malformed_or_duplicate_ifp_uep_attacker_control_proved"])
         self.assertFalse(fpf_handoff["bup_rejects_non_real_marker"])
         self.assertTrue(fpf_handoff["bup_initial_payload_copy_byte_identity_proved"])
@@ -395,7 +399,8 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["uep_to_oem_key_to_ibbp_to_exact_ibb_chain_proved"])
         self.assertTrue(conclusions["selected_uep_to_bup_fpf_to_signed_nftp_fpf_shadow_proved"])
         self.assertTrue(conclusions["bup_ifp_uep_null_and_size_checks_absent_proved"])
-        self.assertFalse(conclusions["bup_malformed_or_duplicate_ifp_uep_reachability_proved"])
+        self.assertTrue(conclusions["rbe_stock_ifp_uep_shadows_preexisting_duplicate_on_preserved_stream_proved"])
+        self.assertFalse(conclusions["post_rbe_malformed_or_reordered_ifp_uep_reachability_proved"])
         self.assertFalse(conclusions["nftp_fpf_hardware_state_equated_to_rbe_hardware_window"])
         self.assertFalse(conclusions["ftpr_manifest_direct_oem_key_coverage_proved"])
         self.assertTrue(conclusions["pre_ibbl_key_manifest_authentication_proved"])

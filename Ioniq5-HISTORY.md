@@ -4107,3 +4107,10 @@ and are superseded by corrections rather than silently rewritten.
 - Recorded as untested rather than as a negative: the difference between "the hypothesis failed" and "the experiment never ran" is the whole value of keeping this
   log.
 - Also noted a measurement whose window was shorter than the failure it was looking for, which is the same mistake as the five-second race earlier today.
+
+## 2026-10-31 — the service was not the cause
+
+- With persistence actually running and serving, the camera application still dies in the same free(). The hypothesis is dead, and it died properly: measured past
+  the failure latency, with the service confirmed alive.
+- The stub stays, because the image genuinely lacks that service. It is not a cure and will not be described as one.
+- Two questions remain and one of them is new: what the two remaining shared libraries do, and why the home screen vanishes without a segfault of its own.

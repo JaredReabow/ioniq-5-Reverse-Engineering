@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.61.0 - refuted: supplying the persistence service does not stop the heap corruption
+
+- The stub now works in the guest. Its own log, in order:
+  `persadmin-svc: image loaded (constructor reached)` → `main() entered, before dlopen` → `dlopen(libdbus-1.so.3) -> 0x2b15060` →
+  `resolved all 18 required libdbus symbols`, and `org.genivi.persistence.admin` appears 21 times in its log, i.e. it owns the name and is serving. The
+  subagent fixed the null-pointer call by gating `main()` behind `resolve()` and checking every required symbol.
+- **Tested to the failure latency this time** (240 s, well past the 173–178 s window in which `AppCamera` died previously). Result:
+  - `persistence-admin-stub` still alive (pid 723) with **18** handled calls;
+  - `AppCamera` **still segfaults** at the same signature: `segfault at 7f8fb401dff8 ip …8e4 … in libc`, the same `free()+0x14` fault as before;
+  - `AppNavi` still segfaults in `libQt5Core` at 57 s, as it does without the stub;
+  - `AppHomeScreen` and `AppOSDManager` are also gone by 240 s, `AppHomeScreen` **without** a segfault line of its own.
+- So **the missing persistence service is not the cause of the heap corruption.** The hypothesis is refuted by measurement rather than left dangling. A client
+  that reaches its persistence service still dies in `free()`.
+- The stub is kept regardless: it supplies a service the image genuinely does not provide, other vendor clients consume it, and its absence would otherwise remain
+  another missing adaptor. It is not a fix for the crash, and the register of findings should not imply otherwise.
+- Remaining suspects among the shared dependencies: `libBigInfo.so.1` and `libImageProvider.so.1`, or the projection's own environment rather than any one
+  service. Also unresolved: why `AppHomeScreen` disappears by 240 s without a segfault, which is a different failure mode from the `free()` crash and may be a
+  separate defect worth its own record.
+
 ## 2.60.0 - the persistence stub crashed at four seconds, so the hypothesis is still untested
 
 - Injected the stub and ran the ten-screen chain with it starting immediately after the system bus. Result:

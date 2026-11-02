@@ -23,11 +23,12 @@ digest. Public Intel FIT definitions name type `0x0b`
 addresses, layout, bit selection, digest offset, and compare path are proved by
 exact target instructions.
 
-The exact CSE BUP now closes the FIT content producer: it initializes a FIT,
-looks up an object named `oem_key_man`, copies it into the FIT payload area, and
-publishes a type-`0x0b` entry at `0xfffe1000`. IBBL later consumes the handoff at
-`0xfef80000`. The physical mapping between those addresses and byte identity
-between `oem_key_man` and stored FTPR `oem.key` remain unproved, as does any
+The exact CSE RBE and BUP now close the persistent-to-published byte path. RBE
+selects FTPR CPD member `oem.key`, creates `oem_key_man` at that exact length,
+transfers the source bytes without a visible transformation, and checks the
+manifest dword length. BUP then copies `oem_key_man` into a FIT payload and
+publishes type `0x0b` at `0xfffe1000`. IBBL later consumes a FIT at `0xfef80000`.
+The physical mapping between those addresses remains unproved, as does any
 earlier CSE, Boot Guard, ACM, fuse, or ROM authentication.
 
 ## Canonical identities
@@ -112,6 +113,34 @@ and payload verifier. The selected digest is then compared with SHA-256 over
 verification follows only after equality, as established in the earlier key
 trust package.
 
+## Exact CSE RBE persistent-object materialization
+
+The exact RBEP CPD contains executable member `rbe`:
+
+- flash offset `0x105000`;
+- size `0x9000` (`36,864`);
+- SHA-256 `ec4c2ea54c2943f6f6ffed4b4157b7b03cbccf6ca2cc9b21ccc3dd62adc88cc1`;
+- code base `0x40000` and main-thread entry `0x407a3`.
+
+The main entry calls a fail-closed initialization chain that reaches `0x42f45`.
+On the exact `oem.key` branch, that function passes:
+
+- source name `oem.key`;
+- source partition index `0`;
+- destination object name `oem_key_man`; and
+- an output slot for the materialized object
+
+to the helper at `0x42e61`. That helper resolves the source CPD descriptor,
+creates the destination object at the descriptor's exact byte length, transfers
+that exact length from the source partition offset, and requires
+`destination[+0x18] * 4` to equal the source length. The exact FTPR member is
+`0x61c` bytes, and its manifest dword count is `0x187`, also `0x61c` bytes.
+No transform is visible between source and destination in this path.
+
+This proves byte continuity from the exact stored FTPR `oem.key` member to the
+Snowball object named `oem_key_man`. It does not by itself prove who authenticated
+FTPR, RBE, or the manifest before this copy.
+
 ## Exact CSE BUP FIT producer
 
 The exact FTPR CPD also contains executable member `bup`:
@@ -133,10 +162,9 @@ Its exact code:
 
 A separate exact BUP resolver couples names `rot.key`/`oem.key` with
 `rot_key_man`/`oem_key_man`, locates Extension 14, validates key type 1 versus
-2, and materializes usage/hash records. This proves that CSE BUP constructs the
-type-`0x0b` content from an object named `oem_key_man` and knows the persistent
-member name `oem.key`. It does not prove the two objects are byte-identical in
-the executed path.
+2, and materializes usage/hash records. Combined with the RBE exact-length copy,
+this proves that BUP's published type-`0x0b` object contains the exact FTPR
+`oem.key` bytes.
 
 IBBL's later source table is at `0xfef80000`, whereas BUP publishes the payload
 address as `0xfffe1000`. The intervening physical mapping or handoff is not yet
@@ -210,11 +238,26 @@ The exact proprietary instructions independently match these structural facts.
 The public names do not prove the target's earlier authentication policy or
 persistent provisioning implementation.
 
+A current public coreboot Apollo Lake/Gemini Lake IFWI constructor provides
+separate comparative corroboration:
+
+- commit `4f3d2b564c8675a05d555d27740d62e0257cbd5c`;
+- `util/apl_ifwi/apl_ifwi.py` SHA-256
+  `824497f98ed0f6475b13aebd2b798244e6ab09b55349e7004496ffe9138f296a`;
+- it creates an OEM Extension-14 manifest, names the resulting object
+  `oem_key`, and replaces FTPR CPD member `oem.key`.
+
+That modern public constructor corroborates the persistent member's purpose but
+is not evidence of exact source lineage or of the target's runtime authentication
+root.
+
 ## Security boundary
 
 What is now proved:
 
 - the runtime descriptor table is FIT-format;
+- exact CSE RBE copies FTPR `oem.key` at its exact source length into
+  `oem_key_man`, with a matching manifest-length check;
 - exact CSE BUP constructs a FIT type-`0x0b` entry from `oem_key_man` and
   publishes payload address `0xfffe1000`;
 - exact CSE BUP couples names `oem.key` and `oem_key_man` in its key resolver;
@@ -234,9 +277,8 @@ What remains unproved:
 
 - how CSE BUP's FIT/payload addresses are mapped into IBBL's source handoff at
   `0xfef80000`;
-- whether the published `oem_key_man` payload is byte-identical to exact stored
-  FTPR `oem.key`,
-  a different installed manifest, or another provisioned object;
+- whether an installed unit executes this exact RBE/BUP/ABL set rather than a
+  different installed manifest or firmware generation;
 - whether and how CSE, Boot Guard, an ACM, ROM, or another earlier stage verifies
   it before IBBL;
 - the actual runtime expected digest on an installed unit;
@@ -262,11 +304,11 @@ are captured.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `10,382`
-  - SHA-256 `73459a4376b9ae12f0fcf3d4828960859eefe4e1683c2cc3033988e14addb984`
+  - size `12,690`
+  - SHA-256 `86f3936c41b75fde136bdd68e24a0253a5192072ea9eb06d0b30148908b9014b`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `17,667`
-  - SHA-256 `56ea91be8c7b7f03a71e042a3129ed0df096e4331b02af2ef62a26444386c666`
+  - size `31,647`
+  - SHA-256 `f888b0c5b13020625be4550a069ef22a2070cfe4a2e742385b0535b3aeff46de`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

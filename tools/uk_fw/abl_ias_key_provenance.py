@@ -42,6 +42,15 @@ STAGE1_RANGES = {
     "ias_key_and_payload_auth": (0x157A3, 0x159FE, "4b71d5c95ff2bcf4210ba23a96883f3ce3524fb31b40f037a00991a6c14a7f30"),
     "oemkm_command_line_export": (0xBEA5, 0xBF10, "f37111948019b765312545efc1c3472d488b4fef7a3a322f86e5df92a722e40b"),
 }
+CSE_RBE_SHA256 = "ec4c2ea54c2943f6f6ffed4b4157b7b03cbccf6ca2cc9b21ccc3dd62adc88cc1"
+CSE_RBE_CODE_BASE = 0x40000
+CSE_RBE_RANGES = {
+    "main_key_init_caller": (0x4F5, 0x544, "1a0ca6ba5381d64ba6bb49318a2b874281b3aca4936f6dbf4a0da765ec22365d"),
+    "main_entry_to_key_init": (0x7A3, 0x7D3, "04a01423da8a3a279c81e3d56d8fba8d02d1456501c112ca8baafe30b02e0d1c"),
+    "cpd_to_snowball_copy": (0x2E61, 0x2F45, "fea37ed17b453e989d0335ad3e6f1054de937d37ab0b94db315601fcb3e0eb25"),
+    "key_manifest_materialization": (0x2F45, 0x3058, "120130f519bb739661da5619db740fe7c0bc51073d57137dad1b9c34b98bf798"),
+    "data_transfer_wrapper": (0x4451, 0x449C, "e44730fe26601f3b5914add1b155aaa4ad3c83a53837d6511c3167000ad4ab36"),
+}
 CSE_BUP_SHA256 = "cee77bc172a9df1c4088d5f716b9e55cda539a26656d07a92268c3cd5d4f0165"
 CSE_BUP_CODE_BASE = 0x26000
 CSE_BUP_RANGES = {
@@ -254,6 +263,24 @@ def check_ranges(data: bytes, ranges: dict[str, tuple[int, int, str]], label: st
     return result
 
 
+def extract_cse_rbe(abl: bytes) -> bytes:
+    cpd = 0x104000
+    if struct.unpack_from("<IIBBBBI", abl, cpd)[:6] != (0x44504324, 3, 1, 1, 16, 115):
+        raise Failure("RBEP CPD header drift")
+    entries = []
+    for index in range(3):
+        raw_name, raw_offset, size, _ = struct.unpack_from("<12sIII", abl, cpd + 0x10 + index * 24)
+        entries.append((raw_name.rstrip(b"\0").decode("ascii"), raw_offset & 0x1FFFFFF, size))
+    matches = [entry for entry in entries if entry[0] == "rbe"]
+    if matches != [("rbe", 0x1000, 0x9000)]:
+        raise Failure("RBEP rbe entry drift")
+    start = cpd + matches[0][1]
+    rbe = abl[start : start + matches[0][2]]
+    if len(rbe) != 0x9000 or hashlib.sha256(rbe).hexdigest() != CSE_RBE_SHA256:
+        raise Failure("CSE RBE identity drift")
+    return rbe
+
+
 def extract_cse_bup(abl: bytes) -> bytes:
     cpd = 0x11E000
     entries = []
@@ -377,10 +404,12 @@ def parse_stored_oem_key(abl: bytes) -> dict:
 def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     abl = archive_one(update)
     ibbl, stage1 = extract_ibb(abl)
+    cse_rbe = extract_cse_rbe(abl)
     cse_bup = extract_cse_bup(abl)
     stored_oem_key = parse_stored_oem_key(abl)
     ibbl_ranges = check_ranges(ibbl, IBBL_RANGES, "IBBL")
     stage_ranges = check_ranges(stage1, STAGE1_RANGES, "stage-1")
+    cse_rbe_ranges = check_ranges(cse_rbe, CSE_RBE_RANGES, "CSE RBE")
     cse_bup_ranges = check_ranges(cse_bup, CSE_BUP_RANGES, "CSE BUP")
 
     # Fixed exact instruction and string anchors within the hash-bound ranges.
@@ -414,7 +443,17 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
         raise Failure("ABL.oemkm command-line strings drift")
     if stage1[0xC1E4:0xC1E6] != b"\x6a\x27":
         raise Failure("type-3 OS selector drift")
+    if cse_rbe.find(b"rot_key_man\0") != 0x7A6C or cse_rbe.find(b"oem.key\0") != 0x7A80:
+        raise Failure("CSE RBE key-manifest source strings drift")
+    if cse_rbe.find(b"oem_key_man\0") != 0x7A9A:
+        raise Failure("CSE RBE key-manifest destination string drift")
+    rbe_route = bytes.fromhex(
+        "6a0068807a04006a00e813f0ffff83c40c85c0751db9887a040031d2b8917a040068c87f0406e867feffff5985c07557eb1d31d2b99a7a0400b8807a0400682c100406e84afeffff"
+    )
+    if cse_rbe[0x2FCF : 0x2FCF + len(rbe_route)] != rbe_route:
+        raise Failure("CSE RBE oem.key to oem_key_man route drift")
     if cse_bup.find(b"oem.key\0") != 0x2E235 or cse_bup.find(b"oem_key_man\0") != 0x2E249:
+        raise Failure("CSE BUP key-manifest source strings drift")
         raise Failure("CSE BUP key-manifest source strings drift")
     name_offsets = []
     name_pos = 0
@@ -516,6 +555,24 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                     "public_me_analyzer_name": "OS Kernel",
                 },
             },
+            "cse_rbe_key_manifest_materializer": {
+                "cpd": "RBEP",
+                "member": "rbe",
+                "flash_offset": 0x105000,
+                "size": len(cse_rbe),
+                "sha256": CSE_RBE_SHA256,
+                "code_base": CSE_RBE_CODE_BASE,
+                "main_thread_entry": 0x407A3,
+                "instruction_ranges": cse_rbe_ranges,
+                "source_partition_index": 0,
+                "source_cpd_member": "oem.key",
+                "destination_object_name": "oem_key_man",
+                "source_member_flash_offset": stored_oem_key["flash_offset"],
+                "source_member_size": stored_oem_key["size"],
+                "copy_semantics": "creates the destination object at the source CPD length, transfers that exact length from the source CPD entry, then requires destination manifest dword count at +0x18 times four to equal the source length",
+                "transformation_before_publication_observed": False,
+                "source_to_destination_exact_length_copy_proved": True,
+            },
             "cse_bup_fit_producer": {
                 "cpd": "FTPR",
                 "member": "bup",
@@ -532,7 +589,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                 "published_fit_type": 0x0B,
                 "published_length_source": "oem_key_man object dword count at +0x18, multiplied by four",
                 "final_handoff_address_0xfef80000_mapping_proved": False,
-                "oem_key_man_byte_identity_with_ftpr_oem_key_proved": False,
+                "oem_key_man_byte_identity_with_ftpr_oem_key_proved": True,
             },
             "stored_oem_key_manifest": stored_oem_key,
             "package_carried_os_key_candidate_digest": {
@@ -573,6 +630,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "selector_0x27_is_usage_bit_39_proved": True,
             "usage_bit_39_os_kernel_name_publicly_corroborated": True,
             "oem_key_manifest_kernel_command_line_export_proved": True,
+            "cse_rbe_copies_ftpr_oem_key_to_oem_key_man_proved": True,
             "cse_bup_constructs_fit_type0b_from_oem_key_man_proved": True,
             "cse_bup_resolver_couples_oem_key_and_oem_key_man_names_proved": True,
             "stored_oem_key_manifest_bytes_recovered": True,
@@ -580,6 +638,8 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "stored_oem_key_manifest_embedded_signature_valid": True,
             "package_candidate_matches_stored_usage39_digest": False,
             "runtime_fit_type0b_object_name_oem_key_man_proved": True,
+            "bup_published_type0b_bound_to_stored_oem_key_manifest": True,
+            "bup_published_expected_usage39_digest_recovered": True,
             "runtime_fit_type0b_bound_to_stored_oem_key_manifest": False,
             "runtime_expected_digest_bytes_recovered": False,
             "source_fit_content_producer_cse_bup_proved": True,
@@ -589,10 +649,11 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "boot_root_or_persistence_proved": False,
         },
         "limitations": [
-            "Exact CSE BUP code initializes a FIT, copies an object named oem_key_man into its payload area, and appends type 0x0b with address 0xfffe1000. Exact IBBL later consumes a FIT at 0xfef80000, but the physical mapping between those addresses is not yet recovered.",
+            "Exact CSE RBE code selects FTPR CPD member oem.key, creates object oem_key_man at the exact source length, transfers that exact length without a visible transformation, and requires the destination manifest dword count to match the source length.",
+            "Exact CSE BUP code initializes a FIT, copies oem_key_man into its payload area, and appends type 0x0b with address 0xfffe1000. Exact IBBL later consumes a FIT at 0xfef80000, but the physical mapping between those addresses is not yet recovered.",
             "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
-            "Exact CSE BUP key-resolution code couples the names oem.key and oem_key_man and validates Extension 14, but the recovered static path does not prove byte identity between the published oem_key_man object and the exact FTPR oem.key member.",
-            "The exact flash contains an FTPR oem.key $MN2/Extension-14 manifest with a valid embedded self-signature and usage-39 digest 9b0a59...; exact recovered code does not yet prove that the published oem_key_man object contains these exact bytes.",
+            "The RBE-to-BUP path binds BUP's published oem_key_man payload to exact FTPR oem.key bytes. The exact stored usage-39 digest is therefore recovered for the BUP-published object, but it is not promoted to the IBBL runtime expected digest until the BUP-to-0xfef80000 mapping is proved.",
+            "The exact flash contains an FTPR oem.key $MN2/Extension-14 manifest with a valid embedded self-signature and usage-39 digest 9b0a59...; the embedded signature still proves self-consistency rather than an external hardware root.",
             "The stored usage-39 digest does not equal the package carried-key candidate 437008... . Without the missing runtime FIT binding, this mismatch does not prove that the package boots or fails to boot under an installed ABL.",
             "The recovered IBB stages do not locally authenticate the key manifest before use. Any CSE, Boot Guard, fuse, ACM, or earlier-ROM authentication remains outside the recovered instruction boundary; the embedded manifest signature proves self-consistency only.",
             "The exact package carried-key candidate digest remains absent verbatim from the update ABL, IBBL, and decompressed stage 1; the installed platform's volatile handoff was not captured.",

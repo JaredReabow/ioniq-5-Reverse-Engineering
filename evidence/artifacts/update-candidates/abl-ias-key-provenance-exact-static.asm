@@ -543,3 +543,252 @@
 # The remaining hash-bound resolver range merges non-overlapping usage bitmaps
 # and materializes 0x34-byte hash records. It does not by itself establish byte
 # identity between the object named `oem_key_man` and FTPR member `oem.key`.
+
+## Exact CSE RBE key-manifest materialization
+# RBEP member: rbe
+# Flash offset: 0x105000
+# Size: 0x9000
+# SHA-256: ec4c2ea54c2943f6f6ffed4b4157b7b03cbccf6ca2cc9b21ccc3dd62adc88cc1
+# Code base: 0x40000
+# Main thread entry: 0x407a3
+# 0x47a80: "oem.key"
+# 0x47a9a: "oem_key_man"
+# At 0x43001 the caller sets EDX=0, ECX=0x47a9a, EAX=0x47a80 and
+# passes output slot 0x604102c to 0x42e61. The materializer resolves the
+# source CPD descriptor, creates the named destination at that exact length,
+# transfers the exact source length, and rejects a destination whose manifest
+# dword count at +0x18 multiplied by four differs from the source length.
+
+### Main entry reaches key initialization (file [0x7a3,0x7d3), runtime [0x407a3,0x407d3))
+
+   407a3: 55                           	push	ebp
+   407a4: 89 e5                        	mov	ebp, esp
+   407a6: 56                           	push	esi
+   407a7: 53                           	push	ebx
+   407a8: 56                           	push	esi
+   407a9: 8b 5d 08                     	mov	ebx, dword ptr [ebp + 0x8]
+   407ac: 8b 75 0c                     	mov	esi, dword ptr [ebp + 0xc]
+   407af: e8 58 f8 ff ff               	call	0x4000c <.text+0xc>
+   407b4: e8 14 fd ff ff               	call	0x404cd <.text+0x4cd>
+   407b9: e8 8e fc ff ff               	call	0x4044c <.text+0x44c>
+   407be: 85 c0                        	test	eax, eax
+   407c0: 0f 85 6e 01 00 00            	jne	0x40934 <.text+0x934>
+   407c6: e8 2a fd ff ff               	call	0x404f5 <.text+0x4f5>
+   407cb: 85 c0                        	test	eax, eax
+   407cd: 0f 85 61 01 00 00            	jne	0x40934 <.text+0x934>
+
+### Fail-closed key-initialization caller (file [0x4f5,0x544), runtime [0x404f5,0x40544))
+
+   404f5: 55                           	push	ebp
+   404f6: 89 e5                        	mov	ebp, esp
+   404f8: e8 24 fe ff ff               	call	0x40321 <.text+0x321>
+   404fd: 85 c0                        	test	eax, eax
+   404ff: 75 41                        	jne	0x40542 <.text+0x542>
+   40501: e8 cd 2d 00 00               	call	0x432d3 <.text+0x32d3>
+   40506: 85 c0                        	test	eax, eax
+   40508: 75 38                        	jne	0x40542 <.text+0x542>
+   4050a: e8 43 36 00 00               	call	0x43b52 <.text+0x3b52>
+   4050f: 85 c0                        	test	eax, eax
+   40511: 75 2f                        	jne	0x40542 <.text+0x542>
+   40513: e8 5e 4c 00 00               	call	0x45176 <.text+0x5176>
+   40518: e8 3f fb ff ff               	call	0x4005c <.text+0x5c>
+   4051d: 85 c0                        	test	eax, eax
+   4051f: 75 21                        	jne	0x40542 <.text+0x542>
+   40521: e8 99 20 00 00               	call	0x425bf <.text+0x25bf>
+   40526: 85 c0                        	test	eax, eax
+   40528: 75 18                        	jne	0x40542 <.text+0x542>
+   4052a: e8 16 2a 00 00               	call	0x42f45 <.text+0x2f45>
+   4052f: 85 c0                        	test	eax, eax
+   40531: 75 0f                        	jne	0x40542 <.text+0x542>
+   40533: e8 da 28 00 00               	call	0x42e12 <.text+0x2e12>
+   40538: 85 c0                        	test	eax, eax
+   4053a: 75 06                        	jne	0x40542 <.text+0x542>
+   4053c: 5d                           	pop	ebp
+   4053d: e9 c7 1d 00 00               	jmp	0x42309 <.text+0x2309>
+   40542: 5d                           	pop	ebp
+   40543: c3                           	ret
+
+### CPD member to Snowball object exact-length materializer (file [0x2e61,0x2f45), runtime [0x42e61,0x42f45))
+
+   42e61: 55                           	push	ebp
+   42e62: 89 e5                        	mov	ebp, esp
+   42e64: 57                           	push	edi
+   42e65: 56                           	push	esi
+   42e66: 53                           	push	ebx
+   42e67: 53                           	push	ebx
+   42e68: 89 45 f0                     	mov	dword ptr [ebp - 0x10], eax
+   42e6b: 83 7d 08 00                  	cmp	dword ptr [ebp + 0x8], 0x0
+   42e6f: 0f 94 c3                     	sete	bl
+   42e72: 89 df                        	mov	edi, ebx
+   42e74: 83 fa 03                     	cmp	edx, 0x3
+   42e77: 0f 97 c3                     	seta	bl
+   42e7a: 09 df                        	or	edi, ebx
+   42e7c: 85 c9                        	test	ecx, ecx
+   42e7e: 89 f8                        	mov	eax, edi
+   42e80: 0f 94 c3                     	sete	bl
+   42e83: 08 d8                        	or	al, bl
+   42e85: 0f 85 81 00 00 00            	jne	0x42f0c <.text+0x2f0c>
+   42e8b: 83 7d f0 00                  	cmp	dword ptr [ebp - 0x10], 0x0
+   42e8f: 74 7b                        	je	0x42f0c <.text+0x2f0c>
+   42e91: 8b 45 f0                     	mov	eax, dword ptr [ebp - 0x10]
+   42e94: 6a 01                        	push	0x1
+   42e96: 89 ce                        	mov	esi, ecx
+   42e98: 50                           	push	eax
+   42e99: 89 d3                        	mov	ebx, edx
+   42e9b: 52                           	push	edx
+   42e9c: e8 4f f1 ff ff               	call	0x41ff0 <.text+0x1ff0>
+   42ea1: 83 c4 0c                     	add	esp, 0xc
+   42ea4: 89 c7                        	mov	edi, eax
+   42ea6: 85 c0                        	test	eax, eax
+   42ea8: 74 69                        	je	0x42f13 <.text+0x2f13>
+   42eaa: 8b 40 10                     	mov	eax, dword ptr [eax + 0x10]
+   42ead: 8d 90 7c fd ff ff            	lea	edx, [eax - 0x284]
+   42eb3: 81 fa 7c 1d 00 00            	cmp	edx, 0x1d7c
+   42eb9: 77 68                        	ja	0x42f23 <.text+0x2f23>
+   42ebb: 6a 00                        	push	0x0
+   42ebd: 50                           	push	eax
+   42ebe: 6a 00                        	push	0x0
+   42ec0: 56                           	push	esi
+   42ec1: e8 c6 e6 ff ff               	call	0x4158c <.text+0x158c>
+   42ec6: 83 c4 10                     	add	esp, 0x10
+   42ec9: 89 c6                        	mov	esi, eax
+   42ecb: 85 c0                        	test	eax, eax
+   42ecd: 74 4b                        	je	0x42f1a <.text+0x2f1a>
+   42ecf: 6b cb 18                     	imul	ecx, ebx, 0x18
+   42ed2: ff 77 10                     	push	dword ptr [edi + 0x10]
+   42ed5: 8b 47 0c                     	mov	eax, dword ptr [edi + 0xc]
+   42ed8: 25 ff ff ff 01               	and	eax, 0x1ffffff
+   42edd: 03 81 d4 7f 04 06            	add	eax, dword ptr [ecx + 0x6047fd4]
+   42ee3: 50                           	push	eax
+   42ee4: 56                           	push	esi
+   42ee5: e8 67 15 00 00               	call	0x44451 <.text+0x4451>
+   42eea: 83 c4 0c                     	add	esp, 0xc
+   42eed: 89 c1                        	mov	ecx, eax
+   42eef: 85 c0                        	test	eax, eax
+   42ef1: 75 2c                        	jne	0x42f1f <.text+0x2f1f>
+   42ef3: 8b 46 18                     	mov	eax, dword ptr [esi + 0x18]
+   42ef6: 3d 00 08 00 00               	cmp	eax, 0x800
+   42efb: 77 26                        	ja	0x42f23 <.text+0x2f23>
+   42efd: c1 e0 02                     	shl	eax, 0x2
+   42f00: 39 47 10                     	cmp	dword ptr [edi + 0x10], eax
+   42f03: 75 1e                        	jne	0x42f23 <.text+0x2f23>
+   42f05: 8b 45 08                     	mov	eax, dword ptr [ebp + 0x8]
+   42f08: 89 30                        	mov	dword ptr [eax], esi
+   42f0a: eb 13                        	jmp	0x42f1f <.text+0x2f1f>
+   42f0c: b8 02 00 00 00               	mov	eax, 0x2
+   42f11: eb 2a                        	jmp	0x42f3d <.text+0x2f3d>
+   42f13: b9 03 00 00 00               	mov	ecx, 0x3
+   42f18: eb 05                        	jmp	0x42f1f <.text+0x2f1f>
+   42f1a: b9 05 00 00 00               	mov	ecx, 0x5
+   42f1f: 89 c8                        	mov	eax, ecx
+   42f21: eb 1a                        	jmp	0x42f3d <.text+0x2f3d>
+   42f23: 53                           	push	ebx
+   42f24: e8 96 f0 ff ff               	call	0x41fbf <.text+0x1fbf>
+   42f29: 89 04 24                     	mov	dword ptr [esp], eax
+   42f2c: 6a 03                        	push	0x3
+   42f2e: 6a 02                        	push	0x2
+   42f30: e8 99 ef ff ff               	call	0x41ece <.text+0x1ece>
+   42f35: 83 c4 0c                     	add	esp, 0xc
+   42f38: b8 0f 00 00 00               	mov	eax, 0xf
+   42f3d: 8d 65 f4                     	lea	esp, [ebp - 0xc]
+   42f40: 5b                           	pop	ebx
+   42f41: 5e                           	pop	esi
+   42f42: 5f                           	pop	edi
+   42f43: 5d                           	pop	ebp
+   42f44: c3                           	ret
+
+### Key-manifest source/destination routing (file [0x2f45,0x3058), runtime [0x42f45,0x43058))
+
+   42f45: 55                           	push	ebp
+   42f46: 89 e5                        	mov	ebp, esp
+   42f48: 80 3d 00 00 04 06 00         	cmp	byte ptr [0x6040000], 0x0
+   42f4f: 74 31                        	je	0x42f82 <.text+0x2f82>
+   42f51: c7 05 90 00 00 f4 43 02 80 02	mov	dword ptr [-0xbffff70], 0x2800243
+   42f5b: 66 c7 05 80 00 00 f4 08 00   	mov	word ptr [-0xbffff80], 0x8
+   42f64: c7 05 80 00 00 f4 0d 00 02 00	mov	dword ptr [-0xbffff80], 0x2000d
+   42f6e: c7 05 80 00 00 f4 02 00 86 80	mov	dword ptr [-0xbffff80], 0x80860002
+   42f78: c7 05 b0 00 00 f4 00 00 00 00	mov	dword ptr [-0xbffff50], 0x0
+   42f82: 66 83 3d 44 82 04 06 13      	cmp	word ptr [0x6048244], 0x13
+   42f8a: 76 09                        	jbe	0x42f95 <.text+0x2f95>
+   42f8c: 66 c7 05 44 82 04 06 00 00   	mov	word ptr [0x6048244], 0x0
+   42f95: 0f b7 05 44 82 04 06         	movzx	eax, word ptr [0x6048244]
+   42f9c: b9 6c 7a 04 00               	mov	ecx, 0x47a6c
+   42fa1: 68 28 10 04 06               	push	0x6041028
+   42fa6: 8d 50 01                     	lea	edx, [eax + 0x1]
+   42fa9: 66 c7 84 00 1c 82 04 06 0d 00	mov	word ptr [eax + eax + 0x604821c], 0xd
+   42fb3: 66 89 15 44 82 04 06         	mov	word ptr [0x6048244], dx
+   42fba: b8 78 7a 04 00               	mov	eax, 0x47a78
+   42fbf: 31 d2                        	xor	edx, edx
+   42fc1: e8 9b fe ff ff               	call	0x42e61 <.text+0x2e61>
+   42fc6: 5a                           	pop	edx
+   42fc7: 85 c0                        	test	eax, eax
+   42fc9: 0f 85 87 00 00 00            	jne	0x43056 <.text+0x3056>
+   42fcf: 6a 00                        	push	0x0
+   42fd1: 68 80 7a 04 00               	push	0x47a80
+   42fd6: 6a 00                        	push	0x0
+   42fd8: e8 13 f0 ff ff               	call	0x41ff0 <.text+0x1ff0>
+   42fdd: 83 c4 0c                     	add	esp, 0xc
+   42fe0: 85 c0                        	test	eax, eax
+   42fe2: 75 1d                        	jne	0x43001 <.text+0x3001>
+   42fe4: b9 88 7a 04 00               	mov	ecx, 0x47a88
+   42fe9: 31 d2                        	xor	edx, edx
+   42feb: b8 91 7a 04 00               	mov	eax, 0x47a91
+   42ff0: 68 c8 7f 04 06               	push	0x6047fc8
+   42ff5: e8 67 fe ff ff               	call	0x42e61 <.text+0x2e61>
+   42ffa: 59                           	pop	ecx
+   42ffb: 85 c0                        	test	eax, eax
+   42ffd: 75 57                        	jne	0x43056 <.text+0x3056>
+   42fff: eb 1d                        	jmp	0x4301e <.text+0x301e>
+   43001: 31 d2                        	xor	edx, edx
+   43003: b9 9a 7a 04 00               	mov	ecx, 0x47a9a
+   43008: b8 80 7a 04 00               	mov	eax, 0x47a80
+   4300d: 68 2c 10 04 06               	push	0x604102c
+   43012: e8 4a fe ff ff               	call	0x42e61 <.text+0x2e61>
+   43017: 5a                           	pop	edx
+   43018: 85 c0                        	test	eax, eax
+   4301a: 74 c8                        	je	0x42fe4 <.text+0x2fe4>
+   4301c: eb 38                        	jmp	0x43056 <.text+0x3056>
+   4301e: b9 a6 7a 04 00               	mov	ecx, 0x47aa6
+   43023: ba 03 00 00 00               	mov	edx, 0x3
+   43028: b8 ae 7a 04 00               	mov	eax, 0x47aae
+   4302d: 68 10 80 04 06               	push	0x6048010
+   43032: e8 2a fe ff ff               	call	0x42e61 <.text+0x2e61>
+   43037: 59                           	pop	ecx
+   43038: 85 c0                        	test	eax, eax
+   4303a: 75 1a                        	jne	0x43056 <.text+0x3056>
+   4303c: ba 02 00 00 00               	mov	edx, 0x2
+   43041: b9 b7 7a 04 00               	mov	ecx, 0x47ab7
+   43046: b8 c3 7a 04 00               	mov	eax, 0x47ac3
+   4304b: 68 f8 7f 04 06               	push	0x6047ff8
+   43050: e8 0c fe ff ff               	call	0x42e61 <.text+0x2e61>
+   43055: 5a                           	pop	edx
+   43056: c9                           	leave
+   43057: c3                           	ret
+
+### Exact-length transfer wrapper (file [0x4451,0x449c), runtime [0x44451,0x4449c))
+
+   44451: f6 05 08 e0 04 06 01         	test	byte ptr [0x604e008], 0x1
+   44458: 74 3c                        	je	0x44496 <.text+0x4496>
+   4445a: 55                           	push	ebp
+   4445b: 89 e5                        	mov	ebp, esp
+   4445d: ff 35 00 e0 04 06            	push	dword ptr [0x604e000]
+   44463: 68 00 f0 04 06               	push	0x604f000
+   44468: e8 ce 1c fc ff               	call	0x613b
+   4446d: 5a                           	pop	edx
+   4446e: 85 c0                        	test	eax, eax
+   44470: 59                           	pop	ecx
+   44471: 74 07                        	je	0x4447a <.text+0x447a>
+   44473: b8 12 00 00 00               	mov	eax, 0x12
+   44478: eb 1a                        	jmp	0x44494 <.text+0x4494>
+   4447a: ff 75 10                     	push	dword ptr [ebp + 0x10]
+   4447d: ff 75 0c                     	push	dword ptr [ebp + 0xc]
+   44480: ff 75 08                     	push	dword ptr [ebp + 0x8]
+   44483: 68 00 f0 04 06               	push	0x604f000
+   44488: e8 a4 1c fc ff               	call	0x6131
+   4448d: 83 c4 10                     	add	esp, 0x10
+   44490: 85 c0                        	test	eax, eax
+   44492: 75 df                        	jne	0x44473 <.text+0x4473>
+   44494: c9                           	leave
+   44495: c3                           	ret
+   44496: b8 12 00 00 00               	mov	eax, 0x12
+   4449b: c3                           	ret

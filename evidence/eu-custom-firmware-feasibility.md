@@ -109,11 +109,16 @@ whether that memory is immutable, and whether the selected UEP source is
 ROM/fuse authenticated or overrideable.
 
 Exact BUP adds a bounded lead: its generic manifest path can resolve `ipub_key`
-from a runtime object or construct `/snowball/ipub_key`, then selects a 32-byte
-digest using a selector bounded through `0x23`. The exact expected digest occurs
-statically only inside `rot.key`. No recovered evidence proves that the
-snowball branch is active, owner-writable, unauthenticated, or the source used
-by earlier RBE, so this path is not presently a root-key replacement route.
+from a runtime object or construct `/snowball/ipub_key`. The `0x23` comparison
+is a minimum resolved-length check: the path requires length greater than
+`0x23` (runtime payload size or snowball read return count), then uses byte 0 as
+an unchecked selector for the pointer at `4 + 4*selector`. For
+the minimum accepted `0x24`-byte object, only selectors `0..7` keep that pointer
+field in bounds. The exact expected digest occurs statically only inside
+`rot.key`. No recovered evidence proves that either object source is
+attacker-controlled, that the snowball branch is active or owner-writable, or
+that malformed-object reachability exists, so this parser-integrity dependency
+is not presently a root-key replacement route.
 
 A second exact path now shows how the selected UEP reaches later provisioning
 logic. RBE publishes the selected `0x100`-byte payload in `ifp_uep`, using a

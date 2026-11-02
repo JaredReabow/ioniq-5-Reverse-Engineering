@@ -357,9 +357,14 @@ The resolver then applies this exact rule:
   its payload pointer and size;
 - only while the list head is zero, construct and read
   `/snowball/ipub_key`;
-- the caller rejects a selector greater than `0x23`, selects a pointer from the
-  returned object, and supplies exactly 32 expected-digest bytes to the later
-  manifest validator.
+- the caller requires the resolved length to be greater than `0x23`—the value
+  is runtime payload size or snowball read return count, and the comparison is
+  a minimum-length check, not a selector bound;
+- it then takes selector byte 0 and loads the pointer at
+  `object + 4 + 4*selector`, with no observed selector upper bound or check
+  that the pointer field remains within the returned object;
+- exactly 32 expected-digest bytes from the selected pointer are supplied to
+  the later manifest validator.
 
 The digest `f2eb8fc4...` occurs statically in the exact 8 MiB ABL only once, in
 `rot.key`'s Extension-14 record at flash `0x17b2cc`. This rules out a second
@@ -367,7 +372,10 @@ plain static copy in this image, but it does not establish which BUP resolver
 branch is active or where RBE's earlier runtime object originated. In
 particular, the `/snowball/ipub_key` path name alone does not prove that the
 object is writable, unauthenticated, selected on this platform, or usable to
-replace the root key.
+replace the root key. For the minimum accepted `0x24`-byte object, only
+selectors `0..7` keep the four-byte pointer field inside the object. The absent
+bound is an exact parser-integrity dependency, but attacker-controlled malformed
+object reachability is not proved.
 
 Exact `FTPR.man` contains neither the name `oem.key` nor its SHA-256 in forward
 or reversed byte order, and FTPR CPD has no `oem.key.met` member. This is bounded
@@ -576,7 +584,8 @@ What is now proved:
 - `rot.key`, `RBEP.man`, `FTPR.man`, and `NFTP.man` use the same exact
   modulus-plus-exponent digest `f2eb8fc4...` and have valid embedded signatures;
 - exact BUP can resolve `ipub_key` from a runtime object or
-  `/snowball/ipub_key`, accepts selectors only through `0x23`, and passes a
+  `/snowball/ipub_key`, requires resolved length greater than `0x23`, then uses
+  an unchecked byte-0 selector for the pointer at `4 + 4*selector` and passes a
   selected 32-byte digest to its manifest verifier;
 - the exact root digest occurs statically only in `rot.key`; runtime branch
   selection and snowball writability/authentication remain unproved;
@@ -675,11 +684,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `54,554`
-  - SHA-256 `2af6d075bb78bde3c91c6eedce90a98005f2b302ffcc61c840e42d4e326e0b11`
+  - size `55,514`
+  - SHA-256 `5a803cb5d4baba39ca79e835f7cd2c3ad86689bd2d61cc3fa5a56806bdf67ec8`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `114,098`
-  - SHA-256 `fc5db0009fa0e879e674dd80d841bdcb93c3211bc82e98b4dfc34b23434c4dd4`
+  - size `114,579`
+  - SHA-256 `4169d65333fbbad8ad2556b58fe04b02ac9149287d425232921e7ec085678673`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

@@ -3932,3 +3932,12 @@ and are superseded by corrections rather than silently rewritten.
 - The same experiment killed the app outright when I used the shorter overload, which is a genuine security finding rather than a
   curiosity: any peer on that bus can terminate the driver-facing display with one message. It is in the register as V-045.
 - Two things learned in one run, one of them about our problem and one about theirs.
+
+## 2026-10-31 — the contract lied, and I had believed it
+
+- The app's own introspection describes three signatures for showing and hiding its window. Only an undocumented fourth form works,
+  and the documented hide call terminates the process. That is worse than a crash: the interface invites it.
+- My earlier register entry repeated the introspection's claim of a four-argument overload. It was wrong, and it is corrected in place
+  with a note rather than quietly edited.
+- On our own problem: the app acknowledges the show request in both boolean states and still paints nothing, so the request is not
+  what completes the picture.

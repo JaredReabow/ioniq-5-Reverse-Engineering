@@ -1379,29 +1379,34 @@ vulnerability is claimed, and this test does not move either entry.
 
 For each new issue record: stable ID, affected artifact/build and digest, source location, evidence type, caller/reachability, preconditions, bounded impact, remediation owner/status, regression test and remaining unknowns. Keep secrets and private keys out of reports. Append discovery/validation/correction events to `Ioniq5-HISTORY.md`; edit this register to reflect current conclusions. Preserve rejected findings to avoid rediscovery.
 
-## V-045 — Session-bus call with the alternate `show_window_fg` signature terminates `AppHomeScreen` (denial of service)
+## V-045 — Introspection disagrees with dispatch on `show_window_fg`/`hide_window_bg`, and mismatched arity terminates `AppHomeScreen` (denial of service)
 
-- **Status:** demonstrated in emulation (2026-10-31). Crash caused deliberately during control-channel discovery; not yet
-  reproduced against physical hardware.
-- **Component:** `/app/bin/AppHomeScreen`, D-Bus object `/com/lge/hkmc/avn/appfunc/appInterface`, bus name
-  `com.lge.hkmc.avn.appfunc.AppHomeScreen`, interface `com.lge.avn.appmanager.appbase`.
-- **What happens:** the interface exposes two overloads of `show_window_fg` — the 6-argument form
-  `(int32,int32,int32,int32,int32,boolean)` and a 4-argument form `(int32,int32,int32,int32)`, both present in the binary's
-  exported method table (`int AppHomeEngine::show_window_fg(int,int,int,int,int,bool)` and
-  `int AppHomeEngine::show_window_fg(int,int,int,int)`).
-  - The 6-argument call `int32:1 int32:11 int32:1 int32:-1 int32:0 boolean:false` returns `int32 1` normally.
-  - The 4-argument call `int32:10 int32:11 int32:1 int32:-1` produces
-    `org.freedesktop.DBus.Error.NoReply: Did not receive a reply`, and the process does not answer afterwards.
-- **Impact:** the home screen application is the compositor client responsible for the primary user interface. Any process able to
-  send on the session bus can terminate it with a single well-formed message, blanking the display while the rest of the system
-  continues to run. That is a denial of service against the primary driver-facing display from an unprivileged bus peer.
-- **Preconditions measured:** access to the session bus only. No authentication, no root, no physical access beyond having code
-  running as any user that can reach that bus.
-- **Evidence:** traced control-channel session; `dbus-send` replies reproduced above. Companion record in `Ioniq5-CHANGELOG.md`.
-- **Not established:** whether the 4-argument overload is reachable by design or is an artefact of the method table; whether the
-  process restarts automatically under the real watchdog (our chain restarts nothing); and whether a debugger-visible crash signal
-  matches a simple null-dereference.
-- **Suggested patch direction:** remove or gate the 4-argument overload, validate argument arity before dispatch, and treat a
-  malformed or unexpected call on `com.lge.avn.appmanager.appbase` as a recoverable error rather than a path into unguarded engine
-  code.
+- **Status:** demonstrated in emulation (2026-10-31). Not yet reproduced against physical hardware.
+- **Component:** `/app/bin/AppHomeScreen`, session bus name `com.lge.hkmc.avn.appfunc.AppHomeScreen`, object
+  `/com/lge/hkmc/avn/appfunc/appInterface`.
+- **The interface advertises** (live `org.freedesktop.DBus.Introspectable.Introspect`, 10,990 bytes, saved as
+  `evidence/vm-bringup/apphomescreen-introspection-2026-10-31.xml`):
+  - `com.lge.avn.appmanager.appbase.show_window_fg(i, i, i, i, i)`
+  - `com.lge.avn.appmanager.appbase.show_window_fg(i, i, i, i, i, b, i)`
+  - `com.lge.avn.appmanager.appbase.hide_window_bg(i, i, i, i)`
+- **The dispatch does not match that description.** Measured replies:
+  - `show_window_fg(int32,int32,int32,int32,int32)` → `org.freedesktop.DBus.Error.UnknownMethod`
+  - `show_window_fg(int32,int32,int32,int32,int32,boolean)` → **`int32 1`** (this undocumented 6-argument form is the one that works)
+  - `show_window_fg(int32,int32,int32,int32,int32,boolean,int32)` → `org.freedesktop.DBus.Error.NoReply`
+  - `hide_window_bg(int32,int32,int32,int32)` → `org.freedesktop.DBus.Error.NoReply`, and the process is **gone afterwards**
+    (subsequent calls return `ServiceUnknown`).
+- **Impact:** any peer on the session bus can terminate the home screen application — the compositor client responsible for the
+  primary driver-facing display — using only messages that the interface itself documents, or that differ from the working form by
+  arity alone. No authentication and no root are required, only the ability to send on that bus. Two of the three documented
+  signatures are unusable, and one of them kills the process.
+- **Why this is more than a crash:** the advertised contract invites the fatal call. A well-behaved client reading the introspection
+  data and invoking `hide_window_bg` as documented will take the display down.
+- **Not established:** whether the process restarts under the real watchdog; the exact faulting instruction; whether the 6-argument
+  form is a leaked overload from an older ABI rather than the intended interface.
+- **Correction note:** an earlier revision of this entry described a "4-argument overload" of `show_window_fg`. That was wrong — the
+  overloads are 5- and 7-argument, the 4-argument call was simply a malformed message, and the corrected facts above are the
+  measured ones. The finding stands; its description was fixed.
+- **Suggested patch direction:** make introspection reflect the real dispatch table, reject arity mismatches with a normal D-Bus
+  error instead of entering engine code, and route any unexpected call on `com.lge.avn.appmanager.appbase` through a recoverable
+  error path.
 

@@ -1,0 +1,288 @@
+method return sender=:1.15 -> dest=:1.40 reply_serial=2
+   string "<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="com.lge.avn.appmanager.appbase">
+    <method name="show_window_fg">
+      <arg direction="in" type="i" name="reason"/>
+      <arg direction="in" type="i" name="plane"/>
+      <arg direction="in" type="i" name="avmode"/>
+      <arg direction="in" type="i" name="command"/>
+      <arg direction="out" type="i" name="response_plan"/>
+    </method>
+    <method name="show_window_fg">
+      <arg direction="in" type="i" name="appid"/>
+      <arg direction="in" type="i" name="reason"/>
+      <arg direction="in" type="i" name="plane"/>
+      <arg direction="in" type="i" name="avmode"/>
+      <arg direction="in" type="i" name="command"/>
+      <arg direction="in" type="b" name="temporal"/>
+      <arg direction="out" type="i" name="response_plan"/>
+    </method>
+    <method name="hide_window_bg">
+      <arg direction="in" type="i" name="reason"/>
+      <arg direction="in" type="i" name="plane"/>
+      <arg direction="in" type="i" name="avmode"/>
+      <arg direction="in" type="i" name="command"/>
+    </method>
+    <method name="notify_event">
+      <arg direction="in" type="i" name="reason"/>
+      <arg direction="in" type="i" name="plane"/>
+      <arg direction="in" type="i" name="avmode"/>
+      <arg direction="in" type="i" name="command"/>
+    </method>
+    <method name="swrckey">
+      <arg direction="in" type="i" name="key"/>
+      <arg direction="in" type="i" name="status"/>
+    </method>
+    <method name="faceplatekey">
+      <arg direction="in" type="i" name="value"/>
+    </method>
+    <method name="faceplatedial">
+      <arg direction="in" type="i" name="key"/>
+      <arg direction="in" type="i" name="status"/>
+    </method>
+    <method name="ccpdial">
+      <arg direction="in" type="i" name="value"/>
+    </method>
+    <signal name="registertouchkey">
+      <arg direction="out" type="av" name="value"/>
+    </signal>
+    <signal name="set_using_appid_info">
+      <arg direction="out" type="b" name="value"/>
+    </signal>
+    <signal name="set_using_temporal_mode">
+      <arg direction="out" type="b" name="value"/>
+    </signal>
+  </interface>
+  <interface name="com.lge.avn.appmanager.audiotransition">
+    <method name="audiomode">
+      <arg direction="in" type="i" name="type"/>
+      <arg direction="in" type="i" name="avmode"/>
+    </method>
+  </interface>
+  <interface name="com.lge.avn.appmanager.notification">
+    <signal name="notification">
+      <arg direction="out" type="i" name="type"/>
+      <arg direction="out" type="i" name="command"/>
+    </signal>
+  </interface>
+  <interface name="com.lge.avn.appmanager.registration">
+    <method name="registration">
+      <arg direction="in" type="i" name="appid"/>
+      <arg direction="in" type="s" name="appname"/>
+      <arg direction="in" type="s" name="servicename"/>
+      <arg direction="in" type="s" name="objectpath"/>
+      <arg direction="in" type="i" name="plane"/>
+    </method>
+  </interface>
+  <interface name="com.lge.avn.appmanager.screentransition">
+    <method name="request">
+      <arg direction="in" type="i" name="eventid"/>
+      <arg direction="in" type="i" name="appid"/>
+      <arg direction="in" type="i" name="reason"/>
+      <arg direction="in" type="i" name="plane"/>
+      <arg direction="in" type="i" name="command"/>
+    </method>
+  </interface>
+  <interface name="com.lge.hkmc.avn.appfunc.appInterface">
+    <signal name="signalCallbackFromApp">
+      <arg direction="out" type="i" name="e"/>
+      <arg direction="out" type="ay" name="ba"/>
+      <arg direction="out" type="i" name="src"/>
+      <arg direction="out" type="i" name="dest"/>
+      <arg direction="out" type="i" name="cmd"/>
+    </signal>
+    <signal name="NotifyLanguageChanged">
+      <arg direction="out" type="i" name="langID"/>
+    </signal>
+    <signal name="NotifyUnitSettingChanged">
+      <arg direction="out" type="i" name="unit"/>
+    </signal>
+    <signal name="NotifyPHEVAlertChanged">
+      <arg direction="out" type="i" name="msg"/>
+    </signal>
+    <signal name="NotifyCustomSettingChanged">
+      <arg direction="out" type="ay" name="ba"/>
+    </signal>
+    <signal name="NotifyDeviceStatusChanged">
+      <arg direction="out" type="ay" name="eventData"/>
+    </signal>
+    <method name="NotifyRequestHomeScreen">
+      <arg direction="in" type="ay"/>
+    </method>
+    <signal name="updateSignal">
+      <arg direction="out" type="i" name="update"/>
+      <arg direction="out" type="i" name="percent"/>
+      <arg direction="out" type="i" name="msgIndex"/>
+    </signal>
+    <method name="NotifyStatusbarRequest">
+      <arg direction="in" type="ay"/>
+    </method>
+    <method name="NotifyEditWidgetHide">
+      <arg direction="out" type="int"/>
+    </method>
+    <method name="HomeNotifyCallStatus">
+      <arg direction="out" type="b"/>
+    </method>
+    <method name="NotifyOSDRequest">
+      <arg direction="in" type="ay"/>
+    </method>
+    <method name="NotifySystemPopupRequest">
+      <arg direction="in" type="i" name="id"/>
+      <arg direction="in" type="ay" name="text"/>
+    </method>
+    <method name="NotifySystemPopupResponse">
+      <arg type="i" name="id"/>
+      <arg type="i" name="result"/>
+    </method>
+    <signal name="NotifySystemPopupState">
+      <arg type="i" name="plane"/>
+      <arg type="i" name="state"/>
+    </signal>
+    <signal name="notifyShowVCuReadyPopup">
+    </signal>
+    <signal name="notifyEnableAccessUsmWhenDriving">
+    </signal>
+    <method name="BTStatusChanged">
+      <arg direction="in" type="ay" name="eventData"/>
+    </method>
+    <method name="NotifyShowFullScreen">
+      <arg direction="in" type="i" name="cmd"/>
+    </method>
+    <method name="NotifyShowNormalScreen">
+      <arg direction="in" type="i" name="cmd"/>
+    </method>
+    <method name="NotifyStatusbarShowRequest">
+      <arg direction="in" type="int"/>
+      <arg direction="in" type="int"/>
+    </method>
+    <method name="NotifyLocalPopupStatusChanged">
+      <arg direction="in" type="i" name="eStatus"/>
+      <arg direction="in" type="i" name="eScrType"/>
+    </method>
+    <signal name="NotifyLocalPopupChanged">
+      <arg direction="out" type="i" name="eStatus"/>
+      <arg direction="out" type="i" name="eScrType"/>
+    </signal>
+    <method name="NotifyNaviFavoriteAddressChanged">
+      <arg direction="in" type="i" name="type"/>
+    </method>
+    <signal name="ControllSendDataFromAssistant">
+      <arg direction="out" type="b" name="status"/>
+      <arg direction="out" type="b" name="type"/>
+    </signal>
+    <signal name="SetBeepSoundWidget"/>
+    <signal name="ControllSendDataFromNoti">
+      <arg direction="out" type="i" name="action"/>
+    </signal>
+    <signal name="NotifyGotoWelcomeScreen"/>
+    <signal name="NotifyRadioPresetChanged">
+      <arg direction="out" type="ay" name="presetID"/>
+    </signal>
+    <signal name="NotifyVolumeDriverTalkReset"/>
+    <signal name="Notify_DB_EV_TMS">
+      <arg direction="out" type="i" name="_checkIndex"/>
+    </signal>
+    <signal name="Notify_DB_TMS_EV">
+      <arg direction="out" type="i" name="_checkIndex"/>
+    </signal>
+    <signal name="Notify_TMS_EV_Transmission"/>
+    <signal name="Notify_DriveMode_Sync2VCU">
+      <arg direction="out" type="i" name="syncType"/>
+    </signal>
+    <signal name="NotifyFactoryReset"/>
+    <signal name="NotifyVMMSupportRecordingChanged">
+      <arg direction="out" type="b" name="state"/>
+    </signal>
+    <signal name="AskClimateAWStatus"/>
+    <signal name="NotifyOsdPopupCaptureStart">
+      <arg direction="out" type="i" name="id"/>
+      <arg direction="out" type="s" name="path"/>
+    </signal>
+    <signal name="FinishOsdPopupCapture">
+      <arg direction="out" type="i" name="result"/>
+    </signal>
+    <signal name="notifyValetModeStatus">
+      <arg direction="out" type="i" name="state"/>
+    </signal>
+    <signal name="NotifyHomeShowingCarplay">
+      <arg direction="out" type="i" name="isShow"/>
+    </signal>
+    <signal name="NotifyHomeGraphicCacheStatus">
+      <arg direction="out" type="i" name="isCache"/>
+    </signal>
+    <method name="MP_REAR_TALK_SOUND_PLAY_REQ">
+      <arg direction="out" type="ay"/>
+    </method>
+    <method name="MP_REAR_TALK_SOUND_STOP_REQ">
+      <arg direction="out" type="ay"/>
+    </method>
+    <method name="NotifySetDriverTalk">
+      <arg direction="in" type="b" name="status"/>
+    </method>
+    <method name="askDriverTalkStatus">
+      <arg direction="out" type="b" name="status"/>
+    </method>
+    <method name="askTemperatureClu">
+      <arg direction="out" type="i" name="status"/>
+    </method>
+    <method name="askTemperatureUnitClu">
+      <arg direction="out" type="i" name="status"/>
+    </method>
+    <signal name="notifyValetModeEntry"/>
+    <method name="NotifyFactoryModeChangedFromSYS">
+      <arg direction="in" type="i" name="appID"/>
+    </method>
+    <signal name="RequestSystemFactoryReset">
+    </signal>
+    <method name="askHomemainStatus">
+      <arg direction="out" type="i" name="status"/>
+    </method>
+    <signal name="notifyNModeHandleCustomSSOSD"/>
+    <method name="askDMChangeAlertItemVisible">
+      <arg direction="out" type="bool" name="result"/>
+    </method>
+    <method name="NotifyOutsideTemp">
+      <arg direction="out" type="ay"/>
+    </method>
+    <signal name="notifyDMChangeAlertItemVisible">
+      <arg direction="out" type="i" name="value"/>
+    </signal>
+  </interface>
+  <interface name="org.freedesktop.DBus.Properties">
+    <method name="Get">
+      <arg name="interface_name" type="s" direction="in"/>
+      <arg name="property_name" type="s" direction="in"/>
+      <arg name="value" type="v" direction="out"/>
+    </method>
+    <method name="Set">
+      <arg name="interface_name" type="s" direction="in"/>
+      <arg name="property_name" type="s" direction="in"/>
+      <arg name="value" type="v" direction="in"/>
+    </method>
+    <method name="GetAll">
+      <arg name="interface_name" type="s" direction="in"/>
+      <arg name="values" type="a{sv}" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
+    </method>
+    <signal name="PropertiesChanged">
+      <arg name="interface_name" type="s" direction="out"/>
+      <arg name="changed_properties" type="a{sv}" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg name="invalidated_properties" type="as" direction="out"/>
+    </signal>
+  </interface>
+  <interface name="org.freedesktop.DBus.Introspectable">
+    <method name="Introspect">
+      <arg name="xml_data" type="s" direction="out"/>
+    </method>
+  </interface>
+  <interface name="org.freedesktop.DBus.Peer">
+    <method name="Ping"/>
+    <method name="GetMachineId">
+      <arg name="machine_uuid" type="s" direction="out"/>
+    </method>
+  </interface>
+</node>
+"

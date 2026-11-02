@@ -51,12 +51,12 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "0c561c953d6478edf6343388dd89fb05a7d5c59c8a800b6cbddbd44c6ff4eea5")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "73459a4376b9ae12f0fcf3d4828960859eefe4e1683c2cc3033988e14addb984")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "8f415147ce70f627787d9a482c21a88f1135bf8fdd03aefd9d595f9a77263dac")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "56ea91be8c7b7f03a71e042a3129ed0df096e4331b02af2ef62a26444386c666")
         self.assertNotIn(b"work/", data)
         self.assertNotIn(b"Contents of section", data)
 
@@ -73,6 +73,13 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(stage["key_manifest"]["entry_size"], 0x44)
         self.assertEqual(stage["key_manifest"]["digest_offset"], 0x24)
         self.assertEqual(stage["key_manifest"]["kernel_command_line_name"], "ABL.oemkm")
+        producer = exact["cse_bup_fit_producer"]
+        self.assertEqual(producer["sha256"], M.CSE_BUP_SHA256)
+        self.assertEqual(producer["source_object_name"], "oem_key_man")
+        self.assertEqual(producer["published_fit_address"], 0xFFFE1000)
+        self.assertEqual(producer["published_fit_type"], 0x0B)
+        self.assertFalse(producer["final_handoff_address_0xfef80000_mapping_proved"])
+        self.assertFalse(producer["oem_key_man_byte_identity_with_ftpr_oem_key_proved"])
 
     def test_selector_0x27_is_usage_bit_39(self):
         selector = self.report["exact_update"]["decompressed_stage1"]["type3_os_selector"]
@@ -86,13 +93,17 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         conclusions = self.report["conclusions"]
         self.assertTrue(conclusions["runtime_descriptor_is_fit_entry_type_0b_proved"])
         self.assertTrue(conclusions["ibbl_copies_fit_and_relocates_type_0b_payload_proved"])
+        self.assertTrue(conclusions["cse_bup_constructs_fit_type0b_from_oem_key_man_proved"])
+        self.assertTrue(conclusions["cse_bup_resolver_couples_oem_key_and_oem_key_man_names_proved"])
+        self.assertTrue(conclusions["source_fit_content_producer_cse_bup_proved"])
+        self.assertTrue(conclusions["runtime_fit_type0b_object_name_oem_key_man_proved"])
         self.assertTrue(conclusions["stored_oem_key_manifest_bytes_recovered"])
         self.assertTrue(conclusions["stored_usage39_digest_recovered"])
         self.assertTrue(conclusions["stored_oem_key_manifest_embedded_signature_valid"])
         self.assertFalse(conclusions["package_candidate_matches_stored_usage39_digest"])
         self.assertFalse(conclusions["runtime_fit_type0b_bound_to_stored_oem_key_manifest"])
         self.assertFalse(conclusions["runtime_expected_digest_bytes_recovered"])
-        self.assertFalse(conclusions["producer_of_source_fit_at_0xfef80000_proved"])
+        self.assertFalse(conclusions["final_handoff_address_0xfef80000_mapping_proved"])
         self.assertFalse(conclusions["pre_ibbl_key_manifest_authentication_proved"])
         self.assertFalse(conclusions["custom_signed_image_acceptance_proved"])
         self.assertFalse(conclusions["boot_root_or_persistence_proved"])

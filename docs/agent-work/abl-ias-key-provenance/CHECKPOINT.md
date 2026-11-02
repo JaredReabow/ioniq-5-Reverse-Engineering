@@ -2,10 +2,13 @@
 
 ## Status
 
-Exact runtime object type, IBBL FIT handoff, type-`0x0b` relocation, selector bit, manifest layout, stored FTPR `oem.key`, and `ABL.oemkm` export are closed. The runtime-to-stored-object binding and pre-IBBL authentication remain open.
+Exact CSE BUP FIT content production, runtime object type, IBBL FIT handoff, type-`0x0b` relocation, selector bit, manifest layout, stored FTPR `oem.key`, and `ABL.oemkm` export are closed. The BUP-to-IBBL address mapping, runtime-to-stored-object byte binding, and pre-IBBL authentication remain open.
 
 ## Findings
 
+- Exact FTPR CSE BUP SHA-256: `cee77bc172a9df1c4088d5f716b9e55cda539a26656d07a92268c3cd5d4f0165`.
+- BUP initializes a FIT, looks up `oem_key_man`, copies it to payload offset `0x1000`, and appends type `0x0b` at published address `0xfffe1000`.
+- Its key resolver couples persistent name `oem.key` with object name `oem_key_man`, but does not prove byte identity in the executed publication path.
 - IBBL SHA-256: `394c442368c67f82f17e84854575bf07abafac2b8fbf2fda7dca68b182f91b93`.
 - IBBL validates `_FIT_   ` at source `0xfef80000` and copies up to 21 source entries to `0xc10c0`.
 - It appends type `0x7f` and invokes relocation mode 2.
@@ -27,28 +30,28 @@ Exact runtime object type, IBBL FIT handoff, type-`0x0b` relocation, selector bi
 - `tests/test_abl_ias_key_provenance.py`
 - `evidence/abl-ias-key-manifest-provenance.md`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `8,102`
-  - SHA-256 `0c561c953d6478edf6343388dd89fb05a7d5c59c8a800b6cbddbd44c6ff4eea5`
+  - size `10,382`
+  - SHA-256 `73459a4376b9ae12f0fcf3d4828960859eefe4e1683c2cc3033988e14addb984`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `8,637`
-  - SHA-256 `8f415147ce70f627787d9a482c21a88f1135bf8fdd03aefd9d595f9a77263dac`
+  - size `17,667`
+  - SHA-256 `56ea91be8c7b7f03a71e042a3129ed0df096e4331b02af2ef62a26444386c666`
 
 ## Validation
 
 - focused package: `12 passed, 7 subtests passed`;
-- ABL/update integration: `49 passed, 26 subtests passed`;
-- canonical suite: `1010 passed, 352213 subtests passed in 186.94s`;
-- canonical log SHA-256: `54f96acc5b5af4800f61024ceba55c6227278660c00599260e5b53742d61ff44`;
+- ABL/update integration: `55 passed, 23 subtests passed`;
+- canonical suite: `1010 passed, 352213 subtests passed in 169.98s`;
+- canonical log SHA-256: `b043c0747a369c31d70a73ac23618a6e9457c231944354a46ac9ee045a184cd5`;
 - UTF-16 environment determinism, `py_compile`, and `git diff --check` passed.
 
 ## Boundary
 
-Exact recovered code does not identify the producer of `0xfef80000`, bind its type-`0x0b` pointer to stored FTPR `oem.key`, or locally authenticate the key manifest before use. CSE, Boot Guard, ACM, fuse, ROM, and installed-manifest provenance remain hypotheses until earlier code or a passive installed-unit capture binds them.
+Exact CSE BUP is now the proved FIT content producer, but recovered code does not map its published table/payload addresses to IBBL's `0xfef80000`, bind `oem_key_man` bytes to stored FTPR `oem.key`, or establish the external root that authenticates the manifest before use. Boot Guard, ACM, fuse, ROM, and installed-manifest provenance remain open until earlier code or a passive installed-unit capture binds them.
 
 ## Next work
 
-1. Trace the origin of `0xfef80000` through earlier ROM/CSE handoff evidence.
-2. Search exact PDR/CSE configuration and source documentation for the FIT handoff producer and the FTPR `oem.key` loading rule.
+1. Trace the mapping from BUP's FIT buffer and `0xfffe1000` payload address to IBBL's `0xfef80000` source through CSE/ROM handoff evidence.
+2. Recover the exact executed rule that materializes `oem_key_man` and determine whether it copies or transforms FTPR `oem.key`.
 3. On a future disconnected bench, record `/proc/cmdline` and the exact `ABL.oemkm` value without attempting a physical-memory read unless separately authorized and safely bounded.
 4. Determine whether the installed/runtime OEM key manifest matches the exact stored FTPR object and verify its external provisioning chain host-side.
 5. Keep this separate from boot attempts, image modification, key replacement, flashing, and persistence.

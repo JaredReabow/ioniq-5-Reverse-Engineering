@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.37.0 - the show request is found, it returns success, and one overload kills the app
+
+- **Identified the method that shows a window.** `AppHomeScreen` implements the interface **`com.lge.avn.appmanager.appbase`** with
+  `show_window_fg` and `hide_window_bg`, alongside `NotifyShowFullScreen`, `NotifyShowNormalScreen`, `NotifyStatusbarShowRequest`
+  and `NotifyRequestHomeScreen`. The binary's exported method table carries two overloads:
+  `int AppHomeEngine::show_window_fg(int,int,int,int,int,bool)` and `int AppHomeEngine::show_window_fg(int,int,int,int)`.
+- **Found the live object.** On the session bus (address in `/tmp/session_appmgr`, as the chain uses), bus name
+  `com.lge.hkmc.avn.appfunc.AppHomeScreen`:
+  - `/com/lge/hkmc/avn/appfunc/AppHomeScreen` → `UnknownObject`
+  - `/com/lge/hkmc/avn/appfunc` → `UnknownInterface`
+  - **`/com/lge/hkmc/avn/appfunc/appInterface` → replies `int32 1`** — the app accepts the show request.
+- So there is a working control channel into the application, and it acknowledges the request. **The frame nonetheless stays the
+  4,117-byte black output**, so acknowledgement is not the same as painting: the app is told to show and still commits no buffer.
+- **Accidental finding, and it goes in the register.** The 4-argument overload does not reply —
+  `org.freedesktop.DBus.Error.NoReply` — and the process stops answering afterwards. A single well-formed session-bus message
+  terminates the home screen application. Recorded as **V-045**, a denial of service against the primary driver-facing display from
+  any unprivileged bus peer, with the honest caveats that it is emulation-only so far and the restart behaviour under the real
+  watchdog is unknown.
+- Next: `show_window_fg` is acknowledged but insufficient, so the missing input is elsewhere in the appbase conversation — the other
+  `Notify*` methods, or whatever ApplicationManager sends *before* a window is shown.
+
 ## 2.36.0 - the split says appbase presence is not the trigger
 
 - Ran the decisive experiment: the chain provided `ApplicationManager` (pid 762), then the launcher's `AppHomeScreen` (pid 804) was

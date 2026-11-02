@@ -42,6 +42,78 @@
 0x27946  je     0x2796e
 # Aligned control payload accepted only when 4 <= length <= 8.
 
+## Official first-fixed 3.1.55.2269 provenance and receive dispatcher
+# ASUS support archive X541NAAS321.zip:
+#   size 5,742,372
+#   SHA-256 26819e607f0ee9a9fd3b26518c9f9efa2c2e05bcca2a460992311826e603e1b7
+# archived member X541NA-AS.321:
+#   size 8,390,656
+#   SHA-256 bfc75d03e113184b84078a00f09be75779e80c6d0d14fb2f63dba350e31690c6
+# 8 MiB IFWI after the 0x800-byte capsule prefix:
+#   SHA-256 db9325168976e1e68cba25924e82c2aeb2db85fb7a678de5fd66e200ab7643b9
+# signed NFTP.man: version 3.1.55.2269, date 2018-07-16
+# first-fixed decompressed HECI:
+#   size 0x9000
+#   SHA-256 16afeb7e9a9328bd22b5c8b383b5e003bcce2e4d46db18ea1737606bffa3ed31
+
+0x2785f  and    al, 0x80
+0x27861  mov    byte ptr [ebp - 0x41], al
+0x27864  jne    0x2789b
+0x27866  mov    ecx, edi
+0x27868  shr    ecx, 0x10
+0x2786b  mov    eax, ecx
+0x2786d  and    ax, 0x1ff
+0x27871  and    cl, 0x3
+0x27874  je     0x2789b
+
+0x2789b  mov    eax, edi
+0x2789d  shr    eax, 0x10
+0x278a0  mov    esi, eax
+0x278a5  and    esi, 0x1ff
+0x278ab  cmp    esi, 0x1fc
+0x278b1  jle    0x278bf
+
+0x2792d  cmp    byte ptr [ebp - 0x41], 0
+0x27931  jne    0x2793a
+0x2793a  lea    eax, [esi - 4]
+0x2793d  cmp    eax, 4
+0x27940  ja     0x27948
+0x27942  test   byte ptr [ebp - 0x3c], 3
+0x27946  je     0x2796e
+
+# The first-fixed dispatcher retains the affected nine-bit/0x1fc limit, tests
+# only complete bit31 in the top header byte, and retains aligned control
+# geometry 4..8. It has none of the later 3.1.94 bit-29 rejection,
+# bit-28-on-control rejection, or 40-byte control maximum signatures.
+#
+# Affected -> first-fixed exact range comparison:
+# - dispatcher 0x277c8..0x27dc9:
+#   affected SHA-256 89d34094c7c72571ae5a5790b95c1570a81acc31a48105aa0092fb3017f05dc7
+#   first-fixed SHA-256 203b2c1b83c63e939cd73d451a9656ae21544c2ce875842506c928e99bfa128b
+#   18 raw differing bytes; 0 outside enumerated rel32 call immediates
+# - FIFO copy 0x2868d..0x287b7:
+#   affected SHA-256 d8df2a82e6f71db82616c63898b8e3a3cb46cf4bb524ae5bd93d573ad889e362
+#   first-fixed SHA-256 99811a48487433d89db5ce8eaa90fd74c7be94f1a45577e73adcea88003159d8
+#   2 raw differing bytes; 0 outside enumerated rel32 call immediates
+# - payload consumer 0x28a2d..0x28e78:
+#   affected SHA-256 5c77d1e0db46ff8847d0a232ef6efa074767d5fe24aaa41727f595997831c419
+#   first-fixed SHA-256 b5079daa3220f61e3eea68fefc12fdc3cdd7477cd6ac67a1fd236c5fbbf7f7fc
+#   12 raw differing bytes; 0 outside enumerated rel32 call immediates
+# In all 31 enumerated calls the first-fixed rel32 displacement is affected+5.
+# Zeroing only those exact immediates makes each entire range byte-identical.
+#
+# Module-wide exact result:
+# - 377 raw differing bytes across the complete 0x9000-byte HECI module;
+# - every difference lies inside 369 same-offset external rel32 encodings;
+# - 366 are call opcode 0xe8 and 3 are tail-jump opcode 0xe9;
+# - they reference 42 affected external targets spanning 0x6460..0x67b2;
+# - every first-fixed target is the corresponding affected target + 5; and
+# - zeroing only those selected rel32 immediates makes the complete affected and
+#   first-fixed HECI modules byte-identical.
+# Thus no HECI-local opcode or data byte changed in the first-fixed module. The
+# advisory fix may instead be in changed external syslib behavior or another
+# signed module/downstream client.
+
 ## Later 3.1.94.3086 receive dispatcher
 # function 0x2789a..0x27ef8
 # range SHA-256
@@ -148,6 +220,65 @@
 # Message-complete bit31 is set separately for the final fragment. Thus the
 # exact stock transmit construction does not emit later extended bit28 or
 # dma_ring bit29 through this path.
+
+## Related first-fixed VFS/syslib NDL integration candidate
+# affected VFS: size 0x1d000, SHA-256
+#   59b0ee9381860d1700f6c4638b0e165e3dba27d97d5017b8118b82a18f77f91b
+# first-fixed VFS: size 0x1f000, SHA-256
+#   52e0773d3115581d16b039e7c7e65c5dcbddf9d332cd98bdc9bb1ab6f6ff9e68
+# affected VFS has zero occurrences of both paths; first-fixed has one each.
+# Signed affected and first-fixed storage metadata both already define special
+# files ndl_critical (minor 32) and ndl_counting (minor 33).
+# first-fixed VFS initializer 0x3655f..0x365aa SHA-256:
+#   fe4f7355232906a4402174f535a32b292b0c263c8c1552f00e42cb6bc319c675
+
+0x36564  push   0
+0x36566  push   0x37224              # "/dev/ndl_critical"
+0x3656b  call   0x2ddb6              # open-like internal helper
+0x36570  mov    esi, eax
+0x36572  pop    ebx
+0x36573  test   esi, esi
+0x36576  js     0x36591
+0x36578  push   0
+0x3657a  push   0x37236              # "/dev/ndl_counting"
+0x3657f  call   0x2ddb6
+0x36584  xor    ebx, ebx
+0x36587  test   eax, eax
+0x3658a  jns    0x3659a
+0x3659a  push   eax
+0x3659b  push   esi
+0x3659c  call   0x6451              # new/reassigned first-fixed syslib export
+
+# first-fixed syslib setter 0x16691..0x166ab SHA-256:
+#   31433029861d3307d6f82d871b5356220452e18f390306d408ea1abb0256920c
+0x16691  push   ebp
+0x16692  mov    ebp, esp
+0x16694  call   0x7904               # obtain thread-context slot
+0x16699  mov    edx, dword ptr [ebp + 8]
+0x1669c  or     byte ptr [eax + 1], 4
+0x166a0  mov    dword ptr [eax + 4], edx
+0x166a3  mov    edx, dword ptr [ebp + 0xc]
+0x166a6  mov    dword ptr [eax + 8], edx
+0x166a9  pop    ebp
+0x166aa  ret
+
+# first-fixed VFS also adds an exact 25-pointer critical-name table at
+# 0x37154..0x371b8 (SHA-256
+# dd0ed2254567b2c42599b10f00890e8b387b936905cc02bfbecb8421c5dde693):
+# fTDisClear, fTReadOnly, fTEnrsHier, RsaKeyCache1..RsaKeyCache5,
+# pr_tee_clock, lspcon_cert, hdcp_srm_ver, widi_srm_ver, wv_gen_num,
+# widi_km0..widi_km9, wv_gen_num (second pointer), pnd_m4_msg.
+# Classifier 0x33b0a..0x33b6b (SHA-256
+# cf68f0c685de3283670936fe1c3cfbe8e2e19c525b61663891b08a807fb4a42d)
+# copies the 100-byte pointer array to a local buffer and performs 25 bounded
+# 12-byte comparisons. Affected VFS contains these names only within full
+# paths; it lacks this bare pointer-table representation.
+
+# Exact conclusion: first-fixed VFS begins consuming two pre-existing storage
+# NDL channels and records both descriptors in thread context through a new
+# syslib export. Names and first-fixed timing make this a high-priority
+# CVE-2018-3655 anti-replay/data-integrity candidate, not proof of exact
+# transaction semantics, physical reachability, or advisory attribution.
 
 ## Boundary
 

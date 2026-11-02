@@ -163,9 +163,22 @@ acceptance, a vulnerability fix, or installed-unit identity: the comparative
 image itself remains in the superseded TXE 3.1.50 family and therefore cannot
 serve as the required 3.1.55 fixed-version diff.
 
-## Hash-bound comparison with later TXE 3.1.94
+## Hash-bound first-fixed and later comparison
 
-A public Intel NUC `AY0076.bio` capsule has now supplied a later Apollo Lake
+The official ASUS X541NA BIOS `321` archive supplies the first-fixed family:
+
+- official ZIP size `5,742,372`, SHA-256
+  `26819e607f0ee9a9fd3b26518c9f9efa2c2e05bcca2a460992311826e603e1b7`;
+- member `X541NA-AS.321` size `8,390,656`, SHA-256
+  `bfc75d03e113184b84078a00f09be75779e80c6d0d14fb2f63dba350e31690c6`;
+- 8 MiB IFWI SHA-256
+  `db9325168976e1e68cba25924e82c2aeb2db85fb7a678de5fd66e200ab7643b9`;
+- validly self-signed NFTP version `3.1.55.2269`, date `2018-07-16`, TCB SVN
+  `3`;
+- first-fixed HECI size `0x9000`, SHA-256
+  `16afeb7e9a9328bd22b5c8b383b5e003bcce2e4d46db18ea1737606bffa3ed31`.
+
+A public Intel NUC `AY0076.bio` capsule separately supplies a later Apollo Lake
 image:
 
 - capsule size `11,841,568`, SHA-256
@@ -179,10 +192,18 @@ image:
 
 `tools/uk_fw/txe_fixed_module_diff.py` verifies the FTPR/NFTP embedded
 signatures, manifest-to-metadata and metadata-to-module reverse-SHA-256 chains,
-and strict decompression for HECI, busdrv, storage, policy, fpf, dal_sdm, and
-syslib. Its reviewed report is
-`evidence/artifacts/update-candidates/txe-fixed-module-diff.json`, SHA-256
-`668eb1ed65e8da20172de3aaa2260cb088ae1095dc4a5b7066ff13814ee636d6`.
+and strict decompression for HECI, busdrv, storage, policy, fpf, dal_sdm, VFS,
+and syslib. Its reviewed report is
+`evidence/artifacts/update-candidates/txe-fixed-module-diff.json`, schema v2,
+SHA-256
+`65fe19c7c1a53396d8f0def8e0d8a3f6f40c7faa54844cae6e1d45836ecc18cf`.
+
+Across the complete affected and first-fixed HECI modules, all 377 raw
+differing bytes lie inside 369 same-offset external `rel32` encodings—366 calls
+and three tail jumps—to 42 targets in `0x6460..0x67b2`. Every target shifts by
+exactly +5, and zeroing only those immediates makes the complete modules
+byte-identical. First-fixed also retains the affected nine-bit/`0x1fc` bound,
+complete-bit-only top-header test, and aligned control geometry `4..8`.
 
 The later HECI keeps the nine-bit length and `0x1fc` fragment maximum, while
 adding exact header-state behavior:
@@ -200,18 +221,31 @@ features. More importantly, exact recovered `mei.ko` transmit range
 25..29 before stock transmission. Ordinary `/dev/mei` writes therefore do not
 supply bits 28/29 through this path.
 
-These are exact later-version deltas, but `3.1.94` is not the first fixed
-`3.1.55` release and spans years of protocol and feature changes. They cannot
-be attributed to CVE-2018-12147.
+The first-fixed comparison proves these `3.1.94` header and extended-parser
+deltas postdate `3.1.55`; they are not the primary-path CVE-2018-12147 fix.
+Another HECI function, downstream parser, or relocated external target remains
+possible.
 
 The exact later signed FPF adds structured `RbeArbEn`, `RbeArbSvn`,
 `OemKmArbEn`, `OemKmArbSvn`, `UcodeArbEn`, and `UcodeArbSvn` records absent by
-name from the affected signed FPF. This proves a later anti-rollback schema
-capability, not that the fields were provisioned, first appeared in `3.1.55`,
-or implement CVE-2018-3655's fix. The signed storage/policy modules also
-changed, but no exact CVE-2018-3655 object, anti-replay record, or transaction
-has been identified. See `evidence/intel-txe-fixed-module-diff.md` for full
-provenance, record/range hashes, and boundaries.
+name from both affected and first-fixed signed FPF. This proves the named
+records are not the `3.1.55` CVE-2018-3655 fix.
+
+A stronger first-fixed storage candidate is now exact. Signed affected and
+first-fixed storage metadata both define `ndl_critical` and `ndl_counting`
+special files, but affected VFS contains neither `/dev/` path. First-fixed VFS
+grows from `0x1d000` to `0x1f000`, opens `/dev/ndl_critical` and
+`/dev/ndl_counting`, and passes both results to new syslib setter
+`0x16691..0x166ab`. That setter marks and stores the two descriptors in a
+thread-context structure. First-fixed VFS also adds a 25-pointer critical-name
+table and bounded classifier for TPM/DRM/key-cache state names whose affected
+counterparts occur only in full paths. The NDL names, critical classification,
+and first-fixed timing make this the strongest current CVE-2018-3655
+anti-replay/data-integrity candidate. Exact NDL
+transaction semantics, monotonic-counter use, physical reachability, and
+advisory attribution remain unproved. See
+`evidence/intel-txe-fixed-module-diff.md` for full provenance, range hashes,
+and boundaries.
 
 ## Intel's public recovery tool is not a firmware flasher
 
@@ -255,16 +289,17 @@ The strongest current interpretation is:
 - SA-00086 is a rejected version-only lead for this exact artifact;
 - SA-00125 is an exact advisory-version match and a high-priority future bench
   lead;
-- exact HECI receive-path bounds reject a simple oversized-fragment stack-copy
-  theory, and the later `3.1.94` HECI adds header-bit validation plus bounded
-  extended-header parsing, but the non-minimal diff does not identify or
-  exclude CVE-2018-12147's proprietary defect;
+- exact first-fixed comparison excludes HECI-local code/data as the location of
+  the `3.1.55` fix; changed external syslib behavior or another signed
+  module/downstream parser remains open, while later header/extended-parser
+  changes postdate `3.1.55`;
 - CVE-2018-12147 does not solve initial Linux root because it requires a
   privileged local caller;
 - CVE-2018-3655 is directly relevant to a physically isolated bench because
   Intel names anti-replay bypass, TXE data-file tampering, and rollback as
-  consequences, but the public text is insufficient to derive a safe or
-  reproducible interface or to equate generic TXE data files with the exact
+  consequences; exact first-fixed VFS/syslib integration of `ndl_critical` and
+  `ndl_counting` materially narrows the candidate subsystem, but does not yet
+  expose a safe reproducible interface or equate NDL data with the exact
   `/snowball` objects;
 - no TXE exploit, HECI message, malformed request, flash operation, or trust
   replacement has been generated or executed.

@@ -1,73 +1,632 @@
 {
   "boundaries": [
-    "The public later image is Intel TXE 3.1.94.3086, not the first fixed 3.1.55 release; changed bytes cannot be attributed to a specific advisory without an intermediate or first-fixed image.",
+    "The official ASUS first-fixed image closes the version-bisect gap for 3.1.55, but attribution still requires exact changed-function and reachability analysis.",
+    "The reviewed primary HECI ranges exclude later header/extension changes as the first-fixed primary-path delta; they do not exclude another HECI function or downstream client parser.",
+    "The named later FPF anti-rollback fields are absent from both affected and first-fixed FPF; this excludes those records as the 3.1.55 fix.",
+    "First-fixed VFS newly opens pre-existing ndl_critical and ndl_counting storage channels and passes their descriptors to a new syslib setter. This is an exact anti-replay/data-integrity candidate, not yet proof of CVE-2018-3655 attribution or physical reachability.",
     "Embedded $MN2 verification proves self-consistency and byte binding only, not platform ROM, fuse, Boot Guard, or OEM acceptance.",
     "This is passive host-side parsing and exact-static comparison; no CSE module or host HECI endpoint was executed or opened."
   ],
   "classification": {
     "cve_2018_12147_exact_bug_identified": false,
     "cve_2018_3655_exact_storage_bug_identified": false,
-    "exact_first_fixed_3_1_55_build_obtained": false,
+    "exact_signed_first_fixed_3_1_55_build_obtained": true,
     "exact_signed_later_modules_obtained": true,
-    "later_version_is_at_or_after_intel_sa_00125_first_fixed_3_1_55": true,
+    "first_fixed_entire_heci_module_changes_only_external_rel32_immediates": true,
+    "first_fixed_primary_heci_ranges_change_only_rel32_call_immediates": true,
+    "first_fixed_vfs_ndl_integration_candidate_identified": true,
+    "later_fpf_named_anti_rollback_fields_are_the_3_1_55_fix": false,
+    "later_heci_header_and_extended_parser_changes_are_the_3_1_55_fix": false,
     "simple_oversized_nine_bit_fragment_overflow_observed": false
   },
   "comparisons": {
-    "busdrv": {
-      "byte_identical": false,
-      "common_prefix_size": 127,
-      "common_suffix_size": 4686,
-      "differing_bytes_at_same_offsets": 8914,
-      "overlap_size": 24576,
-      "same_size": true
+    "affected_to_first_fixed": {
+      "busdrv": {
+        "byte_identical": false,
+        "common_prefix_size": 127,
+        "common_suffix_size": 12736,
+        "differing_bytes_at_same_offsets": 97,
+        "overlap_size": 24576,
+        "same_size": true
+      },
+      "dal_sdm": {
+        "byte_identical": false,
+        "common_prefix_size": 5,
+        "common_suffix_size": 3572,
+        "differing_bytes_at_same_offsets": 55518,
+        "overlap_size": 57344,
+        "same_size": false
+      },
+      "fpf": {
+        "byte_identical": false,
+        "common_prefix_size": 17,
+        "common_suffix_size": 2410,
+        "differing_bytes_at_same_offsets": 16464,
+        "overlap_size": 24576,
+        "same_size": true
+      },
+      "heci": {
+        "byte_identical": false,
+        "common_prefix_size": 49,
+        "common_suffix_size": 8231,
+        "differing_bytes_at_same_offsets": 377,
+        "overlap_size": 36864,
+        "same_size": true
+      },
+      "policy": {
+        "byte_identical": false,
+        "common_prefix_size": 85,
+        "common_suffix_size": 3903,
+        "differing_bytes_at_same_offsets": 13407,
+        "overlap_size": 49152,
+        "same_size": true
+      },
+      "storage": {
+        "byte_identical": false,
+        "common_prefix_size": 81,
+        "common_suffix_size": 3942,
+        "differing_bytes_at_same_offsets": 62023,
+        "overlap_size": 69632,
+        "same_size": true
+      },
+      "syslib": {
+        "byte_identical": false,
+        "common_prefix_size": 1,
+        "common_suffix_size": 1552,
+        "differing_bytes_at_same_offsets": 70879,
+        "overlap_size": 77824,
+        "same_size": true
+      },
+      "vfs": {
+        "byte_identical": false,
+        "common_prefix_size": 23,
+        "common_suffix_size": 52962,
+        "differing_bytes_at_same_offsets": 71975,
+        "overlap_size": 118784,
+        "same_size": false
+      }
     },
-    "dal_sdm": {
-      "byte_identical": false,
-      "common_prefix_size": 5,
-      "common_suffix_size": 3568,
-      "differing_bytes_at_same_offsets": 55556,
-      "overlap_size": 57344,
-      "same_size": false
+    "affected_to_later": {
+      "busdrv": {
+        "byte_identical": false,
+        "common_prefix_size": 127,
+        "common_suffix_size": 4686,
+        "differing_bytes_at_same_offsets": 8914,
+        "overlap_size": 24576,
+        "same_size": true
+      },
+      "dal_sdm": {
+        "byte_identical": false,
+        "common_prefix_size": 5,
+        "common_suffix_size": 3568,
+        "differing_bytes_at_same_offsets": 55556,
+        "overlap_size": 57344,
+        "same_size": false
+      },
+      "fpf": {
+        "byte_identical": false,
+        "common_prefix_size": 11,
+        "common_suffix_size": 2040,
+        "differing_bytes_at_same_offsets": 17778,
+        "overlap_size": 24576,
+        "same_size": true
+      },
+      "heci": {
+        "byte_identical": false,
+        "common_prefix_size": 27,
+        "common_suffix_size": 4086,
+        "differing_bytes_at_same_offsets": 27752,
+        "overlap_size": 36864,
+        "same_size": true
+      },
+      "policy": {
+        "byte_identical": false,
+        "common_prefix_size": 85,
+        "common_suffix_size": 3902,
+        "differing_bytes_at_same_offsets": 29645,
+        "overlap_size": 49152,
+        "same_size": true
+      },
+      "storage": {
+        "byte_identical": false,
+        "common_prefix_size": 81,
+        "common_suffix_size": 3888,
+        "differing_bytes_at_same_offsets": 62409,
+        "overlap_size": 69632,
+        "same_size": true
+      },
+      "syslib": {
+        "byte_identical": false,
+        "common_prefix_size": 1,
+        "common_suffix_size": 1092,
+        "differing_bytes_at_same_offsets": 72652,
+        "overlap_size": 77824,
+        "same_size": true
+      },
+      "vfs": {
+        "byte_identical": false,
+        "common_prefix_size": 23,
+        "common_suffix_size": 3804,
+        "differing_bytes_at_same_offsets": 73247,
+        "overlap_size": 118784,
+        "same_size": false
+      }
     },
-    "fpf": {
-      "byte_identical": false,
-      "common_prefix_size": 11,
-      "common_suffix_size": 2040,
-      "differing_bytes_at_same_offsets": 17778,
-      "overlap_size": 24576,
-      "same_size": true
+    "first_fixed_to_later": {
+      "busdrv": {
+        "byte_identical": false,
+        "common_prefix_size": 127,
+        "common_suffix_size": 4686,
+        "differing_bytes_at_same_offsets": 8912,
+        "overlap_size": 24576,
+        "same_size": true
+      },
+      "dal_sdm": {
+        "byte_identical": false,
+        "common_prefix_size": 5,
+        "common_suffix_size": 3568,
+        "differing_bytes_at_same_offsets": 59106,
+        "overlap_size": 61440,
+        "same_size": false
+      },
+      "fpf": {
+        "byte_identical": false,
+        "common_prefix_size": 11,
+        "common_suffix_size": 2040,
+        "differing_bytes_at_same_offsets": 17355,
+        "overlap_size": 24576,
+        "same_size": true
+      },
+      "heci": {
+        "byte_identical": false,
+        "common_prefix_size": 27,
+        "common_suffix_size": 4086,
+        "differing_bytes_at_same_offsets": 27737,
+        "overlap_size": 36864,
+        "same_size": true
+      },
+      "policy": {
+        "byte_identical": false,
+        "common_prefix_size": 85,
+        "common_suffix_size": 3902,
+        "differing_bytes_at_same_offsets": 29618,
+        "overlap_size": 49152,
+        "same_size": true
+      },
+      "storage": {
+        "byte_identical": false,
+        "common_prefix_size": 81,
+        "common_suffix_size": 3888,
+        "differing_bytes_at_same_offsets": 60337,
+        "overlap_size": 69632,
+        "same_size": true
+      },
+      "syslib": {
+        "byte_identical": false,
+        "common_prefix_size": 1,
+        "common_suffix_size": 1092,
+        "differing_bytes_at_same_offsets": 68454,
+        "overlap_size": 77824,
+        "same_size": true
+      },
+      "vfs": {
+        "byte_identical": false,
+        "common_prefix_size": 25,
+        "common_suffix_size": 3804,
+        "differing_bytes_at_same_offsets": 69989,
+        "overlap_size": 126976,
+        "same_size": true
+      }
+    }
+  },
+  "first_fixed_heci_exact_static_review": {
+    "advisory_attribution": "The entire affected and first-fixed HECI modules become byte-identical after normalizing only 369 external rel32 call/jump immediates; all 377 raw differing bytes lie inside those immediates, and every target moves by exactly five bytes within the external 0x6460..0x67b2 stub range. No HECI-local opcode or data change implements the 3.1.55 fix. The exact defect may instead involve changed external syslib behavior or another signed module/client.",
+    "code_base": 155648,
+    "exact_static_observations": {
+      "entire_heci_module_equal_after_only_external_rel32_relocation_normalization": true,
+      "first_fixed_retains_complete_bit_only_header_test": true,
+      "first_fixed_retains_control_payload_bound_of_4_to_8_bytes": true,
+      "first_fixed_retains_nine_bit_fragment_length_and_0x1fc_maximum": true,
+      "later_40_byte_control_bound_absent": true,
+      "later_bit_28_control_rejection_absent": true,
+      "later_bit_29_rejection_absent": true,
+      "three_primary_receive_ranges_equal_after_only_rel32_call_relocation_normalization": true
     },
-    "heci": {
-      "byte_identical": false,
-      "common_prefix_size": 27,
-      "common_suffix_size": 4086,
-      "differing_bytes_at_same_offsets": 27752,
-      "overlap_size": 36864,
-      "same_size": true
+    "instruction_ranges": {
+      "fifo_bounded_copy": {
+        "affected_sha256": "d8df2a82e6f71db82616c63898b8e3a3cb46cf4bb524ae5bd93d573ad889e362",
+        "call_relocations": [
+          {
+            "affected_relative_displacement": -139831,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -139826,
+            "runtime_call_address": 165647
+          },
+          {
+            "affected_relative_displacement": -140074,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -140069,
+            "runtime_call_address": 165765
+          }
+        ],
+        "equal_after_zeroing_only_enumerated_rel32_call_immediates": true,
+        "file_range": [
+          9869,
+          10167
+        ],
+        "first_fixed_sha256": "99811a48487433d89db5ce8eaa90fd74c7be94f1a45577e73adcea88003159d8",
+        "non_call_immediate_differing_byte_count": 0,
+        "raw_differing_byte_count": 2,
+        "runtime_range": [
+          165517,
+          165815
+        ]
+      },
+      "payload_consumer": {
+        "affected_sha256": "5c77d1e0db46ff8847d0a232ef6efa074767d5fe24aaa41727f595997831c419",
+        "call_relocations": [
+          {
+            "affected_relative_displacement": -140752,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -140747,
+            "runtime_call_address": 166538
+          },
+          {
+            "affected_relative_displacement": -140911,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -140906,
+            "runtime_call_address": 166687
+          },
+          {
+            "affected_relative_displacement": -140941,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -140936,
+            "runtime_call_address": 166722
+          },
+          {
+            "affected_relative_displacement": -141016,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -141011,
+            "runtime_call_address": 166787
+          },
+          {
+            "affected_relative_displacement": -141060,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -141055,
+            "runtime_call_address": 166831
+          },
+          {
+            "affected_relative_displacement": -141191,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -141186,
+            "runtime_call_address": 166982
+          },
+          {
+            "affected_relative_displacement": -141289,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -141284,
+            "runtime_call_address": 167070
+          },
+          {
+            "affected_relative_displacement": -141128,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -141123,
+            "runtime_call_address": 167124
+          },
+          {
+            "affected_relative_displacement": -141399,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -141394,
+            "runtime_call_address": 167180
+          },
+          {
+            "affected_relative_displacement": -141547,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -141542,
+            "runtime_call_address": 167318
+          },
+          {
+            "affected_relative_displacement": -141636,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -141631,
+            "runtime_call_address": 167417
+          }
+        ],
+        "equal_after_zeroing_only_enumerated_rel32_call_immediates": true,
+        "file_range": [
+          10797,
+          11896
+        ],
+        "first_fixed_sha256": "b5079daa3220f61e3eea68fefc12fdc3cdd7477cd6ac67a1fd236c5fbbf7f7fc",
+        "non_call_immediate_differing_byte_count": 0,
+        "raw_differing_byte_count": 12,
+        "runtime_range": [
+          166445,
+          167544
+        ]
+      },
+      "receive_dispatch": {
+        "affected_sha256": "89d34094c7c72571ae5a5790b95c1570a81acc31a48105aa0092fb3017f05dc7",
+        "call_relocations": [
+          {
+            "affected_relative_displacement": -136007,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -136002,
+            "runtime_call_address": 161783
+          },
+          {
+            "affected_relative_displacement": -136098,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -136093,
+            "runtime_call_address": 161874
+          },
+          {
+            "affected_relative_displacement": -136152,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -136147,
+            "runtime_call_address": 161928
+          },
+          {
+            "affected_relative_displacement": -136277,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -136272,
+            "runtime_call_address": 162048
+          },
+          {
+            "affected_relative_displacement": -136309,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -136304,
+            "runtime_call_address": 162080
+          },
+          {
+            "affected_relative_displacement": -136353,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -136348,
+            "runtime_call_address": 162139
+          },
+          {
+            "affected_relative_displacement": -136412,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -136407,
+            "runtime_call_address": 162228
+          },
+          {
+            "affected_relative_displacement": -136535,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -136530,
+            "runtime_call_address": 162316
+          },
+          {
+            "affected_relative_displacement": -136750,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -136745,
+            "runtime_call_address": 162521
+          },
+          {
+            "affected_relative_displacement": -136740,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -136735,
+            "runtime_call_address": 162551
+          },
+          {
+            "affected_relative_displacement": -136862,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -136857,
+            "runtime_call_address": 162633
+          },
+          {
+            "affected_relative_displacement": -136857,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -136852,
+            "runtime_call_address": 162668
+          },
+          {
+            "affected_relative_displacement": -137018,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -137013,
+            "runtime_call_address": 162824
+          },
+          {
+            "affected_relative_displacement": -137112,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -137107,
+            "runtime_call_address": 162883
+          },
+          {
+            "affected_relative_displacement": -137135,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -137130,
+            "runtime_call_address": 162946
+          },
+          {
+            "affected_relative_displacement": -137304,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -137299,
+            "runtime_call_address": 163110
+          },
+          {
+            "affected_relative_displacement": -137414,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -137409,
+            "runtime_call_address": 163190
+          },
+          {
+            "affected_relative_displacement": -137264,
+            "displacement_delta": 5,
+            "first_fixed_relative_displacement": -137259,
+            "runtime_call_address": 163260
+          }
+        ],
+        "equal_after_zeroing_only_enumerated_rel32_call_immediates": true,
+        "file_range": [
+          6088,
+          7625
+        ],
+        "first_fixed_sha256": "203b2c1b83c63e939cd73d451a9656ae21544c2ce875842506c928e99bfa128b",
+        "non_call_immediate_differing_byte_count": 0,
+        "raw_differing_byte_count": 18,
+        "runtime_range": [
+          161736,
+          163273
+        ]
+      }
     },
-    "policy": {
-      "byte_identical": false,
-      "common_prefix_size": 85,
-      "common_suffix_size": 3902,
-      "differing_bytes_at_same_offsets": 29645,
-      "overlap_size": 49152,
-      "same_size": true
+    "later_only_signature_occurrences": {
+      "control_maximum_0x28": 0,
+      "control_requires_bit31_and_rejects_bit28": 0,
+      "reject_header_bit_29": 0
     },
-    "storage": {
-      "byte_identical": false,
-      "common_prefix_size": 81,
-      "common_suffix_size": 3888,
-      "differing_bytes_at_same_offsets": 62409,
-      "overlap_size": 69632,
-      "same_size": true
+    "module_wide_relocation_review": {
+      "affected_external_target_range": [
+        25696,
+        26546
+      ],
+      "affected_external_target_reference_counts": {
+        "0x6460": 2,
+        "0x64ab": 9,
+        "0x64b0": 65,
+        "0x64b5": 48,
+        "0x64ba": 31,
+        "0x64bf": 12,
+        "0x64c4": 5,
+        "0x64c9": 4,
+        "0x64d3": 13,
+        "0x64d8": 26,
+        "0x64dd": 23,
+        "0x64e2": 6,
+        "0x64ec": 2,
+        "0x6591": 39,
+        "0x6690": 1,
+        "0x66bd": 6,
+        "0x66c2": 11,
+        "0x66d1": 8,
+        "0x66d6": 9,
+        "0x66db": 2,
+        "0x66e0": 3,
+        "0x66e5": 1,
+        "0x66f9": 1,
+        "0x66fe": 1,
+        "0x6703": 1,
+        "0x6712": 1,
+        "0x6717": 1,
+        "0x671c": 1,
+        "0x6726": 4,
+        "0x672b": 3,
+        "0x6730": 1,
+        "0x6735": 1,
+        "0x673f": 2,
+        "0x6744": 1,
+        "0x6753": 1,
+        "0x675d": 1,
+        "0x6776": 1,
+        "0x6785": 2,
+        "0x6794": 1,
+        "0x67a8": 15,
+        "0x67ad": 1,
+        "0x67b2": 3
+      },
+      "affected_sha256": "82b7be7bb8069aebfb2c9f7a0e994500fe10d631e67a16f5a5fec71d29679125",
+      "all_first_fixed_external_targets_equal_affected_plus_five": true,
+      "distinct_affected_external_target_count": 42,
+      "equal_after_zeroing_only_selected_external_rel32_immediates": true,
+      "external_call_site_count": 366,
+      "external_rel32_site_count": 369,
+      "external_tail_jump_site_count": 3,
+      "first_fixed_sha256": "16afeb7e9a9328bd22b5c8b383b5e003bcce2e4d46db18ea1737606bffa3ed31",
+      "module_size": 36864,
+      "non_external_rel32_immediate_differing_byte_count": 0,
+      "raw_differing_byte_count": 377
     },
-    "syslib": {
-      "byte_identical": false,
-      "common_prefix_size": 1,
-      "common_suffix_size": 1092,
-      "differing_bytes_at_same_offsets": 72652,
-      "overlap_size": 77824,
-      "same_size": true
+    "reviewed_signature_occurrences": {
+      "complete_bit_only_mask": 1,
+      "control_length_4_to_8": 1,
+      "fragment_maximum_0x1fc": 1,
+      "nine_bit_length_mask": 1
+    }
+  },
+  "first_fixed_vfs_exact_static_review": {
+    "advisory_attribution": "This is an exact first-fixed VFS/syslib integration delta for pre-existing ndl_critical and ndl_counting storage channels, accompanied by a new 25-entry critical-name table. Its names and timing make it a high-priority CVE-2018-3655 anti-replay/data-file-integrity candidate, but exact transaction semantics, physical reachability, and advisory attribution are not yet proved.",
+    "affected_vfs": {
+      "ndl_path_occurrences": {
+        "/dev/ndl_counting": 0,
+        "/dev/ndl_critical": 0
+      },
+      "sha256": "59b0ee9381860d1700f6c4638b0e165e3dba27d97d5017b8118b82a18f77f91b",
+      "size": 118784
+    },
+    "exact_static_observations": {
+      "critical_name_classifier_performs_bounded_12_byte_comparisons": true,
+      "first_fixed_syslib_setter_updates_thread_context_flag_and_two_descriptor_fields": true,
+      "first_fixed_vfs_adds_25_entry_critical_name_table_absent_from_affected_vfs": true,
+      "first_fixed_vfs_adds_both_ndl_path_consumers": true,
+      "first_fixed_vfs_opens_both_ndl_paths_and_passes_results_to_new_syslib_setter": true,
+      "storage_special_files_predate_first_fixed": true
+    },
+    "first_fixed_syslib": {
+      "new_or_reassigned_stub_address": 25681,
+      "new_setter_runtime_range": [
+        91793,
+        91819
+      ],
+      "new_setter_sha256": "31433029861d3307d6f82d871b5356220452e18f390306d408ea1abb0256920c",
+      "next_shifted_legacy_stub_address": 25686,
+      "next_shifted_legacy_target": 91819
+    },
+    "first_fixed_vfs": {
+      "critical_name_classifier_runtime_range": [
+        211722,
+        211819
+      ],
+      "critical_name_classifier_sha256": "cf68f0c685de3283670936fe1c3cfbe8e2e19c525b61663891b08a807fb4a42d",
+      "critical_name_pointer_array_runtime_range": [
+        225620,
+        225720
+      ],
+      "critical_name_pointer_array_sha256": "dd0ed2254567b2c42599b10f00890e8b387b936905cc02bfbecb8421c5dde693",
+      "critical_name_table": [
+        "fTDisClear",
+        "fTReadOnly",
+        "fTEnrsHier",
+        "RsaKeyCache1",
+        "RsaKeyCache2",
+        "RsaKeyCache3",
+        "RsaKeyCache4",
+        "RsaKeyCache5",
+        "pr_tee_clock",
+        "lspcon_cert",
+        "hdcp_srm_ver",
+        "widi_srm_ver",
+        "wv_gen_num",
+        "widi_km0",
+        "widi_km1",
+        "widi_km2",
+        "widi_km3",
+        "widi_km4",
+        "widi_km5",
+        "widi_km6",
+        "widi_km7",
+        "widi_km8",
+        "widi_km9",
+        "wv_gen_num",
+        "pnd_m4_msg"
+      ],
+      "initializer_runtime_range": [
+        222559,
+        222634
+      ],
+      "initializer_sha256": "fe4f7355232906a4402174f535a32b292b0c263c8c1552f00e42cb6bc319c675",
+      "ndl_path_occurrences": {
+        "/dev/ndl_counting": 1,
+        "/dev/ndl_critical": 1
+      },
+      "sha256": "52e0773d3115581d16b039e7c7e65c5dcbddf9d332cd98bdc9bb1ab6f6ff9e68",
+      "size": 126976,
+      "syslib_setter_call_runtime_address": 222620,
+      "syslib_setter_stub_target": 25681
+    },
+    "storage_metadata": {
+      "affected_defines_both_ndl_special_files": true,
+      "first_fixed_defines_both_ndl_special_files": true
     }
   },
   "inputs": {
@@ -165,6 +724,10 @@
           "metadata_cpd_relative_offset": 10188,
           "metadata_sha256": "5fc788285b537a6426370fd8e8b478c1ca5508d318c26f08150819c10b59092a",
           "metadata_size": 722,
+          "reviewed_special_file_occurrences": {
+            "ndl_counting": 1,
+            "ndl_critical": 1
+          },
           "strict_decompression": true
         },
         "syslib": {
@@ -176,6 +739,20 @@
           "metadata_size": 100,
           "sha256": "dba068b882c11783af4e2c0b7911b3a0db90f9b22808f42ac3e8768e2dda961c",
           "size": 77824
+        },
+        "vfs": {
+          "compressed_sha256": "e0f231f6f1882cb8d5964abdbcb96e7a5fda1bd6d8bf6d6dc3b88de8cf28c055",
+          "compressed_size": 37551,
+          "compression": "lzma",
+          "cpd_relative_offset": 32768,
+          "decompressed_sha256": "59b0ee9381860d1700f6c4638b0e165e3dba27d97d5017b8118b82a18f77f91b",
+          "decompressed_size": 118784,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 4312,
+          "metadata_sha256": "9810e7d090ae1d355d42cb6c34b5dd33c2d49986b5aebd306597be4218800f4f",
+          "metadata_size": 2286,
+          "strict_decompression": true
         }
       },
       "nftp_cpd_offset": 2109440,
@@ -188,6 +765,143 @@
         "version": "3.1.50.2222"
       },
       "sha256": "f6fc0373042c27f36e601fe957544582f3b1bd4be3c36659105322304b2dc7ac",
+      "size": 8388608
+    },
+    "first_fixed": {
+      "ftpr_cpd_offset": 135168,
+      "ftpr_manifest": {
+        "date_bcd": "2018-07-16",
+        "embedded_signature_valid": true,
+        "sha256": "b84c8bf2587b28b9498cf40b4151cebc48b6cddffeacbc373730fd2b338c4448",
+        "signature_boundary": "self-consistency and byte binding only; no external ROM/fuse acceptance is established",
+        "size": 3092,
+        "version": "3.1.55.2269"
+      },
+      "label": "first-fixed-asus-x541na-ifwi",
+      "modules": {
+        "busdrv": {
+          "compressed_sha256": "f9bf3b284611e2ba8b2f92b9a48d945c20b9fd9a4abc449705c56908ea98570f",
+          "compressed_size": 8942,
+          "compression": "lzma",
+          "cpd_relative_offset": 102400,
+          "decompressed_sha256": "0e995c76f16f1f86240f85416059ca32e5c6fd0155eb1d3132b90505e8646fc0",
+          "decompressed_size": 24576,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 7342,
+          "metadata_sha256": "dbd964cbc82f95b4d74105b2a3b253bc1287c9c5ddd9f7c3ca3ff33312fd3beb",
+          "metadata_size": 608,
+          "strict_decompression": true
+        },
+        "dal_sdm": {
+          "compressed_sha256": "cfc960a65d6b789a73a7da552719e479603cdd5608420582c032ea8ddbc02065",
+          "compressed_size": 30203,
+          "compression": "lzma",
+          "cpd_relative_offset": 942080,
+          "decompressed_sha256": "128944632790d729691b4297d712a30a76905089bc9d7068848a0c847e18f1cf",
+          "decompressed_size": 61440,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 15750,
+          "metadata_sha256": "cdfec1a92f3fb6cad02c06f0e22a93c42e57d953cd89751d064f939d4bbb297e",
+          "metadata_size": 254,
+          "strict_decompression": true
+        },
+        "fpf": {
+          "compressed_sha256": "46e7848ad3ce22e3a2e7903f9fc1871eb26337eb107d42f600d5ca4ae43a3918",
+          "compressed_size": 11167,
+          "compression": "lzma",
+          "cpd_relative_offset": 425984,
+          "decompressed_sha256": "e8f635d1ae1db00fb686fcacece4f2684109b9b8a32f852bc00f383218f784b8",
+          "decompressed_size": 24576,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 12142,
+          "metadata_sha256": "aa949ff1a7b3779817d959b3d84fb5032d3f040b96e6c390870f1f78cbb84fb2",
+          "metadata_size": 268,
+          "strict_decompression": true
+        },
+        "heci": {
+          "compressed_sha256": "9c73de2ac5ab22571a747da3e070c8c0b85d8000af5a6dcb0e0b17082082018f",
+          "compressed_size": 16565,
+          "compression": "lzma",
+          "cpd_relative_offset": 229376,
+          "decompressed_sha256": "16afeb7e9a9328bd22b5c8b383b5e003bcce2e4d46db18ea1737606bffa3ed31",
+          "decompressed_size": 36864,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 9730,
+          "metadata_sha256": "c63e3354fe3713af3a9124ea9d891aa2b573a9cae23df59a4bd4bef04ac0c732",
+          "metadata_size": 460,
+          "strict_decompression": true
+        },
+        "policy": {
+          "compressed_sha256": "affc5e406728894099db82fbd8fd07646a887ebee48b6b6102f42e122c2863b0",
+          "compressed_size": 22030,
+          "compression": "lzma",
+          "cpd_relative_offset": 135168,
+          "decompressed_sha256": "5cc5297c5e117f9d6a7549445ae361a38574c836bf5a402d7620b73d1b5908a0",
+          "decompressed_size": 49152,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 9030,
+          "metadata_sha256": "27cf34c83e6be82f017f9f1399f234b4258cea16a192eff80da0cba69d45dbb0",
+          "metadata_size": 306,
+          "strict_decompression": true
+        },
+        "storage": {
+          "compressed_sha256": "ad706097be5c6e8a4afa767f9be1ab6f378bf735a34491bf24a8a8dfd6a17ee4",
+          "compressed_size": 37608,
+          "compression": "lzma",
+          "cpd_relative_offset": 249856,
+          "decompressed_sha256": "e24219876ea4bab8640387b6ffaf5ab72d4617de8c484e0294408cb761ff153e",
+          "decompressed_size": 69632,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 10190,
+          "metadata_sha256": "6f0dc844233b98269d3d1818ab873abfc4d2b51fafe5a80ee1aceeb553dee0cc",
+          "metadata_size": 722,
+          "reviewed_special_file_occurrences": {
+            "ndl_counting": 1,
+            "ndl_critical": 1
+          },
+          "strict_decompression": true
+        },
+        "syslib": {
+          "cpd_relative_offset": 81920,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 3538,
+          "metadata_sha256": "14be5db85a043c8786aefd31a824518e9b54c4fd7ec1374e55138fa5aada0a76",
+          "metadata_size": 100,
+          "sha256": "1f4722eeaab64eee5b6febe1b7e6d21565794c929173a56ff4bb9a01f96b00c8",
+          "size": 77824
+        },
+        "vfs": {
+          "compressed_sha256": "0b445539bf71124eb4ab687e07c9f49c3ba3e90adc764e6aa5e94ddcccd3b4b1",
+          "compressed_size": 40982,
+          "compression": "lzma",
+          "cpd_relative_offset": 32768,
+          "decompressed_sha256": "52e0773d3115581d16b039e7c7e65c5dcbddf9d332cd98bdc9bb1ab6f6ff9e68",
+          "decompressed_size": 126976,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 4312,
+          "metadata_sha256": "893c82e20e186d3e76d7fe8f5f66be0b652d3a6fcbd30472a004aa1bed6700a9",
+          "metadata_size": 2288,
+          "strict_decompression": true
+        }
+      },
+      "nftp_cpd_offset": 2441216,
+      "nftp_manifest": {
+        "date_bcd": "2018-07-16",
+        "embedded_signature_valid": true,
+        "sha256": "d53ee6bfc1a2e26de19efb38baa5950c6af281a2d5fb168a9798f682392745e9",
+        "signature_boundary": "self-consistency and byte binding only; no external ROM/fuse acceptance is established",
+        "size": 2464,
+        "version": "3.1.55.2269"
+      },
+      "sha256": "db9325168976e1e68cba25924e82c2aeb2db85fb7a678de5fd66e200ab7643b9",
       "size": 8388608
     },
     "later": {
@@ -284,6 +998,10 @@
           "metadata_cpd_relative_offset": 10236,
           "metadata_sha256": "a20a766ebfb87f6e4a20e7ada9336d2867cbf375f4a962dd69ad13ea97085bfa",
           "metadata_size": 698,
+          "reviewed_special_file_occurrences": {
+            "ndl_counting": 1,
+            "ndl_critical": 1
+          },
           "strict_decompression": true
         },
         "syslib": {
@@ -295,6 +1013,20 @@
           "metadata_size": 100,
           "sha256": "d0f68eb4c9096ef6d7ed0c3046404b2b70efce9c7b4d065b8dde29f3bde0dfdd",
           "size": 77824
+        },
+        "vfs": {
+          "compressed_sha256": "dfa68f2c3e809fd4925b57014c5a5cbe924ca64846ca7d7795dd93bf42045963",
+          "compressed_size": 41427,
+          "compression": "lzma",
+          "cpd_relative_offset": 32768,
+          "decompressed_sha256": "c5775a79d72c6f6d35656d6cd56a2648a17093f8436809b309d44229f107bc3b",
+          "decompressed_size": 126976,
+          "manifest_binds_metadata_reverse_sha256": true,
+          "metadata_binds_module_reverse_sha256": true,
+          "metadata_cpd_relative_offset": 4312,
+          "metadata_sha256": "4b4e0de93734f2aace21d25d1b25158ae7ba20332e6a7367ec2c4c1ce4a4d965",
+          "metadata_size": 2340,
+          "strict_decompression": true
         }
       },
       "nftp_cpd_offset": 1339392,
@@ -311,9 +1043,10 @@
     }
   },
   "later_fpf_exact_static_review": {
-    "advisory_attribution": "The later signed FPF contains explicit RBE, OEM key-manifest, and microcode anti-rollback enable/SVN field records absent by name from the affected signed FPF. The non-minimal 3.1.94 comparison does not establish when these fields appeared, whether they were provisioned on either platform, or whether they implement CVE-2018-3655's fix.",
+    "advisory_attribution": "The later signed FPF contains explicit RBE, OEM key-manifest, and microcode anti-rollback enable/SVN field records absent by name from both affected and first-fixed signed FPF. These fields were not the 3.1.55 fix. This does not establish when they appeared, whether they were provisioned, or what exact storage/anti-replay defect CVE-2018-3655 repaired.",
     "exact_static_observations": {
       "affected_fpf_lacks_all_six_field_names": true,
+      "first_fixed_fpf_lacks_all_six_field_names": true,
       "later_enable_fields_are_two_bits_each": true,
       "later_fpf_contains_all_six_structured_field_records": true,
       "later_svn_fields_are_contiguous_12_20_and_14_bit_ranges": true
@@ -325,6 +1058,7 @@
           164,
           165
         ],
+        "first_fixed_literal_occurrences": 0,
         "later_literal_occurrences": 1,
         "record_file_range": [
           20976,
@@ -339,6 +1073,7 @@
           652,
           671
         ],
+        "first_fixed_literal_occurrences": 0,
         "later_literal_occurrences": 1,
         "record_file_range": [
           22208,
@@ -353,6 +1088,7 @@
           160,
           161
         ],
+        "first_fixed_literal_occurrences": 0,
         "later_literal_occurrences": 1,
         "record_file_range": [
           20932,
@@ -367,6 +1103,7 @@
           640,
           651
         ],
+        "first_fixed_literal_occurrences": 0,
         "later_literal_occurrences": 1,
         "record_file_range": [
           22164,
@@ -381,6 +1118,7 @@
           200,
           201
         ],
+        "first_fixed_literal_occurrences": 0,
         "later_literal_occurrences": 1,
         "record_file_range": [
           21372,
@@ -395,6 +1133,7 @@
           672,
           685
         ],
+        "first_fixed_literal_occurrences": 0,
         "later_literal_occurrences": 1,
         "record_file_range": [
           22252,
@@ -406,7 +1145,7 @@
     }
   },
   "later_heci_exact_static_review": {
-    "advisory_attribution": "The later image adds stricter reserved/header-bit validation and a bounded extended-header parser. Because 3.1.94 is not the first fixed 3.1.55 build and spans years of intervening changes, this comparison does not identify any delta as CVE-2018-12147 or CVE-2018-3655's exact fix.",
+    "advisory_attribution": "The later image adds stricter reserved/header-bit validation and a bounded extended-header parser. Exact first-fixed comparison shows the primary 3.1.55 path retains the affected behavior, so these 3.1.94 changes postdate and are not the first-fixed primary-path repair.",
     "code_base": 155648,
     "exact_static_observations": {
       "bit_28_extended_header_parser_added": true,
@@ -501,5 +1240,5 @@
       "reject_header_bit_29": 1
     }
   },
-  "schema": "ioniq-txe-fixed-module-diff/v1"
+  "schema": "ioniq-txe-fixed-module-diff/v2"
 }

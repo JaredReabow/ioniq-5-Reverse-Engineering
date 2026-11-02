@@ -16,7 +16,7 @@ Exact CSE RBE incoming-handoff `ipub_key → rot.key` pinning, shared CSE-manife
 - Exact FTPR manifest bytes identify TXE `3.1.50.2222`, date `2017-09-26`, TCB SVN `3`. Intel-SA-00086 lists that exact release as the resolved Apollo Lake production version, rejecting its TXE 3.0 CVEs as version-only leads. Intel-SA-00125 explicitly covers TXE 3.0 through 3.1.50 and says 3.1.55 replaces `3.1.50.2222`: CVE-2018-12147 is a privileged-local HECI lead, while Intel names anti-replay bypass, TXE data-file tampering, and rollback as CVE-2018-3655 physical-access consequences but provides no public actionable interface. See `evidence/intel-txe-3.1.50-advisory-applicability.md`.
 - Signed `NFTP.man → heci.met → compressed heci` binds exact decompressed module SHA-256 `82b7be7bb8069aebfb2c9f7a0e994500fe10d631e67a16f5a5fec71d29679125`. The exact receive dispatcher caps the 9-bit transport length at `0x1fc`, checks FIFO availability, requires aligned control lengths `4..8`, copies through a fixed `0x1fc`-byte local buffer, and checks first/continuation fragments against client capacity. This rejects a simple oversized-fragment stack-copy theory but does not identify CVE-2018-12147 or recover a host MEI client grammar.
 - Public ChromeOS Apollo Lake `reef` recovery ZIP SHA-256 `8843097ae538d5eda95ec1c0d60a150ec654670b2071cc9860e946443add7f69` contains a 2023 firmware image with exact byte-identical `heci`, `busdrv`, and `syslib` modules. Its signed manifests remain TXE `3.1.50.2238`, so it is independent exact-module corroboration rather than a 3.1.55 fixed-version diff.
-- Public Intel NUC capsule `AY0076.bio` SHA-256 `ab8caa3fe9e5b3d14afb765e6a806d48d5918d21d85c3bff083b6b17ea4e7ec2` yielded extracted IFWI SHA-256 `75a866331d8f23d023bbdcf9efdfee7b57bf4727eb50f6162940a2a51cb57b4a`, whose signed manifests report TXE `3.1.94.3086`. Deterministic signed-chain comparison covers HECI, busdrv, storage, policy, fpf, dal_sdm, and syslib. Later HECI retains the nine-bit/`0x1fc` fragment bound, explicitly rejects the later-defined DMA-ring bit 29, tightens control header bits, expands control payloads to `4..40`, and adds a bounded bit-28 extended-header parser. Exact recovered `mei.ko` range `0x4db1..0x4dd1` clears header bits 25..29 in the stock transmit path, so ordinary `/dev/mei` writes do not set later extended/DMA bits. Later signed FPF adds structured RBE, OEM key-manifest, and microcode anti-rollback enable/SVN records absent by name from affected FPF. Because this is not first-fixed `3.1.55`, no delta is attributed to CVE-2018-12147 or CVE-2018-3655. See `evidence/intel-txe-fixed-module-diff.md`.
+- Official ASUS X541NA BIOS `321` archive SHA-256 `26819e607f0ee9a9fd3b26518c9f9efa2c2e05bcca2a460992311826e603e1b7` yielded first-fixed IFWI SHA-256 `db9325168976e1e68cba25924e82c2aeb2db85fb7a678de5fd66e200ab7643b9`; validly self-signed NFTP reports TXE `3.1.55.2269`. Across the complete affected and first-fixed HECI modules, all 377 raw differing bytes lie inside 369 same-offset external `rel32` encodings—366 calls and three tail jumps—to 42 targets in `0x6460..0x67b2`; every target shifts by exactly five, and zeroing only those immediates makes the complete modules byte-identical. Thus no HECI-local opcode/data changed; external syslib behavior or another module remains open. First-fixed retains affected nine-bit/`0x1fc`, complete-bit-only, and control `4..8` behavior. Public NUC `3.1.94.3086` later adds bit-29 rejection, bit-28 extension handling, and `4..40` controls, proving those changes postdate the advisory fix. Later named RBE/OEM-key-manifest/microcode anti-rollback FPF records are absent from both affected and first-fixed FPF, proving those fields are also not the `3.1.55` fix. A new exact first-fixed candidate is now bound: VFS grows `0x1d000→0x1f000`, opens pre-existing `/dev/ndl_critical` and `/dev/ndl_counting` storage channels, and passes both descriptors to new syslib setter `0x16691..0x166ab`, which marks and stores them in thread context. This materially narrows CVE-2018-3655 toward NDL integration, while exact transaction semantics, reachability, and advisory attribution remain open. See `evidence/intel-txe-fixed-module-diff.md`.
 - Exact startup order is now closed inside BUP: main runs phase zero; its 22-entry function table executes ingestion at index 7 and `ifp_uep` consumption at index 10; main then frees the transient list. The `ifp_uep` consumer checks neither lookup success nor payload size before fixed 8-byte and `0x100`-byte copies. Prepend-order ingestion plus first-match lookup means the last ingested duplicate wins. Exact RBE appends the stock `0x108`-byte object after all preexisting handoff entries, so sequence-preserving FTPR/BUP ingestion makes it shadow any pre-RBE same-name entry. Post-RBE mutation or reordering remains unproved. Later BUP `ipub_key` timing and snowball exclusion remain open.
 - Exact signed NFTP `dal_sdm` independently opens `/snowball/ipub_key`, reads exactly `0x24` bytes on the content path, checks byte `+1` bit 0 and dword `+4`, then gates reads of `/snowball/oem_sign` and `/snowball/oem_key_man`. This proves shared CSE policy-object consumption, not its producer, writability, replay behavior, or fuse/ROM authority.
 - All nine exact-ABL little-endian `0x08200000` byte occurrences are classified: five RBE consumer references, three FTPR-kernel consumer references, and one unaligned PMCP cross-dword match spanning dwords `0x20000000`/`0xff171908`. No other plain static base literal remains; computed, indirect, ROM, and external producers remain possible.
@@ -75,18 +75,19 @@ Exact CSE RBE incoming-handoff `ipub_key → rot.key` pinning, shared CSE-manife
 - `tests/test_txe_fixed_module_diff.py`
 - `evidence/intel-txe-fixed-module-diff.md`
 - `evidence/artifacts/update-candidates/txe-fixed-module-diff.json`
-  - size `20,002`
-  - SHA-256 `668eb1ed65e8da20172de3aaa2260cb088ae1095dc4a5b7066ff13814ee636d6`
+  - schema `ioniq-txe-fixed-module-diff/v2`
+  - size `48,625`
+  - SHA-256 `65fe19c7c1a53396d8f0def8e0d8a3f6f40c7faa54844cae6e1d45836ecc18cf`
 - `evidence/artifacts/update-candidates/txe-fixed-heci-exact-static.txt`
-  - size `5,840`
-  - SHA-256 `237bab9d1108085a78c093bec2a7ab420ff37db6d6e6ddc988130bea88e98b82`
+  - size `11,817`
+  - SHA-256 `b790530619faa31f7937fadd417131b5196de108431708139c2d807a17731760`
 
 ## Validation
 
-- affected/later diff tests: `3 passed`;
+- affected/first-fixed/later diff tests: `3 passed in 0.14s`;
 - combined diff and provenance package: `16 passed, 10 subtests passed`;
-- canonical suite: `1022 passed, 352351 subtests passed in 177.20s`;
-- canonical log SHA-256: `a44ca4fe6410c79bbbb522bf8689c068769db87dbed2cef278e70d993f987e8c`;
+- canonical suite: `1022 passed, 352351 subtests passed in 209.34s`;
+- canonical log SHA-256: `9373ab0d2db8a514cf6fb694faf43ece1ee4e05a4aa32c0ed1e78b41f702f8eb`;
 - UTF-16 environment determinism, `py_compile`, and `git diff --check` passed.
 
 ## Boundary
@@ -95,8 +96,8 @@ Exact RBE binds `rot.key` to runtime `ipub_key`; the RoT key is shared by RBEP/F
 
 ## Next work
 
-1. Obtain the first-fixed TXE `3.1.55` Apollo Lake image or intermediate versions to bisect the now-proved `3.1.50.2222 → 3.1.94.3086` HECI/header-parser and storage changes; do not attribute the non-minimal later-version deltas to an advisory.
-2. Trace exact later/affected downstream HECI client registration and parsers, especially the new bit-28 extended-header state, without generating or sending a request.
+1. Resolve affected versus first-fixed syslib's shifted `0x6460..0x67b7` external-stub implementations and downstream signed client modules; the complete HECI-local module is excluded as changed logic, and the inserted `0x6451` export lies immediately before HECI's affected import range, without generating or sending a request.
+2. Trace the exact NDL implementation behind first-fixed VFS's new `/dev/ndl_critical` and `/dev/ndl_counting` consumers and syslib thread-context setter, including storage dispatch, counters, transactions, replay checks, and power-loss behavior; keep CVE-2018-3655 attribution conditional until those semantics and physical reachability are proved.
 3. Trace the pre-RBE producer and immutable authority of the runtime-object handoff at `0x08200000`, including whether ROM, CSE kernel, FPFs, or another authenticated object supplies the `ipub_key` selector and digest array; determine what controls BUP global `0xa014c` and authenticates `/snowball/ipub_key` without assuming that fallback is selected or writable.
 4. Trace exact authentication and FPF/fuse precedence for the hardware-window versus BPDT UEP source, using the closed `ifp_uep → bup_fpf → signed NFTP fpf` path without assuming the later FPF hardware state produced RBE's earlier window.
 5. On a future disconnected bench, record `/proc/cmdline` and the exact `ABL.oemkm` value without attempting a physical-memory read unless separately authorized and safely bounded.

@@ -8,7 +8,8 @@ Exact CSE RBE incoming-handoff `ipub_key → rot.key` pinning, shared CSE-manife
 
 - Exact `RBEP.man → rbe.met → rbe` and `FTPR.man → bup.met → bup` hash chains are byte-bound; both `$MN2` embedded signatures verify.
 - Exact RBE resolves `ipub_key` from a bounded incoming runtime-object handoff at `0x08200000`, copies a selector-chosen 32-byte digest to `0x6047fa8`, and requires `rot.key`'s modulus-plus-exponent digest to match before RSA verification.
-- The handoff lookup caps traversal at `0x8000`, begins entries at `0x08200008`, compares `0x0c`-byte names, tests enabled bit 0 at `+0x0d`, steps by the word at `+0x0e`, and exposes payload at `+0x12`. RBE first appends `cld_rst_blk`, then requires existing `bpdt`, `pm_trans`, `ftpm_fuses`, `sss_em`, `rbe.man`, `pmc_ipc`, and `ipub_key` entries; only missing optional `pmc_msg` is appended. The pre-RBE producer/authenticator remains open.
+- The handoff lookup caps traversal at `0x8000`, begins entries at `0x08200008`, compares `0x0c`-byte names, tests enabled bit 0 at `+0x0d`, steps by the word at `+0x0e`, and exposes payload at `+0x12`. RBE first appends `cld_rst_blk`, then requires existing `bpdt`, `pm_trans`, `ftpm_fuses`, `sss_em`, `rbe.man`, `pmc_ipc`, and `ipub_key` entries; only missing optional `pmc_msg` is appended.
+- `FTPR.man → kernel.met → kernel` reverse-SHA-256 bindings close the exact FTPR kernel byte chain. That kernel processes `0x08200000..0x08208000`, initializes its first entry at `0x08200008`, and advances using the same `+0x0d` state and `+0x0e` size fields. This proves cross-stage handoff continuity, not the pre-RBE producer/authenticator.
 - FTPR `rot.key` is at flash `0x17b000`, size `0x3fc`, SHA-256 `5530da6cbec43a441466478a6069b7a5d39afe9453f34923c633ad07b4613a14`.
 - `rot.key`, `RBEP.man`, `FTPR.man`, and `NFTP.man` share public-key digest `f2eb8fc44e30f6132631df884020abd685ce8843ee205d0a22eb6493f78a54cf`; all embedded signatures verify. The runtime producer/authority of `ipub_key` remains open.
 - Exact BUP initializes global `0xa014c` as an empty runtime-object-list head and materializes received objects with size/pointer/next fields at `+0x14/+0x18/+0x1c`; its generic manifest path resolves `ipub_key` from that list while nonempty or constructs `/snowball/ipub_key` while empty, bounds the selector through `0x23`, and supplies a selected 32-byte digest to its verifier.
@@ -55,18 +56,18 @@ Exact CSE RBE incoming-handoff `ipub_key → rot.key` pinning, shared CSE-manife
 - `tests/test_abl_ias_key_provenance.py`
 - `evidence/abl-ias-key-manifest-provenance.md`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `46,148`
-  - SHA-256 `fffcde68f746704bde88a9165c2c738c61a6ed6d9d9163eebd9c5198e32c59f5`
+  - size `48,562`
+  - SHA-256 `52f4e7e148be690a45162ee6b25c2cefc0c918444fc1eae9fdb5ce13a39942c2`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `104,471`
-  - SHA-256 `17cc8bb7d3919fa2525bf1b947ad6ca9e702c584b48d4adb5f3389f0fdb8e723`
+  - size `106,756`
+  - SHA-256 `de572636a386de1faca23155cfa1c670b87a9ab08e267c3a1980035106f1641e`
 
 ## Validation
 
 - focused package: `13 passed, 10 subtests passed`;
-- selected ABL/boot/bench/MEI integration: `90 passed, 181 subtests passed`;
-- canonical suite: `1019 passed, 352351 subtests passed in 192.20s`;
-- canonical log SHA-256: `8e5d67c5c3d82a7e88f53017d557deb8f5a81fa9ba631c968de8087c5594ff46`;
+- selected provenance/trust/bench/MEI integration: `56 passed, 172 subtests passed`;
+- canonical suite: `1019 passed, 352351 subtests passed in 185.06s`;
+- canonical log SHA-256: `d7f6455cba8ad884d51e4dcc3bc2fbd35dc980ce625705f1fd91dd0bd93ba723`;
 - UTF-16 environment determinism, `py_compile`, and `git diff --check` passed.
 
 ## Boundary

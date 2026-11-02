@@ -261,6 +261,26 @@ immutable, or establish ROM/fuse precedence. Absence of another direct address
 constant cannot rule out an indirect earlier writer outside or inside another
 stage.
 
+The same handoff persists into the exact FTPR CSE kernel. `FTPR.man` contains
+the reversed SHA-256 of exact `kernel.met`, and `kernel.met` contains the
+reversed SHA-256 of exact `kernel` bytes. The kernel is flash member
+`0x120000..0x131fff`, SHA-256
+`cf7dd5fc9918f96ffd2352d09a3e303471a768b3a6ee056089dd7a3d5c00bfdf`;
+its metadata declares code base and main entry `0x80000`. Startup passes
+`0x08200000..0x08208000` through the same page-range helper used for other
+memory ranges. Its handoff iterator then:
+
+- stores base `0x08200000` in global `0x99dec`;
+- treats total size `<= 8` as empty;
+- otherwise initializes entry and payload cursors at `0x08200008`;
+- advances by the word at entry `+0x0e` against base plus the handoff total;
+- filters on the low two state bits at entry `+0x0d`, accepting state `1`.
+
+This closes cross-stage geometry continuity from RBE into the signed FTPR
+kernel. It still does not show who populated or authenticated the table before
+RBE, and the embedded manifest chain remains externally anchored only if the
+incoming `ipub_key` itself is anchored.
+
 Host-side parsing establishes:
 
 - FTPR `rot.key` at flash `0x17b000`, size `0x3fc`, SHA-256
@@ -513,7 +533,9 @@ What is now proved:
 - the exact root digest occurs statically only in `rot.key`; runtime branch
   selection and snowball writability/authentication remain unproved;
 - RBE's `ipub_key` path looks up an existing handoff entry rather than appending
-  it, but the pre-RBE handoff producer, authentication, mutability, and ROM/fuse
+  it, and the exact manifest-bound FTPR kernel later consumes the same base,
+  first-entry address, state byte, and entry-size geometry;
+- the pre-RBE handoff producer, authentication, mutability, and ROM/fuse
   authority remain unproved;
 - exact FTPR signed-package metadata has no direct `oem.key` name/digest entry
   and FTPR CPD has no `oem.key.met` member;
@@ -595,11 +617,11 @@ ABL/RBE/BUP/UEP identity and update-component selection.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `46,148`
-  - SHA-256 `fffcde68f746704bde88a9165c2c738c61a6ed6d9d9163eebd9c5198e32c59f5`
+  - size `48,562`
+  - SHA-256 `52f4e7e148be690a45162ee6b25c2cefc0c918444fc1eae9fdb5ce13a39942c2`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `104,471`
-  - SHA-256 `17cc8bb7d3919fa2525bf1b947ad6ca9e702c584b48d4adb5f3389f0fdb8e723`
+  - size `106,756`
+  - SHA-256 `de572636a386de1faca23155cfa1c670b87a9ab08e267c3a1980035106f1641e`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

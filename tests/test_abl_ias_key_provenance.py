@@ -51,15 +51,17 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "fffcde68f746704bde88a9165c2c738c61a6ed6d9d9163eebd9c5198e32c59f5")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "52f4e7e148be690a45162ee6b25c2cefc0c918444fc1eae9fdb5ce13a39942c2")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "17cc8bb7d3919fa2525bf1b947ad6ca9e702c584b48d4adb5f3389f0fdb8e723")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "de572636a386de1faca23155cfa1c670b87a9ab08e267c3a1980035106f1641e")
         self.assertIn(b"RBE incoming runtime-object handoff lookup", data)
         self.assertIn(b"mov     ebx, 0x8200008", data)
         self.assertIn(b"RBE runtime-object handoff append", data)
+        self.assertIn(b"Signed FTPR kernel handoff range setup", data)
+        self.assertIn(b"mov     dword ptr [0x99dec], 0x8200000", data)
         self.assertNotIn(b"work/", data)
         self.assertNotIn(b"Contents of section", data)
 
@@ -161,6 +163,20 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertFalse(intel["bup_snowball_path_selected_at_runtime_proved"])
         self.assertFalse(intel["bup_snowball_object_writable_or_untrusted_proved"])
         self.assertFalse(intel["ipub_key_producer_or_hardware_anchor_proved"])
+        ftpr_kernel = exact["cse_ftpr_kernel_handoff_consumer"]
+        self.assertEqual(ftpr_kernel["flash_offset"], 0x120000)
+        self.assertEqual(ftpr_kernel["sha256"], M.CSE_FTPR_KERNEL_SHA256)
+        self.assertEqual(ftpr_kernel["metadata_flash_offset"], 0x11ED44)
+        self.assertEqual(ftpr_kernel["metadata_sha256"], M.CSE_FTPR_KERNEL_METADATA_SHA256)
+        self.assertTrue(ftpr_kernel["ftpr_manifest_binds_kernel_metadata_reverse_sha256"])
+        self.assertTrue(ftpr_kernel["kernel_metadata_binds_kernel_reverse_sha256"])
+        self.assertEqual(ftpr_kernel["handoff_range_start"], 0x08200000)
+        self.assertEqual(ftpr_kernel["handoff_range_end"], 0x08208000)
+        self.assertEqual(ftpr_kernel["first_entry"], 0x08200008)
+        self.assertEqual(ftpr_kernel["entry_total_size_offset"], 0x0E)
+        self.assertEqual(ftpr_kernel["entry_state_offset"], 0x0D)
+        self.assertTrue(ftpr_kernel["same_handoff_geometry_as_rbe_proved"])
+        self.assertFalse(ftpr_kernel["pre_rbe_producer_or_hardware_anchor_proved"])
         boot_policy = root_chains["oem_boot_policy_chain"]
         self.assertEqual(boot_policy["uep_and_oem_key_digest"], M.STORED_USAGE39_DIGEST)
         self.assertEqual(boot_policy["oem_key_usage_bit_for_boot_policy"], 32)
@@ -281,6 +297,7 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["rbe_and_bup_signed_module_byte_chains_proved"])
         self.assertTrue(conclusions["rbe_runtime_ipub_key_pins_rot_key_proved"])
         self.assertTrue(conclusions["rbe_ipub_key_consumed_from_incoming_0x08200000_handoff_proved"])
+        self.assertTrue(conclusions["same_handoff_consumed_by_signed_ftpr_kernel_proved"])
         self.assertFalse(conclusions["pre_rbe_handoff_producer_or_authenticator_proved"])
         self.assertTrue(conclusions["shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved"])
         self.assertTrue(conclusions["bup_ipub_key_runtime_object_or_snowball_resolution_proved"])

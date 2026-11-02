@@ -2298,6 +2298,56 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 # This proves an incoming handoff boundary, not who authenticated or populated
 # the table before RBE or whether the underlying memory is immutable.
 
+## Signed FTPR kernel handoff range setup (kernel file [0x4f4,0x518), runtime [0x804f4,0x80518))
+
+# Exact kernel SHA-256: cf7dd5fc9918f96ffd2352d09a3e303471a768b3a6ee056089dd7a3d5c00bfdf
+# kernel.met SHA-256: f6c17c5b9ce1fc218da9608fce470dfa28fe180d4ec8909da71aa93bbb4b75ed
+# FTPR.man contains reverse(SHA-256(kernel.met)); kernel.met contains
+# reverse(SHA-256(kernel)).
+
+   804f4: push    0x8208000            # handoff range end
+   804f9: push    0x8200000            # handoff range start
+   804fe: call    0x80378              # same startup range helper
+   80503: pop     ecx
+   80504: pop     eax
+
+## FTPR kernel handoff iterator initialization (kernel file [0x169f,0x16d7), runtime [0x8169f,0x816d7))
+
+   8169f: push    ebp
+   816a0: mov     dword ptr [0x99dec], 0x8200000  # handoff base
+   816ac: cmp     dword ptr [0x8200000], 0x8      # header-only table
+   816b3: ja      0x816c1
+   816b5: mov     dword ptr [0x99df4], 0x0        # no current entry
+   816c1: mov     dword ptr [0x99df4], 0x8200008  # first entry
+   816cb: mov     dword ptr [0x99df0], 0x8200008  # payload cursor
+   816d6: jmp     0x8edfa
+
+## FTPR kernel handoff iterator advance/state filter (kernel file [0xedc6,0xee19), runtime [0x8edc6,0x8ee19))
+
+   8edc6: mov     eax, dword ptr [0x99dec]
+   8edcc: mov     ecx, dword ptr [0x99df4]
+   8edd4: mov     edx, dword ptr [eax]             # handoff total size
+   8edd6: add     edx, eax
+   8edd8: movzx   eax, word ptr [ecx + 0xe]        # entry total size
+   8eddc: add     eax, ecx
+   8edde: mov     dword ptr [0x99df4], eax
+   8ede3: cmp     eax, edx
+   8ede5: jb      0x8edf3
+   8ede7: mov     dword ptr [0x99df4], 0x0
+   8edf3: mov     dword ptr [0x99df0], eax
+   8edfd: mov     eax, dword ptr [0x99df4]
+   8ee02: test    eax, eax
+   8ee04: je      0x8ee17
+   8ee06: mov     al, byte ptr [eax + 0xd]         # same state byte
+   8ee09: and     eax, 0x3
+   8ee0c: dec     al
+   8ee0e: je      0x8ee17                         # state 1 accepted
+   8ee10: call    0x8edc6                         # otherwise advance
+
+# This proves that the exact signed FTPR kernel consumes the same handoff base,
+# first entry, +0x0d state byte, and +0x0e entry-size geometry after RBE. It
+# does not identify or authenticate the producer that populated it before RBE.
+
 ## BUP ipub_key resolution and digest selection (BUP file [0x20037,0x2008e), runtime [0x46037,0x4608e))
 
    46037: lea     eax, [ebp - 0x344]

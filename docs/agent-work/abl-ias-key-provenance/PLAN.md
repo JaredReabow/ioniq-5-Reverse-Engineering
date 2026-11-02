@@ -27,7 +27,7 @@ Resolve the exact runtime object behind the ABL IAS expected-key digest without 
 10. Trace pre-IBBL OEM-key authentication while separating exact UEP consumption from still-unproved external UEP authentication and fuse precedence.
 11. Trace the CSE signing-key and Boot Policy chains through runtime `ipub_key`, `rot.key`, OEM usage bit 32, `IBBP.man`, `BPM.met`, and exact IBBL/IBB bytes without claiming an external ROM/fuse anchor that is not recovered.
 12. Trace the selected UEP into BUP/NFTP FPF provisioning, bind the exact signed `fpf` module, and distinguish its later shadow/hardware state from RBE's earlier hardware window unless byte identity is proved.
-13. Trace every exact `ipub_key` consumer and fallback path, including the incoming RBE handoff at `0x08200000`; distinguish runtime-object resolution and internal snowball storage from proof of pre-RBE producer identity, branch selection, writability, authentication, or immutable authority.
+13. Trace every exact `ipub_key` consumer and fallback path, including the incoming RBE handoff at `0x08200000` and its later FTPR-kernel consumer; distinguish cross-stage runtime-object continuity and internal snowball storage from proof of pre-RBE producer identity, branch selection, writability, authentication, or immutable authority.
 
 ## Safety boundary
 

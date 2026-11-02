@@ -83,6 +83,86 @@ Neither CVE by itself proves a way to replace `ipub_key`, UEP, `rot.key`, the
 persistent `/snowball` policy objects, or a signed boot manifest. Those
 consequences require exact client/protocol and write-authority evidence.
 
+## Exact signed HECI receive-path bounds
+
+The recovered `NFTP.man → heci.met → compressed heci` chain binds the exact
+transport module:
+
+- `heci.met` flash `0x205600`, size `0x1cc`, SHA-256
+  `0826dda708681158fa6727e5dd50e5f7b8308869907e5d94dd5b458120429a59`;
+- compressed `heci` flash `0x239000`, size `0x40b0`, SHA-256
+  `e6e69c0bc6b33ac5d7651cb999da9b6f97c682011fca43800c6ffd1adfab2770`;
+- strictly decompressed size `0x9000`, SHA-256
+  `82b7be7bb8069aebfb2c9f7a0e994500fe10d631e67a16f5a5fec71d29679125`;
+- code base `0x26000`, main entry `0x29015`.
+
+The adjacent internal bus driver is independently bound by the same signed NFTP
+manifest:
+
+- `busdrv.met` flash `0x204cac`, size `0x260`, SHA-256
+  `1857be7e234b2d88a9055d91c8bb9f69412d3db494b47f13cf407e9a0677da71`;
+- compressed `busdrv` flash `0x21b000`, size `0x22ee`, SHA-256
+  `e58a354055281fe2ab8809ef1d6705b7bdccc8acc11bf20faeaf0187a200eb50`;
+- strictly decompressed size `0x6000`, SHA-256
+  `f226a92dd219a020bca96aeca3b54d8b0870f230128b7cb206c3389d5096ad21`;
+- code base `0x26000`, main entry `0x27d42`.
+
+HECI opens its internal `/dev/bus_drv` service. `busdrv` publishes internal
+`bus_drv`, `bus_mstro`, and `bus_prman` special files and performs MMIO,
+interrupt, isolation, and power-state services. Its operation dispatcher is an
+internal CSE interface, not a recovered Linux MEI client grammar.
+
+Exact receive dispatcher `0x277c8..0x27dc8` and host-fragment consumer
+`0x28a2d..0x28e77` establish that this transport path:
+
+1. decodes payload length as `(header >> 16) & 0x1ff`;
+2. rejects lengths above `0x1fc`;
+3. requires enough FIFO words for the header plus rounded payload;
+4. restricts control payloads to aligned lengths from four through eight;
+5. copies ordinary fragments through a fixed `0x1fc`-byte local buffer;
+6. looks up an enabled firmware client and a matching connection before use;
+7. compares an initial fragment with the client's maximum message size; and
+8. compares continuation fragments with remaining message capacity before the
+   process-buffer copy.
+
+This rejects a simple “nine-bit length directly overflows the local receive
+buffer” theory. It does **not** identify CVE-2018-12147's actual proprietary
+state/input defect, prove every HECI state or downstream client parser safe, or
+justify rejecting the advisory for this exact module.
+
+`heci.met` publishes internal special files `heci1`, `heci1ose`, `hecisoh`,
+`heci1handoff`, `heci2`, and `heci3`, with CSE user/group IDs. These are not
+Linux `/dev/mei*` DAC identities. Strings `/dev/bup_heci`, `/dev/events`,
+`/dev/bus_drv`, `/dev/bus_prman`, `/dev/bus_bupdrv`, and
+`/snowball/pm_ctxt` likewise describe internal CSE paths; they do not disclose
+a host MEI client UUID or message grammar.
+
+## Independent exact-module occurrence in a public ChromeOS image
+
+A public Apollo Lake `reef` ChromeOS recovery was downloaded only as a
+comparative artifact:
+
+- URL: `https://dl.google.com/dl/edgedl/chromeos/recovery/chromeos_15572.63.0_reef_recovery_stable-channel_mp-v4.bin.zip`;
+- recovery ZIP SHA-256
+  `8843097ae538d5eda95ec1c0d60a150ec654670b2071cc9860e946443add7f69`;
+- embedded firmware updater SHA-256
+  `460eb573e8ec06157da3d2cd3c86173e122483ed1729902142b0beee02a260d1`;
+- extracted `bios-reef.ro-9042-233-0.rw-9042-233-0.bin` SHA-256
+  `85b99e6f91ae2fad154cb8394dc0afefe3178901713dea325a27cb7a5b6b62f9`.
+
+ME Analyzer identifies that image's signed TXE manifests as `3.1.50.2238` and
+extracts byte-identical modules:
+
+- NFTP `heci` SHA-256 `82b7be7b...d29679125`;
+- NFTP `busdrv` SHA-256 `f226a92d...096ad21`;
+- FTPR `syslib` SHA-256 `dba068b8...e2dda961c`.
+
+This independently reproduces the exact proprietary HECI transport bytes in a
+public Apollo Lake firmware lineage. It is not evidence of target-board
+acceptance, a vulnerability fix, or installed-unit identity: the comparative
+image itself remains in the superseded TXE 3.1.50 family and therefore cannot
+serve as the required 3.1.55 fixed-version diff.
+
 ## Intel's public recovery tool is not a firmware flasher
 
 Intel's advisory links the public repository
@@ -125,6 +205,8 @@ The strongest current interpretation is:
 - SA-00086 is a rejected version-only lead for this exact artifact;
 - SA-00125 is an exact advisory-version match and a high-priority future bench
   lead;
+- exact HECI receive-path bounds reject a simple oversized-fragment stack-copy
+  theory, but do not identify or exclude CVE-2018-12147's proprietary defect;
 - CVE-2018-12147 does not solve initial Linux root because it requires a
   privileged local caller;
 - CVE-2018-3655 is directly relevant to a physically isolated bench because

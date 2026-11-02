@@ -51,12 +51,12 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "fbb502a9fc0a7de410c209f91aee382b9008b74e860b72edc9b6c40a480ec558")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "62227b59399ec929eae548259309d7bd7503f834bf0e5d2b3120e6b51c414a0e")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "09e04891ef801085750c1445773901c917682e858ad1c10bc971428a3a2d5c52")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "9e88814555d8f90f256ddaf56a9d310c82c3b3c6f8d471f3769258cc38d8baa7")
         self.assertIn(b"RBE incoming runtime-object handoff lookup", data)
         self.assertIn(b"mov     ebx, 0x8200008", data)
         self.assertIn(b"RBE runtime-object handoff append", data)
@@ -324,6 +324,35 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(dal["oem_gate"]["oem_key_manifest_max_read"], 0x1000)
         self.assertTrue(dal["snowball_ipub_key_is_shared_cse_policy_object_proved"])
         self.assertFalse(dal["snowball_ipub_key_producer_or_writability_proved"])
+        heci = exact["nftp_heci_transport_bounds"]
+        self.assertEqual(heci["signed_chain"]["heci_compressed"]["sha256"], M.HECI_COMPRESSED_SHA256)
+        self.assertEqual(heci["signed_chain"]["heci_decompressed"]["sha256"], M.HECI_SHA256)
+        self.assertTrue(heci["signed_chain"]["nftp_manifest_binds_heci_metadata"])
+        self.assertEqual(heci["process"]["code_base"], 0x26000)
+        self.assertEqual(heci["process"]["main_thread_entry"], 0x29015)
+        busdrv = heci["internal_bus_driver"]
+        self.assertEqual(busdrv["signed_chain"]["decompressed"]["sha256"], M.BUSDRV_SHA256)
+        self.assertTrue(busdrv["signed_chain"]["nftp_manifest_binds_metadata"])
+        self.assertEqual(busdrv["main_thread_entry"], 0x27D42)
+        self.assertEqual(busdrv["internal_special_files"], ["bus_drv", "bus_mstro", "bus_prman"])
+        self.assertTrue(busdrv["heci_opens_bus_drv"])
+        self.assertEqual([item["major"] for item in heci["internal_special_files"]], [6, 7, 8])
+        self.assertEqual(
+            [entry["name"] for item in heci["internal_special_files"] for entry in item["entries"]],
+            ["heci1", "heci1ose", "hecisoh", "heci1handoff", "heci2", "heci3"],
+        )
+        transport = heci["transport_receive_bounds"]
+        self.assertEqual(transport["maximum_fragment_length"], 0x1FC)
+        self.assertEqual(transport["fixed_local_fragment_buffer_size"], 0x1FC)
+        self.assertTrue(transport["requires_available_words_for_header_and_rounded_payload"])
+        self.assertEqual([transport["control_payload_minimum"], transport["control_payload_maximum"]], [4, 8])
+        self.assertTrue(transport["control_payload_requires_dword_alignment"])
+        self.assertTrue(transport["first_fragment_compared_to_client_max_message_size"])
+        self.assertTrue(transport["continuation_fragment_compared_to_remaining_message_capacity"])
+        self.assertFalse(transport["simple_oversize_fragment_stack_copy_observed"])
+        self.assertFalse(transport["cve_2018_12147_exact_bug_identified"])
+        self.assertFalse(heci["host_boundary"]["metadata_special_files_are_linux_dev_mei_nodes"])
+        self.assertFalse(heci["host_boundary"]["linux_mei_client_uuid_or_protocol_grammar_recovered"])
         materializer = exact["cse_rbe_key_manifest_materializer"]
         self.assertEqual(materializer["sha256"], M.CSE_RBE_SHA256)
         self.assertEqual(materializer["source_cpd_member"], "oem.key")
@@ -414,6 +443,10 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["rbe_ipub_key_consumed_from_incoming_0x08200000_handoff_proved"])
         self.assertTrue(conclusions["same_handoff_consumed_by_signed_ftpr_kernel_proved"])
         self.assertTrue(conclusions["exact_ftpr_txe_version_3_1_50_2222_proved"])
+        self.assertTrue(conclusions["signed_nftp_heci_receive_fragment_bounds_proved"])
+        self.assertFalse(conclusions["nftp_heci_simple_oversize_fragment_stack_copy_observed"])
+        self.assertFalse(conclusions["cve_2018_12147_exact_bug_identified"])
+        self.assertFalse(conclusions["linux_mei_client_uuid_or_protocol_grammar_recovered"])
         self.assertTrue(conclusions["ftpr_stream_and_bup_runtime_object_ingestion_geometry_match_proved"])
         self.assertTrue(conclusions["bup_phase_zero_ingestion_before_ifp_uep_consumption_and_cleanup_proved"])
         self.assertTrue(conclusions["bup_runtime_object_total_size_underflow_guard_absent_proved"])

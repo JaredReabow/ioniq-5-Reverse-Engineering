@@ -680,8 +680,24 @@ CVE-2018-12147 an exact-version privileged-local HECI lead. Intel names
 anti-replay bypass, TXE data-file tampering, and firmware rollback as
 CVE-2018-3655 physical-access consequences, making persistent policy rollback a
 strong lead but not proving identity with the exact `/snowball` objects.
-Neither advisory proves an unprivileged Linux-root route, a reachable MEI
-client, or control over the handoff, UEP, or snowball objects. Detailed source hashes and bench prerequisites are in
+
+The signed `NFTP.man → heci.met → compressed heci` chain now binds exact
+decompressed HECI module SHA-256
+`82b7be7bb8069aebfb2c9f7a0e994500fe10d631e67a16f5a5fec71d29679125`.
+Its receive path decodes a 9-bit length, caps a fragment at `0x1fc`, checks
+available FIFO words, bounds control payloads to aligned lengths `4..8`, uses a
+fixed `0x1fc`-byte local fragment buffer, and checks initial and continuation
+fragments against client message capacity. This rejects a simple oversized
+fragment-to-stack-copy theory; it neither identifies nor excludes the actual
+proprietary SA-00125 defect.
+
+A public 2023 ChromeOS Apollo Lake `reef` firmware image independently contains
+byte-identical `heci`, `busdrv`, and `syslib` modules, but its signed TXE
+manifests remain version `3.1.50.2238`. It therefore corroborates exact module
+identity and layout rather than providing a 3.1.55 fixed diff. Neither advisory
+or comparative image proves an unprivileged Linux-root route, a reachable MEI
+client, or control over the handoff, UEP, or snowball objects. Detailed source
+hashes and bench prerequisites are in
 `intel-txe-3.1.50-advisory-applicability.md`.
 
 ## Security boundary
@@ -725,6 +741,11 @@ What is now proved:
 - the BUP reader-import/FTPR-kernel-function binding is exact through the
   manifest-bound syslib stub, syscall encoder, table index zero, and handler
   `0x8ed23`;
+- signed NFTP `heci` bounds a transport fragment to `0x1fc`, validates FIFO
+  availability and control-message geometry, and checks fragments against
+  client message capacity; no simple oversized-fragment local-buffer copy is
+  observed, but the exact CVE-2018-12147 defect and a host client grammar remain
+  unidentified;
 - signed NFTP `dal_sdm` reads an exact `0x24`-byte
   `/snowball/ipub_key` policy object before OEM authorization objects, but no
   producer or write path is proved;

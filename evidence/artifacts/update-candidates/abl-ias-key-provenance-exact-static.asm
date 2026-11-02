@@ -2744,3 +2744,95 @@ ffffe768: .long 0xffffc000  # source / exact IBBL runtime base
 # /snowball/ipub_key namespace used by BUP and uses its 0x24-byte policy object
 # before reading OEM authorization material. It does not identify the object's
 # producer, demonstrate a write path, or establish ROM/fuse authority.
+
+## Signed NFTP HECI receive-path bounds
+
+# Exact signed object chain:
+#   NFTP.man @ flash 0x203688, size 0x9a0,
+#     SHA-256 d89f510f91eb9191e4b1e4a1a17b4675e3823953067ded257a6d78b2fb340ea4
+#   -> reverse(SHA-256(heci.met))
+#   heci.met @ flash 0x205600, size 0x1cc,
+#     SHA-256 0826dda708681158fa6727e5dd50e5f7b8308869907e5d94dd5b458120429a59
+#   -> reverse(SHA-256(compressed heci))
+#   compressed heci @ flash 0x239000, size 0x40b0,
+#     SHA-256 e6e69c0bc6b33ac5d7651cb999da9b6f97c682011fca43800c6ffd1adfab2770
+#   -> strict Intel-CSE-LZMA decompressed heci, size 0x9000,
+#     SHA-256 82b7be7bb8069aebfb2c9f7a0e994500fe10d631e67a16f5a5fec71d29679125
+# HECI code base 0x26000, main-thread entry 0x29015.
+
+### Transport length and FIFO-availability checks (heci file [0x17c8,0x1dc9))
+
+   27859: shr     eax, 0x18
+   2785f: and     al, 0x80             # split control/ordinary path
+   27866: mov     ecx, edi
+   27868: shr     ecx, 0x10
+   2786b: mov     eax, ecx
+   2786d: and     ax, 0x1ff            # nine-bit payload length
+   2789b: mov     eax, edi
+   2789d: shr     eax, 0x10
+   278a0: mov     esi, eax
+   278a5: and     esi, 0x1ff
+   278ab: cmp     esi, 0x1fc           # maximum accepted fragment
+   278b1: jle     0x278bf
+   278b3: push    ebx
+   278b4: call    0x2be94              # reset/error path on oversize
+   278bf: lea     eax, [esi + 0x3]
+   278c2: sar     eax, 0x2             # rounded payload word count
+   278c5: cmp     dword ptr [ebp - 0x40], eax
+   278c8: jae     0x278da              # require available transport words
+   2793a: lea     eax, [esi - 0x4]
+   2793d: cmp     eax, 0x4             # control size must be 4..8
+   27940: ja      0x27948
+   27942: test    byte ptr [ebp - 0x3c], 0x3
+   27946: je      0x2796e              # control size must be dword-aligned
+   27d80: push    edi
+   27d81: push    ebx
+   27d82: call    0x28a2d              # ordinary host/client payload
+
+### Client, connection, and message-capacity checks (heci file [0x2a2d,0x2e78))
+
+   28a4f: mov     eax, dword ptr [ebp + 0xc]
+   28a52: shr     eax, 0x10
+   28a5a: and     eax, 0x1ff           # recover current fragment length
+   28a8f: push    edi                  # client id
+   28a90: push    ebx
+   28a91: call    0x28e78              # enabled-client lookup
+   28aa8: call    0x28eba              # connection lookup
+   28ac4: test    ecx, ecx
+   28ac6: je      0x28cd9              # reject missing connection
+   28acc: test    esi, esi
+   28ace: je      0x28cd9              # reject missing client
+   28ad4: test    byte ptr [ecx + 0x2c], 0x1
+   28ad8: je      0x28cd9              # require connection state
+   28bd9: lea     edi, [ebp - 0x20c]
+   28bdf: push    0x1fc
+   28be4: push    0x0
+   28be6: push    edi
+   28bed: call    0x103d               # clear fixed 0x1fc-byte local buffer
+   28bf2: push    dword ptr [ebp + 0xc]
+   28bf5: push    0x1fc
+   28bfa: push    edi
+   28bfb: push    ebx
+   28bfc: call    0x2868d              # bounded FIFO extraction
+   28c6f: mov     edx, dword ptr [ecx + 0x20] # bytes already received
+   28c72: mov     eax, dword ptr [esi + 0x14] # client max message size
+   28c75: sub     eax, edx              # remaining capacity
+   28c77: cmp     dword ptr [ebp - 0x210], eax
+   28c7d: jbe     0x28db1              # continuation fragment fits
+   28ce6: mov     eax, dword ptr [esi + 0x14]
+   28ce9: cmp     dword ptr [ebp - 0x210], eax
+   28cef: jbe     0x28d25              # first fragment fits max message
+   28db1: push    dword ptr [ebp - 0x210] # bounded current fragment length
+   28db7: push    0x1fc
+   28dbc: push    edi                  # local fragment source
+   28dbd: push    edx                  # destination offset
+   28dc4: push    dword ptr [ecx + 0x18] # destination process buffer
+   28dcf: call    0x61d6               # process-buffer copy
+   28e09: mov     eax, dword ptr [ebp - 0x210]
+   28e0f: add     dword ptr [ecx + 0x20], eax
+
+# This proves explicit bounds on the exact signed HECI transport's primary
+# receive path and rejects a simple oversized-fragment copy into its fixed local
+# buffer. It does not identify CVE-2018-12147's proprietary state/input defect,
+# prove every downstream firmware-client parser safe, or recover the host MEI
+# client UUID and message grammar required to reach any such parser.

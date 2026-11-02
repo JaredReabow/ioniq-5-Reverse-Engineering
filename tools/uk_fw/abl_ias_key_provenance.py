@@ -55,6 +55,31 @@ FPF_COMPRESSED_SIZE = 0x2A51
 FPF_COMPRESSED_SHA256 = "40e9da01431dc7a40e82ba6a33e1ee7d9891c9ffa0cda02efb5ff56387681e47"
 FPF_SIZE = 0x6000
 FPF_SHA256 = "9fd694bc90c7433528cfcf80ad265093cc61e086d882a3c52dee152ba64630b9"
+HECI_MET_OFFSET = 0x205600
+HECI_MET_SIZE = 0x1CC
+HECI_MET_SHA256 = "0826dda708681158fa6727e5dd50e5f7b8308869907e5d94dd5b458120429a59"
+HECI_COMPRESSED_OFFSET = 0x239000
+HECI_COMPRESSED_SIZE = 0x40B0
+HECI_COMPRESSED_SHA256 = "e6e69c0bc6b33ac5d7651cb999da9b6f97c682011fca43800c6ffd1adfab2770"
+HECI_SIZE = 0x9000
+HECI_SHA256 = "82b7be7bb8069aebfb2c9f7a0e994500fe10d631e67a16f5a5fec71d29679125"
+HECI_CODE_BASE = 0x26000
+BUSDRV_COMPRESSED_OFFSET = 0x21B000
+BUSDRV_COMPRESSED_SIZE = 0x22EE
+BUSDRV_COMPRESSED_SHA256 = "e58a354055281fe2ab8809ef1d6705b7bdccc8acc11bf20faeaf0187a200eb50"
+BUSDRV_MET_OFFSET = 0x204CAC
+BUSDRV_MET_SIZE = 0x260
+BUSDRV_MET_SHA256 = "1857be7e234b2d88a9055d91c8bb9f69412d3db494b47f13cf407e9a0677da71"
+BUSDRV_SIZE = 0x6000
+BUSDRV_SHA256 = "f226a92dd219a020bca96aeca3b54d8b0870f230128b7cb206c3389d5096ad21"
+HECI_RANGES = {
+    "bus_driver_open": (0x22B6, 0x22D4, "ecde2c77c8f6e68da1583e68f3b3bfa3d4d0dcd2348e981ae01011f3803b7d4d"),
+    "transport_receive_dispatch": (0x17C8, 0x1DC9, "89d34094c7c72571ae5a5790b95c1570a81acc31a48105aa0092fb3017f05dc7"),
+    "payload_fragment_consumer": (0x2A2D, 0x2E78, "5c77d1e0db46ff8847d0a232ef6efa074767d5fe24aaa41727f595997831c419"),
+    "fifo_bounded_copy": (0x268D, 0x27B7, "d8df2a82e6f71db82616c63898b8e3a3cb46cf4bb524ae5bd93d573ad889e362"),
+    "client_lookup": (0x2E78, 0x2EBA, "2307a27ca1a786e8a8326c5e91cd1205e1054ca4d46006c3c4ee5b19794c0392"),
+    "connection_lookup": (0x2EBA, 0x2F2F, "d59454fd7e80f04f93e2839222d771a0d762fa2ab3592f8b97cc9eb068718b4b"),
+}
 SBL_COMMIT = "5f5c14b10ae6bd3cd0cf7e274142767dc2635a06"
 SBL_FILE = "BootloaderCorePkg/Include/FirmwareInterfaceTable.h"
 SBL_FILE_SHA256 = "0e0f1fff576e4edc48d2918d14bb1292526d3c01d3547d38305ea435543722ef"
@@ -499,6 +524,221 @@ def parse_special_files(extension: bytes, label: str) -> dict:
             }
         )
     return {"major": major, "entries": entries}
+
+
+def extract_heci_transport_bounds(abl: bytes) -> dict:
+    cpd = 0x203000
+    entries = []
+    for index in range(69):
+        raw_name, raw_offset, size, _ = struct.unpack_from("<12sIII", abl, cpd + 0x10 + index * 24)
+        entries.append((raw_name.rstrip(b"\0").decode("ascii"), raw_offset & 0x1FFFFFF, size))
+    selected = [entry for entry in entries if entry[0] in ("busdrv", "busdrv.met", "heci", "heci.met")]
+    if selected != [
+        ("busdrv", 0x18000, BUSDRV_COMPRESSED_SIZE),
+        ("busdrv.met", 0x1CAC, BUSDRV_MET_SIZE),
+        ("heci", 0x36000, HECI_COMPRESSED_SIZE),
+        ("heci.met", 0x2600, HECI_MET_SIZE),
+    ]:
+        raise Failure("NFTP HECI/busdrv CPD entries drift")
+
+    compressed = abl[HECI_COMPRESSED_OFFSET : HECI_COMPRESSED_OFFSET + HECI_COMPRESSED_SIZE]
+    metadata = abl[HECI_MET_OFFSET : HECI_MET_OFFSET + HECI_MET_SIZE]
+    manifest = abl[0x203688 : 0x203688 + 0x9A0]
+    for blob, size, digest, label in (
+        (compressed, HECI_COMPRESSED_SIZE, HECI_COMPRESSED_SHA256, "compressed heci"),
+        (metadata, HECI_MET_SIZE, HECI_MET_SHA256, "heci.met"),
+        (manifest, 0x9A0, NFTP_MAN_SHA256, "NFTP.man"),
+    ):
+        if len(blob) != size or hashlib.sha256(blob).hexdigest() != digest:
+            raise Failure(f"{label} identity drift")
+    if manifest.count(hashlib.sha256(metadata).digest()[::-1]) != 1:
+        raise Failure("NFTP.man to heci.met signed hash chain drift")
+
+    extensions: list[tuple[int, bytes]] = []
+    pos = 0
+    while pos < len(metadata):
+        if pos + 8 > len(metadata):
+            raise Failure("heci.met truncated extension header")
+        tag, size = struct.unpack_from("<II", metadata, pos)
+        if size < 8 or pos + size > len(metadata):
+            raise Failure("heci.met extension geometry drift")
+        extensions.append((tag, metadata[pos : pos + size]))
+        pos += size
+    if [(tag, len(value)) for tag, value in extensions] != [
+        (10, 0x38), (5, 0x50), (6, 0x38), (7, 0x20), (8, 0x38), (9, 0x6C), (9, 0x24), (9, 0x24)
+    ]:
+        raise Failure("heci.met extension sequence drift")
+    module = extensions[0][1]
+    compression = module[8]
+    uncompressed_size, compressed_size = struct.unpack_from("<II", module, 0x0C)
+    if (
+        compression != 2
+        or uncompressed_size != HECI_SIZE
+        or compressed_size != HECI_COMPRESSED_SIZE
+        or module[0x18:0x38] != hashlib.sha256(compressed).digest()[::-1]
+    ):
+        raise Failure("heci.met compressed module binding drift")
+    if not compressed.startswith(bytes.fromhex("3600400000")) or compressed[0x0E:0x11] != b"\0\0\0":
+        raise Failure("heci Intel CSE LZMA header drift")
+    try:
+        decoder = lzma.LZMADecompressor()
+        heci = decoder.decompress(compressed[:0x0E] + compressed[0x11:])
+    except lzma.LZMAError as exc:
+        raise Failure(f"heci LZMA decompression failure: {exc}") from exc
+    if (
+        not decoder.eof
+        or decoder.unused_data
+        or len(heci) != HECI_SIZE
+        or hashlib.sha256(heci).hexdigest() != HECI_SHA256
+    ):
+        raise Failure("decompressed heci identity drift")
+
+    bus_compressed = abl[BUSDRV_COMPRESSED_OFFSET : BUSDRV_COMPRESSED_OFFSET + BUSDRV_COMPRESSED_SIZE]
+    bus_metadata = abl[BUSDRV_MET_OFFSET : BUSDRV_MET_OFFSET + BUSDRV_MET_SIZE]
+    for blob, size, digest, label in (
+        (bus_compressed, BUSDRV_COMPRESSED_SIZE, BUSDRV_COMPRESSED_SHA256, "compressed busdrv"),
+        (bus_metadata, BUSDRV_MET_SIZE, BUSDRV_MET_SHA256, "busdrv.met"),
+    ):
+        if len(blob) != size or hashlib.sha256(blob).hexdigest() != digest:
+            raise Failure(f"{label} identity drift")
+    if manifest.count(hashlib.sha256(bus_metadata).digest()[::-1]) != 1:
+        raise Failure("NFTP.man to busdrv.met signed hash chain drift")
+    if bus_metadata[0] != 10 or struct.unpack_from("<I", bus_metadata, 4)[0] != 0x38:
+        raise Failure("busdrv.met module extension drift")
+    if (
+        bus_metadata[8] != 2
+        or struct.unpack_from("<I", bus_metadata, 0x0C)[0] != BUSDRV_SIZE
+        or struct.unpack_from("<I", bus_metadata, 0x10)[0] != BUSDRV_COMPRESSED_SIZE
+        or bus_metadata[0x18:0x38] != hashlib.sha256(bus_compressed).digest()[::-1]
+    ):
+        raise Failure("busdrv.met compressed module binding drift")
+    if not bus_compressed.startswith(bytes.fromhex("3600400000")) or bus_compressed[0x0E:0x11] != b"\0\0\0":
+        raise Failure("busdrv Intel CSE LZMA header drift")
+    try:
+        bus_decoder = lzma.LZMADecompressor()
+        busdrv = bus_decoder.decompress(bus_compressed[:0x0E] + bus_compressed[0x11:])
+    except lzma.LZMAError as exc:
+        raise Failure(f"busdrv LZMA decompression failure: {exc}") from exc
+    if (
+        not bus_decoder.eof
+        or bus_decoder.unused_data
+        or len(busdrv) != BUSDRV_SIZE
+        or hashlib.sha256(busdrv).hexdigest() != BUSDRV_SHA256
+    ):
+        raise Failure("decompressed busdrv identity drift")
+
+    process = extensions[1][1]
+    if (
+        struct.unpack_from("<I", process, 0x10)[0] != HECI_CODE_BASE
+        or struct.unpack_from("<I", process, 0x24)[0] != 0x29015
+        or struct.unpack_from("<I", process, 0x34)[0] != 0x2F
+    ):
+        raise Failure("heci process attributes drift")
+    special_files = []
+    for tag, extension in extensions:
+        if tag != 9:
+            continue
+        producer = struct.unpack_from("<I", extension, 8)[0]
+        parsed_entries = []
+        for entry_pos in range(12, len(extension), 24):
+            parsed_entries.append(
+                {
+                    "name": extension[entry_pos : entry_pos + 12].rstrip(b"\0").decode("ascii"),
+                    **dict(zip(("access_mode", "user_id", "group_id", "minor"), struct.unpack_from("<HHHH", extension, entry_pos + 12))),
+                    "reserved": struct.unpack_from("<I", extension, entry_pos + 20)[0],
+                }
+            )
+        special_files.append({"major": producer & 0xFFFF, "flags": producer >> 16, "entries": parsed_entries})
+    expected_special_files = [
+        {
+            "major": 6,
+            "flags": 1,
+            "entries": [
+                {"name": "heci1", "access_mode": 0x1B0, "user_id": 0x2F, "group_id": 5, "minor": 0, "reserved": 0},
+                {"name": "heci1ose", "access_mode": 0x1B0, "user_id": 0x2F, "group_id": 5, "minor": 1, "reserved": 0},
+                {"name": "hecisoh", "access_mode": 0x1B0, "user_id": 0x2F, "group_id": 5, "minor": 2, "reserved": 0},
+                {"name": "heci1handoff", "access_mode": 0x1B0, "user_id": 0x2F, "group_id": 8, "minor": 3, "reserved": 0},
+            ],
+        },
+        {"major": 7, "flags": 1, "entries": [{"name": "heci2", "access_mode": 0x1B0, "user_id": 0x2F, "group_id": 6, "minor": 0, "reserved": 0}]},
+        {"major": 8, "flags": 1, "entries": [{"name": "heci3", "access_mode": 0x1B0, "user_id": 0x2F, "group_id": 7, "minor": 0, "reserved": 0}]},
+    ]
+    if special_files != expected_special_files:
+        raise Failure("heci special-file metadata drift")
+
+    strings = {
+        "bup_handoff": (0x7110, b"/dev/bup_heci\0"),
+        "events": (0x711E, b"/dev/events\0"),
+        "bus_driver": (0x7142, b"/dev/bus_drv\0"),
+        "bus_power_manager": (0x714F, b"/dev/bus_prman\0"),
+        "bus_bup_driver": (0x715E, b"/dev/bus_bupdrv\0"),
+        "power_context": (0x716E, b"/snowball/pm_ctxt\0"),
+    }
+    for label, (offset, value) in strings.items():
+        if heci[offset : offset + len(value)] != value or heci.count(value) != 1:
+            raise Failure(f"heci {label} string drift")
+
+    return {
+        "signed_chain": {
+            "nftp_manifest": {"flash_offset": 0x203688, "size": 0x9A0, "sha256": NFTP_MAN_SHA256},
+            "heci_metadata": {"flash_offset": HECI_MET_OFFSET, "size": HECI_MET_SIZE, "sha256": HECI_MET_SHA256},
+            "heci_compressed": {"flash_offset": HECI_COMPRESSED_OFFSET, "size": HECI_COMPRESSED_SIZE, "sha256": HECI_COMPRESSED_SHA256},
+            "heci_decompressed": {"size": HECI_SIZE, "sha256": HECI_SHA256},
+            "nftp_manifest_binds_heci_metadata": True,
+            "heci_metadata_binds_compressed_module": True,
+        },
+        "process": {
+            "code_base": HECI_CODE_BASE,
+            "code_size": 0x70B9,
+            "main_thread_entry": 0x29015,
+            "user_id": 0x2F,
+            "permanent": True,
+            "fault_policy": "reset system",
+        },
+        "instruction_ranges": check_ranges(heci, HECI_RANGES, "NFTP heci"),
+        "internal_bus_driver": {
+            "signed_chain": {
+                "metadata": {"flash_offset": BUSDRV_MET_OFFSET, "size": BUSDRV_MET_SIZE, "sha256": BUSDRV_MET_SHA256},
+                "compressed": {"flash_offset": BUSDRV_COMPRESSED_OFFSET, "size": BUSDRV_COMPRESSED_SIZE, "sha256": BUSDRV_COMPRESSED_SHA256},
+                "decompressed": {"size": BUSDRV_SIZE, "sha256": BUSDRV_SHA256},
+                "nftp_manifest_binds_metadata": True,
+                "metadata_binds_compressed_module": True,
+            },
+            "code_base": 0x26000,
+            "main_thread_entry": 0x27D42,
+            "internal_special_files": ["bus_drv", "bus_mstro", "bus_prman"],
+            "heci_opens_bus_drv": True,
+            "heci_bus_drv_path_runtime_address": 0x2D142,
+            "host_protocol_boundary": "busdrv is an internal CSE MMIO/interrupt/power driver reached by HECI through /dev/bus_drv; its internal operation dispatcher is not a Linux MEI client grammar.",
+        },
+        "internal_special_files": special_files,
+        "internal_paths": {label: {"file_offset": offset, "runtime_address": HECI_CODE_BASE + offset} for label, (offset, _) in strings.items()},
+        "transport_receive_bounds": {
+            "transport_header_size": 4,
+            "payload_length_expression": "(header >> 16) & 0x1ff",
+            "maximum_fragment_length": 0x1FC,
+            "requires_available_words_for_header_and_rounded_payload": True,
+            "control_payload_minimum": 4,
+            "control_payload_maximum": 8,
+            "control_payload_requires_dword_alignment": True,
+            "fixed_local_fragment_buffer_size": 0x1FC,
+            "client_lookup_requires_enabled_client": True,
+            "connection_lookup_result_checked_before_use": True,
+            "first_fragment_compared_to_client_max_message_size": True,
+            "continuation_fragment_compared_to_remaining_message_capacity": True,
+            "copy_length_is_current_bounded_fragment_length": True,
+            "simple_oversize_fragment_stack_copy_observed": False,
+            "cve_2018_12147_exact_bug_identified": False,
+            "cve_2018_12147_rejected_for_exact_module": False,
+        },
+        "host_boundary": {
+            "metadata_special_file_ids_are_cse_internal_user_and_group_ids": True,
+            "metadata_special_files_are_linux_dev_mei_nodes": False,
+            "linux_mei_client_uuid_or_protocol_grammar_recovered": False,
+            "privileged_linux_caller_reachability_proved": False,
+        },
+        "boundary": "The signed NFTP HECI transport proves bounded 9-bit fragment handling and client/message-capacity checks on the recovered receive path. These checks reject a simple oversized-fragment copy theory, but do not identify Intel-SA-00125's proprietary input-validation defect, prove that another state or client parser is safe, or establish a Linux MEI client UUID and message grammar.",
+    }
 
 
 def extract_dal_sdm_snowball_policy(abl: bytes) -> dict:
@@ -1178,6 +1418,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     cse_root_and_boot_policy_chains = parse_cse_root_and_boot_policy_chains(abl)
     fpf_provisioning_handoff = extract_fpf_provisioning_handoff(abl, cse_bup)
     dal_sdm_snowball_policy = extract_dal_sdm_snowball_policy(abl)
+    heci_transport_bounds = extract_heci_transport_bounds(abl)
     uep_oem_hash_candidate = parse_uep_oem_hash_candidate(abl)
     stored_oem_key = parse_stored_oem_key(abl)
     ibbl_ranges = check_ranges(ibbl, IBBL_RANGES, "IBBL")
@@ -1477,6 +1718,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "cse_root_and_boot_policy_chains": cse_root_and_boot_policy_chains,
             "cse_uep_to_fpf_provisioning_handoff": fpf_provisioning_handoff,
             "nftp_dal_sdm_snowball_policy": dal_sdm_snowball_policy,
+            "nftp_heci_transport_bounds": heci_transport_bounds,
             "cse_rbe_uep_oem_key_authentication": {
                 "uep_object_name": "ifp_uep",
                 "object_size": UEP_SIZE,
@@ -1788,6 +2030,10 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "ftpr_stream_reader_to_bup_import_binding_proved": True,
             "bup_runtime_ipub_key_proved_to_originate_in_rbe_handoff": False,
             "signed_nftp_dal_sdm_reads_exact_snowball_ipub_key_policy_object_proved": True,
+            "signed_nftp_heci_receive_fragment_bounds_proved": True,
+            "nftp_heci_simple_oversize_fragment_stack_copy_observed": False,
+            "cve_2018_12147_exact_bug_identified": False,
+            "linux_mei_client_uuid_or_protocol_grammar_recovered": False,
             "snowball_ipub_key_producer_or_writability_proved": False,
             "pre_rbe_handoff_producer_or_authenticator_proved": False,
             "shared_rot_key_digest_for_rbep_ftpr_nftp_manifests_proved": True,
@@ -1827,6 +2073,7 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
             "The RBE-to-BUP-to-IBBL path binds the runtime type-0x0b payload to exact FTPR oem.key bytes. The recovered set's runtime expected usage-39 digest is therefore 9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff4807517693e0af.",
             "Exact BUP calls 0x659b for both runtime-object reads. With the exact syslib at runtime base 0x6000, this is raw stub +0x59b, which jumps to the wrapper at raw +0x10fb3. That wrapper encodes selector 0, argument size 0x10 as syscall value 0x00010010 and invokes int 0x80. Exact kernel dispatch uses the high byte as its 12-byte table index; entry zero is flags 5, size 0x10, handler 0x8ed23. This closes BUP's reader import to the exact previously analyzed FTPR handler. Consequently totals 0x10/0x11 reach the synthetic-header underflow, but the resulting 0xfffffffe/0xffffffff payload read is rejected by the exact process-buffer validator before stream copy.",
+            "The signed NFTP HECI module decodes a 9-bit transport payload length, rejects fragments above 0x1fc, checks FIFO word availability before extraction, bounds control payloads to aligned lengths 4..8, copies host fragments through a fixed 0x1fc-byte local buffer, and checks first-fragment and continuation lengths against client message capacity. This rejects a simple oversized-fragment stack-copy theory for the exact receive path. It does not identify CVE-2018-12147's proprietary defect, prove every state/client parser safe, or recover a Linux MEI client UUID or protocol grammar. Metadata names heci1/heci2/heci3 are CSE-internal special files with CSE user/group IDs, not Linux /dev/mei node permissions.",
             "Exact RBE looks up ipub_key in an incoming bounded runtime-object handoff at 0x08200000, copies a selected 32-byte digest to 0x6047fa8, and requires rot.key's modulus-plus-exponent digest to match it before RSA verification. Its iterator does not require a nonzero or minimum entry total or enough remaining bytes for an entry header; a zero-total nonmatch does not progress, while a short total can step into the current entry. Its first append trusts the incoming 32-bit current total and bounds only the wrapped sum with the 0x13-byte new entry; totals 0xffffffed..0xffffffff can therefore pass and place the write at 0x081fffed..0x081fffff, partly outside the declared handoff. After an ipub_key name match, RBE checks neither the entry total nor selector range, pointer-field containment, or selected-pointer range before its fixed 32-byte copy from dword[entry + 0x16 + 4*selector]. RBE can append other handoff objects but its ipub_key path does not create that entry. The FTPR manifest and kernel metadata bind the exact signed FTPR kernel, which later consumes the same handoff base, first-entry address, state byte, and +0x0e entry-size geometry. Exact BUP's corresponding manifest path resolves ipub_key either from a runtime object or from /snowball/ipub_key depending on global 0xa014c. It requires the returned object size to be greater than 0x23, then uses byte 0 as an unchecked selector for the pointer at offset 4 + 4*selector and supplies 32 bytes from that pointer to its verifier. No selector upper bound or selected-pointer-within-object check is observed in this path. These are exact parser-integrity findings, but reachable attacker control of either object source is not proved. The exact Intel digest occurs statically only in rot.key's Extension-14 record. These paths do not prove who populated or authenticated the pre-RBE handoff, that it is immutable, or that the snowball branch is active, writable, or unauthenticated.",
             "Exact BUP selects oem.key usage bit 32, compares the IBBP.man modulus-plus-exponent digest before RSA verification, verifies IBBP.man, checks its signed BPM.met hash, and checks BPM.met's exact IBBL and IBB SHA-256 values. This closes the selected-UEP-to-exact-IBB byte chain for the recovered set.",
             "Exact RBE materializes the selected 0x100-byte UEP payload in the 0x108-byte ifp_uep object, with a hardware-route REAL header or the validated flash-route $UEP/CRC header. Exact BUP records whether the header is REAL without rejecting the alternative in this range, initially copies the payload byte-for-byte into its FPF shadow, may update that shadow through later field assembly, and publishes the resulting 0x880-byte bup_fpf special file. The signed NFTP fpf module requires that exact-size input and uses the resulting shadow while its hardware-mode global is zero.",

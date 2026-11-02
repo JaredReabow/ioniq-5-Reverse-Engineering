@@ -148,10 +148,18 @@ Intel-SA-00086 lists that release as its resolved Apollo Lake production
 version, so its TXE 3.0 kernel CVEs are not promoted. Intel-SA-00125, however,
 explicitly says TXE 3.0 through 3.1.50 is affected and TXE 3.1.55 replaces
 `3.1.50.2222`. CVE-2018-12147 requires a privileged local HECI caller and is
-therefore not an initial Linux-root route. For CVE-2018-3655 Intel explicitly
-names anti-replay bypass, TXE data-file tampering, and rollback as possible
-physical-access consequences, making persistent policy-state rollback a strong
-bench lead; the advisory still does not disclose an actionable interface. See
+therefore not an initial Linux-root route. The signed exact HECI transport caps
+the 9-bit receive length at `0x1fc`, checks FIFO availability, restricts control
+payload geometry, and checks initial/continuation fragments against client
+message capacity before copying. That rejects a simple oversized-fragment
+stack-copy theory, but does not reveal or exclude the advisory's proprietary
+state/input defect. A public 2023 ChromeOS Apollo Lake `reef` image contains
+byte-identical HECI, bus-driver, and syslib modules, but remains TXE
+`3.1.50.2238`; it corroborates exact bytes rather than providing a fixed
+3.1.55 diff. For CVE-2018-3655 Intel explicitly names anti-replay bypass, TXE
+data-file tampering, and rollback as possible physical-access consequences,
+making persistent policy-state rollback a strong bench lead; the advisory
+still does not disclose an actionable interface. See
 `intel-txe-3.1.50-advisory-applicability.md`.
 
 Exact BUP adds a bounded lead: its generic manifest path can resolve `ipub_key`

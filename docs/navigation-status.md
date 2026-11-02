@@ -128,10 +128,19 @@ and `libwayland-egl.so.1.0.0` (`APPNAVI_RENDER_MAPS=12`), yet no `wl_surface` at
 commit reaches it (`OBSERVER_NAVI_LINES=0` over 120 seconds). Other vendor clients do
 reach the compositor in the same run: weston's debug log records
 `WESTON_CREATE_SURFACE=40`, hundreds of `get_registry` calls, and commits from surfaces
-that are not AppNavi's. The cause is not established; the runs that recorded surfaces
-`3000`/`4903` used the project software EGL from `/opt/software-egl*` (absent from these
-extracted trees, which carry only vendor `libEGL`/`libGLESv2` and the `i965` DRI driver)
-and drove the standby/profile-confirm transition this chain does not.
+that are not AppNavi's. At the time of these runs the cause was not established; the
+runs that recorded surfaces `3000`/`4903` used the project software EGL from
+`/opt/software-egl*` (absent from these extracted trees, which carry only vendor
+`libEGL`/`libGLESv2` and the `i965` DRI driver) and drove the standby/profile-confirm
+transition this chain does not.
+
+**Superseded in part:** CHANGELOG 2.64.0 and 2.66.0 establish the gate the launcher
+closes — `QT_WAYLAND_SET_SURFACE_ID` with `QT_WAYLAND_SET_SURFACE_ID_FORCED=1` — and
+show that a forced non-zero id makes the client create, attach and commit, with the
+black output coming from the missing `ivi_controller` layer placement rather than from
+the client's silence. The observation above stays scoped to the launcher-owned chain,
+where that variable arrives as `0`; it is not evidence about the client's own
+capability.
 
 ### Reconciling with the retired shim
 

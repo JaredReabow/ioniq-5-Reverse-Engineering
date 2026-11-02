@@ -46,7 +46,7 @@
     ],
     "affected_syslib_selector_wrapper_sha256": "58a75d3146459c122d603c5d17d231129c9fe3226ebe51b777f8b8cbc8c593c1",
     "affected_table_runtime_address": 593188,
-    "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed message-length sites, but the same 0xff-to-0x102 change appears at fourteen MOV/CMP sites kernel-wide. Its semantic name, reason for the plus-three renumbering, message dword-zero meaning, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
+    "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed message-length sites, but the same 0xff-to-0x102 change appears at fifteen MOV/CMP sites kernel-wide, including the directly called helper's MOV EDX return path. Its semantic name, reason for the plus-three renumbering, message dword-zero meaning, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
     "first_fixed_handler_runtime_range": [
       575066,
       575720
@@ -78,7 +78,10 @@
         549106,
         575614
       ],
-      "affected_total_site_count": 14,
+      "affected_mov_edx_0xff": [
+        573578
+      ],
+      "affected_total_site_count": 15,
       "first_fixed_cmp_eax_0x102": [
         557112,
         559524,
@@ -97,8 +100,11 @@
         549703,
         575520
       ],
-      "first_fixed_total_site_count": 14,
-      "interpretation_boundary": "The same numeric change occurs in fourteen MOV/CMP sites across each complete kernel, so the selector-0x10 uses are part of a kernel-wide status/sentinel renumbering candidate rather than isolated proof of message-validation logic."
+      "first_fixed_mov_edx_0x102": [
+        573484
+      ],
+      "first_fixed_total_site_count": 15,
+      "interpretation_boundary": "The same numeric change occurs in fifteen MOV/CMP sites across each complete kernel, so the selector-0x10 uses are part of a kernel-wide status/sentinel renumbering candidate rather than isolated proof of message-validation logic."
     },
     "only_handler_semantic_change_after_rel32_normalization": "two uses of the same immediate change from 0x000000ff to 0x00000102",
     "raw_differing_byte_count": 7,

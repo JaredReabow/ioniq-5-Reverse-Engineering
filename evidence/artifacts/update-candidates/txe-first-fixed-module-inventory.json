@@ -39,12 +39,97 @@
       "affected_to_first_fixed_value_counts": {
         "0x100_to_0x103": 2,
         "0x101_to_0x104": 1,
-        "0x102_to_0x105": 4
+        "0x102_to_0x105": 4,
+        "0xc4_to_0xc6": 2,
+        "0xc5_to_0xc7": 2,
+        "0xc6_to_0xc8": 2,
+        "0xc7_to_0xca": 1,
+        "0xc8_to_0xcb": 2
       },
-      "all_reviewed_values_increase_by_three": true,
-      "interpretation_boundary": "The reviewed adjacent values shift by the same plus-three translation as the 0xff sentinel, supporting insertion of three ordinal statuses at or below the old sentinel. The new status names and exact insertion point remain unknown.",
-      "site_count": 7,
+      "all_reviewed_values_follow_expected_translation": true,
+      "first_fixed_inserted_numeric_ordinals": [
+        {
+          "instruction": "mov_eax_imm32",
+          "runtime_address": 554662,
+          "value": 196
+        },
+        {
+          "instruction": "mov_eax_imm32",
+          "runtime_address": 554631,
+          "value": 197
+        },
+        {
+          "instruction": "mov_eax_imm32",
+          "runtime_address": 554588,
+          "value": 201
+        }
+      ],
+      "interpretation_boundary": "Matching instruction contexts show a plus-two shift for affected 0xc4..0xc6, a plus-three shift from affected 0xc7 onward, and exact first-fixed status-return sites at new ordinals 0xc4, 0xc5, and 0xc9. This identifies the numeric insertion points but not the vendor status names.",
+      "site_count": 16,
       "sites": [
+        {
+          "affected_runtime_address": 554375,
+          "affected_value": 196,
+          "first_fixed_runtime_address": 554687,
+          "first_fixed_value": 198,
+          "instruction": "mov_eax_imm32"
+        },
+        {
+          "affected_runtime_address": 554505,
+          "affected_value": 196,
+          "first_fixed_runtime_address": 554817,
+          "first_fixed_value": 198,
+          "instruction": "mov_eax_imm32"
+        },
+        {
+          "affected_runtime_address": 554562,
+          "affected_value": 197,
+          "first_fixed_runtime_address": 554874,
+          "first_fixed_value": 199,
+          "instruction": "mov_edx_imm32"
+        },
+        {
+          "affected_runtime_address": 554576,
+          "affected_value": 197,
+          "first_fixed_runtime_address": 554888,
+          "first_fixed_value": 199,
+          "instruction": "mov_edx_imm32"
+        },
+        {
+          "affected_runtime_address": 554645,
+          "affected_value": 198,
+          "first_fixed_runtime_address": 554957,
+          "first_fixed_value": 200,
+          "instruction": "mov_eax_imm32"
+        },
+        {
+          "affected_runtime_address": 554662,
+          "affected_value": 198,
+          "first_fixed_runtime_address": 554974,
+          "first_fixed_value": 200,
+          "instruction": "mov_eax_imm32"
+        },
+        {
+          "affected_runtime_address": 557302,
+          "affected_value": 199,
+          "first_fixed_runtime_address": 557208,
+          "first_fixed_value": 202,
+          "instruction": "mov_eax_imm32"
+        },
+        {
+          "affected_runtime_address": 557346,
+          "affected_value": 200,
+          "first_fixed_runtime_address": 557252,
+          "first_fixed_value": 203,
+          "instruction": "mov_eax_imm32"
+        },
+        {
+          "affected_runtime_address": 547357,
+          "affected_value": 200,
+          "first_fixed_runtime_address": 533732,
+          "first_fixed_value": 203,
+          "instruction": "mov_eax_imm32"
+        },
         {
           "affected_runtime_address": 566260,
           "affected_value": 256,
@@ -107,7 +192,7 @@
     ],
     "affected_syslib_selector_wrapper_sha256": "58a75d3146459c122d603c5d17d231129c9fe3226ebe51b777f8b8cbc8c593c1",
     "affected_table_runtime_address": 593188,
-    "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed message-length sites, but the same 0xff-to-0x102 change appears at fifteen MOV/CMP sites kernel-wide, including the directly called helper's MOV EDX return path. Its semantic name, reason for the plus-three renumbering, message dword-zero meaning, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
+    "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed message-length sites, but the same 0xff-to-0x102 change appears at fifteen MOV/CMP sites kernel-wide, including the directly called helper's MOV EDX return path. Three numeric ordinal insertions are now bound to first-fixed status-return sites at 0xc4, 0xc5, and 0xc9, but their vendor names and semantics, message dword-zero meaning, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
     "directly_called_helper": {
       "affected_runtime_range": [
         573415,
@@ -128,35 +213,6 @@
       575720
     ],
     "first_fixed_handler_sha256": "fece441f780c7171087f410322244c1ffbb9afcb2a55879d5c103dcb48147e0f",
-    "first_fixed_inserted_status_producer_candidates": {
-      "interpretation_boundary": "These are exact first-fixed producers for two values inside the three newly available ordinal positions. They are memory-management/resource-status candidates; no vendor status names, affected counterparts, or relationship to either SA-00125 CVE is established.",
-      "status_0x100": {
-        "bounded_behavior": "examines a page-table entry at 0x08002000, validates state and index bounds, returns 0x100 when a secondary table byte has bits 0..5 set, and otherwise can clear the entry and invalidate its page",
-        "direct_call_sites": [
-          548486,
-          548553,
-          557242
-        ],
-        "runtime_range": [
-          533707,
-          533847
-        ],
-        "sha256": "b12ad8b0c4e784655e76de10ba1977c906bb55c14d0b7eccfd2c62479b96d930",
-        "size": 140
-      },
-      "status_0x101": {
-        "bounded_behavior": "scans 128 table entries, appends selected indexes to an output array, and returns 0x101 when the output count exceeds 62",
-        "direct_call_sites": [
-          547126
-        ],
-        "runtime_range": [
-          546827,
-          546921
-        ],
-        "sha256": "004b911c32d58e78d2ffb3aab766308fb6b9168b35781208021eeabeb2f0f10e",
-        "size": 94
-      }
-    },
     "first_fixed_syslib_selector_wrapper_runtime_range": [
       94129,
       94165
@@ -211,6 +267,177 @@
       "first_fixed_total_site_count": 15,
       "interpretation_boundary": "The same numeric change occurs in fifteen MOV/CMP sites across each complete kernel. The exact selector-0x10 helper returns it after linking an object into a queue-like structure, and the shared epilogue handles it like zero rather than other nonzero values. This supports a deferred/nonordinary-completion sentinel interpretation, but does not establish the vendor name or CVE attribution."
     },
+    "kernel_status_site_role_map": {
+      "consumer_site_count": 12,
+      "covers_complete_fifteen_site_census": true,
+      "dispatch_queue_continue": {
+        "affected_runtime_address": 584807,
+        "bounded_behavior": "loads the global status at 0x98384 and returns to the pending-work dequeue path when it equals the reviewed sentinel",
+        "first_fixed_runtime_address": 584713
+      },
+      "generic_completion_filter_sites": [
+        {
+          "affected_runtime_address": 557206,
+          "first_fixed_runtime_address": 557112,
+          "other_nonzero_error_targets": [
+            563337,
+            563243
+          ],
+          "zero_and_sentinel_branch_targets": [
+            557225,
+            557131
+          ]
+        },
+        {
+          "affected_runtime_address": 559618,
+          "first_fixed_runtime_address": 559524,
+          "other_nonzero_error_targets": [
+            563337,
+            563243
+          ],
+          "zero_and_sentinel_branch_targets": [
+            559634,
+            559540
+          ]
+        },
+        {
+          "affected_runtime_address": 560284,
+          "first_fixed_runtime_address": 560190,
+          "other_nonzero_error_targets": [
+            563337,
+            563243
+          ],
+          "zero_and_sentinel_branch_targets": [
+            560303,
+            560209
+          ]
+        },
+        {
+          "affected_runtime_address": 563747,
+          "first_fixed_runtime_address": 563653,
+          "other_nonzero_error_targets": [
+            563337,
+            563243
+          ],
+          "zero_and_sentinel_branch_targets": [
+            563766,
+            563672
+          ]
+        },
+        {
+          "affected_runtime_address": 564378,
+          "first_fixed_runtime_address": 564284,
+          "other_nonzero_error_targets": [
+            563337,
+            563243
+          ],
+          "zero_and_sentinel_branch_targets": [
+            564397,
+            564303
+          ]
+        },
+        {
+          "affected_runtime_address": 571085,
+          "first_fixed_runtime_address": 570991,
+          "other_nonzero_error_targets": [
+            563337,
+            563243
+          ],
+          "zero_and_sentinel_branch_targets": [
+            571104,
+            571010
+          ]
+        },
+        {
+          "affected_runtime_address": 572857,
+          "first_fixed_runtime_address": 572763,
+          "other_nonzero_error_targets": [
+            563337,
+            563243
+          ],
+          "zero_and_sentinel_branch_targets": [
+            572876,
+            572782
+          ]
+        },
+        {
+          "affected_runtime_address": 576365,
+          "first_fixed_runtime_address": 576271,
+          "other_nonzero_error_targets": [
+            563337,
+            563243
+          ],
+          "zero_and_sentinel_branch_targets": [
+            576384,
+            576290
+          ]
+        },
+        {
+          "affected_runtime_address": 585695,
+          "first_fixed_runtime_address": 585601,
+          "other_nonzero_error_targets": [
+            563337,
+            563243
+          ],
+          "zero_and_sentinel_branch_targets": [
+            585714,
+            585620
+          ]
+        },
+        {
+          "affected_runtime_address": 590329,
+          "first_fixed_runtime_address": 590235,
+          "other_nonzero_error_targets": [
+            563337,
+            563243
+          ],
+          "zero_and_sentinel_branch_targets": [
+            590350,
+            590256
+          ]
+        }
+      ],
+      "interpretation_boundary": "Three sites produce the value. Ten generic completion filters treat zero and the sentinel alike while forwarding other nonzero values to a common error handler; selector 0x10 accepts the linked-tail helper's sentinel result; and the central dispatcher continues dequeuing pending work when the global status equals it. This supports a queued/deferred or nonordinary-completion role, not a recovered vendor name or CVE attribution.",
+      "producer_site_count": 3,
+      "producer_sites": [
+        {
+          "affected_direct_call_sites": [
+            557672,
+            558090
+          ],
+          "affected_runtime_address": 549106,
+          "first_fixed_direct_call_sites": [
+            557578,
+            557996
+          ],
+          "first_fixed_runtime_address": 549703,
+          "role": "list_registration_return"
+        },
+        {
+          "affected_runtime_address": 575614,
+          "first_fixed_runtime_address": 575520,
+          "role": "selector_0x10_handler_immediate_return"
+        },
+        {
+          "affected_direct_call_sites": [
+            575766,
+            575804
+          ],
+          "affected_runtime_address": 573578,
+          "first_fixed_direct_call_sites": [
+            575672,
+            575710
+          ],
+          "first_fixed_runtime_address": 573484,
+          "role": "linked_tail_helper_return"
+        }
+      ],
+      "selector_helper_acceptance": {
+        "affected_runtime_address": 575771,
+        "bounded_behavior": "compares the linked-tail helper return and continues selector-0x10 state updates only when it equals the reviewed sentinel",
+        "first_fixed_runtime_address": 575677
+      }
+    },
     "only_handler_semantic_change_after_rel32_normalization": "two uses of the same immediate change from 0x000000ff to 0x00000102",
     "raw_differing_byte_count": 7,
     "reviewed_rel32_sites": [
@@ -262,6 +489,53 @@
       ],
       "first_fixed_sha256": "34967dbd0be79aae7c2c0319e1e237210740e207895932e2269b42cef1bd978d",
       "only_change": "cmp eax immediate 0x000000ff to 0x00000102"
+    },
+    "shifted_memory_status_producers": {
+      "interpretation_boundary": "The first-fixed 0x100 and 0x101 producers are exact semantic counterparts of affected 0xfd and 0xfe producers, not newly inserted statuses. Their translation corroborates the ordinal shift and does not attribute either SA-00125 CVE.",
+      "status_0xfd_to_0x100": {
+        "affected_direct_call_sites": [
+          547494,
+          547561,
+          557336
+        ],
+        "affected_runtime_range": [
+          547332,
+          547472
+        ],
+        "affected_sha256": "6a5da5501dac433546a2c08220ddff17b80ef4160549b9c6cde38da2a9f8df19",
+        "bounded_behavior": "both counterparts examine a page-table entry at 0x08002000, validate state and index bounds, return the translated status when a secondary table byte has bits 0..5 set, and otherwise can clear the entry and invalidate its page",
+        "first_fixed_direct_call_sites": [
+          548486,
+          548553,
+          557242
+        ],
+        "first_fixed_runtime_range": [
+          533707,
+          533847
+        ],
+        "first_fixed_sha256": "b12ad8b0c4e784655e76de10ba1977c906bb55c14d0b7eccfd2c62479b96d930",
+        "size": 140
+      },
+      "status_0xfe_to_0x101": {
+        "affected_direct_call_sites": [
+          545994
+        ],
+        "affected_runtime_range": [
+          545695,
+          545789
+        ],
+        "affected_sha256": "1e17058b43cdf950a3abdcb1c729565d66171a19d319c431fc8843c7903a2063",
+        "bounded_behavior": "both counterparts scan 128 table entries, append selected indexes to an output array, and return the translated status when the output count exceeds 62",
+        "first_fixed_direct_call_sites": [
+          547126
+        ],
+        "first_fixed_runtime_range": [
+          546827,
+          546921
+        ],
+        "first_fixed_sha256": "004b911c32d58e78d2ffb3aab766308fb6b9168b35781208021eeabeb2f0f10e",
+        "size": 94
+      }
     },
     "syscall_argument_size": 64,
     "syslib_wrapper_builds_syscall_value": "(selector_byte << 24) | 0x00010000 | argument_size_word"

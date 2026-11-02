@@ -89,18 +89,39 @@ def test_canonical_inventory_matches_reviewed_artifact():
     assert helper["affected_sha256"] == "140dff321f92ee9e8fc551ff9e28e7501a97ab81b4b4e5c0f73ed52648cd3cea"
     assert helper["first_fixed_sha256"] == "0a10e5956f69381c8c455af7c14b72320d844709a9304af0ff439d38dfa7c196"
     ordinal = kernel_review["adjacent_ordinal_shift_review"]
-    assert ordinal["site_count"] == 7
-    assert ordinal["all_reviewed_values_increase_by_three"] is True
+    assert ordinal["site_count"] == 16
+    assert ordinal["all_reviewed_values_follow_expected_translation"] is True
     assert ordinal["affected_to_first_fixed_value_counts"] == {
+        "0xc4_to_0xc6": 2,
+        "0xc5_to_0xc7": 2,
+        "0xc6_to_0xc8": 2,
+        "0xc7_to_0xca": 1,
+        "0xc8_to_0xcb": 2,
         "0x100_to_0x103": 2,
         "0x101_to_0x104": 1,
         "0x102_to_0x105": 4,
     }
-    producers = kernel_review["first_fixed_inserted_status_producer_candidates"]
-    assert producers["status_0x100"]["direct_call_sites"] == [0x85E86, 0x85EC9, 0x880BA]
-    assert producers["status_0x101"]["direct_call_sites"] == [0x85936]
-    assert producers["status_0x100"]["sha256"] == "b12ad8b0c4e784655e76de10ba1977c906bb55c14d0b7eccfd2c62479b96d930"
-    assert producers["status_0x101"]["sha256"] == "004b911c32d58e78d2ffb3aab766308fb6b9168b35781208021eeabeb2f0f10e"
+    assert [site["value"] for site in ordinal["first_fixed_inserted_numeric_ordinals"]] == [0xC4, 0xC5, 0xC9]
+    producers = kernel_review["shifted_memory_status_producers"]
+    assert producers["status_0xfd_to_0x100"]["affected_direct_call_sites"] == [0x85AA6, 0x85AE9, 0x88118]
+    assert producers["status_0xfd_to_0x100"]["first_fixed_direct_call_sites"] == [0x85E86, 0x85EC9, 0x880BA]
+    assert producers["status_0xfe_to_0x101"]["affected_direct_call_sites"] == [0x854CA]
+    assert producers["status_0xfe_to_0x101"]["first_fixed_direct_call_sites"] == [0x85936]
+    assert producers["status_0xfd_to_0x100"]["affected_sha256"] == "6a5da5501dac433546a2c08220ddff17b80ef4160549b9c6cde38da2a9f8df19"
+    assert producers["status_0xfd_to_0x100"]["first_fixed_sha256"] == "b12ad8b0c4e784655e76de10ba1977c906bb55c14d0b7eccfd2c62479b96d930"
+    assert producers["status_0xfe_to_0x101"]["affected_sha256"] == "1e17058b43cdf950a3abdcb1c729565d66171a19d319c431fc8843c7903a2063"
+    assert producers["status_0xfe_to_0x101"]["first_fixed_sha256"] == "004b911c32d58e78d2ffb3aab766308fb6b9168b35781208021eeabeb2f0f10e"
+    role_map = kernel_review["kernel_status_site_role_map"]
+    assert role_map["producer_site_count"] == 3
+    assert role_map["consumer_site_count"] == 12
+    assert role_map["covers_complete_fifteen_site_census"] is True
+    assert len(role_map["generic_completion_filter_sites"]) == 10
+    assert [site["role"] for site in role_map["producer_sites"]] == [
+        "list_registration_return",
+        "selector_0x10_handler_immediate_return",
+        "linked_tail_helper_return",
+    ]
+    assert role_map["dispatch_queue_continue"]["affected_runtime_address"] == 0x8EC67
     census = kernel_review["kernel_global_immediate_census"]
     assert census["affected_total_site_count"] == 15
     assert census["first_fixed_total_site_count"] == 15

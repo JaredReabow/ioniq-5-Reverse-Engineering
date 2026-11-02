@@ -267,16 +267,19 @@ directly called `0xb2`-byte helper differs only in `mov edx, 0xff → 0x102`:
 after walking `+0x50`/`+0x28` links to a null tail, it stores a source pointer
 there and returns that value through `eax`. The shared epilogue handles zero and
 the reviewed value alike, unlike other nonzero results. A complete-kernel
-census finds the same numeric transition at 15 MOV/CMP sites. Seven matching
-instruction contexts also translate adjacent values `0x100 → 0x103`,
-`0x101 → 0x104`, and `0x102 → 0x105`, strongly supporting insertion of three
-ordinal statuses at or below the old sentinel. Exact first-fixed producers for
-`0x100` and `0x101` are memory-management/resource paths: one validates and can
-clear/invalidate a page-table entry, while the other bounds a 128-entry scan to
-62 output indexes. This is a deferred/nonordinary-completion sentinel-
-renumbering candidate, not isolated proof of an input-validation fix. The vendor
-names, third inserted status, exact insertion point, recipient, added-byte
-semantics, HECI reachability, and CVE attribution remain unproved. See
+census finds the same numeric transition at 15 MOV/CMP sites. Sixteen matching
+instruction contexts locate the three numeric insertions: affected `0xc4..0xc6`
+shift by two, affected `0xc7` and higher reviewed values shift by three, and
+first-fixed status-return instructions occupy new numeric ordinals `0xc4`,
+`0xc5`, and `0xc9`. The first-fixed `0x100` and `0x101` memory-management
+producers are exact translated counterparts of affected `0xfd` and `0xfe`
+producers, not inserted statuses. All fifteen sentinel sites now have bounded
+roles: three producers, ten repeated zero-or-sentinel completion filters, one
+selector-helper acceptance comparison, and one central-dispatcher comparison
+that continues pending-work dequeue. This is a deferred/nonordinary-completion
+sentinel-renumbering candidate, not isolated proof of an input-validation fix.
+The vendor status names and full semantics, recipient, added-byte semantics,
+HECI reachability, and CVE attribution remain unproved. See
 `evidence/intel-txe-first-fixed-module-inventory.md`.
 
 The exact later signed FPF adds structured `RbeArbEn`, `RbeArbSvn`,

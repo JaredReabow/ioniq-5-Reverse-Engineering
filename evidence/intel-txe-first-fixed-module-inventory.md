@@ -158,34 +158,54 @@ store the source pointer at that tail, and then return the reviewed value throug
 value both take the path that clears `eax` and returns, while other nonzero
 values call a separate handler.
 
-Seven context-bound sites immediately above the old sentinel show the same
-translation: two uses of `0x100 → 0x103`, one of `0x101 → 0x104`, and four of
-`0x102 → 0x105`. Each is the same `mov` instruction in matching local context;
-reviewed differences outside the immediate are confined to two nearby call
-address operands. This strongly supports insertion of three ordinal statuses at
-or below the old sentinel rather than an isolated constant replacement.
+Sixteen context-bound sites now locate the ordinal insertions. Affected values
+`0xc4..0xc6` move by two (`0xc4 → 0xc6`, `0xc5 → 0xc7`, and `0xc6 → 0xc8`),
+while affected `0xc7` and `0xc8` move by three (`0xca` and `0xcb`). The seven
+previously reviewed higher sites likewise translate `0x100 → 0x103`,
+`0x101 → 0x104`, and `0x102 → 0x105`. Exact first-fixed status-return
+instructions occupy the three inserted numeric ordinals:
 
-Two first-fixed functions produce values in those newly available positions:
+- `0xc4` at runtime `0x876a6`;
+- `0xc5` at runtime `0x87687`; and
+- `0xc9` at runtime `0x8765c`.
 
-- `0x824cb..0x82557`, SHA-256
+This proves two insertions before the affected `0xc4` semantic position and one
+between the shifted affected `0xc6` and `0xc7` positions. It does not recover
+the vendor names or full semantics of those statuses.
+
+The two previously identified high-value producers are not inserted statuses;
+they are translated affected/first-fixed counterparts:
+
+- affected `0x85a04..0x85a90`, SHA-256
+  `6a5da5501dac433546a2c08220ddff17b80ef4160549b9c6cde38da2a9f8df19`,
+  returns `0xfd`; first-fixed `0x824cb..0x82557`, SHA-256
   `b12ad8b0c4e784655e76de10ba1977c906bb55c14d0b7eccfd2c62479b96d930`,
-  examines a page-table entry at `0x08002000`, validates state and index bounds,
-  returns `0x100` when a secondary table byte has bits `0..5` set, and otherwise
-  can clear the entry and invalidate the page; and
-- `0x8580b..0x85869`, SHA-256
+  returns its translated value `0x100`. Both examine page-table state, validate
+  bounds, and can clear/invalidate a page. Their direct caller counts and
+  corresponding call roles are preserved across builds.
+- affected `0x8539f..0x853fd`, SHA-256
+  `1e17058b43cdf950a3abdcb1c729565d66171a19d319c431fc8843c7903a2063`,
+  returns `0xfe`; first-fixed `0x8580b..0x85869`, SHA-256
   `004b911c32d58e78d2ffb3aab766308fb6b9168b35781208021eeabeb2f0f10e`,
-  scans 128 entries, appends selected indexes to an output array, and returns
-  `0x101` when the output count exceeds 62.
+  returns `0x101`. Both scan 128 entries, append selected indexes, and return
+  that status when output count exceeds 62.
 
-These are exact memory-management/resource-status candidates for two of the
-three inserted ordinals. They do not establish vendor names, affected semantic
-counterparts, or advisory attribution.
+All fifteen kernel sites now have bounded roles. Three produce the sentinel:
+one returns it after registering an object in a list and invoking a follow-up,
+one is an immediate selector-`0x10` handler return, and the already bounded
+helper returns it after linking at a null tail. Ten consumers are a repeated
+completion filter that stores `eax` at global `0x98384`, treats zero and the
+sentinel alike, and forwards other nonzero values to the same error handler.
+Selector `0x10` separately accepts the linked-tail helper's sentinel result, and
+the central pending-work dispatcher returns to its dequeue path when global
+`0x98384` contains the sentinel. These roles cover all two `mov eax`, one
+`mov edx`, and twelve `cmp eax` census sites in both builds.
 
 Together, the queue-like helper and epilogue behavior support a deferred or
 nonordinary-completion sentinel interpretation. It still does **not** establish
-the vendor's semantic name, identify the three inserted statuses or exact
-insertion point, identify the message recipient or appended byte, establish
-HECI reachability, or attribute the change to CVE-2018-12147.
+the vendor status names or full semantics, identify the message recipient or
+appended byte, establish HECI reachability, or attribute the change to
+CVE-2018-12147.
 
 Larger changed modules include plausible service and downstream-parser surfaces
 such as `ipc_drv`, but a module name or diff size is not reachability or advisory
@@ -196,8 +216,8 @@ exact CVE-2018-3655 candidate.
 
 - `evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json`
 - schema `ioniq-txe-first-fixed-module-inventory/v1`
-- size `116,223` bytes
-- SHA-256 `e2e7a6a0e0c08fee5c03b2950e5227fccac9028ec7c6dee17dd15b292513f0dc`
+- size `124,860` bytes
+- SHA-256 `0de578c50a7126f1941537b5a90ae5add59cf65bd02513e096f140503055bf3d`
 
 Embedded `$MN2` signatures establish self-consistency and byte binding only.
 They do not establish platform ROM/fuse/OEM acceptance or installed-unit

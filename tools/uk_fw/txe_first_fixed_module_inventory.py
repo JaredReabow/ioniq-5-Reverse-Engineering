@@ -506,6 +506,15 @@ def kernel_message_submit_selector_review(
         raise Failure("selector 0x10 directly called helper drift")
 
     ordinal_pairs = (
+        (0x87587, 0x876BF, 0x0C4, 0x0C6, {9}),
+        (0x87609, 0x87741, 0x0C4, 0x0C6, {9}),
+        (0x87642, 0x8777A, 0x0C5, 0x0C7, {0, 1, 9, 18, 19}),
+        (0x87650, 0x87788, 0x0C5, 0x0C7, {4, 5, 9}),
+        (0x87695, 0x877CD, 0x0C6, 0x0C8, {1, 9}),
+        (0x876A6, 0x877DE, 0x0C6, 0x0C8, {4, 5, 9}),
+        (0x880F6, 0x88098, 0x0C7, 0x0CA, {9, 16, 17}),
+        (0x88122, 0x880C4, 0x0C8, 0x0CB, {0, 9}),
+        (0x85A1D, 0x824E4, 0x0C8, 0x0CB, {9}),
         (0x8A3F4, 0x8A396, 0x100, 0x103, {9, 19, 20}),
         (0x873D4, 0x874B7, 0x100, 0x103, {9}),
         (0x8A872, 0x8A814, 0x101, 0x104, {9, 16, 17}),
@@ -542,32 +551,191 @@ def kernel_message_submit_selector_review(
             "first_fixed_value": new_value,
         })
 
+    status_0xfd_body = affected_kernel[0x85A04 - KERNEL_BASE : 0x85A90 - KERNEL_BASE]
     status_0x100_body = first_fixed_kernel[0x824CB - KERNEL_BASE : 0x82557 - KERNEL_BASE]
+    status_0xfe_body = affected_kernel[0x8539F - KERNEL_BASE : 0x853FD - KERNEL_BASE]
     status_0x101_body = first_fixed_kernel[0x8580B - KERNEL_BASE : 0x85869 - KERNEL_BASE]
     if (
-        len(status_0x100_body) != 0x8C
+        len(status_0xfd_body) != 0x8C
+        or sha256(status_0xfd_body) != "6a5da5501dac433546a2c08220ddff17b80ef4160549b9c6cde38da2a9f8df19"
+        or status_0xfd_body[0x44] != 0xB8
+        or struct.unpack_from("<I", status_0xfd_body, 0x45)[0] != 0xFD
+        or len(status_0x100_body) != 0x8C
         or sha256(status_0x100_body) != "b12ad8b0c4e784655e76de10ba1977c906bb55c14d0b7eccfd2c62479b96d930"
         or status_0x100_body[0x44] != 0xB8
         or struct.unpack_from("<I", status_0x100_body, 0x45)[0] != 0x100
+        or len(status_0xfe_body) != 0x5E
+        or sha256(status_0xfe_body) != "1e17058b43cdf950a3abdcb1c729565d66171a19d319c431fc8843c7903a2063"
+        or status_0xfe_body[0x52] != 0xB8
+        or struct.unpack_from("<I", status_0xfe_body, 0x53)[0] != 0xFE
         or len(status_0x101_body) != 0x5E
         or sha256(status_0x101_body) != "004b911c32d58e78d2ffb3aab766308fb6b9168b35781208021eeabeb2f0f10e"
         or status_0x101_body[0x52] != 0xB8
         or struct.unpack_from("<I", status_0x101_body, 0x53)[0] != 0x101
     ):
-        raise Failure("first-fixed inserted-status producer candidate drift")
+        raise Failure("shifted status producer drift")
 
-    producer_callers: dict[int, list[int]] = {0x824CB: [], 0x8580B: []}
-    for offset in range(len(first_fixed_kernel) - 4):
-        if first_fixed_kernel[offset] != 0xE8:
-            continue
-        target = KERNEL_BASE + offset + 5 + struct.unpack_from("<i", first_fixed_kernel, offset + 1)[0]
-        if target in producer_callers:
-            producer_callers[target].append(KERNEL_BASE + offset)
+    producer_callers: dict[str, list[int]] = {
+        "affected_0xfd": [],
+        "first_fixed_0x100": [],
+        "affected_0xfe": [],
+        "first_fixed_0x101": [],
+    }
+    for kernel, targets in (
+        (affected_kernel, {0x85A04: "affected_0xfd", 0x8539F: "affected_0xfe"}),
+        (first_fixed_kernel, {0x824CB: "first_fixed_0x100", 0x8580B: "first_fixed_0x101"}),
+    ):
+        for offset in range(len(kernel) - 4):
+            if kernel[offset] != 0xE8:
+                continue
+            target = KERNEL_BASE + offset + 5 + struct.unpack_from("<i", kernel, offset + 1)[0]
+            if target in targets:
+                producer_callers[targets[target]].append(KERNEL_BASE + offset)
     if producer_callers != {
-        0x824CB: [0x85E86, 0x85EC9, 0x880BA],
-        0x8580B: [0x85936],
+        "affected_0xfd": [0x85AA6, 0x85AE9, 0x88118],
+        "first_fixed_0x100": [0x85E86, 0x85EC9, 0x880BA],
+        "affected_0xfe": [0x854CA],
+        "first_fixed_0x101": [0x85936],
     }:
-        raise Failure("first-fixed inserted-status producer caller drift")
+        raise Failure("shifted status producer caller drift")
+
+    inserted_status_sites = [
+        {"value": 0xC4, "runtime_address": 0x876A6, "instruction": "mov_eax_imm32"},
+        {"value": 0xC5, "runtime_address": 0x87687, "instruction": "mov_eax_imm32"},
+        {"value": 0xC9, "runtime_address": 0x8765C, "instruction": "mov_eax_imm32"},
+    ]
+    for site in inserted_status_sites:
+        offset = site["runtime_address"] - KERNEL_BASE
+        if first_fixed_kernel[offset] != 0xB8 or struct.unpack_from("<I", first_fixed_kernel, offset + 1)[0] != site["value"]:
+            raise Failure("first-fixed inserted ordinal status site drift")
+
+    generic_completion_pairs = (
+        (0x88096, 0x88038),
+        (0x88A02, 0x889A4),
+        (0x88C9C, 0x88C3E),
+        (0x89A23, 0x899C5),
+        (0x89C9A, 0x89C3C),
+        (0x8B6CD, 0x8B66F),
+        (0x8BDB9, 0x8BD5B),
+        (0x8CB6D, 0x8CB0F),
+        (0x8EFDF, 0x8EF81),
+        (0x901F9, 0x9019B),
+    )
+    generic_completion_sites = []
+    for affected_address, first_address in generic_completion_pairs:
+        branch_targets = []
+        error_targets = []
+        for kernel, address, value, error_target in (
+            (affected_kernel, affected_address, 0xFF, 0x89889),
+            (first_fixed_kernel, first_address, 0x102, 0x8982B),
+        ):
+            offset = address - KERNEL_BASE
+            if (
+                kernel[offset - 9 : offset - 1] != bytes.fromhex("a38483090085c074")
+                or kernel[offset] != 0x3D
+                or struct.unpack_from("<I", kernel, offset + 1)[0] != value
+                or kernel[offset + 5] != 0x74
+            ):
+                raise Failure("kernel generic completion filter drift")
+            zero_target = address + struct.unpack_from("<b", kernel, offset - 1)[0]
+            sentinel_target = address + 7 + struct.unpack_from("<b", kernel, offset + 6)[0]
+            if zero_target != sentinel_target:
+                raise Failure("kernel generic completion filter branch-target drift")
+            branch_targets.append(zero_target)
+            found_error_targets = []
+            for cursor in range(offset + 7, min(offset + 32, len(kernel) - 4)):
+                if kernel[cursor] not in (0xE8, 0xE9):
+                    continue
+                target = KERNEL_BASE + cursor + 5 + struct.unpack_from("<i", kernel, cursor + 1)[0]
+                if target == error_target:
+                    found_error_targets.append(target)
+            if found_error_targets != [error_target]:
+                raise Failure("kernel generic completion error-target drift")
+            error_targets.append(error_target)
+        generic_completion_sites.append({
+            "affected_runtime_address": affected_address,
+            "first_fixed_runtime_address": first_address,
+            "zero_and_sentinel_branch_targets": branch_targets,
+            "other_nonzero_error_targets": error_targets,
+        })
+
+    producer_role_sites = [
+        {
+            "role": "list_registration_return",
+            "affected_runtime_address": 0x860F2,
+            "first_fixed_runtime_address": 0x86347,
+            "affected_direct_call_sites": [0x88268, 0x8840A],
+            "first_fixed_direct_call_sites": [0x8820A, 0x883AC],
+        },
+        {
+            "role": "selector_0x10_handler_immediate_return",
+            "affected_runtime_address": 0x8C87E,
+            "first_fixed_runtime_address": 0x8C820,
+        },
+        {
+            "role": "linked_tail_helper_return",
+            "affected_runtime_address": 0x8C08A,
+            "first_fixed_runtime_address": 0x8C02C,
+            "affected_direct_call_sites": [0x8C916, 0x8C93C],
+            "first_fixed_direct_call_sites": [0x8C8B8, 0x8C8DE],
+        },
+    ]
+    for site in producer_role_sites:
+        for kernel, address, value, call_key in (
+            (affected_kernel, site["affected_runtime_address"], 0xFF, "affected_direct_call_sites"),
+            (first_fixed_kernel, site["first_fixed_runtime_address"], 0x102, "first_fixed_direct_call_sites"),
+        ):
+            offset = address - KERNEL_BASE
+            expected_opcode = 0xBA if site["role"] == "linked_tail_helper_return" else 0xB8
+            if kernel[offset] != expected_opcode or struct.unpack_from("<I", kernel, offset + 1)[0] != value:
+                raise Failure("kernel status producer role drift")
+            if call_key in site:
+                found_callers = []
+                target = address - (0xA3 if site["role"] == "linked_tail_helper_return" else 0x1B)
+                for cursor in range(len(kernel) - 4):
+                    if kernel[cursor] != 0xE8:
+                        continue
+                    called = KERNEL_BASE + cursor + 5 + struct.unpack_from("<i", kernel, cursor + 1)[0]
+                    if called == target:
+                        found_callers.append(KERNEL_BASE + cursor)
+                if found_callers != site[call_key]:
+                    raise Failure("kernel status producer direct-caller drift")
+
+    for kernel, address, value in (
+        (affected_kernel, 0x8EC67, 0xFF),
+        (first_fixed_kernel, 0x8EC09, 0x102),
+    ):
+        offset = address - KERNEL_BASE
+        if (
+            kernel[offset - 5 : offset] != bytes.fromhex("a184830900")
+            or kernel[offset] != 0x3D
+            or struct.unpack_from("<I", kernel, offset + 1)[0] != value
+            or kernel[offset + 5 : offset + 8] != bytes.fromhex("750ae9")
+        ):
+            raise Failure("kernel dispatch-continue status consumer drift")
+
+    role_affected_sites = {
+        site["affected_runtime_address"] for site in producer_role_sites
+    } | {
+        site["affected_runtime_address"] for site in generic_completion_sites
+    } | {0x8C91B, 0x8EC67}
+    role_first_sites = {
+        site["first_fixed_runtime_address"] for site in producer_role_sites
+    } | {
+        site["first_fixed_runtime_address"] for site in generic_completion_sites
+    } | {0x8C8BD, 0x8EC09}
+    census_affected_sites = set(
+        global_immediates["affected_mov_eax_0xff"]
+        + global_immediates["affected_mov_edx_0xff"]
+        + global_immediates["affected_cmp_eax_0xff"]
+    )
+    census_first_sites = set(
+        global_immediates["first_fixed_mov_eax_0x102"]
+        + global_immediates["first_fixed_mov_edx_0x102"]
+        + global_immediates["first_fixed_cmp_eax_0x102"]
+    )
+    if role_affected_sites != census_affected_sites or role_first_sites != census_first_sites:
+        raise Failure("kernel status site role coverage drift")
 
     affected_epilogue = affected_kernel[0x8BDB0 - KERNEL_BASE : 0x8BDCF - KERNEL_BASE]
     first_epilogue = first_fixed_kernel[0x8BD52 - KERNEL_BASE : 0x8BD71 - KERNEL_BASE]
@@ -641,33 +809,64 @@ def kernel_message_submit_selector_review(
         "adjacent_ordinal_shift_review": {
             "site_count": len(ordinal_shift_sites),
             "sites": ordinal_shift_sites,
-            "all_reviewed_values_increase_by_three": all(
-                site["first_fixed_value"] == site["affected_value"] + 3
+            "all_reviewed_values_follow_expected_translation": all(
+                site["first_fixed_value"]
+                == site["affected_value"] + (2 if site["affected_value"] <= 0xC6 else 3)
                 for site in ordinal_shift_sites
             ),
             "affected_to_first_fixed_value_counts": {
+                "0xc4_to_0xc6": 2,
+                "0xc5_to_0xc7": 2,
+                "0xc6_to_0xc8": 2,
+                "0xc7_to_0xca": 1,
+                "0xc8_to_0xcb": 2,
                 "0x100_to_0x103": 2,
                 "0x101_to_0x104": 1,
                 "0x102_to_0x105": 4,
             },
-            "interpretation_boundary": "The reviewed adjacent values shift by the same plus-three translation as the 0xff sentinel, supporting insertion of three ordinal statuses at or below the old sentinel. The new status names and exact insertion point remain unknown.",
+            "first_fixed_inserted_numeric_ordinals": inserted_status_sites,
+            "interpretation_boundary": "Matching instruction contexts show a plus-two shift for affected 0xc4..0xc6, a plus-three shift from affected 0xc7 onward, and exact first-fixed status-return sites at new ordinals 0xc4, 0xc5, and 0xc9. This identifies the numeric insertion points but not the vendor status names.",
         },
-        "first_fixed_inserted_status_producer_candidates": {
-            "status_0x100": {
-                "runtime_range": [0x824CB, 0x82557],
+        "shifted_memory_status_producers": {
+            "status_0xfd_to_0x100": {
+                "affected_runtime_range": [0x85A04, 0x85A90],
+                "first_fixed_runtime_range": [0x824CB, 0x82557],
                 "size": len(status_0x100_body),
-                "sha256": sha256(status_0x100_body),
-                "direct_call_sites": producer_callers[0x824CB],
-                "bounded_behavior": "examines a page-table entry at 0x08002000, validates state and index bounds, returns 0x100 when a secondary table byte has bits 0..5 set, and otherwise can clear the entry and invalidate its page",
+                "affected_sha256": sha256(status_0xfd_body),
+                "first_fixed_sha256": sha256(status_0x100_body),
+                "affected_direct_call_sites": producer_callers["affected_0xfd"],
+                "first_fixed_direct_call_sites": producer_callers["first_fixed_0x100"],
+                "bounded_behavior": "both counterparts examine a page-table entry at 0x08002000, validate state and index bounds, return the translated status when a secondary table byte has bits 0..5 set, and otherwise can clear the entry and invalidate its page",
             },
-            "status_0x101": {
-                "runtime_range": [0x8580B, 0x85869],
+            "status_0xfe_to_0x101": {
+                "affected_runtime_range": [0x8539F, 0x853FD],
+                "first_fixed_runtime_range": [0x8580B, 0x85869],
                 "size": len(status_0x101_body),
-                "sha256": sha256(status_0x101_body),
-                "direct_call_sites": producer_callers[0x8580B],
-                "bounded_behavior": "scans 128 table entries, appends selected indexes to an output array, and returns 0x101 when the output count exceeds 62",
+                "affected_sha256": sha256(status_0xfe_body),
+                "first_fixed_sha256": sha256(status_0x101_body),
+                "affected_direct_call_sites": producer_callers["affected_0xfe"],
+                "first_fixed_direct_call_sites": producer_callers["first_fixed_0x101"],
+                "bounded_behavior": "both counterparts scan 128 table entries, append selected indexes to an output array, and return the translated status when the output count exceeds 62",
             },
-            "interpretation_boundary": "These are exact first-fixed producers for two values inside the three newly available ordinal positions. They are memory-management/resource-status candidates; no vendor status names, affected counterparts, or relationship to either SA-00125 CVE is established.",
+            "interpretation_boundary": "The first-fixed 0x100 and 0x101 producers are exact semantic counterparts of affected 0xfd and 0xfe producers, not newly inserted statuses. Their translation corroborates the ordinal shift and does not attribute either SA-00125 CVE.",
+        },
+        "kernel_status_site_role_map": {
+            "producer_site_count": len(producer_role_sites),
+            "producer_sites": producer_role_sites,
+            "consumer_site_count": len(generic_completion_sites) + 2,
+            "generic_completion_filter_sites": generic_completion_sites,
+            "selector_helper_acceptance": {
+                "affected_runtime_address": 0x8C91B,
+                "first_fixed_runtime_address": 0x8C8BD,
+                "bounded_behavior": "compares the linked-tail helper return and continues selector-0x10 state updates only when it equals the reviewed sentinel",
+            },
+            "dispatch_queue_continue": {
+                "affected_runtime_address": 0x8EC67,
+                "first_fixed_runtime_address": 0x8EC09,
+                "bounded_behavior": "loads the global status at 0x98384 and returns to the pending-work dequeue path when it equals the reviewed sentinel",
+            },
+            "covers_complete_fifteen_site_census": True,
+            "interpretation_boundary": "Three sites produce the value. Ten generic completion filters treat zero and the sentinel alike while forwarding other nonzero values to a common error handler; selector 0x10 accepts the linked-tail helper's sentinel result; and the central dispatcher continues dequeuing pending work when the global status equals it. This supports a queued/deferred or nonordinary-completion role, not a recovered vendor name or CVE attribution.",
         },
         "kernel_global_immediate_census": {
             **global_immediates,
@@ -681,7 +880,7 @@ def kernel_message_submit_selector_review(
         "first_fixed_syslib_selector_wrapper_sha256": sha256(first_wrapper),
         "syslib_wrapper_builds_syscall_value": "(selector_byte << 24) | 0x00010000 | argument_size_word",
         "reviewed_submit_syscall_value": 0x10010040,
-        "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed message-length sites, but the same 0xff-to-0x102 change appears at fifteen MOV/CMP sites kernel-wide, including the directly called helper's MOV EDX return path. Its semantic name, reason for the plus-three renumbering, message dword-zero meaning, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
+        "attribution_boundary": "The changed 0x10 kernel handler is on the exact path used by the eleven reviewed message-length sites, but the same 0xff-to-0x102 change appears at fifteen MOV/CMP sites kernel-wide, including the directly called helper's MOV EDX return path. Three numeric ordinal insertions are now bound to first-fixed status-return sites at 0xc4, 0xc5, and 0xc9, but their vendor names and semantics, message dword-zero meaning, HECI reachability, attacker control, and CVE-2018-12147 attribution remain unproved.",
     }
 
 

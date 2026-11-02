@@ -269,6 +269,12 @@
       "sha256": "d617931a4f21e6e079c7ac4b2aacf7e6513e8b0310f3a3e04e3abf98ea2acf42",
       "size": 144188,
       "source": "work/vm/vendor-userspace-260128/micom-contract/full-chain-timeout120-legal-reason11-llvmpipe-home-navi-home-deadline-piefix-1536-evidence/launcher-chain/shot-navi-live-60/wayland-screenshot.png"
+    },
+    {
+      "published": "vm/evidence/vendor-userspace-260128/ivi-shell-input-audit.txt",
+      "sha256": "c8ea8cc890c353b9d162eb10017be7d12c55009aa64c4d2c7f86b8ea21e849ec",
+      "size": 1776,
+      "source": "work/decompiled/ivi-shell (Ghidra 12.1.4; symbols 0x10a110-0x10ab40)"
     }
   ],
   "schema_version": 1

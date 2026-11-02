@@ -423,7 +423,7 @@ compatibility adapter that responds to an authentic hide request; do not patch
 manager state or manufacture a BG signal. Explain why older positive controls
 used a different path before treating this as the sole root cause.
 
-## Current guest QtWayland bytes verified; runtime backend still unknown
+## Pre-observation checkpoint: guest QtWayland bytes verified; runtime backend unknown
 
 Read-only `debugfs` extraction from the current image confirms:
 
@@ -791,11 +791,48 @@ intermediaries are forbidden fallbacks. The live tool rejects
 both tasks blocked. Do not implement or launch the experiment until a supported
 direct route is available or the owner explicitly selects another direct model.
 
+## AppNavi one-shot notification call sites — 2026-10-31
+
+The retained caller listings contain four direct calls to
+`CAppManagerComm::SendToAppLauncherNaviLaunchedToExcute()`:
+
+| Caller | Static trigger | Call address |
+|---|---|---|
+| `NimoExSLScreenLinux::onVisibleChanged(bool)` | Primary-screen first `false` visibility; sends only if `g_NaviLaunched` is already set | `0x335c228` |
+| `NimoExSLApplicationLinux::onInitializeDone()` | After setting `g_NaviLaunched`, sends if `g_firstTimeHideByWM` is already true or elapsed startup exceeds `0x59d7` (22,999 ms) | `0x33b4918` |
+| `NimoExSLApplicationLinux::onUpdatePlatform()` | SessionInteraction byte `+0x248` is nonzero while `naviStateStabilized` is false; sets the gate before sending | `0x33b4a0d` |
+| `NimoExSLApplicationLinux::timerEvent()` | Matching timer, `GetNaviBootStatus()` is false, and `waitCount` exceeds 4 | `0x33b4bb0` |
+
+All four converge on the same `alreadySendSignal` one-shot gate, which is set
+before either D-Bus message is sent. The signal value `5` therefore does not
+identify which caller ran or prove an engine failure. In the retained long-startup
+run, the 180,000 ms adaptation avoids the 22,999 ms timeout branch, but does not
+rule out the independent `g_firstTimeHideByWM` branch. The actual caller address
+in that run was not captured. These are direct references in the retained listings;
+a complete whole-binary cross-reference audit is not claimed.
+
+## REA/Ghidra cross-reference check — 2026-10-31
+
+REA `6.8.0` with Ghidra `12.1.4` inspected the recovered ApplicationManager
+(SHA-256 `5d71539f61a3982b8aac6132a2de14c083fa9ac129792bae750a526ebd771cbc`).
+Ghidra loads this ELF at image base `0x100000`. Its reference manager reports a
+direct `UNCONDITIONAL_CALL` from Ghidra address `0x3d6611` to the BG callback
+function at `0x290c70`; subtracting the image base maps these to the saved ELF
+addresses `0x2d6611 → 0x190c70`. This independently confirms the previously
+reported direct call into `slotNotifyBGInfo`.
+
+The same target has an indirect reference from `0x443868` and data references
+from `0x44d330` and `0x48bbc4` (the last targets `0x290c7f`, inside the function).
+REA/Ghidra did not assign a containing procedure to source address `0x3d6611`,
+so the caller function and its Qt/IVI event origin remain unresolved. The
+reference results are static; they do not prove runtime delivery or lossless DLT.
+Local complete REA records remain under ignored `work/rea/evidence/`.
+
 ## Next exact actions / acceptance
 
-1. **Done:** resolved exact method/signal strings and retained artifact identity and address mapping above.
-2. **Partially done:** exact slot subscription and diagnostic routine identified; trace caller `0x19108d` into the window-create setter and confirm the Qt dispatch mapping. Recover the status-5 branch semantics and other message senders.
-3. Inspect all callers of this one-shot function and the normal first-window/initialize callback ordering; reuse the existing `appnavi-sendfail-callers-33b49.asm` and `appnavi-sendfail-caller-335c228.asm` before generating new analysis.
-4. Only then define a narrowly observed VM run proving the authentic transition `35 → 30`, current/drawing Navigation, valid surface composition and return to Home. No synthetic success notification or patched enum is acceptable evidence.
+1. **Done:** resolve the D-Bus strings and map `0x19108d` to the `slotNotifyBGInfo` window-create path; resolve its display/app-ID predicate and initial gate value.
+2. **Done statically:** enumerate the four retained AppNavi call sites and confirm the direct `0x2d6611 → 0x190c70` BG-callback call with an independent Ghidra reference. The caller's enclosing procedure and exact first-hide/initial-configure event ordering remain unresolved.
+3. `navi_bg_0x0.c` logs up to 32 client-requested null attaches and following commits per process; with `NAVI_BG_HOLD_AFTER` unset it forwards attach behavior unchanged. `tests/test_navi_bg_observer.py` confirms logging, pass-through and both verdict outcomes with native clients. **Guest interposition is now verified:** `tools/uk_fw/guest/interpose_probe.c` runs inside the recovered root, `dlopen`s the vendor `libwayland-client` and reports `PROBE resolved=/opt/vm/navi-bg-0x0.so`, asserted by `tests/test_vm_vendor_e2e.py`. Remaining: capture the one-shot function's return address, and observe AppNavi's `visibleChanged(false)`/Wayland events in a navigation-request run without changing hide behavior.
+4. Only then establish the real transition `35 → 30`, current/drawing Navigation, valid surface composition and return to Home. No synthetic success notification or patched enum is acceptable evidence.
 
-No firmware/image changes, new processes, child threads, or security findings were produced by this static review.
+No firmware/image changes, new guest execution, or security findings were produced by this continuation.

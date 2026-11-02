@@ -40,6 +40,26 @@ static int executable_is(pid_t pid, const char *expected)
     return strcmp(executable, expected) == 0;
 }
 
+/* Everything the shim supplies itself is stripped from the inherited copy, so the
+ * child cannot end up with two competing values. */
+static const char *replaced_prefixes[] = {
+    "LD_PRELOAD=", "NAVI_BG_LOG_FILE=", "LD_LIBRARY_PATH=",
+    "LIBGL_DRIVERS_PATH=", "GALLIUM_DRIVER=", "LIBGL_ALWAYS_SOFTWARE=",
+    "EGL_PLATFORM=",
+};
+
+static int keeps_child_env(const char *entry)
+{
+    size_t k;
+
+    for (k = 0; k < sizeof(replaced_prefixes) / sizeof(replaced_prefixes[0]); ++k) {
+        size_t length = strlen(replaced_prefixes[k]);
+        if (strncmp(entry, replaced_prefixes[k], length) == 0)
+            return 0;
+    }
+    return 1;
+}
+
 static void append_log(const char *event, pid_t pid, int value)
 {
     char line[128];
@@ -66,7 +86,9 @@ int execve(const char *pathname, char *const argv[], char *const envp[])
         return -1;
     }
 
-    const char *base = pathname ? strrchr(pathname, '/') : NULL;
+    /* execve's prototype marks pathname non-null, so a null guard here is
+     * constant-true and clang rejects it under -Werror. */
+    const char *base = strrchr(pathname, '/');
     base = base ? base + 1 : pathname;
     if (!base || strcmp(base, "AppNavi") != 0)
         return next(pathname, argv, envp);
@@ -74,16 +96,39 @@ int execve(const char *pathname, char *const argv[], char *const envp[])
     size_t count = 0;
     while (envp && envp[count])
         ++count;
-    char **with_preload = calloc(count + 2, sizeof(*with_preload));
+    /* Always injected: the observer and its log channel. */
+    static const char *inject_always[] = {
+        "LD_PRELOAD=/opt/vm/navi-bg-0x0.so",
+        "NAVI_BG_LOG_FILE=/tmp/navi-bg.log",
+    };
+    /* Only when the run opts in: the vendor EGL needs an i965 GPU the VM does not
+     * have, so the software stack replaces it. The launcher rebuilds its own
+     * environment for children, which is why this cannot be inherited. */
+    static const char *inject_software_gl[] = {
+        "LD_LIBRARY_PATH=/opt/swrast/lib:/app/lib:/usr/lib:/lib",
+        "NAVI_BG_LOG_FILE=/tmp/navi-bg.log",
+        "LIBGL_DRIVERS_PATH=/opt/swrast/dri",
+        "GALLIUM_DRIVER=llvmpipe",
+        "LIBGL_ALWAYS_SOFTWARE=1",
+        "EGL_PLATFORM=wayland",
+    };
+    const char *software_gl = getenv("IONIQ_SOFTWARE_GL");
+    const int want_gl = software_gl != NULL && strcmp(software_gl, "1") == 0;
+    char **with_preload = calloc(count + 8, sizeof(*with_preload));
     if (!with_preload)
         return next(pathname, argv, envp);
 
     size_t out = 0;
     for (size_t i = 0; i < count; ++i) {
-        if (strncmp(envp[i], "LD_PRELOAD=", 11) != 0)
+        if (keeps_child_env(envp[i]))
             with_preload[out++] = envp[i];
     }
-    with_preload[out++] = "LD_PRELOAD=/navi-bg-0x0.so:/appnavi-egl-no-msaa-preload.so";
+    for (size_t k = 0; k < sizeof(inject_always) / sizeof(inject_always[0]); ++k)
+        with_preload[out++] = (char *)inject_always[k];
+    if (want_gl) {
+        for (size_t k = 0; k < sizeof(inject_software_gl) / sizeof(inject_software_gl[0]); ++k)
+            with_preload[out++] = (char *)inject_software_gl[k];
+    }
     with_preload[out] = NULL;
     append_log("TARGETED_APPNAVI_PRELOAD_NAVIBG", getpid(), 0);
     int rc = next(pathname, argv, with_preload);

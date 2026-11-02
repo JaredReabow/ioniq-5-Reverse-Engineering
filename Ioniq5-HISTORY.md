@@ -3899,3 +3899,11 @@ and are superseded by corrections rather than silently rewritten.
   unversioned qml/ path that nothing in the image creates. One symlink and the segfault disappeared.
 - Five independent causes have now been found and removed, each one measured rather than assumed, and the application survives
   where it used to crash. It does not yet paint, but it no longer dies, and the log is the instrument to use next.
+
+## 2026-10-31 — healthy, idle, and still invisible
+
+- With the QML path fixed the application is demonstrably well: widgets load, the variant database opens, the heartbeat runs at
+  1 Hz. It simply never presents a window.
+- Removing the preload in the direct configuration makes it paint; removing it inside the full chain does not. The difference
+  between the two is ApplicationManager, which narrows the remaining problem to appbase rather than to graphics.
+- Recorded as a negative result, because the chain fix I expected to work did not.

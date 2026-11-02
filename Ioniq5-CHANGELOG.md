@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.34.0 - the app is healthy and idle; the chain still paints nothing
+
+- **What the app does once it survives.** With the QML path fixed, its log shows normal operation: widget components load
+  (`CallWidget::getComponent() engine is NOT NULL`, `CallWidgetModel::setScreen("callwidget_front/QHMI_CallWidget…")`,
+  the same for `CPCallWidget` and `VoiceMemoWidget`), `AppHomeModel::openVariantDB()` runs, and `AppHomeEngine::slotHeartbeatTriggered()`
+  advances steadily (sequenceID 10→14 at 1 Hz) alongside `WatchdogWorker::adaptMainNotification`. Nine widgets that previously
+  failed on shared memory now construct.
+- **But it is idle, not painting.** It heartbeats and never shows a window. `com.lge.hkmc.avn.appfunc.AppHomeScreen` is **not
+  on the bus** in the direct-app configuration (no `.service` file, nothing discovered), because the app relies on
+  ApplicationManager/appbase to be told to come to the foreground. Nothing in that configuration ever tells it.
+- **Applied both fixes to the authentic chain** — `AppLauncher.sh:4` had `export LD_PRELOAD=/usr/lib/libEGL.so.1`, now neutralised
+  in the clone, with the `qml -> qml_new2.0` symlink already present. Verified from `/proc`: `PRELOAD=0`, i.e. the child really
+  runs without the vendor libEGL. The chain launches, `AppHomeScreen` is alive (pid 807), the splash is killed — and the frame is
+  **still the 4,117-byte black output**.
+- So removing the preload fixed the direct-app configuration but has **not** produced a home screen in the chain configuration, and
+  the difference between the two is ApplicationManager. That is now the specific unknown: what the appbase must send for the app to
+  present its surface.
+- **Next step:** the chain discards the app's log, so give `AppHomeScreen` a real stdout/stderr inside the chain — the same wrapper
+  technique already used for `micommanager_userspace` — and read where it stops in the chain, rather than inferring from frames.
+
 ## 2.33.0 - the missing QML path was the crash; a variant symlink removes it
 
 - The app named its own failure: **`[QtMsg] file:///app/share/AppHomeScreen/qml/HomeScreen/main.qml: File not found`**.

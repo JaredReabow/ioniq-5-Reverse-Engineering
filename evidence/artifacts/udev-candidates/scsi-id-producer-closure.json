@@ -1,0 +1,179 @@
+{
+  "ata_id_review": {
+    "allowed_characters": "ASCII alphanumeric plus #+-.:=@_",
+    "control_characters_preserved_in_id_serial": false,
+    "identity_fields_sanitized_before_output": [
+      "model",
+      "serial",
+      "revision"
+    ],
+    "invalid_single_byte_replacement": "_",
+    "pattern_offsets": {
+      "allowed_extra_character_lookup": "0x33",
+      "invalid_character_becomes_underscore": "0xb0",
+      "model_sanitizer_call": "0x23",
+      "revision_sanitizer_call": "0x5d",
+      "serial_sanitizer_call": "0x44"
+    },
+    "ranges": {
+      "ata_allowed_character_predicate": {
+        "end": "0x5b50",
+        "sha256": "b6df7075de2009d50feb6191e7a032a92dd92eedb1a9bf5446bc9a63f2e4d6c9",
+        "size": 112,
+        "start": "0x5ae0"
+      },
+      "ata_identity_sanitizer_calls": {
+        "end": "0x2d82",
+        "sha256": "c91cdb89bcf2d8e7b668cea78b687e0eb31866c7854ddca5312f64834052db96",
+        "size": 101,
+        "start": "0x2d1d"
+      },
+      "ata_invalid_character_replacement": {
+        "end": "0x5c30",
+        "sha256": "dac300803f02a51d13818f7cb75341c990a6b06571b075877a0ac9c1df943408",
+        "size": 224,
+        "start": "0x5b50"
+      },
+      "ata_property_output": {
+        "end": "0x320b",
+        "sha256": "e82aef0e6aad2a25fdc79a6406dcc15eacf40ff67122998360a357ead17940a2",
+        "size": 137,
+        "start": "0x3182"
+      }
+    },
+    "strings": {
+      "0x674f": "ID_ATA=1",
+      "0x67a8": "ID_MODEL=%s\n",
+      "0x67b5": "ID_MODEL_ENC=%s\n",
+      "0x67d6": "ID_SERIAL=%s_%s\n",
+      "0x67e7": "ID_SERIAL_SHORT=%s\n",
+      "0x67fb": "ID_SERIAL=%s\n",
+      "0x6ac9": "#+-.:=@_"
+    }
+  },
+  "boundaries": [
+    "This closes normal recovered producer classes; it does not prove every malformed enumeration or prior-import failure path.",
+    "Enabled ATA controllers are not evidence that an externally accessible production SATA/PATA port exists.",
+    "A different installed owner-unit kernel, module set, or rule set remains unverified.",
+    "No device, VM, ioctl, helper, uevent, property, service, network, target write, root transition, or persistence action was executed."
+  ],
+  "canonical_sha256": "3f9db2c6485eb7309ccf73adf50da3a260f9593779c0d69ecd27936fddb7ff20",
+  "config": {
+    "ATA": "m",
+    "BLK_DEV_SD": "m",
+    "BLK_DEV_SR": "n",
+    "CHR_DEV_SG": "n",
+    "CHR_DEV_ST": "n",
+    "FIREWIRE": "n",
+    "FUSION": "n",
+    "SCSI": "m",
+    "SCSI_FC_ATTRS": "n",
+    "SCSI_ISCSI_ATTRS": "n",
+    "SCSI_LOWLEVEL": "n",
+    "SCSI_SAS_ATTRS": "n",
+    "SCSI_SAS_LIBSAS": "n",
+    "SCSI_SPI_ATTRS": "m",
+    "SCSI_SRP_ATTRS": "n",
+    "TARGET_CORE": "n",
+    "USB_STORAGE": "m"
+  },
+  "inputs": {
+    "ata_id": {
+      "bytes": 39440,
+      "sha256": "daea4efb76661e66bf596ceb3529598a25161f21c2d004ba48b20d6924a8d72d"
+    },
+    "kernel_config": {
+      "bytes": 113598,
+      "sha256": "987268a1a4b333d67c219c63b690c3828811136a7a3b203eb6f20552e82dad56"
+    },
+    "module_inventory": {
+      "canonical_sha256": "8ca3bb6ea2fcc582d8a3a517ef7124069ea4194830b00b63c893df9b494434c6",
+      "count": 160
+    },
+    "persistent_storage_rules": {
+      "bytes": 4903,
+      "sha256": "5757bc1da0b3e07ee1769faa266af7720b8eef21006212051a8720c02eab5a8e"
+    },
+    "transport_report": {
+      "canonical_sha256": "f4e47bae5b167d154905114a6811388a688c7ee868d6642d9a2908053ceef039",
+      "sha256": "acb581cdf4e28f9588554430790fe4266fcc3fa98a82f874339489ae2efb29f9"
+    }
+  },
+  "producer_matrix": {
+    "cciss": {
+      "basis": "CONFIG_SCSI_LOWLEVEL=n and no cciss module",
+      "state": "not-built"
+    },
+    "firewire_scsi": {
+      "basis": "CONFIG_FIREWIRE=n",
+      "state": "not-built"
+    },
+    "iscsi": {
+      "basis": "CONFIG_SCSI_ISCSI_ATTRS=n and no module",
+      "state": "not-built"
+    },
+    "malformed_identity_or_prior_import_failure": {
+      "basis": "normal precedence does not prove behavior when ata_id/usb_id fails after enumeration",
+      "state": "unproved"
+    },
+    "ordinary_ata_disk": {
+      "basis": "rule 22 before rule 34; exact ata_id sanitizes model and serial before ID_SERIAL output",
+      "state": "suppressed-by-prior-sanitizing-ata-id"
+    },
+    "ordinary_usb_mass_storage": {
+      "basis": "accepted exact no-iSerial VM control and rule 31 before rule 34",
+      "state": "suppressed-by-prior-usb-id"
+    },
+    "other_low_level_scsi": {
+      "basis": "CONFIG_SCSI_LOWLEVEL=n and complete module subset",
+      "state": "not-built"
+    },
+    "sas_fc_srp": {
+      "basis": "SAS/FC/SRP attributes and libsas disabled",
+      "state": "not-built"
+    },
+    "scsi_generic": {
+      "basis": "CONFIG_CHR_DEV_SG=n",
+      "state": "not-built"
+    },
+    "scsi_optical": {
+      "basis": "CONFIG_BLK_DEV_SR=n",
+      "state": "not-built"
+    },
+    "scsi_tape": {
+      "basis": "CONFIG_CHR_DEV_ST=n",
+      "state": "not-built"
+    }
+  },
+  "rule_lines": {
+    "ata_scsi": 22,
+    "cciss_scsi_id": 35,
+    "scsi_id": 34,
+    "usb_ata_passthrough": 28,
+    "usb_id": 31
+  },
+  "schema": "ioniq-scsi-id-producer-closure/v1",
+  "storage_modules": [
+    "lib/modules/4.1.27-abl/kernel/drivers/ata/ahci.ko",
+    "lib/modules/4.1.27-abl/kernel/drivers/ata/ahci_platform.ko",
+    "lib/modules/4.1.27-abl/kernel/drivers/ata/ata_piix.ko",
+    "lib/modules/4.1.27-abl/kernel/drivers/ata/libahci.ko",
+    "lib/modules/4.1.27-abl/kernel/drivers/ata/libahci_platform.ko",
+    "lib/modules/4.1.27-abl/kernel/drivers/ata/libata.ko",
+    "lib/modules/4.1.27-abl/kernel/drivers/ata/pata_mpiix.ko",
+    "lib/modules/4.1.27-abl/kernel/drivers/ata/pata_sch.ko",
+    "lib/modules/4.1.27-abl/kernel/drivers/scsi/scsi_mod.ko",
+    "lib/modules/4.1.27-abl/kernel/drivers/scsi/scsi_transport_spi.ko",
+    "lib/modules/4.1.27-abl/kernel/drivers/scsi/sd_mod.ko",
+    "lib/modules/4.1.27-abl/kernel/drivers/usb/storage/usb-storage.ko"
+  ],
+  "verdict": {
+    "complete_recovered_scsi_producer_classes_enumerated": true,
+    "ordinary_ata_control_characters_reach_id_serial": false,
+    "ordinary_ata_reaches_scsi_id": false,
+    "ordinary_usb_reaches_scsi_id": false,
+    "persistence_demonstrated": false,
+    "root_access_demonstrated": false,
+    "stock_external_scsi_id_property_injection_demonstrated": false
+  }
+}

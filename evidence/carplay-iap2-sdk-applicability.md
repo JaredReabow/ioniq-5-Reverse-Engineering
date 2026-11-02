@@ -75,8 +75,26 @@ The complete helper:
 It returns a pointer into the bounded transaction span and performs no copy into
 a fixed stack buffer. Consequently this generic byte-string decoder is not the
 unchecked fixed-stack copy described by the public Sony/Alpine advisories.
-This does **not** clear other iAP2 event handlers, TLV parsers, HTTP/AirPlay
-handlers, pairing code, media decoders, or vendor wrappers.
+
+The completed direct-caller audit in
+[`iap2-marshal-getbytes-caller-audit.md`](iap2-marshal-getbytes-caller-audit.md)
+now byte-binds 31 direct PLT calls across 11 service functions. Most callers
+retain pointer+length pairs and dispatch aggregates downstream. Two caller-side
+issues remain distinct from the bounded generic helper:
+
+- the heap-string materializer at `0x2957c..0x296a7` does not reject a null
+  returned pointer before a nonzero-length `strncpy`; 22 exact calls bind that
+  wrapper to `kCmdIdentificationSelect` (`0x2afb`) and
+  `kCmdIdentificationUpdate` (`0x2f95`); and
+- AppLaunch, PlayMediaLibrary, and Communications branches pass recovered
+  length-delimited byte pointers to plain `%s` logging without a local
+  terminator check or precision bound.
+
+These are exact-static denial-of-service and unbounded-read candidates only.
+Physical delivery, admission, process impact, attacker-visible disclosure, CVE
+identity, and installed-unit applicability remain unproved. This also does
+**not** clear other iAP2 event handlers, downstream callbacks, TLV parsers,
+HTTP/AirPlay handlers, pairing code, media decoders, or vendor wrappers.
 
 ## Exact AirPlay HTTP/plist architecture
 
@@ -406,8 +424,10 @@ applicability, code execution, unrestricted root, or persistence. See
 
 ## Next exact-static work
 
-1. Trace every call to `iAp2MarshalGetBytes` into its destination semantics and
-   reject or prioritize fixed-size consumers.
+1. Trace the downstream callbacks reached by the completed 31-call
+   `iAp2MarshalGetBytes` inventory, prioritizing pointer+length lifetime,
+   length transformations, and any later fixed-size destination; retain the
+   separately bound null-source and `%s` candidates.
 2. Audit `iAp2ConectionHandleExternalAccessoryProtocolData`, file-transfer,
    HID, Wi-Fi configuration, and list-update handlers for destination-size
    checks.

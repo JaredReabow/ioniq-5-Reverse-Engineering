@@ -1,0 +1,806 @@
+{
+  "address_model": {
+    "artifact_addresses": "ELF virtual addresses",
+    "file_mapping": "resolved through file-backed PT_LOAD segments",
+    "ghidra_image_base": "0x100000",
+    "ghidra_normalization": "subtract 0x100000 from Ghidra addresses for these two artifacts"
+  },
+  "assessment": {
+    "demonstrated": [
+      "exact recovered identities for the helper library and sole imported-symbol service carrier",
+      "31 exact direct PLT calls across 11 reviewed service functions",
+      "22 exact calls to the null-return-consuming heap-string wrapper from two identification-related command handlers",
+      "bounded aligned remaining-length enforcement and absence of a copy in the generic helper",
+      "one exact null-return consumer and multiple exact unbounded %s consumers"
+    ],
+    "not_demonstrated": [
+      "physical phone-to-handler delivery, successful iAP2 admission/authentication, or session eligibility",
+      "that the owner unit runs either exact recovered binary",
+      "process crash, service restart behavior, information disclosure to an attacker, code execution, root access, SMACK escape, persistence, or firmware modification",
+      "CVE identity or affected-versus-fixed SDK lineage",
+      "complete indirect-call or alternate-build coverage"
+    ]
+  },
+  "caller_semantics": {
+    "SessionAppLaunch": {
+      "byte_fields": 1,
+      "commands": [
+        "0x2f45"
+      ],
+      "handling": "retains AppBundleID pointer+length, logs the pointer with %s, and dispatches the aggregate downstream"
+    },
+    "SessionBTConnection": {
+      "byte_fields": 2,
+      "commands": [
+        "0x2f1d",
+        "0x2f1e"
+      ],
+      "handling": "retains pointer+length pairs; transforms two lengths with right shifts before downstream dispatch"
+    },
+    "SessionCommunications": {
+      "byte_fields": 6,
+      "commands": [
+        "0x2fa3",
+        "0x2fa4",
+        "0x2fa5",
+        "0x2fa8",
+        "0x2faa"
+      ],
+      "handling": "retains destination/address-book/call UUID pointer+length pairs; six recovered fields are logged with %s before downstream dispatch"
+    },
+    "SessionExternalAccessoryProtocol": {
+      "byte_fields": 1,
+      "commands": [
+        "0x2f8c"
+      ],
+      "handling": "retains one pointer+length pair followed by a uint16 and dispatches the aggregate downstream"
+    },
+    "SessionHID": {
+      "byte_fields": 2,
+      "commands": [
+        "0x2f27",
+        "0x2f28"
+      ],
+      "handling": "retains HID-report pointer+length pairs and dispatches stack aggregates downstream"
+    },
+    "SessionLocation": {
+      "byte_fields": 7,
+      "commands": [
+        "0x2eff"
+      ],
+      "handling": "retains seven optional pointer+length pairs in a stack aggregate and dispatches it downstream"
+    },
+    "SessionMediaLibraryUpdates": {
+      "byte_fields": 3,
+      "commands": [
+        "0x2f3b",
+        "0x2f3c"
+      ],
+      "handling": "retains library identifiers as pointer+length pairs and dispatches stack aggregates downstream"
+    },
+    "SessionPlayMediaLibrary": {
+      "byte_fields": 5,
+      "commands": [
+        "0x2f81",
+        "0x2f82",
+        "0x2f83",
+        "0x2f84"
+      ],
+      "handling": "retains pointer+length pairs; command 0x2f84 logs its recovered byte pointer with %s before downstream dispatch"
+    },
+    "SessionVoiceOver": {
+      "byte_fields": 1,
+      "commands": [
+        "0x2f68"
+      ],
+      "handling": "retains optional speak-text pointer+length and dispatches the stack aggregate downstream"
+    },
+    "SessionWiFiInformation": {
+      "byte_fields": 2,
+      "commands": [
+        "0x2f78"
+      ],
+      "handling": "retains two optional Wi-Fi pointer+length pairs and dispatches the stack aggregate downstream"
+    },
+    "heap_string_materializer": {
+      "byte_fields": 1,
+      "commands": [],
+      "finding": "does not reject a null byte pointer returned for a declared length that exceeds the remaining transaction before passing it to strncpy",
+      "handling": "frees the previous pointer, obtains pointer+uint32 length, allocates length+1, zeroes the allocation, then strncpy-copies exactly length bytes"
+    }
+  },
+  "canonical_sha256": "ef94c5f75e30855ed0c0cf9f178f9e4f93dcda34ba1a1ce7b205334fe5f0417d",
+  "coverage": {
+    "boundary": "does not exclude calls through previously captured function pointers, symbol-name-free wrappers, runtime-generated code, files outside extracted-safe, or alternate builds",
+    "direct_static_call_count": 31,
+    "direct_static_caller_count": 11,
+    "heap_string_wrapper_call_count": 22,
+    "heap_string_wrapper_caller_count": 2,
+    "method": "exact imported-symbol and PLT-call inventory within the recovered extracted-safe corpus, followed by FDE-bounded caller review",
+    "recovered_symbol_string_carriers": [
+      "libiAP2AppFramework-2.0.so",
+      "iAP2Service-2.0"
+    ]
+  },
+  "decoded_helper": {
+    "copy_behavior": "the helper returns an interior transaction pointer; it performs no destination allocation and no fixed-size copy",
+    "failure_detail": "the already stored declared length is not cleared when the bounded accessor later fails",
+    "flow": [
+      "rejects null state or null length-output pointer by logging and returning null",
+      "reads a uint32 declared length and stores it through the caller-provided output pointer",
+      "rejects declared lengths above UINT32_MAX-3 before four-byte alignment",
+      "rounds the declared length up to a four-byte-aligned consumption length",
+      "compares aligned consumption length against the marshal state's remaining byte count",
+      "on insufficiency sets remaining to zero, sets state flag bit 1, logs, and returns null",
+      "on success returns the current transaction pointer, advances it by aligned consumption length, and subtracts that length from remaining"
+    ],
+    "prototype": "void *iAp2MarshalGetBytes(Marshal *state, uint32_t *declared_length_out)"
+  },
+  "direct_calls": {
+    "SessionAppLaunch": [
+      {
+        "bytes_hex": "e8d158fcff",
+        "elf_va": "0x3f6ca",
+        "file_offset": "0x3f6ca",
+        "matched": true,
+        "sha256": "b7b47916da2621b88dded6aeec508f1c604754cae6aeb53f94ef04a9fa247c05",
+        "size": 5
+      }
+    ],
+    "SessionBTConnection": [
+      {
+        "bytes_hex": "e8848afcff",
+        "elf_va": "0x3c517",
+        "file_offset": "0x3c517",
+        "matched": true,
+        "sha256": "9d40bf16e34a5d9b9948fe5e11ed3d58168826a88ef246729c0c1278c6901719",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e87b89fcff",
+        "elf_va": "0x3c620",
+        "file_offset": "0x3c620",
+        "matched": true,
+        "sha256": "c0faaebde3dc8f125ddde956f1f94280ef5e2e79653a2ab7d4bb271ad6631b52",
+        "size": 5
+      }
+    ],
+    "SessionCommunications": [
+      {
+        "bytes_hex": "e8aaaafaff",
+        "elf_va": "0x5a4f1",
+        "file_offset": "0x5a4f1",
+        "matched": true,
+        "sha256": "94ffb9c9969262e3d7422f120a98abbbdc08ee24b71393aa5e97344300434bca",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8daa9faff",
+        "elf_va": "0x5a5c1",
+        "file_offset": "0x5a5c1",
+        "matched": true,
+        "sha256": "e734b608990b84be9d8bc3d036a463d774572e542efaf49ee25b9444f20b35f0",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e881a8faff",
+        "elf_va": "0x5a71a",
+        "file_offset": "0x5a71a",
+        "matched": true,
+        "sha256": "496f81914e8408ad49ebe3fff57525171960a242fcf015deb8346bc9233197b3",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e828a7faff",
+        "elf_va": "0x5a873",
+        "file_offset": "0x5a873",
+        "matched": true,
+        "sha256": "7b720686f77212dc2eb288e2da5c8fb835f40e3c7907974ba9ff2713b9f3cf27",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e890a4faff",
+        "elf_va": "0x5ab0b",
+        "file_offset": "0x5ab0b",
+        "matched": true,
+        "sha256": "1026376988fc9f5f8c9557eec7df18c236496578eede7cc1f8a0f3d39d594a31",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e896a2faff",
+        "elf_va": "0x5ad05",
+        "file_offset": "0x5ad05",
+        "matched": true,
+        "sha256": "a4df5b6d1165458a3cf50d77e1f1b8558b46d186d6e57578331f722405e01d20",
+        "size": 5
+      }
+    ],
+    "SessionExternalAccessoryProtocol": [
+      {
+        "bytes_hex": "e8fa30fcff",
+        "elf_va": "0x41ea1",
+        "file_offset": "0x41ea1",
+        "matched": true,
+        "sha256": "9be9b92b669a9a703c643b8e2cce86f0fdc97f299dc26a14dca1acce33c649df",
+        "size": 5
+      }
+    ],
+    "SessionHID": [
+      {
+        "bytes_hex": "e8a920fcff",
+        "elf_va": "0x42ef2",
+        "file_offset": "0x42ef2",
+        "matched": true,
+        "sha256": "c589dccad9947cd0a54a819f7045cf7a2448ebf68f33bcfa8894f403e2870460",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8e11ffcff",
+        "elf_va": "0x42fba",
+        "file_offset": "0x42fba",
+        "matched": true,
+        "sha256": "6f0e5a8622b781466c6f33cf00ce1196a78712b11c0c6c379aa9158f810739ea",
+        "size": 5
+      }
+    ],
+    "SessionLocation": [
+      {
+        "bytes_hex": "e8e76cfcff",
+        "elf_va": "0x3e2b4",
+        "file_offset": "0x3e2b4",
+        "matched": true,
+        "sha256": "60f7ba650d7f6464c129dbaef4fe6e3ab081f851acaee72a63080a9c386fb886",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8af6cfcff",
+        "elf_va": "0x3e2ec",
+        "file_offset": "0x3e2ec",
+        "matched": true,
+        "sha256": "4c0c3c7a28d9e84f2e6935bfcdfc4a978a7babcf3537e6420e4b317e6da8e5b8",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8776cfcff",
+        "elf_va": "0x3e324",
+        "file_offset": "0x3e324",
+        "matched": true,
+        "sha256": "461a4e6a171dfde9192dcad2e4ad27043687b5187523d7594bb15f298df91f58",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e83f6cfcff",
+        "elf_va": "0x3e35c",
+        "file_offset": "0x3e35c",
+        "matched": true,
+        "sha256": "d42306bed519cbefaa8b22de3b7e2300a65381fd9af54630ccc8036bbfb23ed6",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8076cfcff",
+        "elf_va": "0x3e394",
+        "file_offset": "0x3e394",
+        "matched": true,
+        "sha256": "b872d51b986b4112bede3bf22c3c2117dcd43f18713745c45e753bc14294f9ee",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8cf6bfcff",
+        "elf_va": "0x3e3cc",
+        "file_offset": "0x3e3cc",
+        "matched": true,
+        "sha256": "ed00c1f0ee99acd82e7da7b71331c307db4262e1a920af6bb7c5cd17a79ea64f",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8976bfcff",
+        "elf_va": "0x3e404",
+        "file_offset": "0x3e404",
+        "matched": true,
+        "sha256": "fdaf960c2206e098a8124cc0381e82f592b2fe375e806dd95d1b3fa04e2256bf",
+        "size": 5
+      }
+    ],
+    "SessionMediaLibraryUpdates": [
+      {
+        "bytes_hex": "e8c2d9fbff",
+        "elf_va": "0x475d9",
+        "file_offset": "0x475d9",
+        "matched": true,
+        "sha256": "36d130e14d93e2adebf5ad04badc2b175b6c8aad151fe89587ec127204fad1b5",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e890d9fbff",
+        "elf_va": "0x4760b",
+        "file_offset": "0x4760b",
+        "matched": true,
+        "sha256": "aaf6be696cbc3aa8ccf65a237889e39674cb46b9d9cb2054c958546ecd993b20",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e81bd8fbff",
+        "elf_va": "0x47780",
+        "file_offset": "0x47780",
+        "matched": true,
+        "sha256": "6ebd7176615f59650b2b448c81d503fff944e424330726c73e563d93c5847437",
+        "size": 5
+      }
+    ],
+    "SessionPlayMediaLibrary": [
+      {
+        "bytes_hex": "e82c60fbff",
+        "elf_va": "0x4ef6f",
+        "file_offset": "0x4ef6f",
+        "matched": true,
+        "sha256": "c77c3d813678072bda757611b7fa65f474eaf9171be0928db7e206fb6f389d78",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8a35ffbff",
+        "elf_va": "0x4eff8",
+        "file_offset": "0x4eff8",
+        "matched": true,
+        "sha256": "21aa9081ec8309e5a7aabb7498e97bd30ab0b1d3d6f150968732abedebe41da3",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8625ffbff",
+        "elf_va": "0x4f039",
+        "file_offset": "0x4f039",
+        "matched": true,
+        "sha256": "5bf722925884375156c4d1878208508d89e3405662ecd6c2b3de98b772a6ee83",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8905efbff",
+        "elf_va": "0x4f10b",
+        "file_offset": "0x4f10b",
+        "matched": true,
+        "sha256": "cf184a6221a4d701453b6e81be9ad002b2ea55935d1adde56fb994a69c06b842",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8d75dfbff",
+        "elf_va": "0x4f1c4",
+        "file_offset": "0x4f1c4",
+        "matched": true,
+        "sha256": "3305c8c14b725a03dc44f8e103774d1f2a18b64be37b8d153a7e8f1fda6027e0",
+        "size": 5
+      }
+    ],
+    "SessionVoiceOver": [
+      {
+        "bytes_hex": "e89899fbff",
+        "elf_va": "0x4b603",
+        "file_offset": "0x4b603",
+        "matched": true,
+        "sha256": "c369ad1ce65af18d5d0d946da3985d0cfd32365bfedf972bde0d68efd58de5d9",
+        "size": 5
+      }
+    ],
+    "SessionWiFiInformation": [
+      {
+        "bytes_hex": "e8ba68fbff",
+        "elf_va": "0x4e6e1",
+        "file_offset": "0x4e6e1",
+        "matched": true,
+        "sha256": "0056228b10a700a5dec53ec9028e2b4b23bf2f6b6a754ef6fcaf4bd044e548dd",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e88868fbff",
+        "elf_va": "0x4e713",
+        "file_offset": "0x4e713",
+        "matched": true,
+        "sha256": "6061dc52373549fd7b4c95c430c72e38ce2646d1d4403cc99c0b0ae5d2ccd8a2",
+        "size": 5
+      }
+    ],
+    "heap_string_materializer": [
+      {
+        "bytes_hex": "e8c6b9fdff",
+        "elf_va": "0x295d5",
+        "file_offset": "0x295d5",
+        "matched": true,
+        "sha256": "218d6be052da51882debbc0dcb45680f4a225fed6816fc4b943f8ee4fa1db10c",
+        "size": 5
+      }
+    ]
+  },
+  "findings": {
+    "generic_helper": {
+      "classification": "bounded direct byte accessor",
+      "conclusion": "the exact generic iAp2MarshalGetBytes body is not a fixed-stack-copy primitive and rejects aligned lengths larger than the remaining transaction"
+    },
+    "null_return_consumer": {
+      "classification": "exact-static null-source denial-of-service candidate",
+      "commands": [
+        "SessionConnection kCmdIdentificationSelect 0x2afb",
+        "SessionIdentification kCmdIdentificationUpdate 0x2f95"
+      ],
+      "impact_boundary": "a faulting libc read is a static candidate; live delivery, process termination, supervisor behavior, and user-visible impact are not demonstrated",
+      "location": "heap_string_materializer 0x2957c..0x296a7; direct helper call at 0x295d5; 22 exact wrapper calls from SessionConnection and SessionIdentification",
+      "mechanism": "a malformed declared byte length can be stored before the helper returns null; the consumer allocates declared_length+1 and, if allocation succeeds, calls strncpy with the null source and declared length without rejecting the null return"
+    },
+    "percent_s_consumers": {
+      "classification": "exact-static unbounded-string-read candidates",
+      "impact_boundary": "the exact extent depends on transaction allocation, padding, protocol conformance, and logger implementation; no live disclosure, crash, or cross-boundary log exposure is demonstrated",
+      "locations": [
+        "SessionAppLaunch command 0x2f45",
+        "SessionPlayMediaLibrary command 0x2f84",
+        "SessionCommunications commands 0x2fa3/0x2fa4/0x2fa5/0x2fa8/0x2faa"
+      ],
+      "mechanism": "recovered length-delimited byte pointers are passed to %s logging without a local terminator check or precision bound in the reviewed caller ranges"
+    }
+  },
+  "framework_anchors": {
+    "get_length_store_and_bounded_accessor_call": {
+      "bytes_hex": "488b45e84889c7e82136feff89c2488b45e08910488b45e08b10488b45e889d64889c7e83afbffff",
+      "elf_va": "0x21ae3",
+      "file_offset": "0x21ae3",
+      "matched": true,
+      "sha256": "f7b5118e3fd7ed4c753332e10c5ddb9965ec8c8d0ae8b6e9829f316121c52004",
+      "size": 40
+    },
+    "length_overflow_guard_and_four_byte_rounding": {
+      "bytes_hex": "837dd4fc762e4c8d057f940000b9ea000000488d1555940000488d3567940000bf5a000000b800000000e8c63bfeffe9b10000008b45d483c00383e0fc8945d4",
+      "elf_va": "0x2166b",
+      "file_offset": "0x2166b",
+      "matched": true,
+      "sha256": "4e760cf64ea29abc2258857bcd67d8807f0114e176d4049bf3ca297f1cf433f3",
+      "size": 64
+    },
+    "remaining_length_check_and_failure_state": {
+      "bytes_hex": "488b45d88b400c3b45d4735f488b45d8c7400c00000000488b45d88b401883c80289c2488b45d8895018488b45d88b500c4883ec088b45d4504189d14c8d0582940000b9f4",
+      "elf_va": "0x216ab",
+      "file_offset": "0x216ab",
+      "matched": true,
+      "sha256": "08bd4b0e0ee1ba36d8f7e412e78d0056e0b2bbe8d65cf145c3f4890a9c1699cc",
+      "size": 69
+    },
+    "success_pointer_and_remaining_advance": {
+      "bytes_hex": "488b45d8488b00488945f0488b45d8488b108b45d44801c2488b45d8488910488b45d88b400c2b45d489c2488b45d889500c488b",
+      "elf_va": "0x21716",
+      "file_offset": "0x21716",
+      "matched": true,
+      "sha256": "eacbb61945a88c431457b3b371f2294f7194754f77f33f1a60208e7a4c8b032c",
+      "size": 52
+    }
+  },
+  "framework_ranges": {
+    "bounded_aligned_byte_accessor": {
+      "elf_va_end_exclusive": "0x2176a",
+      "elf_va_start": "0x21645",
+      "file_offset_start": "0x21645",
+      "matched": true,
+      "sha256": "98cbc5af41238b006a7497dfce512b59c21b448f616a55ff641597a058303fcf",
+      "size": 293
+    },
+    "iAp2MarshalGetBytes": {
+      "elf_va_end_exclusive": "0x21b21",
+      "elf_va_start": "0x21a56",
+      "file_offset_start": "0x21a56",
+      "matched": true,
+      "sha256": "601fc208cd6c41eb6926c782dcafcedd47c88785516c98c1290ebcdd2e08ac31",
+      "size": 203
+    },
+    "iAp2MarshalInitFromTxn": {
+      "elf_va_end_exclusive": "0x21175",
+      "elf_va_start": "0x210ff",
+      "file_offset_start": "0x210ff",
+      "matched": true,
+      "sha256": "4e7fbd707234bf553adf0c59de1501865d873ebeae4ee058f59139124dbf5729",
+      "size": 118
+    }
+  },
+  "heap_string_wrapper_caller_ranges": {
+    "SessionConnection": {
+      "elf_va_end_exclusive": "0x3ab40",
+      "elf_va_start": "0x38010",
+      "file_offset_start": "0x38010",
+      "matched": true,
+      "sha256": "9a5af95a4f5f427a3cd0cbbcd60791f594cc25275381d768855f354dc84f5a3d",
+      "size": 11056
+    },
+    "SessionIdentification": {
+      "elf_va_end_exclusive": "0x55e2c",
+      "elf_va_start": "0x556e2",
+      "file_offset_start": "0x556e2",
+      "matched": true,
+      "sha256": "b63fd6951214ff2c6f1a39caaaaf186cfc405868b828c29ec7e50a6ee155320a",
+      "size": 1866
+    }
+  },
+  "heap_string_wrapper_calls": {
+    "SessionConnection": [
+      {
+        "bytes_hex": "e85210ffff",
+        "elf_va": "0x38525",
+        "file_offset": "0x38525",
+        "matched": true,
+        "sha256": "50541cdc9cce6133e671501f746bd352c8a90810c86d7cb188a4ea0e9e28def7",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e88d0fffff",
+        "elf_va": "0x385ea",
+        "file_offset": "0x385ea",
+        "matched": true,
+        "sha256": "97802491fcb22163de5aff1a180bc9c84561d1519e658d4dde739c6482767d23",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8df0bffff",
+        "elf_va": "0x38998",
+        "file_offset": "0x38998",
+        "matched": true,
+        "sha256": "67035b68244764cdcb81062de35f7155e9f673434b84ffbeb60a9026dff40faa",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e87b0bffff",
+        "elf_va": "0x389fc",
+        "file_offset": "0x389fc",
+        "matched": true,
+        "sha256": "26df62d8ae461f528f1eeb6527151cf5a6cf11d2f6c7eef161e061e7afb62af3",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8460affff",
+        "elf_va": "0x38b31",
+        "file_offset": "0x38b31",
+        "matched": true,
+        "sha256": "bfe5511173991c3e8ed01d14877d3d512e5b14c2e20a5d5e203ef62f72965915",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8a109ffff",
+        "elf_va": "0x38bd6",
+        "file_offset": "0x38bd6",
+        "matched": true,
+        "sha256": "59dfb5d089b0035d1fe0f97b77af79ed76b8647cbbe94222563f5c133aebe2a4",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e80c09ffff",
+        "elf_va": "0x38c6b",
+        "file_offset": "0x38c6b",
+        "matched": true,
+        "sha256": "2c1933d228783019bce1f6420eccc0523ef9d452e280f6eaead889ea9be25282",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e83708ffff",
+        "elf_va": "0x38d40",
+        "file_offset": "0x38d40",
+        "matched": true,
+        "sha256": "9680079c0559f59c8531ae43948db4fe98a1217dfb9fcf03a9205b313e7224df",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e81a07ffff",
+        "elf_va": "0x38e5d",
+        "file_offset": "0x38e5d",
+        "matched": true,
+        "sha256": "bab9fb25cd14635af301d0a50f74ce27d25fe665221e3b44dbb469ecacea6e36",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8d506ffff",
+        "elf_va": "0x38ea2",
+        "file_offset": "0x38ea2",
+        "matched": true,
+        "sha256": "971c86d78384cc2b460ab76a7f6c1a8be1b7fd40a720c0117682c330874fffab",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e89006ffff",
+        "elf_va": "0x38ee7",
+        "file_offset": "0x38ee7",
+        "matched": true,
+        "sha256": "bc4a5e99e30bdf615b18ae5262e4a182cea6fa8a13c04c674f7cb4fb076ed4ca",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e84b06ffff",
+        "elf_va": "0x38f2c",
+        "file_offset": "0x38f2c",
+        "matched": true,
+        "sha256": "d46f6fb019c4b1667c76c3c3d2ab2847ebf105b626ccfc654ed9a67c6a535c16",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8e405ffff",
+        "elf_va": "0x38f93",
+        "file_offset": "0x38f93",
+        "matched": true,
+        "sha256": "5e9361a41ca600e556cc0a389c2a33e8eb7660a6ca4e7ba834ed7337b31a797c",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e89f05ffff",
+        "elf_va": "0x38fd8",
+        "file_offset": "0x38fd8",
+        "matched": true,
+        "sha256": "cc24ab3daf6a45f35cb1870f1557c89defd07140e8bdb55a1432b81b473a1150",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e81205ffff",
+        "elf_va": "0x39065",
+        "file_offset": "0x39065",
+        "matched": true,
+        "sha256": "cb848b33757a8a982db87afadcf149d640461db94f25c3b7e31762190efbdb24",
+        "size": 5
+      }
+    ],
+    "SessionIdentification": [
+      {
+        "bytes_hex": "e8043dfdff",
+        "elf_va": "0x55873",
+        "file_offset": "0x55873",
+        "matched": true,
+        "sha256": "58f711c6a490a5f9fd060fcf5c44835d40e27f3999fe41f5f077178a8a648d9c",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8633cfdff",
+        "elf_va": "0x55914",
+        "file_offset": "0x55914",
+        "matched": true,
+        "sha256": "1f3218f214c441f82bd2d4ada899d0e770c964fe15109c3dc06409bb053491f8",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8c23bfdff",
+        "elf_va": "0x559b5",
+        "file_offset": "0x559b5",
+        "matched": true,
+        "sha256": "40d7b205df160389efcf1868e9b90c3af231e0eded276931ba89fcc5ea3b34f5",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8213bfdff",
+        "elf_va": "0x55a56",
+        "file_offset": "0x55a56",
+        "matched": true,
+        "sha256": "caec3550f447376247c9dd8414871d3df0bdabb20cb023fb88d065d0de71fb06",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8803afdff",
+        "elf_va": "0x55af7",
+        "file_offset": "0x55af7",
+        "matched": true,
+        "sha256": "3a60331f6618eb82c4c80887c0aef8c8137349b736be3caed491d352fba46e7e",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e8df39fdff",
+        "elf_va": "0x55b98",
+        "file_offset": "0x55b98",
+        "matched": true,
+        "sha256": "2ef36b2317db50791cd01f83efc115a9091e244fb577b4c28d1b0546ad8e7c70",
+        "size": 5
+      },
+      {
+        "bytes_hex": "e83e39fdff",
+        "elf_va": "0x55c39",
+        "file_offset": "0x55c39",
+        "matched": true,
+        "sha256": "6520b4258346586953ab840c301a90c7565d45b3690d53af805c7ea158208fce",
+        "size": 5
+      }
+    ]
+  },
+  "schema": "ioniq-iap2-marshal-getbytes-audit/v1",
+  "service_caller_ranges": {
+    "SessionAppLaunch": {
+      "elf_va_end_exclusive": "0x3f7ad",
+      "elf_va_start": "0x3f544",
+      "file_offset_start": "0x3f544",
+      "matched": true,
+      "sha256": "9629dd8242b4d514d7778ac57525828d7fd9c185540cb272e08ce0bbc93d907a",
+      "size": 617
+    },
+    "SessionBTConnection": {
+      "elf_va_end_exclusive": "0x3c77b",
+      "elf_va_start": "0x3c368",
+      "file_offset_start": "0x3c368",
+      "matched": true,
+      "sha256": "2e6f8131494a2f555ec211b903c2b91368062e1649e78f72f59fa1a917b1d187",
+      "size": 1043
+    },
+    "SessionCommunications": {
+      "elf_va_end_exclusive": "0x5b01c",
+      "elf_va_start": "0x59f24",
+      "file_offset_start": "0x59f24",
+      "matched": true,
+      "sha256": "0bd790bebd7a3abd85570cad0bd216e1a6a05f7788fa4aeab72dc372cac6a2ef",
+      "size": 4344
+    },
+    "SessionExternalAccessoryProtocol": {
+      "elf_va_end_exclusive": "0x41f2b",
+      "elf_va_start": "0x41be2",
+      "file_offset_start": "0x41be2",
+      "matched": true,
+      "sha256": "d984621d5bf56706e588c0563a2105b430ec0dda914a1879ceafebb56cc8ddf1",
+      "size": 841
+    },
+    "SessionHID": {
+      "elf_va_end_exclusive": "0x430cf",
+      "elf_va_start": "0x42cfc",
+      "file_offset_start": "0x42cfc",
+      "matched": true,
+      "sha256": "4cc3645bfbf52be8ebfa05d9c8e3fb39052c7a226f06b881515575badcf550e8",
+      "size": 979
+    },
+    "SessionLocation": {
+      "elf_va_end_exclusive": "0x3e48a",
+      "elf_va_start": "0x3e0de",
+      "file_offset_start": "0x3e0de",
+      "matched": true,
+      "sha256": "fb309c942bd31f30925e3c8e1f22ec0bd9a630c1e0fde79d69c62dd5da6b9779",
+      "size": 940
+    },
+    "SessionMediaLibraryUpdates": {
+      "elf_va_end_exclusive": "0x47806",
+      "elf_va_start": "0x47428",
+      "file_offset_start": "0x47428",
+      "matched": true,
+      "sha256": "bebd730b3facc4f1238e133862007b1e46d99552e5cc63a3e9b5cef92e64ef02",
+      "size": 990
+    },
+    "SessionPlayMediaLibrary": {
+      "elf_va_end_exclusive": "0x4f2b0",
+      "elf_va_start": "0x4ede6",
+      "file_offset_start": "0x4ede6",
+      "matched": true,
+      "sha256": "ebe016041ba39ff12c9e73172b0d9a092d72eb330d48b0211a3b4031d0cbae6c",
+      "size": 1226
+    },
+    "SessionVoiceOver": {
+      "elf_va_end_exclusive": "0x4bb86",
+      "elf_va_start": "0x4b0d8",
+      "file_offset_start": "0x4b0d8",
+      "matched": true,
+      "sha256": "e7ea5ffe2e26d5946674090580ca497c436095b39f9c106544948e8d54697ebc",
+      "size": 2734
+    },
+    "SessionWiFiInformation": {
+      "elf_va_end_exclusive": "0x4e7ef",
+      "elf_va_start": "0x4e47e",
+      "file_offset_start": "0x4e47e",
+      "matched": true,
+      "sha256": "feba28457c2892542a83c923403215ced41b529e10f5ce79c6a6e6d032eba05d",
+      "size": 881
+    },
+    "heap_string_materializer": {
+      "elf_va_end_exclusive": "0x296a7",
+      "elf_va_start": "0x2957c",
+      "file_offset_start": "0x2957c",
+      "matched": true,
+      "sha256": "f21e5820d74dfce847a6d0817ec9ce5e466a8c18eb1a4648820387f5891dd1bb",
+      "size": 299
+    }
+  },
+  "subjects": {
+    "framework": {
+      "basename": "libiAP2AppFramework-2.0.so",
+      "format": "ELF64 little-endian ET_DYN x86-64",
+      "sha256": "d4d0558c9c53f02ee14024c081ccd83a02ca29404ef400131e2951f68a388120",
+      "size": 190272
+    },
+    "service": {
+      "basename": "iAP2Service-2.0",
+      "format": "ELF64 little-endian ET_DYN x86-64",
+      "sha256": "38419131df82ec7e3c3b29a68ecc1a078c7f0b403051f137fe9f46f82b99f26e",
+      "size": 633216
+    }
+  },
+  "tool": {
+    "name": "iap2_marshal_getbytes_audit.py",
+    "version": "1.0.0"
+  }
+}

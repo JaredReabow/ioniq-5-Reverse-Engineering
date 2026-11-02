@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Hash-bound passive comparison of affected and later Apollo Lake TXE modules.
+"""Hash-bound passive comparison of affected, first-fixed, and later TXE modules.
 
-This tool does not execute firmware.  It parses two already-extracted flash images,
+This tool does not execute firmware.  It parses three already-extracted flash images,
 validates the signed CPD/metadata/module chains used for the comparison, strictly
 decompresses selected CSE modules, and emits deterministic JSON.
 """
@@ -18,20 +18,28 @@ import struct
 import sys
 from pathlib import Path
 
-SCHEMA = "ioniq-txe-fixed-module-diff/v1"
+SCHEMA = "ioniq-txe-fixed-module-diff/v2"
 OLD_SHA256 = "f6fc0373042c27f36e601fe957544582f3b1bd4be3c36659105322304b2dc7ac"
-FIXED_SHA256 = "75a866331d8f23d023bbdcf9efdfee7b57bf4727eb50f6162940a2a51cb57b4a"
+FIRST_FIXED_SHA256 = "db9325168976e1e68cba25924e82c2aeb2db85fb7a678de5fd66e200ab7643b9"
+LATER_SHA256 = "75a866331d8f23d023bbdcf9efdfee7b57bf4727eb50f6162940a2a51cb57b4a"
 OLD_NFTP = 0x203000
 OLD_FTPR = 0x11E000
-FIXED_NFTP = 0x147000
-FIXED_FTPR = 0x20000
+FIRST_FIXED_NFTP = 0x254000
+FIRST_FIXED_FTPR = 0x21000
+LATER_NFTP = 0x147000
+LATER_FTPR = 0x20000
 OLD_HECI_SHA256 = "82b7be7bb8069aebfb2c9f7a0e994500fe10d631e67a16f5a5fec71d29679125"
-FIXED_HECI_SHA256 = "04dceeb0b42db7910d913545b9b2342e9a26349c8e9d2e2bede201af62bf3b8f"
+FIRST_FIXED_HECI_SHA256 = "16afeb7e9a9328bd22b5c8b383b5e003bcce2e4d46db18ea1737606bffa3ed31"
+LATER_HECI_SHA256 = "04dceeb0b42db7910d913545b9b2342e9a26349c8e9d2e2bede201af62bf3b8f"
 OLD_FPF_SHA256 = "9fd694bc90c7433528cfcf80ad265093cc61e086d882a3c52dee152ba64630b9"
-FIXED_FPF_SHA256 = "2c188d8f1c0ee1a0eab08e716599149b370305033d2435c3745c7f399909713d"
-MODULES = ("heci", "busdrv", "storage", "policy", "fpf", "dal_sdm")
+FIRST_FIXED_FPF_SHA256 = "e8f635d1ae1db00fb686fcacece4f2684109b9b8a32f852bc00f383218f784b8"
+LATER_FPF_SHA256 = "2c188d8f1c0ee1a0eab08e716599149b370305033d2435c3745c7f399909713d"
+OLD_VFS_SHA256 = "59b0ee9381860d1700f6c4638b0e165e3dba27d97d5017b8118b82a18f77f91b"
+FIRST_FIXED_VFS_SHA256 = "52e0773d3115581d16b039e7c7e65c5dcbddf9d332cd98bdc9bb1ab6f6ff9e68"
+LATER_VFS_SHA256 = "c5775a79d72c6f6d35656d6cd56a2648a17093f8436809b309d44229f107bc3b"
+MODULES = ("heci", "busdrv", "storage", "policy", "fpf", "dal_sdm", "vfs")
 
-FIXED_HECI_RANGES = {
+LATER_HECI_RANGES = {
     "receive_dispatch": (0x189A, 0x1EF8, "4aea1addeb7e4e4fef929be25f3eb879a0114673e7572ec8c4b1d9dcff03fe64"),
     "fifo_bounded_copy": (0x27DA, 0x28D5, "5b8eafc086806a31c4d8adff2fd079d65b6ab205bd09a730cb7e252df7efa764"),
     "payload_consumer": (0x2B46, 0x3052, "6ef9be6f6d5d37d30dfab717dd8651118a7e8510ccce8455c72d83c473019d9e"),
@@ -40,7 +48,33 @@ FIXED_HECI_RANGES = {
     "extended_header_parser": (0x3AD2, 0x3C0A, "f3ed29ecdcd43505ac0824e7b4762bde7bc29c477747a891f5646cb5a3e49e42"),
 }
 
-FIXED_FPF_ARB_FIELDS = {
+FIRST_FIXED_HECI_RANGES = {
+    "receive_dispatch": (
+        0x17C8,
+        0x1DC9,
+        "89d34094c7c72571ae5a5790b95c1570a81acc31a48105aa0092fb3017f05dc7",
+        "203b2c1b83c63e939cd73d451a9656ae21544c2ce875842506c928e99bfa128b",
+        (0x17F7, 0x1852, 0x1888, 0x1900, 0x1920, 0x195B, 0x19B4, 0x1A0C, 0x1AD9,
+         0x1AF7, 0x1B49, 0x1B6C, 0x1C08, 0x1C43, 0x1C82, 0x1D26, 0x1D76, 0x1DBC),
+    ),
+    "fifo_bounded_copy": (
+        0x268D,
+        0x27B7,
+        "d8df2a82e6f71db82616c63898b8e3a3cb46cf4bb524ae5bd93d573ad889e362",
+        "99811a48487433d89db5ce8eaa90fd74c7be94f1a45577e73adcea88003159d8",
+        (0x270F, 0x2785),
+    ),
+    "payload_consumer": (
+        0x2A2D,
+        0x2E78,
+        "5c77d1e0db46ff8847d0a232ef6efa074767d5fe24aaa41727f595997831c419",
+        "b5079daa3220f61e3eea68fefc12fdc3cdd7477cd6ac67a1fd236c5fbbf7f7fc",
+        (0x2A8A, 0x2B1F, 0x2B42, 0x2B83, 0x2BAF, 0x2C46, 0x2C9E, 0x2CD4,
+         0x2D0C, 0x2D96, 0x2DF9),
+    ),
+}
+
+LATER_FPF_ARB_FIELDS = {
     "RbeArbEn": (0x51C4, 2, 0x0A0, 0x0A1, "ec9b3df2ad66201dff320e17ccdbfdc9e916225c15e8e9f40785d8e7724257ba"),
     "OemKmArbEn": (0x51F0, 2, 0x0A4, 0x0A5, "d2f7aac91c2edbbfd31380f44aa3999df75c13cf48ec724dfdb084ea331f3cf7"),
     "UcodeArbEn": (0x537C, 2, 0x0C8, 0x0C9, "b52d64f84ba8c5e9ce884e66531a6c031a500c1831b2421887bee9d7a14ff671"),
@@ -215,7 +249,7 @@ def extract_module(
         decompressed = compressed
     else:
         raise Failure(f"unsupported {name} compression: {compression}")
-    return decompressed, {
+    report = {
         "cpd_relative_offset": entries[name][0],
         "compressed_size": len(compressed),
         "compressed_sha256": sha256(compressed),
@@ -229,6 +263,12 @@ def extract_module(
         "metadata_binds_module_reverse_sha256": True,
         "strict_decompression": compression == 2,
     }
+    if name == "storage":
+        report["reviewed_special_file_occurrences"] = {
+            value.decode("ascii"): metadata.count(value)
+            for value in (b"ndl_critical", b"ndl_counting")
+        }
+    return decompressed, report
 
 
 def extract_syslib(image: bytes, cpd: int, entries: dict[str, tuple[int, int]], manifest: bytes) -> tuple[bytes, dict]:
@@ -284,9 +324,184 @@ def checked_range(module: bytes, start: int, end: int, digest: str, label: str) 
     }
 
 
-def fixed_heci_review(heci: bytes) -> dict:
-    if sha256(heci) != FIXED_HECI_SHA256:
-        raise Failure("fixed HECI identity drift")
+def call_relocation_only_range(
+    affected: bytes,
+    first_fixed: bytes,
+    start: int,
+    end: int,
+    affected_digest: str,
+    first_fixed_digest: str,
+    call_sites: tuple[int, ...],
+    label: str,
+) -> dict:
+    affected_range = affected[start:end]
+    first_fixed_range = first_fixed[start:end]
+    if sha256(affected_range) != affected_digest or sha256(first_fixed_range) != first_fixed_digest:
+        raise Failure(f"first-fixed HECI {label} range drift")
+    allowed_differences = {offset for call in call_sites for offset in range(call + 1, call + 5)}
+    actual_differences = {
+        start + index
+        for index, (left, right) in enumerate(zip(affected_range, first_fixed_range))
+        if left != right
+    }
+    if not actual_differences or not actual_differences <= allowed_differences:
+        raise Failure(f"first-fixed HECI {label} non-call-byte drift")
+    normalized_affected = bytearray(affected_range)
+    normalized_first_fixed = bytearray(first_fixed_range)
+    calls = []
+    for call in call_sites:
+        if affected[call] != 0xE8 or first_fixed[call] != 0xE8:
+            raise Failure(f"first-fixed HECI {label} call opcode drift")
+        old_displacement = struct.unpack_from("<i", affected, call + 1)[0]
+        new_displacement = struct.unpack_from("<i", first_fixed, call + 1)[0]
+        if new_displacement - old_displacement != 5:
+            raise Failure(f"first-fixed HECI {label} call relocation delta drift")
+        normalized_affected[call + 1 - start : call + 5 - start] = b"\0" * 4
+        normalized_first_fixed[call + 1 - start : call + 5 - start] = b"\0" * 4
+        calls.append({
+            "runtime_call_address": 0x26000 + call,
+            "affected_relative_displacement": old_displacement,
+            "first_fixed_relative_displacement": new_displacement,
+            "displacement_delta": 5,
+        })
+    if normalized_affected != normalized_first_fixed:
+        raise Failure(f"first-fixed HECI {label} normalized byte drift")
+    return {
+        "file_range": [start, end],
+        "runtime_range": [0x26000 + start, 0x26000 + end],
+        "affected_sha256": affected_digest,
+        "first_fixed_sha256": first_fixed_digest,
+        "raw_differing_byte_count": len(actual_differences),
+        "non_call_immediate_differing_byte_count": 0,
+        "call_relocations": calls,
+        "equal_after_zeroing_only_enumerated_rel32_call_immediates": True,
+    }
+
+
+def module_wide_external_relocation_review(affected: bytes, first_fixed: bytes) -> dict:
+    actual_differences = {
+        index for index, (left, right) in enumerate(zip(affected, first_fixed)) if left != right
+    }
+    sites = []
+    allowed_differences = set()
+    normalized_affected = bytearray(affected)
+    normalized_first_fixed = bytearray(first_fixed)
+    target_counts: dict[int, int] = {}
+    opcode_counts = {0xE8: 0, 0xE9: 0}
+    for offset in range(len(affected) - 4):
+        opcode = affected[offset]
+        if opcode != first_fixed[offset] or opcode not in opcode_counts:
+            continue
+        old_displacement = struct.unpack_from("<i", affected, offset + 1)[0]
+        new_displacement = struct.unpack_from("<i", first_fixed, offset + 1)[0]
+        old_target = 0x26000 + offset + 5 + old_displacement
+        new_target = 0x26000 + offset + 5 + new_displacement
+        changed = any(
+            affected[index] != first_fixed[index] for index in range(offset + 1, offset + 5)
+        )
+        if not changed or new_displacement - old_displacement != 5 or old_target >= 0x26000:
+            continue
+        if new_target != old_target + 5 or new_target >= 0x26000:
+            raise Failure("first-fixed HECI external branch target drift")
+        opcode_counts[opcode] += 1
+        target_counts[old_target] = target_counts.get(old_target, 0) + 1
+        allowed_differences.update(range(offset + 1, offset + 5))
+        normalized_affected[offset + 1 : offset + 5] = b"\0" * 4
+        normalized_first_fixed[offset + 1 : offset + 5] = b"\0" * 4
+        sites.append(offset)
+    if (
+        len(actual_differences) != 377
+        or opcode_counts != {0xE8: 366, 0xE9: 3}
+        or len(target_counts) != 42
+        or not actual_differences <= allowed_differences
+        or normalized_affected != normalized_first_fixed
+    ):
+        raise Failure("first-fixed HECI module-wide relocation-only comparison drift")
+    return {
+        "affected_sha256": OLD_HECI_SHA256,
+        "first_fixed_sha256": FIRST_FIXED_HECI_SHA256,
+        "module_size": len(affected),
+        "raw_differing_byte_count": len(actual_differences),
+        "non_external_rel32_immediate_differing_byte_count": 0,
+        "external_rel32_site_count": len(sites),
+        "external_call_site_count": opcode_counts[0xE8],
+        "external_tail_jump_site_count": opcode_counts[0xE9],
+        "distinct_affected_external_target_count": len(target_counts),
+        "affected_external_target_range": [min(target_counts), max(target_counts)],
+        "all_first_fixed_external_targets_equal_affected_plus_five": True,
+        "equal_after_zeroing_only_selected_external_rel32_immediates": True,
+        "affected_external_target_reference_counts": {
+            f"0x{target:x}": target_counts[target] for target in sorted(target_counts)
+        },
+    }
+
+
+def first_fixed_heci_review(affected: bytes, first_fixed: bytes) -> dict:
+    if sha256(affected) != OLD_HECI_SHA256 or sha256(first_fixed) != FIRST_FIXED_HECI_SHA256:
+        raise Failure("first-fixed HECI identity drift")
+    ranges = {
+        name: call_relocation_only_range(
+            affected,
+            first_fixed,
+            start,
+            end,
+            affected_digest,
+            first_fixed_digest,
+            call_sites,
+            name,
+        )
+        for name, (
+            start,
+            end,
+            affected_digest,
+            first_fixed_digest,
+            call_sites,
+        ) in FIRST_FIXED_HECI_RANGES.items()
+    }
+    dispatcher = first_fixed[0x17C8:0x1DC9]
+    signatures = {
+        "nine_bit_length_mask": bytes.fromhex("66 25 ff 01"),
+        "fragment_maximum_0x1fc": bytes.fromhex("81 fe fc 01 00 00"),
+        "complete_bit_only_mask": bytes.fromhex("24 80"),
+        "control_length_4_to_8": bytes.fromhex("8d 46 fc 83 f8 04"),
+    }
+    counts = {name: dispatcher.count(value) for name, value in signatures.items()}
+    if any(count != 1 for count in counts.values()):
+        raise Failure("first-fixed HECI validation signature drift")
+    later_only = {
+        "reject_header_bit_29": bytes.fromhex("f6 c2 20 75 ef"),
+        "control_requires_bit31_and_rejects_bit28": bytes.fromhex("83 e2 90 80 fa 80"),
+        "control_maximum_0x28": bytes.fromhex("8d 46 fc 83 f8 24"),
+    }
+    if any(dispatcher.count(value) for value in later_only.values()):
+        raise Failure("later-only HECI signature unexpectedly present in first-fixed dispatcher")
+    return {
+        "code_base": 0x26000,
+        "module_wide_relocation_review": module_wide_external_relocation_review(
+            affected, first_fixed
+        ),
+        "instruction_ranges": ranges,
+        "reviewed_signature_occurrences": counts,
+        "later_only_signature_occurrences": {
+            name: dispatcher.count(value) for name, value in later_only.items()
+        },
+        "exact_static_observations": {
+            "entire_heci_module_equal_after_only_external_rel32_relocation_normalization": True,
+            "three_primary_receive_ranges_equal_after_only_rel32_call_relocation_normalization": True,
+            "first_fixed_retains_nine_bit_fragment_length_and_0x1fc_maximum": True,
+            "first_fixed_retains_complete_bit_only_header_test": True,
+            "first_fixed_retains_control_payload_bound_of_4_to_8_bytes": True,
+            "later_bit_29_rejection_absent": True,
+            "later_bit_28_control_rejection_absent": True,
+            "later_40_byte_control_bound_absent": True,
+        },
+        "advisory_attribution": "The entire affected and first-fixed HECI modules become byte-identical after normalizing only 369 external rel32 call/jump immediates; all 377 raw differing bytes lie inside those immediates, and every target moves by exactly five bytes within the external 0x6460..0x67b2 stub range. No HECI-local opcode or data change implements the 3.1.55 fix. The exact defect may instead involve changed external syslib behavior or another signed module/client.",
+    }
+
+
+def later_heci_review(heci: bytes) -> dict:
+    if sha256(heci) != LATER_HECI_SHA256:
+        raise Failure("later HECI identity drift")
     signatures = {
         "nine_bit_length_mask": bytes.fromhex("66 25 ff 01"),
         "fragment_maximum_0x1fc": bytes.fromhex("81 fe fc 01 00 00"),
@@ -300,7 +515,7 @@ def fixed_heci_review(heci: bytes) -> dict:
         raise Failure("fixed HECI reviewed validation signature drift")
     ranges = {
         name: checked_range(heci, start, end, digest, name)
-        for name, (start, end, digest) in FIXED_HECI_RANGES.items()
+        for name, (start, end, digest) in LATER_HECI_RANGES.items()
     }
     return {
         "code_base": 0x26000,
@@ -317,16 +532,20 @@ def fixed_heci_review(heci: bytes) -> dict:
             "extended_header_parser_requires_exact_single_entry_geometry": True,
             "primary_payload_copy_still_uses_0x1fc_destination_bound": True,
         },
-        "advisory_attribution": "The later image adds stricter reserved/header-bit validation and a bounded extended-header parser. Because 3.1.94 is not the first fixed 3.1.55 build and spans years of intervening changes, this comparison does not identify any delta as CVE-2018-12147 or CVE-2018-3655's exact fix.",
+        "advisory_attribution": "The later image adds stricter reserved/header-bit validation and a bounded extended-header parser. Exact first-fixed comparison shows the primary 3.1.55 path retains the affected behavior, so these 3.1.94 changes postdate and are not the first-fixed primary-path repair.",
     }
 
 
-def fixed_fpf_review(affected: bytes, fixed: bytes) -> dict:
-    if sha256(affected) != OLD_FPF_SHA256 or sha256(fixed) != FIXED_FPF_SHA256:
+def later_fpf_review(affected: bytes, first_fixed: bytes, later: bytes) -> dict:
+    if (
+        sha256(affected) != OLD_FPF_SHA256
+        or sha256(first_fixed) != FIRST_FIXED_FPF_SHA256
+        or sha256(later) != LATER_FPF_SHA256
+    ):
         raise Failure("FPF identity drift")
     fields = {}
-    for name, (offset, width, bit_start, bit_end, digest) in FIXED_FPF_ARB_FIELDS.items():
-        record = fixed[offset : offset + 0x2C]
+    for name, (offset, width, bit_start, bit_end, digest) in LATER_FPF_ARB_FIELDS.items():
+        record = later[offset : offset + 0x2C]
         record_name = record[:12].split(b"\0", 1)[0]
         parsed_width = struct.unpack_from("<I", record, 0x14)[0] if len(record) == 0x2C else -1
         parsed_start, parsed_end = struct.unpack_from("<HH", record, 0x1C) if len(record) == 0x2C else (-1, -1)
@@ -337,6 +556,7 @@ def fixed_fpf_review(affected: bytes, fixed: bytes) -> dict:
             or parsed_end - parsed_start + 1 != parsed_width
             or sha256(record) != digest
             or affected.count(name.encode("ascii")) != 0
+            or first_fixed.count(name.encode("ascii")) != 0
         ):
             raise Failure(f"fixed FPF anti-rollback field drift: {name}")
         fields[name] = {
@@ -345,7 +565,8 @@ def fixed_fpf_review(affected: bytes, fixed: bytes) -> dict:
             "width_bits": width,
             "field_bit_range_inclusive": [bit_start, bit_end],
             "affected_literal_occurrences": 0,
-            "later_literal_occurrences": fixed.count(name.encode("ascii")),
+            "first_fixed_literal_occurrences": 0,
+            "later_literal_occurrences": later.count(name.encode("ascii")),
         }
     if any(value["later_literal_occurrences"] != 1 for value in fields.values()):
         raise Failure("fixed FPF anti-rollback field multiplicity drift")
@@ -353,11 +574,125 @@ def fixed_fpf_review(affected: bytes, fixed: bytes) -> dict:
         "fields": fields,
         "exact_static_observations": {
             "affected_fpf_lacks_all_six_field_names": True,
+            "first_fixed_fpf_lacks_all_six_field_names": True,
             "later_fpf_contains_all_six_structured_field_records": True,
             "later_enable_fields_are_two_bits_each": True,
             "later_svn_fields_are_contiguous_12_20_and_14_bit_ranges": True,
         },
-        "advisory_attribution": "The later signed FPF contains explicit RBE, OEM key-manifest, and microcode anti-rollback enable/SVN field records absent by name from the affected signed FPF. The non-minimal 3.1.94 comparison does not establish when these fields appeared, whether they were provisioned on either platform, or whether they implement CVE-2018-3655's fix.",
+        "advisory_attribution": "The later signed FPF contains explicit RBE, OEM key-manifest, and microcode anti-rollback enable/SVN field records absent by name from both affected and first-fixed signed FPF. These fields were not the 3.1.55 fix. This does not establish when they appeared, whether they were provisioned, or what exact storage/anti-replay defect CVE-2018-3655 repaired.",
+    }
+
+
+def rel32_target(module_base: int, module: bytes, offset: int, opcode: int) -> int:
+    if module[offset] != opcode:
+        raise Failure(f"rel32 opcode drift at 0x{module_base + offset:x}")
+    return module_base + offset + 5 + struct.unpack_from("<i", module, offset + 1)[0]
+
+
+def first_fixed_vfs_review(
+    affected_vfs: bytes,
+    first_fixed_vfs: bytes,
+    affected_syslib: bytes,
+    first_fixed_syslib: bytes,
+    affected_storage_report: dict,
+    first_fixed_storage_report: dict,
+) -> dict:
+    if (
+        sha256(affected_vfs) != OLD_VFS_SHA256
+        or sha256(first_fixed_vfs) != FIRST_FIXED_VFS_SHA256
+        or len(affected_vfs) != 0x1D000
+        or len(first_fixed_vfs) != 0x1F000
+    ):
+        raise Failure("first-fixed VFS identity drift")
+    paths = (b"/dev/ndl_critical", b"/dev/ndl_counting")
+    if any(affected_vfs.count(path) != 0 or first_fixed_vfs.count(path) != 1 for path in paths):
+        raise Failure("first-fixed VFS NDL path drift")
+    init_range = first_fixed_vfs[0x1055F:0x105AA]
+    if sha256(init_range) != "fe4f7355232906a4402174f535a32b292b0c263c8c1552f00e42cb6bc319c675":
+        raise Failure("first-fixed VFS NDL initializer drift")
+    storage_names = ("ndl_critical", "ndl_counting")
+    for report in (affected_storage_report, first_fixed_storage_report):
+        occurrences = report.get("reviewed_special_file_occurrences", {})
+        if any(occurrences.get(name) != 1 for name in storage_names):
+            raise Failure("storage NDL special-file metadata drift")
+    if (
+        rel32_target(0x26000, first_fixed_vfs, 0x1059C, 0xE8) != 0x6451
+        or rel32_target(0x6000, affected_syslib, 0x451, 0xE9) != 0x16689
+        or rel32_target(0x6000, first_fixed_syslib, 0x451, 0xE9) != 0x16691
+        or rel32_target(0x6000, first_fixed_syslib, 0x456, 0xE9) != 0x166AB
+    ):
+        raise Failure("first-fixed VFS/syslib NDL binding drift")
+    setter = first_fixed_syslib[0x10691:0x106AB]
+    if sha256(setter) != "31433029861d3307d6f82d871b5356220452e18f390306d408ea1abb0256920c":
+        raise Failure("first-fixed syslib NDL setter drift")
+    critical_names = (
+        "fTDisClear", "fTReadOnly", "fTEnrsHier", "RsaKeyCache1", "RsaKeyCache2",
+        "RsaKeyCache3", "RsaKeyCache4", "RsaKeyCache5", "pr_tee_clock",
+        "lspcon_cert", "hdcp_srm_ver", "widi_srm_ver", "wv_gen_num", "widi_km0",
+        "widi_km1", "widi_km2", "widi_km3", "widi_km4", "widi_km5", "widi_km6",
+        "widi_km7", "widi_km8", "widi_km9", "wv_gen_num", "pnd_m4_msg",
+    )
+    if any(affected_vfs.count(b"\0" + name.encode("ascii") + b"\0") != 0 for name in set(critical_names)):
+        raise Failure("affected VFS unexpectedly contains first-fixed bare critical-name table")
+    pointer_array = first_fixed_vfs[0x11154:0x111B8]
+    recovered_names = []
+    for index in range(25):
+        address = struct.unpack_from("<I", pointer_array, index * 4)[0]
+        offset = address - 0x26000
+        if offset < 0 or offset >= len(first_fixed_vfs):
+            raise Failure("first-fixed VFS critical-name pointer out of range")
+        end = first_fixed_vfs.find(b"\0", offset, min(offset + 32, len(first_fixed_vfs)))
+        if end < 0:
+            raise Failure("first-fixed VFS critical-name terminator missing")
+        recovered_names.append(first_fixed_vfs[offset:end].decode("ascii"))
+    if tuple(recovered_names) != critical_names:
+        raise Failure("first-fixed VFS critical-name table drift")
+    classifier = first_fixed_vfs[0xDB0A:0xDB6B]
+    if (
+        sha256(pointer_array) != "dd0ed2254567b2c42599b10f00890e8b387b936905cc02bfbecb8421c5dde693"
+        or sha256(classifier) != "cf68f0c685de3283670936fe1c3cfbe8e2e19c525b61663891b08a807fb4a42d"
+    ):
+        raise Failure("first-fixed VFS critical-name classifier drift")
+    return {
+        "affected_vfs": {
+            "size": len(affected_vfs),
+            "sha256": OLD_VFS_SHA256,
+            "ndl_path_occurrences": {path.decode("ascii"): 0 for path in paths},
+        },
+        "first_fixed_vfs": {
+            "size": len(first_fixed_vfs),
+            "sha256": FIRST_FIXED_VFS_SHA256,
+            "ndl_path_occurrences": {path.decode("ascii"): 1 for path in paths},
+            "initializer_runtime_range": [0x3655F, 0x365AA],
+            "initializer_sha256": sha256(init_range),
+            "syslib_setter_call_runtime_address": 0x3659C,
+            "syslib_setter_stub_target": 0x6451,
+            "critical_name_pointer_array_runtime_range": [0x37154, 0x371B8],
+            "critical_name_pointer_array_sha256": sha256(pointer_array),
+            "critical_name_classifier_runtime_range": [0x33B0A, 0x33B6B],
+            "critical_name_classifier_sha256": sha256(classifier),
+            "critical_name_table": recovered_names,
+        },
+        "storage_metadata": {
+            "affected_defines_both_ndl_special_files": True,
+            "first_fixed_defines_both_ndl_special_files": True,
+        },
+        "first_fixed_syslib": {
+            "new_or_reassigned_stub_address": 0x6451,
+            "new_setter_runtime_range": [0x16691, 0x166AB],
+            "new_setter_sha256": sha256(setter),
+            "next_shifted_legacy_stub_address": 0x6456,
+            "next_shifted_legacy_target": 0x166AB,
+        },
+        "exact_static_observations": {
+            "storage_special_files_predate_first_fixed": True,
+            "first_fixed_vfs_adds_both_ndl_path_consumers": True,
+            "first_fixed_vfs_opens_both_ndl_paths_and_passes_results_to_new_syslib_setter": True,
+            "first_fixed_syslib_setter_updates_thread_context_flag_and_two_descriptor_fields": True,
+            "first_fixed_vfs_adds_25_entry_critical_name_table_absent_from_affected_vfs": True,
+            "critical_name_classifier_performs_bounded_12_byte_comparisons": True,
+        },
+        "advisory_attribution": "This is an exact first-fixed VFS/syslib integration delta for pre-existing ndl_critical and ndl_counting storage channels, accompanied by a new 25-entry critical-name table. Its names and timing make it a high-priority CVE-2018-3655 anti-replay/data-file-integrity candidate, but exact transaction semantics, physical reachability, and advisory attribution are not yet proved.",
     }
 
 
@@ -387,35 +722,82 @@ def image_report(image: bytes, nftp_offset: int, ftpr_offset: int, label: str) -
     return report, values
 
 
-def build_report(old: bytes, fixed: bytes) -> dict:
+def build_report(old: bytes, first_fixed: bytes, later: bytes) -> dict:
     if sha256(old) != OLD_SHA256:
         raise Failure("affected ABL identity mismatch")
-    if sha256(fixed) != FIXED_SHA256:
-        raise Failure("later fixed IFWI identity mismatch")
+    if sha256(first_fixed) != FIRST_FIXED_SHA256:
+        raise Failure("first-fixed IFWI identity mismatch")
+    if sha256(later) != LATER_SHA256:
+        raise Failure("later IFWI identity mismatch")
     old_report, old_modules = image_report(old, OLD_NFTP, OLD_FTPR, "affected-eu-abl")
-    fixed_report, fixed_modules = image_report(fixed, FIXED_NFTP, FIXED_FTPR, "later-public-apl-ifwi")
+    first_report, first_modules = image_report(
+        first_fixed,
+        FIRST_FIXED_NFTP,
+        FIRST_FIXED_FTPR,
+        "first-fixed-asus-x541na-ifwi",
+    )
+    later_report, later_modules = image_report(
+        later,
+        LATER_NFTP,
+        LATER_FTPR,
+        "later-public-apl-ifwi",
+    )
     if sha256(old_modules["heci"]) != OLD_HECI_SHA256:
         raise Failure("affected HECI identity drift")
     comparisons = {
-        name: byte_comparison(old_modules[name], fixed_modules[name])
-        for name in sorted(old_modules)
+        "affected_to_first_fixed": {
+            name: byte_comparison(old_modules[name], first_modules[name])
+            for name in sorted(old_modules)
+        },
+        "first_fixed_to_later": {
+            name: byte_comparison(first_modules[name], later_modules[name])
+            for name in sorted(old_modules)
+        },
+        "affected_to_later": {
+            name: byte_comparison(old_modules[name], later_modules[name])
+            for name in sorted(old_modules)
+        },
     }
     return {
         "schema": SCHEMA,
-        "inputs": {"affected": old_report, "later": fixed_report},
+        "inputs": {
+            "affected": old_report,
+            "first_fixed": first_report,
+            "later": later_report,
+        },
         "comparisons": comparisons,
-        "later_heci_exact_static_review": fixed_heci_review(fixed_modules["heci"]),
-        "later_fpf_exact_static_review": fixed_fpf_review(old_modules["fpf"], fixed_modules["fpf"]),
+        "first_fixed_heci_exact_static_review": first_fixed_heci_review(
+            old_modules["heci"], first_modules["heci"]
+        ),
+        "first_fixed_vfs_exact_static_review": first_fixed_vfs_review(
+            old_modules["vfs"],
+            first_modules["vfs"],
+            old_modules["syslib"],
+            first_modules["syslib"],
+            old_report["modules"]["storage"],
+            first_report["modules"]["storage"],
+        ),
+        "later_heci_exact_static_review": later_heci_review(later_modules["heci"]),
+        "later_fpf_exact_static_review": later_fpf_review(
+            old_modules["fpf"], first_modules["fpf"], later_modules["fpf"]
+        ),
         "classification": {
-            "later_version_is_at_or_after_intel_sa_00125_first_fixed_3_1_55": True,
+            "exact_signed_first_fixed_3_1_55_build_obtained": True,
             "exact_signed_later_modules_obtained": True,
-            "exact_first_fixed_3_1_55_build_obtained": False,
+            "first_fixed_entire_heci_module_changes_only_external_rel32_immediates": True,
+            "first_fixed_primary_heci_ranges_change_only_rel32_call_immediates": True,
+            "later_heci_header_and_extended_parser_changes_are_the_3_1_55_fix": False,
+            "later_fpf_named_anti_rollback_fields_are_the_3_1_55_fix": False,
+            "first_fixed_vfs_ndl_integration_candidate_identified": True,
             "cve_2018_12147_exact_bug_identified": False,
             "cve_2018_3655_exact_storage_bug_identified": False,
             "simple_oversized_nine_bit_fragment_overflow_observed": False,
         },
         "boundaries": [
-            "The public later image is Intel TXE 3.1.94.3086, not the first fixed 3.1.55 release; changed bytes cannot be attributed to a specific advisory without an intermediate or first-fixed image.",
+            "The official ASUS first-fixed image closes the version-bisect gap for 3.1.55, but attribution still requires exact changed-function and reachability analysis.",
+            "The reviewed primary HECI ranges exclude later header/extension changes as the first-fixed primary-path delta; they do not exclude another HECI function or downstream client parser.",
+            "The named later FPF anti-rollback fields are absent from both affected and first-fixed FPF; this excludes those records as the 3.1.55 fix.",
+            "First-fixed VFS newly opens pre-existing ndl_critical and ndl_counting storage channels and passes their descriptors to a new syslib setter. This is an exact anti-replay/data-integrity candidate, not yet proof of CVE-2018-3655 attribution or physical reachability.",
             "Embedded $MN2 verification proves self-consistency and byte binding only, not platform ROM, fuse, Boot Guard, or OEM acceptance.",
             "This is passive host-side parsing and exact-static comparison; no CSE module or host HECI endpoint was executed or opened.",
         ],
@@ -425,11 +807,16 @@ def build_report(old: bytes, fixed: bytes) -> dict:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--affected-abl", type=Path, required=True)
+    parser.add_argument("--first-fixed-ifwi", type=Path, required=True)
     parser.add_argument("--later-ifwi", type=Path, required=True)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
     try:
-        report = build_report(stable_read(args.affected_abl), stable_read(args.later_ifwi))
+        report = build_report(
+            stable_read(args.affected_abl),
+            stable_read(args.first_fixed_ifwi),
+            stable_read(args.later_ifwi),
+        )
     except (Failure, OSError, struct.error) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1

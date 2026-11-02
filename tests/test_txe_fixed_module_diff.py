@@ -10,6 +10,7 @@ from tools.uk_fw import txe_fixed_module_diff as diff
 
 ROOT = Path(__file__).resolve().parents[1]
 AFFECTED = ROOT / "work/decrypted-eu-260128/extracted-safe/update/abl/bin/104096/abl1714-Batch10-Ver.11.00-sign-8MB.bin"
+FIRST_FIXED = ROOT / "work/online-fixed-txe-search-20261102/X541NA-AS.321-ifwi.bin"
 LATER = ROOT / "work/online-fixed-txe-search-20261102/AY0076-full-ifwi.bin"
 ARTIFACT = ROOT / "evidence/artifacts/update-candidates/txe-fixed-module-diff.json"
 EXACT_STATIC = ROOT / "evidence/artifacts/update-candidates/txe-fixed-heci-exact-static.txt"
@@ -33,18 +34,32 @@ def test_stable_read_rejects_symlink(tmp_path):
         diff.stable_read(alias)
 
 
-@pytest.mark.skipif(not (AFFECTED.is_file() and LATER.is_file()), reason="canonical offline firmware inputs unavailable")
+@pytest.mark.skipif(
+    not (AFFECTED.is_file() and FIRST_FIXED.is_file() and LATER.is_file()),
+    reason="canonical offline firmware inputs unavailable",
+)
 def test_canonical_fixed_module_diff_matches_reviewed_artifact():
-    report = diff.build_report(diff.stable_read(AFFECTED), diff.stable_read(LATER))
+    report = diff.build_report(
+        diff.stable_read(AFFECTED),
+        diff.stable_read(FIRST_FIXED),
+        diff.stable_read(LATER),
+    )
     assert report["schema"] == diff.SCHEMA
     assert report["inputs"]["affected"]["nftp_manifest"]["version"] == "3.1.50.2222"
+    assert report["inputs"]["first_fixed"]["nftp_manifest"]["version"] == "3.1.55.2269"
     assert report["inputs"]["later"]["nftp_manifest"]["version"] == "3.1.94.3086"
     assert report["inputs"]["affected"]["modules"]["heci"]["decompressed_sha256"] == diff.OLD_HECI_SHA256
-    assert report["inputs"]["later"]["modules"]["heci"]["decompressed_sha256"] == diff.FIXED_HECI_SHA256
+    assert report["inputs"]["first_fixed"]["modules"]["heci"]["decompressed_sha256"] == diff.FIRST_FIXED_HECI_SHA256
+    assert report["inputs"]["later"]["modules"]["heci"]["decompressed_sha256"] == diff.LATER_HECI_SHA256
     assert report["later_heci_exact_static_review"]["exact_static_observations"]["dma_ring_bit_29_now_rejected_before_payload_dispatch"] is True
+    assert report["first_fixed_heci_exact_static_review"]["exact_static_observations"]["entire_heci_module_equal_after_only_external_rel32_relocation_normalization"] is True
+    assert report["first_fixed_heci_exact_static_review"]["module_wide_relocation_review"]["external_rel32_site_count"] == 369
+    assert report["first_fixed_vfs_exact_static_review"]["exact_static_observations"]["first_fixed_vfs_adds_both_ndl_path_consumers"] is True
+    assert report["first_fixed_vfs_exact_static_review"]["first_fixed_syslib"]["new_setter_runtime_range"] == [0x16691, 0x166AB]
     assert report["later_fpf_exact_static_review"]["exact_static_observations"]["affected_fpf_lacks_all_six_field_names"] is True
+    assert report["later_fpf_exact_static_review"]["exact_static_observations"]["first_fixed_fpf_lacks_all_six_field_names"] is True
     assert report["later_fpf_exact_static_review"]["fields"]["OemKmArbSvn"]["field_bit_range_inclusive"] == [0x28C, 0x29F]
     assert report["classification"]["cve_2018_12147_exact_bug_identified"] is False
     assert report["classification"]["cve_2018_3655_exact_storage_bug_identified"] is False
     assert json.loads(ARTIFACT.read_text(encoding="utf-8")) == report
-    assert hashlib.sha256(EXACT_STATIC.read_bytes()).hexdigest() == "237bab9d1108085a78c093bec2a7ab420ff37db6d6e6ddc988130bea88e98b82"
+    assert hashlib.sha256(EXACT_STATIC.read_bytes()).hexdigest() == "b790530619faa31f7937fadd417131b5196de108431708139c2d807a17731760"

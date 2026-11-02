@@ -3915,3 +3915,12 @@ and are superseded by corrections rather than silently rewritten.
 - The wrapper idea I had committed to would not have worked. In chain mode stderr carries only Wayland protocol debug, because the
   launcher routes application logging to DLT. Better to find that out from one traced run than to build the wrapper and wonder why the
   log stayed empty.
+
+## 2026-10-31 — the experiment answered its question, and the answer was no
+
+- With ApplicationManager running and the app started by hand, clean and loggable, the screen still stayed black. So appbase being
+  present is not the trigger; something specific has to ask the app to show itself.
+- The app was healthier than in any previous run while being invisible, which is its own kind of result: health and visibility are
+  decoupled here, and only the request matters.
+- The caveat is recorded too: ApplicationManager had adopted the older process, so this excludes the simple hypothesis, not the
+  hypothesis in every form.

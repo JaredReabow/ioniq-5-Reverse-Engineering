@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.36.0 - the split says appbase presence is not the trigger
+
+- Ran the decisive experiment: the chain provided `ApplicationManager` (pid 762), then the launcher's `AppHomeScreen` (pid 804) was
+  killed and replaced by one started by hand with a readable log, no preload, and the QML symlink in place.
+- The hand-started app is healthy and further along than any previous run (pid 956, **1,123 log lines**, `Add Screen` present once,
+  no segfault, heartbeat `sequenceID 7` advancing at 1 Hz, `WatchdogWorker::adaptMainNotification` alongside it).
+- **And the frame is still the 4,117-byte black output.** With the splash killed, nothing is visible.
+- That answers the question the experiment was built to answer, in the negative: **the presence of ApplicationManager is not what
+  makes the app present a window.** Being alive, registered, crash-free, loading widgets and heartbeating is not sufficient, and
+  neither is appbase being up.
+- Note the caveat honestly: `ApplicationManager` had already adopted the launcher's process, so it cannot be claimed that our
+  replacement was registered with it. What is excluded is the simple form of the hypothesis — "the app is idle only because
+  ApplicationManager is absent".
+- So the remaining trigger is a **specific request**, not a component's presence: something must tell this app to show, and the app's
+  own log is now readable (1,123 lines) which makes the app's side of that conversation inspectable next.
+
 ## 2.35.0 - in the chain the app shares surfaces but still commits nothing, and logs nothing to stderr
 
 - Attached `strace -e trace=write` to `AppHomeScreen` inside the chain (pid 802/825, 35 s of traffic, 5,353 traced lines). Two

@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.56.0 - four ways in, all closed: ignition signals, the show call, the right appid, and foreground contention
+
+- **Ignition signals are subscribable but inert.** The app registers signal matches with **no sender constraint**:
+  `type='signal',path='/com/lge/hkmc/avn/appfunc/appInterface',interface='com.lge.hkmc.avn.appfunc.appInterface',member='GetIgnStatusData'`
+  and the same for `GetIgn3StatusData` (508 `AddMatch` calls in the run). So any bus peer can emit them and they will be delivered. Emitting both
+  with `int32:1` as another client produced **no change**: `create_surface` 0, `commit` 0.
+- **Power status does arrive on its own.** The app's log shows `AppHomeEngine::askPowerStatus()::<lambda(…)` followed by
+  `virtual void AppHomeEngine::slotPowerStatus(int) [ 10324 ] 1`. So the app is not starved of a power state; it has one, and it is 1.
+- **The show call with the correct appid still does nothing.** The static analysis identified the app's own id as **11**
+  (`7f7297 esi = 0xb ; appid = 11`), and I had never passed 11 as the *first* argument. Doing so now:
+  - `show_window_fg(appid=11, reason=0, plane=1, avmode=-1, command=0, false)` → `int32 1`, app alive, **still `create_surface` 0**;
+  - `reason=1` → `NoReply`, app dead. That is a second instance of the fragility already filed as **V-045**, now with a legal-looking `reason` value,
+    which widens that entry's practical scope.
+- **Foreground contention is not the cause either.** In chain runs `AppNavi` is launched
+  (`com.lge.avn.applauncher.request.launch int32:30 string:AppNavi …`), so the plausible explanation was that the home screen is deliberately in the
+  background behind it. Removing exactly that one launch line (mount and teardown preserved, `NAVI=` empty confirmed at runtime) left the result
+  unchanged: weston alive, `AppHomeScreen` alive, `Assertion` 0, **`create_surface` 0**.
+- So the gate is inside `inter_show_window_fg`'s own decision logic — `checkScrShowingCondition(appid, false)` plus the `appid`/`reason` dispatch —
+  and neither ignition signals, nor a direct show call with the correct appid, nor an empty foreground reaches it. The remaining unknown is which
+  `reason`/`appid` combination the app's own state machine uses when the home screen legitimately becomes current, which the report lists as the one
+  open question it could not settle by static analysis alone.
+
 ## 2.55.0 - hmi-controller now initialises, and the static analysis corrects what "int32 1" ever meant
 
 - **The vendor HMI module was never loading.** `hmi-controller.so` exists in `/usr/lib/weston/` but the chain's shell config only loaded

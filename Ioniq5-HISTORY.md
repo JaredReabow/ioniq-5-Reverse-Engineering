@@ -4100,3 +4100,10 @@ and are superseded by corrections rather than silently rewritten.
 - Three applications die in free(), and the vendor libraries they share turn out to depend on a service that is simply not present in this projection. The
   image ships the client, the interface and the policy, and no daemon.
 - That is the same shape of gap this project has closed before, so it is worth a stub. Whether it explains the heap corruption is a question a run will answer.
+
+## 2026-10-31 — the instrument broke before it measured anything
+
+- The stub that was going to answer the heap-corruption question fell over at four seconds, jumping to the base of its own binary. No service, no test.
+- Recorded as untested rather than as a negative: the difference between "the hypothesis failed" and "the experiment never ran" is the whole value of keeping this
+  log.
+- Also noted a measurement whose window was shorter than the failure it was looking for, which is the same mistake as the five-second race earlier today.

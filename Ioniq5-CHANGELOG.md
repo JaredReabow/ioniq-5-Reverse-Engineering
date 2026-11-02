@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.41.0 - the pending MMUS calls are asks our own stub does not answer
+
+- Compared what the running projection actually answers against what the app asks. `tools/uk_fw/ias_backend_soft/micom_service.c` —
+  the stub that owns `com.lge.car.micom` — implements exactly **four** methods: `AskCustomSetting`, `AskNaviOutermostRegion`,
+  `AskSettingInfoValue`, `AskSysBootinfo`.
+- The app asks for far more, and the unanswered set includes every call the log shows pending: **`AskFactoryModeInfo`,
+  `AskEtcCarInformationRead`, `AskVolumeInfo`, `AskSoundSetupInfo`, `AskAMPSupportInfo`**, alongside `AskBTMACAddr`,
+  `AskBroadcastingInfo`, `AskClimateAWStatus`, `AskEtcCarInformationRead`, `AskExternalSPDIFAMPVersion`, `AskDTCReadRequest`,
+  `AskEERPOMRead/AskEEPROMRead`, `AskExtMMCanReq`, `AskHDRCurStatus` and others.
+- So the unresolved `QDBusPendingCallWatcher` lambdas are not a mystery and not a vendor fault: **they are asks we never reply to.** A
+  pending call is a call the stub receives and ignores, which is exactly the failure mode this project already solved once for the
+  MICOM transport.
+- That also explains why "AppHome Init Done" is followed by silence rather than a window: the vendor code issued its startup queries,
+  and the readiness gate they feed never receives an answer.
+- `com.lge.car.micom.audio` is the interface carrying the audio-side asks (`SetAudioMainCHChange`, `SetAudioMixingCHChange`,
+  `SetAudioVolume`, `SetAudioSetup`, `SetBeepPlay`, `SetAudioMute`, … per the interface XML compiled into the binary), and the
+  system/session split in the binary is roughly 16 system-bus call sites to 167 session-bus sites.
+- Subagent `5be7f4aa` is producing the full contract matrix (`docs/vm/apphomescreen-dbus-contract.md`) with signatures and a ranked
+  gap list; the stub extension follows from it. The change of plan is worth stating plainly: **the remaining work is stub coverage,
+  not UI debugging.**
+
 ## 2.40.0 - the window is constructed and never shown; the app is waiting on a world of services
 
 - **Astra's discriminating probe, answered cheaply.** Rather than gdb breakpoints, checked whether the scene graph is even built: the

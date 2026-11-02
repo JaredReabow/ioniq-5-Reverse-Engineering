@@ -3958,3 +3958,9 @@ and are superseded by corrections rather than silently rewritten.
   find what it expects, provide it, verify by observation.
 - Astra's advice was to distinguish construction from visibility before doing anything else. Cheap version of that test settled it in one
   run.
+
+## 2026-10-31 — the silence was our own unanswered mail
+
+- The app's pending calls are asks our stub receives and ignores. Four methods implemented, dozens expected.
+- That reframes the last several hours of graphics work: nothing was wrong with the picture, the system was never told to draw.
+  The same lesson as the MICOM transport, arriving from the other end of the stack.

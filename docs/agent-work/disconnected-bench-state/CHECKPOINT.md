@@ -30,6 +30,11 @@ and process capability/persistence-gate capture; locally validated on 2026-11-08
     numbers/uevents without opening a MEI device, issuing an ioctl, writing
     sysfs, or sending a CSE message; this establishes host-interface presence
     only, not `/snowball` access or an authenticated client protocol;
+  - passively inventories `/dev/tpm0`, `/dev/tpmrm0`, shipped TPM/CRB/TIS
+    modules, and `/sys/class/tpm/tpm*` metadata/device links/dev numbers,
+    version text, and uevents without opening a TPM node or issuing a TPM/PTT
+    command; this supports TXE `3.1.50.2222` advisory triage but does not prove
+    PTT ownership, key state, provisioning authority, or exploitability;
   - records the scalar `/proc/sys/kernel/perf_event_paranoid` runtime policy
     without calling `perf_event_open`, running `perf`, creating an event, or
     starting a thread;
@@ -118,14 +123,15 @@ subtests`, and the complete suite passed `906 tests, 351663 subtests` in
 No physical unit, target network, radio, modem, firmware update, recovered
 executable, or active exploit input was used.
 
-The current passive MEI inventory extension adds only device/module/sysfs
-metadata and text reads; it never opens a MEI endpoint or sends firmware
-traffic. Focused collector/readiness validation passed `40 tests, 22 subtests`,
-and the canonical suite passed `1011 tests, 352216 subtests` in `189.08s`.
-The emitted probe is 26,920 bytes with SHA-256
-`aac40edb593a3b26f125c1120e69b7901d4fe38c80c1f8e82f1681e7e697ba6b`;
-the canonical log SHA-256 is
-`bb2fd330490303cc88057f615be199913cd346093c3f65b5843f6fb047c31d08`.
+The current passive MEI and TPM/PTT inventory extension adds only
+character-node/module/sysfs metadata and bounded text reads; it never opens a
+MEI or TPM endpoint or sends firmware traffic. Focused collector/readiness
+validation passed `40 tests, 22 subtests`. The emitted probe is 27,726 bytes
+with SHA-256
+`1e74bc7464040653ef85a111226f9538a4ba70e73494ff499a5e1907e089b06a`;
+its host-side audit reports `safe: true` and `syntax_ok: true`. The canonical
+suite passed `1019 tests, 352351 subtests` in `178.62s`; canonical log SHA-256
+is `3bac844aac12bef74489777f475c680108e56d6dfd7f941c106287dcd7ccc8e8`.
 
 ## Delegation/routing
 

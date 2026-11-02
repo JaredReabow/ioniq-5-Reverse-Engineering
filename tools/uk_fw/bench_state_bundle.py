@@ -599,6 +599,22 @@ for I_MEI_DIR in /sys/class/mei/*
     capture_file mei-dev-number "$I_MEI_DIR/dev"
     capture_file mei-device-uevent "$I_MEI_DIR/device/uevent"
  done
+# Passive Intel PTT/TPM inventory for TXE advisory triage. Character devices
+# are never opened; only node metadata, links, and bounded sysfs text are read.
+for I_TPM_PATH in /dev/tpm0 /dev/tpmrm0 /lib/modules/4.1.27-abl/kernel/drivers/char/tpm/tpm.ko /lib/modules/4.1.27-abl/kernel/drivers/char/tpm/tpm_crb.ko /lib/modules/4.1.27-abl/kernel/drivers/char/tpm/tpm_tis.ko
+ do
+    file_meta "$I_TPM_PATH"
+ done
+for I_TPM_DIR in /sys/class/tpm/tpm*
+ do
+    [ -e "$I_TPM_DIR" ] || continue
+    file_meta "$I_TPM_DIR"
+    read_link_value tpm-device "$I_TPM_DIR/device"
+    record tpm-device-link "$I_TPM_DIR|$RL_STATE|$RL_VALUE"
+    capture_file tpm-dev-number "$I_TPM_DIR/dev"
+    capture_file tpm-version-major "$I_TPM_DIR/tpm_version_major"
+    capture_file tpm-device-uevent "$I_TPM_DIR/device/uevent"
+ done
 end_section identity 0
 
 begin_section processes

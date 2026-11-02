@@ -75,7 +75,13 @@ and device `uevent` text. It never opens a MEI character device, issues an
 ioctl, writes sysfs, or transmits a firmware message. These records can identify
 which host interface exists on a future disconnected bench; they do not expose
 CSE `/snowball` storage, prove a client UUID, authenticate `ipub_key`, or permit
-safe protocol interaction. Update-specific records include the live
+safe protocol interaction. For the exact TXE `3.1.50.2222` advisory boundary,
+the collector also records metadata for `/dev/tpm0`, `/dev/tpmrm0`, shipped
+TPM/CRB/TIS modules, and `/sys/class/tpm/tpm*` device links, dev numbers,
+version text, and uevents. It never opens a TPM node or invokes `tpm2_getcap` or
+another PTT command; these observations establish interface presence only, not
+key ownership, provisioning state, anti-replay status, or exploitability.
+Update-specific records include the live
 command lines for AppLauncher/AppDMClient/AppScomoDM/AppUpgrade and hashes for
 BusyBox, both unzip providers, those applications, `CarOption.csv`,
 `DecryptToPIPE`, and `teruten5_pub.key`. For V-028 it also records

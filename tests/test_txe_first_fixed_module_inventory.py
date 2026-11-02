@@ -84,6 +84,18 @@ def test_canonical_inventory_matches_reviewed_artifact():
     assert kernel_review["raw_differing_byte_count"] == 7
     assert [site["affected_value"] for site in kernel_review["semantic_immediate_sites"]] == [0xFF, 0xFF]
     assert [site["first_fixed_value"] for site in kernel_review["semantic_immediate_sites"]] == [0x102, 0x102]
+    helper = kernel_review["directly_called_helper"]
+    assert helper["size"] == 0xB2
+    assert helper["affected_sha256"] == "140dff321f92ee9e8fc551ff9e28e7501a97ab81b4b4e5c0f73ed52648cd3cea"
+    assert helper["first_fixed_sha256"] == "0a10e5956f69381c8c455af7c14b72320d844709a9304af0ff439d38dfa7c196"
+    ordinal = kernel_review["adjacent_ordinal_shift_review"]
+    assert ordinal["site_count"] == 7
+    assert ordinal["all_reviewed_values_increase_by_three"] is True
+    assert ordinal["affected_to_first_fixed_value_counts"] == {
+        "0x100_to_0x103": 2,
+        "0x101_to_0x104": 1,
+        "0x102_to_0x105": 4,
+    }
     census = kernel_review["kernel_global_immediate_census"]
     assert census["affected_total_site_count"] == 15
     assert census["first_fixed_total_site_count"] == 15

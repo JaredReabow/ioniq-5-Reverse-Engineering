@@ -16,8 +16,11 @@ Accepted locally. The deterministic inventory covers every paired NFTP module in
 - Exact syslib constructor `0x8e8a..0x8ed3` / `0x8e8f..0x8ed8`, SHA-256 `1a9f71789daff697fe6ac80b110101ecc63d84bbc3759c6a869bfc648a6d8c28`, stores the supplied length byte at message offset `+4`; submit wrappers store first-argument dword `0x02000200` at offset zero.
 - The submit wrapper calls syslib selector wrapper `0x16f8f` / `0x16fb1` with selector `0x10` and argument size `0x40`, producing syscall value `0x10010040`.
 - The complete hash-bound selector-`0x10` kernel handlers are each `0x28e` bytes. Seven raw bytes differ: three call-relocation bytes plus two uses of immediate `0xff → 0x102` (`mov` and `cmp`). No other handler bytes remain after reviewed normalization.
-- The shared return epilogue uses the same changed comparison. A complete-kernel census finds three `mov` and twelve `cmp` sites using `0xff` in the affected build and `0x102` in the first-fixed build. One `mov edx` site is the return path in the helper directly called by selector `0x10`.
-- This is a kernel-wide status/sentinel-renumbering candidate on the exact message-submit path, not isolated message-validation proof. It does not name the immediate, explain the plus-three change, identify the recipient or appended byte, establish HECI reachability, or attribute the change to CVE-2018-12147.
+- The shared return epilogue uses the same changed comparison. A complete-kernel census finds three `mov` and twelve `cmp` sites using `0xff` in the affected build and `0x102` in the first-fixed build.
+- The complete `0xb2`-byte helper directly called by selector `0x10` differs only in its `mov edx, 0xff → 0x102`. Exact instructions first walk `+0x50`/`+0x28` links to a null tail, store the source pointer there, and return the reviewed value through `eax`.
+- The shared epilogue treats zero and the reviewed value alike, while other nonzero values call a separate handler. This supports a deferred/nonordinary-completion sentinel interpretation and kernel-wide renumbering candidate, not isolated message-validation proof.
+- Seven matching instruction contexts prove adjacent ordinal translations `0x100 → 0x103` (two sites), `0x101 → 0x104` (one), and `0x102 → 0x105` (four), strongly supporting insertion of three statuses at or below the old sentinel.
+- The analysis does not establish the vendor semantic name, identify the three inserted statuses or exact insertion point, identify the recipient or appended byte, establish HECI reachability, or attribute the change to CVE-2018-12147.
 
 ## Artifacts
 
@@ -26,20 +29,20 @@ Accepted locally. The deterministic inventory covers every paired NFTP module in
 - `evidence/intel-txe-first-fixed-module-inventory.md`
 - `evidence/artifacts/update-candidates/txe-first-fixed-module-inventory.json`
   - schema `ioniq-txe-first-fixed-module-inventory/v1`
-  - size `111,740`
-  - SHA-256 `e3ee05715b3ed657e511f9f9ad108b6954bbace7a88ce88e69eaf0669d6ff2ba`
+  - size `114,906`
+  - SHA-256 `e031bf789b38c1797e61d82b04a923c80d0322a7a44bef2f40d5885ad4e38770`
 
 ## Validation
 
-- focused tests: `3 passed in 0.20s`;
-- canonical suite: `1025 passed, 352351 subtests passed in 179.15s`;
-- canonical log SHA-256: `135f1b03e889c8bb83cc0a0a8619b9b83374a63ab92c509608727cc85e7665ca`;
+- focused tests: `3 passed in 0.19s`;
+- canonical suite: `1025 passed, 352351 subtests passed in 180.37s`;
+- canonical log SHA-256: `a4978cb7bea6ea627f692126b721d00c1c30c372d9d0cb0f0e4cc0073bbdf34b`;
 - normal versus UTF-16 environment output: byte-identical;
 - `py_compile` and `git diff --check`: passed.
 
 ## Next work
 
-1. Map all fifteen kernel-wide `0xff → 0x102` MOV/CMP sites to callers and return paths, then determine the status/sentinel semantics and why the value increases by three.
+1. Map all fifteen kernel-wide `0xff → 0x102` MOV/CMP sites to callers and return paths, then identify the three inserted ordinal statuses and their exact insertion point.
 2. Identify the semantics and recipient associated with message dword-zero value `0x02000200`, then determine the meaning of the appended byte without sending a request.
 3. Compare `ipc_drv` changed entry bodies and dispatch tables; retain CVE attribution boundaries.
 4. Extend the same exact inventory to the remaining FTPR `kernel`, `bup`, and `syslib` service-handler mappings.

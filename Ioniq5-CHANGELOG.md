@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.68.0 - the placement tool works, and the vendor protocol tells a late client nothing
+
+- `ivi_place.c` (written by subagent, built and injected as `/usr/bin/ivi-place`) connects correctly and enumerates:
+  ```
+  ivi_place: bound ivi_controller (registry name 28, version 1)
+  ivi_place: announced by ivi_controller: 0 layers, 0 surfaces, 0 screens
+  ivi_place:   global ivi_application      present (version 1)
+  ivi_place:   global ivi_window_manager   present (version 1)
+  ivi_place:   global ivi_hmi_requester    present (version 1)
+  ivi_place:   global ivi_info_requester   present (version 1)
+  ivi_place:   global ivi_share            present (version 1)
+  ivi_place:   global ivi_controller       present (version 1)
+  ```
+- All six vendor globals are present and the controller binds, but it **announces nothing to a client that binds late**: the vendor `ivi_controller` sends
+  `layer`/`surface` announcements as they are created, not as a snapshot on bind. So enumeration returns zero of everything even though layers demonstrably exist.
+  Evidence they exist: the application's own earlier trace enumerated them — `ivi_controller@13.layer(107)`, `layer(112)`, `layer(111)`, `layer(104)`,
+  `layer(113)`, `layer(102)`, `layer(110)` — so the ids are in the 102–113 range, not the 1000/2000/3000/4000 values this project's shell config declares.
+- That corrects another assumption of mine: the layer ids in our `[ivi-shell]` config are **not** the ids the vendor layout actually uses. The vendor stack
+  creates its own layers with its own ids, and `ivi-window-manager.so` is what creates them at start.
+- Also unresolved and needed before placement can be aimed: the surface id the application actually creates. Its own trace shows
+  `ivi_controller@40.surface_create(0, new id ivi_controller_surface@68)` — the first argument is **0** even with a forced id of 4001, so the id the application
+  passes to the controller is not the environment value and has to be established separately.
+- So placement is now blocked on discovery rather than on mechanism: we have a working tool that can place-by-id, and no reliable id to give it. The cheapest next
+  step is to observe the ids from a client that is present at creation time — the application's own `WAYLAND_DEBUG` trace already names the protocol objects
+  (`ivi_controller_surface@68`), and correlating that with the numeric id it sent is the missing link.
+
 ## 2.67.0 - the application manager rebuilds the child environment, so the shim cannot reach the app
 
 - Wrote `tools/uk_fw/ias_backend_soft/qt_env_shim.c`, which interposes `getenv()` in the application process and returns `4001` for

@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.76.0 - the iAP2 socket's existence depends on the service's label
+
+- Followed up the offer to obtain labelled identities. Added `tools/uk_fw/ias_backend_soft/unix_connect_probe.c` (connects to a Unix socket and prints the
+  caller's own `/proc/self/attr/current` label plus the result or `errno`) and measured on the pristine-derived clone:
+  - **process label `System::iap20`, no rules:** the process runs as root with that label, and **`/tmp/iAp2Socket` is not created**.
+  - **same label with two permissive rules** (`System::iap20 _ rwxa`, `_ System::iap20 rwxa`, both accepted): **still not created**.
+  - unlabelled (`_`, §2 of the evidence document): created within seconds as `srwxrwxrwx root root`, `SOCK_STREAM`, LISTENING.
+- So the socket's publication is **label-dependent**, reproducibly: three runs, two labelled and one not. The service keeps running under `System::iap20` but
+  publishes nothing and logs nothing, so the failure is silent and its mechanism is **not** established — that needs the vehicle's full policy, not the two rules
+  I loaded.
+- **What this usefully implies for the static line:** if the socket only appears when the service is unconfined (or under a label permitted to write `/tmp`), then
+  the vehicle's runtime label for this service is constrained by that fact — and since the unit declares no label at all, it is systemd's default rather than a
+  `System::iap20` confinement. That narrows the label question the other workstream asked.
+- **And what it does not measure:** admission itself. Every connect attempt in both labelled rounds returned `errno=2 (No such file or directory)` because there
+  was no socket, so they say nothing about SMACK's verdict. The only admission fact that stands is §2's: with the socket present and `0777` root-owned,
+  filesystem permissions are not the gate.
+
 ## 2.75.0 - admission facts recorded for the iAP2 line: the socket is root-owned and world-writable
 
 - At the requesting workstream's behest, recorded what can be obtained passively about the iAP2 service's admission surface, in

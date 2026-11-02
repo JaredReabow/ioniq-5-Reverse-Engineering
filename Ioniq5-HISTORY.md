@@ -4215,3 +4215,10 @@ and are superseded by corrections rather than silently rewritten.
   labels only the device nodes.
 - The one thing that would matter most — what label the process and socket actually carry on the vehicle — is exactly what this projection cannot provide, and the record
   says so instead of reporting the research init's default as if it were the vehicle's.
+
+## 2026-10-31 — the socket only appears when the service is unconfined
+
+- Labelling the process as System::iap20 stops it publishing the socket at all, reproducibly, even with rules that should permit the path. Unconfined, it publishes
+  instantly.
+- That is a constraint worth handing over: it means the service's vehicle label cannot be a confinement that blocks /tmp, and the unit declares no label.
+- The admission test itself still cannot be run, because in the labelled runs there was nothing to connect to. Recorded as unmeasured rather than as a negative.

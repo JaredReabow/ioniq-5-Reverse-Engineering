@@ -3883,3 +3883,12 @@ and are superseded by corrections rather than silently rewritten.
 - So the rendering fault and the simulation work were never separate problems. The screen is blank for want of data, and the data
   is the thing this project spent its effort learning to fabricate.
 - The combination attempt was inconclusive and is recorded as such rather than as a result.
+
+## 2026-10-31 — a fault narrowed to two milliseconds
+
+- Seeding the MICOM region removed all nine shared-memory failures, which confirms that line of work end to end. What replaced
+  them was a segfault with an address, and the vendor symbol table placed it inside qmlEngine(), fourteen bytes in.
+- Vendor code trusted a QObject that was never created. Finding the fault took a kernel log line and a symbol lookup rather
+  than another screen capture, and it moved the problem from "nothing renders" to "one component does not exist".
+- Also worth remembering that a probe of mine reported zero seeded bytes because I read the wrong stream; the shim was working
+  the first time.

@@ -37,3 +37,7 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Compiled research tools (sources and build scripts are tracked instead).
+tools/uk_fw/ias_backend_soft/ivi_wm
+tools/uk_fw/ias_backend_soft/ivi_place

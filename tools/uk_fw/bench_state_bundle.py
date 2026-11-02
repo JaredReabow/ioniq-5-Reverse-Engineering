@@ -520,6 +520,51 @@ if [ "$RS_STATE" = present ]; then
         *) record perf-event-paranoid "$I_PERF_VALUE" ;;
     esac
 fi
+# Passive perf-event-source inventory only. These reads do not invoke
+# perf_event_open, create an event, enable a PMU, or write sysfs.
+I_PERF_SOURCE_COUNT=0
+for I_PERF_DIR in /sys/bus/event_source/devices/*
+do
+    [ -d "$I_PERF_DIR" ] || continue
+    I_PERF_NAME=${I_PERF_DIR##*/}
+    case "$I_PERF_NAME" in
+        ''|*'|'*)
+            record malformed-perf-event-source "$I_PERF_DIR|invalid-name"
+            COLLECT_FAILURE=1
+            continue
+            ;;
+    esac
+    read_scalar perf-event-source-type "$I_PERF_DIR/type"
+    I_PERF_TYPE_STATE=$RS_STATE
+    I_PERF_TYPE=$RS_VALUE
+    if [ "$I_PERF_TYPE_STATE" = present ]; then
+        case "$I_PERF_TYPE" in
+            ''|*[!0-9]*)
+                record malformed-perf-event-source "$I_PERF_NAME|invalid-type|$I_PERF_TYPE"
+                COLLECT_FAILURE=1
+                I_PERF_TYPE_STATE=malformed
+                ;;
+        esac
+    fi
+    read_scalar perf-event-source-cpumask "$I_PERF_DIR/cpumask"
+    I_PERF_CPUMASK_STATE=$RS_STATE
+    I_PERF_CPUMASK=$RS_VALUE
+    if [ "$I_PERF_CPUMASK_STATE" = present ]; then
+        case "$I_PERF_CPUMASK" in
+            ''|*[!0-9a-fA-F,-]*)
+                record malformed-perf-event-source "$I_PERF_NAME|invalid-cpumask|$I_PERF_CPUMASK"
+                COLLECT_FAILURE=1
+                I_PERF_CPUMASK_STATE=malformed
+                ;;
+        esac
+    fi
+    read_link_value perf-event-source-device "$I_PERF_DIR/device"
+    I_PERF_DEVICE_STATE=$RL_STATE
+    I_PERF_DEVICE=$RL_VALUE
+    record perf-event-source "$I_PERF_NAME|$I_PERF_TYPE_STATE|$I_PERF_TYPE|$I_PERF_CPUMASK_STATE|$I_PERF_CPUMASK|$I_PERF_DEVICE_STATE|$I_PERF_DEVICE"
+    I_PERF_SOURCE_COUNT=$((I_PERF_SOURCE_COUNT + 1))
+done
+record perf-event-source-count "$I_PERF_SOURCE_COUNT"
 for I_SYSCTL in kernel/kexec_load_disabled kernel/modules_disabled kernel/dmesg_restrict vm/mmap_min_addr
  do
     read_scalar security-sysctl "/proc/sys/$I_SYSCTL"

@@ -52,6 +52,8 @@ host:
   --json work/bench/state.json
 "$PY" tools/uk_fw/bench_candidate_triage.py work/bench/state.json \
   > work/bench/kernel-candidate-triage.json
+"$PY" tools/uk_fw/bench_perf_readiness.py work/bench/state.json \
+  -o work/bench/perf-readiness.json
 "$PY" tools/uk_fw/bench_root_readiness.py work/bench/state.json \
   -o work/bench/root-readiness.json
 "$PY" tools/uk_fw/bench_physical_root_readiness.py work/bench/state.json \
@@ -71,7 +73,19 @@ read-only values of `kexec_load_disabled`, `modules_disabled`,
 securebits, so those remain a separate observation rather than being inferred
 from capability masks. Linux v4.1 also does not normally expose `NoNewPrivs` in
 that file; the collector records it as unavailable unless a vendor backport
-provides it. For the newly bounded CSE trust questions, the same identity
+provides it.
+
+For V-030/CVE-2017-6001, the identity section also inventories the names,
+numeric type files, optional CPU masks, and device symlinks under
+`/sys/bus/event_source/devices`, together with the existing scalar
+`perf_event_paranoid` read. The host-only `bench_perf_readiness.py` assessor
+keeps the version banner, policy value, registered `software` source, and
+registered `cpu` hardware source separate. It does not call `perf_event_open`,
+create or enable an event, start a thread, schedule the race, or infer an
+accepted event combination, exact installed kernel identity, corruption,
+privilege gain, root, or persistence.
+
+For the newly bounded CSE trust questions, the same identity
 section passively records metadata for `/dev/mei{,0,1}`, the shipped
 `mei.ko`/`mei-me.ko`/`mei-txe.ko` files and module-load configuration, plus each
 observed `/sys/class/mei/*` entry's metadata, device link, device-number text,

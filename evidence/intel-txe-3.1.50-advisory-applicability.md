@@ -182,7 +182,7 @@ signatures, manifest-to-metadata and metadata-to-module reverse-SHA-256 chains,
 and strict decompression for HECI, busdrv, storage, policy, fpf, dal_sdm, and
 syslib. Its reviewed report is
 `evidence/artifacts/update-candidates/txe-fixed-module-diff.json`, SHA-256
-`37061c438fbd979693442fab99aaeb50ecce784478ffb861fe8fca88e4354216`.
+`668eb1ed65e8da20172de3aaa2260cb088ae1095dc4a5b7066ff13814ee636d6`.
 
 The later HECI keeps the nine-bit length and `0x1fc` fragment maximum, while
 adding exact header-state behavior:
@@ -202,10 +202,16 @@ supply bits 28/29 through this path.
 
 These are exact later-version deltas, but `3.1.94` is not the first fixed
 `3.1.55` release and spans years of protocol and feature changes. They cannot
-be attributed to CVE-2018-12147. The signed storage/policy modules also changed,
-but no exact CVE-2018-3655 object, anti-replay record, or transaction has been
-identified. See `evidence/intel-txe-fixed-module-diff.md` for full provenance,
-range hashes, and boundaries.
+be attributed to CVE-2018-12147.
+
+The exact later signed FPF adds structured `RbeArbEn`, `RbeArbSvn`,
+`OemKmArbEn`, `OemKmArbSvn`, `UcodeArbEn`, and `UcodeArbSvn` records absent by
+name from the affected signed FPF. This proves a later anti-rollback schema
+capability, not that the fields were provisioned, first appeared in `3.1.55`,
+or implement CVE-2018-3655's fix. The signed storage/policy modules also
+changed, but no exact CVE-2018-3655 object, anti-replay record, or transaction
+has been identified. See `evidence/intel-txe-fixed-module-diff.md` for full
+provenance, record/range hashes, and boundaries.
 
 ## Intel's public recovery tool is not a firmware flasher
 

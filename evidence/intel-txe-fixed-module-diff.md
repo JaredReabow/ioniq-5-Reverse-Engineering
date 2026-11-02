@@ -91,8 +91,8 @@ Reviewed report:
 
 - path: `evidence/artifacts/update-candidates/txe-fixed-module-diff.json`;
 - schema: `ioniq-txe-fixed-module-diff/v1`;
-- size: `16,972` bytes;
-- SHA-256: `37061c438fbd979693442fab99aaeb50ecce784478ffb861fe8fca88e4354216`.
+- size: `20,002` bytes;
+- SHA-256: `668eb1ed65e8da20172de3aaa2260cb088ae1095dc4a5b7066ff13814ee636d6`.
 
 Reviewed byte-free disassembly/decompiler excerpts are retained as:
 
@@ -200,12 +200,38 @@ message set and new extension format may reflect ordinary protocol evolution.
 Only a first-fixed `3.1.55` image or an intermediate-release bisect can separate
 security fixes from later feature work defensibly.
 
+## Exact later FPF anti-rollback schema fields
+
+The signed later FPF contains six structured field records whose names do not
+occur in the exact affected FPF:
+
+| later field | record file offset | encoded width | encoded inclusive bit range |
+|---|---:|---:|---:|
+| `RbeArbEn` | `0x51c4` | 2 | `0x0a0..0x0a1` |
+| `OemKmArbEn` | `0x51f0` | 2 | `0x0a4..0x0a5` |
+| `UcodeArbEn` | `0x537c` | 2 | `0x0c8..0x0c9` |
+| `RbeArbSvn` | `0x5694` | 12 | `0x280..0x28b` |
+| `OemKmArbSvn` | `0x56c0` | 20 | `0x28c..0x29f` |
+| `UcodeArbSvn` | `0x56ec` | 14 | `0x2a0..0x2ad` |
+
+The deterministic tool validates each exact 44-byte record by name, width,
+encoded bit range, and SHA-256, and requires zero occurrences of all six names
+in affected FPF SHA-256
+`9fd694bc90c7433528cfcf80ad265093cc61e086d882a3c52dee152ba64630b9`.
+This proves a later schema capability for explicit RBE, OEM key-manifest, and
+microcode anti-rollback enable/SVN fields. It does **not** prove that these
+fields were introduced by SA-00125, that any corresponding physical FPF was
+burned on the public NUC or target, or that they address CVE-2018-3655's exact
+defect. A first-fixed or intermediate image and exact provisioning-state
+consumer analysis remain required.
+
 ## Storage and anti-replay boundary
 
 The exact later `storage`, `policy`, `fpf`, `dal_sdm`, and syslib modules all
-differ, and `dal_sdm` grows by `0x2000`. This provides concrete material for
-future `/snowball/pm_ctxt`, `ipub_key`, `oem_sign`, and `oem_key_man` comparison.
-It does not yet show:
+differ, `dal_sdm` grows by `0x2000`, and later `policy` adds the literal
+`/dev/nvm_handoff`. This provides concrete material for future
+`/snowball/pm_ctxt`, `ipub_key`, `oem_sign`, `oem_key_man`, and handoff
+comparison. It does not yet show:
 
 - which module or persistent object was affected by CVE-2018-3655;
 - whether Intel's “data file integrity” wording refers to `/snowball`;
@@ -220,6 +246,8 @@ It does not yet show:
 - The affected and later primary HECI paths both reject a simple payload length
   above `0x1fc`; no direct oversized nine-bit stack copy is observed.
 - The later HECI adds exact header-bit validation and bounded extension parsing.
+- The later FPF adds explicit RBE, OEM key-manifest, and microcode anti-rollback
+  enable/SVN schema records absent by name from the affected FPF.
 - CVE-2018-12147's exact defect remains unidentified.
 - CVE-2018-3655's exact storage/anti-replay defect remains unidentified.
 - No exploit, malformed request, HECI message, flash image, or persistence

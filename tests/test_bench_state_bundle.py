@@ -61,6 +61,7 @@ class BenchStateBundleTests(unittest.TestCase):
         self.assertIn("Dbuslaunch.service", script)
         self.assertIn("file_meta /tmp/session_appmgr\n", script)
         self.assertIn("file_meta /tmp/session_appmgr.env", script)
+        self.assertIn("oemkm=*|ABL.oemkm=*", script)
         self.assertIn("sdptool browse local", script)
         self.assertNotIn("hciconfig -a", script)
         self.assertNotIn("wpa_cli", script)

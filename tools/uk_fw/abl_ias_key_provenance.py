@@ -33,6 +33,10 @@ STORED_USAGE39_DIGEST = "9b0a59c842ba70857b595ed8115630d3a342a10c9d4437f9ff48075
 SBL_COMMIT = "5f5c14b10ae6bd3cd0cf7e274142767dc2635a06"
 SBL_FILE = "BootloaderCorePkg/Include/FirmwareInterfaceTable.h"
 SBL_FILE_SHA256 = "0e0f1fff576e4edc48d2918d14bb1292526d3c01d3547d38305ea435543722ef"
+SBL_APL_LOADER_FILE = "Platform/ApollolakeBoardPkg/Library/LoaderLib/LoaderLib.c"
+SBL_APL_LOADER_SHA256 = "8f4c30f671559937a660dedee4abd31a04d5cfa4425fa942b30c5aa07391cbcd"
+SBL_APL_BOARD_FILE = "Platform/ApollolakeBoardPkg/BoardConfig.py"
+SBL_APL_BOARD_SHA256 = "72b04ce00e9deb24952bfb01b6a37f4da1bf290ab48f8ed469d9a28da7c96212"
 MEA_COMMIT = "d27ccdba0aadbad490f47b5b631c369b682a7ef5"
 MEA_FILE = "MEA.py"
 MEA_FILE_SHA256 = "ed2dfb3b9efe58431609b4d3eefe6908b3124228288163dd4fd667dd17d5f4ef"
@@ -40,6 +44,8 @@ IBBL_RANGES = {
     "fit_payload_relocator": (0x40, 0xF3, "688cec0863886aa5a7ca6ed5cb1b9333c8112cd1babb4af2c79a07ebb80cb35a"),
     "fit_table_validator_and_copy": (0xF3, 0x171, "a83c5a32fb4e8b8157769332a6f27ba7484b1e55948228b1ce9cd45e0fb41ea8"),
     "source_fit_handoff_copy": (0x4EF, 0x54C, "c3bd36e3b536f906633be18e362f7744bd845bb505cf11eff8b4af0e46ee4b19"),
+    "descriptor_copy_helper": (0x118E, 0x1199, "fa4ff48022ec39639e171133f556be4f08e63ae6eb127b983b39db35f506755a"),
+    "cse_sram_to_temp_handoff_setup": (0x269A, 0x275B, "9fb4c68a8041510cbd3fe188a7abc30f0f6be8aa2ef95bc5407af5d773b80fe4"),
 }
 STAGE1_RANGES = {
     "ias_key_and_payload_auth": (0x157A3, 0x159FE, "4b71d5c95ff2bcf4210ba23a96883f3ce3524fb31b40f037a00991a6c14a7f30"),
@@ -57,6 +63,13 @@ CSE_RBE_RANGES = {
     "cpd_to_snowball_copy": (0x2E61, 0x2F45, "fea37ed17b453e989d0335ad3e6f1054de937d37ab0b94db315601fcb3e0eb25"),
     "key_manifest_materialization": (0x2F45, 0x3058, "120130f519bb739661da5619db740fe7c0bc51073d57137dad1b9c34b98bf798"),
     "data_transfer_wrapper": (0x4451, 0x449C, "e44730fe26601f3b5914add1b155aaa4ad3c83a53837d6511c3167000ad4ab36"),
+    "uep_mode_decoder": (0x1DD9, 0x1E04, "0d54af00928548b6341e1b732a09e99f6a6ef2933757ff9aca936c920268db8b"),
+    "uep_crc_validator": (0x3814, 0x386E, "2e0b85f5ca73d2928be8c774cb41f2ad0c25819e8df6d054b455ee6a2cfee3cb"),
+    "uep_partition_loader": (0x386E, 0x39B9, "a6c13824c9d11f7d2d8ee3f7a46cdc54030013f983b9cdb958b68b4267ad041b"),
+    "uep_materializer_and_field_extract": (0x39B9, 0x3B52, "345087daeda534e0376254b8b16d55af4c26c20615bcba00efc033e6788ca143"),
+    "oem_key_validation_caller": (0x2B83, 0x2C32, "ef80b6477cc58f10265fcd2b87fc25265e3a1277ea3d472cc1d42bb9f0a78815"),
+    "mn2_key_hash_and_signature_validator": (0x2768, 0x2A9F, "7746354214d3c192aad6b206cb7ab3f41157168d3ad3c700eb26a3bbda4c8fee"),
+    "uep_bitfield_extractor": (0x774B, 0x78F4, "91cc564e915b626697b61a885197c85d75bfa565e8509472f9359a61687e836b"),
 }
 CSE_BUP_SHA256 = "cee77bc172a9df1c4088d5f716b9e55cda539a26656d07a92268c3cd5d4f0165"
 CSE_BUP_CODE_BASE = 0x26000
@@ -384,6 +397,12 @@ def parse_cse_signed_module_chains(abl: bytes, rbe: bytes, bup: bytes) -> dict:
     }
 
 
+def uep_hardware_window_selected(mode_nibble: int) -> bool:
+    if not isinstance(mode_nibble, int) or not 0 <= mode_nibble <= 0x0F:
+        raise Failure("UEP mode nibble outside exact four-bit domain")
+    return bool(mode_nibble & 0x0C) and bool(mode_nibble & 0x03)
+
+
 def parse_uep_oem_hash_candidate(abl: bytes) -> dict:
     bpdt = 0x100000
     entries = [struct.unpack_from("<III", abl, bpdt + 0x18 + index * 12) for index in range(13)]
@@ -404,7 +423,12 @@ def parse_uep_oem_hash_candidate(abl: bytes) -> dict:
         "candidate_offsets": [0x34, 0x7C, 0xCC],
         "candidate_digest": STORED_USAGE39_DIGEST,
         "matches_stored_oem_key_public_key_digest": True,
-        "exact_target_consumer_proved": False,
+        "exact_target_consumer_proved": True,
+        "rbe_output_global": 0x6048038,
+        "rbe_field_index": 0x20,
+        "rbe_field_bit_length": 0x100,
+        "rbe_field_table_bit_offset": 0x160,
+        "rbe_validates_oem_key_public_key_hash_before_rsa": True,
         "external_hardware_or_fuse_anchor_proved": False,
     }
 
@@ -561,6 +585,18 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
         raise Failure("CSE RBE key-manifest source strings drift")
     if cse_rbe.find(b"oem_key_man\0") != 0x7A9A:
         raise Failure("CSE RBE key-manifest destination string drift")
+    if cse_rbe.find(b"ifp_uep\0") != 0x7AE0:
+        raise Failure("CSE RBE UEP object string drift")
+    if cse_rbe[0x7F74:0x7F78] != bytes.fromhex("60010001"):
+        raise Failure("CSE RBE UEP OEM-hash field descriptor drift")
+    if cse_rbe[0x3AF3:0x3B13] != bytes.fromhex(
+        "8a45f26838800406c0e8046800010000a2588004066a2056e83b3c000083c410"
+    ):
+        raise Failure("CSE RBE UEP OEM-hash extraction sequence drift")
+    if cse_rbe[0x2BAC:0x2BE2] != bytes.fromhex(
+        "6a20566838800406e870e4fbff83c40c85c00f95c285db0f95c031f638c2754185db74596a006a06683880040653e889fbffff83c410"
+    ):
+        raise Failure("CSE RBE UEP-pinned oem.key validation sequence drift")
     rbe_route = bytes.fromhex(
         "6a0068807a04006a00e813f0ffff83c40c85c0751db9887a040031d2b8917a040068c87f0406e867feffff5985c07557eb1d31d2b99a7a0400b8807a0400682c100406e84afeffff"
     )
@@ -596,6 +632,21 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
     require_once(fit_source, b"#define FIT_TYPE_00_SIGNATURE  SIGNATURE_64 ('_', 'F', 'I', 'T', '_', ' ', ' ', ' ')", "FIT signature")
     require_once(fit_source, b"UINT8  Size[3];", "FIT 24-bit size")
     require_once(fit_source, b"UINT8  Type : 7;", "FIT 7-bit type")
+
+    apl_loader_source = git_blob(sbl_repo, SBL_COMMIT, SBL_APL_LOADER_FILE, SBL_APL_LOADER_SHA256)
+    for needle, label in (
+        (b"#define  SRAM_SIZE              0x20000", "Apollo Lake CSE SRAM size"),
+        (b"#define  SRAM_REMAPPING         (0xFFFFFFFF - SRAM_SIZE + 1)", "Apollo Lake CSE SRAM remapping"),
+        (b"Src = (UINT8 *) (SramBase + ChunkSize * RingIdx);", "Apollo Lake CSE SRAM source"),
+        (b"Dst = (UINT8 *) (IbbDst  + ChunkSize * ChunkIndex);", "Apollo Lake IBB destination"),
+        (b"CopyMem (Dst, Src, Size);", "Apollo Lake CSE-to-IBB copy"),
+    ):
+        require_once(apl_loader_source, needle, label)
+    if apl_loader_source.count(b"CSE_HOST2CSE = HostToCse;") != 2:
+        raise Failure("Apollo Lake CSE request/ack sequence drift")
+    apl_board_source = git_blob(sbl_repo, SBL_COMMIT, SBL_APL_BOARD_FILE, SBL_APL_BOARD_SHA256)
+    require_once(apl_board_source, b"self.STAGE1A_LOAD_BASE    = 0xFEF80000", "Apollo Lake Stage1A load base")
+    require_once(apl_board_source, b"self.STAGE1B_FD_BASE      = 0xFEF88000", "Apollo Lake Stage1B flash-device base")
 
     mea_source = git_blob(mea_repo, MEA_COMMIT, MEA_FILE, MEA_FILE_SHA256)
     start = mea_source.find(b"class CSE_Ext_0E_Mod(ctypes.LittleEndianStructure)")
@@ -634,6 +685,19 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                 "relocation_mode": 2,
                 "relocation_skips_type": 1,
                 "type_0b_payload_relocated_if_present": True,
+                "cse_sram_handoff": {
+                    "mtrr_base_addresses": [0xFEF80000, 0xFFFE0000],
+                    "temporary_destination_clear_base": 0xFEF80000,
+                    "temporary_destination_clear_dword_count": 0x20000,
+                    "copy_descriptor_address": 0xFFFFE760,
+                    "copy_descriptor_dwords": ["destination", "count", "source"],
+                    "copy_count_unit": "dwords",
+                    "post_copy_read_base": 0xFEF80000,
+                    "post_copy_read_dword_count": 0x4800,
+                    "descriptor_directed_copy_path_proved": True,
+                    "runtime_descriptor_values_recovered": False,
+                    "descriptor_source_bound_to_bup_buffer_proved": False,
+                },
             },
             "decompressed_stage1": {
                 "size": len(stage1),
@@ -670,6 +734,26 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                 },
             },
             "cse_signed_module_chains": cse_signed_module_chains,
+            "cse_rbe_uep_oem_key_authentication": {
+                "uep_object_name": "ifp_uep",
+                "object_size": UEP_SIZE,
+                "mode_source": "(dword[0xf6170810] >> 24) & 0x0f",
+                "hardware_window_selection_expression": "(mode_nibble & 0x0c) != 0 and (mode_nibble & 0x03) != 0",
+                "hardware_window_mode_nibbles": [value for value in range(16) if uep_hardware_window_selected(value)],
+                "hardware_window": "0xf6170800..0xf61708ff when the exact mode expression is true",
+                "flash_route": "BPDT type-17 UEP primary, then descriptor +0x1000 fallback, each checked for $UEP magic and CRC-16",
+                "field_index": 0x20,
+                "field_bit_length": 0x100,
+                "field_table_bit_offset": 0x160,
+                "field_input_base": "UEP + 8",
+                "field_output_global": 0x6048038,
+                "field_output_matches_exact_oem_key_digest": True,
+                "oem_key_validation": "requires oem.key presence to agree with nonzero UEP hash, hashes the manifest's 0x100-byte modulus plus four-byte exponent, compares that digest with the UEP field, and only then performs embedded RSA verification and extension validation",
+                "mn2_validator_flags": 6,
+                "mn2_validator_key_index": 0,
+                "extension_validation_selector": 6,
+                "external_uep_authentication_or_fuse_precedence_proved": False,
+            },
             "cse_rbe_key_manifest_materializer": {
                 "cpd": "RBEP",
                 "member": "rbe",
@@ -723,6 +807,18 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
                 "file_sha256": SBL_FILE_SHA256,
                 "type_0b_name": "FIT_TYPE_0B_KEY_MANIFEST",
                 "type_10_name": "FIT_TYPE_10_CSE_SECURE_BOOT",
+                "apl_cse_sram_handoff": {
+                    "loader_file": SBL_APL_LOADER_FILE,
+                    "loader_file_sha256": SBL_APL_LOADER_SHA256,
+                    "board_file": SBL_APL_BOARD_FILE,
+                    "board_file_sha256": SBL_APL_BOARD_SHA256,
+                    "sram_size": 0x20000,
+                    "sram_remapping_base": 0xFFFE0000,
+                    "stage1a_load_base": 0xFEF80000,
+                    "stage1b_fd_base": 0xFEF88000,
+                    "semantics": "host requests IBB data from CSE, copies ring-buffer chunks from the 0xfffe0000 SRAM remapping into IbbDst, and acknowledges each chunk",
+                    "exact_target_lineage_or_control_flow_proved": False,
+                },
             },
             "me_analyzer": {
                 "commit": MEA_COMMIT,
@@ -750,7 +846,9 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "cse_bup_constructs_fit_type0b_from_oem_key_man_proved": True,
             "cse_bup_resolver_couples_oem_key_and_oem_key_man_names_proved": True,
             "uep_contains_stored_oem_key_digest_candidate_proved": True,
-            "uep_exact_target_consumption_proved": False,
+            "uep_exact_target_consumption_proved": True,
+            "uep_hardware_vs_bpdt_selection_expression_proved": True,
+            "uep_digest_pins_oem_key_before_rsa_proved": True,
             "uep_external_hardware_anchor_proved": False,
             "stored_oem_key_manifest_bytes_recovered": True,
             "stored_usage39_digest_recovered": True,
@@ -762,21 +860,27 @@ def analyze(update: Path, sbl_repo: Path, mea_repo: Path) -> dict:
             "runtime_fit_type0b_bound_to_stored_oem_key_manifest": False,
             "runtime_expected_digest_bytes_recovered": False,
             "source_fit_content_producer_cse_bup_proved": True,
+            "ibbl_exact_cse_sram_descriptor_copy_path_proved": True,
+            "ibbl_runtime_copy_descriptor_values_recovered": False,
+            "apl_public_cse_sram_to_fef80000_handoff_corroborated": True,
             "final_handoff_address_0xfef80000_mapping_proved": False,
             "rbe_and_bup_signed_module_byte_chains_proved": True,
             "ftpr_manifest_direct_oem_key_coverage_proved": False,
-            "pre_ibbl_key_manifest_authentication_proved": False,
+            "pre_ibbl_key_manifest_authentication_proved": True,
             "custom_signed_image_acceptance_proved": False,
             "boot_root_or_persistence_proved": False,
         },
         "limitations": [
             "Exact CSE RBE code selects FTPR CPD member oem.key, creates object oem_key_man at the exact source length, transfers that exact length without a visible transformation, and requires the destination manifest dword count to match the source length.",
-            "Exact CSE BUP code initializes a FIT, copies oem_key_man into its payload area, and appends type 0x0b with address 0xfffe1000. Exact IBBL later consumes a FIT at 0xfef80000, but the physical mapping between those addresses is not yet recovered.",
+            "Exact CSE BUP code initializes a 0x20000-byte FIT-bearing buffer, copies oem_key_man into payload offset 0x1000, and appends type 0x0b with address 0xfffe1000. Exact IBBL later consumes a FIT at 0xfef80000.",
+            "Exact IBBL startup configures memory types for both 0xfffe0000 and 0xfef80000, clears the latter, executes a descriptor-directed dword copy using a descriptor at 0xffffe760, and then reads from 0xfef80000. The runtime descriptor values are not present in the recovered static bytes, so the exact copy source/destination and its byte identity with BUP's buffer remain unresolved.",
+            "Hash-bound historical Apollo Lake Slim Bootloader source independently defines a 0x20000-byte CSE SRAM remapping at 0xfffe0000 and copies CSE-provided chunks into IbbDst, while its board config places Stage1A at 0xfef80000. This strongly corroborates the exact proprietary endpoints without substituting for the missing runtime descriptor values.",
             "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
             "The RBE-to-BUP path binds BUP's published oem_key_man payload to exact FTPR oem.key bytes. The exact stored usage-39 digest is therefore recovered for the BUP-published object, but it is not promoted to the IBBL runtime expected digest until the BUP-to-0xfef80000 mapping is proved.",
             "RBEP.man and FTPR.man embedded signatures verify, and their signed metadata hashes bind exact RBE and BUP bytes through rbe.met and bup.met. These remain self-contained signature chains until their manifest keys are externally anchored.",
             "Exact FTPR.man has no direct oem.key name or digest coverage and FTPR CPD has no oem.key.met member. This bounded absence is not proof that another CSE policy, key manifest, or hardware root leaves oem.key unauthenticated.",
-            "Exact BPDT type-17 UEP stores three copies of the oem.key public-key digest candidate, including a contiguous copy at UEP +0xcc. A comparative public Apollo Lake IFWI constructor labels that offset an OEM public-key-hash record, but exact target consumption and any fuse/hardware anchoring remain unproved.",
+            "Exact RBE creates ifp_uep, obtains a CRC-checked UEP from an exact hardware-window branch or BPDT primary/fallback route, extracts field 0x20 (256 bits) to global 0x6048038, and uses that digest to pin oem.key's modulus-plus-exponent hash before RSA and extension validation.",
+            "The OEM key-manifest authentication path is therefore proved before BUP publication. What remains unproved is whether the selected UEP bytes are externally authenticated, fuse-backed, overrideable, or merely CRC-protected flash data on a given installed platform.",
             "The exact flash contains an FTPR oem.key $MN2/Extension-14 manifest with a valid embedded self-signature and usage-39 digest 9b0a59...; the embedded signature still proves self-consistency rather than an external hardware root.",
             "The stored usage-39 digest does not equal the package carried-key candidate 437008... . Without the missing runtime FIT binding, this mismatch does not prove that the package boots or fails to boot under an installed ABL.",
             "The recovered IBB stages do not locally authenticate the key manifest before use. Any CSE, Boot Guard, fuse, ACM, or earlier-ROM authentication remains outside the recovered instruction boundary; the embedded manifest signature proves self-consistency only.",

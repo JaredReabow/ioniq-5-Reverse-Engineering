@@ -27,9 +27,14 @@ The exact CSE RBE and BUP now close the persistent-to-published byte path. RBE
 selects FTPR CPD member `oem.key`, creates `oem_key_man` at that exact length,
 transfers the source bytes without a visible transformation, and checks the
 manifest dword length. BUP then copies `oem_key_man` into a FIT payload and
-publishes type `0x0b` at `0xfffe1000`. IBBL later consumes a FIT at `0xfef80000`.
-The physical mapping between those addresses remains unproved, as does any
-earlier CSE, Boot Guard, ACM, fuse, or ROM authentication.
+publishes type `0x0b` at `0xfffe1000`. Before that copy, RBE obtains a
+CRC-checked UEP through an exact hardware-window or BPDT route, extracts its
+256-bit OEM-key field, and requires the `oem.key` modulus-plus-exponent digest
+to match before RSA and extension validation. Exact IBBL startup configures
+both `0xfffe0000` and `0xfef80000`, consumes a copy descriptor at `0xffffe760`,
+and then reads the FIT at `0xfef80000`. The runtime descriptor values that
+would bind BUP's buffer to that destination, and the external trust or fuse
+precedence governing the selected UEP bytes, remain unproved.
 
 ## Canonical identities
 
@@ -76,11 +81,15 @@ appended final entry. In mode 2 it skips type `1` and copies other referenced
 payloads, rewrites their entry addresses, and advances the packed destination
 with 16-byte alignment. FIT type `0x0b` is therefore included when present.
 
-This establishes a volatile handoff and low-memory copy. It does not establish
-where the bytes at `0xfef80000` originated or whether its type-`0x0b` payload is
-the exact stored `oem.key` described below. The package carried-key candidate
-digest remains absent verbatim from the stored update ABL, IBBL, and
-decompressed stage 1.
+Before this caller executes, exact IBBL startup configures memory types for the
+`0xfffe0000` CSE SRAM region and the `0xfef80000` temporary region, clears the
+latter, and invokes a three-dword descriptor copy helper on a descriptor at
+`0xffffe760`. It then reads from `0xfef80000`. This proves the proprietary
+handoff mechanism but not the runtime descriptor's destination, source, or
+count values. Consequently it does not yet establish byte identity between
+BUP's FIT-bearing buffer and the FIT observed at `0xfef80000`. The package
+carried-key candidate digest remains absent verbatim from the stored update
+ABL, IBBL, and decompressed stage 1.
 
 ## Exact stage-1 key-manifest consumer
 
@@ -167,8 +176,24 @@ this proves that BUP's published type-`0x0b` object contains the exact FTPR
 `oem.key` bytes.
 
 IBBL's later source table is at `0xfef80000`, whereas BUP publishes the payload
-address as `0xfffe1000`. The intervening physical mapping or handoff is not yet
-recovered, so the exact address chain remains bounded at both ends.
+address as `0xfffe1000`. Historical Apollo Lake Slim Bootloader source at the
+same hash-bound commit defines a `0x20000`-byte CSE SRAM remapping beginning at
+`0xfffe0000`, requests IBB data from CSE, copies ring-buffer chunks from that
+remapping into `IbbDst`, and acknowledges each chunk. Its board configuration
+places Stage1A at `0xfef80000` and Stage1B firmware data at `0xfef88000`.
+
+The exact IBBL startup narrows this boundary further. It configures MTRR pairs
+covering `0xfef80000` and `0xfffe0000`, clears the temporary destination at
+`0xfef80000`, loads a three-dword copy descriptor from `0xffffe760`, calls a
+helper that interprets the descriptor as destination, dword count, and source,
+and then reads from `0xfef80000`. This proves an exact descriptor-directed
+CSE-SRAM handoff path. The runtime descriptor values are not present in the
+recovered static image, so its actual source/destination and byte identity with
+BUP's FIT buffer remain unresolved.
+
+The public flow strongly corroborates the exact BUP buffer size, IBBL startup,
+and both endpoint addresses. It does not substitute for the missing runtime
+descriptor values or prove that BUP's exact bytes reach IBBL unchanged.
 
 ## Exact CSE signed-module byte chains
 
@@ -200,11 +225,29 @@ It stores the exact `oem.key` public-key digest
 in three records: split across offsets `+0x34` and `+0x40`, split across
 `+0x7c` and `+0x90`, and contiguously at `+0xcc`.
 
+Exact RBE creates object `ifp_uep` with size `0x108`. It reads mode nibble
+`(dword[0xf6170810] >> 24) & 0x0f`; the hardware route is selected exactly when
+`(nibble & 0x0c) != 0 && (nibble & 0x03) != 0`. Its source path then either
+copies from hardware window `0xf6170800..0xf61708ff`, or loads BPDT type-17 UEP
+with a descriptor-`+0x1000` fallback. Both flash
+candidates must pass `$UEP` magic and CRC-16 checks. RBE then invokes its
+bitfield extractor with input `UEP + 8`, field index `0x20`, bit length `0x100`,
+and table bit offset `0x160`; the resulting 32 bytes are stored at global
+`0x6048038`.
+
+The OEM-key validation caller requires `oem.key` presence to agree with a
+nonzero extracted digest. It passes the manifest and UEP digest to the exact
+`$MN2` validator, which hashes the carried `0x100`-byte modulus plus four-byte
+exponent, compares the result with the UEP digest, and reaches embedded RSA
+verification only after equality. Extension selector `6` is validated
+afterward. This proves pre-IBBL authentication of the exact stored `oem.key`
+against the selected UEP field.
+
 The current public coreboot Apollo Lake/Gemini Lake IFWI constructor's
-`create_uep()` calls the `+0xcc` value an **OEM public-key-hash record** and
-requires a 32-byte public-key hash. That is strong structural corroboration,
-not exact target control-flow proof: the exact proprietary consumer of these
-UEP bytes and any relationship to real fuses or hardware policy remain open.
+`create_uep()` independently calls the `+0xcc` value an **OEM public-key-hash
+record** and requires a 32-byte public-key hash. Exact target consumption is now
+proved; the remaining boundary is whether the selected UEP source is externally
+authenticated, fuse-backed, or overrideable on an installed production unit.
 
 ## Exact stored FTPR `oem.key` manifest
 
@@ -232,9 +275,11 @@ candidate:
 
 `437008c1b26fd821a7c7c0ec855aaba5587f62deaaa98d9b2fcbf6ad4179aa06`
 
-This is an exact stored-object mismatch, not a boot verdict. The source FIT at
-`0xfef80000` was not captured, and exact recovered code has not yet bound its
-type-`0x0b` pointer to FTPR `oem.key`. The package may also be applied under an
+This is an exact stored-object mismatch, not a boot verdict. The runtime source
+FIT and the descriptor at `0xffffe760` were not captured. Exact RBE and BUP
+bind FTPR `oem.key` to BUP's type-`0x0b` payload, while the missing descriptor
+values still prevent binding that payload byte-for-byte to IBBL's FIT at
+`0xfef80000`. The package may also be applied under an
 already-installed ABL/key manifest rather than the ABL image present in the
 same update archive. Therefore neither package acceptance nor rejection follows
 from the mismatch alone.
@@ -257,12 +302,18 @@ manifest signature header, or prove that a user-space capture is permitted.
 Two public sources are hash-bound and kept separate from exact-target proof:
 
 1. Slim Bootloader commit
-   `5f5c14b10ae6bd3cd0cf7e274142767dc2635a06`, file
-   `BootloaderCorePkg/Include/FirmwareInterfaceTable.h`, SHA-256
-   `0e0f1fff576e4edc48d2918d14bb1292526d3c01d3547d38305ea435543722ef`.
-   It defines 16-byte FIT entries, the `_FIT_   ` signature, type `0x0b` as
-   `FIT_TYPE_0B_KEY_MANIFEST`, and type `0x10` as
-   `FIT_TYPE_10_CSE_SECURE_BOOT`.
+   `5f5c14b10ae6bd3cd0cf7e274142767dc2635a06`:
+   - `BootloaderCorePkg/Include/FirmwareInterfaceTable.h`, SHA-256
+     `0e0f1fff576e4edc48d2918d14bb1292526d3c01d3547d38305ea435543722ef`,
+     defines 16-byte FIT entries, `_FIT_   `, type `0x0b` Key Manifest, and
+     type `0x10` CSE Secure Boot;
+   - `Platform/ApollolakeBoardPkg/Library/LoaderLib/LoaderLib.c`, SHA-256
+     `8f4c30f671559937a660dedee4abd31a04d5cfa4425fa942b30c5aa07391cbcd`,
+     defines the `0x20000`-byte SRAM remapping at `0xfffe0000` and the
+     CSE-to-IBB ring-buffer copy;
+   - `Platform/ApollolakeBoardPkg/BoardConfig.py`, SHA-256
+     `72b04ce00e9deb24952bfb01b6a37f4da1bf290ab48f8ed469d9a28da7c96212`,
+     places Stage1A at `0xfef80000`.
 2. ME Analyzer commit
    `d27ccdba0aadbad490f47b5b631c369b682a7ef5`, file `MEA.py`, SHA-256
    `ed2dfb3b9efe58431609b4d3eefe6908b3124228288163dd4fd667dd17d5f4ef`.
@@ -280,8 +331,9 @@ separate comparative corroboration:
 - commit `4f3d2b564c8675a05d555d27740d62e0257cbd5c`;
 - `util/apl_ifwi/apl_ifwi.py` SHA-256
   `824497f98ed0f6475b13aebd2b798244e6ab09b55349e7004496ffe9138f296a`;
-- it creates an OEM Extension-14 manifest, names the resulting object
-  `oem_key`, and replaces FTPR CPD member `oem.key`.
+- it derives one `public_hash`, passes that same value to both
+  `create_oem_key_manifest(...)` and `create_uep(...)`, names the resulting
+  manifest `oem_key`, and replaces FTPR CPD member `oem.key`.
 
 That modern public constructor corroborates the persistent member's purpose but
 is not evidence of exact source lineage or of the target's runtime authentication
@@ -297,8 +349,11 @@ What is now proved:
 - exact FTPR signed-package metadata has no direct `oem.key` name/digest entry
   and FTPR CPD has no `oem.key.met` member;
 - exact BPDT type-17 UEP contains three copies of the stored `oem.key` public-key
-  digest; public Apollo Lake tooling calls the `+0xcc` field an OEM public-key
-  hash, while exact target consumption and hardware/fuse anchoring remain open;
+  digest, and exact RBE extracts the 256-bit OEM-key field to global
+  `0x6048038`;
+- exact RBE pins the `oem.key` modulus-plus-exponent digest to that UEP field
+  before embedded RSA and Extension-14 validation;
+- UEP source authentication and hardware/fuse precedence remain open;
 - exact CSE RBE copies FTPR `oem.key` at its exact source length into
   `oem_key_man`, with a matching manifest-length check;
 - exact CSE BUP constructs a FIT type-`0x0b` entry from `oem_key_man` and
@@ -318,12 +373,13 @@ What is now proved:
 
 What remains unproved:
 
-- how CSE BUP's FIT/payload addresses are mapped into IBBL's source handoff at
-  `0xfef80000`;
+- whether the proprietary intervening loader implements the publicly
+  corroborated CSE SRAM-remapping/ring-copy flow that explains BUP's
+  `0xfffe0000` addresses and IBBL's `0xfef80000` destination;
 - whether an installed unit executes this exact RBE/BUP/ABL set rather than a
   different installed manifest or firmware generation;
-- whether and how CSE, Boot Guard, an ACM, ROM, or another earlier stage verifies
-  it before IBBL;
+- whether CSE, Boot Guard, an ACM, ROM, real FPFs, or another earlier stage
+  authenticates or overrides the selected UEP source;
 - the actual runtime expected digest on an installed unit;
 - any writable or replaceable provenance path;
 - custom-image acceptance, boot acceptance, root, persistence, health,
@@ -347,11 +403,11 @@ are captured.
 Tracked deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance.json`
-  - size `16,148`
-  - SHA-256 `7094193b0a52a0abd43885db0ded910e148354dff83055e091b8c09e3b4b74b7`
+  - size `22,130`
+  - SHA-256 `b5e32c319d9ee5fb555f936672d1e135ac25221cf791cd5779270689cf683fad`
 - `evidence/artifacts/update-candidates/abl-ias-key-provenance-exact-static.asm`
-  - size `31,647`
-  - SHA-256 `f888b0c5b13020625be4550a069ef22a2070cfe4a2e742385b0535b3aeff46de`
+  - size `76,911`
+  - SHA-256 `0f71ffbe6d7d153d20da1764af688871e8f0b2a03b8e07273fb72b76f0d69b60`
 
 The analyzer is read-only with respect to all inputs. It does not execute an
 updater, bootloader, target helper, image constructor, firmware image, or target

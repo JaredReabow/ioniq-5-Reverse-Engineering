@@ -51,12 +51,12 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "7094193b0a52a0abd43885db0ded910e148354dff83055e091b8c09e3b4b74b7")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "b5e32c319d9ee5fb555f936672d1e135ac25221cf791cd5779270689cf683fad")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen(self):
         data = EXCERPT.read_bytes()
-        self.assertEqual(hashlib.sha256(data).hexdigest(), "f888b0c5b13020625be4550a069ef22a2070cfe4a2e742385b0535b3aeff46de")
+        self.assertEqual(hashlib.sha256(data).hexdigest(), "0f71ffbe6d7d153d20da1764af688871e8f0b2a03b8e07273fb72b76f0d69b60")
         self.assertNotIn(b"work/", data)
         self.assertNotIn(b"Contents of section", data)
 
@@ -65,6 +65,10 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         loader = exact["ibb_loader"]
         stage = exact["decompressed_stage1"]
         self.assertEqual(loader["source_fit_address"], 0xFEF80000)
+        cse_handoff = loader["cse_sram_handoff"]
+        self.assertEqual(cse_handoff["copy_descriptor_address"], 0xFFFFE760)
+        self.assertTrue(cse_handoff["descriptor_directed_copy_path_proved"])
+        self.assertFalse(cse_handoff["runtime_descriptor_values_recovered"])
         self.assertEqual(loader["relocated_fit_address"], 0xC10C0)
         self.assertEqual(loader["fit_signature"], "_FIT_   ")
         self.assertTrue(loader["type_0b_payload_relocated_if_present"])
@@ -77,8 +81,18 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertEqual(uep["candidate_digest"], M.STORED_USAGE39_DIGEST)
         self.assertEqual(uep["candidate_offsets"], [0x34, 0x7C, 0xCC])
         self.assertTrue(uep["matches_stored_oem_key_public_key_digest"])
-        self.assertFalse(uep["exact_target_consumer_proved"])
+        self.assertTrue(uep["exact_target_consumer_proved"])
+        self.assertTrue(uep["rbe_validates_oem_key_public_key_hash_before_rsa"])
         self.assertFalse(uep["external_hardware_or_fuse_anchor_proved"])
+        authentication = exact["cse_rbe_uep_oem_key_authentication"]
+        self.assertEqual(authentication["field_output_global"], 0x6048038)
+        self.assertEqual(authentication["extension_validation_selector"], 6)
+        self.assertEqual(
+            authentication["hardware_window_selection_expression"],
+            "(mode_nibble & 0x0c) != 0 and (mode_nibble & 0x03) != 0",
+        )
+        self.assertTrue(authentication["field_output_matches_exact_oem_key_digest"])
+        self.assertFalse(authentication["external_uep_authentication_or_fuse_precedence_proved"])
         module_chains = exact["cse_signed_module_chains"]
         self.assertTrue(module_chains["rbep_manifest_to_rbe_metadata_to_rbe_bytes_proved"])
         self.assertTrue(module_chains["ftpr_manifest_to_bup_metadata_to_bup_bytes_proved"])
@@ -101,6 +115,20 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertFalse(producer["final_handoff_address_0xfef80000_mapping_proved"])
         self.assertTrue(producer["oem_key_man_byte_identity_with_ftpr_oem_key_proved"])
 
+    def test_uep_mode_decoder_matches_exact_four_bit_expression(self):
+        selected = {5, 6, 7, 9, 10, 11, 13, 14, 15}
+        self.assertEqual(
+            {value for value in range(16) if M.uep_hardware_window_selected(value)},
+            selected,
+        )
+        self.assertEqual(
+            self.report["exact_update"]["cse_rbe_uep_oem_key_authentication"]["hardware_window_mode_nibbles"],
+            sorted(selected),
+        )
+        for value in (-1, 16, "5"):
+            with self.subTest(value=value), self.assertRaises(M.Failure):
+                M.uep_hardware_window_selected(value)
+
     def test_selector_0x27_is_usage_bit_39(self):
         selector = self.report["exact_update"]["decompressed_stage1"]["type3_os_selector"]
         self.assertEqual(selector["value"], 0x27)
@@ -119,7 +147,9 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["source_fit_content_producer_cse_bup_proved"])
         self.assertTrue(conclusions["runtime_fit_type0b_object_name_oem_key_man_proved"])
         self.assertTrue(conclusions["uep_contains_stored_oem_key_digest_candidate_proved"])
-        self.assertFalse(conclusions["uep_exact_target_consumption_proved"])
+        self.assertTrue(conclusions["uep_exact_target_consumption_proved"])
+        self.assertTrue(conclusions["uep_hardware_vs_bpdt_selection_expression_proved"])
+        self.assertTrue(conclusions["uep_digest_pins_oem_key_before_rsa_proved"])
         self.assertFalse(conclusions["uep_external_hardware_anchor_proved"])
         self.assertTrue(conclusions["stored_oem_key_manifest_bytes_recovered"])
         self.assertTrue(conclusions["stored_usage39_digest_recovered"])
@@ -129,10 +159,13 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         self.assertTrue(conclusions["bup_published_expected_usage39_digest_recovered"])
         self.assertFalse(conclusions["runtime_fit_type0b_bound_to_stored_oem_key_manifest"])
         self.assertFalse(conclusions["runtime_expected_digest_bytes_recovered"])
+        self.assertTrue(conclusions["ibbl_exact_cse_sram_descriptor_copy_path_proved"])
+        self.assertFalse(conclusions["ibbl_runtime_copy_descriptor_values_recovered"])
+        self.assertTrue(conclusions["apl_public_cse_sram_to_fef80000_handoff_corroborated"])
         self.assertFalse(conclusions["final_handoff_address_0xfef80000_mapping_proved"])
         self.assertTrue(conclusions["rbe_and_bup_signed_module_byte_chains_proved"])
         self.assertFalse(conclusions["ftpr_manifest_direct_oem_key_coverage_proved"])
-        self.assertFalse(conclusions["pre_ibbl_key_manifest_authentication_proved"])
+        self.assertTrue(conclusions["pre_ibbl_key_manifest_authentication_proved"])
         self.assertFalse(conclusions["custom_signed_image_acceptance_proved"])
         self.assertFalse(conclusions["boot_root_or_persistence_proved"])
 
@@ -155,6 +188,11 @@ class AblIasKeyProvenanceTests(unittest.TestCase):
         public = self.report["public_structure_corroboration"]
         self.assertEqual(public["slim_bootloader"]["commit"], M.SBL_COMMIT)
         self.assertEqual(public["slim_bootloader"]["type_0b_name"], "FIT_TYPE_0B_KEY_MANIFEST")
+        handoff = public["slim_bootloader"]["apl_cse_sram_handoff"]
+        self.assertEqual(handoff["sram_size"], 0x20000)
+        self.assertEqual(handoff["sram_remapping_base"], 0xFFFE0000)
+        self.assertEqual(handoff["stage1a_load_base"], 0xFEF80000)
+        self.assertFalse(handoff["exact_target_lineage_or_control_flow_proved"])
         self.assertEqual(public["me_analyzer"]["commit"], M.MEA_COMMIT)
         self.assertEqual(public["me_analyzer"]["usage_39_name"], "OS Kernel")
         self.assertIn("public-source corroboration", public["boundary"])

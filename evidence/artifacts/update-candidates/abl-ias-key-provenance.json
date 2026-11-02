@@ -1,5 +1,6 @@
 {
   "conclusions": {
+    "apl_public_cse_sram_to_fef80000_handoff_corroborated": true,
     "boot_root_or_persistence_proved": false,
     "bup_published_expected_usage39_digest_recovered": true,
     "bup_published_type0b_bound_to_stored_oem_key_manifest": true,
@@ -10,10 +11,12 @@
     "final_handoff_address_0xfef80000_mapping_proved": false,
     "ftpr_manifest_direct_oem_key_coverage_proved": false,
     "ibbl_copies_fit_and_relocates_type_0b_payload_proved": true,
+    "ibbl_exact_cse_sram_descriptor_copy_path_proved": true,
+    "ibbl_runtime_copy_descriptor_values_recovered": false,
     "oem_key_manifest_kernel_command_line_export_proved": true,
     "package_candidate_matches_stored_usage39_digest": false,
     "pre_ibbl_fit_handoff_address_proved": true,
-    "pre_ibbl_key_manifest_authentication_proved": false,
+    "pre_ibbl_key_manifest_authentication_proved": true,
     "rbe_and_bup_signed_module_byte_chains_proved": true,
     "runtime_descriptor_is_fit_entry_type_0b_proved": true,
     "runtime_expected_digest_bytes_recovered": false,
@@ -27,8 +30,10 @@
     "stored_usage39_digest_recovered": true,
     "type_0b_symbolic_name_key_manifest_publicly_corroborated": true,
     "uep_contains_stored_oem_key_digest_candidate_proved": true,
-    "uep_exact_target_consumption_proved": false,
+    "uep_digest_pins_oem_key_before_rsa_proved": true,
+    "uep_exact_target_consumption_proved": true,
     "uep_external_hardware_anchor_proved": false,
+    "uep_hardware_vs_bpdt_selection_expression_proved": true,
     "usage_bit_39_os_kernel_name_publicly_corroborated": true
   },
   "exact_update": {
@@ -116,6 +121,41 @@
           "file_end": 1348,
           "file_start": 1269,
           "sha256": "1a0ca6ba5381d64ba6bb49318a2b874281b3aca4936f6dbf4a0da765ec22365d"
+        },
+        "mn2_key_hash_and_signature_validator": {
+          "file_end": 10911,
+          "file_start": 10088,
+          "sha256": "7746354214d3c192aad6b206cb7ab3f41157168d3ad3c700eb26a3bbda4c8fee"
+        },
+        "oem_key_validation_caller": {
+          "file_end": 11314,
+          "file_start": 11139,
+          "sha256": "ef80b6477cc58f10265fcd2b87fc25265e3a1277ea3d472cc1d42bb9f0a78815"
+        },
+        "uep_bitfield_extractor": {
+          "file_end": 30964,
+          "file_start": 30539,
+          "sha256": "91cc564e915b626697b61a885197c85d75bfa565e8509472f9359a61687e836b"
+        },
+        "uep_crc_validator": {
+          "file_end": 14446,
+          "file_start": 14356,
+          "sha256": "2e0b85f5ca73d2928be8c774cb41f2ad0c25819e8df6d054b455ee6a2cfee3cb"
+        },
+        "uep_materializer_and_field_extract": {
+          "file_end": 15186,
+          "file_start": 14777,
+          "sha256": "345087daeda534e0376254b8b16d55af4c26c20615bcba00efc033e6788ca143"
+        },
+        "uep_mode_decoder": {
+          "file_end": 7684,
+          "file_start": 7641,
+          "sha256": "0d54af00928548b6341e1b732a09e99f6a6ef2933757ff9aca936c920268db8b"
+        },
+        "uep_partition_loader": {
+          "file_end": 14777,
+          "file_start": 14446,
+          "sha256": "a6c13824c9d11f7d2d8ee3f7a46cdc54030013f983b9cdb958b68b4267ad041b"
         }
       },
       "main_thread_entry": 264099,
@@ -128,6 +168,36 @@
       "source_partition_index": 0,
       "source_to_destination_exact_length_copy_proved": true,
       "transformation_before_publication_observed": false
+    },
+    "cse_rbe_uep_oem_key_authentication": {
+      "extension_validation_selector": 6,
+      "external_uep_authentication_or_fuse_precedence_proved": false,
+      "field_bit_length": 256,
+      "field_index": 32,
+      "field_input_base": "UEP + 8",
+      "field_output_global": 100958264,
+      "field_output_matches_exact_oem_key_digest": true,
+      "field_table_bit_offset": 352,
+      "flash_route": "BPDT type-17 UEP primary, then descriptor +0x1000 fallback, each checked for $UEP magic and CRC-16",
+      "hardware_window": "0xf6170800..0xf61708ff when the exact mode expression is true",
+      "hardware_window_mode_nibbles": [
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        13,
+        14,
+        15
+      ],
+      "hardware_window_selection_expression": "(mode_nibble & 0x0c) != 0 and (mode_nibble & 0x03) != 0",
+      "mn2_validator_flags": 6,
+      "mn2_validator_key_index": 0,
+      "mode_source": "(dword[0xf6170810] >> 24) & 0x0f",
+      "object_size": 264,
+      "oem_key_validation": "requires oem.key presence to agree with nonzero UEP hash, hashes the manifest's 0x100-byte modulus plus four-byte exponent, compares that digest with the UEP field, and only then performs embedded RSA verification and extension validation",
+      "uep_object_name": "ifp_uep"
     },
     "cse_signed_module_chains": {
       "external_manifest_key_anchor_proved": false,
@@ -224,8 +294,38 @@
     },
     "ibb_loader": {
       "appended_entry_type": 127,
+      "cse_sram_handoff": {
+        "copy_count_unit": "dwords",
+        "copy_descriptor_address": 4294960992,
+        "copy_descriptor_dwords": [
+          "destination",
+          "count",
+          "source"
+        ],
+        "descriptor_directed_copy_path_proved": true,
+        "descriptor_source_bound_to_bup_buffer_proved": false,
+        "mtrr_base_addresses": [
+          4277665792,
+          4294836224
+        ],
+        "post_copy_read_base": 4277665792,
+        "post_copy_read_dword_count": 18432,
+        "runtime_descriptor_values_recovered": false,
+        "temporary_destination_clear_base": 4277665792,
+        "temporary_destination_clear_dword_count": 131072
+      },
       "fit_signature": "_FIT_   ",
       "instruction_ranges": {
+        "cse_sram_to_temp_handoff_setup": {
+          "file_end": 10075,
+          "file_start": 9882,
+          "sha256": "9fb4c68a8041510cbd3fe188a7abc30f0f6be8aa2ef95bc5407af5d773b80fe4"
+        },
+        "descriptor_copy_helper": {
+          "file_end": 4505,
+          "file_start": 4494,
+          "sha256": "fa4ff48022ec39639e171133f556be4f08e63ae6eb127b983b39db35f506755a"
+        },
         "fit_payload_relocator": {
           "file_end": 243,
           "file_start": 64,
@@ -301,23 +401,31 @@
         124,
         204
       ],
-      "exact_target_consumer_proved": false,
+      "exact_target_consumer_proved": true,
       "external_hardware_or_fuse_anchor_proved": false,
       "flash_offset": 1049104,
       "magic": "$UEP",
       "matches_stored_oem_key_public_key_digest": true,
+      "rbe_field_bit_length": 256,
+      "rbe_field_index": 32,
+      "rbe_field_table_bit_offset": 352,
+      "rbe_output_global": 100958264,
+      "rbe_validates_oem_key_public_key_hash_before_rsa": true,
       "sha256": "184e01883e7f9233d5e50104a52620ec45e44c79ae3255fdeeaf8a44d5e8edc3",
       "size": 264
     }
   },
   "limitations": [
     "Exact CSE RBE code selects FTPR CPD member oem.key, creates object oem_key_man at the exact source length, transfers that exact length without a visible transformation, and requires the destination manifest dword count to match the source length.",
-    "Exact CSE BUP code initializes a FIT, copies oem_key_man into its payload area, and appends type 0x0b with address 0xfffe1000. Exact IBBL later consumes a FIT at 0xfef80000, but the physical mapping between those addresses is not yet recovered.",
+    "Exact CSE BUP code initializes a 0x20000-byte FIT-bearing buffer, copies oem_key_man into payload offset 0x1000, and appends type 0x0b with address 0xfffe1000. Exact IBBL later consumes a FIT at 0xfef80000.",
+    "Exact IBBL startup configures memory types for both 0xfffe0000 and 0xfef80000, clears the latter, executes a descriptor-directed dword copy using a descriptor at 0xffffe760, and then reads from 0xfef80000. The runtime descriptor values are not present in the recovered static bytes, so the exact copy source/destination and its byte identity with BUP's buffer remain unresolved.",
+    "Hash-bound historical Apollo Lake Slim Bootloader source independently defines a 0x20000-byte CSE SRAM remapping at 0xfffe0000 and copies CSE-provided chunks into IbbDst, while its board config places Stage1A at 0xfef80000. This strongly corroborates the exact proprietary endpoints without substituting for the missing runtime descriptor values.",
     "Exact stage-1 code consumes FIT type 0x0b as the key-manifest source. Public Intel structure names and ME Analyzer's usage-39 label corroborate the nomenclature but do not independently prove target provisioning policy.",
     "The RBE-to-BUP path binds BUP's published oem_key_man payload to exact FTPR oem.key bytes. The exact stored usage-39 digest is therefore recovered for the BUP-published object, but it is not promoted to the IBBL runtime expected digest until the BUP-to-0xfef80000 mapping is proved.",
     "RBEP.man and FTPR.man embedded signatures verify, and their signed metadata hashes bind exact RBE and BUP bytes through rbe.met and bup.met. These remain self-contained signature chains until their manifest keys are externally anchored.",
     "Exact FTPR.man has no direct oem.key name or digest coverage and FTPR CPD has no oem.key.met member. This bounded absence is not proof that another CSE policy, key manifest, or hardware root leaves oem.key unauthenticated.",
-    "Exact BPDT type-17 UEP stores three copies of the oem.key public-key digest candidate, including a contiguous copy at UEP +0xcc. A comparative public Apollo Lake IFWI constructor labels that offset an OEM public-key-hash record, but exact target consumption and any fuse/hardware anchoring remain unproved.",
+    "Exact RBE creates ifp_uep, obtains a CRC-checked UEP from an exact hardware-window branch or BPDT primary/fallback route, extracts field 0x20 (256 bits) to global 0x6048038, and uses that digest to pin oem.key's modulus-plus-exponent hash before RSA and extension validation.",
+    "The OEM key-manifest authentication path is therefore proved before BUP publication. What remains unproved is whether the selected UEP bytes are externally authenticated, fuse-backed, overrideable, or merely CRC-protected flash data on a given installed platform.",
     "The exact flash contains an FTPR oem.key $MN2/Extension-14 manifest with a valid embedded self-signature and usage-39 digest 9b0a59...; the embedded signature still proves self-consistency rather than an external hardware root.",
     "The stored usage-39 digest does not equal the package carried-key candidate 437008... . Without the missing runtime FIT binding, this mismatch does not prove that the package boots or fails to boot under an installed ABL.",
     "The recovered IBB stages do not locally authenticate the key manifest before use. Any CSE, Boot Guard, fuse, ACM, or earlier-ROM authentication remains outside the recovered instruction boundary; the embedded manifest signature proves self-consistency only.",
@@ -338,6 +446,18 @@
       "usage_bitmap_size": 16
     },
     "slim_bootloader": {
+      "apl_cse_sram_handoff": {
+        "board_file": "Platform/ApollolakeBoardPkg/BoardConfig.py",
+        "board_file_sha256": "72b04ce00e9deb24952bfb01b6a37f4da1bf290ab48f8ed469d9a28da7c96212",
+        "exact_target_lineage_or_control_flow_proved": false,
+        "loader_file": "Platform/ApollolakeBoardPkg/Library/LoaderLib/LoaderLib.c",
+        "loader_file_sha256": "8f4c30f671559937a660dedee4abd31a04d5cfa4425fa942b30c5aa07391cbcd",
+        "semantics": "host requests IBB data from CSE, copies ring-buffer chunks from the 0xfffe0000 SRAM remapping into IbbDst, and acknowledges each chunk",
+        "sram_remapping_base": 4294836224,
+        "sram_size": 131072,
+        "stage1a_load_base": 4277665792,
+        "stage1b_fd_base": 4277698560
+      },
       "commit": "5f5c14b10ae6bd3cd0cf7e274142767dc2635a06",
       "file": "BootloaderCorePkg/Include/FirmwareInterfaceTable.h",
       "file_sha256": "0e0f1fff576e4edc48d2918d14bb1292526d3c01d3547d38305ea435543722ef",

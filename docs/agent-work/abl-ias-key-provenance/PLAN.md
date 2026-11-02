@@ -8,22 +8,23 @@ Resolve the exact runtime object behind the ABL IAS expected-key digest without 
 
 - canonical EU `260128` decrypted update archive;
 - exact `rel.1714-HF3` 8 MiB ABL flash;
-- exact RBEP CSE RBE, FTPR CSE BUP, IBB loader, and decompressed stage 1;
+- exact BPDT type-17 UEP, RBEP CSE RBE, FTPR CSE BUP, IBB loader, and decompressed stage 1;
 - hash-bound public Intel FIT definitions;
-- hash-bound public ME Analyzer key-manifest layout and usage nomenclature.
+- hash-bound public ME Analyzer key-manifest layout and usage nomenclature;
+- hash-bound public coreboot Apollo Lake IFWI UEP/OEM-key construction logic.
 
 ## Acceptance criteria
 
 1. Identify the exact structure at `0xc10c0`/`0xc10c8` from instruction semantics.
 2. Trace it backward through IBBL to the earliest recovered source address.
 3. Prove whether FIT type `0x0b` payload bytes are copied or merely referenced.
-4. Identify the exact recovered producer of the FIT content and trace its source object back to persistent bytes, while separating that from any still-unproved physical-address mapping or authentication root.
+4. Identify the exact recovered producer of the FIT content and trace its source object back to persistent bytes; for the remaining address boundary, recover the runtime descriptor consumed by IBBL at `0xffffe760` or its exact producer without conflating public Apollo Lake corroboration with target proof.
 5. Bind selector `0x27` to its record bit, byte, and mask.
 6. Explain `0xc1060`/`0xc1064` and any exact observation surface.
 7. Keep public names separate from exact target proof.
 8. Fail closed on canonical-archive drift and source drift.
 9. Emit deterministic UTF-8/LF evidence and focused tests.
-10. State clearly what remains unknown about persistent storage and pre-IBBL authentication.
+10. Trace pre-IBBL OEM-key authentication while separating exact UEP consumption from still-unproved external UEP authentication and fuse precedence.
 
 ## Safety boundary
 
@@ -31,4 +32,4 @@ Host-side archive parsing, hashing, strict LZ4 decompression, source inspection,
 
 ## Routing
 
-The requested Fable builder was checked with the installed orchestrator doctor. It remains unavailable because `openrouter/claude-fable-5.1` is not advertised for native subagents with `multi_agent_version=v2`. No paid probe or substitute provider was used. Work therefore continued in the root thread against public and exact-static inputs.
+The current catalogue advertises `anthropic/claude-fable-5-1` and `openai-codex/gpt-6-astra`, but native child creation rejects the harness-required argument shape: supplying both top-level model fields and `selection` reports “Pass either … not both”, while omitting either side is rejected by schema or dependency validation. Multiple generic, non-private research prompts were attempted without launching a child. No paid route probe or silent substitution was used; work continued in the root thread against public and exact-static inputs.

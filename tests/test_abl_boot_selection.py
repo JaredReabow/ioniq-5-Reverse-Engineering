@@ -16,6 +16,7 @@ REPORT = ROOT / "evidence/artifacts/update-candidates/abl-boot-selection.json"
 EXCERPT = ROOT / "evidence/artifacts/update-candidates/abl-boot-selection-exact-static.asm"
 UPDATE = ROOT / "work/decrypted-eu-260128/HU/firmware/update.tar.gz"
 ROOTFS = ROOT / "work/decrypted-eu-260128/HU/images/mango-rootfs.tar.gz"
+SBL = ROOT / "work/online-slimbootloader-20261110"
 SPEC = importlib.util.spec_from_file_location("ablboot", TOOL)
 M = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(M)
@@ -24,11 +25,11 @@ SPEC.loader.exec_module(M)
 class AblBootSelectionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        missing = [str(path) for path in (UPDATE, ROOTFS) if not path.exists()]
+        missing = [str(path) for path in (UPDATE, ROOTFS, SBL) if not path.exists()]
         if missing:
             raise unittest.SkipTest("private analysis inputs absent: " + ", ".join(missing))
         process = subprocess.run(
-            [sys.executable, str(TOOL), "--update-archive", str(UPDATE), "--rootfs", str(ROOTFS)],
+            [sys.executable, str(TOOL), "--update-archive", str(UPDATE), "--rootfs", str(ROOTFS), "--sbl-repo", str(SBL)],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=False,
@@ -41,7 +42,7 @@ class AblBootSelectionTests(unittest.TestCase):
 
     def test_report_is_frozen_and_deterministic(self):
         self.assertEqual(self.raw, REPORT.read_bytes())
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "08de82b077da3c4f7543ae992a54afc80311947711ec2404e4a93d3d87a22bea")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "204adff4a69478db3ca113985585ceff30f7e31b8101068b223b9630c497136e")
         self.assertEqual(self.raw, M.encode(self.report))
 
     def test_exact_static_excerpt_is_frozen_and_byte_free(self):
@@ -63,6 +64,16 @@ class AblBootSelectionTests(unittest.TestCase):
             [(2, 1, "iasImage"), (3, 2, "iasImage")],
         )
         self.assertFalse(container["direct_sub_literal_present"])
+        gpio = container["boot_mode_gpio_record"]
+        self.assertEqual((gpio["tag"], gpio["mask"], gpio["invert"]), ("0x04e", 3, 0))
+        self.assertEqual(gpio["input_pins"], ["0xc184", "0xc103"])
+
+    def test_public_gpio_semantics_remain_comparative(self):
+        public = self.report["comparative_public_slim_bootloader"]
+        self.assertEqual(public["commit"], M.SBL_COMMIT)
+        self.assertEqual(public["tag_0x04e_name"], "ABL_CDATA_BOOT_MODE_GPIO_TAG")
+        self.assertFalse(public["exact_runtime_equivalence_proved"])
+        self.assertFalse(self.report["conclusions"]["exact_runtime_boot_state_populated_from_gpio_proved"])
 
     def test_fallback_and_sub_conclusions_remain_bounded(self):
         conclusions = self.report["conclusions"]
@@ -70,6 +81,8 @@ class AblBootSelectionTests(unittest.TestCase):
         self.assertTrue(conclusions["userspace_repairs_primary_from_successful_secondary_fallback"])
         self.assertFalse(conclusions["abl_configuration_directly_selects_iasimage_sub"])
         self.assertTrue(conclusions["engineering_script_promotes_sub_by_overwriting_primary_basename"])
+        self.assertTrue(conclusions["exact_config_contains_boot_mode_gpio_record"])
+        self.assertTrue(conclusions["exact_stage_maps_tag_0x04e_to_boot_mode_gpio"])
         self.assertFalse(conclusions["persistent_boot_index_source_proved"])
         self.assertFalse(conclusions["attempt_counter_proved"])
         self.assertFalse(conclusions["health_or_mark_good_proved"])
@@ -127,6 +140,14 @@ class AblBootSelectionTests(unittest.TestCase):
         self.assertEqual(M.lz4_block(b"\x30abc", 3), b"abc")
         with self.assertRaises(M.Failure):
             M.config_records(b"\x08\x00\x00\x00")
+
+    def test_public_source_drift_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory) / "repo"
+            subprocess.run(["git", "init", "-q", str(repo)], check=True)
+            name, digest = next(iter(M.SBL_FILES.items()))
+            with self.assertRaises(M.Failure):
+                M.git_blob(repo, name, digest)
 
     def test_serialization_ignores_pythonioencoding(self):
         env = os.environ.copy()

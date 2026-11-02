@@ -14,10 +14,12 @@ image.
 3. Bind the ordered PLK1/PLK2 `iasImage` records.
 4. Bind stage-1 selected-index masking, ordered-record callback, iterator, and
    selected-versus-actual command-line fields by exact range hashes.
-5. Bind canonical `esinit` fallback detection and repair intent.
-6. Bind the engineering normal/`_sub` promotion copies.
-7. Keep attempt, health, mark-good, durable repair, custom boot, root, and
-   persistence explicitly unresolved.
-8. Emit deterministic UTF-8/LF evidence and fail closed on archive aliases,
+5. Bind the exact tag-`0x04e` GPIO configuration and exact config-name mapping;
+   preserve historical Apollo Lake GPIO-decoding source as comparative only.
+6. Bind canonical `esinit` fallback detection and repair intent.
+7. Bind the engineering normal/`_sub` promotion copies.
+8. Keep exact runtime GPIO commitment, attempt, health, mark-good, durable
+   repair, custom boot, root, and persistence explicitly unresolved.
+9. Emit deterministic UTF-8/LF evidence and fail closed on archive aliases,
    links, metadata drift, CRC drift, malformed records, stage drift, or output
    encoding changes.

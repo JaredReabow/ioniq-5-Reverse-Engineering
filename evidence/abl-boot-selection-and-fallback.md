@@ -11,7 +11,7 @@ change, reset, or boot attempt was executed.
 Deterministic evidence:
 
 - `evidence/artifacts/update-candidates/abl-boot-selection.json` — SHA-256
-  `08de82b077da3c4f7543ae992a54afc80311947711ec2404e4a93d3d87a22bea`;
+  `204adff4a69478db3ca113985585ceff30f7e31b8101068b223b9630c497136e`;
 - `evidence/artifacts/update-candidates/abl-boot-selection-exact-static.asm` —
   byte-free exact-stage excerpt, SHA-256
   `efd46f8f7604daa73a9e51707efa7a1c44fb19aa6868208b2221720dd661899e`.
@@ -118,6 +118,34 @@ Literal absence is bounded evidence only. It does not prove that no dynamically
 constructed proprietary route exists elsewhere, and the engineering script was
 not executed.
 
+## Boot-index provisioning lead: exact GPIO configuration
+
+The same exact ABL-configuration payload contains a tag-`0x04e` record at
+payload offset `0xa8`, size `0x14`, SHA-256
+`6d96b15c74ecc2e02381a1d9357fc0507ca04e0b74935ef0ccb5c89a49f62a12`.
+Its data decodes as:
+
+- invert: `0x0000`;
+- mask: `0x0003`;
+- alignment: `0xffff`;
+- output pin: `0xffff`;
+- input pins: `0xc184`, `0xc103`.
+
+The exact decompressed stage's config-name table maps tag `0x04e` to
+`BOOT_MODE_GPIO`.
+
+Hash-bound historical Apollo Lake Slim Bootloader source at commit
+`5f5c14b10ae6bd3cd0cf7e274142767dc2635a06` independently defines tag `0x04e`
+as `ABL_CDATA_BOOT_MODE_GPIO_TAG`. Its `GetBootModeOption()` implementation
+reads configured GPIO input bits, applies the mask and inversion, and stores the
+result as platform `BootModeOption`. That is a strong structural explanation
+for why the exact configuration's two-bit mask can represent indices `0..3`.
+
+This public source remains comparative. Exact control flow from the recovered
+GPIO record to runtime address `0x000c0214` has not yet been recovered, so this
+assessment does not promote physical GPIO provisioning or non-persistence to an
+exact-target conclusion.
+
 ## Security consequences and remaining boundary
 
 The result closes an important architecture question:
@@ -127,7 +155,9 @@ The result closes an important architecture question:
 - a returned primary failure can fall forward to the secondary record;
 - successful secondary boot triggers an attempted userspace repair of primary;
 - the recovered `_sub` route is userspace promotion to the primary basename,
-  not a direct configured ABL suffix selection.
+  not a direct configured ABL suffix selection;
+- the exact config has a two-input `BOOT_MODE_GPIO` record, while its exact
+  runtime commitment remains unresolved.
 
 It does **not** establish:
 

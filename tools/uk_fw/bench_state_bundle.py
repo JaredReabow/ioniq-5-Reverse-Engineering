@@ -727,7 +727,7 @@ do
     P_CMD=
     P_PATH=
     case "$P_COMM" in
-        connmand|ofonod|wpa_supplicant|supplicantmanager|vbtd|bluetoothd|dropbear|dropbearmulti|AppLauncher|AppDMClient|AppScomoDM|AppUpgrade)
+        connmand|ofonod|wpa_supplicant|supplicantmanager|vbtd|bluetoothd|dropbear|dropbearmulti|AppLauncher|AppDMClient|AppScomoDM|AppUpgrade|iAP2Service-2.0|AppProjection|mdnsd)
             if [ ! -r "$P_DIR/cmdline" ]; then
                 record process-read-error "$P_PID|cmdline-unreadable"
                 COLLECT_FAILURE=1
@@ -752,7 +752,7 @@ capture_file smack-mounts /proc/mounts
 capture_file smack-rule /sys/fs/smackfs/load2
 capture_file smack-onlycap /sys/fs/smackfs/onlycap
 capture_file smack-ambient /sys/fs/smackfs/ambient
-for SX_PATH in /update /update/usb /update/usb/bin /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppUpgrade /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /tmp
+for SX_PATH in /update /update/usb /update/usb/bin /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppUpgrade /app/bin/iAP2Service-2.0 /app/bin/AppProjection /dev/mfd-iap2 /dev/ttyIAP20 /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /tmp
  do
     for SX_NAME in SMACK64 SMACK64EXEC
     do
@@ -762,7 +762,7 @@ for SX_PATH in /update /update/usb /update/usb/bin /update/usb/bin/AppUpgrade /u
 end_section smack 0
 
 begin_section units
-for U_NAME in connman.service ofono.service ofono.path supplicantmanager.service supplicantmanager.path vbtd.service dropbear.socket dropbear@.service dropbearkey.service Dbuslaunch.service ApplicationLauncher.service MediaBrowser.service dbus.service debug-shell.service
+for U_NAME in connman.service ofono.service ofono.path supplicantmanager.service supplicantmanager.path vbtd.service dropbear.socket dropbear@.service dropbearkey.service Dbuslaunch.service ApplicationLauncher.service MediaBrowser.service dbus.service debug-shell.service carplay_iAP2.service carplay_mdnsd.service
  do
     capture_unit "$U_NAME"
  done
@@ -837,7 +837,7 @@ begin_section storage
 capture_file fstab /etc/fstab
 capture_file partitions /proc/partitions
 capture_file mounts /proc/mounts
-for S_DEVICE in /dev/ptmx /dev/pts /dev/pts/ptmx /dev/tty9
+for S_DEVICE in /dev/ptmx /dev/pts /dev/pts/ptmx /dev/tty9 /dev/mfd-iap2 /dev/ttyIAP20
  do
     file_meta "$S_DEVICE"
  done
@@ -852,11 +852,11 @@ for S_DIR in /update /update/usb /update/sysroot /update/usb/upgrade /update/usb
 end_section storage 0
 
 begin_section hashes
-for H_META in /bin/busybox /usr/bin/unzip /usr/bin/unzip64 /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /lib/systemd/systemd-udevd /lib/systemd/esinit /lib/udev/scsi_id /lib/udev/v4l_id /lib/udev/rules.d/50-udev-default.rules /lib/udev/rules.d/60-persistent-storage.rules /lib/udev/rules.d/60-persistent-v4l.rules /lib/udev/rules.d/99-systemd.rules /lib/systemd/system/debug-shell.service /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppScomoDM /app/bin/AppUpgrade /app/bin/NaviUpdateApp /app/bin/CarOption.csv /app/share/AppUpgrade/DecryptToPIPE /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /tmp/AppUpgrade
+for H_META in /bin/busybox /usr/bin/unzip /usr/bin/unzip64 /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /lib/systemd/systemd-udevd /lib/systemd/esinit /lib/udev/scsi_id /lib/udev/v4l_id /lib/udev/rules.d/50-udev-default.rules /lib/udev/rules.d/60-persistent-storage.rules /lib/udev/rules.d/60-persistent-v4l.rules /lib/udev/rules.d/99-systemd.rules /lib/systemd/system/debug-shell.service /lib/systemd/system/carplay_iAP2.service /lib/systemd/system/carplay_mdnsd.service /lib/systemd/system/multi-user.target.wants/carplay_iAP2.service /etc/iap2_mod.sh /etc/smack/accesses.d/projection /app/bin/iAP2Service-2.0 /app/bin/AppProjection /app/bin/mdnsd /app/lib/libiAP2AppFramework-2.0.so /app/lib/libAirPlay.so /app/lib/libCoreUtils.so /app/lib/libAirPlaySupport.so /app/lib/libCarPlayAppFramework.so /app/lib/libCarPlayMediaFramework.so /lib/modules/4.1.27-abl/kernel/drivers/usb/gadget/function/usb_f_ncm.ko /lib/modules/4.1.27-abl/kernel/drivers/usb/gadget/function/usb_f_iap2.ko /lib/modules/4.1.27-abl/kernel/drivers/lge/mfd/mfd-iap2.ko /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppScomoDM /app/bin/AppUpgrade /app/bin/NaviUpdateApp /app/bin/CarOption.csv /app/share/AppUpgrade/DecryptToPIPE /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /tmp/AppUpgrade
  do
     file_meta "$H_META"
  done
-for H_TARGET in /usr/sbin/connmand /usr/sbin/ofonod /usr/sbin/wpa_supplicant /app/bin/supplicantmanager /app/bin/vbtd /tmp/vbtd /lib/systemd/system/vbtd.service /etc/setup_bt_patchram.sh /usr/sbin/dropbear /usr/sbin/dropbearmulti /bin/busybox /usr/bin/unzip /usr/bin/unzip64 /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /lib/systemd/systemd-udevd /lib/systemd/esinit /lib/udev/scsi_id /lib/udev/v4l_id /lib/udev/rules.d/50-udev-default.rules /lib/udev/rules.d/60-persistent-storage.rules /lib/udev/rules.d/60-persistent-v4l.rules /lib/udev/rules.d/99-systemd.rules /lib/systemd/system/debug-shell.service /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppScomoDM /app/bin/AppUpgrade /app/bin/NaviUpdateApp /app/bin/CarOption.csv /app/share/AppUpgrade/AppUpgrade /app/share/AppUpgrade/DecryptToPIPE /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /tmp/AppUpgrade /lib/modules/4.1.27-abl/kernel/sound/core/seq/snd-seq.ko /lib/modules/4.1.27-abl/kernel/net/unix/unix.ko
+for H_TARGET in /usr/sbin/connmand /usr/sbin/ofonod /usr/sbin/wpa_supplicant /app/bin/supplicantmanager /app/bin/vbtd /tmp/vbtd /lib/systemd/system/vbtd.service /etc/setup_bt_patchram.sh /usr/sbin/dropbear /usr/sbin/dropbearmulti /bin/busybox /usr/bin/unzip /usr/bin/unzip64 /bin/sh /bin/bash /lib/ld-linux-x86-64.so.2 /lib/ld-2.25.so /bin/date /usr/bin/date /lib/systemd/systemd /lib/systemd/systemd-udevd /lib/systemd/esinit /lib/udev/scsi_id /lib/udev/v4l_id /lib/udev/rules.d/50-udev-default.rules /lib/udev/rules.d/60-persistent-storage.rules /lib/udev/rules.d/60-persistent-v4l.rules /lib/udev/rules.d/99-systemd.rules /lib/systemd/system/debug-shell.service /lib/systemd/system/carplay_iAP2.service /lib/systemd/system/carplay_mdnsd.service /etc/iap2_mod.sh /etc/smack/accesses.d/projection /app/bin/iAP2Service-2.0 /app/bin/AppProjection /app/bin/mdnsd /app/lib/libiAP2AppFramework-2.0.so /app/lib/libAirPlay.so /app/lib/libCoreUtils.so /app/lib/libAirPlaySupport.so /app/lib/libCarPlayAppFramework.so /app/lib/libCarPlayMediaFramework.so /lib/modules/4.1.27-abl/kernel/drivers/usb/gadget/function/usb_f_ncm.ko /lib/modules/4.1.27-abl/kernel/drivers/usb/gadget/function/usb_f_iap2.ko /lib/modules/4.1.27-abl/kernel/drivers/lge/mfd/mfd-iap2.ko /app/bin/AppLauncher /app/bin/AppLauncher.sh /app/bin/AppDMClient /app/bin/AppScomoDM /app/bin/AppUpgrade /app/bin/NaviUpdateApp /app/bin/CarOption.csv /app/share/AppUpgrade/AppUpgrade /app/share/AppUpgrade/DecryptToPIPE /app/share/AppUpgrade/teruten5_pub.key /etc/update_start_5w.sh.ori /etc/smack-relabel-ro.sh /etc/smack_setup.sh /etc/smack_setup_recovery.sh /update/usb/bin/AppUpgrade /update/usb/bin/.lge.upgrade.xml /tmp/AppUpgrade /lib/modules/4.1.27-abl/kernel/sound/core/seq/snd-seq.ko /lib/modules/4.1.27-abl/kernel/net/unix/unix.ko
  do
     hash_file "$H_TARGET"
  done
@@ -973,6 +973,7 @@ def _derive_facts(sections: Iterable[dict[str, Any]]) -> dict[str, Any]:
         "files": {},
         "update_flags": [],
         "listeners": [],
+        "modules": [],
         "local_sdp": [],
         "smack_xattrs": {},
     }
@@ -1083,6 +1084,8 @@ def _derive_facts(sections: Iterable[dict[str, Any]]) -> dict[str, Any]:
                 facts["update_flags"].append(value)
             elif key == "listener":
                 facts["listeners"].append(value)
+            elif key == "modules":
+                facts["modules"].append(value)
             elif key == "local-sdp":
                 facts["local_sdp"].append(value)
     facts["processes"].sort(key=lambda item: (str(item["pid"])))

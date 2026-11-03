@@ -4323,3 +4323,10 @@ and are superseded by corrections rather than silently rewritten.
   the fault.
 - Reverted the experiment and left the reasoning in the file, because this is precisely the sort of finding that gets rediscovered and re-broken later.
 - Printing found the anomaly; changing behaviour explained it. Both were cheap, and only the second one makes the first trustworthy.
+
+## 2026-10-31 — the last axis I could reach is closed
+
+- The compositor will not run on its GL renderer here, with or without the flag. Everything reachable in this image has now been examined, and the stripes remain.
+- That is where the day's work honestly ends: not with a picture, but with the list of things that are not the cause being longer than the list of things that might be.
+- The suggestion worth carrying forward is not another theory but another measurement: read the application's own buffer instead of the composited frame, which would tell apart a
+  rendering fault from a compositing fault without needing a renderer I do not have.

@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.91.0 - the GL renderer is not reachable in this image, so the substitution axis is closed
+
+- Two attempts to get weston onto its GL renderer instead of pixman:
+  - **without any renderer flag** — headless starts, loads `headless-backend.so`, `ivi-shell.so`, `ivi-window-manager.so`, `ivi-controller.so`, launches
+    `/usr/bin/early-background`, and **never loads a renderer module at all**; the compositor then stops. Its log also shows
+    `Not found front background image` / `Not found rear background image`, i.e. the shell cannot find the images its own defaults name.
+  - **with `--use-gl`** — the compositor fails to create its socket at all (`SOCKET=no WESTON=`), so nothing runs.
+- So the software-EGL chain this project built (`/opt/software-egl18`, `GALLIUM_DRIVER=softpipe`, `LIBGL_DRIVERS_PATH`) is sufficient for the **application's** Qt but **not** for
+  weston's GL renderer in this image. Making it work would need its own investigation, and it is not a quick substitution.
+- **Consequence for the shear: the renderer-substitution axis is closed.** Pixman is the only renderer that runs here, so the question "is the shear pixman-specific?" cannot be
+  answered in this projection at all — it would need either a working weston GL stack or a second, independent implementation to compare against.
+- Honest position at the end of this stretch, and it should be read as the state of the work rather than a result: the application draws, the placement request works, the capture
+  tool is correct and no longer lies about geometry, our backend's geometry is verified consistent, and the composited output remains sheared with **every mechanism I can reach
+  in this image now examined**. What is left needs either the vendor's GL stack or a fundamentally different way of reading the output — for example capturing the application's own
+  buffer rather than the composited frame, which would separate "the app renders wrongly" from "the compositor composes wrongly" without needing a second renderer.
+
 ## 2.90.0 - the stride-4 image is intentional: "correcting" it kills the compositor
 
 - Interposed `pixman_image_create_bits` / `_no_clear` inside weston to see the geometry the renderer actually builds. Distinct triples in one run:

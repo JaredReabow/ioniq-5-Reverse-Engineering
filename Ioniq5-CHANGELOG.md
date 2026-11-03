@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.85.0 - matching the widths does not fix the shear, and the stripe slope says it is a one-pixel stride drift
+
+- Ran the designed test from §2.84.0: rebuilt the run at **1926×753** on both sides — backend `--width=1926 --height=753` and `[output] mode=1926x753` — so the output matches
+  the width the vendor stack reports for the application's surface. Capture with the fixed tool:
+  - `ias-shot: shooting 1926x753 ARGB8888`, header `1926 753` — the tool correctly read and wrote the new geometry;
+  - `peak=255`, **42.28% nonzero**, 39.58% bright — **still diagonal stripes**, essentially the same fraction as before.
+- **So surface-versus-output width is not the cause.** Geometry negotiation is refuted as the explanation, and the shear is invariant to the output size.
+- **What the stripes themselves now tell us:** the slope is a consistent diagonal, which is the signature of a **stride differing by a small constant per row** — one pixel
+  (four bytes) per line, not a width mismatch. A one-pixel-per-row drift exactly produces this pattern, and it is the same class of fault as a hard-coded stride in one of
+  the two paths that touch the framebuffer: the compositor's shadow image, or **our backend's own `image_buf`**, which is allocated with `stride = param->width * 4` and
+  wrapped in a `pixman_image_create_bits` at construction time while the repaint path reads `current_mode->width` — two sources of truth for the same number.
+- That is now the specific thing to check, and it is in **our** code rather than the vendor's: reconcile `param->width` (allocation) with `output->base.current_mode->width`
+  (repaint) so a single value governs both, and rebuild the image if the mode changes after construction. If the stripes are this, they will disappear with the output and
+  surface left at 1920×720 as before.
+- Honest state: five explanations for the striping have now been tested and refuted — the application, the capture width, the output naming, the surface-vs-output width, and
+  (from earlier) the shim. What remains is a concrete stride inconsistency inside our backend, which is at least a defect I can read in the source rather than infer from
+  pixels.
+
 ## 2.84.0 - placement is what makes the application appear, and what appears is sheared
 
 - Reverted the output-naming change from §2.80.0 to **opt-in** (`IAS_OUTPUT_NAMES=hdmi`), because it produced no correct picture in either position and the A/B in §2.83.0

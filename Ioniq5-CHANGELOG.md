@@ -3,6 +3,18 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.12.0 - the next instrument may already exist inside Mesa
+
+- With the shear measured at **3 pixels per row** (§3.11.0), the next step was a draw-call tracer. Before writing one, a cheaper possibility: **Mesa ships its own tracing** — the Gallium
+  trace module, driven by environment variables (`GALLIUM_TRACE` and a trigger), which writes an apitrace-compatible capture of every GL call.
+- The obstacle that would normally block it — the vendor launcher rebuilding its children's environment — is already solved in this project: the `/etc/ld.so.preload` interposer
+  (`gallium_force.c`) can answer `getenv("GALLIUM_TRACE")` with a path, exactly as it already answers `GALLIUM_DRIVER`. So a full GL trace may be obtainable **with no tracer written**, which is
+  the cheapest possible version of the instrument this investigation has been asking for.
+- Delegated: build the trace-forcing interposer and a host-side parser that reports draw calls, the bound textures with their dimensions (cross-referenced against the `glTexImage2D` lines the
+  existing tracer already records), and **the texture coordinates of the quad vertices**, so the first two rows' texel difference can be computed directly. The test is sharp: if consecutive
+  rows differ by **3 texels** in the coordinates the vendor supplies, the fault is theirs; if they do not, it is inside the rasteriser's handling of them.
+- Recorded so the reasoning is not lost if the trace turns out to be unavailable in this build: the fallback is the hand-written draw tracer, which is a materially larger piece of work.
+
 ## 3.11.0 - the shear measured: 3 pixels per row, consistently, which no width mismatch explains
 
 - Instead of another tracer, measured the artefact itself. Using edge positions (pixels with a horizontal gradient above 40) to make row matching robust against the noise-like field,

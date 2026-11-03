@@ -4501,3 +4501,9 @@ and are superseded by corrections rather than silently rewritten.
 - That is twelve bytes of drift per row and over two thousand pixels across the image, which is far too much to be the width mismatch I spent yesterday calculating. The arithmetic that felt
   convincing is retired by a measurement that took ten minutes.
 - The first quantitative constraint of the investigation, and it points at the texture coordinates rather than at any buffer's stride.
+
+## 2026-10-31 — checking whether the tool already exists
+
+- Before building the largest instrument of this investigation, checked whether Mesa already contains it. Gallium has a trace module driven by environment variables, and this project already has
+  a way to answer getenv inside a process the launcher starts.
+- Delegated the capture and the parser. The test is now arithmetic rather than visual: do consecutive rows differ by three texels in the coordinates the vendor supplies?

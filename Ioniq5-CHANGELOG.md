@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.1.0 - the DLT log answers two questions at once: the app draws 1920x720, on screen 9
+
+- The chain's `dlt-daemon` has been running with `PrintASCII=1` this whole time, so the **launcher-managed** application's log has been sitting in
+  `/tmp/launcher-chain/dlt.log` — **20,851 lines** that I had never read, because the launcher discards stdout and stderr and I stopped looking.
+- Two facts fall out of it immediately:
+  - the vendor window manager's own geometry log: `Screen[0] … Screen[9] Width(1920), Height(720)`, `init_display_plane_info - DID(4), X(1920), Y(0)`,
+    `Plane(4) - Layer length(7)` — **all ten IVI screens exist and are 1920×720**;
+  - **`Weston surface W(1920), H(720)`** for the surfaces it creates (`set_notification_create_surface - SID(30000)`), i.e. **in launcher-managed runs the surfaces are
+    1920×720**, not the 1926×753 that hand-launched runs produce.
+- **That reframes the shear.** The 1926×753 window is an artefact of *how I was starting the application*, not of the vendor stack. Launcher-managed runs size themselves correctly to
+  the screen. The 24-byte-per-row explanation of §3.0.0 therefore describes a configuration that only exists when the app is hand-launched — which is also the configuration that
+  produced every sheared capture.
+- **And a second, more embarrassing possibility is now in view:** the log says the application's screen is **`Screen[9]`**, and every capture in this project has read **output 0**
+  (`ias-shot` binds the first `wl_output`; the research backend was configured `IAS_REPAINT_OUTPUTS=1`, so only output 0 even composites). So the black and sheared frames may be
+  captures of an output the application is not on.
+- Next, concretely: capture **output 9** — either by repainting all outputs (`IAS_REPAINT_OUTPUTS=10`, safe now that the pixman solid-fill interposer exists) and selecting the
+  matching `wl_output` in `ias-shot`, or by moving the surface to screen 0 with `ivi_wm`. Either answers the question the DLT log raised in one run.
+
 ## 3.0.2 - hand-launching with the vendor's arguments is not equivalent to launcher-managed startup
 
 - Retried the `-sv` question properly: the **full** vendor argument list, swapping only `-sv:1299` for `-sv:1920`, with `WAYLAND_DEBUG=1` so the application's own `create_buffer`

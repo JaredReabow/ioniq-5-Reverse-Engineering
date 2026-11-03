@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.15.0 - the loader technique works, and the draw entry point is `glDrawElementsBaseVertex`
+
+- Built the cheapest possible version of the deferred draw tracer: `gl_loader_probe.c`, which interposes **`eglGetProcAddress` only** and logs each distinct name once. Installed through
+  `/etc/ld.so.preload`, run against the chain.
+- **The application resolves exactly three entry points through the loader:**
+  ```
+  glRenderbufferStorageMultisampleEXT
+  glFramebufferTexture2DMultisampleEXT
+  glDrawElementsBaseVertex
+  ```
+- Two conclusions, both decisive for the instrument that follows:
+  1. **The loader technique works** — `eglGetProcAddress` is called in the application process, so wrapping what it returns is viable. The obstacle that stopped the libwayland interposition does
+     not stop this one.
+  2. **The draw is `glDrawElementsBaseVertex`, not `glDrawElements`** — Qt's batched renderer. A tracer written around plain `glDrawElements` would have captured **nothing**, which is exactly the
+     kind of silent empty result this project has repeatedly mistaken for evidence.
+- **There is a further simplification worth having:** only those three names come through the loader, so everything else (`glBindTexture`, `glTexParameteri`, `glVertexAttribPointer`, the matrix and
+  viewport calls) is bound by exported symbol — and this project's existing interposer already proves that path works. The tracer can therefore be **split**: intercept the exported calls directly,
+  and use the loader wrapper only for the single batched draw. That is simpler and more robust than routing everything through the loader.
+- Sent those measurements to the subagent building the tracer, so it does not wrap a function the application never calls. This is the second time a cheap probe has arrived before the expensive
+  instrument and saved it from being aimed wrong; the first was the `GALLIUM_DRIVER` verification.
+
 ## 3.14.0 - the draw tracer has a known technique, and it is the one that failed once already
 
 - The remaining instrument is a draw trace. Its hard part is that the vendor reaches GL through the **function table**, not through exported symbols: `QOpenGLFunctions` resolves

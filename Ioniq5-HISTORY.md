@@ -4526,3 +4526,9 @@ and are superseded by corrections rather than silently rewritten.
 - The draw cannot be interposed by symbol because it is reached through a function table. The way round that is to interpose the table's loader, which this project has not tried and which is the
   same obstacle that stopped the libwayland attempt.
 - Delegated with a falsification condition attached, and with permission to report that the technique cannot work rather than deliver something that cannot.
+
+## 2026-10-31 — the loader works, and the function has a name
+
+- Three lookups, and one of them is the batched draw. The technique is viable and the target is exact. A tracer built around the obvious function name would have recorded nothing at all.
+- Told the subagent mid-task, which is cheaper than reading its report tomorrow and discovering the target was wrong.
+- Second time in two turns that one small probe saved a large instrument from being aimed at the wrong thing.

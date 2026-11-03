@@ -4282,3 +4282,10 @@ and are superseded by corrections rather than silently rewritten.
 - Without the placement request the capture is empty. With it, forty percent of the frame has content, and every row is shifted relative to the last.
 - That is the most useful pair of measurements of the day: the request works, and what it reveals is a geometry fault between a 1926-wide surface and a 1920-wide output.
 - The one clean picture from earlier remains unexplained against the current behaviour, and rather than pick whichever story is convenient, both are written down.
+
+## 2026-10-31 — matching the sizes changed nothing
+
+- Setting the output to exactly the width the surface reports leaves the stripes exactly where they were. So this was never a negotiation problem.
+- The slope is the clue that matters: one pixel of drift per line. That is a stride bug, and the likeliest place for it is our own backend, where the buffer is allocated from one
+  width and read with another.
+- Five explanations are dead. The sixth is in a file I can open, which is a better position than this afternoon.

@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.2.0 - control run proves the wrapper was killing the application; only output 0 captures
+
+- **Controlled A/B on the wrapper.** With `/app/bin/AppHomeScreen` restored to the **vendor binary** (wrapper removed, `AppHomeScreen.real` used only as the source), the same chain
+  leaves the application **alive at 50, 90 and 130 seconds** (`HOME=804` at every checkpoint) with a real surface (`H(753)` present in the compositor log). In the wrapper configuration
+  the same chain lost it about one second after its surface appeared (§3.1.1).
+- **So the wrapper was the cause of the early exit**, by measurement rather than suspicion, and it is now removed: the application runs from its own binary again. This is the second
+  time this week that an instrument built to observe the system changed the system's behaviour, and the first time it was caught by a deliberate control rather than by accident.
+- **Output capture is only reliable for index 0.** Sweeping all ten outputs at 70 s: index 0 returned `mean R=4.4 G=4.4 B=4.4` (a dim frame), and indices **1–9 all timed out** with the
+  screenshooter (`Terminated`). So the vendor screenshooter in this configuration answers for the first output and not for the others — which means "capture output 9" is not a viable
+  route as things stand, and the earlier black readings for index 9 (§3.1.1) are at least partly a capture failure rather than a black screen.
+- Next, and it is the route that does not depend on the screenshooter: **put the application's surface on output 0** with `ivi_wm`, which issues `set_surface_layout`,
+  `set_surface_visible` and `request_fg(plane 0, id)`, and then capture index 0 — the one output whose capture path is known to work. That combination has never been tried with the vendor
+  binary in place and the application surviving.
+
 ## 3.1.1 - output 9 is black, the app lives about a second in chain runs, and my own changes are suspects
 
 - Capture now selects an output (`ias-shot <out> <index>`), verified: `10 output(s) bound, capturing index 9`.

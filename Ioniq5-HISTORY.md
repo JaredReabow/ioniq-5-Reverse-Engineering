@@ -4538,3 +4538,9 @@ and are superseded by corrections rather than silently rewritten.
 - Eight indexed draws and six array draws, with interleaved position and texture coordinates at a stride of sixteen bytes. The geometry path is finally visible.
 - The first attempt recorded zero draws and only the wrap marker made that interpretable; without it I would have concluded the application does not draw at all.
 - The coordinates themselves live in a buffer object, which is one more interposition away and is the smallest instrument left in this chain.
+
+## 2026-10-31 — the first look at what the application actually tells GL
+
+- Decoded vertex data: positions in pixels, texture coordinates in texels, a consistent 1.636 texels per pixel. Not normalised coordinates at all.
+- It is the first measurement of the interaction rather than of a component's innocence, and it opened two candidates rather than closing one.
+- Honest limit recorded: this buffer holds icons, not the full-screen background. The question that started this is still unanswered.

@@ -32,6 +32,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 #include <unistd.h>
 
 #define LOG_PATH "/tmp/gl-draw.log"
@@ -306,4 +307,67 @@ void glDrawArrays(GLenum mode, GLint first, GLsizei count)
 		real = dlsym(RTLD_NEXT, "glDrawArrays");
 	if (real)
 		real(mode, first, count);
+}
+
+/*
+ * Vertex payloads.
+ * ---------------
+ * The attribute trace showed interleaved vertices in array buffer 3, so the coordinates
+ * themselves arrive through glBufferData / glBufferSubData. Dumping the first kilobyte of each
+ * upload is what makes the measured question answerable: do the texture coordinates of two
+ * adjacent rows differ by three texels?
+ */
+static int bufdumps;
+
+static void dump_buffer(const char *what, GLsizeiptr size, const void *data)
+{
+	char line[128];
+	char *p = line;
+	char path[64];
+	int fd, idx;
+
+	if (data == NULL || size <= 0)
+		return;
+	if (bufdumps >= 6)
+		return;
+	idx = bufdumps++;
+
+	snprintf(path, sizeof path, "/tmp/gl-buf-%d.bin", idx);
+	fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (fd >= 0) {
+		size_t n = (size_t)(size > 1024 ? 1024 : size);
+		(void)!write(fd, data, n);
+		close(fd);
+	}
+
+	p = line;
+	put(&p, what);
+	put(&p, " size=");
+	putn(&p, (long long)size);
+	put(&p, " dumped=");
+	putn(&p, (long long)idx);
+	put(&p, "\n");
+	emit_line(line, p);
+}
+
+void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage)
+{
+	static void (*real)(GLenum, GLsizeiptr, const void *, GLenum);
+
+	dump_buffer("glBufferData", size, data);
+	if (!real)
+		real = dlsym(RTLD_NEXT, "glBufferData");
+	if (real)
+		real(target, size, data, usage);
+}
+
+void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void *data)
+{
+	static void (*real)(GLenum, GLintptr, GLsizeiptr, const void *);
+
+	dump_buffer("glBufferSubData", size, data);
+	if (!real)
+		real = dlsym(RTLD_NEXT, "glBufferSubData");
+	if (real)
+		real(target, offset, size, data);
 }

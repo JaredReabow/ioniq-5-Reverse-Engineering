@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.4.0 - the app's window appears, its text is crisp, and its *images* are sheared
+
+- With the splash **hidden rather than killed** — new `ivi_wm --hide <id>`, so the surface is taken off the screen without being destroyed — and the application's own window placed
+  (`ivi-wm 2080`), output 0 finally shows the application:
+  ```
+  ivi_wm: request ivi_window_manager.set_surface_visible(30000, 0)
+  ias-shot: mean R=38.4 G=59.0 B=68.6   (40.95% nonzero, 27.94% bright)
+  ```
+  Saved as **`docs/vm/18-app-window-crisp-text-sheared-image-2026-10-31.png`**. The frame contains the application's top bar with window buttons, the string
+  **`STR_CAMERA_ALERT2`**, and its window body.
+- **The decisive detail is what is crisp and what is not.** `STR_CAMERA_ALERT2` renders **perfectly sharply**, while the background — which is an **image** (the boot logo visible through
+  it) — is sheared into diagonal stripes. Text and geometry are correct; **textured image content is wrong**.
+- That narrows the fault to the **texture upload path**, not the compositor and not the swap/composite: the vendor's `UncompressedTextureFactory` is what turns an image into a GL
+  texture, and it is the same component that fails outright under software rendering (§2.97.0). A pitch/stride bug there would corrupt image sampling while leaving vector text untouched,
+  which is exactly what the frame shows.
+- **This also refines §3.3.0 rather than replacing it.** Killing a surface does produce a sheared stale buffer (measured), and *hiding* one does not (this frame still shows the logo, but as
+  part of the application's own background image rather than as a composited corpse). Both observations are consistent with a texture-upload defect being the primary fault and
+  surface-destruction artefacts being a second, related symptom in the same component family.
+- Next, and it is now a single, specific target: instrument `UncompressedTextureFactory::createTexture` / the vendor texture upload to log the image dimensions and the pitch used, exactly as
+  §2.90.0 did for pixman. If the upload assumes a 1920-wide pitch for a 1926-wide image, the stripe pattern follows arithmetically and the fix is one number.
+
 ## 3.3.0 - the shear follows a *destroyed* surface, not the application's
 
 - Final combination attempted: vendor binary (application alive, `HOME=858`), placement issued (`PLACED`), then the boot splash killed (`SPLASH_KILLED=739`) and output 0 captured.

@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.83.0 - A/B on output naming: sheared versus black, and neither is a picture
+
+- Re-measured with the fixed capture tool (§2.82.0), same application configuration (`QT_WAYLAND_USE_PID_FOR_SURFACE_ID=1`, pid-derived id, `ivi-wm` placement
+  attempted), changing **only** the output naming and the matching config section:
+  - **outputs named `HDMI1…` with `[output] name=HDMI1`** — capture is `mean R=31.3 G=70.5 B=83.9`, `peak=255`, 42.23% nonzero, and the image is **diagonal
+    stripes**. The tool confirms it read the output's real mode (`shooting 1920x720`), so this is **not** a capture-width artefact: the compositor's own output is
+    sheared.
+  - **outputs named `IAS-0…` with `[output] name=headless`** (`IAS_OUTPUT_NAMES=ias`) — capture is **completely black** (`peak=0`, 0.00% nonzero).
+- So the rename I introduced in §2.80.0 **does change what the compositor produces** — from nothing at all to a sheared frame — and the vendor configuration's output naming
+  is therefore not cosmetic. It also means the earlier unsheared window (`docs/vm/14-…png`) came from a third configuration, and the present pair brackets the problem:
+  one setting renders nothing, another renders with the wrong stride.
+- **What is now established about the shear, corrected twice in one day:** it is *not* the application (§2.78.0), *not* the capture width (§2.82.0), and it *is* sensitive to
+  how the output is named and configured. The most likely mechanism is a stride/geometry disagreement between the mode the backend applies for a `HDMI1` output and the
+  1926-wide surface the vendor stack composites — which is exactly the kind of thing our reimplemented backend can get wrong, unlike the vendor `ias-backend.so`.
+- Next, and it is a code question rather than a guessing one: inspect how `ias-backend-soft.so` sets the output mode and stride for a named output, and whether it derives the
+  stride from the configured mode or from the surface. A one-line mismatch there would produce precisely this stripe pattern.
+- Honest position: the display work has regressed to "no correct picture in this backend", but with a much better map — the app draws, the capture tool is correct, and the
+  fault is now localised to our backend's mode/stride handling for named outputs rather than to anything vendor-side.
+
 ## 2.82.0 - confirmed: the capture tool hard-coded 1920x720, which is what sheared the frame
 
 - Read `ias-shot.c` and found the cause of the diagonal stripes outright:

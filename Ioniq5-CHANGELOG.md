@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.3.0 - the shear follows a *destroyed* surface, not the application's
+
+- Final combination attempted: vendor binary (application alive, `HOME=858`), placement issued (`PLACED`), then the boot splash killed (`SPLASH_KILLED=739`) and output 0 captured.
+  Result: `mean R=46.3 G=81.9 B=74.5`, 49.35% nonzero, **and the frame is the Hyundai boot logo, sheared into diagonal stripes** — saved as
+  **`docs/vm/17-shear-follows-destroyed-surface-2026-10-31.png`**.
+- **That is the most informative frame of the entire investigation.** The sheared content is the **splash's own logo**, from a process that has just been killed. Before the kill, the same
+  output showed the same logo **crisply** (`mean 4.4`, `docs/vm/` capture chain). So the shear does not belong to the application, to EGL, or to any particular client's buffer: **it appears
+  when a surface is composited after its owner is gone.**
+- That single observation reconciles several things this project has measured separately and never connected:
+  - the **pixman assertion** of §2.49.0 (`composite_clipped: Assertion 'src_format' failed`) needed exactly this condition — a client surface destroyed while its view was still being
+    composited — and we interposed a solid-fill fix for its sibling symptom (§2.53.0);
+  - the **software-rendered frame was clean** (§2.96.0) because in that run no surface was destroyed mid-composite;
+  - the shear **persisted when output and surface widths matched** (§2.85.0) because width was never the variable;
+  - and every "black" or "sheared" capture taken *after* `early-background` was killed in earlier rounds was a picture of this same defect rather than of the application.
+- **Why it matters practically:** the frames are not showing the application at all in those runs. The vendor `ivi-layout`/view bookkeeping is leaving a destroyed surface in the composite, and
+  what reaches the screener is that stale buffer read with the wrong stride. The application's own content was never in those frames to begin with.
+- Next, and it follows directly: **stop killing `early-background` as a way to "get it out of the way"** — that is what manufactures the artefact. Either let it exit on its own (it does so
+  when the compositor is laid out as the vendor expects, §2.46.0 observed exactly that), or place the application on a screen the splash does not occupy. Capturing after a kill will always
+  produce stripes, and that has now cost this project many rounds.
+
 ## 3.2.0 - control run proves the wrapper was killing the application; only output 0 captures
 
 - **Controlled A/B on the wrapper.** With `/app/bin/AppHomeScreen` restored to the **vendor binary** (wrapper removed, `AppHomeScreen.real` used only as the source), the same chain

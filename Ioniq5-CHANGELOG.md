@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.13.0 - Mesa tracing did not engage, and the reason is one function call away
+
+- Installed `gallium-trace-env.so` (from the delegated work) through `/etc/ld.so.preload` and ran the chain. Result: **no trace file**, and **no `GALLIUM_TRACE queried` line** in the shim's
+  own log.
+- **The shim is definitely loaded into the application** — `grep -c gallium-trace-env /proc/<pid>/maps` returns **4** — and **Mesa's driver does contain the string** `GALLIUM_TRACE`
+  (`strings /usr/lib/dri/swrast_dri.so` matches once). So the module knows the name, the interposer is in the process, and yet the interposer was never *asked*.
+- The most likely explanation, and it is testable in one build: **Mesa may read its options through `secure_getenv()` rather than `getenv()`**. The shim intercepts `getenv` only. If that is
+  what this build does, the fix is to interpose `secure_getenv` as well and the trace should appear.
+- This is recorded as **"tracing did not engage, cause not yet established"** rather than as "Mesa tracing is unavailable" — the difference matters, because one of those conclusions would
+  send the next attempt down the hand-written-tracer route unnecessarily.
+- Next: add `secure_getenv` (and `__secure_getenv` if present) to the same interposer, re-run, and check for the trace file. If the trace then appears, the draw-level question becomes
+  arithmetic again: do consecutive rows differ by **3 texels** in the coordinates the vendor supplies?
+
 ## 3.12.0 - the next instrument may already exist inside Mesa
 
 - With the shear measured at **3 pixels per row** (§3.11.0), the next step was a draw-call tracer. Before writing one, a cheaper possibility: **Mesa ships its own tracing** — the Gallium

@@ -4507,3 +4507,9 @@ and are superseded by corrections rather than silently rewritten.
 - Before building the largest instrument of this investigation, checked whether Mesa already contains it. Gallium has a trace module driven by environment variables, and this project already has
   a way to answer getenv inside a process the launcher starts.
 - Delegated the capture and the parser. The test is now arithmetic rather than visual: do consecutive rows differ by three texels in the coordinates the vendor supplies?
+
+## 2026-10-31 — loaded, present, and never asked
+
+- The interposer was in the process four times over and the driver contains the option name, but nothing queried it. One plausible reason is that Mesa reads its options through a different lookup
+  function than the one I replaced.
+- Recorded as a cause not yet established rather than as tracing being unavailable, because that distinction decides whether the next attempt needs a hand-written tracer at all.

@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.98.0 - where the sharing code actually lives, and a checkpoint of the display investigation
+
+- Static check of route (b)'s starting point: **`ivi_share` is not in `libivi-platform-interface.so` at all** — that library exports nothing matching share/dma/buffer/stride/shm. The
+  protocol lives in the **compositor** (`/usr/lib/weston/ivi-controller.so`, `ivi-input-controller.so`) and is consumed by **`/usr/lib/libQt5WaylandClient.so.5.4.1`**. So the vendor
+  surface-sharing is a Weston-side extension plus a Qt-side client binding, and the earlier trace line `ivi_share_surface@59.share_surface_state(1)` is that extension in use.
+- That matters for the next instrument: interposing in `libivi-platform-interface.so` would have found nothing. The informative places are the Qt Wayland client and the two Weston
+  modules, and the earlier lesson applies — the Qt side is inline marshalling (not interposable by name), while the Weston modules are ordinary shared objects (interposable).
+- **Checkpoint of the display investigation, stated as it actually stands:**
+  - the application renders, calls `QWindow::show()`, creates a surface, commits buffers, and reports a real window to the compositor (measured);
+  - the placement request works and is what makes content appear (measured);
+  - the composite is **correct** when the application is forced onto software rendering, which produces a clean 1920×720 frame — so the compositor, renderer, our backend and the
+    placement are all exonerated (measured);
+  - the **software path cannot display the vendor UI**, because the vendor's own texture factory fails for every image when not on GL (measured, §2.97.0);
+  - therefore the shear is confined to the **GL/EGL path**, and the only components left in it are the vendor's Weston-side `ivi_share` extension and Qt's client binding;
+  - weston's **GL renderer does not run in this image** (`--use-gl` fails to create a socket), which is why the substitution that would isolate the renderer cannot be made.
+- Two honest options from here, both real work rather than another measurement: **(i)** make weston's GL renderer work in this image, which would let the EGL path be tested against a
+  renderer that can actually sample GL buffers, or **(ii)** instrument the Weston-side `ivi_share` composite, which is interposable but requires decoding the vendor extension's
+  behaviour first. Neither is a quick run, and both are written down rather than attempted at the end of a long stretch.
+
 ## 2.97.0 - the software path cannot show the vendor UI: its texture factory is GL-only
 
 - Route (a) from §2.96.0 tested, and closed. In the software-rendered run the application's own log repeats, for every image it tries to draw:

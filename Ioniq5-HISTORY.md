@@ -4414,3 +4414,10 @@ and are superseded by corrections rather than silently rewritten.
 - The earlier note that the chain renders 1920x720 surfaces was wrong: those were the vendor's notification surface. The application's window is 1926x753 here too.
 - More importantly, the application used to survive minutes in the chain and now survives a second. That changed after the wrapper and the ten-output backend went in, so the next thing to
   test is whether my own instrumentation is what is killing it.
+
+## 2026-10-31 — the wrapper was the problem, and the control proved it
+
+- Restoring the vendor binary brought the application back to a survival time measured in minutes. The wrapper I added to inject a surface id was killing it, and only a deliberate control
+  run could show that.
+- Capturing across outputs showed the screenshooter answers for output zero and times out for the rest, so some of yesterday's black frames were capture failures rather than black screens.
+- The next step is the one combination never tried: vendor binary, application alive, surface placed on output zero, capture output zero.

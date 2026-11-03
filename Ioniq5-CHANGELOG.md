@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.95.0 - the peek does not find the application's pixels, and that says something about its rendering path
+
+- Did what §2.94.0 said to do — read the candidate listing rather than guess again. Two measurements from the process's own maps at 35 seconds:
+  - **the only region in the frame's size class** was an anonymous read-write mapping of **5,423,104 bytes** (`7fed8c000000-7fed8c52c000 rw-p`), which is **smaller than one
+    1926×753×4 frame** (5,801,112) — which is why the earlier scan, requiring a full frame, never saw it;
+  - the biggest mappings are the binary's text (15.6 MB) and the heap (**21.1 MB, `[heap]`**), plus 2 MB guard regions for each Qt plugin.
+- Relaxed the size threshold to three quarters of a frame with short-read handling and re-ran: candidates scored `1e9`, `1e9`, `42.53`, and the chosen one is **still noise**.
+  So the application's pixels are **not** sitting in a readable, CPU-mapped buffer of that size at the moment of sampling.
+- **What that implies, and it is worth more than the instrument:** the application links `libEGL` and the vendor `libivi-platform-interface`, and its traffic includes
+  `ivi_share_surface` — so it is very likely rendering **through EGL and sharing the surface** rather than drawing into a CPU-visible `wl_shm` pool. The `wl_shm` buffer observed
+  earlier (1926×753, stride 7704) is real but may be a secondary path (cursor, one-off, or a buffer that exists briefly), not the frame on screen.
+- That reframes the shear: if the visible content arrives via EGL/`ivi_share` rather than `wl_shm`, then the compositor is scaling/compositing a GL-backed buffer, and the
+  pixman-specific behaviour of `--use-pixman` in that path is a much better suspect than anything about strides in a shared-memory image.
+- Closed this instrument line here rather than iterating a fourth heuristic. Keeping `shm-peek` committed because the capability it demonstrated (reading a live client's
+  address space without interposition, with candidate enumeration and scoring) is reusable, and because the next attempt should start from **EGL/`ivi_share`** rather than from
+  `/proc` scanning.
+
 ## 2.94.0 - the buffer peek works mechanically but has not yet found the framebuffer
 
 - `shm-peek` grew two mechanisms and a heuristic, each added because the previous one was measured to fail:

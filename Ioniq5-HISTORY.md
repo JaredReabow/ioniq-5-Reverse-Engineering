@@ -4295,3 +4295,10 @@ and are superseded by corrections rather than silently rewritten.
 - It declares 1926 by 753 with a stride of exactly four bytes per pixel. Whatever is wrong, it is not the application misreporting its geometry.
 - That leaves one seam: between the vendor renderer and the framebuffer our backend provides. Two stride values, logged side by side, will settle it.
 - Six explanations are dead. The seventh is a comparison I can print.
+
+## 2026-10-31 — the instrument is ready and the subject keeps leaving
+
+- The stride comparison is built and deployed, and cannot fire because the compositor does not repaint when nothing is displayed. That is consistent with everything measured
+  today: the placement request is what makes the application visible.
+- Three separate runs were lost to the application exiting before the checkpoint. That is now the binding constraint on progress, not any missing knowledge.
+- The next attempt polls instead of sleeping. Recorded because otherwise the next person repeats the same three runs.

@@ -4475,3 +4475,9 @@ and are superseded by corrections rather than silently rewritten.
 - The working recipe's own asset tree produces the same stripes, so the theme was never the difference and another tidy answer is gone.
 - The frame does leave one clue worth keeping: crisp horizontal lines survive inside the striped field, so whatever is wrong happens inside the sampling of a single drawn quad.
 - Closed the display investigation here for now. The state is written down rather than a theory, and the next instrument is named.
+
+## 2026-10-31 — no difference, and no proof the change was applied
+
+- Forcing llvmpipe produced the same stripes. That would exclude the driver, except that nothing confirms the override reached Mesa, so the run supports a weaker claim than it looks.
+- Written as "no difference observed" rather than "driver excluded", because those are different statements and only one of them is earned here.
+- The verification for this is trivial and I did not do it first. That is the same mistake as the invalid GL runs, arriving from a different direction.

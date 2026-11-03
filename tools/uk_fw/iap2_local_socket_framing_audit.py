@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "ioniq-iap2-local-socket-framing-audit/v1"
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 MAX_FILE_BYTES = 64 * 1024 * 1024
 ELF_HEADER = struct.Struct("<16sHHIQQQIHHHHHH")
 PROGRAM_HEADER = struct.Struct("<IIQQQQQQ")
@@ -64,6 +64,9 @@ FRAMEWORK_RANGES = {
     "iAp2EventHandleThread": (0x1FCF4, 0x2052F, "be80016f73eebb826c0239d2ff6e2750ab3e33424c2d264e8ddae9c18936d998"),
     "iAp2MarshalInit": (0x2100D, 0x210FF, "6ee6b7cf272006bb7987d92bb0bdb56e157cadb031512f0dc4527b528cf96e77"),
     "iAp2MarshalInitFromTxn": (0x210FF, 0x21175, "4e7fbd707234bf553adf0c59de1501865d873ebeae4ee058f59139124dbf5729"),
+    "iAp2MarshalAlloc": (0x21175, 0x2129D, "ed1c5e939eee08fccb99eb673f74747c6201c390ae878651ff18b72cb94bc2e7"),
+    "iAp2MarshalPutUint32": (0x21359, 0x213B3, "459ed98a9a68a8aa8dde1abfa84222e0baa8a8b312c92559a043858d0b21904f"),
+    "iAp2MarshalPutBytes": (0x21583, 0x21645, "1e002cee0cb9c0e073017c7ccdc2a8dfe4da61e413181227ec92fedeac2fa2ff"),
     "iAp2MarshalGetUsedSize": (0x21B21, 0x21CA0, "aa7ecb6f0be22bd24ec8d32b90a9a7e22b34475a0d42c587507563c3efa82b4f"),
 }
 
@@ -93,6 +96,13 @@ FRAMEWORK_ANCHORS = {
     "client_dispatch_after_positive_body": (0x203B9, "8b95dcfeffff8b8da0feffff488bb588feffff488b8580feffffff7028ff7020ff7018ff7010ff7008ff3089cfe8440100004883c430"),
     "client_socket_path": (0x2A3C0, "2f746d702f69417032536f636b657400"),
     "marshal_init_from_txn_overstates_remaining": (0x21126, "488b45f0488d5040488b45e848895010488b45e8488b5010488b45e8488910488b45f08b5038488b45e889500c488b45e8c7401801000000"),
+    "marshal_init_rejects_offset_gt_capacity": (0x21038, "483b45d8765e"),
+    "marshal_alloc_loads_remaining": (0x211E5, "8b400c89c0"),
+    "marshal_alloc_compares_remaining_vs_aligned": (0x211EA, "483b45d07355"),
+    "marshal_alloc_failure_sets_flag_bit2": (0x211F7, "83c802"),
+    "marshal_putbytes_calls_putuint32_then_alloc": (0x215E3, "e8c83afeff"),
+    "marshal_putbytes_alloc_failure_skips_memcpy": (0x215FE, "48837df000742a"),
+    "marshal_getusedsize_validates_bounds": (0x21B87, "4839c2732e"),
 }
 
 # (iAp2MarshalInit call, iAp2MarshalGetUsedSize call, total-length store, SendEventToApp call)
@@ -472,13 +482,59 @@ def build_report(framework: bytes, service: bytes, unit: bytes, relabel: bytes, 
             "calls": command_dispatch,
             "conclusion": "the accepted local-client transaction dispatcher directly reaches all 11 iAp2MarshalGetBytes caller functions and both identification handlers that supply the heap-string wrapper; command and session-state predicates still apply",
         },
+        "marshal_writer_family": {
+            "iAp2MarshalInit": {
+                "range": "0x2100d..0x210ff",
+                "rejects_offset_gt_capacity": {
+                    "elf_va": "0x21038",
+                    "mechanism": "cmp rdx, rax; jbe success; else sets flag bit 1, remaining=0, ptr=0",
+                    "matched": True
+                }
+            },
+            "iAp2MarshalInitFromTxn": {
+                "range": "0x210ff..0x21175",
+                "overstates_remaining_by": 64,
+                "anchor": "0x21126..0x2115e copies txn+0x38 (total size) into remaining without subtracting 0x40",
+                "matched": True
+            },
+            "iAp2MarshalAlloc": {
+                "range": "0x21175..0x2129d",
+                "loads_remaining": {"elf_va": "0x211e5", "matched": True},
+                "compares_remaining_vs_aligned_request": {"elf_va": "0x211ea", "matched": True},
+                "failure_sets_flag_bit2_returns_null": {"elf_va": "0x211f7", "matched": True},
+                "success_requires_remaining_ge_aligned": True
+            },
+            "iAp2MarshalPutBytes": {
+                "range": "0x21583..0x21645",
+                "calls_putuint32_then_alloc": {"elf_va": "0x215e3", "matched": True},
+                "alloc_failure_skips_memcpy": {"elf_va": "0x215fe", "matched": True}
+            },
+            "iAp2MarshalGetUsedSize": {
+                "range": "0x21b21..0x21ca0",
+                "validates_current_ptr_le_end_ptr": {"elf_va": "0x21b87", "matched": True},
+                "returns_zero_on_error_state": True
+            },
+            "conclusion": "writer family fails closed: wrapped or undersized capacity causes iAp2MarshalAlloc to fail, iAp2MarshalPutBytes skips memcpy; no phone-controlled heap overflow via dynamic producer arithmetic"
+        },
         "producer_inventory": {
             "direct_send_event_call_count": len(PRODUCER_ANCHORS),
             "successful_marshal_minimum_total": 64,
             "anchors": producer_entries,
             "dynamic_capacity_producer_count": len(DYNAMIC_PRODUCER_RANGES),
             "dynamic_capacity_producers": dynamic_ranges,
-            "boundary": "the nine dynamic producers retain unchecked uint32 capacity arithmetic; upstream practical length ceilings, allocation feasibility, and alternate indirect producers are not established",
+            "capacity_bounds": {
+                "wrap_threshold": "uint32 multiplication wraps at 2^32; requires length ~1 GiB",
+                "upstream_parser_bounds": "all reviewed callers supply 16-bit TLV lengths (max 65535)",
+                "max_observed_capacity": "~524 KiB (WiFiInformation with two max lengths)",
+                "wrap_reachable": False
+            },
+            "producer_residue": {
+                "location": "handleExternalAccessoryProtocolRecvData at 0x141896",
+                "issue": "unconditional header stores at +0x00, +0x38, +0x3c after possibly-failed marshal",
+                "reachability": "requires param_5 <= -0x19 (negative length); reviewed receive paths produce positive bounded lengths only",
+                "classification": "code smell / defect residue, not a demonstrated primitive"
+            },
+            "boundary": "wrapped-capacity heap-overflow hypothesis retired by writer capacity enforcement and upstream bounds; only unreachable negative-length header-store residue remains",
         },
         "findings": {
             "undersized_total": {

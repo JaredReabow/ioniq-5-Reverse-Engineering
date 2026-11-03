@@ -72,7 +72,7 @@ class Iap2LocalSocketFramingAuditTests(unittest.TestCase):
         self.assertEqual(report["framing"]["marshal_length_semantics"]["overstatement"], 64)
         self.assertIn("CWE-787", report["findings"]["undersized_total"]["classification"])
         self.assertIn("CWE-125", report["findings"]["transaction_remaining"]["classification"])
-        self.assertEqual(report["canonical_sha256"], "2246011e805b39b9f38d1a3af674d299fd0fe782dc8a67c8c5bee7d1f0826336")
+        self.assertEqual(report["canonical_sha256"], "163e51b395feee04fc883d2abad5b0e1df6d60b7885469ef7b314a8dccde44b5")
 
     @unittest.skipUnless(RECOVERED_PRESENT, "recovered firmware is not present")
     def test_cli_is_deterministic_and_refuses_overwrite(self) -> None:
@@ -87,7 +87,7 @@ class Iap2LocalSocketFramingAuditTests(unittest.TestCase):
             subprocess.run(command + ["--output", str(second)], check=True)
             self.assertEqual(first.read_bytes(), second.read_bytes())
             parsed = json.loads(first.read_text(encoding="ascii"))
-            self.assertEqual(parsed["canonical_sha256"], "2246011e805b39b9f38d1a3af674d299fd0fe782dc8a67c8c5bee7d1f0826336")
+            self.assertEqual(parsed["canonical_sha256"], "163e51b395feee04fc883d2abad5b0e1df6d60b7885469ef7b314a8dccde44b5")
             duplicate = subprocess.run(
                 command + ["--output", str(first)], stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE, check=False,

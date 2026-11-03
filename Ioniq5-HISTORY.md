@@ -4387,3 +4387,10 @@ and are superseded by corrections rather than silently rewritten.
   produced a confident "GL does not work" that was not yet earned.
 - With a complete config the answer is one line: the vendor headless backend does not accept --use-gl. It cannot render through GL at all, which closes that route by measurement.
 - Left with one route, and a note to self about config files in a tmpfs.
+
+## 2026-10-31 — the buffer is shared through Mesa, and the numbers finally line up
+
+- The pixels live in a 5.8 MB mesa-shared segment, not in any Wayland shm pool. The three small weston-shared segments are the vendor's state, not the picture.
+- With the application's window 1926 wide and the compositor assuming 1920, the disagreement is 24 bytes per row. That is a mundane explanation and the first one in days that does not
+  require anything exotic.
+- I tried to confirm it by measuring the shear slope and could not: the frames are noise after the drift. The arithmetic is written down as arithmetic, not as proof.

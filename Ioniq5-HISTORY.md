@@ -4442,3 +4442,10 @@ and are superseded by corrections rather than silently rewritten.
 - The environment problem that blocked instrumenting the launcher's children for days has a one-line answer: /etc/ld.so.preload. Every process reads it, including the one I could not reach.
 - With it installed, the GL trace shows correctly sized uploads and no row-length override at all — so the texture upload geometry is not the fault, and that hypothesis is retired.
 - What is left is inside the vendor's own conversion code, which needs a different instrument than GL calls.
+
+## 2026-10-31 — the images are compressed, and the GL stack probably cannot decompress them
+
+- The vendor ships its art as ASTC blocks and uploads them with glCompressedTexImage2D. A driver without ASTC does not error visibly; it fills the texture with nothing and sampling it produces
+  patterns that look exactly like the stripes I have been chasing.
+- That also fits the software-rendering result: there the uncompressed factory failed outright, here the compressed one fails quietly.
+- One extension string check decides it. After two days of geometry theories, the answer may simply be a format the software GL never advertised.

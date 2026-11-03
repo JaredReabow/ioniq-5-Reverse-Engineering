@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.6.0 - the images are ASTC-compressed, and that is very likely the shear
+
+- The remaining suspect from §3.5.0 was the vendor's own texture conversion. Static inspection of `/app/lib/libImageProvider.so.1.0.0` names the two factories explicitly:
+  ```
+  26UncompressedTextureFactory
+  28ASTCCompressedTextureFactory
+  23ASTCCompressedSGTexture
+  8AstcFile
+  .astc
+  ```
+  together with error strings such as `ASTCCompressedSGTexture::glCompressedTexImage2D: error code` and `ASTC: 3D ASTC textures not supported`.
+- **The shipped assets are ASTC.** A single night theme directory contains **1,549 `*.png.astc.lz4`** files (plus `.png.astc.header` sidecars), with plain `.png` present only for some
+  subtrees — and the application loads the compressed path wherever it exists.
+- **This explains the frame in §3.4.0 exactly.** `glCompressedTexImage2D` for ASTC needs `GL_EXT_texture_compression_astc_ldr` (or equivalent) from the GL implementation. The software
+  GL chain in this image is Debian swrast/softpipe, which is very unlikely to expose ASTC — and when a driver does not support a compressed format, the upload does not fail loudly: the
+  texture contents are simply undefined, and sampling it produces **structured garbage that changes with the sampling coordinates**, which is what diagonal stripes across image regions
+  look like. Vector text uses no textures at all, which is why it stays sharp.
+- It also explains the two neighbouring measurements: under software rendering the **uncompressed** factory fails outright (§2.97.0, `createTexture … Fail`), and under GL the
+  **compressed** path silently produces garbage — the same component family failing in two different ways depending on the renderer.
+- **Next, one check with a binary answer:** query the GL extension string in the guest for `GL_EXT_texture_compression_astc_ldr` / `_slice`. If absent, the shear is fully explained by an
+  unsupported compressed format, and the fix is to supply ASTC support to the GL stack or to make the application use the uncompressed `.png` tree where one exists. Either way the
+  investigation ends at a named capability rather than a stripe pattern.
+
 ## 3.5.0 - a way to instrument launcher-spawned processes at last, and what the GL upload shows
 
 - **Method, and it solves a problem that has blocked instrumentation all week:** the application manager rebuilds its children's environment, so `LD_PRELOAD` from the launcher never

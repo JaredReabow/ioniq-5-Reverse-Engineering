@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.9.0 - the window surface itself is uploaded as BGRA 1926x753, and alignment is correct
+
+- Extended `gl_upload_trace.c` to log **every** `glPixelStorei` parameter and the `glTexParameteri` sampler state, plus the format arguments it was already recording. Result:
+  ```
+  glTexImage2D a=444  b=68  c=6406 d=6406    ← RGB image, small
+  glPixelStorei(UNPACK_ALIGNMENT) a=4
+  glTexImage2D a=930  b=57  c=6408 d=6408    ← RGBA image
+  glPixelStorei(UNPACK_ALIGNMENT) a=1        ← toggled correctly for odd widths
+  glTexImage2D a=1926 b=753  c=32993 d=32993 ← GL_BGRA, the window surface itself
+  glTexImage2D a=1926 b=123  c=32993 d=32993
+  glTexImage2D a=1926 b=108  c=32993 d=32993
+  ```
+  `32993` is `0x80E1`, **GL_BGRA**. So the application uploads its **own window surfaces as BGRA textures at 1926 wide** — the same width the compositor reports — and it toggles `UNPACK_ALIGNMENT` between 4 and 1 exactly as a well-behaved uploader should.
+- **That eliminates the alignment hypothesis** this entry was built to test, and it eliminates the "wrong row length" hypothesis already retired in §3.5.0. Whatever shears the application's images, it is not how GL is told to walk the source rows: alignment is correct, no row-length override exists, and the formats are ordinary RGB/RGBA/BGRA.
+- It also removes the last reason to suspect an asset-format problem: the striped content is drawn from **BGRA surfaces the application renders itself**, not from the ASTC files (§3.8.0 refuted those).
+- **Where the display investigation stands, stated for the record rather than as progress:** the application renders and commits; placement works; the composite is correct under software rendering; the stripes affect its images and not its text; they are not the splash, not ASTC, not output geometry, not the capture tool, not the compositor, not our backend, not alignment, not row length, and not the upload format. What remains unexamined is the **draw** side — how the texture is sampled and blended onto the quad — which needs a per-draw trace rather than a per-upload one, and that is a materially larger instrument than anything built here so far.
+
 ## 3.8.0 - CORRECTION: the stripes survive both the splash's removal and ASTC's denial
 
 - Ran the full 2×2 rather than trusting the previous inference:

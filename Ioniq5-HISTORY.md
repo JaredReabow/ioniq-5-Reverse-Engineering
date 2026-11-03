@@ -4309,3 +4309,10 @@ and are superseded by corrections rather than silently rewritten.
 - With the application's own buffer also verified correct, the only component left in the path is the vendor's pixman renderer — the same one that needed an interposer to stop
   aborting last week.
 - So the next test is not a measurement but a substitution: run the same scene through the GL renderer and see whether the stripes follow the renderer or the scene.
+
+## 2026-10-31 — the substitute was not installed
+
+- Asking weston for its GL renderer makes it exit before it draws anything, so the pixman hypothesis could not be tested. That is an infrastructure gap, not an answer, and the
+  distinction goes in the record.
+- One useful accident: the capture tool produced a frame from a compositor that was already dead. Any capture now needs to be paired with proof the compositor was alive.
+- The next move is probably the one that has worked all along here: interpose in the vendor's pixman path rather than try to replace its renderer.

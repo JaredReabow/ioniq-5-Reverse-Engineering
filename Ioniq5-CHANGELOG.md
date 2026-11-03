@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.89.0 - the GL-renderer substitution is not available in this configuration
+
+- Attempted the §2.88.0 substitution: same scene, same pristine-derived image, vendor `headless-backend.so` started **without** `--use-pixman` so that weston would choose its GL
+  renderer. Result:
+  - the compositor **exits**: `SOCKET=yes` then `WESTON=` empty, and **no renderer line** of any kind in its log — the GL renderer never initialised;
+  - the application therefore never ran (`APP=` empty after 40 s of polling);
+  - `ias-shot` still worked against the dead compositor's stale socket, which is worth knowing: **a capture succeeding does not prove the compositor is alive**.
+- Honest classification: this is an **infrastructure failure, not a refutation**. The hypothesis — that the shear is pixman-specific — remains untested. Getting the GL renderer
+  running here would need the software-EGL injection this project already uses for the *application* (`/opt/software-egl18`, `GALLIUM_DRIVER=softpipe`) applied to the
+  **compositor**, which is a separate piece of work and not a quick substitution.
+- Two smaller facts worth keeping from the attempt: the capture tool will happily produce a frame from a dead compositor's socket, so a run must assert `pidof weston` alongside
+  any capture; and our own backend has **no GL path at all** (`use_pixman` is the only renderer branch), so the substitution cannot be tested there without new code.
+- Position: six refutations and one infrastructure failure. The next step for the shear is either to make weston's GL renderer work in this image, or to interpose in the pixman
+  path the way §2.53.0 did for the solid-fill abort — and the second is more in keeping with what has actually worked here, since every success so far has come from interposing in
+  a vendor binary rather than replacing it.
+
 ## 2.88.0 - the geometry cross-check fires and clears our backend: mode, image and buffer all agree
 
 - Polling instead of sleeping worked first time — the app was up immediately (`APP=734 after 0s`), `ivi-wm` was issued within the same second, and the repaint path ran. This is

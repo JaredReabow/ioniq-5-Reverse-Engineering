@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.14.0 - the draw tracer has a known technique, and it is the one that failed once already
+
+- The remaining instrument is a draw trace. Its hard part is that the vendor reaches GL through the **function table**, not through exported symbols: `QOpenGLFunctions` resolves
+  `glDrawElements` via the loader, so there is nothing to interpose by name. That is the same obstacle that made the libwayland interposition fail in §2.92.0.
+- But the technique that *does* work for this shape is known here: **interpose the loader** (`eglGetProcAddress`) and return wrapped pointers for the draw entry points, passing every other name
+  through untouched. That is how a function-table client can be instrumented without touching its code, and it is consistent with everything that has succeeded in this project — the
+  solid-fill interposer, the `setenv` shim, the `getenv` override, `/etc/ld.so.preload`.
+- Delegated with the constraint stated up front: if the loader trick cannot work for this stack, say so with evidence rather than delivering something that cannot work. The numeric target is
+  unchanged — **three texels of lateral offset per row** — and the subagent is asked to state what a 3-texel offset would look like in the captured data *and* what would refute it, so the
+  instrument arrives with its own falsification condition.
+- Also recorded as a design constraint for the delegation: capture only what can actually be captured. Texture coordinates may live in a client array or a buffer object and may not be readable at
+  draw time; the report is required to say plainly which of the two it obtained rather than implying completeness.
+
 ## 3.13.1 - Mesa's trace module is not in this build; the fallback is the hand-written tracer
 
 - Added `secure_getenv` and `__secure_getenv` to the interposer (both verified exported: `nm -D` shows two matches) and re-ran. Result: **still no query, still no trace file**.

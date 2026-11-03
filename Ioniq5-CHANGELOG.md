@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.17.0 - the vertex data is in, and the texture coordinates are in texel space
+
+- The buffer dump works: `glBufferData size=1564` captured (1,024 bytes kept), stride 16 bytes, decoded as position `(x, y)` and texture coordinates `(u, v)`:
+  ```
+  v0 pos=( 285.19, 11.95) uv=(136.727280, 3.727273)
+  v1 pos=( 307.51, 11.95) uv=(173.241486, 3.727273)
+  v2 pos=( 285.19, 41.59) uv=(136.727280, 52.225853)
+  v3 pos=( 307.51, 41.59) uv=(173.241486, 52.225853)
+  ```
+- **The texture coordinates are not normalised.** They run into the hundreds and vary by tens per vertex, i.e. they are in **texel space**: `u` spans 36.514 texels across a 22.32-pixel quad, and `v` spans 48.499 texels across 29.64 pixels — a consistent **1.636 texels per pixel** in both axes. Either the application sets a texture matrix to convert these, or it relies on fixed-function behaviour treating them as normalised and therefore tiling — and the second would produce repeated, aliased image content rather than a simple offset.
+- This is the first measurement taken **on the actual vertex data**, and it is a different kind of fact from everything before it: not "which component is not at fault" but "what the application tells GL". The 1.636 ratio and the texel-space convention are both candidates for the fault, and both are checkable.
+- **What this capture is not:** the buffer is 1,564 bytes (98 vertices) and the coordinates describe **small quads** (22×30 pixels) — icons, not the full-screen background whose shear was measured. The full-screen quad's payload appears later in the sequence, beyond the six dumps the instrument records, so the 3-texel-per-row question is **not yet answered** by this data.
+- Next, and it is now trivial: raise the dump limit and filter by upload size so the full-screen quad (~1926×753 worth of vertices, a handful of them but with large extents) is captured, then read its `v` values per row directly.
+
 ## 3.16.0 - the draw tracer works, and the vertex layout is now known
 
 - The loader wrapper installed successfully and recorded **zero draws** — with a marker in the log proving the wrap itself happened, so the empty result was unambiguous rather than assumed. That

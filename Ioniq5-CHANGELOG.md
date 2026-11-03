@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.11.0 - the shear measured: 3 pixels per row, consistently, which no width mismatch explains
+
+- Instead of another tracer, measured the artefact itself. Using edge positions (pixels with a horizontal gradient above 40) to make row matching robust against the noise-like field,
+  and comparing each row against the row below at every shift 0–32:
+  - **20 rows sampled, 20 of them agreeing on a shift of exactly 3 pixels** (histogram `{3: 20}`, median 3).
+- Two things follow, and the second is the important one:
+  - the drift is **12 bytes per row** (3 pixels × 4), and it is **constant**, not progressive jitter — so it is a systematic offset, not memory corruption;
+  - **it is far too large to be a width mismatch.** A 1926-versus-1920 disagreement is 6 pixels per row; this is half that, and over the 753-row window a 3-pixel-per-row drift accumulates to
+    roughly 2,259 pixels — more than the full image width. So the earlier arithmetic in §3.0.0 (24 bytes per row from 1926 vs 1920) is **not** the mechanism, and that hypothesis is now
+    retired by measurement rather than by argument.
+- The value is consistent instead with a **per-row sampling offset of 3 texels** — the texture coordinates walking sideways as they advance down the quad — which is a property of the draw, not
+  of any buffer's stride. That is the first quantitative constraint this investigation has had, and it points exactly where the last several entries have been pointing: at the draw call and its
+  texture coordinates.
+- It also survives the earlier constraint: crisp **horizontal** lines are unaffected by a per-row lateral offset only if they are drawn by a different path (untextured geometry), which is
+  consistent with what the frame shows.
+- Next instrument, now with a number to check against: trace draw calls with their texture coordinate arrays, and confirm whether consecutive rows differ by 3 texels. If they do, the fault is in
+  the coordinates the vendor hands GL; if they do not, it is inside the rasteriser's handling of them, and even that distinction is now testable.
+
 ## 3.10.0 - the stderr tap works, and proves the application reports no GL errors at all
 
 - Built `stderr_tee.c`: it interposes `write()` and, for fd 2 only, appends a copy to `/tmp/app-stderr.log` while letting the original call proceed unchanged. Installed through

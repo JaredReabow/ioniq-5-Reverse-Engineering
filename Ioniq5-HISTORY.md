@@ -4494,3 +4494,10 @@ and are superseded by corrections rather than silently rewritten.
   stripes.
 - That fits what has been suspected for days: the operations succeed, and the result is wrong anyway. There is nothing to catch because nothing fails.
 - The instrument also proved itself in the same run by catching another process's output, which is the difference between a real null result and a broken tap.
+
+## 2026-10-31 — a number at last
+
+- Three pixels per row, on every row pair sampled, with a method built to survive a noisy field.
+- That is twelve bytes of drift per row and over two thousand pixels across the image, which is far too much to be the width mismatch I spent yesterday calculating. The arithmetic that felt
+  convincing is retired by a measurement that took ten minutes.
+- The first quantitative constraint of the investigation, and it points at the texture coordinates rather than at any buffer's stride.

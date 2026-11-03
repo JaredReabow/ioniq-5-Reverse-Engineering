@@ -1,0 +1,16 @@
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libc6-dev \
+    libcap-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+COPY iap2_socket_admission_probe.c .
+
+RUN gcc -Wall -Wextra -O2 -std=c11 \
+    -o iap2_socket_admission_probe \
+    iap2_socket_admission_probe.c \
+    -lcap

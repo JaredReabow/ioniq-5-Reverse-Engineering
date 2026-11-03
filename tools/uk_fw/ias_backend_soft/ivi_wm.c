@@ -361,6 +361,7 @@ main(int argc, char **argv)
 	struct wl_registry *registry;
 	struct wm_obs obs = { 0 };
 	uint32_t surface_id = 0;
+	unsigned visible = 1;
 	int32_t plane = DEFAULT_PLANE;
 	int32_t lw = DEFAULT_W, lh = DEFAULT_H;
 	int have_surface_id = 0;
@@ -381,6 +382,8 @@ main(int argc, char **argv)
 			query = 0;
 		} else if (strcmp(a, "-v") == 0 || strcmp(a, "--verbose") == 0) {
 			verbose = 1;
+		} else if (strcmp(a, "--hide") == 0) {
+			visible = 0;
 		} else if (strcmp(a, "--timeout") == 0 && i + 1 < argc) {
 			uint32_t t;
 
@@ -520,9 +523,14 @@ main(int argc, char **argv)
 	trace("set_surface_layout sent and flushed");
 
 	/* ---- step 3: visible ---- */
-	trace("request ivi_window_manager.set_surface_visible(%u, 1)",
-	      surface_id);
-	ivi_window_manager_set_surface_visible(wm, surface_id, 1);
+	/* Visibility is selectable so a surface can be taken off the screen without
+	 * destroying it. That distinction matters here: destroying a surface leaves the
+	 * vendor layout compositing a stale buffer, which is what produced the diagonal
+	 * shear this project spent two days attributing to the wrong component
+	 * (see the changelog, 3.3.0). Hiding a surface has no such effect. */
+	trace("request ivi_window_manager.set_surface_visible(%u, %u)",
+	      surface_id, (unsigned)visible);
+	ivi_window_manager_set_surface_visible(wm, surface_id, (uint32_t)visible);
 	if (roundtrip_timeout(display, timeout_ms) < 0) {
 		fprintf(stderr, "ivi_wm: roundtrip after set_surface_visible "
 			"failed: %s\n", strerror(errno));

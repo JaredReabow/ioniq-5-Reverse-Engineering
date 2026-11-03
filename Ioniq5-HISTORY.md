@@ -4428,3 +4428,11 @@ and are superseded by corrections rather than silently rewritten.
 - That explains the pixman assertion, the clean software-rendered frame, the width-independence, and every black or striped capture taken after a splash kill. One defect, seen from four
   directions across two days.
 - The practical rule is immediate: never kill the splash to clear the screen. Killing it is what drew the stripes I spent two days explaining.
+
+## 2026-10-31 — the application finally appears, and it tells us where to look
+
+- Hiding the splash instead of killing it, and placing the application's own surface, produced a frame with the application in it for the first time: its bar, its window, and one of its
+  strings.
+- The string is sharp and the background image is not. That single contrast moves the fault from the compositor to the texture upload path — the vendor component that already failed
+  outright when we forced software rendering.
+- So the end of this stretch is not a picture but a coordinate: one function, one pitch value, and a stripe pattern that follows from it arithmetically.

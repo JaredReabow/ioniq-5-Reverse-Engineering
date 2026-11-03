@@ -3,6 +3,21 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.9.3 - verification done: llvmpipe really was in use, so the Gallium driver is excluded
+
+- Did the check §3.9.2 said was owed. `gallium_force.c` now records every time `GALLIUM_DRIVER` is queried, and the run shows **ten queries, each answered `llvmpipe`**:
+  ```
+  GALLIUM_DRIVER queried, returning llvmpipe ×10
+  ```
+  So the override did reach Mesa, the previous run **was** a valid test of llvmpipe, and its result stands: **the same diagonal stripes** (`mean 40.1/61.6/81.1`).
+- **The Gallium driver is therefore excluded by a verified measurement**, not merely unobserved. That closes the caveat left open in §3.9.2 rather than leaving it to be re-litigated.
+- That leaves the display investigation with a precise and short list of what has been **measured clear**: the asset formats and theme, the upload path (alignment, row length, formats), the output
+  geometry and capture tool, the compositor and our backend, surface destruction as a cause of *these* stripes, and now the rasteriser itself.
+- **What remains is the draw itself** — how a texture is sampled onto a quad — and the frame from §3.9.1 gives the constraint any explanation must satisfy: **crisp horizontal lines survive inside
+  the striped field**. That is the shape of a per-quad sampling fault, and the instrument for it is a trace of draw calls with their texture coordinates, which has not been built.
+- Recorded method note: the previous entry was written as "no difference observed" precisely because this verification did not exist. Adding the verification cost one build and one run and
+  converted an uninterpretable result into an exclusion. **Build the check for the change before building the change.**
+
 ## 3.9.2 - llvmpipe shows no difference, but the override is unverified
 
 - Tested the one variable this project has never changed: the Gallium driver. Everything here has run `GALLIUM_DRIVER=softpipe`; the shipped `swrast_dri.so` also contains **llvmpipe**

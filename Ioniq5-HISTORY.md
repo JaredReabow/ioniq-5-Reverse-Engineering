@@ -4276,3 +4276,9 @@ and are superseded by corrections rather than silently rewritten.
 - Naming the outputs as the vendor config expects turns a black frame into a sheared one. Naming them the old way turns it back to black. Neither is a picture.
 - That is progress of the honest kind: the fault is no longer "somewhere in the display path", it is a stride disagreement in our own backend's handling of a named output.
 - Also worth saying plainly: after correcting two wrong diagnoses today, the display work is back to "not correct yet", and the record should not pretend otherwise.
+
+## 2026-10-31 — placing it made it appear, and it appeared wrong
+
+- Without the placement request the capture is empty. With it, forty percent of the frame has content, and every row is shifted relative to the last.
+- That is the most useful pair of measurements of the day: the request works, and what it reveals is a geometry fault between a 1926-wide surface and a 1920-wide output.
+- The one clean picture from earlier remains unexplained against the current behaviour, and rather than pick whichever story is convenient, both are written down.

@@ -234,11 +234,18 @@ headless_backend_create_output(struct headless_backend *b,
 	 * 0x0. Naming them as the vendor config expects is what lets the layout
 	 * resolve its screens. IAS_OUTPUT_NAMES=ias restores the old naming. */
 	{
+		/* Naming outputs HDMI1.. to match the vendor configuration was tried and
+		 * made things worse, not better: with the vendor [output] sections
+		 * matching, the captured output became a sheared frame where it had been
+		 * plain black, and no configuration of the name produced a correct
+		 * picture (see the changelog for the A/B). IAS-N names are therefore the
+		 * default again; HDMI naming stays available as IAS_OUTPUT_NAMES=hdmi for
+		 * whoever revisits this. */
 		const char *style = getenv("IAS_OUTPUT_NAMES");
-		if (style && strcmp(style, "ias") == 0)
-			snprintf(name, sizeof name, "IAS-%d", index);
-		else
+		if (style && strcmp(style, "hdmi") == 0)
 			snprintf(name, sizeof name, "HDMI%d", index + 1);
+		else
+			snprintf(name, sizeof name, "IAS-%d", index);
 	}
 	output->base.name = strdup(name);
 

@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.84.0 - placement is what makes the application appear, and what appears is sheared
+
+- Reverted the output-naming change from §2.80.0 to **opt-in** (`IAS_OUTPUT_NAMES=hdmi`), because it produced no correct picture in either position and the A/B in §2.83.0
+  showed it changed behaviour without improving it. IAS-N naming is the default again.
+- Then isolated the remaining variable. Same backend, same application (`AppHomeScreen.real` with `QT_WAYLAND_USE_PID_FOR_SURFACE_ID=1`), capture with the fixed tool:
+  - **without** `ivi-wm` placement: **black**, `peak=0`, 0.00% nonzero;
+  - **with** `ivi-wm <pid>`: `peak=255`, **42.44% nonzero**, 39.44% bright — and the frame is **diagonal stripes**.
+- So **the placement request is what makes the application's content appear in the captured output at all**, and what appears is sheared. Before placement there is
+  literally nothing; after it there is content with a stride fault. That is a much sharper statement than "the screen is black", and it retroactively explains why the
+  `ivi-wm` runs of §2.71.0 measured a change in pixel values while looking like nothing.
+- Both the old and new capture tools reported a 1920×720 output here, so the shear is not a width mismatch in the tool this time — it appears only once a surface is
+  composited, which points at the compositor's handling of a **1926-wide surface inside a 1920-wide output** (the width the vendor stack reports for the application's
+  window).
+- The one unsheared application capture on record (`docs/vm/14-…png`) came from the earlier tool and an otherwise identical family of runs. That inconsistency is **not
+  explained** and is recorded as such rather than smoothed over: either the compositor's internal size differed between those runs, or one of the two captures is not what
+  it appears to be.
+- Next, concretely: make the surface and output widths agree — either by forcing the surface to 1920 wide through the vendor interface (`set_surface_layout` currently asks
+  for 0,0,1920,720 *after* the surface has already been created at 1926), or by making the output 1926 wide — and see whether the stripes disappear. If they do, the
+  defect is geometry negotiation, not compositing.
+
 ## 2.83.0 - A/B on output naming: sheared versus black, and neither is a picture
 
 - Re-measured with the fixed capture tool (§2.82.0), same application configuration (`QT_WAYLAND_USE_PID_FOR_SURFACE_ID=1`, pid-derived id, `ivi-wm` placement

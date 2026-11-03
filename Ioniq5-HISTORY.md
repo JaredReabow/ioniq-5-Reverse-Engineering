@@ -4449,3 +4449,10 @@ and are superseded by corrections rather than silently rewritten.
   patterns that look exactly like the stripes I have been chasing.
 - That also fits the software-rendering result: there the uncompressed factory failed outright, here the compressed one fails quietly.
 - One extension string check decides it. After two days of geometry theories, the answer may simply be a format the software GL never advertised.
+
+## 2026-10-31 — the answer was a format only the real GPU had
+
+- ASTC support lives in the Intel drivers and nowhere else. Our software GL never advertised it, so the vendor's art could not be decoded, and the stripes were the sampled remains of textures
+  that were never filled.
+- That is an emulation limit rather than a defect in their software, and it explains every image-related observation in this log, including the messages I read in the first hours and moved past.
+- The way forward is to convert the assets offline and let the vendor's own uncompressed path load them. No vendor code touched, and the same capture pipeline proves it.

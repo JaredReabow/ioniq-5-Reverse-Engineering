@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.7.0 - ASTC exists only in the Intel hardware drivers, so the shear is an emulation limit
+
+- The decisive check from §3.6.0, answered statically: `grep -rl texture_compression_astc` across the guest's GL stack matches
+  ```
+  /usr/lib/mesadri/i965_dri.so
+  /usr/lib/mesadri/i915_dri.so
+  /usr/lib/drinano/iu3d9_dri.so
+  /usr/lib/dri/iu3d9_dri.so
+  ```
+  — **only the Intel hardware drivers**. The software drivers we actually run (`/opt/software-egl18`, swrast/softpipe) contain **no ASTC support string at all**.
+- So the vendor's art cannot be decoded by this emulation's GL, and the shear is an **emulation limitation, not a vendor defect**: `glCompressedTexImage2D` for ASTC on a driver without the
+  format leaves the texture undefined, sampling produces structured garbage, and vector text — which uses no textures — stays sharp. That is precisely the frame in §3.4.0.
+- This closes the display investigation's last open question with a named capability rather than a pattern, and it retroactively explains every image-related observation in this log: the
+  `Failed to load ASTC image` messages from the very first rounds, the software renderer's `createTexture … Fail`, and the stripes that followed every attempt to place the application.
+- **Three ways forward, in order of how much this project's own experience favours them:**
+  1. **Convert the asset tree offline.** Decode the shipped `*.png.astc.lz4` + `.png.astc.header` pairs to plain `.png` outside the VM and bind-mount the converted tree, so the application
+     takes its existing `UncompressedTextureFactory` path. Nothing vendor-side is modified, the emulation supplies what the hardware would have, and 1,461 plain `.png` already exist in
+     the tree to prove the uncompressed path is a first-class one.
+  2. **Interpose `glCompressedTexImage2D`** and decode ASTC in software at upload time — consistent with everything that has worked here (the solid-fill interposer, the tracer, the
+     preload), but it means writing an ASTC decoder.
+  3. **Emulate an Intel GPU** that advertises ASTC — the honest answer to "what the vehicle has", and the one furthest out of reach in QEMU.
+- Recommended: **(1)**. It is the one option that uses only the assets the vendor shipped, requires no decoder written here, and can be validated by the same capture pipeline already working.
+
 ## 3.6.0 - the images are ASTC-compressed, and that is very likely the shear
 
 - The remaining suspect from §3.5.0 was the vendor's own texture conversion. Static inspection of `/app/lib/libImageProvider.so.1.0.0` names the two factories explicitly:

@@ -44,6 +44,22 @@
 #define HAVE_PEERCRED 0
 #endif
 
+/* Mock get_capabilities for non-Linux builds */
+#ifndef HAVE_LIBCAP
+static void get_capabilities(char *buf, size_t buflen) {
+    strncpy(buf, "(libcap not available on this platform)", buflen - 1);
+}
+#endif
+
+#ifndef HAVE_PEERCRED
+#define SO_PEERCRED 17
+struct ucred {
+    pid_t pid;
+    uid_t uid;
+    gid_t gid;
+};
+#endif
+
 #define SOCKET_PATH "/tmp/iAp2Socket"
 #define MAX_LABEL 256
 
@@ -77,14 +93,7 @@ static void json_field_bool(const char *key, int value, int last) {
     }
 }
 
-static void print_verbose(const char *fmt, ...) {
-    if (verbose && !output_json) {
-        va_list ap;
-        va_start(ap, fmt);
-        vfprintf(stderr, fmt, ap);
-        va_end(ap);
-    }
-}
+
 
 static const char *uid_to_name(uid_t uid) {
     struct passwd *pw = getpwuid(uid);
@@ -103,6 +112,7 @@ static const char *gid_to_name(gid_t gid) {
 }
 
 static void read_smack_label(const char *path, char *buf, size_t buflen) {
+    (void)path;
 #if defined(__linux__)
     ssize_t len = getxattr(path, "security.SMACK64", buf, buflen - 1);
     if (len > 0) {
@@ -181,6 +191,7 @@ static int stat_socket(const char *path, struct stat *st, char *label, size_t la
 }
 
 static int test_connect(const char *path, int *peer_uid, int *peer_gid, int *peer_pid) {
+    (void)peer_uid; (void)peer_gid; (void)peer_pid;
     struct sockaddr_un addr;
     int fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (fd < 0) {

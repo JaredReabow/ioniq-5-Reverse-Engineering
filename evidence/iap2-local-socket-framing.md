@@ -7,7 +7,7 @@ This is an offline exact-static audit of the recovered local IPC between
 run. No socket was created or connected, no iAP2/CarPlay message was constructed,
 and no device, USB endpoint, radio, or network interface was used.
 
-The recovered implementation establishes four exact-static candidates:
+The recovered implementation establishes **six** exact-static candidates:
 
 1. **heap out-of-bounds write:** a local stream client can declare a total
    transaction size below the fixed 64-byte header; the service allocates the
@@ -18,9 +18,29 @@ The recovered implementation establishes four exact-static candidates:
    allocation;
 3. **uninitialized header/body consumption:** both receiver directions accept a
    positive short `MSG_WAITALL` return rather than requiring the requested byte
-   count; and
+   count;
 4. **resource exhaustion:** the UID-zero service applies no reviewed maximum to
-   the client-supplied `uint32` total before `malloc` and a blocking body receive.
+   the client-supplied `uint32` total before `malloc` and a blocking body receive;
+5. **null-source `strncpy` denial-of-service:** the heap-string wrapper can pass
+   `src=NULL, len>0` to `strncpy` on accessor failure;
+6. **plain `%s` unbounded source traversal:** the logger bounds output via
+   `vsnprintf` but does not bound source traversal.
+
+The **wrapped-capacity heap-overflow hypothesis** (dynamic producer arithmetic
+wrapping `malloc` size to create a phone-controlled overflow) is **retired**.
+The marshal writer family (`iAp2MarshalInit`, `iAp2MarshalAlloc`,
+`iAp2MarshalPutBytes`, `iAp2MarshalGetUsedSize`) enforces remaining capacity
+before any body copy. A wrapped or undersized capacity causes the marshal to
+enter an error state and return `NULL`, so `memcpy` is never reached with the
+attacker-controlled length.
+
+A producer-side defect residue exists in `handleExternalAccessoryProtocolRecvData`
+(`0x141896`): unconditional header stores at offsets `+0x00`, `+0x38`, `+0x3c`
+after a possibly-failed marshal. This is **unreachable through reviewed callers**
+because reaching the stores at `+0x38`/`+0x3c` beyond a sub-`0x10` allocation
+requires `param_5 <= -0x19`, but all reviewed receive paths produce positive,
+parser-bounded lengths. Classification: code smell / defect residue, not a
+demonstrated primitive.
 
 The server pathname, framing code, configured credentials, and broad intended
 SMACK relationship are exact. A live socket, actual runtime inode metadata,
@@ -189,7 +209,7 @@ The direct byte-accessor consequences and caller boundaries are documented in
 This is an exact-static transaction-tail out-of-bounds read candidate (CWE-125),
 not a demonstrated disclosure.
 
-## Producer arithmetic follow-up
+## Producer arithmetic — writer soundness and capacity bounds
 
 Of the 37 direct event producers, 28 use fixed capacities and nine use unchecked
 32-bit capacity expressions:
@@ -206,13 +226,28 @@ Of the 37 direct event producers, 28 use fixed capacities and nine use unchecked
 | call-state strings | `(five lengths + 0xc0) * 4` |
 | call-state address | `(length + 0x6230) * 4` |
 
-Each range is separately hashed in the artifact. These formulas can wrap in
-`uint32`, but that fact alone is not promoted to a remotely reachable overflow.
-Exact upstream length ceilings, allocation feasibility, marshal-writer failure
-semantics, ignored statuses, and phone-to-callback delivery remain under review.
-The 37-producer inventory does establish ordinary successful first-party output
-as total-size framing with a minimum of 64; it does not sanitize hostile local
-client framing.
+**Wrap threshold**: `uint32` multiplication wraps at `2^32`. To reach wrap, `length`
+must be ≈ 1 GiB. All reviewed parsers supply 16-bit TLV lengths (max 65535).
+**No reviewed caller can produce wrap values.** Maximum observed capacity is
+~524 KiB (WiFiInformation with two max lengths).
+
+**Marshal writer enforcement** (exact anchors):
+- `iAp2MarshalInit` at `0x21038`: rejects `offset > capacity` (flag bit 1, remaining=0).
+- `iAp2MarshalAlloc` at `0x211e5..0x211ee`: loads `remaining`, compares against aligned
+  request, **fails if `remaining < aligned_size`** (sets flag bit 2, returns `NULL`).
+- `iAp2MarshalPutBytes` at `0x215e3..0x215fe`: calls `PutUint32` then `Alloc`; on failure
+  jumps to epilogue — **no `memcpy` executed**.
+- `iAp2MarshalGetUsedSize` at `0x21b87`: validates `current_ptr <= end_ptr`; returns 0 on error.
+
+**Conclusion**: The writer family fails closed. Wrapped or undersized dynamic capacity
+causes `iAp2MarshalAlloc` to fail; `iAp2MarshalPutBytes` skips the body copy. The
+**wrapped-capacity heap-overflow hypothesis is retired**.
+
+**Producer residue**: `handleExternalAccessoryProtocolRecvData` at `0x141896` performs
+unconditional header stores at `+0x00`, `+0x38`, `+0x3c` after a possibly-failed marshal.
+Reaching the stores at `+0x38`/`+0x3c` beyond a sub-`0x10` allocation requires
+`param_5 <= -0x19`. All reviewed receive paths produce positive, parser-bounded
+lengths. Classification: code smell / defect residue, not a demonstrated primitive.
 
 ## Reproduction
 

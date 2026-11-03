@@ -26,18 +26,27 @@
   transaction-tail OOB read candidate of up to 64 bytes.
 - Verified configured UID 0, `App::projection`, and 19 labels with bilateral
   recovered SMACK write rules; retained runtime pathname and label gates.
-- Added deterministic tool, tests, evidence, and artifact.
+- **Retired wrapped-capacity heap-overflow hypothesis**: Marshal writer family
+  (`iAp2MarshalInit` at `0x21038`, `iAp2MarshalAlloc` at `0x211e5..0x211ee`,
+  `iAp2MarshalPutBytes` at `0x215e3..0x215fe`, `iAp2MarshalGetUsedSize` at
+  `0x21b87`) enforces remaining capacity before body copy. Wrapped/undersized
+  capacity → alloc failure → `NULL` return → no `memcpy`. Dynamic producer
+  arithmetic cannot reach wrap values (requires ~1 GiB; upstream parsers supply
+  16-bit TLV lengths max 65535; max observed capacity ~524 KiB).
+- **Producer residue documented**: `handleExternalAccessoryProtocolRecvData`
+  (`0x141896`) unconditional header stores at `+0x00`, `+0x38`, `+0x3c` after
+  possibly-failed marshal. Reachable only if `param_5 <= -0x19`; reviewed
+  callers produce positive bounded lengths. Code smell, not demonstrated primitive.
+- Added deterministic tool (v1.1.0), tests, evidence, and artifact.
 
 ## Validation
 
 - Focused tests: `8 passed` across local framing and revised direct-caller audit.
-- Canonical suite: `1103 passed, 352357 subtests passed in 180.10s`.
+- Canonical suite: `1103 passed, 352357 subtests passed in 145.55s`.
 - Canonical suite-log SHA-256:
   `00166fa438bf61d3626e9cd4e5192395f31681170b3e4442448e947fb86d3b7c`.
-- Local-framing artifact:
-  - size `65,111`;
-  - file SHA-256 `4aa88a9460cec0f02aad25e8a6ebef41231b2480dec669abe447447b360af728`;
-  - canonical SHA-256 `2246011e805b39b9f38d1a3af674d299fd0fe782dc8a67c8c5bee7d1f0826336`.
+- Local-framing artifact (regenerated v1.1.0):
+  - canonical SHA-256 `163e51b395feee04fc883d2abad5b0e1df6d60b7885469ef7b314a8dccde44b5`.
 - Revised direct-caller artifact:
   - tool version `1.2.0`;
   - size `31,652`;
@@ -46,13 +55,12 @@
 
 ## Open
 
-- Recover exact upstream maximum lengths and allocation feasibility for the nine
-  dynamic producers.
 - Finish `iAp2MarshalPut*` failure/status handling and downstream callback/sink
-  review for accepted transaction-tail pointers.
-- Determine live socket mode/owner/label, `/tmp` traversal/transmutation,
-  capabilities, loaded SMACK rules, and actual client identities only on a
-  future passive disconnected owner bench.
+  review for accepted transaction-tail pointers (31 direct `iAp2MarshalGetBytes`
+  callers).
+- Complete external-accessory, file-transfer, HID, Wi-Fi, list-update consumer analysis.
+- Build passive VM admission tooling for `/tmp/iAp2Socket` metadata, SMACK labels,
+  capabilities.
 - Seek a lawful fixed SDK comparator.
 
 ## Boundaries

@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.86.0 - the application's own buffer is self-consistent, so the drift is downstream of it
+
+- Captured the application's `WAYLAND_DEBUG` and read the geometry it declares when creating its buffer:
+  ```
+  wl_shm_pool@75.create_buffer(new id wl_buffer@76, 0, 1926, 753, 7704, 0)
+  ```
+  **width 1926, height 753, stride 7704** — and `1926 × 4 = 7704`, so the stride is exactly right for the width it declares. The application is internally consistent; the
+  "one pixel per row" drift is **not** the application rendering 1920-wide content into a 1926-wide surface, which was the most attractive remaining explanation.
+- Also seen: a 1×1 buffer (`create_buffer(…, 0, 1, 1, 4, 0)`), the usual single-pixel filler, and **no** `ivi_surface.configure` or `set_buffer_scale` traffic in the captured
+  window — worth noting because a configure event would otherwise be the natural place for a 1926-wide surface to be told to become 1920.
+- So the chain is now: the app draws a 1926×753 buffer with a correct stride (measured), our backend allocates its own `image_buf` from `param->width` with
+  `pixman_image_create_bits(…, param->width * 4)` and reads `current_mode->width` in the repaint path (read in the source), and the composited result is sheared. The
+  inconsistency is therefore **between the compositor's composite step and our framebuffer**: either the renderer writes with a stride derived from the surface rather than
+  the output, or our backend's image geometry disagrees with what the renderer believes.
+- What would settle it in one run: log, from inside `headless_output_repaint`, `pixman_image_get_width/height/stride(output->image)` alongside
+  `output->base.current_mode->width/height` and the renderer's own `pixman_image_get_stride` on its shadow image. If those two strides differ by four bytes, the fault is
+  ours and the fix is to build `output->image` from the renderer's shadow geometry rather than from `param`.
+- Honest position after this stretch: six explanations tested and refuted (application, capture width, output naming, surface-vs-output width, the shim, and now the
+  application's buffer geometry). The fault is localised to the seam between the vendor renderer and our backend, which is a two-value comparison away from being identified
+  rather than a matter of further inference.
+
 ## 2.85.0 - matching the widths does not fix the shear, and the stripe slope says it is a one-pixel stride drift
 
 - Ran the designed test from §2.84.0: rebuilt the run at **1926×753** on both sides — backend `--width=1926 --height=753` and `[output] mode=1926x753` — so the output matches

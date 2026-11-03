@@ -4289,3 +4289,9 @@ and are superseded by corrections rather than silently rewritten.
 - The slope is the clue that matters: one pixel of drift per line. That is a stride bug, and the likeliest place for it is our own backend, where the buffer is allocated from one
   width and read with another.
 - Five explanations are dead. The sixth is in a file I can open, which is a better position than this afternoon.
+
+## 2026-10-31 — the application is not lying about its own buffer
+
+- It declares 1926 by 753 with a stride of exactly four bytes per pixel. Whatever is wrong, it is not the application misreporting its geometry.
+- That leaves one seam: between the vendor renderer and the framebuffer our backend provides. Two stride values, logged side by side, will settle it.
+- Six explanations are dead. The seventh is a comparison I can print.

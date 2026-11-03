@@ -65,6 +65,10 @@ EMAIL_PATTERN = re.compile(
     r"\b[A-Za-z0-9._%+-]+@[A-Za-z][A-Za-z0-9-]*(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b")
 
 VIN_PATTERN = re.compile(r"\b[A-HJ-NPR-Z0-9]{17}\b")
+# Known documentation patterns that match the email regex but are not addresses.
+DOC_ALLOWLIST_PATTERNS = (
+    re.compile(r"\bwl_surface@[A-Za-z]\.(?:attach|commit)\b"),
+)
 MAX_FINDINGS = 200
 
 
@@ -178,12 +182,16 @@ def privacy_scan(root: Path) -> dict:
                 if pattern.search(line):
                     add(path, category, common.STATUS_FAIL, number)
             for match in EMAIL_PATTERN.finditer(line):
+                email = match.group(0)
+                # Skip known documentation false positives
+                if any(p.search(email) for p in DOC_ALLOWLIST_PATTERNS):
+                    continue
                 category = (
                     "public-noreply-email"
-                    if privacy_email_allowed(match.group(0))
+                    if privacy_email_allowed(email)
                     else "email-address-private-repository"
                 )
-                severity = common.STATUS_FAIL if public_mode and not privacy_email_allowed(match.group(0)) else common.STATUS_INFO
+                severity = common.STATUS_FAIL if public_mode and not privacy_email_allowed(email) else common.STATUS_INFO
                 add(path, category, severity, number)
             for match in VIN_PATTERN.finditer(line):
                 if privacy_vin_like(match.group(0)):

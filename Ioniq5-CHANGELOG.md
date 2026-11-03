@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.81.0 - the vendor config path is a dead end, and the "stride mismatch" is more likely a capture-width artefact
+
+- **Fourth attempt at the zero screen size, refuted too.** Restored the path the vendor config names
+  (`/usr/lib/weston/weston-ivi-shell-user-interface`, symlinked to the binary at `/usr/libexec/…`), ran the vendor config **verbatim** except for the backend
+  (`headless-backend.so`, since the vendor `ias-backend.so` needs hardware), with all seven image assets it references confirmed present in the image. Result:
+  `primary_screen_size(0, 0)` again, and the user-interface client **never ran** (`UI=` empty). The compositor's log in that run is full of
+  `compositor: executing '/usr/libexec/weston-keyboard' failed: No such file or directory`, so this configuration launches helper clients the projection does not
+  contain — another gap, and not the size.
+- So four explanations for the zero are now refuted: multi-output, the HMI client, output naming, and the vendor config verbatim. The remaining candidate is that the
+  size is published by **`ias-backend.so` itself** — the vendor DRM backend this project replaces with a soft backend precisely because it needs hardware.
+- **Correcting the "stride mismatch" interpretation from §2.78.0, and this matters more than the size question.** A frame full of diagonal stripes is equally the
+  signature of a **capture taken at the wrong width**: if the compositor's output is not exactly the 1920×720 that `ias-shot` assumed, every row shifts and the image
+  shears. The compositor reported the application's surface as **W(1926) H(753)** in the runs around that capture, and `ias-shot` produced a 1920×720 file. So the most
+  likely explanation is that **the capture geometry, not the application's rendering, was wrong** — which is consistent with `docs/vm/14-…png` being a correct,
+  unsheared 1920×720 application window from a run in the same family.
+- That reframes the geometry question: before pursuing a rendering fault, confirm the capture width against the compositor's actual output geometry, and prefer a
+  capture path that reads the size from the protocol rather than assuming it. `ias-shot` should be checked for a hard-coded 1920×720 assumption.
+- Net position after this stretch: four refutations, one corrected interpretation, one backend improvement (HDMI output naming), and a much smaller open question —
+  what publishes the primary screen size — which is plausibly answered only by running the vendor backend we cannot run.
+
 ## 2.80.0 - the vendor's real weston config, and three refuted explanations for the zero screen size
 
 - Found the vehicle's actual compositor configuration: **`/etc/xdg/weston/weston_1920.ini`**. It settles several open questions at once:

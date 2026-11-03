@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.93.0 - a way to read the application's own pixels without hooking anything
+
+- Instead of the marshaller hook §2.92.0 called for, built `shm_peek.c`: a small tool that reads a running process's shared-memory framebuffer **from its own file
+  descriptors**. Wayland clients pass `wl_shm` buffers as fds, those fds stay open in the client, so `/proc/<pid>/fd` exposes the application's own pixels with no interposition
+  at all.
+  - usage: `shm-peek <pid> <width> <height> [out.ppm]`;
+  - it picks the fd whose size is at least `width*height*4` and smallest among those, which for a framebuffer is the buffer itself, and writes a P6 PPM through the same
+    `ppm_stats.py` path used everywhere else.
+- **This sidesteps the libwayland problem entirely** and is a genuinely better instrument than the interposer: no symbol to hook, no inline-marshalling obstacle, nothing that can
+  perturb the client. It also works on any Wayland client in the image, not just this application.
+- The first run did not capture, and the reason is the recurring one: the peek was placed at the end of the probe script, by which time the application had exited
+  (`APP=` empty at that point even though it had been alive at the start). The fix is ordering, not engineering — **peek inside the poll loop the moment the pid appears**, in the
+  same way the placement request was moved there in §2.88.0. That correction is written down rather than left to be rediscovered.
+- Position: the instrument that can answer "does the application render correctly, or does the compositor compose wrongly?" now exists and is committed. What it needs is one run
+  that calls it while the application is definitely alive.
+
 ## 2.92.0 - the "capture the application's own buffer" idea needs a different hook: those calls are inline
 
 - Built `shm_dump.c` to dump a client's own buffer at attach time, interposing the three libwayland-client entry points that carry pixels:

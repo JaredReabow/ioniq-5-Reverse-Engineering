@@ -4338,3 +4338,9 @@ and are superseded by corrections rather than silently rewritten.
 - That is worth knowing permanently: interposing by name works for libdbus and libpixman and does not work for libwayland protocol calls. The next attempt hooks the marshaller
   itself.
 - Nothing broke, which is the one thing that went right.
+
+## 2026-10-31 — a better instrument than the one I planned
+
+- Instead of hooking a marshaller that does not exist as a symbol, the application's framebuffer can simply be read out of its own file descriptors. No interposition, nothing to
+  break, and it works for any client in the image.
+- The first attempt missed only because I put the call at the end of the script and the application had already gone. Ordering, not engineering.

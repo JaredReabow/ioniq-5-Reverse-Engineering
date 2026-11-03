@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.1.1 - output 9 is black, the app lives about a second in chain runs, and my own changes are suspects
+
+- Capture now selects an output (`ias-shot <out> <index>`), verified: `10 output(s) bound, capturing index 9`.
+- With polling for the application's **own** geometry (`H(753)`) rather than any surface — my first trigger matched `early-background`'s splash surface at 6 s and captured before the
+  application existed — the sequence is:
+  - the application's surface appears at **42 s**;
+  - **one second later the process is already gone** (`HOME=` empty on the very next check);
+  - output 9 measures `mean R=0.0 G=0.0 B=0.0` (black) and output 0 measures `mean 4.4` with range 0–253 (a dim splash).
+- **So the earlier "screen 9 is where the app lives" reading needs correcting**: the chain's own compositor log shows the application's window at **`W(1926) H(753)`**, exactly as in
+  hand-launched runs. The `1920×720` surfaces in the DLT log belong to the vendor's **notification** surface (`SID(30000)`), not the application. §3.1.0 overstated that.
+- **The more serious observation is the lifetime.** In earlier chain runs this application survived 150 s or more; now it creates its surface and exits within a second, and the launcher's
+  own DLT log records `AppProcess::onFinished appId[11]`. That change came after the wrapper at `/app/bin/AppHomeScreen` (which execs `AppHomeScreen.real`), the ten-output backend and
+  the persistence stub were all introduced — so **my instrumentation is now a suspect for the application's early exit**, and the honest response is a control run rather than another
+  capture attempt.
+- Next, concretely: run the chain **without** the wrapper (restore the vendor binary at `/app/bin/AppHomeScreen`) and compare how long the application lives. If it survives again, the
+  wrapper is the cause and the surface-id injection needs a different mechanism; if it does not, the cause is elsewhere in this week's changes and the same comparison will say so.
+
 ## 3.1.0 - the DLT log answers two questions at once: the app draws 1920x720, on screen 9
 
 - The chain's `dlt-daemon` has been running with `PrintASCII=1` this whole time, so the **launcher-managed** application's log has been sitting in

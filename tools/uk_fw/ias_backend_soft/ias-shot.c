@@ -41,6 +41,14 @@ static int out_h = OUT_H_DEFAULT;
 
 static struct wl_shm *shm;
 static struct wl_output *output;
+/* The vendor stack places an application on a specific IVI screen (the home screen sits
+ * on screen 9 in this configuration), and the screenshooter captures whichever wl_output
+ * it is asked for. Binding only the first output therefore captures output 0 and reports
+ * an empty screen. All outputs are bound and one is selected by index from argv. */
+#define MAX_OUTPUTS 32
+static struct wl_output *outputs[MAX_OUTPUTS];
+static int output_count;
+static int out_index;
 static struct weston_screenshooter *shooter;
 static int shoot_done;
 static int done_events;
@@ -102,11 +110,12 @@ registry_global(void *data, struct wl_registry *registry, uint32_t name,
 	else if (strcmp(interface, "wl_shm") == 0)
 		shm = wl_registry_bind(registry, name, &wl_shm_interface, 1);
 	else if (strcmp(interface, "wl_output") == 0) {
-		if (!output) {
-			output = wl_registry_bind(registry, name,
-						  &wl_output_interface,
-						  version < 2 ? version : 2);
-			wl_output_add_listener(output, &output_listener, NULL);
+		if (output_count < MAX_OUTPUTS) {
+			struct wl_output *o = wl_registry_bind(registry, name,
+							       &wl_output_interface,
+							       version < 2 ? version : 2);
+			wl_output_add_listener(o, &output_listener, NULL);
+			outputs[output_count++] = o;
 		}
 	} else if (strcmp(interface, "weston_screenshooter") == 0) {
 		shooter = wl_registry_bind(registry, name,
@@ -166,6 +175,7 @@ int
 main(int argc, char **argv)
 {
 	const char *path = argc > 1 ? argv[1] : "/tmp/shot.ppm";
+	out_index = argc > 2 ? atoi(argv[2]) : 0;
 
 	struct wl_display *display = wl_display_connect(NULL);
 	if (!display) {
@@ -183,6 +193,13 @@ main(int argc, char **argv)
 		fprintf(stderr, "ias-shot: output roundtrip failed\n");
 		return 3;
 	}
+	if (out_index < 0)
+		out_index = 0;
+	if (out_index >= output_count)
+		out_index = output_count - 1;
+	output = (output_count > 0) ? outputs[out_index] : NULL;
+	fprintf(stderr, "ias-shot: %d output(s) bound, capturing index %d\n",
+		output_count, out_index);
 	if (!shm || !output || !shooter) {
 		fprintf(stderr, "ias-shot: missing global shm=%p output=%p screenshooter=%p\n",
 			(void *)shm, (void *)output, (void *)shooter);

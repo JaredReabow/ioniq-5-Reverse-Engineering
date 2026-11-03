@@ -4373,3 +4373,10 @@ and are superseded by corrections rather than silently rewritten.
 - So the only route left is the EGL one, which means the shear has to be understood inside the vendor's surface-sharing code rather than worked around.
 - Worth noting the shape of this: two days of the wrong suspect, then one experiment (software backend) that both localised the fault and ruled out the alternative route. The cheap
   substitution was the decisive one.
+
+## 2026-10-31 — the map, at the end of the display investigation
+
+- The sharing code is a Weston extension plus a Qt binding, not the platform library I had assumed. That saves the next attempt from being aimed at the wrong file.
+- The list of things exonerated is now long and each item was measured: compositor, renderer, backend, placement, capture, application geometry, application buffer. What is left is a
+  GL path that this image cannot render on one side and cannot test on the other.
+- Written down plainly for whoever continues: two real options, neither quick, and neither of them another screenshot.

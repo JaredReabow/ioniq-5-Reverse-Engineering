@@ -4456,3 +4456,10 @@ and are superseded by corrections rather than silently rewritten.
   that were never filled.
 - That is an emulation limit rather than a defect in their software, and it explains every image-related observation in this log, including the messages I read in the first hours and moved past.
 - The way forward is to convert the assets offline and let the vendor's own uncompressed path load them. No vendor code touched, and the same capture pipeline proves it.
+
+## 2026-10-31 — the neat explanation failed its own test
+
+- Removing the splash entirely showed the stripes were the application's own background, not the ghost of the logo. Denying ASTC changed nothing. The explanation I had just written up was wrong,
+  and a two-by-two test said so in one run.
+- What is left is a short, honest list: the stripes are in the application's images, not its text, and not in the splash, the asset format, the capture path or the compositor.
+- The next instrument should print the upload format and sampler state, not the dimensions. That is a fact about which argument I have been logging, and it took this correction to see it.

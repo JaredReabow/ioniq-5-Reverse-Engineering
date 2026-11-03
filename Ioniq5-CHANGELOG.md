@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.16.0 - the draw tracer works, and the vertex layout is now known
+
+- The loader wrapper installed successfully and recorded **zero draws** — with a marker in the log proving the wrap itself happened, so the empty result was unambiguous rather than assumed. That
+  meant the three loader lookups observed earlier belong to **another process in the same boot**, and this application's draws arrive through **exported symbols**.
+- Added wrappers for `glDrawElements` and `glDrawArrays` alongside the loader wrapper for `glDrawElementsBaseVertex`, and the trace now captures draws with their state:
+  ```
+  drawE mode=4 count=102 type=5123 elem_buf=3 array_buf=3 indices=1360
+    attr idx=0 size=2 type=5126 stride=16 ptr=0      ← position, 2 floats
+    attr idx=1 size=2 type=5126 stride=16 ptr=8      ← texcoord, 2 floats at offset 8
+    attr idx=2 size=1 type=5126 stride=0  ptr=1088
+  ```
+  **8 `glDrawElements` and 6 `glDrawArrays`** in one run, with interleaved attributes in a buffer object: stride **16 bytes** (four floats), position at 0, texture coordinates at offset 8.
+- So the geometry path is now visible: the vendor batches a quad/VBO draw with a standard interleaved layout. **What is still missing is the vertex data itself** — the coordinates live in array buffer
+  object 3, not in the arguments, so the 3-texel question cannot be answered from this trace alone.
+- That is one more interposition away: `glBufferData` / `glBufferSubData` carry the payload, and dumping the first N bytes of each upload would expose the actual texture coordinates. This is the
+  smallest remaining instrument in the whole chain, and it is the first one that can answer the question the shear measurement posed.
+- Method note worth keeping: the wrap marker is why this entry is conclusive. Without it, `drawE=0` would have been read as "the application does not draw", and the real answer — wrong interception
+  point, right application — would have been lost.
+
 ## 3.15.0 - the loader technique works, and the draw entry point is `glDrawElementsBaseVertex`
 
 - Built the cheapest possible version of the deferred draw tracer: `gl_loader_probe.c`, which interposes **`eglGetProcAddress` only** and logs each distinct name once. Installed through

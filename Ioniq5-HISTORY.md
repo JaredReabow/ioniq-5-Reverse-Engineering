@@ -4532,3 +4532,9 @@ and are superseded by corrections rather than silently rewritten.
 - Three lookups, and one of them is the batched draw. The technique is viable and the target is exact. A tracer built around the obvious function name would have recorded nothing at all.
 - Told the subagent mid-task, which is cheaper than reading its report tomorrow and discovering the target was wrong.
 - Second time in two turns that one small probe saved a large instrument from being aimed at the wrong thing.
+
+## 2026-10-31 — draws at last, and the layout of the quad
+
+- Eight indexed draws and six array draws, with interleaved position and texture coordinates at a stride of sixteen bytes. The geometry path is finally visible.
+- The first attempt recorded zero draws and only the wrap marker made that interpretable; without it I would have concluded the application does not draw at all.
+- The coordinates themselves live in a buffer object, which is one more interposition away and is the smallest instrument left in this chain.

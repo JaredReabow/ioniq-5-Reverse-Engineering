@@ -4270,3 +4270,9 @@ and are superseded by corrections rather than silently rewritten.
   instead of leaving me to infer from bytes.
 - The uncomfortable conclusion is recorded plainly: any capture taken at a size other than 1920 by 720 has to be re-measured before it is trusted, including the ones I used to
   argue the screen was empty.
+
+## 2026-10-31 — two settings, two wrong answers
+
+- Naming the outputs as the vendor config expects turns a black frame into a sheared one. Naming them the old way turns it back to black. Neither is a picture.
+- That is progress of the honest kind: the fault is no longer "somewhere in the display path", it is a stride disagreement in our own backend's handling of a named output.
+- Also worth saying plainly: after correcting two wrong diagnoses today, the display work is back to "not correct yet", and the record should not pretend otherwise.

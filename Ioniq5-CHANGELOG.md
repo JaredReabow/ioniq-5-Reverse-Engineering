@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.0.1 - the variant-argument test produced no data, and the README now matches the work
+
+- Tested whether the application's window size is set by its `-sv` variant argument, by running it with `-sv:1299` (the launcher's value), `-sv:1920`, `-sv:1` and no `-sv` at all, and
+  reading back the compositor's `Weston surface W(…)` line for each. **No line appeared for any variant**, because the runs passed only a subset of the argument list
+  (`-sv:X -gui:3 -sc:1`) and the application did not create a surface within the 18-second window in any of them. So the test says nothing about `-sv` — it is recorded as **no data**,
+  not as a negative result, and the full vendor argument list is required for the next attempt.
+- That is the fourth experiment in this stretch to produce nothing because of how it was invoked rather than because of what it tested (after the missing `ivi-module`, the config file
+  written in a previous boot, and the partially-read log). The pattern is consistent enough to write down as a rule: **a vendor binary started with a partial argument list is not the same
+  program as the one the launcher starts**, and results from it cannot be generalised.
+- The README has been updated to the current state rather than left describing a configuration from several days ago: the display table now records that the application renders and
+  commits, that placement is what makes content appear, that the composite is correct under software rendering, that the vendor texture factory is GL-only so the software path cannot
+  show the UI, and that the shear is confined to the EGL path with the 24-byte-per-row explanation as the standing hypothesis. The tool inventory in the README names the instruments built
+  during this work — the show tracer, the environment and pixman interposers, the window-manager client, the placement tool, the geometry tracer and the memory peek.
+
 ## 3.0.0 - the pixels travel in a `mesa-shared` mapping, and the app's window is 78 bytes too wide per row
 
 - Found where the application's pixels actually go. Its mappings contain:

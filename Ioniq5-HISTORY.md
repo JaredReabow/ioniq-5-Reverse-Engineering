@@ -4544,3 +4544,8 @@ and are superseded by corrections rather than silently rewritten.
 - Decoded vertex data: positions in pixels, texture coordinates in texels, a consistent 1.636 texels per pixel. Not normalised coordinates at all.
 - It is the first measurement of the interaction rather than of a component's innocence, and it opened two candidates rather than closing one.
 - Honest limit recorded: this buffer holds icons, not the full-screen background. The question that started this is still unanswered.
+
+## 2026-10-31 — the first data that looks wrong
+
+- Full-screen quads in normalised device coordinates, carrying texture coordinates that belong to other corners. The position and the texture data disagree.
+- It might be explained by a shader computing coordinates from an attribute this trace did not decode, so it is recorded as an inconsistency rather than a cause. But it is the first piece of evidence in this whole investigation that is itself anomalous rather than merely inconclusive.

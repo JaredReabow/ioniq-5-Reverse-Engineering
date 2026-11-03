@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.18.0 - the full-screen quads are in, and their coordinates do not pair up
+
+- Retrieved the two 64-byte buffers — the small payloads that a full-screen quad would be. Both decode identically, four vertices of position and texture coordinate:
+  ```
+  v0 pos=(-1.00,-1.00) uv=( 1.00,-1.00)
+  v1 pos=( 1.00, 1.00) uv=(-1.00, 1.00)
+  v2 pos=( 0.00, 0.00) uv=( 1.00, 0.00)
+  v3 pos=( 1.00, 1.00) uv=( 0.00, 1.00)
+  ```
+- Two observations, and the second is the interesting one:
+  - positions are in **normalised device coordinates** (the ±1 range), so these are full-screen quads as expected;
+  - **the texture coordinates do not correspond to the positions.** `v0` sits at the bottom-left corner but carries the *right* edge's `u`; `v1` sits at the top-right and carries the *left* edge's; `v2` and `v3` both claim position (0,0)/(1,1) while carrying different coordinates. That is not a quad with a consistent mapping — it is a set of vertices whose position and texture data belong to different corners.
+- **Do not over-read it.** A vertex shader may compute the real coordinates from attributes this trace does not capture (`glVertexAttribPointer` index 2 in the earlier layout was a third attribute we did not decode), or these two buffers may not be the background pass at all. What is established is the **inconsistency**, not its cause.
+- This is nevertheless the first time the investigation has data that *looks wrong* rather than merely inconclusive: every previous measurement excluded a component; this one shows the application handing the GPU vertex data whose texture coordinates disagree with its positions.
+- Next: correlate these buffers with the **program bound at draw time** (`glUseProgram`, `glGetAttribLocation`) and decode the third attribute, which is the only way to tell whether these are the background's real coordinates or a pass whose coordinates come from somewhere else.
+
 ## 3.17.0 - the vertex data is in, and the texture coordinates are in texel space
 
 - The buffer dump works: `glBufferData size=1564` captured (1,024 bytes kept), stride 16 bytes, decoded as position `(x, y)` and texture coordinates `(u, v)`:

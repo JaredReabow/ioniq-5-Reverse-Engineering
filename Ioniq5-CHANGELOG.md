@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.92.0 - the "capture the application's own buffer" idea needs a different hook: those calls are inline
+
+- Built `shm_dump.c` to dump a client's own buffer at attach time, interposing the three libwayland-client entry points that carry pixels:
+  `wl_shm_create_pool`, `wl_shm_pool_create_buffer`, `wl_surface_attach`. Loaded it into the application (`LD_PRELOAD=/usr/lib/shm-dump.so`, verified present in the image and in
+  the launch line) and ran the polling probe. Result: **no dumps at all**, while the run itself was otherwise healthy — `APP=738 after 0s`, `ivi-wm` issued, the geometry
+  cross-check fired, `REPAINTS=10`.
+- **Why it produced nothing, and this is the useful part:** libwayland-client's protocol bindings are **`static inline` functions** in the generated headers
+  (`wayland-client-protocol.h`), which call `wl_proxy_marshal_flags()` directly. There is **no `wl_shm_pool_create_buffer` symbol in the shared library to interpose** — only the
+  generic marshaller. Interposing by exported name works for libdbus and libpixman (which are ordinary shared libraries) but **not** for libwayland protocol calls, and that is a
+  general fact about this project's interposer technique rather than a quirk of this attempt.
+- So the alternative measurement stands as the right next step, but the hook must be `wl_proxy_marshal_flags` (decode the opcode and args for the `wl_shm_pool`/`wl_surface`
+  interfaces) or `wl_shm_pool_create_buffer`'s underlying `wl_proxy_marshal` entry, not the protocol wrapper. That is a larger instrument than this one and is written down as such
+  rather than attempted at the end of a long stretch.
+- Nothing was broken by the attempt: the application ran normally with the shim loaded and the compositor kept repainting, which also confirms the shim's forwarding is safe even
+  when it never fires.
+
 ## 2.91.0 - the GL renderer is not reachable in this image, so the substitution axis is closed
 
 - Two attempts to get weston onto its GL renderer instead of pixman:

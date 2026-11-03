@@ -4330,3 +4330,11 @@ and are superseded by corrections rather than silently rewritten.
 - That is where the day's work honestly ends: not with a picture, but with the list of things that are not the cause being longer than the list of things that might be.
 - The suggestion worth carrying forward is not another theory but another measurement: read the application's own buffer instead of the composited frame, which would tell apart a
   rendering fault from a compositing fault without needing a renderer I do not have.
+
+## 2026-10-31 — the hook did not exist
+
+- The plan to read the application's own pixels needed to interpose functions that are not functions. Wayland's protocol bindings are inline wrappers around a generic marshaller, so
+  there is no symbol to replace.
+- That is worth knowing permanently: interposing by name works for libdbus and libpixman and does not work for libwayland protocol calls. The next attempt hooks the marshaller
+  itself.
+- Nothing broke, which is the one thing that went right.

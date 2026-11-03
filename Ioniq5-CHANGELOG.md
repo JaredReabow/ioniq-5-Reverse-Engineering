@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.10.0 - the stderr tap works, and proves the application reports no GL errors at all
+
+- Built `stderr_tee.c`: it interposes `write()` and, for fd 2 only, appends a copy to `/tmp/app-stderr.log` while letting the original call proceed unchanged. Installed through
+  `/etc/ld.so.preload`, so it reaches the launcher-spawned application whose stdout and stderr have been discarded since the first run of this project.
+- **Result: 4,682 bytes captured, and every line of it came from the persistence stub** — `persadmin-svc: RegisterPersAdminNotification -> ErrorCode=0`. Filtering those out leaves
+  **0 lines**: the application writes **nothing at all to stderr** in this configuration.
+- That is a real finding, not an empty log. It means the vendor application routes its diagnostics entirely through DLT (which is why `/tmp/launcher-chain/dlt.log` has 20,851 lines), and
+  that **Mesa reports no GL error** during the striped render. Undefined-but-successful GL operations — which is what a sampling or state fault produces — generate no error, so the renderer
+  is behaving exactly as it does when nothing is wrong, while producing the wrong picture.
+- It also confirms the tap itself is sound: it captured a *different* process's stderr in the same run, so the mechanism works and the null result for the application is genuine rather than a
+  broken instrument. **That verification-first habit is the one thing this stretch has improved.**
+- Position unchanged and now better supported: the fault is silent, below the level at which GL complains, and confined to how textures are drawn. The draw-level trace — texture coordinates
+  and blend state per draw call — remains the next instrument, and the frame's surviving crisp horizontal lines remain the constraint it must explain.
+
 ## 3.9.3 - verification done: llvmpipe really was in use, so the Gallium driver is excluded
 
 - Did the check §3.9.2 said was owed. `gallium_force.c` now records every time `GALLIUM_DRIVER` is queried, and the run shows **ten queries, each answered `llvmpipe`**:

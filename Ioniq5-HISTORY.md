@@ -4487,3 +4487,10 @@ and are superseded by corrections rather than silently rewritten.
 - Ten queries, each answered llvmpipe. The override worked, the earlier run was valid, and the rasteriser is now excluded rather than merely unproven.
 - One build and one run turned an uninterpretable result into a firm exclusion, which is exactly the ratio this work rewards.
 - What is left is the draw call and its texture coordinates, and a constraint from the frame: horizontal lines stay crisp inside the stripes.
+
+## 2026-10-31 — the silence is the finding
+
+- The stderr tap recovered 4,682 bytes and every one of them belonged to a different process. The application itself says nothing on stderr, and Mesa reports no GL error while drawing the
+  stripes.
+- That fits what has been suspected for days: the operations succeed, and the result is wrong anyway. There is nothing to catch because nothing fails.
+- The instrument also proved itself in the same run by catching another process's output, which is the difference between a real null result and a broken tap.

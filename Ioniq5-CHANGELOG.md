@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.8.0 - CORRECTION: the stripes survive both the splash's removal and ASTC's denial
+
+- Ran the full 2×2 rather than trusting the previous inference:
+  | Splash | ASTC | Result |
+  | --- | --- | --- |
+  | present | allowed | stripes, with the boot logo visible in them |
+  | **binary removed** | allowed | stripes, **no logo** — so the logo was the splash, and the stripes are the application's own background |
+  | binary removed | **denied** (`open()` returns ENOENT for `.astc`) | **stripes, essentially identical** (`mean 30.0/61.3/81.1`) |
+- **So ASTC is not the cause of these stripes.** With the splash out of the picture entirely and every ASTC open failing, the application still draws the same diagonal pattern while its
+  `STR_CAMERA_ALERT2` text remains crisp. §3.6.0 and §3.7.0 presented ASTC as the likely explanation; that is now **refuted by measurement**, and the entries stand corrected here rather
+  than being quietly superseded.
+- What survives from those entries is narrower and still true: the software GL in this emulation really does lack ASTC (the string is absent from the software drivers and present only in
+  Intel ones), and the ASTC upload path really is exercised. But that is an emulation limitation which does **not** produce the stripes being chased — it would show as missing or garbage
+  *image* content, and the striped region persists without it.
+- **What is now established about the stripes**, and it is a short list: they affect the application's **background image**; they do **not** affect its **text**; they are **not** the splash
+  (the logo disappeared with the binary and the stripes did not); they are **not** ASTC; they are **not** the output geometry, the capture tool, the compositor, or our backend, all of which
+  were measured clear.
+- The remaining common factor between the striped region and the crisp text is **which pixels are textured**: the background is an image sampled across a large quad, the text is small and
+  sharp. That points at texture *sampling or upload-channel* state (format/alignment) rather than at the source asset format, and the next instrument should log the upload **format**
+  argument and the sampler state rather than only the dimensions, which `gl_upload_trace.c` already records.
+
 ## 3.7.0 - ASTC exists only in the Intel hardware drivers, so the shear is an emulation limit
 
 - The decisive check from §3.6.0, answered statically: `grep -rl texture_compression_astc` across the guest's GL stack matches

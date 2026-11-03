@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.5.0 - a way to instrument launcher-spawned processes at last, and what the GL upload shows
+
+- **Method, and it solves a problem that has blocked instrumentation all week:** the application manager rebuilds its children's environment, so `LD_PRELOAD` from the launcher never
+  reaches the application (§2.67.0). The dynamic loader, however, reads **`/etc/ld.so.preload`** in every process. Installing `/usr/lib/gl-upload-trace.so` there loaded the interposer into
+  the launcher-managed application without touching its environment — verified by GL calls appearing in `/tmp/gl-upload.log`. **This is the general answer for instrumenting any
+  launcher-spawned vendor process** and it should have been reached for days ago.
+- Built `tools/uk_fw/ias_backend_soft/gl_upload_trace.c` (interposing `glPixelStorei`, `glTexImage2D`, `glTexSubImage2D`, forwarding everything) and the first run logged 22 events:
+  ```
+  glTexImage2D a=1920 b=720 c=6408   ← full-screen texture, correct size
+  glTexImage2D a=930  b=57  c=6408
+  glTexImage2D a=444  b=68  c=6406
+  glTexSubImage2D a=50 b=68 c=0 d=0  … (a run of ~68-tall sub-uploads)
+  ```
+- **Two things follow.** First, **no `glPixelStorei(ROW_LENGTH)` call appears at all**, so GL's unpack row length is left at its default of "use the width" — meaning an upload cannot be
+  sheared by a stale row-length value. Second, the full-screen upload is **1920×720**, the correct size, so the application is not uploading an oversized image either.
+- So the shear is **not** introduced at texture upload geometry, which was the hypothesis this entry was built to test. Given that text is crisp and images are not (§3.4.0), and the
+  uploads are correctly sized with no row-length override, the remaining suspects are the vendor's own **CPU-side conversion** inside `UncompressedTextureFactory` (the component that
+  fails outright under software rendering) and the sampling/draw state, neither of which the GL-level trace can see.
+- Instrument kept installed in the clone because it is cheap and will answer the next question too; the changelog records that it did **not** find a pitch mismatch, so the next attempt
+  does not repeat it.
+
 ## 3.4.0 - the app's window appears, its text is crisp, and its *images* are sheared
 
 - With the splash **hidden rather than killed** — new `ivi_wm --hide <id>`, so the surface is taken off the screen without being destroyed — and the application's own window placed

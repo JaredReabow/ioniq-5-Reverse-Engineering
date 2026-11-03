@@ -4436,3 +4436,9 @@ and are superseded by corrections rather than silently rewritten.
 - The string is sharp and the background image is not. That single contrast moves the fault from the compositor to the texture upload path — the vendor component that already failed
   outright when we forced software rendering.
 - So the end of this stretch is not a picture but a coordinate: one function, one pitch value, and a stripe pattern that follows from it arithmetically.
+
+## 2026-10-31 — the loader will preload into anything, and the uploads are honest
+
+- The environment problem that blocked instrumenting the launcher's children for days has a one-line answer: /etc/ld.so.preload. Every process reads it, including the one I could not reach.
+- With it installed, the GL trace shows correctly sized uploads and no row-length override at all — so the texture upload geometry is not the fault, and that hypothesis is retired.
+- What is left is inside the vendor's own conversion code, which needs a different instrument than GL calls.

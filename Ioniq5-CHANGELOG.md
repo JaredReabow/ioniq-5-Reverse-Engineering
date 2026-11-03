@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.0.0 - the pixels travel in a `mesa-shared` mapping, and the app's window is 78 bytes too wide per row
+
+- Found where the application's pixels actually go. Its mappings contain:
+  ```
+  rw-s /run/user/root/mesa-shared-dxhLkM      (5,828,608 bytes = 0x58F000)
+  rw-s /run/user/root/weston-shared-VbBku4    (20,480 bytes)
+  rw-s /run/user/root/weston-shared-Z10lXS    (20,480 bytes)
+  rw-s /run/user/root/weston-shared-1qhrqH    (20,480 bytes)
+  ```
+  Three small `weston-shared-*` segments carry the vendor's `ivi_share` state (the module's strings include `IVI_SHAREBUFFER_CONFIGURE`, `IVI_SHAREBUFFER_DAMAGE`,
+  `IVI_SHAREBUFFER_STABLE`, `IVI_SHARE_SURFACE_FORMAT_ARGB8888`), and the single **5.83 MB `mesa-shared` segment is the pixels** — consistent in size with one
+  1926×753×4 frame (5,801,112) plus page slack. That also explains why no `wl_shm` mapping of that size existed (§2.95.0): the EGL path shares a Mesa-allocated buffer, not a
+  Wayland shm pool.
+- **The arithmetic now points somewhere specific.** The application's window is **1926 wide with stride 7704**; a compositor assuming the **1920**-wide screen would read that buffer
+  at **7680** bytes per row. The difference is **24 bytes — six pixels — per row**, which is precisely the kind of drift that renders as a diagonal shear, and it needs no exotic
+  mechanism to explain: two components disagreeing about the width of the same buffer.
+- **The chain that would produce that disagreement is already measured in pieces:** the application asks the vendor interface for the primary screen size and receives **0×0**
+  (§2.79.0), so it cannot size itself to the screen; it never receives an `ivi_surface.configure` (no such traffic in its protocol trace, §2.86.0); and it therefore keeps a
+  1926×753 window whose rows are 24 bytes wider than the compositor's 1920-wide assumption.
+- **I tried to verify the six-pixel drift by measuring the shear slope in a captured frame** (cross-correlating adjacent rows for the shift that minimises difference). That came out
+  **inconclusive** — shifts of 1, 36, 40 and 10 pixels on different row pairs — because the sheared captures are noise-like after the drift and no consistent shift is recoverable. The
+  arithmetic stands on its own; the pixel-level confirmation does not exist yet, and it is recorded that way rather than presented as agreement.
+- Next, and it is one change with a clear prediction: **make the compositor publish a real primary screen size** (or deliver a configure of 1920×720) so the application sizes itself to
+  the screen instead of to 1926×753. If the hypothesis is right, the shear disappears at 1920×720 — the same clean geometry the software path already produces (§2.96.0).
+
 ## 2.99.0 - why weston's GL renderer never runs: the vendor headless backend has no GL option
 
 - Three attempts at the GL substitution were invalid before this one, and each invalidity was my own doing and is worth naming:

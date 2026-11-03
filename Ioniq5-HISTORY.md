@@ -4316,3 +4316,10 @@ and are superseded by corrections rather than silently rewritten.
   distinction goes in the record.
 - One useful accident: the capture tool produced a frame from a compositor that was already dead. Any capture now needs to be paired with proof the compositor was alive.
 - The next move is probably the one that has worked all along here: interpose in the vendor's pixman path rather than try to replace its renderer.
+
+## 2026-10-31 — the suspicious thing was deliberate
+
+- A one-pixel-per-row image inside the renderer looked like the answer. Forcing it to the natural stride killed the compositor, which proves the trick is intentional and therefore not
+  the fault.
+- Reverted the experiment and left the reasoning in the file, because this is precisely the sort of finding that gets rediscovered and re-broken later.
+- Printing found the anomaly; changing behaviour explained it. Both were cheap, and only the second one makes the first trustworthy.

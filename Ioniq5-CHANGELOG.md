@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.90.0 - the stride-4 image is intentional: "correcting" it kills the compositor
+
+- Interposed `pixman_image_create_bits` / `_no_clear` inside weston to see the geometry the renderer actually builds. Distinct triples in one run:
+  ```
+  create_bits width= 1920 height=720 stride=7680     ← our output image, correct
+  create_bits width=    1 height=  1 stride=4        ← the single-pixel filler, expected
+  create_bits width= 1920 height=720 stride=4        ← a one-pixel-per-row image
+  ```
+  That third line is a perfect candidate for the shear: a 1920-wide image read at four bytes per row shifts every row.
+- **Tested it by forcing the natural stride (7680) when a caller passes anything smaller.** The interposer logged `STRIDE_FIX width=1920 from=4 to=7680` and **weston then exited
+  immediately** (`WESTON=` empty) — an out-of-bounds read, because the underlying buffer really does hold one row of data. So that stride is **intentional**: it is the
+  single-row-duplicated image trick, not a defect, and it is **not** the cause of the shear.
+- Experiment **reverted**; the interposer is now trace-only and the file documents why the correction must not be applied. Recorded because "a suspicious stride that turns out to
+  be deliberate" is exactly the kind of thing that gets re-attempted six months later by someone else.
+- Where the shear therefore stands after this: our backend's geometry is consistent (§2.88.0), the application's buffer is consistent (§2.86.0), the one anomalous stride in the
+  renderer is intentional (§2.90.0), and the composite is still sheared. The remaining untested axis is the **renderer substitution** (§2.89.0), which needs weston's GL renderer
+  to work in this image before it can be tried.
+- Honest note on the method that produced this: interposing and *printing* found the anomaly in one run; interposing and *changing behaviour* produced a crash in one run. Both were
+  worth doing, and the second is the reason the first can be trusted.
+
 ## 2.89.0 - the GL-renderer substitution is not available in this configuration
 
 - Attempted the §2.88.0 substitution: same scene, same pristine-derived image, vendor `headless-backend.so` started **without** `--use-pixman` so that weston would choose its GL

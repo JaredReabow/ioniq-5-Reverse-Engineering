@@ -4255,3 +4255,10 @@ and are superseded by corrections rather than silently rewritten.
 - It also let three plausible explanations for the zero screen size be tested and killed in sequence: output count, the HMI client, and output naming.
 - What remains is narrower and specific: either the vendor DRM backend supplies that size, or the user-interface client at the path the config names does. Neither is running
   here, and the config names a path the image does not contain.
+
+## 2026-10-31 — the stripes were probably my capture, not their compositor
+
+- Four explanations for the zero screen size are dead. The likely answer is the vendor backend we deliberately do not run.
+- More importantly, the sheared frame that sent me chasing a stride mismatch is much more likely a capture taken at the wrong width. A correct unsheared application
+  window exists in the same family of runs, which is the evidence that settles it.
+- Recording both because the second one corrects a diagnosis I had already written down.

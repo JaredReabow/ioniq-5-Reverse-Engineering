@@ -4520,3 +4520,9 @@ and are superseded by corrections rather than silently rewritten.
 - So the draw trace has to be written by hand, and writing it means solving the same problem that defeated the libwayland interposition: the vendor reaches GL through a function table, not through
   exported symbols.
 - Recorded as the next instrument rather than begun at the end of a long day, with the target unchanged: three texels per row.
+
+## 2026-10-31 — the hard part has a known shape
+
+- The draw cannot be interposed by symbol because it is reached through a function table. The way round that is to interpose the table's loader, which this project has not tried and which is the
+  same obstacle that stopped the libwayland attempt.
+- Delegated with a falsification condition attached, and with permission to report that the technique cannot work rather than deliver something that cannot.

@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.82.0 - confirmed: the capture tool hard-coded 1920x720, which is what sheared the frame
+
+- Read `ias-shot.c` and found the cause of the diagonal stripes outright:
+  ```
+  #define OUT_W 1920
+  #define OUT_H 720
+  ```
+  The tool allocated its `wl_shm` buffer at a fixed 1920×720 and never listened for the output's `wl_output.mode`, so any frame the compositor produced at a different size —
+  the vendor stack reports the application's surface as **1926×753** — was copied into a buffer of the wrong stride. **The "stride mismatch" of §2.78.0 was the capture tool,
+  not the compositor**, exactly as §2.81.0 suspected.
+- **Fixed:** `ias-shot` now registers a `wl_output` listener, takes width and height from the `mode` event, and does a second roundtrip before sizing the buffer, with
+  1920×720 only as a fallback if no mode arrives. Rebuilt as an executable (the previous build step produced a shared object; the working invocation is
+  `zig cc -target x86_64-linux-gnu -I work/vm/wayland-1.10.0-src -I tools/uk_fw/ias_backend_soft … -l:libwayland-client.so.0` against the guest's own library).
+- **Verified in the guest:** the patched tool now reports and writes the geometry it read from the output (`HEADER: 1920 720` matching the configured output), and its
+  diagnostics are richer — `done_events`, per-channel mean and first-pixel values, so a black frame is stated as `mean R=0.0 G=0.0 B=0.0` rather than inferred from a file
+  size.
+- Honest notes: that verification run captured **black** (mean 0 on all channels) in the ten-output configuration, which is consistent with the app's surface being on a
+  screen other than the single output being composited; and the tool printed a byte count (5,529,615) larger than the file it produced (4,147,216), which is **unexplained**
+  and is recorded rather than glossed — the file's own header and payload are self-consistent (1920×720, P6, 4,147,200 payload bytes).
+- Consequence for the record: **every capture this project has made with `ias-shot` is suspect wherever the compositor output was not exactly 1920×720.** Frames taken at
+  1920×720 are unaffected; the sheared one was not, and the frames judged "black" in §2.79.0–§2.81.0 should be re-measured with this tool before any further conclusions are
+  drawn from them.
+
 ## 2.81.0 - the vendor config path is a dead end, and the "stride mismatch" is more likely a capture-width artefact
 
 - **Fourth attempt at the zero screen size, refuted too.** Restored the path the vendor config names

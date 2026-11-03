@@ -26,10 +26,17 @@
 #include "weston-screenshooter-client-protocol.h"
 #include "wayland-client-protocol.h"
 
-#define OUT_W 1920
-#define OUT_H 720
-#define OUT_STRIDE (OUT_W * 4)
-#define OUT_SIZE ((size_t)OUT_STRIDE * OUT_H)
+/* The compositor's output is not guaranteed to be 1920x720: with the vendor
+ * configuration it reported a surface of 1926x753, and capturing that into a
+ * hard-coded 1920x720 buffer shears every row by the difference. The size is taken
+ * from the wl_output mode event instead, with these values only as a fallback if no
+ * mode arrives. */
+#define OUT_W_DEFAULT 1920
+#define OUT_H_DEFAULT 720
+static int out_w = OUT_W_DEFAULT;
+static int out_h = OUT_H_DEFAULT;
+#define OUT_STRIDE (out_w * 4)
+#define OUT_SIZE ((size_t)OUT_STRIDE * out_h)
 #define WAIT_MS 20000
 
 static struct wl_shm *shm;
@@ -52,6 +59,39 @@ static const struct weston_screenshooter_listener shooter_listener = {
 };
 
 static void
+output_handle_geometry(void *data, struct wl_output *o, int32_t x, int32_t y,
+		       int32_t pw, int32_t ph, int32_t subpixel,
+		       const char *make, const char *model, int32_t transform)
+{
+	(void)data; (void)o; (void)x; (void)y; (void)pw; (void)ph;
+	(void)subpixel; (void)make; (void)model; (void)transform;
+}
+
+static void
+output_handle_mode(void *data, struct wl_output *o, uint32_t flags,
+		   int32_t width, int32_t height, int32_t refresh)
+{
+	(void)data; (void)o; (void)flags; (void)refresh;
+	if (width > 0 && height > 0) {
+		out_w = width;
+		out_h = height;
+	}
+}
+
+static void
+output_handle_done(void *data, struct wl_output *o) { (void)data; (void)o; }
+static void
+output_handle_scale(void *data, struct wl_output *o, int32_t f)
+{ (void)data; (void)o; (void)f; }
+
+static const struct wl_output_listener output_listener = {
+	output_handle_geometry,
+	output_handle_mode,
+	output_handle_done,
+	output_handle_scale,
+};
+
+static void
 registry_global(void *data, struct wl_registry *registry, uint32_t name,
 		const char *interface, uint32_t version)
 {
@@ -62,10 +102,12 @@ registry_global(void *data, struct wl_registry *registry, uint32_t name,
 	else if (strcmp(interface, "wl_shm") == 0)
 		shm = wl_registry_bind(registry, name, &wl_shm_interface, 1);
 	else if (strcmp(interface, "wl_output") == 0) {
-		if (!output)
+		if (!output) {
 			output = wl_registry_bind(registry, name,
 						  &wl_output_interface,
 						  version < 2 ? version : 2);
+			wl_output_add_listener(output, &output_listener, NULL);
+		}
 	} else if (strcmp(interface, "weston_screenshooter") == 0) {
 		shooter = wl_registry_bind(registry, name,
 					   &weston_screenshooter_interface, 1);
@@ -108,7 +150,7 @@ create_shm_buffer(struct wl_buffer **out, void **data)
 		return -1;
 	}
 	struct wl_shm_pool *pool = wl_shm_create_pool(shm, fd, (int)OUT_SIZE);
-	*out = wl_shm_pool_create_buffer(pool, 0, OUT_W, OUT_H, OUT_STRIDE,
+	*out = wl_shm_pool_create_buffer(pool, 0, out_w, out_h, OUT_STRIDE,
 					 WL_SHM_FORMAT_ARGB8888);
 	wl_shm_pool_destroy(pool);
 	close(fd);
@@ -136,6 +178,11 @@ main(int argc, char **argv)
 		fprintf(stderr, "ias-shot: registry roundtrip failed\n");
 		return 3;
 	}
+	/* A second roundtrip delivers the output's mode so the buffer matches it. */
+	if (wl_display_roundtrip(display) < 0) {
+		fprintf(stderr, "ias-shot: output roundtrip failed\n");
+		return 3;
+	}
 	if (!shm || !output || !shooter) {
 		fprintf(stderr, "ias-shot: missing global shm=%p output=%p screenshooter=%p\n",
 			(void *)shm, (void *)output, (void *)shooter);
@@ -147,7 +194,7 @@ main(int argc, char **argv)
 	if (create_shm_buffer(&buffer, &pixels) < 0)
 		return 5;
 
-	fprintf(stderr, "ias-shot: shooting %dx%d ARGB8888\n", OUT_W, OUT_H);
+	fprintf(stderr, "ias-shot: shooting %dx%d ARGB8888\n", out_w, out_h);
 	weston_screenshooter_shoot(shooter, output, buffer);
 	if (wl_display_flush(display) < 0) {
 		fprintf(stderr, "ias-shot: flush failed: %s\n", strerror(errno));
@@ -189,16 +236,16 @@ main(int argc, char **argv)
 			strerror(errno));
 		return 10;
 	}
-	fprintf(f, "P6\n%d %d\n255\n", OUT_W, OUT_H);
+	fprintf(f, "P6\n%d %d\n255\n", out_w, out_h);
 	unsigned char *src = pixels;
-	unsigned char *row = malloc((size_t)OUT_W * 3);
+	unsigned char *row = malloc((size_t)out_w * 3);
 	if (!row)
 		return 11;
 	uint64_t sum[3] = { 0, 0, 0 };
 	unsigned char lo[3] = { 255, 255, 255 }, hi[3] = { 0, 0, 0 };
-	for (int y = 0; y < OUT_H; y++) {
+	for (int y = 0; y < out_h; y++) {
 		unsigned char *s = src + (size_t)y * OUT_STRIDE;
-		for (int x = 0; x < OUT_W; x++) {
+		for (int x = 0; x < out_w; x++) {
 			/* shm ARGB8888 is little-endian B,G,R,A in memory */
 			row[x * 3 + 0] = s[2];
 			row[x * 3 + 1] = s[1];
@@ -211,7 +258,7 @@ main(int argc, char **argv)
 			}
 			s += 4;
 		}
-		if (fwrite(row, 1, (size_t)OUT_W * 3, f) != (size_t)OUT_W * 3) {
+		if (fwrite(row, 1, (size_t)out_w * 3, f) != (size_t)out_w * 3) {
 			fprintf(stderr, "ias-shot: write failed\n");
 			fclose(f);
 			return 12;
@@ -221,7 +268,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "ias-shot: close failed\n");
 		return 13;
 	}
-	const double npx = (double)OUT_W * OUT_H;
+	const double npx = (double)out_w * out_h;
 	fprintf(stderr,
 		"ias-shot: wrote %s (%zu bytes), done_events=%d, mean R=%.1f G=%.1f B=%.1f, "
 		"R[%u..%u] G[%u..%u] B[%u..%u]\n",

@@ -4262,3 +4262,11 @@ and are superseded by corrections rather than silently rewritten.
 - More importantly, the sheared frame that sent me chasing a stride mismatch is much more likely a capture taken at the wrong width. A correct unsheared application
   window exists in the same family of runs, which is the evidence that settles it.
 - Recording both because the second one corrects a diagnosis I had already written down.
+
+## 2026-10-31 — the stripes were the camera
+
+- The capture tool had 1920 by 720 written into it as constants and never asked the compositor what size its output was. Everything it saw at another size came out sheared.
+- That is the fifth instrument fault in this project and the second one today that produced a false diagnosis. It is fixed, and the fix also makes black frames state their mean
+  instead of leaving me to infer from bytes.
+- The uncomfortable conclusion is recorded plainly: any capture taken at a size other than 1920 by 720 has to be re-measured before it is trusted, including the ones I used to
+  argue the screen was empty.

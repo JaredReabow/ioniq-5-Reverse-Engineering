@@ -4513,3 +4513,10 @@ and are superseded by corrections rather than silently rewritten.
 - The interposer was in the process four times over and the driver contains the option name, but nothing queried it. One plausible reason is that Mesa reads its options through a different lookup
   function than the one I replaced.
 - Recorded as a cause not yet established rather than as tracing being unavailable, because that distinction decides whether the next attempt needs a hand-written tracer at all.
+
+## 2026-10-31 — the free instrument was not installed
+
+- Both lookups interposed, both verified exported, neither was called. The driver has the option's name and nothing that implements it. The trace module simply is not in this build.
+- So the draw trace has to be written by hand, and writing it means solving the same problem that defeated the libwayland interposition: the vendor reaches GL through a function table, not through
+  exported symbols.
+- Recorded as the next instrument rather than begun at the end of a long day, with the target unchanged: three texels per row.

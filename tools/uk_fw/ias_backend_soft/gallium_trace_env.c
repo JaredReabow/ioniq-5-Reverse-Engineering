@@ -179,3 +179,45 @@ const char *getenv(const char *name)
 	}
 	return real_getenv(name);
 }
+
+/*
+ * secure_getenv / __secure_getenv
+ * -------------------------------
+ * The first run of this interposer produced no trace even though it was loaded into the
+ * application four times over and the driver contains the "GALLIUM_TRACE" string. Mesa may
+ * read its options through the secure variant rather than plain getenv(), which returns NULL
+ * for set-id processes. Interposing both spellings costs nothing and removes that ambiguity.
+ */
+const char *secure_getenv(const char *name)
+{
+	static const char *(*real)(const char *);
+
+	if (name == NULL)
+		return NULL;
+	if (strcmp(name, "GALLIUM_TRACE") == 0)
+		return getenv(name);
+
+	if (real == NULL) {
+		real = dlsym(RTLD_NEXT, "secure_getenv");
+		if (real == NULL)
+			return NULL;
+	}
+	return real(name);
+}
+
+const char *__secure_getenv(const char *name)
+{
+	static const char *(*real)(const char *);
+
+	if (name == NULL)
+		return NULL;
+	if (strcmp(name, "GALLIUM_TRACE") == 0)
+		return getenv(name);
+
+	if (real == NULL) {
+		real = dlsym(RTLD_NEXT, "__secure_getenv");
+		if (real == NULL)
+			return NULL;
+	}
+	return real(name);
+}

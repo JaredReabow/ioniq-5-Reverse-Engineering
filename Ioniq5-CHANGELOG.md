@@ -3,6 +3,17 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.9.2 - llvmpipe shows no difference, but the override is unverified
+
+- Tested the one variable this project has never changed: the Gallium driver. Everything here has run `GALLIUM_DRIVER=softpipe`; the shipped `swrast_dri.so` also contains **llvmpipe**
+  (both the injected `/opt/software-egl18/dri/swrast_dri.so` and the vendor `/usr/lib/dri/swrast_dri.so` reference it), so forcing llvmpipe was a one-variable experiment.
+- Built `gallium_force.c` (a `getenv()` override returning `llvmpipe` for `GALLIUM_DRIVER`) and installed it through `/etc/ld.so.preload`, the mechanism that does reach launcher-spawned
+  processes (§3.5.0). Result: the application renders with **the same diagonal stripes**, `mean R=40.1 G=61.6 B=81.1`, indistinguishable from the softpipe runs.
+- **The honest caveat, and it matters:** I did **not verify** that the override actually took effect — no probe confirms which Gallium driver the application initialised. So this is
+  recorded as **"no difference observed"**, not as "llvmpipe tested and excluded". Those are different claims and only the first is supported.
+- What it does add: if the override did take effect, the fault is not softpipe-specific and the driver can be removed from the suspect list. If it did not, this run says nothing at all. The
+  distinguishing check is cheap — log `GALLIUM_DRIVER` from inside the application at GL init — and it belongs in the same instrument as any future draw trace.
+
 ## 3.9.1 - the asset tree is not the difference either
 
 - Hypothesis tested: the stripes might simply be the art of a **different theme variant** than the one the archived clean frame used. The working recipe bind-mounts

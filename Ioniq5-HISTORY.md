@@ -4463,3 +4463,9 @@ and are superseded by corrections rather than silently rewritten.
   and a two-by-two test said so in one run.
 - What is left is a short, honest list: the stripes are in the application's images, not its text, and not in the splash, the asset format, the capture path or the compositor.
 - The next instrument should print the upload format and sampler state, not the dimensions. That is a fact about which argument I have been logging, and it took this correction to see it.
+
+## 2026-10-31 — every upload parameter checked, and all of them are correct
+
+- Alignment toggles properly, no row-length override exists, formats are ordinary, and the surfaces are uploaded at exactly the width the compositor reports. The upload path is clean end to end.
+- So the fault is on the draw side, which needs a different and much larger instrument. That is where this line of work honestly stops for now.
+- The list of exonerated components now covers both the asset formats and every upload parameter. What remains is one unbuilt tracer and a stripe pattern, and saying so plainly is more useful than another theory.

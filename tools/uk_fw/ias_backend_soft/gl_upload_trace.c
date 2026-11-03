@@ -94,11 +94,21 @@ void glPixelStorei(GLenum pname, GLint param)
 {
 	static void (*real)(GLenum, GLint);
 
-	/* GL_UNPACK_ROW_LENGTH is 0x0CF2: the pitch GL will use for uploads. */
-	if (pname == 0x0CF2)
-		emit("glPixelStorei(ROW_LENGTH)", (long)param, pname, 0, 0);
-	else if (pname == 0x0D05)	/* GL_PACK_ROW_LENGTH */
+	/* Log every pixel-store parameter with its numeric pname, because the ones that
+	 * matter here are the ones that change how GL walks the source rows:
+	 *   GL_UNPACK_ALIGNMENT (0x0CF5)  — row alignment for 3-byte-per-pixel formats
+	 *   GL_UNPACK_ROW_LENGTH (0x0CF2) — explicit pitch
+	 *   GL_UNPACK_SKIP_*              — offsets into the row
+	 * Earlier this tracer logged only the row lengths, which was a guess about which
+	 * arguments mattered; the alignment parameter is the one that shears an RGB upload. */
+	if (pname == 0x0CF5)
+		emit("glPixelStorei(UNPACK_ALIGNMENT)", (long)param, pname, 0, 0);
+	else if (pname == 0x0CF2)
+		emit("glPixelStorei(UNPACK_ROW_LENGTH)", (long)param, pname, 0, 0);
+	else if (pname == 0x0D05)
 		emit("glPixelStorei(PACK_ROW_LENGTH)", (long)param, pname, 0, 0);
+	else
+		emit("glPixelStorei(other)", (long)param, pname, 0, 0);
 
 	if (!real)
 		real = dlsym(RTLD_NEXT, "glPixelStorei");
@@ -136,4 +146,15 @@ void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 	if (real)
 		real(target, level, xoffset, yoffset, width, height, format, type,
 		     pixels);
+}
+
+void glTexParameteri(GLenum target, GLenum pname, GLint param)
+{
+	static void (*real)(GLenum, GLenum, GLint);
+
+	emit("glTexParameteri", (long)pname, (long)param, 0, 0);
+	if (!real)
+		real = dlsym(RTLD_NEXT, "glTexParameteri");
+	if (real)
+		real(target, pname, param);
 }

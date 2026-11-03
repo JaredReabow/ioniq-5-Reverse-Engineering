@@ -4302,3 +4302,10 @@ and are superseded by corrections rather than silently rewritten.
   today: the placement request is what makes the application visible.
 - Three separate runs were lost to the application exiting before the checkpoint. That is now the binding constraint on progress, not any missing knowledge.
 - The next attempt polls instead of sleeping. Recorded because otherwise the next person repeats the same three runs.
+
+## 2026-10-31 — our software was not at fault
+
+- The number I predicted would settle a seam settled it the other way: mode, image and buffer strides all agree. The backend did not cause the stripes.
+- With the application's own buffer also verified correct, the only component left in the path is the vendor's pixman renderer — the same one that needed an interposer to stop
+  aborting last week.
+- So the next test is not a measurement but a substitution: run the same scene through the GL renderer and see whether the stripes follow the renderer or the scene.

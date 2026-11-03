@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.87.0 - the geometry cross-check is in the backend, but the repaint path only fires when something is shown
+
+- Added the two-value comparison from §2.86.0 to `headless_output_repaint`: it prints the output's `current_mode` width/height and `output->base` width/height alongside
+  `pixman_image_get_width/height/stride` for our own `image_buf` image, once per output. Built and injected; the string is verifiably present in the deployed
+  `ias-backend-soft.so`.
+- **It produced no output in three runs, and the reason is itself a finding:** the backend's repaint callback **does not run at all** unless something on a screen is
+  actually being composited. Runs that start the compositor and the application but never show the surface log only the two startup lines
+  (`10 output(s) … repainting first 1`, `research shim disabled`) and nothing else — so "no repaint" is the observable signature of "nothing is displayed", which is
+  consistent with the placement result in §2.84.0: content appears only after `ivi-wm` asks for it.
+- The run that would have exercised the cross-check **lost the application before the 25-second checkpoint** (`APP=` empty), so no placement could be issued and no repaint
+  followed. That is the third time in this stretch that run-to-run variation in how long the application survives has consumed a measurement, and it is worth stating as the
+  current practical bottleneck rather than buried: **the app's liveness is not reproducible enough to schedule a measurement against it**, so any experiment that needs the
+  surface placed must poll for the process and act immediately rather than sleeping a fixed interval.
+- Instrument left in place, deliberately: the cross-check costs one log line per output and will answer the stride question the first time it runs with a surface actually
+  displayed. Next run must therefore (a) poll for `AppHomeScreen.real` in a loop, (b) issue `ivi-wm` the moment it exists, and (c) then read the `geom` line — all inside the
+  first twenty seconds after the app appears.
+
 ## 2.86.0 - the application's own buffer is self-consistent, so the drift is downstream of it
 
 - Captured the application's `WAYLAND_DEBUG` and read the geometry it declares when creating its buffer:

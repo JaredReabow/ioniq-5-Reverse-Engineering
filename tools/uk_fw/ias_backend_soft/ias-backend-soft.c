@@ -149,6 +149,23 @@ headless_output_repaint(struct weston_output *output_base,
 		}
 	}
 
+	/* Geometry cross-check: our image_buf is allocated from param->width while the
+	 * repaint path reads current_mode->width. If the renderer's shadow geometry and our
+	 * image geometry disagree, the composite shears by the difference, so print both
+	 * once per output rather than inferring the fault from stripes in a capture. */
+	if (output->image && repaint_count < 1) {
+		weston_log("ias-soft: geom output=%u mode=%dx%d image=%dx%d "
+			   "image_stride=%d buf_stride=%d param=%dx%d\n",
+			   output->base.id,
+			   output->base.current_mode->width,
+			   output->base.current_mode->height,
+			   pixman_image_get_width(output->image),
+			   pixman_image_get_height(output->image),
+			   pixman_image_get_stride(output->image),
+			   output->base.current_mode->width * 4,
+			   output->base.width, output->base.height);
+	}
+
 	if (composite)
 		ec->renderer->repaint_output(&output->base, damage);
 

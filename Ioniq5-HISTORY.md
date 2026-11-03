@@ -4365,3 +4365,11 @@ and are superseded by corrections rather than silently rewritten.
 - That exonerates the compositor, the renderer, our backend and the placement work in one measurement, and puts the fault where the evidence kept pointing: a GL-backed surface
   being composited wrongly.
 - The frame is not the finished UI — it is mostly empty white — so this establishes where the fault lives rather than delivering the finished picture.
+
+## 2026-10-31 — the software path was never going to work
+
+- The blank white area was not a missing effect: the vendor's own texture factory fails on every image when the window is software rendered. It is a GL-only component, and no amount of
+  provisioning will change that.
+- So the only route left is the EGL one, which means the shear has to be understood inside the vendor's surface-sharing code rather than worked around.
+- Worth noting the shape of this: two days of the wrong suspect, then one experiment (software backend) that both localised the fault and ruled out the alternative route. The cheap
+  substitution was the decisive one.

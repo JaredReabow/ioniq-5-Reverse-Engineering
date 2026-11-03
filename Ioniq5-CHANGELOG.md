@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.97.0 - the software path cannot show the vendor UI: its texture factory is GL-only
+
+- Route (a) from §2.96.0 tested, and closed. In the software-rendered run the application's own log repeats, for every image it tries to draw:
+  ```
+  [QtMsg] virtual QSGTexture* UncompressedTextureFactory::createTexture(QQuickWindow*) const Fail
+  ```
+  1,405 log lines, and that failure dominates the scene-graph section. So the empty white area is **not** a missing effect or an incomplete backend — the application's **own texture
+  factory fails to create textures** when the window is software-rendered. It is a GL-only factory, which is unsurprising for a vendor UI written against EGL and `ivi_share`.
+- **Consequence, stated plainly: the software renderer cannot display this UI at all.** It renders geometry correctly (§2.96.0) and no images, because the vendor code refuses. Route (a)
+  is therefore not "find what the UI needs" — it is "replace the vendor's texture factory", which is not worth doing when route (b) exists.
+- That leaves **route (b) as the only route that can show the vendor UI**: stay on EGL and deal with the composite. The shear is in the path where a GL-backed, `ivi_share`d surface
+  reaches a compositor running `--use-pixman`, which by construction cannot sample GL textures and must be copying through something the vendor added.
+- Next concrete step, and it should start from the vendor's own sharing code rather than from the compositor: `libivi-platform-interface.so` and the `ivi_share` protocol are where the
+  GL buffer becomes something the compositor consumes (the client's traffic shows `ivi_share_surface`), so that is where a stride or format disagreement would be introduced and where
+  an interposer would be most informative.
+
 ## 2.96.0 - the shear is in the EGL path: with Qt Quick's software backend the geometry is clean
 
 - Tested the implication from §2.95.0 directly. Forced the application onto Qt Quick's **software** renderer (`QT_QUICK_BACKEND=software`), which draws into a `wl_shm` buffer

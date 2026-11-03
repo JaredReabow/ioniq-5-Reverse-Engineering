@@ -4481,3 +4481,9 @@ and are superseded by corrections rather than silently rewritten.
 - Forcing llvmpipe produced the same stripes. That would exclude the driver, except that nothing confirms the override reached Mesa, so the run supports a weaker claim than it looks.
 - Written as "no difference observed" rather than "driver excluded", because those are different statements and only one of them is earned here.
 - The verification for this is trivial and I did not do it first. That is the same mistake as the invalid GL runs, arriving from a different direction.
+
+## 2026-10-31 — the check that made the last run mean something
+
+- Ten queries, each answered llvmpipe. The override worked, the earlier run was valid, and the rasteriser is now excluded rather than merely unproven.
+- One build and one run turned an uninterpretable result into a firm exclusion, which is exactly the ratio this work rewards.
+- What is left is the draw call and its texture coordinates, and a constraint from the frame: horizontal lines stay crisp inside the stripes.

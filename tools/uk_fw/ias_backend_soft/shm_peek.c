@@ -117,7 +117,10 @@ dump_from_maps(int pid, size_t want, int width, int height, const char *out)
 			continue;
 		if (perms[0] != 'r' || perms[2] == 'x')
 			continue;	/* readable but not executable: data, not code */
-		if (end - start < want)
+		/* A wl_shm pool need not be exactly one frame: measured in the guest, the only
+		 * candidate in the right size class was 5,423,104 bytes for a 1926x753 frame
+		 * (5,801,112), so accept three quarters of a frame and read what fits. */
+		if (end - start < want * 3 / 4)
 			continue;
 		/* Record every candidate. The "smallest that fits" guess was wrong once
 		 * (it picked an unrelated heap mapping that dumped as noise), so list them
@@ -165,7 +168,14 @@ dump_from_maps(int pid, size_t want, int width, int height, const char *out)
 				continue;
 			b3 = malloc(want);
 			if (!b3) { close(mem3); continue; }
-			if (pread(mem3, b3, want, (off_t)cand[ci].start) == (ssize_t)want) {
+			{
+			ssize_t got = pread(mem3, b3, want, (off_t)cand[ci].start);
+			if (got < (ssize_t)(want * 3 / 4))
+				memset(b3, 0, want);
+			else if (got < (ssize_t)want)
+				memset(b3 + got, 0, want - (size_t)got);
+		}
+		if (1) {
 				sc = coherence(b3, want);
 				fprintf(stderr, "shm_peek: cand[%d] score=%.2f\n", ci, sc);
 				if (sc < best_score) { best_score = sc; best_i = ci; }

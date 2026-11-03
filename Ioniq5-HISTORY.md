@@ -4351,3 +4351,10 @@ and are superseded by corrections rather than silently rewritten.
 - Three selection heuristics later, the dump is still noise or zeros. The framebuffer is in there somewhere — the tool prints every candidate with a name and a score, so the next
   person should read that list instead of adding another guess.
 - Recorded as an unfinished instrument rather than a result, because that is what it is.
+
+## 2026-10-31 — the pixels are not where a shared-memory client would put them
+
+- The listing showed one region in the right size class and it was too small for a frame, which is why earlier scans skipped it. Relaxing the threshold produced the same noise.
+- The useful conclusion is not about the tool: the application very likely renders through EGL and shares its surface rather than drawing into a CPU-visible buffer. That changes
+  which component is the suspect for the shear.
+- Stopped rather than adding a fourth heuristic. The instrument stays because what it demonstrated — reading a live process without hooking anything — is reusable.

@@ -4358,3 +4358,10 @@ and are superseded by corrections rather than silently rewritten.
 - The useful conclusion is not about the tool: the application very likely renders through EGL and shares its surface rather than drawing into a CPU-visible buffer. That changes
   which component is the suspect for the shear.
 - Stopped rather than adding a fourth heuristic. The instrument stays because what it demonstrated — reading a live process without hooking anything — is reusable.
+
+## 2026-10-31 — it was the EGL path all along
+
+- Forcing the application onto Qt Quick's software renderer produced a clean, correctly shaped frame for the first time: blue bar, black strip, white content. No stripes.
+- That exonerates the compositor, the renderer, our backend and the placement work in one measurement, and puts the fault where the evidence kept pointing: a GL-backed surface
+  being composited wrongly.
+- The frame is not the finished UI — it is mostly empty white — so this establishes where the fault lives rather than delivering the finished picture.

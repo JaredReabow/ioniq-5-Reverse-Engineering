@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.96.0 - the shear is in the EGL path: with Qt Quick's software backend the geometry is clean
+
+- Tested the implication from §2.95.0 directly. Forced the application onto Qt Quick's **software** renderer (`QT_QUICK_BACKEND=software`), which draws into a `wl_shm` buffer
+  instead of rendering through EGL and sharing the surface. Everything else unchanged: same compositor, same ten-screen backend, same pixman renderer, same placement request.
+- **Result: no stripes.** The capture is a clean, correct-geometry 1920×720 frame — a blue title bar across the top, a black strip under it, a white content area, and a small dashed
+  glyph at the left. Saved as **`docs/vm/16-software-backend-no-shear-2026-10-31.png`**. Statistics: `peak=255`, 99.88% nonzero, 86.88% bright, and the PNG compresses to
+  8,940 bytes because the frame is mostly flat colour — the opposite of the sheared captures, which were 900 KB of noise.
+- **That settles the question this project has been circling for two days.** The compositor, its pixman renderer, our backend and the surface placement are all capable of
+  producing a correct frame. **The shear belongs to the EGL rendering path** — the application rendering through `libEGL` and sharing a GL-backed surface, which the compositor then
+  composites wrongly. Everything measured earlier is consistent with this: the app's `wl_shm` buffer geometry was correct because it *is* correct on the path that works; the
+  1926×753 surface is what the EGL path produces; and the pixman renderer has already shown itself unreliable in this configuration (§2.53.0 needed an interposer to stop it
+  aborting on its own solid fills).
+- **Honest limits:** the software-rendered frame is geometrically correct but **visually incomplete** — a large empty white area rather than the tile grid, presumably because the
+  software backend does not implement the QML effects the vendor UI relies on. So this proves *where the fault is*, not that the vendor UI renders fully on the software path.
+- Next, and it is now a choice between two concrete routes: (a) accept the software path and find what the vendor UI needs that it does not provide, or (b) stay on EGL and
+  interpose in the GL/`ivi_share` composite — the same technique that has worked every time in this project.
+
 ## 2.95.0 - the peek does not find the application's pixels, and that says something about its rendering path
 
 - Did what §2.94.0 said to do — read the candidate listing rather than guess again. Two measurements from the process's own maps at 35 seconds:

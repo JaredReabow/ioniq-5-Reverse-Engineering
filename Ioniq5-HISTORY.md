@@ -4421,3 +4421,10 @@ and are superseded by corrections rather than silently rewritten.
   run could show that.
 - Capturing across outputs showed the screenshooter answers for output zero and times out for the rest, so some of yesterday's black frames were capture failures rather than black screens.
 - The next step is the one combination never tried: vendor binary, application alive, surface placed on output zero, capture output zero.
+
+## 2026-10-31 — the stripes were the corpse of the splash
+
+- The sheared frame after killing the splash is the splash's own logo, drawn diagonally. The thing I destroyed is the thing I was photographing.
+- That explains the pixman assertion, the clean software-rendered frame, the width-independence, and every black or striped capture taken after a splash kill. One defect, seen from four
+  directions across two days.
+- The practical rule is immediate: never kill the splash to clear the screen. Killing it is what drew the stripes I spent two days explaining.

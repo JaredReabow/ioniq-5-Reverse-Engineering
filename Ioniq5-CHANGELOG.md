@@ -3,6 +3,17 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.13.1 - Mesa's trace module is not in this build; the fallback is the hand-written tracer
+
+- Added `secure_getenv` and `__secure_getenv` to the interposer (both verified exported: `nm -D` shows two matches) and re-ran. Result: **still no query, still no trace file**.
+- Static confirmation that explains it: the driver in the image contains the bare string `GALLIUM_TRACE` but **no `trace_screen`, `gallium_trace` or `apitrace` symbols at all** — so the trace module is
+  **not linked into this `swrast_dri.so`**. The string is a leftover, not a live option. Both lookups were interposed and neither was called, which is what an absent module looks like.
+- **So Mesa tracing is unavailable in this build**, established this time by two independent checks (no `getenv`/`secure_getenv` query, and no trace symbols in the binary) rather than by one failed run.
+  §3.12.0's hope of getting a draw trace for free is closed, and the fallback recorded there is what remains: **a hand-written draw tracer**.
+- That is a materially larger instrument — it has to intercept the draw path the vendor actually uses (likely `QOpenGLFunctions`, resolved through the GL function table rather than by exported
+  symbol, which is the same obstacle that made the libwayland interposition fail in §2.92.0) — and it is where this line of work stops for now. It is written down as the next instrument rather than
+  started at the end of a long stretch, and the numeric target it must check is unchanged: **3 texels of lateral offset per row**.
+
 ## 3.13.0 - Mesa tracing did not engage, and the reason is one function call away
 
 - Installed `gallium-trace-env.so` (from the delegated work) through `/etc/ld.so.preload` and ran the chain. Result: **no trace file**, and **no `GALLIUM_TRACE queried` line** in the shim's

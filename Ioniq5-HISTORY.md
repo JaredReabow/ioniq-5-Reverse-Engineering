@@ -4469,3 +4469,9 @@ and are superseded by corrections rather than silently rewritten.
 - Alignment toggles properly, no row-length override exists, formats are ordinary, and the surfaces are uploaded at exactly the width the compositor reports. The upload path is clean end to end.
 - So the fault is on the draw side, which needs a different and much larger instrument. That is where this line of work honestly stops for now.
 - The list of exonerated components now covers both the asset formats and every upload parameter. What remains is one unbuilt tracer and a stripe pattern, and saying so plainly is more useful than another theory.
+
+## 2026-10-31 — not the art either
+
+- The working recipe's own asset tree produces the same stripes, so the theme was never the difference and another tidy answer is gone.
+- The frame does leave one clue worth keeping: crisp horizontal lines survive inside the striped field, so whatever is wrong happens inside the sampling of a single drawn quad.
+- Closed the display investigation here for now. The state is written down rather than a theory, and the next instrument is named.

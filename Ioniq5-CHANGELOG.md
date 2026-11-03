@@ -3,6 +3,21 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.9.1 - the asset tree is not the difference either
+
+- Hypothesis tested: the stripes might simply be the art of a **different theme variant** than the one the archived clean frame used. The working recipe bind-mounts
+  `/system/new_gui/new2.0/hmc/night` over `/app/share/images/hmc`; this week's runs reach the art through `/tmp/new_gui` and resolve `eco3.0` paths.
+- Ran the chain with that bind mount applied (`HMC_BIND_OK` confirmed in the run, `/app/share/images/hmc` = the new2.0 night tree) and captured the application's window with
+  placement: `mean R=39.2 G=61.4 B=80.9` — **the same diagonal stripes**, indistinguishable from the run without the mount.
+- **So the stripes are not a theme-variant artefact and not an asset-tree mistake.** Combined with §3.8.0 (not ASTC) and §3.9.0 (not alignment, row length or format), the source
+  assets, the upload parameters and the theme selection are all excluded by measurement.
+- One thing the frame does show that earlier ones did not: **two crisp horizontal lines** running through the striped field, at consistent heights across the window. Any mechanism that
+  explains the fault must also explain why horizontal features survive intact while the field between them shears — which is consistent with the stripes being generated *within* a single
+  drawn quad's sampling rather than by any per-row copy.
+- **Display investigation closed for this session at this point**, with the state recorded rather than a theory: the application renders, commits, places and shows crisp text; its image
+  content comes out striped; every layer below the draw call has been measured clear; and the next instrument required is a per-draw trace of texture coordinates and blend state, which has
+  not been built.
+
 ## 3.9.0 - the window surface itself is uploaded as BGRA 1926x753, and alignment is correct
 
 - Extended `gl_upload_trace.c` to log **every** `glPixelStorei` parameter and the `glTexParameteri` sampler state, plus the format arguments it was already recording. Result:

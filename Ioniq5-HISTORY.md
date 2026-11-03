@@ -4344,3 +4344,10 @@ and are superseded by corrections rather than silently rewritten.
 - Instead of hooking a marshaller that does not exist as a symbol, the application's framebuffer can simply be read out of its own file descriptors. No interposition, nothing to
   break, and it works for any client in the image.
 - The first attempt missed only because I put the call at the end of the script and the application had already gone. Ordering, not engineering.
+
+## 2026-10-31 — reading a live process is possible; finding its picture is not yet
+
+- The fd route was wrong because the library closes the descriptor after mapping. The memory route works and dumped the application's address space without hooking anything.
+- Three selection heuristics later, the dump is still noise or zeros. The framebuffer is in there somewhere — the tool prints every candidate with a name and a score, so the next
+  person should read that list instead of adding another guess.
+- Recorded as an unfinished instrument rather than a result, because that is what it is.

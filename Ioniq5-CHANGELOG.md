@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.94.0 - the buffer peek works mechanically but has not yet found the framebuffer
+
+- `shm-peek` grew two mechanisms and a heuristic, each added because the previous one was measured to fail:
+  - **`/proc/<pid>/fd`** — the assumption that the client keeps its `wl_shm` pool fd open. **Refuted:** `no fd of at least 5801112 bytes`,
+    because libwayland maps the pool and the fd is no longer held.
+  - **`/proc/<pid>/maps` + `/proc/<pid>/mem`** — this one works: `shm_peek: dumped from maps region …` produced a 1926×753 PPM of the application's address space. So
+    reading a live client's memory is possible without any interposition, which is the important capability established here.
+  - **candidate selection** — first "smallest region ≥ width×height×4" picked an unrelated heap arena and dumped noise; then "first three, executable regions excluded,
+    sorted by size" still picked arenas; so a **coherence score** was added (mean absolute difference between horizontal neighbours, rejecting all-zero regions) to choose the
+    most image-like candidate.
+- **Result of the scored run:** three candidates of 8 MiB each; scores `31.87`, `1e9`, `1e9` (the latter two entirely zero). The one with content was dumped and is
+  **noise-like** (38% nonzero, purple speckle), not a UI. So the application's **actual** framebuffer has not been located yet: it is not among the readable,
+  non-executable anonymous regions of at least one 1926×753×4 frame.
+- Most likely reasons, none yet tested: the pool mapping may be smaller or larger than one frame (double buffering would make it ~11.6 MB), it may be **file-backed**
+  (a `memfd:` or `/tmp` mapping whose name appears in `maps`), or the frame may sit at an **offset** inside a larger region rather than at its start.
+- Method note for whoever continues: the tool now prints every candidate with its address, size and mapping name, and a score for each — so the next step is to read that
+  listing and pick the mapping by **name and size** rather than by heuristic, instead of adding a fourth guess to the selection logic.
+
 ## 2.93.0 - a way to read the application's own pixels without hooking anything
 
 - Instead of the marshaller hook §2.92.0 called for, built `shm_peek.c`: a small tool that reads a running process's shared-memory framebuffer **from its own file

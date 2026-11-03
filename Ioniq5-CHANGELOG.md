@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.99.0 - why weston's GL renderer never runs: the vendor headless backend has no GL option
+
+- Three attempts at the GL substitution were invalid before this one, and each invalidity was my own doing and is worth naming:
+  1. a minimal config that omitted `ivi-module`, so `ivi-shell` failed with `Error: ivi-shell: No ivi-module set` **before any renderer was chosen**;
+  2. a run where the config file had been written in a previous boot — `/tmp` is a fresh tmpfs every boot, so weston exited with
+     `fatal: error opening or reading config file '/tmp/gf.ini'`;
+  3. and the earlier `--use-gl` run whose log I read only for module lines.
+- With a config that is actually present and complete, the answer is unambiguous:
+  ```
+  [00:00:04.013] fatal: unhandled option: --use-gl
+  ```
+  **The vendor's `headless-backend.so` does not accept `--use-gl` at all.** It offers `--use-pixman` and nothing else, which is also why runs without any renderer flag never loaded a
+  renderer module: pixman is the only renderer this backend can produce.
+- So route (i) from §2.98.0 is closed by the vendor binary, not by configuration: **there is no way to make this image render through GL on a headless compositor**, short of writing a
+  replacement backend — and this project has already learned that replacing vendor components works far less often than interposing in them. The vendor's own `ias-backend.so` would
+  presumably carry a GL path, but it needs the hardware this VM does not have.
+- That leaves route (ii) — understanding the vendor `ivi_share` composite in the Weston modules — as the only remaining route, and it is now the only one because the alternatives have
+  been measured rather than assumed. The three invalid attempts above are recorded so the next person does not repeat them; two of them were missing-config errors that produced
+  confident-looking "GL doesn't work" conclusions for several rounds.
+
 ## 2.98.0 - where the sharing code actually lives, and a checkpoint of the display investigation
 
 - Static check of route (b)'s starting point: **`ivi_share` is not in `libivi-platform-interface.so` at all** — that library exports nothing matching share/dma/buffer/stride/shm. The

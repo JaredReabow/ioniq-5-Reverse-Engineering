@@ -4380,3 +4380,10 @@ and are superseded by corrections rather than silently rewritten.
 - The list of things exonerated is now long and each item was measured: compositor, renderer, backend, placement, capture, application geometry, application buffer. What is left is a
   GL path that this image cannot render on one side and cannot test on the other.
 - Written down plainly for whoever continues: two real options, neither quick, and neither of them another screenshot.
+
+## 2026-10-31 — the option does not exist
+
+- Three of my GL attempts were invalid for boring reasons: a config missing ivi-module, a config file written in a previous boot when /tmp is fresh, and a log I read only partially. Each
+  produced a confident "GL does not work" that was not yet earned.
+- With a complete config the answer is one line: the vendor headless backend does not accept --use-gl. It cannot render through GL at all, which closes that route by measurement.
+- Left with one route, and a note to self about config files in a tmpfs.

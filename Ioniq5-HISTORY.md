@@ -4394,3 +4394,10 @@ and are superseded by corrections rather than silently rewritten.
 - With the application's window 1926 wide and the compositor assuming 1920, the disagreement is 24 bytes per row. That is a mundane explanation and the first one in days that does not
   require anything exotic.
 - I tried to confirm it by measuring the shear slope and could not: the frames are noise after the drift. The arithmetic is written down as arithmetic, not as proof.
+
+## 2026-10-31 — the fifth empty run, and the pattern is the point
+
+- Full argument list, swapped only the variant, protocol logging on. No buffer, no surface, two live processes. Compared against the two configurations that have ever worked, the
+  difference is not the arguments — it is who starts the program.
+- So the argument question cannot be answered by hand at all: it needs the launcher and a DLT log reader. That is the real next step, and it is bigger than a shell script.
+- Five empty runs in a row, each one an invocation fault rather than a system fault. Writing that down as the finding, because otherwise the next person burns another five.

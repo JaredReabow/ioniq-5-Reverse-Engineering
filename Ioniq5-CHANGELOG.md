@@ -3,6 +3,21 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.0.2 - hand-launching with the vendor's arguments is not equivalent to launcher-managed startup
+
+- Retried the `-sv` question properly: the **full** vendor argument list, swapping only `-sv:1299` for `-sv:1920`, with `WAYLAND_DEBUG=1` so the application's own `create_buffer`
+  call would report its geometry directly. **No `create_buffer` line appeared for either variant**, and no compositor surface line either, even though both processes stayed alive for
+  the 22-second window.
+- Compare with what is already known: the working captures of this application all came from one of two configurations — **launcher-managed** (the whole chain, where the manager
+  supplies arguments and environment) or **standalone with no arguments at all** (the archived recipe, which produced `docs/vm/13-…png` and the software-backend frame). Every attempt to
+  hand-launch it with a *partial* or *hand-assembled* argument list has produced either no surface or a short-lived one.
+- **Conclusion, and it should end this line of experiment:** the application's behaviour is not separable from how it is started. Testing an argument like `-sv` therefore cannot be
+  done by hand-launching at all — it needs the launcher to be the one supplying the arguments, which means reading the application's log through **DLT** rather than through a pipe,
+  because the launcher discards stdout and stderr. That is a larger instrument than another script and it is the correct next one.
+- Recorded plainly because this is the fifth consecutive experiment in this stretch to yield **no data** — missing `ivi-module`, a config from a previous boot, a partially-read log, a
+  partial argv, and now a hand-assembled full argv. In every case the system under test was fine and the invocation was not. **The measurement method, not the infotainment system, is
+  now the thing that needs work**, and that is where the next step should start.
+
 ## 3.0.1 - the variant-argument test produced no data, and the README now matches the work
 
 - Tested whether the application's window size is set by its `-sv` variant argument, by running it with `-sv:1299` (the launcher's value), `-sv:1920`, `-sv:1` and no `-sv` at all, and

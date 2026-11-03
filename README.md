@@ -72,6 +72,28 @@ to, and the base rootfs hash is rechecked after each experiment
 | CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed |
 | Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end |
 
+### Display investigation — current state
+
+The application renders: it calls `QWindow::show()`, creates a Wayland surface, attaches a buffer and commits, and the compositor reports a real window for it
+(`Surface id(…), Weston surface W(1926), H(753)`). Making it *visible* requires an explicit request — `ivi_wm` sends `set_surface_layout`, `set_surface_visible` and `request_fg`
+through the vendor's own `ivi_window_manager` interface, and that request is what makes content appear at all.
+
+The composite is **correct** when the application is forced onto Qt Quick's software renderer
+(`QT_QUICK_BACKEND=software`, `docs/vm/16-software-backend-no-shear-2026-10-31.png`), which produces clean 1920×720 geometry. That single substitution exonerates the
+compositor, its pixman renderer, the research backend and the placement work. The software path cannot show the **vendor UI**, because the application's own texture factory
+fails for every image when not on GL (`UncompressedTextureFactory::createTexture … Fail`).
+
+So the shear is confined to the EGL path. The standing explanation is arithmetic: the application's window is **1926 wide with stride 7704** while the compositor assumes the
+**1920**-wide screen at **7680** — 24 bytes, six pixels, per row. The chain that produces it is measured in pieces: the application asks for the primary screen size and receives
+**0×0**, and it never receives an `ivi_surface.configure`, so it cannot size itself to the screen. The drift itself has **not** been confirmed at the pixel level; frames are
+noise-like after it and cross-correlation was inconclusive.
+
+Its pixels travel in a single ~5.8 MB `mesa-shared` segment plus three 20 KB `weston-shared` state segments, not in a Wayland `wl_shm` pool — which is why scanning
+`/proc/<pid>` for a shared-memory frame found nothing.
+
+**What is not available here:** weston's GL renderer. The vendor's `headless-backend.so` rejects `--use-gl` outright (`fatal: unhandled option`), so the EGL path cannot be
+tested against a renderer that can sample GL buffers, and the vendor `ias-backend.so` needs hardware this VM does not have.
+
 ### Recently established (2026-10-31)
 
 Work in the merge of the two lineages resolved several faults that had been blocking

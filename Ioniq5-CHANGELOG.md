@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 2.88.0 - the geometry cross-check fires and clears our backend: mode, image and buffer all agree
+
+- Polling instead of sleeping worked first time — the app was up immediately (`APP=734 after 0s`), `ivi-wm` was issued within the same second, and the repaint path ran. This is
+  the measurement technique §2.87.0 said was needed, and it cost one run rather than three.
+- **The cross-check result:**
+  ```
+  ias-soft: geom output=0 mode=1920x720 image=1920x720 image_stride=7680 buf_stride=7680 param=1920x720
+  ```
+  Every value agrees. `7680 = 1920 × 4`, so the image stride, the buffer stride derived from the mode, and the `param` geometry are all consistent. **Our backend is not the
+  source of the shear**, which was the leading hypothesis after §2.86.0.
+- So the position is now measured on all three sides of the seam:
+  1. the application declares **1926×753, stride 7704** — internally correct (§2.86.0);
+  2. our backend's output, image and buffer strides **all agree** at 1920×720/7680 (§2.88.0);
+  3. and yet the composited frame is sheared — including when the output was set to 1926×753 to match the surface (§2.85.0).
+- **That leaves the vendor pixman renderer's own composite step.** It is the component that took a wider surface and an output and produced a striped image in both geometries, and
+  it is the same component whose solid-fill handling already needed an interposer (§2.53.0) for the multi-screen abort. A renderer that mishandles shm buffer strides or scaling
+  in this configuration is consistent with both observations.
+- Next, and it is a change of component rather than another measurement: the vendor ships **`gl-renderer.so`**. Running the same scene through the GL renderer instead of pixman
+  would show in one run whether the shear is pixman-specific. If it is, the fix is renderer selection rather than anything in our backend or the application.
+
 ## 2.87.0 - the geometry cross-check is in the backend, but the repaint path only fires when something is shown
 
 - Added the two-value comparison from §2.86.0 to `headless_output_repaint`: it prints the output's `current_mode` width/height and `output->base` width/height alongside

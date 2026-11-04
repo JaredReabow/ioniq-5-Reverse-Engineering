@@ -1345,6 +1345,32 @@ So the honest state of this entry is: the marker-to-service wiring is confirmed 
 starting a privileged service end to end**, because the services in question depend on a chain this projection does not satisfy. Stating the static table as a
 capability requires that caveat next to it.
 
+### Who sets `no_isa`, found: the launcher itself, driven by a MICOM value
+
+The observation that `/tmp/no_isa` existed before any probe touched it now has an owner. The string lives in **`AppLauncher`**, next to the value it depends on:
+
+```
+%1 ISA value is %2
+/tmp/no_isa
+/tmp/no_isa opne fail          (sic - the vendor's typo)
+```
+
+So the launcher reads an **ISA value** and creates the marker when that value says there is no ISA bus. The marker then activates `ofono.service` and
+`remote.service` (`TmsRemoteApp`).
+
+That changes this row's character, and the change is worth stating plainly:
+
+- **It is not "an attacker writes a file and summons the remote service".** The writer is the launcher, and the input is a value it reads - which moves the
+  question from "who can write `/tmp`" to "what can influence that ISA value".
+- **It is a platform-state decision that opens a remote-command consumer.** On a unit where the value indicates no ISA bus, the telematics remote service is started
+  by design. That may be entirely intended for telematics-equipped vehicles and is not evidence of a vulnerability by itself.
+- **The marker is still a marker.** Because the mechanism is "file exists", anything else that can create the same path gets the same result - the design chooses a
+  trigger that cannot distinguish who set it.
+
+So the accurate statement for the table is: `/tmp/no_isa` is **set by `AppLauncher` from an ISA value**, and its effect is to start the telephony and telematics
+remote services. Whether that is a vulnerability depends on whether the ISA value can be influenced from outside the platform - which is a MICOM-boundary question,
+not a filesystem one, and is **not established**.
+
 **Why this matters more than any single marker:** fs the unit already had a reason to keep `/tmp` writable, each of these is an independent privilege
 escalation hinge on the same directory, and a fix that hardens one leaves six others.
 

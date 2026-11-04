@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.65.0 - the marker nobody had shown being set has an owner, and it changes the row
+
+`/tmp/no_isa` was the marker that existed before any probe touched it, with no script creating it. It is set by **`AppLauncher`**, beside the value it depends on:
+
+```
+%1 ISA value is %2
+/tmp/no_isa
+/tmp/no_isa opne fail          (the vendor's typo, kept)
+```
+
+So the launcher reads an **ISA value** and creates the marker when it says there is no ISA bus; the marker then activates `ofono.service` and `remote.service`
+(`TmsRemoteApp`). Three consequences, all narrowing rather than widening the claim:
+
+- **It is not "an attacker summons the remote service".** The writer is the launcher and the input is a value it reads, so the real question is what can influence
+  that value - a MICOM-boundary question, not a filesystem one, and not established.
+- **It is a platform-state decision that opens a remote-command consumer**, which may be entirely intended for telematics-equipped vehicles.
+- **The design still uses a file as the signal**, so anything else able to create the same path gets the same effect - the trigger cannot distinguish who set it.
+
+That is the fourth time in this session a configuration fact has narrowed once its owner was found, and the pattern is consistent enough to be worth trusting: a
+mechanism with no identified writer is usually not attacker-reachable, it is just undocumented.
+
 ## 4.64.0 - the marker trigger fires, but nothing has been shown starting a privileged service
 
 Creating `/tmp/no_isa` in an authentic boot was tested against the static marker table. The result is half a demonstration, and the half that is missing matters:

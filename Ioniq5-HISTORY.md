@@ -4996,3 +4996,9 @@ and are superseded by corrections rather than silently rewritten.
 - Put a probe on the authentic boot, after the policy loads, and asked whether the label the applications actually use is confined. It is not: the process read and wrote an object the rules were written to protect.
 - So the finding's conclusion was right and its reasoning was wrong twice over. Both wrong numbers are fixed too - twenty-seven rule files, not twelve.
 - The lesson keeps repeating: check the artefact, then measure the effect, and do not trust a count taken from a truncated listing.
+
+## 2026-11-05 - making the findings usable
+
+- The register had become something only its author could navigate, so I wrote the version a platform team can act on: nine findings ordered by cost to fix, each with its evidence, its exposure, the fix and how to verify it.
+- Cheapest first, because here the cheapest fixes also remove the most: five are configuration, three need a release, and the data protection one is murky in a way the report states plainly.
+- It ends with the one sentence the whole register supports, and the readme now points at it.

@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.56.0 - a remediation report, ordered by what it costs to fix
+
+The register had grown past the point of being usable by anyone who has to act on it. `docs/REMEDIATION-REPORT.md` now orders nine findings by **cost to fix**
+rather than severity, because in this case the cheapest fixes also remove the most: the SMACK label gap, the account database in `/tmp`, the compositor config in
+`/tmp`, the LUKS-probe dictating MAC, and the default-on serial console are all configuration work. The code-release items (caller-named path execution, the
+`/tmp` verification key, `debug-shell.service`) come second, and data protection third because its status is the murkiest — the passphrase is demonstrably
+`1234`, and in the shipped flow the encryption appears never to engage.
+
+Every item carries the measured evidence, what it exposes, the fix and how to verify the fix, so a platform engineer can act without reading forty changelog
+entries. It closes with the single sentence the whole register supports: six of the nine are the same mistake — a security decision resolved from state the
+threat model treats as untrusted — and the remedy is to move those decisions onto read-only or hardware-backed state and make each one fail closed.
+
+README now points at it.
+
 ## 4.55.0 - the MAC question settled: the policy loads, and `_` is not confined by it
 
 The correction to V-056 left one thing open - whether an application process is subject to the 636 shipped rules - and it is now measured rather than argued.

@@ -121,3 +121,27 @@ guest script that runs under `init=/init` (which allows commands) and prints the
 
 **Why this is written down rather than resolved by assertion:** 4.34.0 asserted it, and was wrong; 4.41.0 corrected it to "never opened", and that
 is not established either. The honest state is one unmeasured value.
+
+## Why none of the diagnostics ever appeared: `> kmsg` is not `/dev/kmsg`
+
+Three entries of this investigation were ambiguous because the branch could not be observed. The reason is a one-word bug in the shipped script:
+
+```sh
+if [ -e /tmp/spi_validation_NOK ]; then
+        echo "SPI NOK" > kmsg &
+else
+        (/usr/bin/weston --tty=1; touch /tmp/weston.crash) > /dev/kmsg 2>&1 &
+fi
+```
+
+`> kmsg` (no leading slash) writes a file called `kmsg` in the init's working directory. **The failure branch never reports anything.** The success
+paths do it correctly (`> /dev/kmsg`), which is why the absence of `[esinit] micom SPI info is OK` looked meaningful and the absence of `SPI NOK`
+looked like evidence of the other branch. It was evidence of nothing: that message cannot appear.
+
+So the earlier readings - mine, twice - were drawing conclusions from a log line that the code never emits. On a production unit the same typo means a
+technician whose display server did not start gets **no `SPI NOK` message in the kernel log to explain it**, which is a support problem independent of
+the security work: the failure mode of the most important startup dependency is silently unreportable.
+
+**What is still unmeasured is unchanged**: the value of `/sys/module/micom/parameters/spi_validation` at the instant `esinit` reads it. The difference
+now is that the measurement must not rely on `/dev/kmsg` either - it must go to `/dev/console` or a file, from a script with `/dev` mounted, or be
+taken from a boot where commands are possible.

@@ -4925,3 +4925,9 @@ and are superseded by corrections rather than silently rewritten.
 - The session got long enough that the changelog stopped being a good entry point, so I wrote one page: what works with a pointer to the proof, what is blocked, the three substitutions, the register with statuses, and the corrections.
 - The corrections are in it deliberately. Someone finding only the first of three entries about the SPI gate would be actively misled.
 - I stopped working that one value. Three entries and one unmeasured number is enough; the recipe is written down and a worker has the parallel task.
+
+## 2026-11-04 - the diagnostic was written to the wrong file
+
+- The message that would have told me which branch ran has been going to a file called kmsg in the working directory, because the redirect is missing its leading slash. The success paths do it correctly.
+- So two of my readings were inferences from a line the code cannot print. The defect is worth reporting on its own account: a technician whose display server fails gets nothing in the log to explain it.
+- The measurement still has to happen, and now I know it must avoid that channel too.

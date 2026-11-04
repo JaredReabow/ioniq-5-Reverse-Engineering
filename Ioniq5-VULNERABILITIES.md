@@ -2077,6 +2077,26 @@ language, and a process carrying it is effectively outside the policy — which 
 2. **Second version said the count was 12 files and that confinement was "open".** Both were wrong: it is **27** files (the 12 came from a truncated listing),
    and the question is now answered by measurement rather than left open.
 
+### Both MAC branches measured: `_` is exempt whether the policy is permissive or enforcing
+
+The earlier probe ran under the default branch (`optUNECE=0`, SMACK switched permissive). A second run forced `optUNECE=1` before `esinit` - the **enforcing**
+branch, where `smack_setup.sh` does *not* touch `bringup-switch` - and repeated the same probe:
+
+| branch | probe result | SMACK audit decisions |
+| --- | --- | --- |
+| `optUNECE=0` (permissive) | `SMACKPROBE label=_ read=[secret] write=[ok]` | 0 granted, 0 denied |
+| `optUNECE=1` (**enforcing**) | `SMACKPROBE label=_ read=[secret] write=[ok]` | 0 granted, **40 denied** |
+
+Two things follow, and they are different in character:
+
+- **The `_` subject is exempt in both cases.** A process carrying the floor label read and wrote a `Log::dlt` object with the policy permissive *and* enforcing. So
+  the exemption is a property of the label, not of the permissive switch - which is the conclusion this entry has been circling, now measured on both sides.
+- **Enforcement is real and it bites elsewhere.** With the policy enforcing, 40 access decisions were **denied** while the `_` probe still succeeded. So the rule
+  set does constrain *some* subjects - just not the ones applications run under. That also means the enforcing branch on a real unit is likely to produce
+  functional failures in services that were developed against the permissive default, which is worth knowing before anyone flips `optUNECE`.
+
+The same boot also printed `SECURE CONSOLE Mode: NO !!!`, corroborating V-049 through the authentic path rather than through a standalone `agetty`.
+
 ### How the labels are supposed to be applied - and why this cannot be settled from the artefact
 
 The policy is written per application domain, and it is thorough:

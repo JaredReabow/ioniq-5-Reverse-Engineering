@@ -5008,3 +5008,9 @@ and are superseded by corrections rather than silently rewritten.
 - The policy is written per application domain, and nothing in the shipped artifact applies those labels: no labelling command for any application binary, no unit setting one, no xattrs in the shipping archive.
 - So the measurement stands - a floor-labelled process read and wrote a protected object - but the conclusion narrows: either a step outside the artifact labels them, or they genuinely run unlabelled. The projection cannot tell.
 - Wrote down the one command that does tell, rather than letting a bounded finding read as a settled one.
+
+## 2026-11-05 - both branches, same answer
+
+- Ran the probe under the enforcing branch as well as the permissive one. The floor-labelled process read and wrote the protected object in both cases, so the exemption belongs to the label, not to the switch.
+- Enforcement is nevertheless real: forty access decisions were denied in the enforcing run while the probe passed. So the policy works, on subjects that are not the applications.
+- That makes the advice concrete and ordered: label the applications first, then enforce, because enforcing first breaks services and confines nothing.

@@ -44,7 +44,8 @@ ACTIVE_ROOT = "/dev/mmcblk0p5"
 
 vb.KERNEL_SHA256 = hashlib.file_digest((WS / "bzImage").open("rb"), "sha256").hexdigest()
 vb.INIT_CHOICES = ("/init", "/lib/systemd/esinit", "/lib/systemd/systemd",
-                    "/init-esinit-spi.sh")
+                    "/init-esinit-spi.sh",
+                    "/init-unece.sh")
 
 _orig_qemu_command = vb.qemu_command
 

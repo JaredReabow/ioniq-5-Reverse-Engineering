@@ -29,6 +29,10 @@ rules they legitimately need, and stop running them under the wildcard.
 
 **Verify.** On a unit: `cat /proc/<AppHomeScreen pid>/attr/current` returns a domain label, not `_`; then confirm that process **cannot** read a `Log::*` object.
 
+**Measured both ways already, in the projection.** With the policy permissive (`optUNECE=0`) a `_` process read and wrote a `Log::dlt` object. With it **enforcing**
+(`optUNECE=1`) the same probe still succeeded, while 40 other access decisions were **denied** — so the policy constrains some subjects but never this one, and
+flipping the enforcing switch will produce service failures among components developed against the permissive default. Fix the label first, then enforce.
+
 ### 2. The account database lives in a world-writable tmpfs
 
 **Evidence.** `/etc/passwd -> /tmp/passwd`, `/etc/shadow -> /tmp/shadow`, rebuilt at boot by `esinit`; `/tmp` is `1777`. Appending one line produced a working

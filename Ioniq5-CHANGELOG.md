@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.58.0 - the MAC finding measured on both branches, and enforcement shown to bite elsewhere
+
+The earlier probe ran under the permissive branch. Forcing `optUNECE=1` before `esinit` - the **enforcing** branch, where `smack_setup.sh` leaves
+`bringup-switch` alone - and repeating the probe gives:
+
+| branch | probe | audit |
+| --- | --- | --- |
+| `optUNECE=0` permissive | `SMACKPROBE label=_ read=[secret] write=[ok]` | 0 granted, 0 denied |
+| `optUNECE=1` **enforcing** | `SMACKPROBE label=_ read=[secret] write=[ok]` | 0 granted, **40 denied** |
+
+So the `_` exemption is a property of the label, not of the permissive switch: the floor-labelled process read and wrote a `Log::dlt` object under **both**
+configurations. And enforcement is real - 40 access decisions were denied in the enforcing run while the `_` probe sailed through - which means the rule set does
+constrain other subjects, just not the ones applications run under.
+
+That has a practical consequence for the remediation: flipping `optUNECE` to enforcing without first giving applications real labels will produce functional
+failures in components developed against the permissive default, while leaving the applications unconfined. **Fix the label first, then enforce** - now in the
+report as measured advice rather than a hypothesis.
+
+The same boot also printed `SECURE CONSOLE Mode: NO !!!`, corroborating V-049 through the authentic path rather than via a standalone `agetty`.
+
 ## 4.57.0 - the MAC finding now has a mechanism gap, and a one-command check that closes it
 
 The policy is written per application domain and thoroughly - 28 labels, 636 rules, with `App::engineermode`, `App::home`, `App::camera` and the rest each given

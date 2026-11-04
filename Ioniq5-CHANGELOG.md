@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.32.0 - V-053 demonstrated, with a negative control
+
+V-053 is no longer only a reading of the script. Running the shipped cipher string and passphrase on the partitioned image produced:
+
+```
+FORMAT_RC=0                 the shipped parameters create a LUKS container
+ISLUKS_RC=0                 cryptsetup agrees it is one
+OPEN_WITH_1234_RC=0         the shipped passphrase opens it
+OPEN_WITH_WRONG_RC=5        a wrong passphrase does not   <- negative control
+Cipher name:    aes
+Cipher mode:    cbc-essiv:sha256
+```
+
+The negative control is what turns this into evidence: `OPEN_WITH_1234_RC=0` alone could mean the container was made without a passphrase at all,
+and `rc=5` for a wrong one proves the passphrase is checked and that `1234` is the correct one. The first attempt also ran the vendor's own
+`/etc/fde_test_v2.sh` end to end on the projection, which formatted the partition and created a filesystem inside it before the run ended.
+
+Capture: `evidence/fde/passphrase-1234-2026-11-04.log`. Still not established: whether production units reach this path.
+
 ## 4.31.0 - V-053: the data encryption key is "1234", in the image
 
 Checking whether V-052 applies to real units led somewhere worse. `/etc/fde_test_v2.sh` turns on encryption for `/rw_data` (`p11`) and

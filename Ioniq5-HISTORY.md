@@ -5032,3 +5032,9 @@ and are superseded by corrections rather than silently rewritten.
 - A worker answered every micom method the manager was asking for, with reply types taken from the shipping binaries rather than guessed. The gate is now open - zero invalid replies across a run - and the window still does not paint.
 - Two compounding reasons: the trigger lives on an interface the manager never registers here, and the liveness watchdog removes the unshown app before anything could show it.
 - That also demotes an older explanation: the app vanishing after our call may not be the call's fault but the watchdog reaping it. Both readings kept, one now has a log line behind it.
+
+## 2026-11-05 - nine corrections is a pattern, so I wrote the pattern down
+
+- Every correction this session had the same shape: a confident conclusion from a measurement that could not have supported it. That deserved its own document rather than nine scattered notes.
+- Eight rules with the actual cases attached: check the instrument, search for the artefact, one variable at a time including my own, black is a conclusion, look for the emitting code, use negative controls, verify the marker, label the instrument.
+- The two that would have saved the most time were checking a tool before believing its negative, and remembering which parameters I had forced myself.

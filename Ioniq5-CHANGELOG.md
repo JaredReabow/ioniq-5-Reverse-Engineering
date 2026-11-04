@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.62.0 - writing down the mistakes, because nine corrections is a pattern
+
+Nine corrections were made this session and every one had the same shape: a plausible conclusion drawn from a measurement that could not have supported it. That is
+worth an artefact of its own, so `docs/MEASUREMENT-DISCIPLINE.md` collects eight rules, each with the concrete case from this repository rather than a general
+exhortation.
+
+The ones that cost the most:
+
+- **Check the instrument first.** A password sweep nearly concluded "not a 4-digit PIN" using a `crypt` that only implements DES and silently ignored the `$6$` salt.
+  Two tells were visible immediately (`crypt.methods` had one entry; 2,000 hashes took 0.00 s) and neither was looked at before the result.
+- **Search for the artefact, not the mechanism.** Three false absences came from this: the ASF parser is `asf.so` (not `lms_asf.so`), the MAC policy is 27 rule
+  files (not writes to `smackfs/load2`), and the encryption flag is *read* rather than recomputed.
+- **One variable at a time, including your own.** Two of my runs disagreed about whether encryption engages; the difference was an instrument I had added to force a
+  parameter, and the init reads that parameter instead of recomputing it.
+- **"Black" is a conclusion, not an observation.** A display was called broken for sessions while the surface existed and was merely not placed; later a window was
+  called unpainted while `strace` showed the app had attached no buffer because it was waiting to be shown.
+- **Negative controls.** `OPEN_WITH_1234_RC=0` only became evidence next to `OPEN_WITH_WRONG_RC=5`.
+
+It closes with the one-line version: *state what you measured with the raw line, prove the instrument could have produced the other answer, and change one thing at a
+time - including the things you changed yourself.*
+
 ## 4.61.0 - the engineering paint thread reaches two named blockers, and an older finding gets a better explanation
 
 A worker answered every MICOM method `ApplicationManager` was asking for, recovering the reply types from the shipping binaries rather than guessing them - including

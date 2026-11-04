@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.79.0 - the control case that reframes the spin: the same binary paints on the other path
+
+Before the worker spends more time on `AppHomeScreen`'s `R`/`wchan=0` main thread, there is a control observation the project already holds and had not put next to it: **the same
+`/app/bin/AppHomeScreen` binary, launched by the same `AppLauncher`, on the same vendor kernel, with the same software GL, paints normally on the research-init chain.**
+
+- `docs/vm/25-home-screen-placed-clean-2026-11-04.png` (17,586 bytes) and `docs/vm/31-home-screen-STR_CAMERA_ALERT2-2026-11-04.png` (17,870 bytes, the home screen's own title text,
+  crisp and stripe-free) are that app's window, captured after `ivi-wm 2080` on `/run-chain23.sh`.
+- Touch was delivered to it as well (`evidence/vm-bringup/interactive-touch-2026-11-04.log`).
+
+So "the app cannot make progress under emulation" is **not** the whole story, and the interesting question becomes *what differs between the two configurations*. Three candidates, in
+the order they are cheap to test:
+
+1. **Service contention** - the authentic path runs the full vendor unit set against two vCPUs; the research chain runs a handful of processes.
+2. **audit and SMACK overhead** - the authentic boot measured 40 denied SMACK decisions, and audit logging on every decision is expensive; the research init loads no policy at all.
+3. **DLT** - the authentic path runs `dlt-daemon` and the app logs heavily to it (4.3 MB of fd traffic in one 70 s trace); a slow FIFO would starve a logging-heavy Qt main loop.
+
+That distinction decides whether the missing frame is **ours** (instrumentation and emulation) or the **vehicle's** (something absent on the real unit), and the project has already been
+bitten twice this session by not separating those. It is now the question the worker is asked, with the control case attached so it cannot be missed.
+
 ## 4.78.0 - the black window was a misdiagnosis, and the real blocker is the app's own thread
 
 A worker's follow-up to the pitchfork I handed it corrected my own claim from §4.61.0, and the correction is the most useful thing learned about the paint problem all session.

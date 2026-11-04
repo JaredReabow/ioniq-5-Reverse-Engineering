@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.51.0 - the next gap named: the HMI never starts on the authentic path
+
+The authentic boot renders, but no applications start. In the run that reached Multi-User with the compositor alive, `AppLauncher`, `AppHomeScreen` and
+`ApplicationManager` appear **zero** times, and the first failure in the chain is:
+
+```
+systemd[1]: Starting System service for micommanager...
+systemd[1]: dbus-com.lge.car.micom.service: Main process exited, code=exited, status=1/FAILURE
+systemd[1]: Failed to start System service for micommanager.
+```
+
+The unit is `Type=dbus`, `BusName=com.lge.car.micom`, `ExecStart=/app/bin/micommanager_userspace`, and `ApplicationLauncher` `Requires` it — so the vendor
+manager's failure takes the entire HMI with it. That is the last structural gap between "the platform boots and shows a compositor" and "the product's own
+interface is running".
+
+It is also the most tractable kind of gap this project has hit: the bus name is the only thing that has to exist, and the project already ships a stand-in
+that owns it (`/eng-data-sim`). A worker in `work/vm/stockui` is installing a projection-only unit override to satisfy it and will report whether the
+launcher, the home screen, a captured frame and a delivered click follow.
+
 ## 4.50.0 - the authentic path renders, and the root password resisted 45,000 candidates
 
 **Fidelity achieved.** `docs/vm/authentic-hmi.md` records it: with the SPI stand-in opening the gate, the authentic `esinit` launches its own

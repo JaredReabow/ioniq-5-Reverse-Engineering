@@ -4967,3 +4967,8 @@ and are superseded by corrections rather than silently rewritten.
 - With the handshake stand-in opening the gate, the vendor init launches its own display server and the machine reaches multi-user with the compositor alive and a frame captured. The blocker was the vendor's own pixman assertion, which a vehicle never hits because it uses GL.
 - The password attempt began with a broken tool: this host's crypt only does DES and ignored the salt, so the first negative meant nothing. Redone properly, the hash survives ten thousand pins, thirty-four thousand dates and a word list.
 - Two results, one positive and one honest negative, and both only after checking the instrument first.
+
+## 2026-11-05 - the platform boots, the product does not
+
+- With the authentic path rendering, I checked whether the applications come up: they do not, not once. The gate is the vendor manager's service, which exits with failure and takes the whole interface chain with it.
+- That is the last structural gap, and it is the tractable kind: only a bus name has to exist, and a stand-in that owns it already ships. A worker is trying exactly that.

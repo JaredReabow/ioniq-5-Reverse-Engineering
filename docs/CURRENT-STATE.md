@@ -40,6 +40,24 @@ Measured on the session bus during a launch: every registration is addressed to 
 registration is a no-reply call into the void, and the app is never told to show. That is the next thing to deliver: either run the real
 `ApplicationManager`, or send `show_window_fg` to the app's own connection at the path it registered.
 
+## 1c. The next gap on the authentic path: the HMI does not start
+
+The authentic boot now renders, but **no applications start**. In that run `AppLauncher`, `AppHomeScreen` and `ApplicationManager` appear **zero** times
+in the log, and the first failure is the one that gates them:
+
+```
+systemd[1]: Starting System service for micommanager...
+systemd[1]: dbus-com.lge.car.micom.service: Main process exited, code=exited, status=1/FAILURE
+systemd[1]: Failed to start System service for micommanager.
+```
+
+`lib/systemd/system/dbus-com.lge.car.micom.service` is `Type=dbus` with `BusName=com.lge.car.micom` and
+`ExecStart=/app/bin/micommanager_userspace`, and `ApplicationLauncher`'s unit `Requires` it — so the whole HMI chain stops there.
+
+The obvious, cheap fix is a **projection-only unit override** that satisfies the bus name with the project's existing stand-in (`/eng-data-sim`) instead of
+the vendor manager. A worker is trying exactly that in `work/vm/stockui`; the success criteria are: the unit goes active, `AppLauncher` and `AppHomeScreen`
+start, a vendor surface captures, and a synthetic click is recorded as `touch_down` in the app's own Qt log.
+
 ## 2. The one blocker for init fidelity
 
 `esinit` starts the compositor only when `/sys/module/micom/parameters/spi_validation` reads 1, and it touches

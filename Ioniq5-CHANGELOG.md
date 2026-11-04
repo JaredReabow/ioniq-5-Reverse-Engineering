@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.57.0 - the MAC finding now has a mechanism gap, and a one-command check that closes it
+
+The policy is written per application domain and thoroughly - 28 labels, 636 rules, with `App::engineermode`, `App::home`, `App::camera` and the rest each given
+access to what they need. But **nothing in the shipped artifact applies those labels**:
+
+- no `chsmack -e` for any `/app/**` binary in `/etc` or the init scripts (the only `SMACK64EXEC` assignment found is `/update/usb/bin/AppUpgrade`);
+- no `SmackLabel=` in any unit;
+- no SMACK strings in `AppLauncher`, so it does not label its children;
+- and `/HU/images/mango-rootfs.tar.gz` carries **no xattr records** - the `SCHILY.xattr`/`LIBARCHIVE.xattr` strings in it belong to `chsmack`/libarchive
+  binaries inside the tree, not to archive entries.
+
+So either units are labelled by a step outside this artifact (a factory flash that preserves xattrs), or the applications really do run `_`. The projection
+cannot tell: it was built from that tarball, so it necessarily shows `_`.
+
+That does not weaken the measurement - a `_` process read and wrote a `Log::dlt` object under the authentic boot - but it does bound the conclusion, and the
+bound is now recorded with the single command that settles it on a unit:
+
+```
+getfattr -n security.SMACK64EXEC /app/bin/AppHomeScreen
+cat /proc/$(pidof AppHomeScreen)/attr/current
+```
+
 ## 4.56.0 - a remediation report, ordered by what it costs to fix
 
 The register had grown past the point of being usable by anyone who has to act on it. `docs/REMEDIATION-REPORT.md` now orders nine findings by **cost to fix**

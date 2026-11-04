@@ -2077,6 +2077,38 @@ language, and a process carrying it is effectively outside the policy — which 
 2. **Second version said the count was 12 files and that confinement was "open".** Both were wrong: it is **27** files (the 12 came from a truncated listing),
    and the question is now answered by measurement rather than left open.
 
+### How the labels are supposed to be applied - and why this cannot be settled from the artefact
+
+The policy is written per application domain, and it is thorough:
+
+```
+App::engineermode _  rwxa--
+App::engineermode Log::engineermode rwxat-
+App::engineermode App::manager rwx---
+App::engineermode App::home rwx---
+```
+
+Twenty-eight subject labels exist, most of them `App::*` domains. But **nothing in the shipped artifact applies them**:
+
+- no `chsmack -e` for any `/app/**` binary in `/etc` or the init scripts (the only `SMACK64EXEC` assignment found is `/update/usb/bin/AppUpgrade`);
+- no `SmackLabel=` (or equivalent) in any unit file;
+- no SMACK strings in `AppLauncher`, so it does not label its children;
+- and the shipping archive carries **no xattr records**: `/HU/images/mango-rootfs.tar.gz` contains no `SCHILY.xattr`/`LIBARCHIVE.xattr` file entries —
+  the few string occurrences of those names are inside `chsmack`/libarchive binaries in the tree.
+
+So either appliances are labelled by a step outside this artifact (a factory flash that preserves xattrs), or they genuinely run `_`. **This cannot be
+decided from the image, and the projection inevitably shows `_`** because it was built from that tarball.
+
+The one command that settles it on a unit:
+
+```
+getfattr -n security.SMACK64EXEC /app/bin/AppHomeScreen
+cat /proc/$(pidof AppHomeScreen)/attr/current
+```
+
+If the binary carries `SMACK64EXEC="App::home"` and the process reports that label, the policy is live and this entry should be narrowed to "unverified in the
+projection". If the attribute is absent on a production unit, the policy is written but never applied.
+
 ### Why it matters
 
 The vendor built a 28-label policy with 636 rules and then runs the applications under the one label that is exempt from it. The policy constrains

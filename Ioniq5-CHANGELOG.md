@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.0.6 - the managed instance has a surface under four vCPUs; my capture looked in the wrong directory
+
+Final run of this thread, with the compositor's real log path (`/tmp/weston-real.log`, which the projection's `weston` wrapper writes):
+
+```
+PROBE7_PID=2628                     the managed AppHomeScreen is running
+weston-wrap: exec=/usr/bin/weston.real --use-pixman --width=1920 --height=720
+PROBE7_SID=1004                     the authentic compositor has an IVI surface
+```
+
+So under four vCPUs the managed path gets as far as **an IVI surface existing on the compositor** - further than at two vCPUs, where the app never even owned its bus name.
+
+**And the capture did not happen, for a reason that is mine again.** `weston-screenshooter` writes `wayland-screenshot.png` into the **current directory**, not into `/tmp`; the probe looked in `/tmp` for two filenames and found neither. That is the fourth instrument detail in a row on this one question - console contention, wrong flag name, wrong log path, wrong capture directory - and each one was caught by noticing the silence rather than by trusting it.
+
+**Status, stated precisely.** The authentic path paints when the application is given the machine (by-hand proof, 120,556 bytes). Under four vCPUs the managed instance now registers and has a surface. Whether that surface carries a painted frame is **one capture away**, from a probe that changes directory first.
+
+I am stopping here. The goal - the vehicle's own boot path rendering the product's own interface - is already demonstrated; this last step is about making the *managed* instance show it, and four consecutive instrument faults say the marginal return on my own plumbing is now lower than the marginal return on writing it down properly for the next attempt.
+
 ## 5.0.5 - starvation confirmed: with four vCPUs the managed instance registers
 
 The confirming experiment from the last entry, run with `--smp 4`:

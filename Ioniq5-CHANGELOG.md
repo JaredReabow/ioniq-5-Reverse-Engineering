@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.88.0 - the runbook only documented the path everyone should stop using by default
+
+`docs/VM-RUNBOOK.md` was written when the research chain was the only way to see the interface. It now has a section for the **authentic** path - vehicle kernel, vehicle `esinit`,
+vehicle compositor - because that is what the project actually achieved tonight, and anyone following the old runbook would not have known it existed.
+
+The new section carries:
+
+- **the two commands**, and a table of what each start reaches (`esinit` alone reaches Multi-User with the SPI gate shut; the SPI stand-in also gets the compositor running and a
+  129,844-byte frame out of it);
+- **the three projection-only instruments**, each with the reason it exists - in particular that `--use-pixman` is the only renderer here and the vendor ivi shell asserts on a
+  format-less solid fill, which a vehicle never hits because it uses GL;
+- **two traps specific to this path**: never pre-start a session `dbus-daemon` (that is what `Dbuslaunch.sh` is for, and eleven units take their address from the file it writes), and
+  `root=` must name `p5` because a GPT header lands on the ext4 superblock;
+- **what is still missing**, listing the four explanations already eliminated rather than leaving the next person to re-eliminate them.
+
+That last bullet is the point. A runbook that says "the frame is black, cause unknown" invites the same four investigations again; one that lists what has been ruled out, and how, saves
+them.
+
 ## 4.87.0 - the missing-env-file hypothesis is out, and it was tested properly
 
 The previous entry named the most likely cause of the missing frame: our chain starting its own session bus and pre-empting the vendor's `Dbuslaunch.sh`, leaving

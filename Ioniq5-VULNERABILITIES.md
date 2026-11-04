@@ -1509,3 +1509,60 @@ algorithm is recovered these are all open.
 **Suggested patch direction.** Pin the verification key inside the signed binary or in read-only storage rather than
 resolving it from `/tmp`; treat a verification failure as fatal on every path, including the startup group; and refuse to
 launch any binary whose path is writable by a non-privileged user.
+
+## V-049 — a root shell on the serial console, gated by a MICOM runtime parameter, with one image-wide password hash
+
+**Status:** candidate, statically established from the shipped image. Not attempted on hardware. Physical access to the UART pads
+(or the OBD-side console wiring) is assumed and is **not** established.
+
+**What the image does.** `/etc/esinit_agetty.sh` runs `setsid /sbin/agetty -8 -L ttyS2 115200 xterm`, and `/etc/securetty` lists
+`ttyS2`. `/lib/systemd/esinit` decides whether that happens:
+
+```
+touch /tmp/secure_console_disable                       # default: secure console OFF -> login allowed
+if [ "$(cat /sys/module/micom/parameters/secure_console)" = "1" ]; then
+    rm /tmp/secure_console_disable
+fi
+if [ -f /etc/esinit_agetty.sh ] && [ -f /tmp/secure_console_disable ]; then
+    /etc/esinit_agetty.sh &                              # start agetty on ttyS2
+fi
+```
+
+So the console login is **on unless MICOM reports `secure_console=1`** — a runtime parameter read from a file in `/sys`, not a fuse,
+not a signed configuration, and not a build-time decision. Removing the file or clearing the parameter re-enables the login.
+
+**The credential.** `/etc/shadow` is a symlink to `/tmp/shadow`, populated at boot from the shipped `/etc/shadow.Global`. Exactly one
+entry carries a password and it is the one that matters:
+
+```
+root:$6$I6C6apC0ue$J1MSq...:2048        (SHA-512-crypt; 18 other accounts are locked)
+```
+
+A sweep of sixty vendor-plausible defaults (`root`, `0000`, `admin`, `hyundai`, `lge`, the two engineering PINs, the recovered user
+names and so on) produced **no match**. That is a statement about those sixty guesses, **not** about the password: SHA-512-crypt with a
+**fixed, image-wide salt** is crackable offline at whatever rate the hardware allows, and because the salt and hash are identical on
+every unit built from this image, **cracking it once yields the same root password on the entire fleet**.
+
+**Why it matters.** This is the only root path found in this project that requires **no software vulnerability at all** — no memory
+corruption, no signature bypass, no update manipulation — just a serial connection to a documented console at 115200 8n1 and a
+password that is shared across every unit and crackable offline at leisure.
+
+**Suggested patch direction.** Give each unit a unique salt and password, or disable the console login unconditionally in production
+rather than by a runtime parameter a component can clear; treat the serial console as a manufacturing-only facility and require its
+removal in the production build.
+
+## V-050 — WiFi is fully populated hardware, disabled in software, and re-enableable
+
+**Status:** candidate, statically established. The radio's presence in a given production unit is inferred from complete firmware and
+NVRAM for a named chip, not from hardware inspection.
+
+- The image ships the complete stack for a **Cypress/Broadcom CYW88359 (BCM4359B1)** PCIe part: `bcmdhd.ko` + `cfg80211.ko`
+  (both loadable, dependencies resolvable), `rtecdc.bin`, `4359b1.clm_blob`, and an NVRAM that names the module
+  (`RBHP-B207A`), the regulatory domain (`ccode=GB`) **and a MAC address (`00:90:4c:12:d0:e2`)**.
+- It is disabled three ways: a `modprobe.d` blacklist, a GPIO power gate, and a MICOM state gate.
+- The enable path ships too: `app/bin/supplicantmanager` and `etc/wpa_supplicant.conf`.
+
+**Why it matters.** If the radio is present and can be brought up, the unit gains a wireless interface that the vendor daemon — which
+runs as root — will associate to a network. There is **no sshd and no hostapd** in the image, so this is not a direct shell; the value
+to an attacker is a command-and-control and exfiltration channel, and the value to a defender is that it exists at all. The shared
+`macaddr` in NVRAM is separately interesting: units would be identifiable and possibly colliding on the same address.

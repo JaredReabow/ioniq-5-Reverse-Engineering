@@ -4647,3 +4647,10 @@ and are superseded by corrections rather than silently rewritten.
 - Collapsing the sample by a factor of a thousand left the stripes exactly as they were. Six sampling tests, six refutations, one of them with the instrument proven to fire.
 - That moves the question off the sampler entirely: the pattern is either in the data being sampled or introduced after it. The clean texture dump says it is not simply the data.
 - So the next step is bookkeeping rather than theory: dump every large upload and find which one is striped.
+
+## 2026-11-04 — it was us all along
+
+- The vendor recipe renders the same application cleanly, hours later, on the same machine. The stripes came from our own ten-output backend, introduced when we moved off the vendor backend to explore the IVI screen
+  question.
+- Every sampling test in the last stretch was therefore doomed before it ran. That is worth admitting plainly: six careful experiments, all aimed at a component that was never being exercised.
+- The engineering-mode screenshot needs the chain run against the vendor backend with one output. That combination has never been tried, and it is one run away.

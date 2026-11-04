@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.31.0 - the stripes are our own backend's artefact: the vendor headless path renders cleanly
+
+- Followed the history instead of the theory, as suggested. The first striped frame is `docs/vm/15-…` (§2.78.0), and the first clean one is `docs/vm/13-…` (§2.74.0). Comparing what produced them gives
+  the answer: **13 came from the vendor `headless-backend.so` with a single output; 15 and everything after came from our `ias-backend-soft.so` with `IAS_OUTPUT_COUNT=10`.**
+- **Re-ran the vendor recipe to confirm it, and it is still clean**: `docs/vm/13`'s recipe reproduced now, single output, produced a **747,445-byte frame with a smooth wave background, crisp
+  `STR_HOME_RADIO` / `_MEDIA_OFF` text and the page dots — no stripes at all**. Same application binary, same assets, same machine, hours later.
+- **So the stripes are not the application, not EGL sampling, not the shaders, not the assets, not ASTC, and not the compositor.** They are produced by **our own multi-output research backend**.
+  That single fact reconciles every failed test in this stretch: clamp forcing, `u` negation, axis swap, normalisation, division by the texture size and a thousandfold coordinate collapse all had no
+  effect because **none of them could have had any effect** — the corruption is downstream of everything they touch.
+- It also explains the inconsistencies that did not fit: the "clean then striped in the same family" pair (§2.78.0's own confusion), the invariance of the shear to every parameter, and why the software-rendered
+  frame (which also ran under our backend, but drew no textured content) looked correct.
+- **What this does not yet explain** is the mechanism inside the backend — most likely the interaction between ten outputs tiled at `x = index * 1920`, an application surface reported as 1926×753 on
+  screen 9, and the single output that actually gets composited. That is now a bounded question about our own code rather than about vendor behaviour.
+- **Practical consequence, and it is immediate:** to obtain clean screenshots — including of engineering mode — stop using the ten-output backend for capture. Run the vendor `headless-backend.so` with one output
+  and drive the application as the working recipe does.
+- Attempting the engineering-mode capture on the vendor single-output recipe did **not** succeed in this run: `AppEngineerMode` did not stay up under that recipe (`ENG=` empty) and the only frame produced
+  was the 177,691-byte boot splash. Engineering mode evidently needs launcher or appmanager context that the isolated recipe does not provide, so the clean dev-mode screenshot needs the **chain** run against
+  the vendor backend with a single output — a combination that has never been tried.
+
 ## 3.30.0 - collapsing the texture coordinates changes nothing, so the stripes are not a sampling artefact
 
 - Sixth and sharpest sampling test: rewrite the vertex shader to `outTexCoords = texCoords.xy * 0.001`, collapsing every sample into a tiny region near the origin. If the diagonal pattern came from

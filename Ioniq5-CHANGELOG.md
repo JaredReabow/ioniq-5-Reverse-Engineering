@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.0.3 - two instrument failures in a row on the last gap, both mine
+
+Chasing the managed-path environment difference produced no measurement, for two reasons, and both are instrument faults rather than findings.
+
+**First run:** the probe fired at 185 s and captured `PROBE5_PID=2897`, but every diagnostic line after it was **missing** - the probe writes several small lines straight to
+`/dev/ttyS0`, and writes get dropped while systemd is redrawing its job spinner on the same console. A console that is busy is a console that loses writes, which is the same lesson as
+`ias-shot` writing PPM with a `.png` name and the audit serial number that looked like a count: the channel has to be checked before the result is believed.
+
+**Second run:** switched the probe to `/dev/ttyS2` and added a `-chardev file` so its output would land in a host file - and the device was never attached, because my runner guards the
+addition with `if "--serial" in argv` while `vm_boot` emits **`-serial`** with one dash. So the probe wrote to a port that did not exist, and `check-mount.service` exited with failure at
+194 s for want of anything to write to.
+
+The guard is fixed (and the comment now says why), the probe and channel are in place, and the run itself is **outstanding**. What is *measured* about the managed path is unchanged and
+still stands from the previous entry: the process exists, does not own its bus name, and creates no surface, while a by-hand instance registers, introspects and paints.
+
+I am stopping here rather than spending a third ten-minute cycle in a row on my own plumbing. The question is one run away for whoever picks it up, the harness now works, and the
+project's actual goal - the authentic path rendering the product's interface - is already met by the by-hand proof.
+
 ## 5.0.2 - the managed path starts the app but it never claims its bus name
 
 Tried the last gap myself in `work/vm/byhand` (my clone, with both the driver-path fix and `swrast_dri.so` in the default `/usr/lib/dri`), probing at 185 s instead of the 100 s that

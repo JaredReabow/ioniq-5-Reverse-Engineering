@@ -243,3 +243,28 @@ shipped material.
 If the aim is **dev mode**, the firmware route is the long way round: it requires root first, so it cannot be the thing that gets you root. If the aim is **installing modified firmware**, then the answer is
 yes — but only after the anchor replacement that V-034 describes, which likewise requires root first. In both cases the real blocker is the same one this project has measured all along: obtaining a
 privileged local write on a stock unit.
+
+## 13. Would a USB Ethernet adaptor get you in? Not with this image — there is no SSH daemon
+
+Checked the three things that decide it: the drivers, the network configuration, and whether anything is listening.
+
+- **Drivers: yes.** `/lib/modules/4.1.27-abl/kernel/drivers/net/usb/` contains `asix.ko`, `cdc_ether.ko`, `cdc_subset.ko`, `net1080.ko`, `r8152.ko`, `smsc95xx.ko` and `usbnet.ko`. A USB
+  Ethernet adaptor on the host ports would be recognised.
+- **Addressing: available but never invoked.** `/etc/ip_setup.sh <iface>` sets `192.168.1.100/24`, netmask `255.255.255.0` and a default route via `192.168.1.1`, logging each step to
+  `/dev/kmsg`. **No unit and no binary references it**, so nothing calls it on its own.
+- **The service that would answer is incomplete in this image:**
+  - `/lib/systemd/system/dropbear@.service` exists but is an **inetd-style template** (`StandardInput=socket`), and there is **no `dropbear.socket`** unit, so nothing binds port 22.
+  - It carries `ConditionPathExists=/tmp/secure_console_disable` — the server is conditional on that sentinel.
+  - It runs `/usr/sbin/dropbear -i -s -r /var/dropbear/dropbear_rsa_host_key`: **`-s` disables password authentication**, so access is key-only, and `ExecStartPre` installs
+    `/etc/dropbear/authorized_keys` into `/home/root/.ssh/`.
+  - **`/usr/sbin/dropbear` is absent from the image** — confirmed by searching the whole extraction, not just `/usr/sbin`. Only the config files ship.
+- **The key material does ship**: `/etc/dropbear/authorized_keys` (397 bytes) contains a vendor `ssh-rsa AAAA…` key. So the *production* unit evidently has key-based SSH for service access;
+  this EU 260128 image has had the daemon removed while leaving the configuration and the vendor key behind.
+- **busybox has a `telnetd` applet**, so a listener is *possible*, but nothing starts one.
+
+**Conclusion: plugging a USB Ethernet adaptor into this image gives you a link, an address if you run `ip_setup.sh` by hand, and nothing to connect to.** Starting a daemon requires code
+execution first, which is the same circular problem as every other route. The adaptor is useful *after* access, for speed and convenience, not as a way in.
+
+**What this does say about the physical unit**, and it is the useful part: the combination of a dropbear template unit, a vendor `authorized_keys`, and a fixed debug address strongly
+suggests production/service units run key-based SSH on `192.168.1.100` once the interface is configured and `/tmp/secure_console_disable` present. If the user's unit has the daemon that this
+image lacks, then the route in is that vendor key — which is why "dropbear keys are available" in their notes is the significant lead, not the adaptor.

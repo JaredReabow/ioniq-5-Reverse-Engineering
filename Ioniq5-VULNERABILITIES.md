@@ -1470,45 +1470,74 @@ For each new issue record: stable ID, affected artifact/build and digest, source
   volumes as unprivileged — parse in a sandbox rather than in the root-owned media engine.
 
 
-## V-048 — the application manager verifies binaries against a key in `/tmp`, then launches them anyway
+## V-048 — root code execution through the application manager's `/tmp` verification key  — **CONFIRMED**
 
-**Status:** candidate, measured in the projection. Not attempted on hardware. Reachability of the writable key from an
-unprivileged or remote context is **not** established.
+**Status: confirmed in the projection.** A binary signed with a key generated during this work was launched by the application
+manager and executed as **uid 0**. Nothing was attempted on hardware. What remains unknown is only how an attacker gets a file into
+`/tmp` and a request onto the session bus on a live unit.
 
-**What was measured.** Running the authentic recovery chain with the vendor compositor, the application manager's own log
-records a signature check for each application it starts, and then starts it regardless:
+### The measurement
+
+A 301 KB statically linked payload (`work/poc-signature/payload.c`) that records its own identity was given a 256-byte `.sign`
+section, signed with a freshly generated RSA-2048 key, copied to `/tmp/app/bin/AppEngineerMode`, and paired with our own public key at
+`/tmp/app_normal.key`. The manager was then asked to launch app id 301. Result, verbatim:
 
 ```
-"section name = [.sign]  size[256][266] | time 00:01:54.024"
-"signCheck first : [0] [0] [69] [325] | time 00:01:54.042"
-"CheckSign : /app/bin/AppStandbyClock /tmp/app_normal.key /tmp/AppStandbyClock.sign ret = 1 | time 00:01:54.043"
-"m_AppProcess->start(/app/bin/AppStandbyClock) PID[952] | time 00:01:54.046"
+PAYLOAD_MD5=8728bf479a26fbe25cc69a6d740d525a
+LAUNCHED=975 after req 1
+=== V048 PROOF FILE ===
+V048_PAYLOAD_RAN
+uid=0 euid=0 gid=0
+proof=an_unsigned_by_vendor_binary_was_launched
 ```
 
-Two separate observations, and both matter:
+The `uid=0` line is written **by the payload itself** with `getuid()`, so it is the child's own report rather than an inference from
+the parent.
 
-1. **The trust material is resolved from `/tmp`.** The binary contains the literal paths `/tmp/app_normal.key`,
-   `/tmp/navi_public.key` and the suffix `.sign`. `/tmp` is a world-writable tmpfs on this system, so the key that
-   decides whether an application binary is authentic is **replaceable by anything that can write to `/tmp`**. A `.sign`
-   section of exactly 256 bytes ships inside the binaries, which is consistent with a 2048-bit RSA signature.
-2. **A failed verification (`ret = 1`) did not stop the launch.** The manager proceeded to `m_AppProcess->start(...)` and
-   gave the process a pid. The application was later terminated, but for a different reason the log states explicitly:
-   `[TIMEOUT] [1 Group] AppID : 10, PID : 952` followed by `[ERR CODE:1] App has been Crashed.` — a ten-second
-   registration timeout, not a signature rejection.
+### The mechanism, recovered
 
-**Why it matters.** The application manager runs as **root**, and it is the component that turns "a file on disk" into "a
-process". If a replacement binary plus a matching `/tmp/app_normal.key` and `<name>.sign` is accepted, that is root code
-execution from a write to `/tmp` — no USB, no gesture, no PIN. This is the most direct root-access candidate found in this
-project so far, and unlike the USB media-parser class (V-047) it does not depend on a memory-corruption bug.
+`docs/engineering-mode/app-signature-check.md` reconstructs the verifier from the disassembly of `/app/bin/AppLauncher`
+(OpenSSL `libcrypto.so.1.0.2`, not mbedTLS):
 
-**What is not established.** The signature algorithm and encoding, whether the checker accepts a key it is handed rather
-than pinning a trusted one, whether `ret = 1` is tolerated only during the startup group or on all paths, and whether the
-`appId 301 → /tmp/app/bin/AppEngineerMode` path (which the manager also knows) is checked at all. Until the checker's
-algorithm is recovered these are all open.
+- the `.sign` section is located by **walking the section header string table**, not by a fixed offset, and its bytes are copied to
+  `/tmp/<basename>.sign` with `sh_offset` remembered;
+- the digest is **SHA-256 over the whole file with the `.sign` bytes zeroed**, and the check is
+  **`RSA_verify(NID_sha256, ...)`** — PKCS#1 v1.5 — against a **PEM** key read with `PEM_read_RSA_PUBKEY`;
+- authentic keys are pinned inside the binary as Qt resources (`:/app_normal.key`, `:/navi_public.key`), but they are copied to
+  `/tmp` **once** at first use and **the `/tmp` copy is trusted thereafter and never re-checked against the resource**.
 
-**Suggested patch direction.** Pin the verification key inside the signed binary or in read-only storage rather than
-resolving it from `/tmp`; treat a verification failure as fatal on every path, including the startup group; and refuse to
-launch any binary whose path is writable by a non-privileged user.
+That last point is the whole vulnerability: the trust anchor for "may this binary run as root" lives at a **world-writable path**,
+and the manager will start whatever the caller's `appLocation` argument points at.
+
+### Reproducing it
+
+`tools/uk_fw/poc_sign.py` does the two steps that `objcopy` would normally do — `add` appends a zeroed 256-byte `.sign` section to an
+ELF (the linker here discards orphan sections, so it is done by rewriting the section header table), and `sign` hashes the file with
+those bytes zeroed and writes an OpenSSL PKCS#1 v1.5 signature into them. Our own signature verifies with
+`openssl dgst -sha256 -verify`, and the manager accepted it.
+
+### What still has to be true on a real unit
+
+1. Something must be able to write a file to `/tmp`. Vendor components demonstrably do; whether an attacker-reachable path does is a
+   separate question (**V-047** is one candidate class).
+2. The launch request must be accepted. It travels on the **session bus** to `com.lge.avn.applauncher`, and in the projection any
+   process could send it. On a unit, session-bus policy may restrict who may call `request.launch`.
+3. `appLocation` is taken from the request itself, which we observed directly:
+   `Request::launch appId[301] appName[AppEngineerMode] appLocation[/tmp/app/bin/AppEngineerMode]`.
+
+### Suggested patch direction
+
+Pin the verification key to the embedded resource and never read it from a writable path; make a verification failure fatal on every
+path; and refuse to launch any binary from a directory writable by a non-privileged user. The third item alone closes the launch
+vector even if the first two are mishandled.
+
+### Correction to an earlier reading
+
+The original note inferred from `ret = 1` followed by `m_AppProcess->start(...)` that a **failed** check was tolerated. In this run the
+same call reported `ret = 1` for a vendor binary **before** our key was in place and `ret = 0` afterwards, which means the return
+value's sense is the opposite of what that note assumed. The conclusion does not depend on it: the confirmed fact is that a binary
+signed by our own key was launched as root, and the disassembly says the launch path accepts only one specific value from the
+verifier.
 
 ## V-049 — a root shell on the serial console, gated by a MICOM runtime parameter, with one image-wide password hash
 

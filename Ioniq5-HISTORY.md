@@ -4726,3 +4726,9 @@ and are superseded by corrections rather than silently rewritten.
 - Sixty plausible defaults failed, which is not an answer. A fixed salt and an identical hash across the fleet is the finding, not the guess count.
 - The WiFi is complete hardware - driver, firmware, CLM blob, NVRAM with a MAC address - switched off by a blacklist, a GPIO and a MICOM gate, with the enable tooling shipped.
 - CAN has a core and no controller. USB ethernet has drivers and no address path, and no dropbear binary at all.
+
+## 2026-11-04 — it ran as root
+
+- A binary we compiled, signed with a key we generated, and accompanied by a public key we wrote to /tmp was launched by the application manager on the first request and reported its own uid as 0.
+- The verifier finds its .sign section by name, hashes the file with those bytes zeroed, and RSA-verifies a PEM key from /tmp. The authentic key is pinned in the binary and copied to /tmp once, after which the copy is trusted and the resource is never consulted again.
+- The manager also believes the caller about where the binary lives. Both halves of V-048 are now demonstrated rather than inferred, and the correction about the sense of the return value is recorded.

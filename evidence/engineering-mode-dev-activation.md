@@ -136,3 +136,27 @@ Encryption Update should show `Encryption Update: Disable` with Enable / Disable
 
 **Risks, stated plainly:** this is a research device procedure. Disabling update encryption from a root engineering UI changes the update-integrity posture of the unit, the action may be logged by the
 update service, and the vendor launcher may restart the real `/app/bin/AppEngineerMode` behind the copy. None of those have been measured here.
+
+## 9. Can a USB stick do this? No — and here is what the shipped system actually does
+
+Checked directly, because the obvious question is whether the file can simply be carried in on a stick.
+
+- **`usb-automount` only mounts and reports.** `/etc/usb-automount.conf` declares the hub and port topology; the binary's strings are about mounting, unmounting, MTP and reporting a mounted list over
+  `com.lge.car.automount`. There is **no execution of anything from the device**, no `.sh` handler, no install path.
+- **Nothing consumes the mount to run code.** The binaries that reference `/media/usb` are `AppUpgrade`, `MediaBrowser`, `AppMediaPlayer`, `AppLogExtractor` and the media scanner — i.e. update packages
+  and media playback, not arbitrary executables.
+- **Nothing invokes `/etc/ip_setup.sh`.** The script exists, but no unit and no binary references it: it must be run from a shell.
+- **Console login units are present**: `console-getty.service`, `console-shell.service`, `getty@.service`. So the unit will hand a login prompt to anything that presents as its console.
+
+**Therefore the honest answer: a stick gets files onto the unit, but nothing on the unit will run them.** Every route needs *code execution as root once*; after that the activation is the copy and
+launch in §8. The routes, ranked by how much they depend on vendor behaviour:
+
+1. **Serial console on the bench** (most reliable). Present as the unit's console, log in as root using the recovered credential or an installed dropbear key, then run §8. This depends on nothing
+   except physical access to the UART.
+2. **Debug network** — `192.168.1.100/24`, gateway `192.168.1.1` via `/etc/ip_setup.sh`. Strong lead, but the script has no caller, so it cannot be the first step unless something else enables sshd on
+   that interface. Useful as a *second* step once a shell is obtained.
+3. **Update package over USB** — `AppUpgrade` reads `/media/usb`, but update packages are signed, and disabling that signing is precisely what dev mode exposes: circular. The one non-circular variant is
+   Engineering Mode's own **Force Update**, which may bypass version/signature checks; worth trying on a unit where engineering mode can already be opened, but unproven here.
+
+**What this means practically:** the activation itself is trivial (six shell commands), and the access is the whole problem. No amount of preparing a stick substitutes for one root shell, and this
+project has not verified any of the three routes on physical hardware.

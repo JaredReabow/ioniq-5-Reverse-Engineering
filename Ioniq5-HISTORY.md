@@ -4665,3 +4665,12 @@ and are superseded by corrections rather than silently rewritten.
 - The reference capture is banked: clean vendor-backend frame, no stripes.
 - A second project on the same platform documents the engineering-mode gesture and PINs, and independently quotes the same MASS_PRODUCT string we pulled out of our binary. Two methods, one answer.
 - That also means the stock unit does have a UI route into engineering mode, which we had only inferred. The PIN being an unsalted hash is already in our register.
+
+## 2026-11-04 — peripherals: the keyboard is the useful one, the serial port is switched off
+
+- The kernel carries a full HID stack as modules, which is exactly what a scripted keyboard-style device needs. The only input udev rule is for the
+  touch panel, and nothing filters keyboards.
+- The USB serial path is explicitly commented out in the vendor's own rules, so that route is closed by design rather than by accident.
+- Mass storage is still the more serious surface: insertion alone reaches a D-Bus-activated indexer and an old GStreamer ASF demuxer.
+- In the projection HID could not be demonstrated yet because udev does not run and the module stack would not load by hand. Recorded as a limit of the
+  harness, not as a property of the vehicle.

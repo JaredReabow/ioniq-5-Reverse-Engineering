@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.33.0 - reading the compositor log found three real faults; the fatal one is still missing
+
+Worked the chain-on-vendor-backend problem by reading `/tmp/launcher-chain/weston.log` instead of guessing, as intended. Three concrete faults surfaced, each fixed in turn:
+
+1. **`/bin/true: symbol lookup error: /usr/lib/weston/pixman-solid-shim.so: undefined symbol: pixman_image_create_bits`** — the solid-fill shim was preloaded into weston, and
+   **inherited by the shell's helper children** (`/bin/true`, `weston-keyboard`), which have no libpixman mapped, so they died with status 127. The shim exists only to survive the ten-output
+   pixman abort; on a single-output vendor backend it is unnecessary. Removing the preload from the chain removed the symbol error entirely (`SYMBOL_ERR=0` verified).
+2. **The shell's user-interface client was `/bin/true`**, which exits immediately — and the log shows `/bin/true exited with status 0` followed by the compositor's own shutdown. Replaced
+   with a long-lived client (`/usr/bin/keepalive.sh`, `exec sleep 3600`) via `ivi-shell-user-interface`.
+3. **`/usr/libexec/weston-keyboard` and `/usr/bin/early-background` are missing from this clone** and are retried repeatedly (`exited with status 255`). The second is our own doing — we removed
+   `early-background` in an earlier experiment — and it is a reminder that this working clone now differs from the pristine image in ways that affect the chain.
+
+- **Weston still exits before the sixty-second checkpoint** with the home screen still alive and **no fatal line in its log**. So the cause is not yet identified, and the next step is not another
+  theory: record the compositor's **exit status** (`wait $WPID; echo EXIT=$?`) and the last non-client log line before it, rather than continuing to infer from what is absent.
+- One confound to keep in view: the chain's own teardown kills the compositor (`kill -9 $WPID` at line 127) after roughly 155 s of dwell, so any checkpoint taken after that is measuring the
+  teardown, not a fault.
+
 ## 4.5.0 - USB peripherals: HID is the interesting one, and serial is explicitly disabled
 
 Evaluated every peripheral class the image supports, prompted by the question of whether a device like an ESP32 with native USB could attack

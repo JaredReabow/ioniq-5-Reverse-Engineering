@@ -4674,3 +4674,10 @@ and are superseded by corrections rather than silently rewritten.
 - Mass storage is still the more serious surface: insertion alone reaches a D-Bus-activated indexer and an old GStreamer ASF demuxer.
 - In the projection HID could not be demonstrated yet because udev does not run and the module stack would not load by hand. Recorded as a limit of the
   harness, not as a property of the vehicle.
+
+## 2026-11-04 — reading the log paid three times over
+
+- The shim was being inherited by helper children that have no pixman, and killing them. The user-interface client was /bin/true, which exits and takes the compositor with it. And two helper binaries are
+  missing from our clone, one because we deleted it ourselves.
+- Three faults, each found by reading rather than guessing, and none of them the fatal one. Weston still exits with no complaint it is willing to print.
+- Next is to measure its exit status instead of inferring, and to remember that the chain kills the compositor itself after its dwell.

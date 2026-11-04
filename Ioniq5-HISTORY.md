@@ -4843,3 +4843,9 @@ and are superseded by corrections rather than silently rewritten.
 - The vendor init refuses to start the display server until a MICOM parameter says the SPI handshake succeeded, which never happens under emulation. Supplying it on the command line was accepted, but nothing in the log shows the gate opening.
 - Two explanations fit equally and neither was tested, so both are written down. The next move is to instrument the display server rather than guess again.
 - That makes this one value the last barrier to the vendor interface actually running.
+
+## 2026-11-04 - the gate is understood, and the UI never needed it
+
+- The parameter is writable, but the driver puts it back to 0 during probe, and the init polls it before any userspace can write. So it can only be opened between the kernel and the init.
+- That wrapper exists now and is labelled as a stand-in for hardware, not part of the shipped system.
+- Installing it means moving eight gigabytes through an image for a fidelity improvement, and the interface already runs in the projection. Recorded rather than done, because saying so is more useful than a heroic injection.

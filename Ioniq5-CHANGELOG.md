@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.24.0 - CORRECTION: the uploaded texture is clean, so the fault is in the sampling after all
+
+- Made the measurement §3.23.0 called for: intercepted `glTexImage2D` and wrote the application's own 1926×753 upload out as a picture. **It is clean** — a blue title bar across the top and a
+  black body, no stripes anywhere. Saved as **`docs/vm/22-uploaded-texture-is-clean-2026-10-31.png`** (the transfer was truncated at 618 of 753 rows; the captured rows are complete and valid).
+- **That refutes the inference in §3.23.0.** I concluded there that "the sampled texture is itself striped" because the artefact's extent tracked the coordinate transform. It does track the
+  transform — but the texture is not striped, so the distortion is introduced **between the clean texture and the screen**: in how the quad samples it. The offscreen render is exonerated and the
+  earlier framing is corrected here rather than left standing.
+- What now fits all the measurements:
+  - the texture is **clean** (this entry);
+  - the artefact's extent is **proportional to the coordinate transform** (§3.23.0) — consistent with sampling a clean image through a wrong mapping and wrapping;
+  - negating `u` **removes** the artefact (§3.22.0) — consistent with sampling that lands inside the image instead of wrapping outside it;
+  - normalising `u` to 0..1 changes the extent but does not clear it — consistent with a mapping that is wrong in more than scale alone.
+- So the conclusion this investigation has been converging on is now supported by a clean instrument on both sides: **a clean texture, a wrong mapping, and a sampler that wraps.** The remaining work is
+  to determine the exact intended mapping — most likely a texture matrix that the vendor sets and that our projection does not deliver, since the coordinates it supplies (±1, texel-space values in the
+  icon quads) are clearly meant to be transformed before sampling.
+- Next instrument, and it is small: intercept `glMatrixMode(GL_TEXTURE)` / `glLoadMatrixf` and `glActiveTexture` + the texture matrix state at draw time. If the application sets a texture matrix and the
+  sampler is not honouring it in this stack, that is both the cause and the fix.
+
 ## 3.23.0 - the sweep shows the artefact tracks the UV mapping, and the sampled texture is itself striped
 
 - Third candidate tested: `outTexCoords = vec2((u + 1.0) * 0.5, (v + 1.0) * 0.5)` — normalising clip-space-style coordinates into a 0..1 texture range, which the captured ±1

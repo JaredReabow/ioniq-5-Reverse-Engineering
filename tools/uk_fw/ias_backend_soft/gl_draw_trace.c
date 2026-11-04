@@ -515,3 +515,65 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string,
 		real(shader, count, string, length);
 }
 
+
+/*
+ * Dump a large texture upload as a picture.
+ * ----------------------------------------
+ * The UV sweep showed the artefact is proportional to the mapping, which means the image being
+ * sampled is itself striped. The application uploads its own window surface as a large BGRA
+ * texture, so writing that payload out as a PPM answers the last open question: are the stripes
+ * already in the texture before the quad ever samples it?
+ */
+static int texdumps;
+
+void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
+		  GLsizei height, GLint border, GLenum format, GLenum type,
+		  const void *pixels)
+{
+	static void (*real)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum,
+			    GLenum, const void *);
+
+	if (pixels != NULL && level == 0 && width >= 512 && height >= 256 &&
+	    texdumps < 3) {
+		char path[64];
+		int fd = -1;
+		int x, y;
+
+		snprintf(path, sizeof path, "/tmp/tex-%d.ppm", texdumps++);
+		fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (fd >= 0) {
+			char hdr[64];
+			int hn = snprintf(hdr, sizeof hdr, "P6\n%d %d\n255\n",
+					  (int)width, (int)height);
+			const unsigned char *src = pixels;
+			(void)!write(fd, hdr, (size_t)hn);
+			for (y = 0; y < height; y++) {
+				const unsigned char *row = src + (size_t)y * (size_t)width * 4;
+				for (x = 0; x < width; x++) {
+					unsigned char bgr[3] = { row[x * 4 + 2],
+								 row[x * 4 + 1],
+								 row[x * 4 + 0] };
+					(void)!write(fd, bgr, 3);
+				}
+			}
+			close(fd);
+
+			{
+				char line[96];
+				char *q = line;
+				put(&q, "texture dumped ");
+				putn(&q, (long long)width);
+				put(&q, "x");
+				putn(&q, (long long)height);
+				put(&q, "\n");
+				emit_line(line, q);
+			}
+		}
+	}
+
+	if (!real)
+		real = dlsym(RTLD_NEXT, "glTexImage2D");
+	if (real)
+		real(target, level, internalformat, width, height, border, format,
+		     type, pixels);
+}

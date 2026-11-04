@@ -268,3 +268,19 @@ execution first, which is the same circular problem as every other route. The ad
 **What this does say about the physical unit**, and it is the useful part: the combination of a dropbear template unit, a vendor `authorized_keys`, and a fixed debug address strongly
 suggests production/service units run key-based SSH on `192.168.1.100` once the interface is configured and `/tmp/secure_console_disable` present. If the user's unit has the daemon that this
 image lacks, then the route in is that vendor key — which is why "dropbear keys are available" in their notes is the significant lead, not the adaptor.
+
+## 14. CORRECTION — on this 260128 build the `/tmp` launch does **not** flip the state
+
+A deeper review of `setEngType()` overturns §3 and §11 of this document.
+
+- The only write to the SOP field (`engine + 0x13c`) in the whole binary is `movl $0x1, 0x13c(%rbp)` at `0x737268` — I reported that correctly — but the develop branch it jumps to
+  (`0x7372e0`, taken when the executable path equals `/tmp/app/bin/AppEngineerMode`) **does not modify the field**. It only changes which message is logged. So this binary writes **1
+  unconditionally**, and `checkSOPVersion()` therefore returns true no matter where the binary is launched from.
+- **Consequence: my §11 "check 1 — the launcher hook works" is wrong about the outcome.** The launcher hook is real (app id 301 did run the copy at `/tmp/app/bin/AppEngineerMode`, proven by
+  `readlink`), but on this build that produces **no state change**. The hook is the delivery mechanism for a *develop build*, not a switch that a shipping build honours.
+- The correct statement: **on 260128 the develop state is not reachable by relaunching the shipped binary from `/tmp`.** It would be reachable by placing a *develop build* there, which is
+  what the container is for — and `AppDMClient` constructs exactly that path from a `<usb>/VarUpgrade` directory with key/hash checks (evidenced literals; end-to-end flow inferred).
+- **And a better vector exists, independent of any dev mode:** the encryption-update state is a **file**, `/update/disableEncryptionUpdate`, which `AppMPAutoTest` creates in response to the
+  MICOM event `EVT_MP_ENCRYPTION_DISABLE_REQ`. That is a real, named state transition with a named trigger, and it is a far better lead than the path check.
+- Recorded here rather than silently editing §3 and §11: the earlier reading was an inference from a branch destination I did not examine, and it is exactly the failure mode this project keeps
+  warning about. The detailed analysis lives in `docs/engineering-mode/dev-mode.md`.

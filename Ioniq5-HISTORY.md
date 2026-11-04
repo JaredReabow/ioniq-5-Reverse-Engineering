@@ -4629,3 +4629,9 @@ and are superseded by corrections rather than silently rewritten.
 - Tried to clear the striped rendering first so the screenshots would be worth looking at. Forced clamp-to-edge, verified the shim reached GL, and the stripes stayed. A refutation that can be trusted
   because the instrument was proven to fire.
 - The screenshot included is the engineering app running from the dev path with the stripes still on it. It documents the entry, not the menu, and it is labelled that way.
+
+## 2026-11-04 — the dev-mode claim was half wrong, and the correction is the valuable part
+
+- The launcher hook is real, but on this build the binary writes the SOP field unconditionally. Relaunching it from /tmp changes a log line and nothing else.
+- Found the actual switch: a file at /update/disableEncryptionUpdate, created by a test app on a named MICOM event. That is a state transition you can observe, unlike a path comparison.
+- Recorded the mistake rather than editing it out. The pattern that produced it is the same one this log has been warning about for days.

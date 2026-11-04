@@ -160,3 +160,24 @@ launch in §8. The routes, ranked by how much they depend on vendor behaviour:
 
 **What this means practically:** the activation itself is trivial (six shell commands), and the access is the whole problem. No amount of preparing a stick substitutes for one root shell, and this
 project has not verified any of the three routes on physical hardware.
+
+## 10. Is there a stock-UI entry? Not for dev mode itself — but the launcher has a hook
+
+Checked whether the unit can reach this from its own UI, without a shell.
+
+- **`AppLauncher` prefers a copy at `/tmp/app/bin/AppEngineerMode`.** Disassembly at `0x173c5` loads the literal `/tmp/app/bin/AppEngineerMode`, calls `QFile::exists`, and the result is combined with
+  `cmpl $0x12d, 0x20(%rbx)` — i.e. **app id `0x12D` (301)**. Only when the file exists *and* the launch is for that id does control jump to the `/tmp` branch. So the launcher has a deliberate
+  developer-override hook: place a build there and the launcher runs it in preference to `/app/bin` when engineering mode is opened.
+- **`AppDMClient` is the component that can put a file there.** It imports `QFile::copy(QString,QString)`, `QProcess::start/execute` and references `/tmp/app/bin`; its strings include
+  `/update/usb/micom/…`, `/update/fota/install_param.txt`, OTA install prompts and — notably — **`DMC_DEV_INFO` and `TC_GET_DEV_INFO`**, i.e. it queries device/build information.
+- **So the honest answer to "is there a dev-mode menu item": no.** The dev state is not a stored flag; it is *which file the launcher executes*. Nothing in the shipped UI writes
+  `/tmp/app/bin/AppEngineerMode`, which is why no menu item can toggle it.
+- **The one stock-UI leverage that exists** is the combination: if any update/installation path can deliver an app binary into `/tmp/app/bin` (AppDMClient is the candidate, and it already handles USB
+  and FOTA installs), then simply opening engineering mode by its normal hidden gesture yields the development menu — no shell needed. That is **inference**, not a measurement: the DM copy path has not
+  been shown to target `/tmp/app/bin`, only that it can copy and that the string appears in the binary.
+- **Cheapest checks to settle it**, in order: (1) in the QEMU projection, place a copy at `/tmp/app/bin/AppEngineerMode`, open engineering mode by whatever the stock trigger is, and confirm the update list
+  gains Encryption Update — this validates the launcher hook end to end; (2) disassemble `AppDMClient`'s `QFile::copy` call sites to see what source path feeds `/tmp/app/bin`; (3) if it is a USB upgrade
+  path, determine whether it requires a signature.
+
+**Practical bottom line for a stock unit:** the normally-quoted route to this state on these head units is the USB/FOTA app-update channel placing a developer build, *not* a settings menu. Absent that
+channel, a root shell is required, and the six commands in §8 do it in seconds.

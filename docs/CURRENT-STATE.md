@@ -17,7 +17,7 @@ either demonstrated in the projection, quoted from the image, or explicitly mark
 | **Touch reaches the app** | **works** | `QWaylandInputDevice::Touch::touch_down/touch_up` in the app's own log, `evidence/vm-bringup/interactive-touch-2026-11-04.log` |
 | Engineering mode launches as root | **works** | `appId 301` from `/tmp/app/bin`, uid 0, `getEnterPasswordCnt()` live |
 | Engineering mode's *page body* renders | **no — cause now known** | the app **never attaches a buffer**: its whole Wayland trace over 70 s is four `wl_display.delete_id` calls, because it waits for `show_window_fg` from the app manager, which this projection never sends. See `docs/engineering-mode/engineering-paint.md` |
-| Vendor compositor started by `esinit` | **measured shut by default**, and the corrected stand-in opens it | `docs/vm/spi-gate.md` — `ok=no nok=yes param=0` without it, `ok=yes nok=no param=1` with it |
+| Vendor compositor started by `esinit`, and it renders | **works** | `docs/vm/authentic-hmi.md` — Multi-User at 97.3 s with `weston.real` alive, 129,844-byte PNG capture, `ivi_wm` placement |
 
 How to drive it: `python3.13 tools/uk_fw/vm_console.py`, then `sh /run-chain23.sh &` and `sh /run-live.sh`. Full instructions:
 `docs/VM-RUNBOOK.md`.

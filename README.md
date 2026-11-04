@@ -74,11 +74,11 @@ to, and the base rootfs hash is rechecked after each experiment
 
 ### Fidelity: the vehicle's own boot now starts its own compositor
 
-A MICOM SPI stand-in in front of the init (`tools/uk_fw/guest/init-esinit-spi.sh`, labelled projection-only) was written to make the authentic
-`esinit` take its OK branch, and **it does not work yet**: the wrapper runs before the MICOM module exists, so writing
-`/sys/module/micom/parameters/spi_validation` fails with `No such file or directory`, `esinit`'s own guard is false, the block is skipped, and the
-`SPI NOK` branch is taken. An earlier revision of this section claimed the gate had opened — that was wrong, see CHANGELOG 4.41.0. What the log
-does show:
+**The authentic boot path now renders.** With a MICOM SPI stand-in that mounts `/sys` before writing (measured: the gate is shut by default,
+`param=0`; the stand-in opens it, `param=1`), `esinit` takes its OK branch, launches its own `/usr/bin/weston --tty=1`, and the system reaches
+**Multi-User System with the compositor alive** — a frame is captured (129,844-byte PNG) and a surface is placed through the vendor
+`ivi_window_manager` interface. Details, including the three projection-only instruments and the real blocker (the vendor's pixman
+`composite_clipped` assertion, which the GL path on a vehicle never hits), are in `docs/vm/authentic-hmi.md`. The log that made this visible:
 
 ```
 [    6.545898] random: weston urandom read with 19 bits of entropy available

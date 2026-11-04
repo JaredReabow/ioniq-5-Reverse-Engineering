@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.50.0 - the authentic path renders, and the root password resisted 45,000 candidates
+
+**Fidelity achieved.** `docs/vm/authentic-hmi.md` records it: with the SPI stand-in opening the gate, the authentic `esinit` launches its own
+`/usr/bin/weston --tty=1`, and the system reaches **Multi-User System at 97.3 s with `weston.real` still alive**, a **129,844-byte PNG** captured and a
+surface placed through the vendor `ivi_window_manager`. The real blocker was not `--tty` and not the missing rear image: with `--use-pixman` the
+authentic weston aborted on the vendor's own `composite_clipped: Assertion 'src_format' failed`, because the ivi shell draws solid-colour backgrounds
+through `pixman_image_create_solid_fill()` which has no format — the defect this project diagnosed long ago, fixed here by the solid-fill shim rather
+than by touching a binary. Three projection-only instruments are labelled in the doc: the SPI stand-in, a `/usr/bin/weston` wrapper that records argv
+and supplies the software-GL environment, and the pixman shim.
+
+**The root password resisted everything tried, after a false start.** The first crack attempt used `/usr/bin/python3`'s `crypt`, which on this host
+implements **DES only** and silently ignored the `$6$` salt — so its "no match" was meaningless. Redone with `openssl passwd -6` (validated: the output
+has the right shape for this salt), the hash survives **10,000 four-digit PINs**, **34,334 eight-digit date permutations** for every day from 1980 to
+2026, and a vendor word list. That is a real negative now, and it leaves V-049 exactly where it was: physical console access gets a password prompt, and
+the hash is not crackable by guessing plausible vendor values.
+
 ## 4.49.0 - running the real manager narrows it to MICOM replies
 
 `/app/bin/ApplicationManager` ships and the chain never started it. Started alongside the launcher, it comes up and does real work - its log shows

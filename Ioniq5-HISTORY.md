@@ -4961,3 +4961,9 @@ and are superseded by corrections rather than silently rewritten.
 - Started the real application manager, which our chain had never run. It works, logs its registrations, and talks to the micom interface - every answer comes back invalid.
 - The window's body still does not paint, but the frame is now the title bar only rather than pure black, and the manager's own log names the reason: it never gets past the point of showing the app because the replies it needs are missing.
 - That is the first failure on this thread with a specific cause instead of an observation, and it points at the same stand-in work as everything else here.
+
+## 2026-11-05 - the vehicle's own path renders, and the password holds
+
+- With the handshake stand-in opening the gate, the vendor init launches its own display server and the machine reaches multi-user with the compositor alive and a frame captured. The blocker was the vendor's own pixman assertion, which a vehicle never hits because it uses GL.
+- The password attempt began with a broken tool: this host's crypt only does DES and ignored the salt, so the first negative meant nothing. Redone properly, the hash survives ten thousand pins, thirty-four thousand dates and a word list.
+- Two results, one positive and one honest negative, and both only after checking the instrument first.

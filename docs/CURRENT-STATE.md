@@ -17,7 +17,7 @@ either demonstrated in the projection, quoted from the image, or explicitly mark
 | **Touch reaches the app** | **works** | `QWaylandInputDevice::Touch::touch_down/touch_up` in the app's own log, `evidence/vm-bringup/interactive-touch-2026-11-04.log` |
 | Engineering mode launches as root | **works** | `appId 301` from `/tmp/app/bin`, uid 0, `getEnterPasswordCnt()` live |
 | Engineering mode's *page body* renders | **no** | QML loads and lays out at 1920x720; the body stays black — a surface/paint fault, see `docs/engineering-mode/` |
-| Vendor compositor started by `esinit` | **unmeasured** | one value decides it, see §2 |
+| Vendor compositor started by `esinit` | **measured shut by default**, and the corrected stand-in opens it | `docs/vm/spi-gate.md` — `ok=no nok=yes param=0` without it, `ok=yes nok=no param=1` with it |
 
 How to drive it: `python3.13 tools/uk_fw/vm_console.py`, then `sh /run-chain23.sh &` and `sh /run-live.sh`. Full instructions:
 `docs/VM-RUNBOOK.md`.
@@ -32,9 +32,17 @@ How to drive it: `python3.13 tools/uk_fw/vm_console.py`, then `sh /run-chain23.s
   appears in both the broken and fixed runs (`random: weston urandom read`) cannot distinguish the branches because **no unit in the image
   starts weston**.
 
-So the deciding quantity is **the parameter's value at the instant `esinit` reads it**, and it has not been measured. Two explanations fit; the
-measurement that separates them is in `docs/vm/spi-gate.md`. A worker is on the parallel question of substituting a software backend
-(`work/vm/stockhmi`).
+**Resolved.** Measured with a probe placed after the decision (`install_westonPngLogo.sh`, writing to `/dev/ttyS0` because the vendor's own failure
+branch writes to a stray `kmsg` file):
+
+```
+init=/lib/systemd/esinit        SPI_STATE ok=no  nok=yes param=0   -> gate shut, SIP NOK branch, no compositor
+init=/init-esinit-spi.sh        SPI_STATE ok=yes nok=no  param=1   -> gate open, stand-in works
+```
+
+So the parameter reads **0** at the decision point: the gate is shut by default, and `tools/uk_fw/guest/init-esinit-spi.sh` (which mounts `/sys` before
+writing) opens it. With the gate open the boot now stalls at `Timers` because `weston --tty=1` blocks waiting for a DRM device — which is exactly the
+backend substitution a worker is making in `work/vm/stockhmi`.
 
 ## 3. What is different from a vehicle — the three substitutions
 
@@ -58,7 +66,7 @@ Seven relevant entries. **Two are demonstrated**, one is captured, three are con
 | V-051 | manager executes any caller-named path | uid 0 confirmed; session bus is **root-only**, so persistence not escalation |
 | V-052 | MAC switched to permissive by a LUKS probe | value measured 0 |
 | V-053 | data/log encryption passphrase is `1234` | **opens with `1234`, refuses a wrong one** |
-| V-054 | account database symlinked into `/tmp` | latent — no non-root writer *yet* |
+| V-054 | account database symlinked into `/tmp` | **mechanism demonstrated** — a `uid=0` account appended there resolves via NSS; latent only for want of a non-root writer |
 | V-055 | compositor config is `/tmp/weston.ini`, names loadable modules | latent, same reason |
 | V-014 | USB property injection → installed root shell | payload is an unauthenticated root shell; injection needs real hardware |
 

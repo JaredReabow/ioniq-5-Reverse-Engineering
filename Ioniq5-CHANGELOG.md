@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.46.0 - V-054 demonstrated, and the state page brought up to date
+
+Appending a single line to `/etc/passwd` — which resolves through tmpfs — produces an account the system accepts immediately:
+
+```
+echo "audit0:x:0:0:audit0:/tmp:/bin/sh" >> /etc/passwd
+id audit0             -> uid=0(audit0) gid=0(root)
+getent passwd audit0  -> the entry
+```
+
+The same works for `/etc/shadow`. So V-054 is no longer only "the account database lives in `/tmp`"; a tmpfs write yields a **working uid-0 account
+entry resolvable by NSS**. Its status is now *mechanism demonstrated*, with the two measured bounds stated: `/tmp` is `1777`, and every process on this
+build already runs as uid 0 — so the mechanism is real and the attacker position is what is missing.
+
+`docs/CURRENT-STATE.md` is updated for both this and the SPI resolution, since it is the page someone will read first and it still said the gate was
+unmeasured.
+
 ## 4.45.0 - RESOLVED: the SPI gate is shut by default, and the stand-in opens it
 
 The ambiguity of the last three entries is closed by putting the instrument where it can actually be read. Instead of `/dev/kmsg` - which is what the

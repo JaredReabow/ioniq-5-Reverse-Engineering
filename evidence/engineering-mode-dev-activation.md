@@ -181,3 +181,38 @@ Checked whether the unit can reach this from its own UI, without a shell.
 
 **Practical bottom line for a stock unit:** the normally-quoted route to this state on these head units is the USB/FOTA app-update channel placing a developer build, *not* a settings menu. Absent that
 channel, a root shell is required, and the six commands in §8 do it in seconds.
+
+## 11. The three checks, and the verdict for a stock unit
+
+**Check 1 — the launcher hook works (measured in the QEMU projection).** Copied the vendor binary to `/tmp/app/bin/AppEngineerMode`, then requested app id **301** from
+`com.lge.avn.applauncher` with that path. The launcher returned success, launched it, and `readlink /proc/<pid>/exe` reported **`/tmp/app/bin/AppEngineerMode`** — i.e. the developer
+override is real and takes effect. The menu itself could not be read visually because the engineering screen renders through the same striped path as the home screen (blocker 1), and in a second run
+the app had exited before the check; so this establishes that the *launch* side works, not yet that the update list gains Encryption Update. That final step needs either blocker 1 solved or an
+input-injection route to the Update page.
+
+**Check 2 — `AppDMClient` does copy, but not to where it matters.** It has two `QFile::copy` call sites, alongside `QFile::exists` and `QFile::remove`, and references `/tmp/app/bin`. The source
+path is not visible in the immediate call-site neighbourhood (the arguments are prepared earlier), so the *target* directory of those copies is **not established**. Do not treat "DM copies into
+`/tmp/app/bin`" as proven.
+
+**Check 3 — USB updates are signed, and that is the point of the toggle.** `AppUpgrade` performs real signature work: `mbedtls_rsa_pkcs1_decrypt`, `PKCS#1 sig. verify`, `RSA key validation`,
+`CheckEncryptFile` and the message **"this file is not encrypted"**. So an update package must be encrypted/signed to be accepted, and the engineering control the user photographed —
+`Encryption Update: Disable` — is precisely what relaxes that requirement. That is the security-relevant pairing: the toggle exists to allow unencrypted updates, and it is what a technician would
+flip to install an unsigned build.
+
+### Verdict
+
+- **There is no stock-UI or USB-only route into the dev state**, because the dev state is not a setting: it is *which file the launcher executes*. Nothing shipped writes
+  `/tmp/app/bin/AppEngineerMode`; the launcher only *prefers* it if something else has put it there.
+- **Engineering mode itself** is reachable from the stock UI — `AppSetup` references `AppEngineerMode`, and the surrounding signals (`NotifyKEYPressCounterEvent`, `registertouchkey`,
+  `btnTouchPad`) indicate a touch/key sequence in the Setup application. That is the entry a service technician uses, and on a production build it shows the reduced (SOP) menu.
+- **So the intended developer workflow is a deployment, not a gesture:** a build is pushed to `/tmp/app/bin` by a deployment tool or update channel (the launcher hook and `AppDMClient`'s copy
+  machinery are the two halves of that workflow), and then the ordinary engineering-mode entry runs the development build.
+- **The practical consequence for a stock unit:** either a **signed/encrypted update package** that performs the deployment, or **a root shell** to do it by hand (§8). A button combination alone cannot
+  create the file, and the physics of the check make that a permanent property rather than a gap in our knowledge.
+
+### What is still worth doing, cheapest first
+
+1. Find the exact sequence in `AppSetup` that requests app id 301 — the stock engineering-mode entry. That is a concrete disassembly task with a definite answer, and it is what a service technician
+   uses.
+2. Confirm the menu difference once blocker 1 is solved (or via input injection), to close check 1 properly.
+3. Trace `AppDMClient`'s copy arguments backwards to establish the source directory, which would show exactly which update channel feeds the developer path.

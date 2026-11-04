@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.59.0 - CORRECTION: my MAC probe was invalid, and the audit records say the opposite of what I reported
+
+Two entries ago I reported a probe result as proof that a `_` subject is exempt from the policy, "under both the permissive and enforcing branches". **That
+inference is withdrawn.** The probe created a file in `/tmp`, ran `/sbin/chsmack -a Log::dlt` on it, and then read it - **without ever verifying that the labelling
+succeeded**. If `chsmack` failed, the read was a `_` subject reading a `_` object, which is trivially allowed and proves nothing. A follow-up run that did print
+`chsmack`'s report produced no output at all, so the check never landed.
+
+The enforcing run's audit records contradict the conclusion directly. Every denial in that boot is a **`_` subject being refused**:
+
+```
+action=denied subject="_" object="Log::dlt_vcrm" requested=x comm="dlt-daemon"
+action=denied subject="_" object="Log::dlt"      requested=r comm="dlt-daemon"
+```
+
+Six against `Log::dlt`, four against `Log::dlt_vcrm`, all from `dlt-daemon`. So **`_` is not exempt** - it is refused where the rules do not grant it, and the
+vendor's own logging daemon is one of the things enforcement blocks.
+
+Consequence: V-054 and V-055 can no longer be justified by "applications sit outside the policy". What is measured is narrower - applications run as uid 0 with the
+label `_`, and `_` is a subject the rules constrain. Whether an application process is confined depends on what the rules grant `_`, which is not established.
+
+The correct experiment verifies the object label *before* attempting the access, and it is written down. This is the fifth correction on this thread and the second
+where the instrument was not checked before the result was believed.
+
 ## 4.58.0 - the MAC finding measured on both branches, and enforcement shown to bite elsewhere
 
 The earlier probe ran under the permissive branch. Forcing `optUNECE=1` before `esinit` - the **enforcing** branch, where `smack_setup.sh` leaves

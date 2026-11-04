@@ -5014,3 +5014,9 @@ and are superseded by corrections rather than silently rewritten.
 - Ran the probe under the enforcing branch as well as the permissive one. The floor-labelled process read and wrote the protected object in both cases, so the exemption belongs to the label, not to the switch.
 - Enforcement is nevertheless real: forty access decisions were denied in the enforcing run while the probe passed. So the policy works, on subjects that are not the applications.
 - That makes the advice concrete and ordered: label the applications first, then enforce, because enforcing first breaks services and confines nothing.
+
+## 2026-11-05 - my own probe was the thing that was wrong
+
+- I reported that a floor-labelled process could read a protected object, and called it proof that the label is exempt from the policy. The probe never checked that the relabelling had actually worked, so it may have read an unlabelled file and proved nothing.
+- The audit records from the enforcing run say the opposite: every denial in that boot is that same label being refused, mostly the logging daemon. So the policy does constrain it.
+- Withdrew the claim, marked the question unproven rather than measured, and wrote down the version of the probe that checks its own precondition first. That is the second time this session I believed an instrument I had not verified.

@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.87.0 - the missing-env-file hypothesis is out, and it was tested properly
+
+The previous entry named the most likely cause of the missing frame: our chain starting its own session bus and pre-empting the vendor's `Dbuslaunch.sh`, leaving
+`/tmp/session_appmgr.env` missing or wrong. The worker checked it on the authentic path and **it does not apply there**, with the comparison done the way it should be:
+
+```
+SESSION_APPMGR_RAW  =[unix:abstract=/tmp/dbus-gZBcGZyZFg,guid=58e62bc2…]
+SESSION_APPMGR_ENV  =[DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-gZBcGZyZFg,guid=58e62bc2…]
+APPLAUNCHER_DBUS    =[DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-gZBcGZyZFg,guid=58e62bc2…]
+APPHOME_ENVIRON     =[… DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-gZBcGZyZFg,guid=58e62bc2… …]
+```
+
+`Dbuslaunch.service` starts, `ApplicationLauncher.service` starts after it, there is no "Failed to load environment files" in the boot log, all three strings are identical, and the
+address resolves to a live daemon. So the app's environment is correct and that explanation is dead for this chain.
+
+Two things are worth keeping from it:
+
+- **The hypothesis remains real for a different chain.** The research chain starts its own `dbus-daemon` and writes `/tmp/session_appmgr` by hand, which is exactly what would trip
+  the trap. That is now a checklist item rather than a suspect for the authentic path.
+- **It does not weaken V-058.** That finding is about *who may write* a file eleven units read their bus from - a design property of the shipped configuration. What was disproved is
+  only that our own setup had made the file wrong in this instance.
+
+With the environment hypothesis eliminated, the surviving candidates are plain CPU contention and DLT load, and the cleanest remaining A/B is the one on the list: launch
+`/app/bin/AppHomeScreen` by hand on the authentic path, bypassing `AppLauncher`. If it registers and paints there, the difference is in the launcher/manager path or in the reap, not
+in the app or its bus.
+
 ## 4.86.0 - the new finding goes into the fix-cost report, in the tier where it belongs
 
 V-058 was filed in the register but not in `REMEDIATION-REPORT.md`, which is the document a platform team acts on - so the report was less complete than the register for the first time.

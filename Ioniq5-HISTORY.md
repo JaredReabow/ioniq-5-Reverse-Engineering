@@ -5188,3 +5188,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - A new finding had gone into the register but not into the document a platform team schedules from. Added it in the configuration tier, next to the anchors whose fix it shares.
 - It sits above the code changes because the fix is a unit-file edit while what it protects is wider than anything else in that tier: eleven services and every application at once.
 - A finding that exists in only one of the two documents is either unpublishable or unfixed, which is a silly way to lose work.
+
+## 2026-11-05 - a clean no, with the comparison done properly
+
+- The most likely explanation for the missing frame was that our chain had pre-empted the vendor script that writes the session-bus environment file. Checked on the authentic path: the script runs, three strings match exactly, and the address resolves to a live daemon. Eliminated.
+- The hypothesis stays in the checklist because it is real for the other chain, which does start its own bus. It does not weaken the finding about who may write that file - only the claim that we had made it wrong here.
+- Two candidates left, and one A/B that settles a lot: launch the app by hand, bypassing the launcher.

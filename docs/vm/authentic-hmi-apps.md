@@ -219,40 +219,157 @@ show trigger is unreachable" is **a misdiagnosis of where appbase lives**. The m
 name + `registration` + `broadcast`/`info`), and appbase is the app's side of the contract. The show trigger is on the
 app, not on the manager.
 
-### 7c. The real blocker: AppHomeScreen's event loop is starved, and the manager reaps it
+### 7c. A raw state observation (State R / wchan=0) — recorded, and then shown not to discriminate
 
-`AppHomeScreen`'s main thread is in state **R (running)** with `wchan=0` — it is not waiting in the Qt event loop
-(which would be `poll_schedule_timeout`), while ten worker threads sleep (`pipe_wait`, `futex_wait_queue_me`,
-`poll_schedule_timeout` ×8):
+On the `-smp 2` authentic run the main thread was sampled in **R (running)** with `wchan=0`, ten worker threads
+sleeping, and the same instance did not answer introspection and was later reaped:
 
 ```
 [apps-check] APPHOME_WCHAN=[0]
 [apps-check] APPHOME_STATUS=[State:  R (running);Threads:  11; ...]
 [apps-check] APPHOME_TASK_STATES=[      1 R;     10 S;]
 [apps-check] APPHOME_WCHAN_TASKS=[0, pipe_wait, futex_wait_queue_me, poll_schedule_timeout, ...]
-```
-
-That is why `AppHomeScreen` does not answer introspection:
-
-```
 INTRO_SESSION_HOME_com_lge_hkmc_avn_appfunc_appInterface=[Error org.freedesktop.DBus.Error.NoReply: Did not receive a reply...]
-INTRO_SESSION_HOME_com_lge_hkmc_avn_appfunc_AppHomeScreen=[Error ... NoReply: Message did not receive a reply (timeout by message bus)]
-```
-
-and why it never presents a frame (the starved main thread never runs the commit) and never answers the app-alive
-handshake — so the manager kills and deregisters it:
-
-```
 APPM_LWP[2257]: XXXXXXXXXX Registration::deregistration() a_nSigNum[9] a_strName[AppHomeScreen] XXXXXXXXXX
 ```
 
-(`a_nSigNum[9]` = SIGKILL.) No `show_window_fg` appears anywhere in the DLT log, so the manager never reaches the
-show call — because the app never becomes ready for it.
+(`a_nSigNum[9]` = SIGKILL.) These are real and kept. **But the state is not the cause.** A control in
+`work/vm/softbackend` loaded the shipped SMACK policy, ran the same chain23, placed 2080, and captured a **painted**
+frame (17,874 bytes — in the known painted range 17,586 / 17,870 / 17,874) **while the main thread was in exactly the
+same state**:
 
-This is the same one-cause-behind-both-black-windows: the app's QML main thread spins/stalls under the software-GL +
-QV4-interpreter projection, starves its event loop, never renders, and is reaped. `show_window_fg` delivery was not
-attempted: the app's appbase is registered but unresponsive (`NoReply`), and §4.48.0 already recorded that this exact
-call at this exact path destroys the peer (V-045).
+```
+SMACK_RULES_LOADED=636
+HOME_AT=60s home_pid=815
+SHOT=17874                    <- painted
+State:  R (running)           <- same state
+Threads: 13
+wchan: 0                      <- same wchan
+audit_denied=0
+```
+
+So `State R` + `wchan=0` is the normal state of a *working* AppHomeScreen and does **not** discriminate paint from
+no-paint. The earlier reading — “R/wchan=0, therefore it never enters its event loop, therefore it never renders” — is
+withdrawn as a correlation, not a cause (and it repeated in CHANGELOG §4.78.0, so the correction is shared).
+
+---
+
+## 7d. What actually differs is still open, narrowed by two controls and one measurement
+
+Three measured facts, in order:
+
+1. **The identical binary paints under the research-init chain** — `docs/vm/25-home-screen-placed-clean-2026-11-04.png`
+   (17,586 B) and `docs/vm/31-home-screen-STR_CAMERA_ALERT2-2026-11-04.png` (17,870 B, crisp title text), touch
+   delivered (`evidence/vm-bringup/interactive-touch-2026-11-04.log`).
+2. **It also paints with the SMACK policy loaded** (the §7c control: `SMACK_RULES_LOADED=636`, `audit_denied=0`,
+   `SHOT=17874`) — so policy loading does not by itself break the paint.
+3. **On the authentic path the app accrues real CPU during init, then idles** (`-smp 4`):
+
+```
+[apps-check] CPU_DELTA_30s utime=389 stime=236 total=625 ticks (clk=100, ~6s CPU over 30s wall)
+            wchan_t0=[0] wchan_t30=[poll_schedule_timeout]        # …1793811409658169000
+[apps-check] SAMPLE_+80s … +240s pid=[2634] state=[S] wchan=[poll_schedule_timeout]   # …1793812134562822000
+[apps-check] APPHOME_STACK=[[poll_schedule_timeout] [do_select] [core_sys_select] [SyS_pselect6] [system_call_fastpath]]
+[apps-check] CAPTURE_final bytes=129844 magic=89504e470d0a1a0a
+```
+
+The thread state does **not** discriminate (a working instance is R/wchan=0; the black instance reaches poll and idles),
+so the paint difference is neither “the thread is starved” nor “it is parked in a DLT FIFO write”. What still differs
+between the two configurations is: **systemd + the full vendor unit set competing for 2 vCPUs (contention), audit
+logging + SMACK enforcement, `dlt-daemon` with the app's multi-MB DLT traffic, and the projection wrappers**
+(`/init-authentic-hmi.sh`, the weston wrapper, the pixman shim). The SMACK control narrows that to **contention, DLT,
+or one of the wrappers**.
+
+Cheapest next discriminators, in order:
+- **utime+stime delta on the authentic path** (done above): the app *does* accrue ~4–6 s CPU per 30 s during init and
+  then drops to ~0.5 % after reaching the loop — so its own thread is neither a spin nor a permanent block; the no-paint
+  is not CPU starvation of that thread. That is consistent with contention/DLT/wrapper delaying or withholding the show
+  handshake rather than the app being unable to run.
+- **Launch the app by hand** on the authentic path (`/app/bin/AppHomeScreen` with the environment the launcher gives
+  it) instead of through `AppLauncher`. If it paints when launched by hand, the difference is in what the launcher does
+  or in the manager's reaping, not in the app. (Not yet run.)
+
+The `-smp 4` override in `tools/uk_fw/vm_partimg/run-stockui.py` is the only new projection-only change here.
+
+## 7e. The readiness control, and the env/bus differential
+
+A readiness control on the *working* (research) path: the app reaches surface 2080 at 55 s, answers D-Bus introspection
+on the first probe, and paints:
+
+```
+SURFACE_2080_AT=55s
+READY_AT=1s after first probe (attempt 1)     <- answers Introspect immediately
+SHOT=17764                                   <- painted
+```
+
+So there is no slow-startup window to blame on the software-rendered QML: a working instance is introspectable and
+painting essentially at once. That makes the authentic path's startup a symptom, not the app.
+
+The env/bus hypothesis is now **disconfirmed** by measurement on the authentic path (`…1793814291074215000`, `-smp 4`).
+The two files agree and the launcher and app both carry the same address:
+
+```
+SESSION_APPMGR_RAW=[unix:abstract=/tmp/dbus-gZBcGZyZFg,guid=58e62bc2…]
+SESSION_APPMGR_ENV=[DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-gZBcGZyZFg,guid=58e62bc2…]
+APPLAUNCHER_DBUS=[DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-gZBcGZyZFg,guid=58e62bc2…]
+APPHOME_ENVIRON=[… DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-gZBcGZyZFg,guid=58e62bc2…
+                 XDG_RUNTIME_DIR=/var/run/user/root WAYLAND_DISPLAY=wayland-0 QT_QPA_PLATFORM=wayland …]
+```
+
+So the app is **not** misdirected to a different bus. But the same early probe shows its well-known name is not yet
+owned, and introspection answers `ServiceUnknown`:
+
+```
+LISTNAMES_HOME=[com.lge.hyundai.avn.appmanager]           <- the manager only, no AppHomeScreen
+INTRO_HOME_NOW rc_dt=1s out=[Error … ServiceUnknown: The name com.lge.hkmc.avn.appfunc.AppHomeScreen was not provided by any .service files]
+```
+
+and that first instance is then reaped (`APPHOME_PID_CHANGED 2491 -> 2760 at +20s`) before it registers the name; the
+restarted instance reaches `poll_schedule_timeout` as before. So the app is **slow to register its bus name on the
+authentic path** (it stalls before name registration) even though its address is correct — matching plain CPU
+contention (its init thread sits in `wait_on_page_bit`/`futex_wait_queue_me` rather than idle).
+
+Remaining candidates, narrowed to three: **plain CPU contention** (the full vendor unit set on 2 vCPUs), **DLT load**
+(the app's multi-MB DLT traffic), or **one of the projection wrappers** (`/init-authentic-hmi.sh`, the weston wrapper,
+the pixman shim). SMACK policy loading and a wrong/missing session-bus address are both out.
+
+The cleanest remaining A/B is the one still on the list: launch `/app/bin/AppHomeScreen` by hand on the authentic path
+with the same environment and socket, bypassing `AppLauncher`; if it then registers its name and paints, the difference
+is in the launcher/manager path or the reap, not in the app or its bus.
+
+## 7f. The vendor's own `Dbuslaunch.sh` creates the env file — and on this chain it is correct
+
+`/app/bin/Dbuslaunch.sh` (run by `Dbuslaunch.service`) is the thing that creates both files, and six units read the
+second via `EnvironmentFile=/tmp/session_appmgr.env` (`ApplicationLauncher`, `CryptoService`, `MediaBrowser`,
+`credman`, `mediamanager`, `mof`):
+
+```sh
+dbus-daemon --session --print-address --fork > $SESSION_BUS_FILE   # /tmp/session_appmgr
+session_addr=`cat $SESSION_BUS_FILE`
+echo "DBUS_SESSION_BUS_ADDRESS=$session_addr" > $SESSION_ENV_FILE  # /tmp/session_appmgr.env
+```
+
+The trap would be: a chain that starts its own session `dbus-daemon` and writes `/tmp/session_appmgr` by hand makes the
+vendor's `dbus-daemon --session --fork` fail or produce a different address, leaving the `.env` file missing or pointing
+at a bus nothing else is on. **This chain does not trip that trap.** The projection scripts only *read*
+`/tmp/session_appmgr` (verified by grep — no `dbus-daemon` start and no `session_appmgr` write in `work/vm/stockui`'s
+injected files). The vendor script runs normally and the three strings match exactly (`…1793814291074215000`):
+
+```
+boot:  [   14.402430] systemd[1]: Started HKMC Preminum AVN 2.1 -Launcher.   (Dbuslaunch.service)
+       [   46.967505] systemd[1]: Started HKMC Preminum AVN 2.1 -Launcher.   (ApplicationLauncher.service)
+       (no "Failed to load environment files" anywhere in the boot log)
+
+SESSION_APPMGR_RAW=[unix:abstract=/tmp/dbus-gZBcGZyZFg,guid=58e62bc2…]
+SESSION_APPMGR_ENV=[DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-gZBcGZyZFg,guid=58e62bc2…]
+APPLAUNCHER_DBUS=[DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-gZBcGZyZFg,guid=58e62bc2…]
+APPHOME_ENVIRON=[… DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-gZBcGZyZFg,guid=58e62bc2… …]
+```
+
+and the address resolves to a live daemon (`dbus-send --session … ListNames` returned a reply carrying the manager's
+name). So the app's environment is correct and the missing-env-file hypothesis is out for this chain. It stays a real
+trap for any chain that pre-empts `Dbuslaunch.service` (e.g. the research chain, which starts its own session bus), and
+is worth keeping in the checklist.
 
 ## Repro
 
@@ -264,5 +381,7 @@ python3.13 tools/uk_fw/vm_partimg/run-stockui.py --init /init-authentic-hmi.sh -
 
 Evidence directories: `work/vm/stockui/runs/1793805121692994000/` (surface 2080, capture, no focus trace — old
 `.so`), `work/vm/stockui/runs/1793805905108459000/` (rebuilt `.so` — `VM_INPUT_FOCUS_* pid=769`, no
-`touch_down`), and the follow-up runs `…1793807664591927000` / `…1793808390896928000` / `…1793809092146051000`
-(manager introspection, `Properties.GetAll`, and the starved-main-thread evidence in §7).
+`touch_down`), the follow-up runs `…1793807664591927000` / `…1793808390896928000` / `…1793809092146051000`
+(manager introspection, `Properties.GetAll`, and the State R/wchan=0 observation in §7c), the `-smp 4` runs
+`…1793811409658169000` / `…1793812134562822000` (CPU-time delta and `poll_schedule_timeout` samples in §7d), and
+`…1793814291074215000` (env/bus differential and the early `ServiceUnknown` in §7e).

@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.0.0 - the authentic path paints: vendor kernel, vendor init, vendor compositor, vendor HMI, and a frame
+
+The last substitution is in, and the milestone the project has been working toward all session is reached. On the **authentic** path - vendor kernel -> vendor `esinit` -> esinit's own
+`weston --tty=1` -> the vendor application stack - `AppHomeScreen` now:
+
+```
+[FTL]  Using Wayland-EGL            (no "DRI2: failed to open swrast" any more)
+BYHAND_NAME_OWNED=[com.lge.hkmc.avn.appfunc.AppHomeScreen]
+BYHAND_INTRO=[method return ... Introspectable ...]
+BYHAND_CAPTURE1..3 bytes=120556     changed from the 129844-byte early-background
+```
+
+It registers its bus name, answers introspection, and **paints**.
+
+**And my hypothesis was wrong.** I said the cause was the `LD_PRELOAD` of the vendor libEGL. It is not: that library is the vendor's own **Mesa** build (849,912 bytes, the same Mesa the
+research chain uses) and it works fine once it can find a driver. The real cause is that **the vendor launcher strips `LIBGL_*` from its children**, so the child had no
+`LIBGL_DRIVERS_PATH`, the loader searched only `/usr/lib/dri`, found the vendor `i965_dri.so` stub, and gave up. Restoring the path - or putting `swrast_dri.so` where the loader
+already looks - fixes it.
+
+So the preload line, which cost an earlier investigation and which I confidently named again two entries ago, is **not** the culprit either time. The swrast search path is. That is now
+recorded in `docs/vm/authentic-hmi-apps.md` §9, where §8's preload framing is explicitly corrected.
+
+**What is still not right on this path:** the *managed* launch - the one systemd performs through `ApplicationLauncher` - has its `AppHomeScreen` killed by the manager as a foreign
+instance (`a_nSigNum[9]`), while a by-hand instance registers, introspects and paints. So the remaining work is not rendering any more; it is the manager's ownership of the instance it
+started.
+
+**The three substitutions, final form:** a software backend standing in for `ias-backend.so` and the hardware; the MICOM SPI stand-in that opens `esinit`'s gate; and the software-GL
+**driver path** for the applications. Everything else on the boot path is shipped software.
+
 ## 4.99.0 - the last difference between the working and failing EGL environments is one preload line
 
 Compared the two environments field by field instead of guessing, and they agree on everything except one line:

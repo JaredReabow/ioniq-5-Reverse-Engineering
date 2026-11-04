@@ -5123,3 +5123,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Swept the closed-source filesystem drivers with twenty crafted images across nine mutation classes. No fault in either module, and the drivers were demonstrably parsing because clean images mounted.
 - Recorded as a weaker negative with its limits spelled out: single-field edits, read-only mounts, no deep traversal, and the kind of bug this method misses is exactly the kind that still mounts first.
 - So the finding keeps its surface and loses its promise. Twenty images is a reason to stop calling it promising, not to call it safe.
+
+## 2026-11-05 - paying off one of the recorded debts
+
+- The link checker had listed five documents this repository promised and never wrote. Wrote the one that matters most now: the application-to-manager contract, with a citation on every claim.
+- It records the registration call, the show interface, the liveness watchdog that reaps unshown apps, the micom methods with their reply types, and what is still missing. It also gives an older finding a competing explanation worth keeping open.
+- Deleted its place in the allowlist so the checker enforces the file's existence instead of tolerating its absence. That is what the missing category is for - a visible debt that disappears when it is paid.

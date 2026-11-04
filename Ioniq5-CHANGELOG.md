@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.76.0 - writing the document the checker had recorded as promised and never written
+
+The link checker's `MISSING` category listed five references to files this repository promised and never wrote. One of them,
+`docs/vm/apphomescreen-dbus-contract.md`, was the most useful to close, because the contract it describes is now the thing standing between the projection and a painted window.
+
+The new document collects, with a citation on every claim:
+
+- **application → manager**: the `registration(appid, appname, servicename, objectpath, plane)` call, its destination `com.lge.hyundai.avn.appmanager` - which **nothing owns in the
+  projection** - and the fact that the app registers the object path it expects to be called on;
+- **manager → application**: the `com.lge.avn.appmanager.appbase` adaptor the app exports, with `show_window_fg(reason, plane, avmode, command) -> response_plan`, and the measured
+  consequence that an app never sent it **never attaches a buffer** (624 bytes of Wayland traffic, all teardown);
+- **liveness**: the watchdog that reaps unshown apps (`AB010512*time*AppEngineerMode-5-hang`, `appTerminateSlot`, `a_nSigNum[15]`) and the underlying `set_application_alive_chcek` /
+  `askAlive` handshake - including that this gives **V-045** a competing explanation for "the call kills the app";
+- **manager ↔ MICOM**: the eight methods with their recovered reply types, and that answering the two named in its log took `reply is not VALID` to zero;
+- **application → data services**: the six engineering asks, and that answering them removed every `Pending Err` **without** fixing the paint;
+- **what is still missing**: where the manager is supposed to register the appbase interface, the `Properties.GetAll` reply that is wrong, and one more MICOM ask the home screen makes.
+
+Its allowlist entry is deleted, so the checker now enforces the file's existence rather than tolerating its absence. That is what the `MISSING` category is for: a visible debt that
+disappears when it is paid.
+
+Suite still green: register coherent, no new history rewrites, all references resolve.
+
 ## 4.75.0 - the kernel-driver sweep came back clean, and that changes the status without closing the question
 
 V-057 was the one finding whose required attacker capability was "hand someone a USB stick". The sweep is done and the answer is **no fault found** - recorded here because a clean

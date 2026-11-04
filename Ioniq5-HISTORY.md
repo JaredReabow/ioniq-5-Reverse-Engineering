@@ -4978,3 +4978,9 @@ and are superseded by corrections rather than silently rewritten.
 - Audited the repository instead of assuming it was sanitised: no keys, but forty-one places carrying the real username, mostly a copied interpreter path in old plans.
 - Fixed by deriving paths from the file location rather than substituting text, because the plain substitution broke the scripts when run from elsewhere - caught before committing.
 - The two affected tests could not be run because the test runner is not installed here, so the change is verified structurally only. Said so rather than implying otherwise.
+
+## 2026-11-05 - following the gate changed the answer
+
+- Traced who turns the data encryption on: nothing does. The only caller runs it when the partition is already encrypted, which it is not, and the factory data ships as plain files.
+- So the likely field state is no encryption at all, and the mac posture that keys off that same check is the permissive one. That is a different finding from the one the entry was written as.
+- Kept both readings, because weak encryption and no encryption with a disabled mac layer need different fixes, and quietly replacing one with the other would lose the distinction.

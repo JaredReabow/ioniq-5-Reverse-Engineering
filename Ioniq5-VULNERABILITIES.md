@@ -1812,11 +1812,17 @@ i.e. the permissive path is taken on this image whenever the data partition is n
 - **It is a file-system-shaped switch, not a signed one.** A kernel module parameter is writable by anything with root, and its value is
   derived from state an attacker can perturb.
 
-### What is not established
+### What is not established - and one strong indication that it applies in the field
 
-Whether production units ship with `RW_PART` encrypted such that the probe succeeds, and therefore whether stock European vehicles run
-SMACK enforcing. Our projection takes the permissive branch because the clone's data partition is not LUKS; that is a property of the
-projection, and the honest statement is that the *mechanism* is confirmed and the *field prevalence* is unknown.
+Whether production units ship with `RW_PART` encrypted such that the probe succeeds, and therefore whether stock European vehicles run SMACK
+enforcing.
+
+There is one strong indication that they do **not**. The factory data partition ships as `/HU/images/mango-rwdata.tar.gz` — a **plain tar of
+plaintext files** (`./app_data/common/…`), with no LUKS magic anywhere in it. If a unit's `rw_data` is written from that tarball at manufacture,
+then `cryptsetup isLuks /dev/mmcblk0p11` fails on first boot, `endFde=0`, `optUNECE=0`, and `smack_setup.sh` takes the permissive branch — on every
+unit built this way. See V-053 for why the alternative (encryption being switched on later) does not happen in the shipped flow either.
+
+That is an inference from the shipped artefact plus the gating logic, not a measurement on a unit, and it is labelled as such.
 
 ### Suggested patch direction
 
@@ -1885,11 +1891,32 @@ They are two halves of the same first-boot decision. `esinit` decides "this is a
 (V-052), and `fde_test_v2.sh` decides *how* it becomes LUKS — with `1234`. So on a unit that has been through first boot, the answer to
 "is the data protected" is: the probe succeeds, MAC stays enforcing, and the ciphertext is openable by anyone holding the image.
 
-### Not established
+### Not established - and one strong indication that the script never runs at all
 
-Whether production units actually reach this path (the script runs on first boot after flashing, and the trigger conditions for
-`do_UserDataEncryptionConfiguration_*` are not fully traced), and whether any units derive a per-unit passphrase elsewhere. The literal
-`1234` is what this script uses; no other keying path was found in it.
+Whether production units reach this path, and whether any units derive a per-unit passphrase elsewhere. The literal `1234` is what the script
+uses; no other keying path was found in it.
+
+Tracing the gating found something that changes the picture: **`/etc/fde_test_v2.sh` is only ever invoked from `esinit`, and only when the data
+partition is *already* LUKS.**
+
+```sh
+/usr/sbin/cryptsetup -v isLuks /dev/${RW_PART}; if [ $? -eq 0 ]; then endFde="1"; else endFde="0"; fi
+echo $endFde > /sys/module/micom/parameters/optUNECE
+...
+case "$endFde" in
+    "1") echo "FDE SUPPORT: Yes"; /etc/fde_test_v2.sh ;;
+    "0") echo "FDE SUPPORT: No" ;;
+```
+
+The formatting functions inside `fde_test_v2.sh` are therefore **dead on a non-LUKS unit** — nothing else in the image invokes that script (a search
+of `/etc`, the unit directory and the `/app/bin` scripts finds only the two `esinit` lines). And the factory data partition is a plain tar of plaintext
+files, so a unit built from it is non-LUKS.
+
+So the most likely field state is the opposite of what this entry's title suggests: **the data is not encrypted at all**, the passphrase `1234` is
+never used because `luksFormat` never runs, and V-052's permissive-MAC branch is taken on every such unit. The `1234` defect is real code and would
+matter the moment anything engages it — a factory step outside this image, or a service that calls the script — but on the shipped flow it appears to
+be unreachable. Both readings are recorded because the difference matters: *weak encryption* and *no encryption plus permissive MAC* are different
+findings with different fixes.
 
 ### Suggested patch direction
 

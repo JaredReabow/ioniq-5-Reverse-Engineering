@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.53.0 - tracing the FDE gate inverts two entries: probably no encryption, and therefore permissive MAC
+
+Following who actually turns encryption on found that nobody does, in the shipped flow. `/etc/fde_test_v2.sh` is invoked **only** from `esinit`, and only
+when the data partition is **already** LUKS:
+
+```sh
+/usr/sbin/cryptsetup -v isLuks /dev/${RW_PART}; ... echo $endFde > /sys/module/micom/parameters/optUNECE
+case "$endFde" in "1") /etc/fde_test_v2.sh ;; "0") echo "FDE SUPPORT: No" ;; esac
+```
+
+So the `luksFormat` with `1234` inside that script is **dead code on a non-LUKS unit**, and nothing else in the image calls the script - a search of `/etc`,
+the unit directory and `/app/bin/*.sh` finds only those two `esinit` lines.
+
+And the factory partition is not encrypted either: `/HU/images/mango-rwdata.tar.gz` is a **plain tar of plaintext files** (`./app_data/common/...`) with no
+LUKS magic in it.
+
+Which inverts the emphasis of two entries. The likely field state is **not** "data encrypted with `1234`" but "**data not encrypted at all**", with
+`optUNECE=0` and therefore **SMACK permissive on every unit built this way** (V-052). V-053 remains true about the code - the passphrase really is `1234`
+and it really does open a container, demonstrated with a negative control - but its reachability is now in doubt, and that is recorded rather than left
+implying fleet-wide encryption.
+
+Both readings are kept because they are different findings with different fixes: *weak encryption* needs a real key; *no encryption plus permissive MAC*
+needs encryption switched on **and** the MAC posture decoupled from it.
+
 ## 4.52.0 - repository hygiene audit: the real username was in the public tree
 
 The repository is public, so it was worth auditing rather than assuming. Result: **no private key material**, and **41 occurrences of the actual username**,

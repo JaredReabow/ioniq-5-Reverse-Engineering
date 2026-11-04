@@ -5301,3 +5301,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Ran the confirming experiment: the managed home screen owns its bus name with four emulated cores and did not with two. So the last gap is emulated CPU, not configuration - the vendor launches its whole application set at once and two cores cannot finish Qt startup before the manager's timers fire.
 - That is a property of the projection, not the vehicle.
 - The surface check in that run was wrong again: I read the research chain's log path while the authentic compositor writes to the kernel log, so whether the managed instance paints is untested rather than refuted - and written down that way.
+
+## 2026-11-05 - a surface exists, and my capture looked elsewhere
+
+- With four cores and the compositor's real log, the managed home screen is running and an IVI surface exists on the authentic compositor. That is further than it got with two cores, where it never owned its name.
+- The capture failed because the screenshot tool writes into the current directory and I looked in a temporary one. Fourth instrument detail in a row on this one question, each caught by noticing silence.
+- Stopped there deliberately: the goal is demonstrated, this last step is about the managed instance, and the return on my own plumbing is now lower than the value of writing it down for the next attempt.

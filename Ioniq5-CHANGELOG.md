@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.60.0 - the FDE contradiction resolved: the flag is read, not recomputed, and my own instrument triggered it
+
+A run that forced `optUNECE=1` showed the encryption engaging, with mappers active:
+
+```
+/dev/mapper/rw_data_enc is active.
+/dev/mapper/log_data_enc is active.
+```
+
+while the same boot's raw probes still said `Device /dev/mmcblk0p11 is not a valid LUKS device`. Both are true, and the mechanism explains it: `esinit` **reads**
+the flag rather than recomputing it before deciding to run the script, and `fde_test_v2.sh` formats anything not already LUKS with the literal `1234`.
+
+So V-053's reachability is now settled rather than argued:
+
+| `optUNECE` at boot | outcome |
+| --- | --- |
+| 0 - what a plaintext factory image produces | no encryption, plaintext data, and SMACK permissive (V-052) |
+| 1 | the script runs and, if the partition is not LUKS, formats it **with `1234`** |
+
+That also explains the contradiction I recorded two entries ago without resolving it, and it is worth naming the cause plainly: **the run that "proved" the script
+never runs and the run that showed it running were both mine, and the difference was an instrument I had added to force the other branch.** Forcing a variable
+changed the behaviour under study - obvious in hindsight, and exactly the kind of thing that produces a confident wrong entry if the instrument is not tracked.
+
 ## 4.59.0 - CORRECTION: my MAC probe was invalid, and the audit records say the opposite of what I reported
 
 Two entries ago I reported a probe result as proof that a `_` subject is exempt from the policy, "under both the permissive and enforcing branches". **That

@@ -91,6 +91,25 @@ noise-like after it and cross-correlation was inconclusive.
 Its pixels travel in a single ~5.8 MB `mesa-shared` segment plus three 20 KB `weston-shared` state segments, not in a Wayland `wl_shm` pool — which is why scanning
 `/proc/<pid>` for a shared-memory frame found nothing.
 
+**Latest state: the shear has been removed by rewriting one expression.** The vendor's own quad vertex
+shader was recovered from the running process (`glShaderSource` interception) and is:
+
+```glsl
+attribute vec4 position;
+attribute vec4 texCoords;
+varying vec2 outTexCoords;
+void main() { gl_Position = position; outTexCoords = texCoords.xy; }
+```
+
+Rewriting the last line in memory, at upload, changes the result completely:
+`outTexCoords = texCoords.yx;` merely rearranges the stripes, while
+`outTexCoords = vec2(-texCoords.x, texCoords.y);` **removes them entirely**, yielding a clean window
+(`docs/vm/21-flipu-removes-shear-2026-10-31.png`). So the artefact comes from the sign of the `u`
+coordinate the application supplies. The corrected frame is mostly empty, which means the mapping is not a
+pure mirror; bracketing it with a short sweep of `a·u + b` candidates is the remaining work, and each
+candidate now costs one run. No vendor binary is modified — the rewrite happens in memory, by an
+interposer installed only in the research clone.
+
 **What is not available here:** weston's GL renderer. The vendor's `headless-backend.so` rejects `--use-gl` outright (`fatal: unhandled option`), so the EGL path cannot be
 tested against a renderer that can sample GL buffers, and the vendor `ias-backend.so` needs hardware this VM does not have.
 

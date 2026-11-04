@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.12.0 - the VM can be driven live from a terminal
+
+`tools/uk_fw/vm_console.py` boots the projection and hands over the guest shell: type a command, it runs, output comes back.
+Verified end to end - the `ioniq-vendor#` prompt appeared and a typed `echo LIVE_OK` executed in the guest.
+
+Two findings came out of building it, both worth keeping. **The boot requires the SDHCI compatibility patch** that `vm_boot` applies
+over the QEMU debug socket; a hand-written QEMU command line reproduces the vendor kernel's `Waiting for root device /dev/mmcblk0...`
+stall forever, which cost an hour of believing the image had broken. And **stray QEMU instances starve TCG**: six abandoned processes
+from earlier sessions were still resident, and a boot that normally reaches userspace in about forty seconds was still at 3.4 seconds
+of kernel time after 200 seconds. `pgrep -fl qemu-system-x86_64` is now the first step of any measurement.
+
+`/run-live.sh` ships in `tools/uk_fw/guest/` and reports compositor state, surface ids and the exact commands for a session.
+
 ## 4.11.0 - V-048 confirmed: our own binary, our own key, executed as root
 
 This is the first root path in this project that has been demonstrated rather than reasoned about.

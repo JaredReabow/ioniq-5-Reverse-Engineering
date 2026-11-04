@@ -5158,3 +5158,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - A summary written mid-investigation still claimed the media parser was unproven because one filename was absent, when the plugin ships under a different name. A summary that contradicts the register is worse than none.
 - Added a status note naming the claims that measurement has since narrowed, and corrected the plugin inline. Kept the reasoning, dated the conclusions.
 - Same principle as separating what was seen from why it happened: a document can be honest about what it thought, as long as it says when.
+
+## 2026-11-05 - the symptom was the normal state
+
+- Before a worker published a diagnosis, I ran the control case in my own workspace: with the full policy loaded, the home screen painted a complete frame while sitting in exactly the thread state that was being blamed for it not painting.
+- So the state is normal, not diagnostic. The policy loading is eliminated as the cause; what remains is contention, the logging daemon, or one of my own instruments.
+- Sent the correction with the next discriminators, including launching the app by hand to see whether the launcher or the manager is what differs.

@@ -23,6 +23,22 @@ for n in d['sha256']:
 json.dump(d, open(p,'w'), indent=1)
 ```
 
+## 0b. Drive the VM live instead of scripting it (preferred)
+
+    python3.13 tools/uk_fw/vm_console.py
+
+That wraps `vm_boot.run(..., interactive=True)` and hands you the guest shell: you type, the guest runs it. Two things are worth
+knowing about it.
+
+- **It must go through `vm_boot`, not a hand-written QEMU command.** The boot needs the **SDHCI compatibility patch** applied over
+  the QEMU debug socket. Without it the guest stops at `Waiting for root device /dev/mmcblk0...` and never reaches userspace. A
+  hand-rolled `qemu-system-x86_64` line reproduces that stall exactly, which is what a first attempt here did.
+- **Kill stray QEMU processes before measuring anything.** Six abandoned instances from earlier sessions were still running and
+  starved TCG so badly that a boot which normally reaches userspace in ~40 s was still at `3.4 s` of kernel time after 200 s, and a
+  prompt never appeared. `pgrep -fl qemu-system-x86_64` first, then `pkill -f qemu-system-x86_64`.
+
+Inside the console, `/run-live.sh` reports what is up and prints the exact commands for the session.
+
 ## 1. Run the chain (vendor backend, single output, input module loaded)
 
 ```python

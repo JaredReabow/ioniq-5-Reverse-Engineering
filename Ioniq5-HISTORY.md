@@ -4732,3 +4732,8 @@ and are superseded by corrections rather than silently rewritten.
 - A binary we compiled, signed with a key we generated, and accompanied by a public key we wrote to /tmp was launched by the application manager on the first request and reported its own uid as 0.
 - The verifier finds its .sign section by name, hashes the file with those bytes zeroed, and RSA-verifies a PEM key from /tmp. The authentic key is pinned in the binary and copied to /tmp once, after which the copy is trusted and the resource is never consulted again.
 - The manager also believes the caller about where the binary lives. Both halves of V-048 are now demonstrated rather than inferred, and the correction about the sense of the return value is recorded.
+
+## 2026-11-04 - the console is live, and two ghosts were in the room
+
+- A live console now exists: type into the guest, get output back. Verified with the prompt and a typed echo.
+- Building it exposed that the boot depends on a debug-socket patch for the SD card; without it the kernel waits for a root device forever. And six abandoned QEMU processes were starving the emulator, which is why a forty-second boot looked like a hang.

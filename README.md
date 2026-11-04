@@ -74,8 +74,11 @@ to, and the base rootfs hash is rechecked after each experiment
 
 ### Fidelity: the vehicle's own boot now starts its own compositor
 
-With a MICOM SPI stand-in in front of the init (`tools/uk_fw/guest/init-esinit-spi.sh`, labelled projection-only), the authentic
-`esinit` takes its OK branch and launches the vendor display server itself:
+A MICOM SPI stand-in in front of the init (`tools/uk_fw/guest/init-esinit-spi.sh`, labelled projection-only) was written to make the authentic
+`esinit` take its OK branch, and **it does not work yet**: the wrapper runs before the MICOM module exists, so writing
+`/sys/module/micom/parameters/spi_validation` fails with `No such file or directory`, `esinit`'s own guard is false, the block is skipped, and the
+`SPI NOK` branch is taken. An earlier revision of this section claimed the gate had opened — that was wrong, see CHANGELOG 4.41.0. What the log
+does show:
 
 ```
 [    6.545898] random: weston urandom read with 19 bits of entropy available

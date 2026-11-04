@@ -4907,3 +4907,9 @@ and are superseded by corrections rather than silently rewritten.
 - A process carrying the floor label read and wrote a file labelled otherwise, with no denial and no audit. That label is the wildcard, so processes carrying it are outside the rule system entirely.
 - Every application carries it. And the image assigns labels to directories, files and one binary without ever loading a single access rule, which means anything not at the wildcard would simply be denied - so wildcard everywhere is the only configuration that works, and it is the same as no MAC.
 - That is the missing piece under the last two findings, and it is measured rather than inferred.
+
+## 2026-11-04 - the correction that matters more than the claim
+
+- I wrote that the handshake stand-in worked and that the vendor init had started its own display server. The log I quoted from contained the line proving otherwise: the file the wrapper writes did not exist yet when it ran.
+- So the guard was false, the block was skipped, and the branch taken was the one that starts nothing. My sentence was wrong and the evidence was in the same file.
+- The weston activity in that log is now recorded as unexplained rather than as proof. A worker found this; I should have.

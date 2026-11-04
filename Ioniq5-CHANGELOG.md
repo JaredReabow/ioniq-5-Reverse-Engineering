@@ -3,6 +3,39 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.41.0 - CORRECTION: the SPI gate was never opened, and 4.34.0 said it was
+
+Entry 4.34.0 claimed that the MICOM stand-in worked, that `esinit` took its OK branch, and that the vendor compositor was launched by the vendor
+init for the first time. **That claim is wrong**, and the evidence against it was in the same log I quoted from:
+
+```
+/init-esinit-spi.sh: line 15: /sys/module/micom/parameters/spi_validation: No such file or directory
+```
+
+The wrapper runs **before the MICOM module exists**, so its writes failed; `esinit`'s own guard is `if [ -f /sys/module/micom/parameters/spi_validation ]`,
+which was therefore **false**, so the entire SPI block was skipped - including the code that would have removed `/tmp/spi_validation_NOK`. The NOK
+file that `esinit` touches unconditionally at the top was still present at the decision point, so the branch taken was:
+
+```sh
+if [ -e /tmp/spi_validation_NOK ]; then
+        echo "SPI NOK" > kmsg &
+else
+        (/usr/bin/weston --tty=1 ...) &
+fi
+```
+
+i.e. **"SPI NOK" - no compositor launched by `esinit`.** The gate did not open, and a wrapper placed before `esinit` cannot open it by writing a
+path that does not exist yet.
+
+What remains unexplained rather than explained away: the same log contains `random: weston urandom read` at 6.5 s, and no unit in the image starts
+weston (`weston-crash.service` only *monitors* it). I have not identified what invoked the binary. Recording "unexplained" is the correct
+outcome; the previous entry recorded it as proof of something it was not.
+
+**What this means for the fidelity work:** the MICOM handshake stand-in has to load the driver's parameter *after* the module appears and *before*
+`esinit` reads it, or the gate must be opened some other way. `tools/uk_fw/guest/init-esinit-spi.sh` as written cannot do that, and the worker on
+`work/vm/stockhmi` is finding the same thing. The three-substitution boundary in 4.35.0 stands; only the claim that one of them had succeeded was
+premature.
+
 ## 4.40.0 - V-056: the MAC layer names labels, loads no rules, and applications run the wildcard
 
 The question left by the last refutation - whether the MAC restriction does anything - is answered by measurement, and the answer is no:

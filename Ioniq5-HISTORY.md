@@ -4554,3 +4554,9 @@ and are superseded by corrections rather than silently rewritten.
 
 - Eleven hundred tests and three hundred thousand subtests pass after days of instrument work. The guest was modified heavily; the repository was not, and that separation held.
 - Worth checking occasionally, because the tempting alternative was to keep editing things in place.
+
+## 2026-10-31 — the shader explains the conventions and leaves the data as the suspect
+
+- Both attributes are vec4 and the shader takes texCoords.xy, which matches the two-component bindings in the trace. The clip-space positions are explained too.
+- What is left is the buffer: its corners pair positions with other corners' coordinates. If that is the buffer this shader draws, the quad is transposed rather than offset.
+- First time the evidence points at the vendor's own data rather than at our instruments.

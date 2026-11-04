@@ -371,3 +371,44 @@ void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void
 	if (real)
 		real(target, offset, size, data);
 }
+
+/*
+ * Shader sources.
+ * --------------
+ * The attribute trace showed position at offset 0 and a second pair at offset 8, but the decoded
+ * values do not pair the way a fixed-function quad would: corners carry other corners' texture
+ * coordinates. Whether that is a fault or simply a shader computing coordinates from another
+ * attribute cannot be decided without reading the shader. glShaderSource carries it.
+ */
+static int shaderdumps;
+
+void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string,
+		    const GLint *length)
+{
+	static void (*real)(GLuint, GLsizei, const GLchar *const *, const GLint *);
+	char path[64];
+	int fd, i;
+
+	if (shaderdumps < 8 && count > 0 && string != NULL) {
+		snprintf(path, sizeof path, "/tmp/gl-shader-%d.txt", shaderdumps++);
+		fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (fd >= 0) {
+			for (i = 0; i < count; i++) {
+				const char *t = string[i];
+				size_t n;
+				if (t == NULL)
+					continue;
+				n = (length && length[i] > 0) ? (size_t)length[i]
+							      : strlen(t);
+				(void)!write(fd, t, n);
+			}
+			(void)!write(fd, "\n", 1);
+			close(fd);
+		}
+	}
+
+	if (!real)
+		real = dlsym(RTLD_NEXT, "glShaderSource");
+	if (real)
+		real(shader, count, string, length);
+}

@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.20.0 - the vendor's own vertex shader, and what it says about the quad
+
+- `glShaderSource` interception recovered the shaders. The relevant one, verbatim (leading indentation stripped):
+  ```glsl
+  attribute vec4 position;
+  attribute vec4 texCoords;
+  varying vec2 outTexCoords;
+  void main()
+  {
+      gl_Position = position;
+      outTexCoords = texCoords.xy;
+  }
+  ```
+- Three facts line up with the trace from §3.16.0–§3.18.0:
+  - the shader declares **both** attributes as `vec4`, and uses `texCoords.xy` for the varying — so a **2-component** pointer binding is legitimate here and not a fault;
+  - the draw trace shows exactly that: `attr 0 size=2` (position) and `attr 1 size=2` (texCoords), both `FLOAT`, both stride 16, offsets 0 and 8 — consistent with the shader;
+  - `gl_Position = position` means the vertices are supplied already in clip space, which is why the full-screen quads decoded as ±1 coordinates.
+- **So the shader explains the coordinate conventions, and it exonerates the interpretation of §3.18.0's odd pairing.** What remains unexplained is the *data*: with `gl_Position` passed straight through and `texCoords.xy` used directly, the quad whose buffer was captured pairs position `(-1,-1)` with texture coordinate `(1,-1)` and position `(1,1)` with `(-1,1)`. If that buffer is the one drawn with this shader, the corners are **transposed** — and transposing texture coordinates on a full-screen quad produces exactly a picture that is mirrored and sheared rather than shifted.
+- That is now a concrete, falsifiable statement about vendor code rather than about our instrumentation: **the vertex buffer's position and texture-coordinate arrays appear to be filled from different orderings.** The next check is small — dump the buffer that is actually bound at the draw whose program is this shader, and compare its four vertices against the strip order the shader expects.
+
 ## 3.19.0 - maintenance pass: the test suite still passes after this much churn
 
 - Ran the repository's test suite after several days of instrument work, image edits and document churn: **1,103 passed, 352,357 subtests passed** (159 s). The suite has grown from the 782 passing

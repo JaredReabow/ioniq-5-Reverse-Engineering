@@ -183,6 +183,20 @@ Practical instructions, verified checks and a list of **false readings that have
   ASCII PPM with a `.png` extension · a successful capture not proving the compositor is alive · the chain's own teardown
   killing the compositor after ~155 s.
 
+### Fixing it: the remediation report
+
+`docs/REMEDIATION-REPORT.md` orders nine findings by **cost to fix** rather than by severity, because the cheapest ones also remove the most. Each item gives the
+measured evidence, what it exposes, the fix and how to verify the fix.
+
+| Tier | Items | Character |
+| --- | --- | --- |
+| 1 | applications run under SMACK's exempt `_` label; account database in `/tmp`; compositor modules named by `/tmp/weston.ini`; a tampered data partition turns MAC permissive; the serial console is on by default behind a writable parameter | configuration, hours |
+| 2 | the app manager executes a caller-named path as root; the signature key is read from `/tmp`; `debug-shell.service` is an unauthenticated root shell | code, needs a release |
+| 3 | data "encryption" uses the literal passphrase `1234` — and in the shipped flow never engages at all | data protection |
+
+The report ends with one sentence for the platform team: six of the nine are **one mistake** — a security decision resolved from state the threat model treats as
+untrusted — and the fix is to move those decisions onto read-only or hardware-backed state and make every one of them **fail closed**.
+
 ### Downgrade — can older firmware be installed?
 
 Short answer: **not through engineering mode on a stock unit, and not with a modified package.** Full reasoning,

@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.30.0 - the SPI gate is understood and drivable, and the UI never actually depended on it
+
+The question left open in the previous entry is closed by one userspace measurement:
+
+```
+-rw-r--r-- 1 0 root 4096 ... /sys/module/micom/parameters/spi_validation
+VALUE=0
+AFTER_WRITE=1
+```
+
+It is **writable**, it reads **0 even with `micom.spi_validation=1` on the command line** (so the driver overwrites it during probe), and a
+userspace write **sticks**. Since `esinit` is the first userspace and polls that file before any service exists, neither the command line
+nor userspace can open the gate - the only interposition point is **between the kernel and esinit**, which is what
+`tools/uk_fw/guest/init-esinit-spi.sh` does: force the value, then `exec /lib/systemd/esinit`. It is labelled a projection-only stand-in for
+the MICOM handshake, not part of the shipped system.
+
+Installing it means writing one file into the active-root partition of a 36 GiB image (8 GiB out and back with `debugfs`), and that was
+**not** done, because the vendor interface already runs in the projection through the research-init chain - which is how the clean renders
+and the touch proof were produced. So the gate is understood and drivable; driving it is fidelity work for the *systemd-managed* HMI, not
+the thing that makes the UI appear. Saying that plainly is more useful than a heroic injection.
+
 ## 4.29.0 - the SPI gate is the last barrier to the vendor UI, and it is not yet open
 
 `esinit` will not start the vendor compositor while `/tmp/spi_validation_NOK` exists, and in QEMU the real MICOM handshake never happens

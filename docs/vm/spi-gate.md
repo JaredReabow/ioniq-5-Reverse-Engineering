@@ -53,3 +53,35 @@ after probe.
 
 This is the last piece standing between "the vendor userspace boots to multi-user" and "the vendor UI is running". Everything downstream of
 it - `weston --tty=1`, the HMI services, `ApplicationLauncher` - is gated by this single value.
+
+## Resolved: the parameter is writable, and the driver overwrites it
+
+Measured on the partitioned image with `init=/init` (which allows commands), with the cmdline token still applied:
+
+```
+-rw-r--r-- 1 0 root 4096 Jan  1 00:00 /sys/module/micom/parameters/spi_validation
+VALUE=0
+AFTER_WRITE=1
+```
+
+Three facts, and together they close the question:
+
+1. **It is writable** (`-rw-r--r--`), so it is not a read-only status field.
+2. **It reads 0 despite `micom.spi_validation=1` on the command line**, so the assignment is either not applied or is overwritten during
+   probe - and since the second explanation in this document was "weston started and died", that is now excluded as the *primary* cause:
+   esinit never saw a 1.
+3. **Writing 1 from userspace sticks** (`AFTER_WRITE=1`).
+
+So the gate cannot be opened from the kernel command line, and cannot be opened from userspace either, because `esinit` **is** the first
+userspace and its poll runs before any service exists to write the parameter. The only place to interpose is **between the kernel and
+esinit** - a wrapper `init` that forces the value and then `exec`s esinit.
+
+That wrapper is written: `tools/uk_fw/guest/init-esinit-spi.sh`. It forces the parameter to 1 for ten seconds in the background and then
+execs `/lib/systemd/esinit`. It is a **projection-only stand-in for the MICOM handshake** and is labelled as such in the file; it is not
+part of the shipped system and must never be described as though it were.
+
+Installing it requires writing one file into the active-root partition `p5` of the 36 GiB image. That is 8 GiB out and 8 GiB back with
+`debugfs`, and it was **not** done here: it is a slow operation for a fidelity improvement, because the vendor interface already runs in
+the projection through the research-init chain (`/run-chain23.sh` plus `ivi-wm` placement), which is how the clean renders and the touch
+proof were produced. The honest summary is that the SPI gate is **understood and drivable**, and driving it is optional work for making the
+*systemd-managed* HMI faithful rather than for making the UI appear.

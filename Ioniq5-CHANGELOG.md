@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.2.0 - CORRECTION: the `/tmp` launch does not flip this build, and the real vector is a file
+
+- A deeper review of `setEngType()` overturns the conclusion in §4.1.0. The only write to the SOP field is `movl $0x1, 0x13c(%rbp)` at `0x737268`, and **the develop branch it jumps to does not
+  modify the field — it only changes which message is logged**. So this binary writes 1 unconditionally: `checkSOPVersion()` returns true wherever it is launched from.
+- **What was right:** the launcher hook is real. App id 301 ran the copy at `/tmp/app/bin/AppEngineerMode`, proven by `readlink`. **What was wrong:** I assumed the develop branch set the field to 0
+  without examining that branch. That is precisely the inference-as-measurement failure this log keeps warning about, and it is corrected here and in §14 of the evidence document rather than
+  quietly edited away.
+- **A better vector, found by the same review and independent of any dev mode:** the encryption-update state is a **file** — `/update/disableEncryptionUpdate` — which `AppMPAutoTest` creates on
+  the MICOM event **`EVT_MP_ENCRYPTION_DISABLE_REQ`**. A named state, a named trigger, and a test application that writes it.
+- The delivery container is also now evidenced: `AppDMClient` builds `/tmp/app/bin/AppEngineerMode` from a **`<usb>/VarUpgrade`** directory subject to key/hash checks. So the stock-USB route is
+  "a VarUpgrade directory with valid keys", not "a file on a stick".
+- Full analysis: **`docs/engineering-mode/dev-mode.md`** (28 KB, evidenced/inferred labelled throughout), written by a subagent working from the binaries.
+
 ## 4.1.0 - dev mode documented, the entry vectors mapped, and the sampler-state test refuted with the instrument verified
 
 - **Sampler state tested and refuted, properly this time.** Built `gl_clamp_shim.c`, which rewrites `glTexParameteri` wrap state and — because the first version changed nothing and that was

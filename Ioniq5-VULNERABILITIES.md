@@ -1303,6 +1303,32 @@ carry a correction note.
   taint traces for the command templates before any of these is promoted to
   a vulnerability.
 
+
+### The full marker table, measured from the image
+
+Ten systemd `.path` units ship, and several of them start a **privileged service on the existence of a file in `/tmp`**, which is a `1777` tmpfs. Combined
+with the `esinit` checks of the same kind, seven privileged behaviours are keyed on "does this file exist":
+
+| marker in `/tmp` | consumer | what happens |
+| --- | --- | --- |
+| `/tmp/no_isa` | `remote.path` → **`remote.service`** → `/app/bin/TmsRemoteApp` | the **telematics remote-control service** starts (EV OBC wake-up, remote command/request services, SMS notification monitoring) |
+| `/tmp/no_isa` | `ofono.path` → `ofono.service` | the telephony stack starts |
+| `/tmp/AppMPAutoTest/do_mpauto` | `mpauto.path` → `mpauto.service` → `/etc/mpauto.sh` | **manufacturing auto-test mode** is entered: the script signals `NotifyMPAutoModeTestStartEvent` ten times on the MICOM interface |
+| `/tmp/spi_validation_NOK` | `spi-validation.path` → `spi-validation.service`, and `esinit` | a validation service starts, and `esinit` suppresses the compositor |
+| `/tmp/no_unece` | `supplicantmanager.path` → `supplicantmanager.service` | the WiFi daemon starts (V-050) |
+| `/tmp/weston.crash` | `weston-crash.path` → `weston-crash.service` | diagnostics are dumped and a MICOM watchdog message is sent |
+| `/tmp/secure_console_disable` | `esinit` | decides whether root gets `/bin/sh` on the console (V-049, V-054) |
+
+Two of these deserve emphasis. **`/tmp/AppMPAutoTest/do_mpauto` puts the unit into manufacturing test mode**, which is a state the register already treats as
+privileged elsewhere. And **`/tmp/no_isa` starts `TmsRemoteApp`**, the component that handles telematics remote requests - so a write to a world-writable
+directory is what decides whether the remote-control service exists on the bus.
+
+`TmsRemoteApp` is not an IP listener: its symbols are MICOM/telematics request services (`RemoteRequestService`, `EVRemoteServiceSendOBCWakeUp`,
+`EVRemoteMonitoringSMSNotiControlService`). The exposure is therefore not "an open port" but "a remote-command consumer that an attacker can start".
+
+**Why this matters more than any single marker:** fs the unit already had a reason to keep `/tmp` writable, each of these is an independent privilege
+escalation hinge on the same directory, and a fix that hardens one leaves six others.
+
 ## V-043 — Privileged services import environment files from a world-writable location
 
 (Imported from the parallel repository, where this was numbered V-012.)

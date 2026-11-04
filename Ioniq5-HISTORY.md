@@ -5038,3 +5038,9 @@ and are superseded by corrections rather than silently rewritten.
 - Every correction this session had the same shape: a confident conclusion from a measurement that could not have supported it. That deserved its own document rather than nine scattered notes.
 - Eight rules with the actual cases attached: check the instrument, search for the artefact, one variable at a time including my own, black is a conclusion, look for the emitting code, use negative controls, verify the marker, label the instrument.
 - The two that would have saved the most time were checking a tool before believing its negative, and remembering which parameters I had forced myself.
+
+## 2026-11-05 - the markers were worse than the examples
+
+- Swept all ten path units and the init checks: seven privileged behaviours depend only on whether a file exists in a world-writable directory.
+- Two stand out. One enters manufacturing test mode. The other starts the telematics remote-control service, which means a temporary-file write decides whether a remote-command consumer is running.
+- Not an open port - the service talks over the vehicle bus - but a module that only exists when somebody writes a file is a module an attacker can summon.

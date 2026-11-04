@@ -1554,6 +1554,21 @@ ls /sys/module | grep micom                        ->  micom
 ls -l /dev/ttyS2                                   ->  crw-------  1 0 root  4, 66
 ```
 
+### The login prompt, captured
+
+Running the vendor's `/etc/esinit_agetty.sh` unmodified in the projection produced this on the far side of `/dev/ttyS2`
+(`evidence/serial-console/ttyS2-login-prompt-2026-11-04.log`):
+
+```
+OpenEmbedded 1.0 (none) ttyS2
+
+(none) login:
+```
+
+That is an authenticated login, not a shell: the `-a root` autologin line in that script is commented out, so the password in
+`/etc/shadow.Global` is required. What it demonstrates is the part that matters — **the prompt exists on a stock build with the
+parameter at its default**, so anyone at the UART gets a password prompt rather than nothing.
+
 ### The logic, verbatim from `/lib/systemd/esinit`
 
 ```sh

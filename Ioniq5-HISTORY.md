@@ -5074,3 +5074,9 @@ and are superseded by corrections rather than silently rewritten.
 - The kernel-driver finding only matters if a crafted image actually reaches a defect, so that is now a delegated investigation with a strict honesty bar: baseline first, one field class at a time, only faults inside those modules count, and a clean negative is a result.
 - The state page had stopped at the fifth finding and still described one of them using a reason I had since withdrawn. Refreshed it with every entry and its real status.
 - Being able to delegate this at all is the payoff of the kernel work this morning: the drivers could not be loaded before, so the most reachable vector in the register was untestable.
+
+## 2026-11-05 - thirty documents needed a map
+
+- Wrote an index that says what each document answers, starting with the four that matter: where things stand, what to fix, whether to trust the numbers, and how to run it.
+- Grouped by the questions people actually ask rather than by folder, and link-checked it before committing, which caught three bad references.
+- An index with dead links is worse than none, and this session has enough unverified instruments in its history to know better.

@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.69.0 - an index, because thirty documents is past the point where anyone guesses right
+
+The tree reached thirty documents in one session, which is fine for the person who wrote them and useless for anyone else. `docs/INDEX.md` now says what each one
+answers, opening with **the four that matter** - the state page, the remediation report, the measurement discipline, and the runbook - because those cover "where am I",
+"what should be fixed", "can I trust this" and "how do I run it".
+
+It is grouped the way the questions actually arise: how faithful the VM is and how it got there; why the interface stays black; the security documents; and where the raw
+evidence lives. It closes with the conventions used across the tree - the `[E]`/`[I]` labels, the rule that a claim names what would falsify it, and the promise that every
+projection-only instrument is labelled in its own file and in the changelog.
+
+The index was link-checked before committing, which caught three references written without their `engineering-mode/` prefix. Small, but an index with dead links is
+worse than none, and this session has a long record of unverified instruments to learn from.
+
 ## 4.68.0 - opening the V-057 falsification as delegated work, and refreshing the state table
 
 V-057 only matters if a crafted image actually drives those drivers somewhere bad, so that is now a delegated investigation with its own clone (`work/vm/tuxfuzz`) and

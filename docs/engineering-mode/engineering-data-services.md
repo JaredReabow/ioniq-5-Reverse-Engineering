@@ -131,3 +131,28 @@ The eng app also asks `AskTuningVersion`, `AskETCEcallStatus`, `AskSysUpmID`,
 `AskExternalSPDIFAMPVersion` and the GPS `GetMountAngleFileInfo`; those still
 return `Pending Err`. They populate the *Software → Head Unit* version list and
 do not gate the entry screen.
+
+## Correction (2026-11-04, after the fix was measured)
+
+The adaptor work in this document is real: with the simulator running, the DLT `Pending Err` count drops to **zero**, so all six queries are
+answered.
+
+**It did not fix the black page body.** The engineering window (the first surface created after the launch, e.g. `1004`) still captures at
+**4,117 bytes** - an `Engineering Mode` title bar over a black body - and injecting clicks gives
+`VM_INPUT_FOCUS_BEFORE_MOVE pid=NO_CLIENT`, i.e. no client view under the pointer at all.
+
+The screenshots originally referenced here as the rendered engineering screen are the **home screen's EV page** (surface `2080`, Battery and
+Range widgets). See `docs/vm/SCREENSHOT-LABELS.md`.
+
+What the app's own `qmlLog` shows is that the QML loads and lays out correctly:
+
+```
+"[main.qml]:  main.qml : Component.onCompleted"
+"[main.qml]: screen_Transition() : screenNext = QQmlComponent(0xb1c6e762a0)"
+"idAppRoot.onWidthChanged : idAppRoot.width 1920"
+"idAppRoot.onWidthChanged : idAppRoot.height 720"
+"AppMain.qml : Component.onCompleted"
+"[main.qml]: loader_1.onLoaded"
+```
+
+So the blank body is a **paint/surface-lifecycle** problem, not a data problem. That is the next investigation.

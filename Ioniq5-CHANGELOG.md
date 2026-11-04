@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.25.0 - the QML lays out correctly, so the blank body is a surface problem
+
+The engineering app's own `qmlLog` output settles where the fault is not:
+
+```
+"[main.qml]:  main.qml : Component.onCompleted"
+"[main.qml]: screen_Transition() : screenNext = QQmlComponent(0xb1c6e762a0)"
+"idAppRoot.onWidthChanged : idAppRoot.width 1920"
+"idAppRoot.onWidthChanged : idAppRoot.height 720"
+"AppMain.qml : Component.onCompleted"
+"[main.qml]: loader_1.onLoaded"
+```
+
+So the QML loads, lays out at 1920x720 and completes its transitions. The window still captures at 4,117 bytes, and an injected click now
+reports **`VM_INPUT_FOCUS_BEFORE_MOVE pid=NO_CLIENT`** - not merely "no view", but no *client* under the pointer, which is a different and
+sharper symptom.
+
+That means the fault is in surface lifecycle or buffer commit, not in the data layer and not in the QML layout. `docs/engineering-mode/engineering-data-services.md`
+carries a correction stating exactly that, since its earlier claim that the adaptors fixed the body does not hold.
+
+**Delegated:** a worker with its own clone (`work/vm/engpaint`) is on the paint question, with the specific next steps named: enumerate every
+surface created after the launch rather than only the first, check the warning-popup and PIN gating, investigate `qml/Variant` selection
+(the home screen's blank page was exactly that shape), and use `WAYLAND_DEBUG=1` to establish whether the app ever **attaches a buffer** -
+"attaches nothing" and "attaches a black buffer" are different diagnoses.
+
 ## 4.24.0 - the black engineering body is not a data problem, and a worker's claim is corrected
 
 A worker reported that answering the six data services had fixed the black engineering-mode page body. That is wrong, and checking it

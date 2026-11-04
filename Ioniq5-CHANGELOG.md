@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.19.0 - an outside opinion corrected the PIN and killed the IpConfigShell hope
+
+Asked two models for a stock-unit triage (no modified firmware, no developer build, no pre-existing root). Both responses are
+summarised in `docs/advisory/stock-vector-triage.md`, and they earned their keep by contradicting this repository in three places.
+
+**The engineering PIN was wrong here.** `AppEngineerMode` carries exactly two SHA-256 constants. Hashing candidates against them
+identifies the dealer code as `2400` and the engineer code as a different vendor default - and `19491003`, quoted here from a sibling
+platform, matches **neither**. Every document that mentioned it now carries a correction note. The plaintext engineer code stays out of
+this public tree per V-041.
+
+**`IpConfigShell` is stale QML, not a shell.** The asset exists, but the button reaching it lives only in the full `AutoTest` QML
+while production loads the `_Sop` variant; the binary's `EngIPConfigRefactor` meta-object has `getSecureMode` and USB-state methods but
+**not** `handleSetIPMakeShell` or `enggetIP`; and the screen accepts numeric octets only. It is dead code, not a facility.
+
+**The About-screen tap gesture may not exist on this build at all**, which is consistent with it having been inferred from a sibling
+platform rather than observed here.
+
+They agreed on the shape of the answer: **USB is the best stock surface**, with Daybreak Blue picking the **V-014** SCSI/udev property
+injection (whose downstream root-unit selection is already synthetically confirmed, leaving only the physical path) and shannon
+picking media parsing. Both ranked UART second and engineering mode last for code execution. Both also found no way to avoid cracking
+the shadow hash: no `passwd` invocation in any stock script, no empty-password account, no rescue or factory-reset path that rewrites
+it.
+
 ## 4.18.0 - the WiFi procedure, and the bound on every remote claim
 
 `docs/wifi-enable-procedure.md` sets out how the radio could be turned on using the image's own machinery: `modprobe cfg80211` then

@@ -1265,6 +1265,16 @@ vulnerability is claimed, and this test does not move either entry.
   partition/update controls on the owner build, and determine whether the
   second digest is a per-dealer code.
 
+### The two baked digests, identified (2026-11-04)
+
+`AppEngineerMode` carries exactly **two** SHA-256 constants (`8350242b…` and `a3946c51…`). Hashing candidates against them identifies
+both: the dealer constant is `2400`, and the engineer constant matches a vendor default code. The value `19491003`, which this
+repository previously quoted from a sibling-platform project, matches **neither** and is therefore **not valid on this build**.
+
+The digests are unsalted and shared across the build, so the finding stands as written: one cracked code opens every unit of this
+image. The plaintext engineer code is withheld from this public tree, as above, and the documents that quoted the sibling value now
+carry a correction note.
+
 ## V-042 — Marker files under world-writable runtime paths trigger privileged actions
 
 (Imported from the parallel repository, where this was numbered V-011.)

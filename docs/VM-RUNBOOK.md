@@ -149,7 +149,9 @@ VM_INPUT_CLICK_DONE
 1. Car on (ACC or engine), unit booted.
 2. **Settings → General → About** (some variants: a blank area at the bottom of About).
 3. **Tap the software version number 5–10 times, quickly.** A keypad should appear.
-4. Enter **`19491003`** (engineer) or **`2400`** (dealer).
+4. Enter **`19491003 *(see correction below — not valid on this build)*`** (engineer) or **`2400`** (dealer).
+
+> **Corrected 2026-11-04:** the value `19491003` comes from the sibling platform and does **not** match this build. `AppEngineerMode` carries exactly two SHA-256 constants; the engineer one matches a different vendor default code, and the dealer one is `2400`. Both were verified against those constants. The plaintext engineer code is withheld from this public tree as V-041 requires.
 
 **Check and record**: does the keypad appear; which PIN is accepted; the exact menu list you then see — specifically
 whether **Encryption Update** and **Force Update** are present or hidden. Photograph each screen. Note the software

@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.97.0 - the preload that has now cost this project twice
+
+The authentic path's applications fail their EGL initialisation with `DRI2: failed to open swrast (search paths /usr/lib/dri)`, and the reason turned out to be a single line we had already
+recorded once, in a different disguise:
+
+```sh
+# /app/bin/AppLauncher.sh
+export LD_LIBRARY_PATH=/app/lib:/navi/navi/Lib
+export LD_PRELOAD=/usr/lib/libEGL.so.1        # the vendor libEGL, injected into every child
+```
+
+`LD_PRELOAD` **beats the library search path**. Whatever we set outside is irrelevant to a process that preloads the vendor `libEGL`, which then searches `/usr/lib/dri`, finds only the
+vendor's `i965_dri.so` stub and gives up. That is why setting `LD_LIBRARY_PATH=/opt/software-egl18` on the launcher's unit produced no change, and why copying `swrast_dri.so` into
+`/usr/lib/dri` produced no change either.
+
+**The same line has now cost this project two separate investigations.** It was identified during the buffer-commit work as the reason the home screen committed zero buffers, and it
+has reappeared here as the reason the applications cannot initialise a renderer. The changelog records both, in different sections, without connecting them - which is exactly the kind
+of duplication this project's own notes are supposed to prevent, and a good argument for the register's habit of naming causes rather than symptoms.
+
+The projection-only fix is to point the preload at the Mesa stack (`LD_PRELOAD=/opt/software-egl18/libEGL.so.1`, whatever the soname is there), or to extend the preload list so the
+Mesa libEGL and its friends load first. Editing the shipped script is the honest way, since it overrides both `LD_LIBRARY_PATH` and any preload we set outside; the edit is labelled as an
+instrument.
+
+The worker is applying it. The thing to watch is the **child's** log - `Using Wayland-EGL` with no `DRI2` warning - not the parent's.
+
 ## 4.96.0 - V-059 moves from "the strings exist" to "the two opens are in different code"
 
 Last entry recorded V-059 as corroborated because every command string its mechanism needs is present in our copy of the build. That is weaker than it sounds: strings show the

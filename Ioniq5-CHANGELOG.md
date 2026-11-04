@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.26.0 - consolidated blocker list for a fully working VM
+
+Asked directly what stands between the current state and a fully working VM. Recorded here so the answer is durable rather than living in one reply.
+
+**Working and verified:** vendor kernel boot; EU 260128 userspace; launcher standby and profile-confirm; the authentic home screen application launching, rendering, committing buffers and being placed on
+screen; the compositor, backend and capture chain (all measured clean); the MICOM transport and boot-info profile; the HMI module; the QML variant path; asset staging.
+
+**Blockers, in order of how much they cost:**
+
+1. **Image rendering in the home screen.** The last active display fault. Clean texture, coordinates outside 0..1, non-power-of-two 1926×753 surface, no texture matrix, and no GL error. The
+   outstanding test is to force `GL_CLAMP_TO_EDGE` on non-power-of-two textures (§3.25.0). **Cost: one interposition.**
+2. **Home ↔ navigation compositing.** AppNavi runs and renders genuine map pixels into its own surface but never becomes the foreground window, so home stays composed. **Cost: understanding the
+   appmanager foreground contract**, which is the same class of problem as the placement work already solved for the home screen.
+3. **Client instability.** `AppNavi` dies in `libQt5Core` at ~55 s and `AppCamera` in `free()+0x14` at ~181 s; the application manager then stops sibling clients, which is why windows vanish in long runs.
+   **Cost: one real defect to characterise**, plus deciding whether the manager's teardown is acceptable behaviour for the projection.
+4. **Service landscape.** Audio (C-TRACS), deeper persistence, input wiring, restart/suspend. Each needs an evidence-derived contract and an adaptor — the same work as the MICOM responder.
+   **Cost: the largest remaining effort, but well-understood in shape.**
+5. **No GL-capable renderer.** The vendor `headless-backend.so` rejects `--use-gl`, and the vendor `ias-backend.so` needs hardware this VM lacks. `--use-pixman` is the only path, so anything the driver
+   would tolerate but pixman does not is an emulation limit that has to be worked around rather than fixed. **Cost: not fixable here; must be designed around.**
+
+**Root access line, for completeness:** V-028 runtime-confirmed with escalation excluded by measurement; V-045 (three reproducing calls) is an unprivileged denial of service against the primary
+display; V-046 remains a **candidate** whose cross-client test has not been run.
+
 ## 3.25.0 - no texture matrix exists, and the remaining suspect is NPOT sampling under GLES2 rules
 
 - The instrument from §3.24.0 was built and run: `glMatrixMode`, `glLoadMatrixf` and `glLoadIdentity` are intercepted and any texture-matrix activity would be logged. **Zero events** — the

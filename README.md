@@ -72,6 +72,29 @@ to, and the base rootfs hash is rechecked after each experiment
 | CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed |
 | Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end |
 
+### The vendor userspace now boots in the VM
+
+The projection boots the **authentic rootfs under systemd as PID 1** with the **vendor kernel** (`boot/bzImage-4.1.27-abl`), reaching
+
+```
+Basic System.  Local File Systems.  Login Prompts.  Paths.  Sockets.  Swap.
+```
+
+with `systemd-udevd` active (`Listening on udev Control Socket`, `Starting udev Kernel Device Manager...`). Method and caveats:
+`docs/vm/vendor-userspace-boot.md`; the kernel-side story, including why every previous USB conclusion here was wrong, is in
+`docs/vm/vendor-kernel-boot.md`.
+
+What that changed in practice:
+
+- **USB now works.** The research `bzImage` never exported `usb_speed_string`, so the vendor's USB modules could not load. With the
+  vendor kernel a USB stick enumerates (`/dev/sda`), mounts, and is processed by the shipped `60-persistent-storage.rules` and `scsi_id`
+  (`ID_SERIAL=…`).
+- **udev runs**, so "plugged in" can become "root unit started" — the question V-014 turns on.
+- **The serial console path exists end to end**: `agetty` on ttyS2, gate open by default, prompt captured in
+  `evidence/serial-console/`.
+- Still not faithful to the vehicle's own init: `/lib/systemd/esinit` stops at `[FDE] use fstab` because it expects eMMC partitions
+  `p8`–`p12` and our clone has one. Starting systemd directly bypasses that rather than solving it.
+
 ### Running and interacting with the VM
 
 Practical instructions, verified checks and a list of **false readings that have already misled this project** are in

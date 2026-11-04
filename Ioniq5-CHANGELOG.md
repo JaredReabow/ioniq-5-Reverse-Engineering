@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.35.0 - the VM is interactive: injected touch reaches the compositor and is acknowledged
+
+- Found the vendor's own input-injection module — **`/weston-vm-input.so`** — which the working recipe loads and our chain did not. Its strings name the protocol it accepts over
+  `/tmp/weston-vm-input`: **`click`, `drag`, `pdrag`**, with markers `VM_INPUT_READY`, `VM_INPUT_CLICK_ACCEPTED/DONE`, `VM_INPUT_DRAG_ACCEPTED/DONE`, `VM_INPUT_PDRAG_*`,
+  `VM_INPUT_FOCUS_BEFORE_MOVE/AFTER_MOVE`, `VM_INPUT_NO_SEAT`, and it drives `notify_touch` / `notify_touch_frame`.
+- **Added `modules=/weston-vm-input.so` to the chain's compositor config and injected a click.** The compositor accepted and completed it:
+  ```
+  VM_INPUT_CLICK_ACCEPTED
+  VM_INPUT_FOCUS_BEFORE_MOVE pid=NO_VIEW
+  VM_INPUT_FOCUS_AFTER_MOVE  pid=NO_VIEW
+  VM_INPUT_CLICK_DONE
+  ```
+  So a synthetic touch now travels from a line written to a file, through the vendor input module, into the compositor and out to the seat — **the interaction path works end to end**.
+- **`pid=NO_VIEW` is the remaining gap, and it is the black screen seen from the pointer's point of view:** the click is delivered, but there is no surface under the coordinates to receive it. The
+  input stack is not the problem; the absence of a placed, drawn view is.
+- This is the piece needed to validate the stock entry vector properly — the About-screen tap gesture and the PIN keypad are both touch-driven, so a working click path plus a visible view is
+  sufficient to drive them without any HID device. **No emulated USB keyboard is required**, which sidesteps the udev/module-stack limitation recorded in §4.5.0.
+- Next: get a view under the pointer (the engineering window placed and drawn), then click the gesture and the PIN with this same mechanism.
+
 ## 3.34.0 - CORRECTION: the compositor never stopped, and engineering mode now launches in the VM
 
 Two results, one of them a correction to §3.33.0.

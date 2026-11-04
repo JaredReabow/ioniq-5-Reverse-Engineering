@@ -11,27 +11,33 @@ because the cheapest ones also happen to remove the most.
 
 ## Tier 1 — configuration changes, hours not weeks
 
-### 1. Applications run under the one SMACK label that is exempt from the policy
+### 1. Applications may not be running under the policy that was written for them
 
-**Evidence.** `/etc/smack/accesses.d/` ships **27 rule files, 636 rules, 28 labels** and the boot loads them
-(`Smack service loads smack rules in /etc/smack/accesses.d`). Every application observed — `AppHomeScreen`, `AppLauncher`, `keeper`, `ApplicationManager` — carries
-the label **`_`**, runs as uid 0 with the full capability mask, and under the authentic boot a `_` process **read and wrote** a file labelled `Log::dlt`:
+**Evidence.** `/etc/smack/accesses.d/` ships **27 rule files, 636 rules over 28 labels** and the boot loads them
+(`Smack service loads smack rules in /etc/smack/accesses.d`). The policy is written per application domain (`App::home`, `App::engineermode`, `App::camera`, …).
+In the projection, every application observed — `AppHomeScreen`, `AppLauncher`, `keeper`, `ApplicationManager` — carries the label **`_`** and runs as uid 0 with
+the full capability mask.
+
+**What is not established, and why it matters.** Nothing in the shipped artifact applies those labels: no `chsmack -e` for any `/app/**` binary, no `SmackLabel=`
+in any unit, no SMACK strings in `AppLauncher`, and the shipping archive `/HU/images/mango-rootfs.tar.gz` contains **no xattr records** - so the projection, which
+was built from that archive, necessarily shows `_` whether or not a real unit does. An earlier version of this report cited a probe that appeared to show a `_`
+process reading a `Log::dlt` object; **that probe is withdrawn** because it never verified that the object had actually been relabelled.
+
+**Exposes.** If applications run unlabelled on a unit, the 636-rule policy constrains services but not the components that parse attacker-supplied input. If they
+run labelled, the policy is doing its job. The difference is one command.
+
+**Fix, in order.** First verify which is true on a unit. If applications are unlabelled, give them the `App::*` labels the policy already defines, and only then
+consider enforcement — the enforcing branch measures **40 denied access decisions** in the projection, so switching it on before labelling will break services while
+confining nothing.
+
+**Verify.**
 
 ```
-SMACKPROBE label=_ rules=27 read=[secret] write=[ok]
+getfattr -n security.SMACK64EXEC /app/bin/AppHomeScreen
+cat /proc/$(pidof AppHomeScreen)/attr/current
 ```
 
-**Exposes.** The policy constrains something, but not the applications — the components that parse attacker-supplied input. Anything an application can reach,
-the policy does not protect: vehicle logs, other applications' data, the trust anchors below.
-
-**Fix.** The label vocabulary already exists (`App::bluetooth`, `App::upgrade`, `App::usbautomount`, …). Give application processes a real `App::*` label, add the
-rules they legitimately need, and stop running them under the wildcard.
-
-**Verify.** On a unit: `cat /proc/<AppHomeScreen pid>/attr/current` returns a domain label, not `_`; then confirm that process **cannot** read a `Log::*` object.
-
-**Measured both ways already, in the projection.** With the policy permissive (`optUNECE=0`) a `_` process read and wrote a `Log::dlt` object. With it **enforcing**
-(`optUNECE=1`) the same probe still succeeded, while 40 other access decisions were **denied** — so the policy constrains some subjects but never this one, and
-flipping the enforcing switch will produce service failures among components developed against the permissive default. Fix the label first, then enforce.
+A domain label means the policy applies. `_` means it does not.
 
 ### 2. The account database lives in a world-writable tmpfs
 
@@ -91,9 +97,36 @@ Guessing was attempted and failed: 10,000 four-digit PINs, 34,334 date permutati
 
 ---
 
+### 6. Seven privileged behaviours are keyed on "does this file exist in `/tmp`"
+
+**Evidence.** Ten systemd `.path` units ship, and several start a service purely because a file exists in a `1777` tmpfs:
+
+| marker | effect |
+| --- | --- |
+| `/tmp/no_isa` | starts `ofono.service` and `remote.service` (`TmsRemoteApp`, the telematics remote-command consumer) |
+| `/tmp/AppMPAutoTest/do_mpauto` | enters manufacturing auto-test mode (`NotifyMPAutoModeTestStartEvent`) |
+| `/tmp/spi_validation_NOK` | starts a validation service and suppresses the compositor |
+| `/tmp/no_unece` | starts the WiFi daemon |
+| `/tmp/weston.crash` | dumps diagnostics, messages the MICOM watchdog |
+| `/tmp/secure_console_disable` | decides whether root gets a console shell |
+
+**What is not established.** No marker has been shown starting a privileged service end to end: the units fire and then fail on unmet dependencies in the
+projection. And `/tmp/no_isa` is written by **`AppLauncher`** from an ISA value it reads, so at least that one is a platform-state decision rather than an
+attacker action - whether that value can be influenced is a MICOM-boundary question and is open.
+
+**Exposes.** The design keys privileged outcomes on file existence in a world-writable directory, so anything else able to create the same path gets the same
+outcome. That is a structural weakening even where the intended writer is benign, and hardening one path leaves the others.
+
+**Fix.** Drive these transitions through an authenticated mechanism (a message on a privileged bus, or a file in a directory only the platform can write) rather
+than by existence checks in `/tmp`.
+
+**Verify.** On a unit, create each marker as a non-privileged process and confirm no service starts.
+
+---
+
 ## Tier 2 — code changes, requiring a release
 
-### 6. The application manager executes a caller-named path as root, unverified
+### 7. The application manager executes a caller-named path as root, unverified
 
 **Evidence.** `request.launch(appid, appname, applocation)` takes the binary's path **from the caller**. A payload with no signature section, launched with the
 verification key deleted, ran as `uid=0`:
@@ -112,7 +145,7 @@ verification failure as fatal.
 
 **Verify.** A launch request naming an arbitrary path is refused, and a correctly signed binary in the trusted directory still starts.
 
-### 7. The signature check itself trusts a key in `/tmp`
+### 8. The signature check itself trusts a key in `/tmp`
 
 **Evidence.** The manager verifies with `RSA_verify(NID_sha256, …)` against a **PEM key read from `/tmp/app_normal.key`**. The authentic keys are pinned as Qt
 resources (`:/app_normal.key`) but are copied to `/tmp` once and the copy is trusted thereafter without comparison.
@@ -124,7 +157,7 @@ work was accepted and ran as uid 0.
 
 **Verify.** Replacing `/tmp/app_normal.key` has no effect on verification.
 
-### 8. The installed `debug-shell.service` is an unauthenticated root shell
+### 9. The installed `debug-shell.service` is an unauthenticated root shell
 
 **Evidence.** `DefaultDependencies=no`, `ConditionPathExists=/dev/tty9`, `ExecStart=/bin/sh`. Not enabled — and `SYSTEMD_WANTS` names units directly, ignoring
 enable links. Neighbours are the safe pattern: `console-shell.service` runs `sulogin`, `console-getty.service` runs `agetty`.
@@ -140,7 +173,7 @@ property-injection defect names exactly that property.
 
 ## Tier 3 — data protection: currently weaker than it appears
 
-### 9. The data encryption passphrase is `1234`, and in the shipped flow it never runs
+### 10. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
 opens them. Demonstrated, with a negative control:

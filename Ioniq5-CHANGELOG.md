@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.66.0 - the remediation report corrected: it was citing the withdrawn probe
+
+The report is the document a platform team would act on, so an invalid measurement matters more there than in the register. Two changes:
+
+**Item 1 has been rewritten.** It cited the probe that appeared to show a `_` process reading a `Log::dlt` object - the one withdrawn earlier because it never
+verified the object had been relabelled. The item now states what is solid (27 rule files, 636 rules, loaded; applications observed with `_` in the projection) and
+names precisely what is not (nothing in the shipped artifact applies the labels, the archive carries no xattr records, so the projection shows `_` either way).
+The fix is now ordered: **verify on a unit first**, and only then label, and only then enforce - because the enforcing branch measures 40 denials, so switching it
+on before labelling breaks services and confines nothing.
+
+**A new item 6 covers the markers.** Seven privileged behaviours keyed on a file existing in `/tmp`, with the caveats attached: no marker has been shown starting a
+service end to end, and `/tmp/no_isa` is written by `AppLauncher` from a platform value. The item still stands as a design weakness - the trigger cannot tell who set
+it, so hardening one path leaves six - but it no longer reads as a demonstrated capability.
+
+That is the trade this report has to keep making: express the *pattern* confidently, and be pedantic about what was actually observed.
+
 ## 4.65.0 - the marker nobody had shown being set has an owner, and it changes the row
 
 `/tmp/no_isa` was the marker that existed before any probe touched it, with no script creating it. It is set by **`AppLauncher`**, beside the value it depends on:

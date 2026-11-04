@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.43.0 - a current-state document, because the session outgrew the changelog
+
+After this many turns the useful artefact is a single page that says what works, what is blocked and what to do next without reading forty
+entries. `docs/CURRENT-STATE.md` does that: the working capability table with where each item is demonstrated, the one blocker for init
+fidelity, the three substitutions that bound "close to stock", the seven-entry register with each claim's status, the list of claims that were
+corrected during the session, and a one-hour plan for whoever picks this up.
+
+It exists because the corrections are as valuable as the findings: 4.34.0 said the SPI gate opened, 4.41.0 said it never opened, 4.42.0 said one
+unmeasured value decides it - and a reader who finds only the first entry would be misled.
+
+I also stopped working the SPI value after two attempts. It has consumed three entries and produced one unmeasured number; the measurement recipe
+is written down, a worker is on the parallel backend substitution, and continuing to iterate on it here would be spending the session's remaining
+attention on the least valuable open question.
+
 ## 4.42.0 - the SPI gate has one unmeasured value, and that is the honest state
 
 Neither attempt to drive the gate from a wrapper `init` settles it, and the second one weakens the certainty of the 4.41.0 correction rather than

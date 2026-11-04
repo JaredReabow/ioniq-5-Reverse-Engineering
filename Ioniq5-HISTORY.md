@@ -5272,3 +5272,8 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - On the vendor kernel through the vendor init and the vendor compositor, the home screen now registers its name, answers introspection and paints a frame that is not the background. The last substitution was the software-GL driver path, one variable.
 - My confident explanation was wrong again: the preload line is not the cause, the library it pins is the same Mesa build and works. What the launcher does is strip the driver path from its children.
 - What remains on that path is not rendering but ownership - the manager kills the instance systemd started while a hand-started one paints.
+
+## 2026-11-05 - the front page was underselling the result
+
+- The readme's fidelity section still described the state before the frame painted. Corrected it to state the chain, quote the evidence, name the three substitutions in one place, and say what is still wrong.
+- A front page that undersells by a milestone is still inaccurate, just in the safer direction. It gets checked against the record like any other claim.

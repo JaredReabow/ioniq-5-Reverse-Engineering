@@ -72,27 +72,31 @@ to, and the base rootfs hash is rechecked after each experiment
 | CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed |
 | Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end |
 
-### Fidelity: the vehicle's own boot now starts its own compositor
+### Fidelity: the vehicle's own boot path paints a frame
 
-**The authentic boot path now renders.** With a MICOM SPI stand-in that mounts `/sys` before writing (measured: the gate is shut by default,
-`param=0`; the stand-in opens it, `param=1`), `esinit` takes its OK branch, launches its own `/usr/bin/weston --tty=1`, and the system reaches
-**Multi-User System with the compositor alive** — a frame is captured (129,844-byte PNG) and a surface is placed through the vendor
-`ivi_window_manager` interface. Details, including the three projection-only instruments and the real blocker (the vendor's pixman
-`composite_clipped` assertion, which the GL path on a vehicle never hits), are in `docs/vm/authentic-hmi.md`. The log that made this visible:
+**The authentic path now renders the product's own interface.** Vendor kernel → vendor `/lib/systemd/esinit` → esinit's own `/usr/bin/weston --tty=1` → the vendor
+application stack, with `AppHomeScreen` registering its bus name, answering introspection and painting:
 
 ```
-[    6.545898] random: weston urandom read with 19 bits of entropy available
+[FTL]  Using Wayland-EGL                       no "DRI2: failed to open swrast" any more
+BYHAND_NAME_OWNED=[com.lge.hkmc.avn.appfunc.AppHomeScreen]
+BYHAND_INTRO=[method return … Introspectable …]
+BYHAND_CAPTURE1..3 bytes=120556                changed from the 129,844-byte early-background
 ```
 
-It cannot proceed further because `weston --tty=1` wants a DRM device the projection does not have — so boot stalls short of multi-user on
-that path. Making the **authentic** path render needs a backend substitution (`headless-backend.so` or our `ias-backend-soft.so`) in
-`/etc/xdg/weston/weston_${LCD_TYPE}.ini`, whose effect is indirect: `/etc/xdg/weston/weston.ini` is a **symlink to `/tmp/weston.ini`**
-written at boot by `/etc/install_westonPngLogo.sh`. That symlink is also why the compositor's configuration is filed as a vulnerability —
-see **V-055**, since that file names `shell=`, `backend=` and `ivi-module=`.
+Three projection-only substitutions get it there, and nothing else on the boot path is ours:
 
-What remains different from a vehicle, stated plainly: our software backend and its environment stand in for the vendor's `ias-backend.so`
-and hardware; the MICOM handshake is simulated; and `lge_usb_adapter` is neutralised because it oopses on non-vendor hardware. Those three
-are the honest boundaries of "as close to stock as reasonable".
+1. **a software backend** standing in for `ias-backend.so` and the Intel GPU (the vendor ivi shell otherwise trips its own pixman
+   `composite_clipped` assertion, which a vehicle never hits because it uses GL);
+2. **a MICOM SPI stand-in** in front of the init, because the gate is shut by default (`spi_validation=0`) and `esinit` only takes its OK branch when it reads 1;
+3. **the software-GL driver path** for the applications — the vendor launcher strips `LIBGL_*` from its children, so without it the loader finds only the
+   vendor's `i965_dri.so` stub and EGL initialisation fails.
+
+**What is still not right on that path:** the *managed* launch — systemd → `ApplicationLauncher` — has its `AppHomeScreen` killed by the application manager as a
+foreign instance (`a_nSigNum[9]`), while a by-hand instance paints. The remaining gap is the manager's ownership of the instance it started, not the renderer.
+
+Details, evidence and every eliminated hypothesis: `docs/vm/authentic-hmi-apps.md`. The compositor's configuration is also worth reading as **V-055** — it is a
+symlink into `/tmp`.
 
 ### The vehicle's own boot sequence now runs, not a bypass
 

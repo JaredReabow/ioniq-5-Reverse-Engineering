@@ -3,6 +3,39 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.7.0 - yes, engineering mode has the forced-update vectors — and one byte hides them
+
+The question that matters is whether the vectors exist at all, not whether the harness can click them. Quoted from the shipped
+`app/share/AppEngineerMode/qml/Update/AppEngineerMode_UpdateLeftList.qml`:
+
+```qml
+ListModel{ id:updateList                       // development
+    ListElement { name:"Force Update"  }
+    ListElement { name:"Encryption Update"  }
+    ListElement { name:"Scheduled Update List"  }
+    ListElement { name:"Scheduled Update Test"  }
+    ListElement { name:"VESS Logging" }  { name:"ADP Logging" }  { name:"AMP Logging" } }
+
+ListModel{ id:updateList_sop                   // production
+    ListElement { name:"Scheduled Update List"  }
+    ListElement { name:"VESS Logging" }  { name:"ADP Logging" }  { name:"AMP Logging" } }
+
+model: (AppEngineerModeEngine.checkSOPVersion() === true) ? updateList_sop : updateList
+```
+
+- **So the forced-update vectors are real and shipped**: `Force Update`, `Encryption Update` and `Scheduled Update Test` exist in the
+  application, and the **only** thing hiding them on a production unit is `checkSOPVersion()` returning true.
+- **That decision is one integer.** `setEngType()` writes it with `c7 85 3c 01 00 00 01 00 00 00` at file offset `0x737268` —
+  `movl $0x1, 0x13c(%rbp)`. The immediate starts at **`0x73726e`**, and changing that single byte `0x01` → `0x00` turns the production list
+  into the development list.
+- **Honest status:** the patch was built and injected (`before: 01000000 / after: 00000000`), but the runtime check came back `ENG=`
+  empty — the application had not appeared within the 40-second window after the launch request, and the earlier successful run needed
+  roughly 67 seconds. So the *effect* of the patch is **not yet observed**; what is established is the QML model selection and the
+  instruction that writes the deciding value. This is recorded as static finding plus unconfirmed runtime, not as a demonstrated bypass.
+- **For a stock unit the conclusion is unchanged and now sharper:** on this build the value is written unconditionally, so **no UI
+  action reveals `Force Update`**. Only a develop build of `AppEngineerMode` (delivered through the launcher's `/tmp/app/bin` container)
+  or a modified binary produces the development list — both require prior write access.
+
 ## 3.35.0 - the VM is interactive: injected touch reaches the compositor and is acknowledged
 
 - Found the vendor's own input-injection module — **`/weston-vm-input.so`** — which the working recipe loads and our chain did not. Its strings name the protocol it accepts over

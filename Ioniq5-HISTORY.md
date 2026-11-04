@@ -4700,3 +4700,9 @@ and are superseded by corrections rather than silently rewritten.
 - The vendor ships its own input module, and the chain simply was not loading it. With it loaded, an injected click is accepted, delivered to the seat and reported complete.
 - It arrives with pid=NO_VIEW, which is the black screen described from the pointer's side: the click is fine, there is nothing underneath it.
 - That matters because the stock entry vector is touch-driven. A working click path plus a visible view is all it needs — no USB keyboard, so the udev gap stops mattering.
+
+## 2026-11-04 — the vectors were always there, behind an integer
+
+- The engineering application ships Force Update, Encryption Update and Scheduled Update Test. Production units get a different list, and one comparison decides which.
+- The deciding value is written with a single immediate that a one-byte change flips. That is the whole difference between a technician's menu and a development one.
+- The patch was injected but the application had not appeared by the time I checked, so the effect is unobserved. Static finding, runtime unconfirmed, and written down that way.

@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.63.0 - V-042 gets a full marker table, and two of its markers are worse than expected
+
+V-042 previously rested on examples. A sweep of all ten systemd `.path` units plus the `esinit` checks shows **seven privileged behaviours keyed on "does a
+file exist in `/tmp`"**, a `1777` tmpfs:
+
+| marker | consumer | effect |
+| --- | --- | --- |
+| `/tmp/no_isa` | `remote.service` → `TmsRemoteApp` | starts the **telematics remote-control service** |
+| `/tmp/no_isa` | `ofono.service` | starts the telephony stack |
+| `/tmp/AppMPAutoTest/do_mpauto` | `mpauto.service` -> `/etc/mpauto.sh` | enters **manufacturing auto-test mode** (`NotifyMPAutoModeTestStartEvent`, ten times) |
+| `/tmp/spi_validation_NOK` | `spi-validation.service` and `esinit` | starts a validation service and suppresses the compositor |
+| `/tmp/no_unece` | `supplicantmanager.service` | starts the WiFi daemon (V-050) |
+| `/tmp/weston.crash` | `weston-crash.service` | dumps diagnostics, messages the MICOM watchdog |
+| `/tmp/secure_console_disable` | `esinit` | decides whether root gets a console shell (V-049, V-054) |
+
+Two are worth naming above the rest. **`do_mpauto` puts the unit into manufacturing test mode**, a state the register already treats as privileged elsewhere. And
+**`no_isa` starts `TmsRemoteApp`**, the component that consumes telematics remote requests - so a write to a world-writable directory decides whether the
+remote-control service exists on the bus at all.
+
+`TmsRemoteApp` is not an IP listener: its symbols are MICOM/telematics request services (`RemoteRequestService`, `EVRemoteServiceSendOBCWakeUp`,
+`EVRemoteMonitoringSMSNotiControlService`). So the exposure is not "an open port" but "a remote-command consumer that anyone with a temporary-file write can
+start", which is a different and still useful thing to know.
+
 ## 4.62.0 - writing down the mistakes, because nine corrections is a pattern
 
 Nine corrections were made this session and every one had the same shape: a plausible conclusion drawn from a measurement that could not have supported it. That is

@@ -1,0 +1,18 @@
+# Methods ApplicationManager asks for that the MICOM stand-in does not answer
+# Source: /eng-data-sim's own UNKNOWN log during a chain + ApplicationManager + engineering-mode launch.
+# Format: count, bus, path, interface, member, incoming signature
+
+      4 ENG_DATA_SIM_UNKNOWN path=/Ihu interface=com.lge.car.micom.ihu member=AskSysUpmID signature=
+      2 ENG_DATA_SIM_UNKNOWN path=/Ihu interface=com.lge.car.micom.ihu member=AskEtcAdmSettingValue signature=
+      2 ENG_DATA_SIM_UNKNOWN path=/Ihu interface=com.lge.car.micom.ihu member=AskDebuggingMode signature=
+      2 ENG_DATA_SIM_UNKNOWN path=/Ihu interface=com.lge.car.micom.ihu member=AskCameraSetting signature=ay
+      2 ENG_DATA_SIM_UNKNOWN path=/Ihu interface=com.lge.car.micom.ihu member=AskCameraBrightness signature=
+      2 ENG_DATA_SIM_UNKNOWN path=/Can interface=com.lge.car.micom.can member=SetFCEVInitialRequest signature=
+      1 ENG_DATA_SIM_UNKNOWN path=/Ihu interface=com.lge.car.micom.ihu member=AskEtcLcdThemaInfo signature=ay
+      1 session path=/com/lge/hkmc/avn/AppVR interface=com.lge.avn.appvh.AmebaEnable member=AmebaEnable
+
+# Context: ApplicationManager runs and logs real work, but every MICOM reply reads
+#   APPM_LWP[...]: MicomInterfaceM::ADMOffSettingSlot reply is not VALID
+#   APPM_LWP[...]: MicomInterfaceM::AskDebugCntSlot reply is not VALID
+# so its state machine does not advance to the point of calling show_window_fg on the app -
+# which is why the engineering window still attaches no buffer.

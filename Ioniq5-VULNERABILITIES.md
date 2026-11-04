@@ -1895,3 +1895,51 @@ Whether production units actually reach this path (the script runs on first boot
 
 Derive a per-unit key from a protected source (fuse/OTP or a hardware key store), never ship a passphrase in the image, and use an AEAD
 mode. Treat the current construction as obfuscation rather than encryption when assessing exposure from a device dump.
+
+## V-054 — the account database lives in `/tmp`, and the console policy is a file copy
+
+**Status:** confirmed from the image; not exercised on a unit. Its practical weight depends on whether any non-root writer to `/tmp`
+exists, which on this build is not established (every vendor process observed runs as uid 0).
+
+### What the image does
+
+```
+/etc/passwd -> /tmp/passwd
+/etc/shadow -> /tmp/shadow
+```
+
+and `/lib/systemd/esinit` rebuilds both at boot:
+
+```sh
+ln -s /etc/shadow.Global /tmp/shadow
+...
+if [ -f /tmp/secure_console_disable ]; then
+        cp /etc/passwd.legacy /tmp/passwd      # root:x:0:0:root:/home/root:/bin/sh
+else
+        cp /etc/passwd.secure /tmp/passwd      # root:x:0:0:root:/home/root:/usr/sbin/nologin
+fi
+```
+
+So the *entire* account database — including the root password hash — is materialised in a world-writable tmpfs, and the difference
+between "root may log in on the console" and "root may not" is **which text file was copied there**, not a capability that is absent.
+
+### Why it matters
+
+- **A writable account database is account takeover for anything that can write `/tmp`.** Adding a uid-0 entry or changing root's shell
+  requires no vulnerability beyond the write; the next NSS resolution by `agetty` or by any service that maps a name to a uid sees it.
+- **It composes with V-049**, where the console login is enabled by default: an enabled console authenticating against a writable
+  `/etc/shadow` is worse than either issue alone.
+- **The "secure console" control is a file copy.** It does not remove the console, it copies `passwd.secure` over a tmpfs path. Anything
+  able to create `/tmp/secure_console_disable` *and* write `/tmp/passwd` reverses it.
+
+### Not established
+
+Whether any non-root process can write `/tmp` on a production unit. On this image every vendor process observed runs as uid 0, so the
+immediate escalation gain is nil; the finding matters as a **latent** one that turns any future lesser-privileged write into account
+takeover. This is stated rather than implied, because overstating it would be easy.
+
+### Suggested patch direction
+
+Keep the account database in read-only storage and make account changes explicit and authenticated; do not decide whether root has a shell
+by copying one of two files into a writable directory; and treat a missing or unexpected `/tmp/shadow` as a reason to refuse login rather
+than to proceed.

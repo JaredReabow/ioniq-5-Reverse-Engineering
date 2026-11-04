@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.33.0 - the fifth instance of one flaw, and the document that frames it
+
+Sweeping for the shape rather than waiting to trip over it found the account database:
+
+```
+/etc/passwd -> /tmp/passwd
+/etc/shadow -> /tmp/shadow
+```
+
+rebuilt at every boot by `esinit`, which also decides whether root may log in by **which text file it copies** there:
+
+```sh
+if [ -f /tmp/secure_console_disable ]; then
+        cp /etc/passwd.legacy /tmp/passwd     # root: ...:/bin/sh
+else
+        cp /etc/passwd.secure /tmp/passwd     # root: ...:/usr/sbin/nologin
+fi
+```
+
+Filed as **V-054**. Its own weight is latent, and the entry says so: every vendor process observed here runs as uid 0, so there is no
+non-root writer to exploit today - what makes it worth fixing is that any future lesser-privileged write to `/tmp` becomes account takeover
+rather than a nuisance, and that it composes with V-049's enabled-by-default console.
+
+`docs/trust-anchors-in-writable-runtime-paths.md` now frames all five together - V-048's `/tmp` key, V-049's writable console gate, V-052's
+LUKS probe deciding MAC, V-053's literal passphrase, V-054's symlinked account database - as one mistake with one cheap fix, and notes what
+they share: none requires touching signed code, four are a single file or parameter, and **they all fail open**.
+
 ## 4.32.0 - V-053 demonstrated, with a negative control
 
 V-053 is no longer only a reading of the script. Running the shipped cipher string and passphrase on the partitioned image produced:

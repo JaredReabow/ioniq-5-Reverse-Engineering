@@ -4861,3 +4861,9 @@ and are superseded by corrections rather than silently rewritten.
 - Ran the shipped cipher and passphrase: the container it makes opens with the literal and refuses a wrong one. The refusal is what makes it evidence rather than a guess.
 - The vendor's own encryption script also ran end to end in the projection, formatting the partition and creating a filesystem inside it before the run ended.
 - What remains unknown is unchanged: whether real units go through this path.
+
+## 2026-11-04 - five findings, one mistake
+
+- Swept for the pattern instead of waiting to trip over it, and found the account database itself living in /tmp, rebuilt each boot, with the console policy decided by which text file gets copied there.
+- Its practical weight is small today because everything here runs as root. What makes it worth fixing is that it is the fifth instance of the same shape, and any future lesser-privileged write turns it into account takeover.
+- Wrote the framing document, because the pattern is the argument the vendor can act on: none of the five needs signed code touched, four are a single file or parameter, and all of them fail in the unsafe direction.

@@ -72,6 +72,26 @@ to, and the base rootfs hash is rechecked after each experiment
 | CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed |
 | Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end |
 
+### Findings summary
+
+A single consolidated document — **`docs/FINDINGS-SUMMARY.md`** — collects the whole state: what works in the VM,
+why the screenshots were striped (our own backend, proven by a clean reproduction), what DEV mode actually is, every
+hidden menu and how it is triggered, the entry vectors ranked by what they require, the USB-media parser vector, what
+was imported from the second project on the same platform, register reconciliation, and the dead ends.
+
+Headline findings:
+
+- **Clean rendering is reachable and reproduced** (`docs/vm/24-clean-vendor-backend-2026-11-04.png`); the stripes are
+  produced by this project's ten-output research backend, not by the application or the compositor.
+- **DEV mode is a build-state integer**, not a setting, and on this `260128` build `setEngType()` writes it
+  unconditionally — so relaunching the shipped binary from `/tmp` changes nothing.
+- **Engineering mode is reachable from the stock UI** by a **tap-the-software-version gesture plus a PIN**
+  (`19491003` engineer, `2400` dealer), per an independent project on the same LGE Gen5W platform; the code path for
+  it exists in this image. Untested here.
+- **The strongest entry vector is a USB media file**: this image carries `libgstasf.so` from GStreamer 1.8.3 and a
+  D-Bus-activated `lightmediascanner 0.5.1`, and the external report documents root execution from ASF/EBML payloads
+  triggered by insertion alone. Filed as candidate **V-047**.
+
 ### Engineering mode and DEV mode — entry vectors and dead ends
 
 Engineering mode on this platform is entered from the stock UI (`AppSetup` requests app id `0x12D` at `0x573194`). What the menu then shows depends on **one check**:

@@ -1443,3 +1443,29 @@ For each new issue record: stable ID, affected artifact/build and digest, source
 - **Suggested patch direction:** have the compositor derive the surface from the calling client instead of trusting a supplied id, reject requests naming a surface
   the sender does not own, and ignore externally supplied surface ids in the client library unless the client is entitled to that id.
 
+## V-047 — USB media parser class (GStreamer ASF demux and lightmediascanner) — candidate
+
+- **Status: candidate.** Components verified present in this image; the exploit itself is **external work not
+  reproduced here**. Filed because the class is a documented root-execution vector on this hardware platform and
+  this project's image carries the relevant components.
+- **Components measured in the EU `260128` image:**
+  - `/usr/lib/gstreamer-1.0/libgstasf.so` — built from **gst-plugins-ugly 1.8.3**, symbol `GstASFDemux` present
+    (build path string in the binary confirms the version).
+  - `/usr/lib/liblightmediascanner.so.0.5.1`, `/usr/share/dbus-1/services/org.lightmediascanner.service`
+    (**D-Bus activatable**), `/app/bin/lightmediascannerctl`.
+  - `libebml.so.4` present.
+  - **Absent:** the `lms_asf.so` plugin and `libebml 1.3.4` referenced by the external report, so their specific
+    exploits do not transfer unchanged.
+- **What the external report describes** (`coopermarino/2022-cerato-au-jailbreak`, imported verbatim into
+  `evidence/external-cerato-au-jailbreak/`): a GStreamer ASF demuxer stream-array overflow giving an out-of-bounds
+  write in the media engine which **runs as root**, reachable from a crafted `.wma` on an inserted USB volume with
+  no user interaction; plus heap over-read/underflow bugs in their `lms_asf.so`, and `libebml 1.3.4` for `.mkv`.
+- **Why it matters:** the media indexer runs as root and is **D-Bus activated on media insertion**, so the attack
+  surface is "plug in a volume", not "get a shell first" — the only vector found so far that does not require
+  prior privilege.
+- **Not established here:** whether the ASF demuxer path in 1.8.3 is reachable from the automatic indexer on this
+  build, which process would parse the file, and whether it runs as root in *this* image. No crafted file has
+  been produced or attempted.
+- **Suggested patch direction:** constrain the demuxer's stream count, and treat media parsing for removable
+  volumes as unprivileged — parse in a sandbox rather than in the root-owned media engine.
+

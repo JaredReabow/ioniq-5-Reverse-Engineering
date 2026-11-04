@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.0.5 - starvation confirmed: with four vCPUs the managed instance registers
+
+The confirming experiment from the last entry, run with `--smp 4`:
+
+```
+PROBE6_PID=2692
+PROBE6_TICK=1 apphome_names=1
+```
+
+**The managed `AppHomeScreen` owns its bus name under four vCPUs, and it had not under two** - the same probe across the two configurations gives `ServiceUnknown` at 2 vCPUs and a
+registered name at 4. So the last gap on the authentic path is **emulated CPU**, not configuration, not the launcher's environment, and not the libraries: the vendor launches its whole
+application set at once, and two TCG vCPUs are not enough for the home screen to finish Qt/QML start-up before the manager's timers fire.
+
+That is a property of the **projection**, not of the vehicle. On hardware the same code has real cores and a real GPU.
+
+**What this run did not show, and why.** The probe's surface check reported none, but the check itself was wrong: it read `/tmp/launcher-chain/weston.log`, which is the **research
+chain's** log path, while on the authentic path `esinit` starts the compositor as
+
+```sh
+(/usr/bin/weston --tty=1; touch /tmp/weston.crash) > /dev/kmsg 2>&1 &
+```
+
+so its output goes to `/dev/kmsg` - and the serial log contains **zero** `Surface id(` lines, meaning either the projection's wrapper redirects it elsewhere or the app had not created a
+surface by 210 s. **Untested, not refuted**, and for the third time tonight the instrument rather than the target was the problem.
+
+So the authentic path stands where it did: **it paints when the application is given the machine** (the by-hand proof, 120,556 bytes), and the managed instance now gets far enough to
+register once it has CPU. The remaining question - does the managed instance *paint* under four vCPUs - needs one run with the compositor's real log path, and that is written down here
+rather than guessed at.
+
 ## 5.0.4 - the managed child has the right environment, so the last gap is not an environment problem
 
 The lossless channel worked on the first attempt after the flag fix, and it answers the question the three previous runs could not.

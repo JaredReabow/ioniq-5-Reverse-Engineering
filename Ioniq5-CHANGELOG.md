@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.5.0 - USB peripherals: HID is the interesting one, and serial is explicitly disabled
+
+Evaluated every peripheral class the image supports, prompted by the question of whether a device like an ESP32 with native USB could attack
+the unit.
+
+- **USB HID is fully supported by the kernel, as modules.** `lib/modules/4.1.27-abl/kernel/drivers/hid/` contains `hid.ko`, `hid-generic.ko`,
+  `usbhid/usbhid.ko`, and vendor-specific `hid-apple`, `hid-belkin`, `hid-logitech`, `hid-microsoft`. `modules.builtin` contains **none** of
+  them, so they are loaded by udev at runtime — which is the normal case on the vehicle and is why a keyboard-style device would be accepted
+  there.
+- **Where keys would land:** the only shipped input-device udev rule is `/lib/udev/rules.d/80-hyundai.rules`, and it matches the **I2C touch
+  panel** (`SUBSYSTEM=="input", KERNEL=="event[0-9]*", ENV{DEVPATH}=="/devices/pci0000:00/0000:00:16.3/i2c_designware.3/i2c-3/…`). Nothing
+  filters keyboards, and Weston seats accept a keyboard alongside the touchscreen, so injected keystrokes are a plausible route to **drive the
+  stock UI** — the About-screen tap gesture and then the PIN.
+- **USB serial is deliberately disabled.** The same udev rules file contains a **commented-out** rule for `ttyACM[0-9]*` (the CarPlay/iAP2 gadget
+  serial), and no `serial-getty` unit is enabled. So a CDC-ACM device — the ESP32's other native-USB mode — gets no login shell.
+- **Mass storage remains the strongest peripheral vector**: `usb-automount` mounts and reports, genivi mediamanager issues `scanAsync`, and
+  `org.lightmediascanner` is **D-Bus activated** to run `/app/bin/lightmediascannerd`, which brings in **GStreamer 1.8.3 `libgstasf.so`**. That is
+  candidate **V-047**: crafted ASF/EBML content is a documented root-execution class on this platform.
+- **USB Ethernet** is a dead end for this image (drivers present, no SSH daemon), as recorded in §13 of the dev-mode evidence document.
+- **In this projection, HID cannot be demonstrated yet, and the reason is instructive:** a QEMU `usb-kbd` on a `piix3-usb-uhci` controller does not
+  enumerate, because the research init does not run udev and none of `usbcore`, `uhci-hcd`, `hid` or `usbhid` is built in. Loading them by hand
+  failed (`usbhid: Unknown symbol usb_…`), so the module stack needs to be brought up in the right order before HID can be tested here. **That is a
+  limitation of the projection, not evidence that HID is unavailable on the vehicle.**
+
 ## 4.4.0 - clean capture banked, and a second project confirms the dev-mode path independently
 
 - Banked the clean frame: **`docs/vm/24-clean-vendor-backend-2026-11-04.png`** (747,445 bytes) — the home screen rendered on the vendor headless backend with a single output, smooth wave background and

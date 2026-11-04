@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.0.2 - the managed path starts the app but it never claims its bus name
+
+Tried the last gap myself in `work/vm/byhand` (my clone, with both the driver-path fix and `swrast_dri.so` in the default `/usr/lib/dri`), probing at 185 s instead of the 100 s that
+fired too early last time.
+
+```
+PROBE4_APPHOME=3054                       the managed AppHomeScreen IS running
+PROBE4_INTRO=[ServiceUnknown: The name co…]   …but it does not own com.lge.hkmc.avn.appfunc.AppHomeScreen
+PROBE4_SURFACE=                           and no new surface
+```
+
+So on the **managed** path the process exists and never registers, while the **by-hand** instance in the worker's run21 registered, introspected and painted. The difference is
+therefore in what the launcher gives its children, not in the app.
+
+Two observations that narrow it:
+
+- `PROBE4_EGL:` is **empty** - the launcher's stdio log contains no EGL lines for the child at all, which is consistent with the child not reaching EGL (or not inheriting the
+  environment that produced the warning). Either way the child's environment is the suspect, not the library set, since the same libraries work when the app is started by hand.
+- The launcher's own log is full of group launches and `[TIMEOUT] … AppID : 121` reaping while this ran - the projection is running the whole vendor unit set against two vCPUs, so the
+  child may simply not have got far enough in 185 s.
+
+Both halves of that are checkable in one run and are handed to the worker: **diff `/proc/<managed AppHomeScreen>/environ` against the by-hand instance's environ**, and if they differ
+only in `LIBGL_*`, the launcher's child-environment filter is the whole remaining problem; if the child is simply starved, the answer is CPU, and the honest conclusion is that the
+managed path needs more emulated CPU than this projection gives it.
+
+The VM goal is not blocked by this - the authentic path renders, proven by hand - but "the interface the product launches is painted and interactive" still needs this last step.
+
 ## 5.0.1 - the front page now says what the VM actually does
 
 The README's fidelity section was written when the best claim available was "the vehicle's own boot starts its own compositor, and the frame is the early background". That

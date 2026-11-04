@@ -5277,3 +5277,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 
 - The readme's fidelity section still described the state before the frame painted. Corrected it to state the chain, quote the evidence, name the three substitutions in one place, and say what is still wrong.
 - A front page that undersells by a milestone is still inaccurate, just in the safer direction. It gets checked against the record like any other claim.
+
+## 2026-11-05 - the managed instance starts and never registers
+
+- Probed the managed path properly this time: the process is running but does not own its bus name and creates no surface, while a hand-started instance registers and paints.
+- So the difference is what the launcher gives its children, not the app or the libraries - the same libraries work when the app is started by hand. The launcher's log meanwhile shows it reaping other apps on timeouts, so starvation cannot be ruled out either.
+- Both possibilities are one run apart and handed over: diff the two environments, and if they match, the answer is CPU.

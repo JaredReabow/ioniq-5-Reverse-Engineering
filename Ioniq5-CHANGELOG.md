@@ -3,6 +3,36 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.11.0 - V-048 confirmed: our own binary, our own key, executed as root
+
+This is the first root path in this project that has been demonstrated rather than reasoned about.
+
+A statically linked payload was given a 256-byte `.sign` section, signed with an RSA-2048 key generated during this work, placed at
+`/tmp/app/bin/AppEngineerMode`, and paired with our own public key at `/tmp/app_normal.key`. The application manager was asked for
+app id 301 and launched it on the **first** request:
+
+```
+LAUNCHED=975 after req 1
+V048_PAYLOAD_RAN
+uid=0 euid=0 gid=0
+```
+
+The `uid=0` is written by the payload itself through `getuid()`, not inferred from the parent.
+
+The verifier is now reconstructed: the `.sign` section is found by walking the section header string table; the digest is SHA-256 over
+the file with those bytes zeroed; the check is `RSA_verify(NID_sha256, ...)` (PKCS#1 v1.5) against a **PEM** key read from
+`/tmp/app_normal.key`. The authentic keys are pinned as Qt resources (`:/app_normal.key`, `:/navi_public.key`) but are copied to `/tmp`
+once and **the `/tmp` copy is trusted thereafter without re-checking the resource**. The manager also takes the binary's path from the
+caller: `Request::launch ... appLocation[/tmp/app/bin/AppEngineerMode]`.
+
+`tools/uk_fw/poc_sign.py` performs the two steps `objcopy` would: it appends a zeroed `.sign` section by rewriting the section header
+table (the linker discards orphan sections), then hashes the zeroed file and writes a PKCS#1 v1.5 signature into it. Our signature
+verifies with `openssl dgst -sha256 -verify`, and the manager accepted it.
+
+**Correction owed.** The earlier note read `ret = 1` followed by a launch as "a failed check is tolerated". In this run the same call
+reported `ret = 1` for a vendor binary *before* our key was installed and `ret = 0` afterwards, so the sense of the return value is the
+reverse of that assumption. The conclusion does not rest on it.
+
 ## 4.10.0 - the physical vectors: a gated root console, a disabled radio, and no CAN
 
 A full inventory is in `docs/physical-and-wireless-vectors.md`. Three results change the picture.

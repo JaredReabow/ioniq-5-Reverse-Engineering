@@ -4602,3 +4602,9 @@ and are superseded by corrections rather than silently rewritten.
 - Five blockers, three of them cheap tests that can each delete a whole category. One of those, the DRM device, could turn the structural blocker into a solvable one.
 - The plan says what not to re-derive as clearly as what to do, because most of this week's cost was re-derivation.
 - Only one blocker is throughput, and that one is four independent adaptors, which is what the workers are for.
+
+## 2026-10-31 — two shaders, one trivial, and one more hypothesis gone
+
+- The fragment shader samples with the varying directly. There is no normalisation in the pipeline at all, which is now certain rather than inferred.
+- Dividing by the texture size did not help, so the pixel-space theory does not explain the background. The sampler-state test is still the one that has not been run.
+- Astra's caution about the earlier u negation was right: that frame was clean because it was empty.

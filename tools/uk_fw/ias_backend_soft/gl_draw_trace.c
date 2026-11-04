@@ -412,6 +412,10 @@ static int shader_fix_mode(void)
 		cached = 2;
 		return cached;
 	}
+	if (access("/tmp/shader-fix-fragnorm", F_OK) == 0) {
+		cached = 5;
+		return cached;
+	}
 	if (access("/tmp/shader-fix-norm", F_OK) == 0) {
 		cached = 3;
 		return cached;
@@ -435,6 +439,27 @@ static int shader_fix_mode(void)
 static const char *rewrite_shader(const char *src)
 {
 	static char buf[8192];
+	/* Fragment variant: the fragment shader samples with outTexCoords directly and no
+	 * normalisation exists anywhere. If the material supplies pixel-space coordinates (as
+	 * the icon quads measured), sampling wraps and produces the stripes. Divide by the
+	 * texture size to test that. */
+	if (shader_fix_mode() == 5) {
+		static char fbuf[8192];
+		const char *fneedle = "texture2D(texture, outTexCoords)";
+		const char *fat = strstr(src, fneedle);
+		size_t fhead;
+		if (fat == NULL)
+			return src;
+		fhead = (size_t)(fat - src);
+		if (fhead + 4096 > sizeof fbuf)
+			return src;
+		memcpy(fbuf, src, fhead);
+		fbuf[fhead] = 0;
+		strcat(fbuf, "texture2D(texture, outTexCoords / vec2(1926.0, 753.0))");
+		strcat(fbuf, fat + strlen(fneedle));
+		return fbuf;
+	}
+
 	const char *needle = "outTexCoords = texCoords.xy;";
 	const char *at;
 	size_t head;

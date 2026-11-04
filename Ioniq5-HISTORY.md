@@ -5182,3 +5182,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Reading the script behind the missing frame showed that eleven services take their bus address from a file in the world-writable runtime directory. Filed it.
 - The previous anchors each subverted one decision. This one redirects the bus the whole application stack talks on, so it buys interception and impersonation of every component at once - and it needs no defect in any of them, just the shipped configuration.
 - Same precondition as the others, so it is breadth rather than escalation. It is now the biggest row in the framing document.
+
+## 2026-11-05 - keeping the two documents in step
+
+- A new finding had gone into the register but not into the document a platform team schedules from. Added it in the configuration tier, next to the anchors whose fix it shares.
+- It sits above the code changes because the fix is a unit-file edit while what it protects is wider than anything else in that tier: eleven services and every application at once.
+- A finding that exists in only one of the two documents is either unpublishable or unfixed, which is a silly way to lose work.

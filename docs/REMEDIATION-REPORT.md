@@ -64,6 +64,22 @@ file was copied.
 
 **Verify.** The config is not writable by a non-privileged writer and a modified config is rejected.
 
+### 3b. Eleven services take their session-bus address from a world-writable file
+
+**Evidence.** `/app/bin/Dbuslaunch.sh` writes `/tmp/session_appmgr.env`, and **eleven units** read their address from it via `EnvironmentFile=`:
+`ApplicationLauncher`, `CryptoService`, `MediaBrowser`, `credman`, `mediamanager`, `mof`, `nua`, `ofono`, `remote`, `vbtd`, `watchdogd`. The script `rm`s and rewrites the file at
+every boot, so its content is whatever ran last.
+
+**Exposes.** Unlike the other writable anchors, which each subvert one decision, this redirects the bus the **entire application ecosystem** uses. A process able to write that file
+before those units start can point all eleven at a bus it owns — intercepting every `registration`, data query and command, and impersonating `com.lge.car.micom`,
+`ApplicationManager` or `AppHomeScreen` on the names the real components expect. No component needs a defect; the systemd configuration itself names a writable path as the source of a
+privileged environment variable.
+
+**Fix.** Deliver the address over a channel that cannot be pre-created — a systemd `Environment=` value set by the unit that owns the daemon, or a file in a directory only that unit can
+write (`/run/user/0`, mode 0700). A file that decides where eleven services connect must not be world-writable.
+
+**Verify.** On a unit, confirm the file is absent from `/tmp` and that the units still resolve their bus; then confirm a non-privileged writer cannot influence it.
+
 ### 4. A tampered data partition turns mandatory access control off
 
 **Evidence.** `esinit` derives `optUNECE` from `cryptsetup isLuks` on the data partition, and `smack_setup.sh` switches SMACK to **permissive** when it reads 0:

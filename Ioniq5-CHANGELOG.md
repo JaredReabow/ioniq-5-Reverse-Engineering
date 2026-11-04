@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.17.0 - V-051 is root-only, and my previous claim was wrong
+
+The session-bus policy is permissive but irrelevant, because the gate is **connection**: `session.conf` pairs
+`<listen>unix:tmpdir=/tmp</listen>` with `<auth>EXTERNAL</auth>` and no `<user>`, and the daemon is started with no `User=`, so EXTERNAL
+authentication accepts only uid 0. Measured:
+
+```
+as root                 -> method return ... (ListNames succeeded)
+as uid 65534 (nobody)   -> Failed to open connection to "session" message bus
+                           PROOF_AFTER_NOBODY=none
+```
+
+The image also provisions no `uid >= 1000` accounts and starts no vendor process non-root, so every local process is already root.
+
+**This corrects what I told the user last turn** - "any code execution as any user → one dbus-send → uid 0" is wrong. V-051 is not an
+escalation from a lesser user; it is a **persistence and re-launch primitive for code that already has root**, and a way to run a
+payload outside the label it would otherwise be confined to. It is still worth fixing, and V-048's key pinning would not have helped,
+because no signature check stands in this path at all.
+
 ## 4.16.0 - V-051's precondition is the shipped default, so the chain is complete locally
 
 `/etc/dbus-1/session.conf` carries the distribution default policy, with no vendor rule for the launcher:

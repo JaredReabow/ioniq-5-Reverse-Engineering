@@ -5050,3 +5050,9 @@ and are superseded by corrections rather than silently rewritten.
 - Tested one of the marker files properly. The path units fired, the service was attempted, and it failed on an unmet dependency - so the trigger works and the payload does not.
 - More interesting: the marker had already been set before my probe ran, and no script in the image sets it. If the platform sets it itself, the remote path opens with no attacker at all, and the question becomes what sets it.
 - Recorded the caveat next to the table rather than letting a static list read as a capability.
+
+## 2026-11-05 - the marker had an owner, and it was the launcher
+
+- The file that existed before any probe touched it is created by the launcher, next to the value it depends on: an ISA reading from the platform.
+- So it is a platform-state decision that opens the telephony and telematics remote services, not an attacker summoning them. The real question moved to whatever can influence that value.
+- The design still keys the decision on a file existing, so anything able to create the path gets the same outcome. Narrowed the claim, kept the structural point.

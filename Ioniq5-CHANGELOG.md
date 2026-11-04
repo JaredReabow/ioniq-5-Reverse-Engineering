@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.40.0 - V-056: the MAC layer names labels, loads no rules, and applications run the wildcard
+
+The question left by the last refutation - whether the MAC restriction does anything - is answered by measurement, and the answer is no:
+
+```
+my_label=_  file_attr=/tmp/st.txt access="Secret"
+secret            <- read from a _ process succeeded
+WRITE_ALLOWED     <- write succeeded, no denial, no audit record
+```
+
+`_` is SMACK's floor label **and wildcard**, deliberately allowed everything, so a process carrying it sits outside the rule system. Every vendor
+application carries it (AppHomeScreen, AppLauncher, keeper, ApplicationManager - all `_`, uid 0, full capabilities).
+
+And the image labels without ever enforcing: `/etc/smack_setup.sh` assigns `Log::dlt` to the log directories, `App::connman` to
+`/tmp/resolv.conf`, `App::upgrade` as `SMACK64EXEC` of `/update/usb/bin/AppUpgrade` and `_` to device nodes - but a search of `/etc` and the unit
+directory for `smackfs/load2` or `smackfs/change-rule` finds **nothing**. With no rule table, any label other than the wildcard would be denied by
+default, which explains why everything ends up at `_`: the only workable configuration is equivalent to no MAC at all.
+
+Filed as **V-056**. It is the missing piece that makes V-054 and V-055 reachable rather than theoretical - an application is not root-but-confined,
+it is root with no confining mechanism, on a `1777` `/tmp` that holds the trust anchors. Caveats recorded: a unit that loads rules from a source
+this image lacks, or boots with different LSM parameters, could differ.
+
 ## 4.39.0 - the refutation holds under a second, stricter test, and raises a better question
 
 The first refutation could be argued away: `onlycap` acts on exec-time label transitions, and the processes tested had inherited their label.

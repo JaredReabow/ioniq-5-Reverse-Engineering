@@ -4901,3 +4901,9 @@ and are superseded by corrections rather than silently rewritten.
 - The first refutation had a hole in it, so it was redone with the image's own labelling tool and a real exec-time transition. The labels took effect and the capabilities stayed full anyway.
 - So the tidy theory is dead in two configurations. What replaces it is a question worth more: if the restriction does not strip capabilities even when applied properly, what is the MAC layer actually enforcing here?
 - Recorded what could change the answer - LSM boot parameters and a populated rule table, neither of which is present - instead of asserting the stronger claim.
+
+## 2026-11-04 - the containment is a label scheme with nothing behind it
+
+- A process carrying the floor label read and wrote a file labelled otherwise, with no denial and no audit. That label is the wildcard, so processes carrying it are outside the rule system entirely.
+- Every application carries it. And the image assigns labels to directories, files and one binary without ever loading a single access rule, which means anything not at the wildcard would simply be denied - so wildcard everywhere is the only configuration that works, and it is the same as no MAC.
+- That is the missing piece under the last two findings, and it is measured rather than inferred.

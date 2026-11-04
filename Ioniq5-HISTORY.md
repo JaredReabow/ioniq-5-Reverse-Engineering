@@ -4591,3 +4591,8 @@ and are superseded by corrections rather than silently rewritten.
 - The texture matrix does not exist. What does exist is a 1926-wide texture used with coordinates outside 0..1, in an OpenGL ES 2.0 stack where wrapping a non-power-of-two texture is undefined
   behaviour rather than an error. That fits silence, stripes, and a picture that changes with the mapping.
 - The next test forces clamp-to-edge on non-power-of-two textures. If the stripes clear, the vendor was relying on something the vehicle's GPU tolerated and the emulation does not.
+
+## 2026-10-31 — the blocker list, written down
+
+- Five things stand between here and a fully working VM, and only one of them is the fault being chased today.
+- The hardest is not a bug at all: this VM can only render with pixman, so anything the vendor's driver tolerated and pixman does not has to be designed around rather than fixed.

@@ -1898,8 +1898,9 @@ mode. Treat the current construction as obfuscation rather than encryption when 
 
 ## V-054 — the account database lives in `/tmp`, and the console policy is a file copy
 
-**Status:** confirmed from the image; not exercised on a unit. Its practical weight depends on whether any non-root writer to `/tmp`
-exists, which on this build is not established (every vendor process observed runs as uid 0).
+**Status:** confirmed from the image; not exercised on a unit. Its practical weight depends on who can write `/tmp`: that `/tmp` **is**
+world-writable was measured (`stat -c %a /tmp` → `1777`, `tmpfs ... rw`), so the enabling condition exists; what is not established is a
+non-root context to exploit it from, since every vendor process observed here runs as uid 0.
 
 ### What the image does
 

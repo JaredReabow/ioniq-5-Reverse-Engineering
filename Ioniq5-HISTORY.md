@@ -4878,3 +4878,9 @@ and are superseded by corrections rather than silently rewritten.
 
 - The fidelity work is delegated, and the reason it is fiddly is itself a finding: the compositor's config is one step removed from the file weston reads, through a symlink into tmp.
 - Recorded the three substitutions that remain between this projection and a vehicle - a software backend, a simulated handshake, and one neutralised driver - together, so the boundary is stated once and plainly rather than scattered across entries.
+
+## 2026-11-04 - checking the assumption under everything else
+
+- Every one of these findings rested on the directory being writable, which nobody had measured. It is: 1777 on tmpfs.
+- That does not make them live, and the entries now say so more precisely - the anchors are reachable by any code execution, but the only code execution here is root already.
+- Also noted that this projection does not enforce the MAC layer at all, so nothing about enforcement should be inferred from these runs.

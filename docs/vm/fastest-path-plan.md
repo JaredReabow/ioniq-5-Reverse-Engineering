@@ -89,3 +89,64 @@ shipped interface XML, own the bus name, answer with well-formed replies, verify
 Blockers 1, 2, 3 and 5 are single-run probes that must be done in sequence by one agent, because they
 share the same VM and the same instrument set. Blocker 4 is four independent adaptors and can be built in
 parallel by worker agents, each with its own contract source and its own verification run.
+
+## Second opinion (Astra + Fable), and what changed
+
+Both reviewed the five blockers. They **agreed on blocker 5** and disagreed usefully elsewhere. Corrections adopted:
+
+### Blocker 1 — the cause is probably the coordinates, not the wrapping
+
+- Astra: *"NPOT dimensions alone do not establish a driver bug"*, and the leading hypothesis is **UV range/normalisation**, not wrap state. It also warns that **negating `u` is not a
+  fix** — it can simply move invalid coordinates onto a clamped edge, which is exactly what the empty frame in §3.22.0 looks like.
+- Fable supplies the mechanism to test: the material likely feeds **pixel-space texcoords** intended for `samplerExternalOES`/EGLImage, and on this stack the plain `sampler2D` path is what
+  compiles, so `u ≈ 0..1926` under REPEAT gives `frac(u)` stripes — which is why the extent scales with the transform and why flipping the sign changes it.
+- **Resulting first test: dump the FRAGMENT shader** (only the vertex shader has been captured so far) and inject `texcoord /= vec2(1926.0, 753.0)` before the sample. Clean image ⇒ confirmed.
+  Still striped ⇒ dump the attribute type/stride/normalised flag for that draw. Both are one run each.
+
+### Blocker 2 — the first question is buffer type, not arbitration
+
+- Fable: check whether AppNavi attaches **`wl_drm`/dmabuf** buffers. The pixman renderer **cannot composite dmabuf**, silently — which would explain "renders genuine map pixels into its
+  own surface" and "never appears". If dmabuf, force the shm/software path for that client.
+- Astra prefers tracing the activation request through appmanager to surface identity, layer, visibility and z-order, and one diagnostic forced promotion to separate arbitration from
+  placement. Do the buffer-type check first because it is a single `strace`, and it can end the question before any policy work.
+
+### Blocker 3 — do it now, as instrumentation, not as a fix
+
+- Fable: preload a shim installing `SIGSEGV`/`SIGABRT` handlers that call `backtrace_symbols_fd()` — **a real stack trace with no debugger**, which is the capability this project has
+  been missing all week. Add `MALLOC_CHECK_=3` and `GLIBC_TUNABLES=glibc.malloc.tcache_count=0` so the `free()` corruption aborts at the culprit.
+- Both suspect the deaths are **symptoms of blocker 4** (a ~55 s service timeout; a double free on a null reply). Cheapest ordering: get the traces, then see whether the service
+  adaptors retire them. Astra adds the caveat that `libQt5Core` and `free()+0x14` identify **crash sites, not causes**, and that both crashes should not be assumed to share one defect.
+
+### Blocker 4 — isolation contract (both agree)
+
+- One adaptor per `/opt/adapt/<name>/` with its own shim, unit and config. **Nobody edits shared files**: `/etc/ld.so.preload`, launcher config and unit enablement are generated from a
+  manifest by a single integration owner at image build. Astra: one immutable base image plus per-lane overlays and private disks. Fable: develop each adaptor against a captured
+  golden/replay log instead of VM boots.
+- Staging: **null responder first** (well-formed replies to everything), then fidelity. Order: **persistence → input → audio (C-TRACS/MMUS) → suspend/restart**, integrating one lane per
+  run. Fable's bet is that persistence retires blocker 3 on its own.
+
+### Blocker 5 — both call it a trap; do not port virtio-gpu
+
+- Astra: `/dev/dri` does not supply vendor DRM ioctls, buffer layouts, EGL extensions or plane semantics; **full IAS hardware emulation is the schedule trap**. Acceptable variant: an
+  ABI-matched headless EGL backend/backport using software GL, or surfaceless EGL — **no virtio-gpu required**.
+- Fable: three ports (vendor kernel driver, Mesa driver, host virgl) before learning anything; same conclusion.
+- Time-boxed to **2 agents, ~1 day**, and it must prove **EGL init *and* import/render of an actual client buffer** — a standalone GL triangle is not evidence. If not green, pixman is
+  final and nothing in blockers 1–4 depends on it.
+
+### Revised order (fastest to all five)
+
+1. **Blocker 3 instrumentation** — signal-handler traces + malloc checking. Half a day, and it makes every later crash diagnosable.
+2. **Blocker 1** — fragment shader dump, then UV normalisation test, then attribute dump.
+3. **Blocker 2** — dmabuf-vs-shm strace, then one forced promotion.
+4. **Blocker 4** — four isolated lanes in parallel, null responder first, integrate in the order above.
+5. **Blocker 5** — time-boxed probe at the end, or never.
+
+### Worker allocation (Astra)
+
+8 service · 3 sampling · 3 crash · 2 arbitration · 2 GL · 2 integration/test, with centralised VM-run scheduling and one causal variable per experiment.
+
+### Do not attempt (both, condensed)
+
+Re-proving verified subsystems · blind kernel/Mesa/QEMU replacement · full IAS hardware emulation or a virtio-gpu/virgl port · GPU acceleration as an ASTC cure · software ASTC decode
+(pre-transcode assets instead) · blanket success stubs · permanent shader or foreground hacks that hide a defect · building a guest debugger · editing assets or data files to work around
+blocker 1.

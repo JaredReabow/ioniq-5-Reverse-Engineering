@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.35.0 - naming the three things that stand between this and stock
+
+The fidelity work is delegated to a worker with its own clone (`work/vm/stockhmi`): install a headless/software-backend variant of
+`/etc/xdg/weston/weston_${LCD_TYPE}.ini` inside `p5` so that the authentic `esinit -> weston` path renders, rather than the research-init
+chain doing it. The reason it is not a one-line change is worth recording: the compositor's config is reached through
+`/etc/xdg/weston/weston.ini -> /tmp/weston.ini`, written at boot by `install_westonPngLogo.sh`, so the file to change is one step removed
+from the file weston reads - which is exactly what makes V-055 a finding as well as an inconvenience.
+
+Three substitutions are now the honest boundary of "as close to stock as reasonable", and they are recorded together rather than scattered:
+
+1. **A software backend stands in for `ias-backend.so` and the hardware** (`headless-backend.so` or `ias-backend-soft.so`, with
+   `GALLIUM_DRIVER=softpipe` and the `/opt/software-egl18` library path).
+2. **The MICOM handshake is simulated** by a wrapper init that forces `spi_validation` before `esinit` polls it, because the driver resets
+   the value during probe.
+3. **`lge_usb_adapter` is neutralised**, because it oopses on non-vendor hardware and holds the platform-bus lock, which deadlocks
+   `modprobe fan` and stops `esinit` reaching systemd at all.
+
+Everything else on the boot path is the shipped software: the vendor kernel, the vendor `esinit`, the vendor eMMC recovery, the vendor fstab,
+the vendor unit set, the vendor udev rules and the vendor binaries.
+
 ## 4.34.0 - the SPI gate opens, and the sixth instance turns up in the compositor's own config
 
 The MICOM SPI stand-in works: booting `/init-esinit-spi.sh`, which forces the parameter and then execs the authentic init, made `esinit`

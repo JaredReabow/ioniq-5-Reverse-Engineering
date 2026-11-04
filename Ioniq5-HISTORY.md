@@ -4681,3 +4681,9 @@ and are superseded by corrections rather than silently rewritten.
   missing from our clone, one because we deleted it ourselves.
 - Three faults, each found by reading rather than guessing, and none of them the fatal one. Weston still exits with no complaint it is willing to print.
 - Next is to measure its exit status instead of inferring, and to remember that the chain kills the compositor itself after its dwell.
+
+## 2026-11-04 — force update only opens one of three gates
+
+- The menu is real, but the string says exactly what it does: pass the version compare. Signature verification is untouched, and production builds disable the facility anyway.
+- So the answer is no: there is no forced-update vector that does not first require a privileged write to replace the trust anchor.
+- The rollback angle is the interesting leftover — force update would accept an older package that is still correctly signed.

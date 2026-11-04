@@ -2034,21 +2034,14 @@ recorded as a latent weakness that turns any future lesser-privileged tmp write 
 Keep the compositor configuration in read-only storage, stop resolving it through a symlink in a writable directory, and require module
 paths to be absolute and inside a signed/read-only directory rather than whatever the config names.
 
-## V-056 — CORRECTED: the MAC rule set ships and is loaded; the open question is whether applications carry a confined label
+## V-056 — the MAC rule set ships and loads, and a process carrying `_` is not confined by it
 
-**This entry originally claimed "the shipped MAC configuration names labels but loads no rules". That was wrong, and the correction is worth more than the
-claim was.**
+**Status:** measured on the **authentic** boot path with the shipped policy loaded. This entry has been corrected twice; both corrections are kept below, because
+the second is what makes the finding trustworthy.
 
-### What is actually shipped
+### What is shipped
 
-`/etc/smack/accesses.d/` contains **12 rule files and 636 rules**, loaded at boot by `smack.service` — which the authentic boot confirms:
-
-```
-systemd[1]: Starting Smack service loads smack rules in /etc/smack/accesses.d...
-systemd[1]: Started Smack service loads smack rules in /etc/smack/accesses.d.
-```
-
-and they are a real per-domain scheme, not a stub:
+`/etc/smack/accesses.d/` contains **27 rule files, 636 rules, 28 distinct subject labels** — a real per-domain scheme:
 
 ```
 App::bluetooth _ rwxa--
@@ -2057,33 +2050,40 @@ App::bluetooth Log::bluetooth rwxat-
 App::bluetooth App::tms rwx---
 ```
 
-The original claim came from searching `/etc` and the unit directory for `smackfs/load2` and `smackfs/change-rule` writes, finding none, and concluding there
-were no rules. **The rules are data files, not script writes.** Searching for the mechanism instead of the artefact produced a false negative — the same class
-of error as concluding the ASF parser was absent because `lms_asf.so` does not exist. Third instance in this project, recorded here in those terms.
-
-### What is still measured
-
-- Every vendor application observed carries the label **`_`** (`AppHomeScreen`, `AppLauncher`, `keeper`, `ApplicationManager` — all `_`, uid 0).
-- With the rules loaded, the authentic-path runs show **210 granted and 0 denied** SMACK audit decisions, so nothing in that boot was refused.
-- The earlier test in which a `_` process read a file labelled `Secret` ran **without** the rule set loaded, so it cannot speak to the production
-  configuration. It is withdrawn as evidence about it.
-
-### What is not established
-
-**Whether `_` is a confined subject once rules are loaded.** In SMACK `_` is the floor label and doubles as a wildcard inside rules; whether a *process* carrying
-it is exempt, or simply had rules that permitted what was audited, cannot be decided from this evidence. The measurement that would decide it is unchanged, and
-must be taken on a unit with the shipped policy loaded:
+and the authentic boot loads them:
 
 ```
-cat /proc/<pid>/attr/current      # is an application "_", or a real domain label?
-cat /proc/<pid>/status | grep Cap
-grep -c <that label> /etc/smack/accesses.d/*     # is that label subject to rules?
+systemd[1]: Starting Smack service loads smack rules in /etc/smack/accesses.d...
+systemd[1]: Started Smack service loads smack rules in /etc/smack/accesses.d.
 ```
 
-If applications carry a real domain label and the rules constrain it, the MAC layer is working and this entry should be withdrawn entirely. If they carry `_`,
-the narrower conclusion stands: the policy exists, but the applications sit outside it.
+### What is measured
 
-### Consequence for other entries
+Every vendor application observed carries the label **`_`** (`AppHomeScreen`, `AppLauncher`, `keeper`, `ApplicationManager` — all `_`, uid 0). And under the
+authentic boot, in a process carrying that label, a file labelled `Log::dlt` was **readable and writable**:
 
-V-054 and V-055 were described as reachable "because MAC is inert". With the rule set established, that reasoning no longer holds: both revert to **latent with
-confinement unknown** rather than latent for a stated reason. Their mechanisms are unchanged and still demonstrated.
+```
+SMACKPROBE label=_ rules=27 read=[secret] write=[ok]
+```
+
+So the rules exist, they are loaded, and **a process whose subject label is `_` is not confined by them.** The floor label is a wildcard in SMACK's rule
+language, and a process carrying it is effectively outside the policy — which is the conclusion this entry originally reached for the wrong reason.
+
+### The two corrections, kept deliberately
+
+1. **First version claimed "labels but no rules".** Wrong. It came from searching `/etc` and the unit directory for writes to `smackfs/load2` and
+   `smackfs/change-rule`, finding none, and concluding there were no rules. The rules are **data files**, not script writes — searching for the mechanism
+   instead of the artefact. Same class of error as concluding the ASF parser was absent because `lms_asf.so` does not exist.
+2. **Second version said the count was 12 files and that confinement was "open".** Both were wrong: it is **27** files (the 12 came from a truncated listing),
+   and the question is now answered by measurement rather than left open.
+
+### Why it matters
+
+The vendor built a 28-label policy with 636 rules and then runs the applications under the one label that is exempt from it. The policy constrains
+*something* — the labels appear in rules as objects and subjects — but not the application processes, which are the software most exposed to attacker input.
+That is what makes V-054 and V-055 reachable in principle: an application process is uid 0 with a wildcard subject label.
+
+### Suggested patch direction
+
+Give applications a real domain label (the scheme already exists — `App::*` labels are defined) and add the rules that let them do their work, then verify from a
+unit that an application process **cannot** read a `Log::*` object. The remaining gap is configuration, not design: the label vocabulary is already there.

@@ -5056,3 +5056,9 @@ and are superseded by corrections rather than silently rewritten.
 - The file that existed before any probe touched it is created by the launcher, next to the value it depends on: an ISA reading from the platform.
 - So it is a platform-state decision that opens the telephony and telematics remote services, not an attacker summoning them. The real question moved to whatever can influence that value.
 - The design still keys the decision on a file existing, so anything able to create the path gets the same outcome. Narrowed the claim, kept the structural point.
+
+## 2026-11-05 - correcting the document people would act on
+
+- The remediation report was still citing the probe I had withdrawn. Fixed that first, because an invalid measurement matters more in the document a platform team reads.
+- Rewrote the first item around what is solid and what is not, and ordered the fix: verify on a unit, then label, then enforce - because enforcing first measures forty denials and confines nothing.
+- Added the marker pattern as its own item with the caveats attached, so it reads as a design weakness rather than a demonstrated capability.

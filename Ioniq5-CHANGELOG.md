@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.28.0 - the vehicle's own boot sequence runs to multi-user
+
+A **GPT-partitioned image** with the real `p1`-`p17` layout lets `/lib/systemd/esinit` run its eMMC recovery and then `exec` systemd on
+its own, instead of systemd being started directly:
+
+```
+[eMMC] ***** eMMC RW_DATA Partition Check and Recovery Complete!!!
+systemd[1]: Reached target Local File Systems.      (14.1 s)
+systemd[1]: Reached target Basic System.            (18.3 s)
+systemd[1]: Reached target Multi-User System.       (75.9 s)
+```
+
+`local-fs.target` is exactly what a single-partition clone could never reach; now every fstab partition exists and mounts, and
+`dlt-daemon` writes `/log_data/kernel/kernel_*.dlt` on `p8` several minutes in.
+
+The layout is derived, not guessed: the 17-partition line comes from the 2024 field unit's own kernel dump, **eight sizes are measured**
+from that unit's `e2fsck` logs (p8 2 GiB, p9 12 GiB, p10 150 MiB, p11 1280 MiB, p12 and p13 40 MiB each), and the A/B slot map
+(active root `p5`, inactive `p3`, inactive boot `p1`, VR `p6`/`p7`) comes from the recovered FUMO inactive-partition table. `/update` on
+`p9` and `/rw_data` on `p11` are now named facts rather than inferences.
+
+Two honest notes. `esinit` deadlocks without a one-line neutralisation - `install lge_usb_adapter /bin/true` - because that vendor driver
+oopses on non-vendor hardware and leaves the platform bus lock held, which is itself a small finding about the driver. And the harness's
+`root=/dev/mmcblk0` token had to become `root=/dev/mmcblk0p5`, since a GPT header overwrites the ext4 superblock at byte 1024; that is a
+documented change to the fixed command line, not a silent edit.
+
+Reproducible via `tools/uk_fw/vm_partimg/build-partitioned-image.py` and `run-esinit.py`; write-up in `docs/vm/partitioned-image.md`.
+
 ## 4.27.0 - the VM is interactive, proven from the client's own input log
 
 A synthetic click now demonstrably reaches the running application, and the proof is not from our own instrumentation but from the app's

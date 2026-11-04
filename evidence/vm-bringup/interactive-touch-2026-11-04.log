@@ -1,0 +1,21 @@
+# Synthetic touch reaching AppHomeScreen — captured 1793790228386158000/serial.log
+# Guest: /run-touch.sh (chain23, then /usr/bin/ivi-wm 2080 to place the home screen,
+#        then 'click X Y' written to /tmp/weston-vm-input)
+
+=== compositor acknowledgement ===
+VM_INPUT_CLICK_ACCEPTED
+VM_INPUT_FOCUS_BEFORE_MOVE pid=821 uid=0
+VM_INPUT_FOCUS_AFTER_MOVE pid=821 uid=0
+VM_INPUT_CLICK_DONE
+
+=== the client's own Qt/Wayland input log (DLT context QCTX) ===
+QWaylandInputDevice::Touch::touch_down: PID(821), ID(0)
+QWaylandInputDevice::Touch::touch_up: PID(821), ID(0)
+
+=== the application reacting ===
+[Re-enable touch]
+[Thread # 866 ] [ void AppHomeModel::setDisable...
+
+# What this shows: the click travels file -> vendor weston-vm-input.so -> compositor seat ->
+# Qt's Wayland input device in the authentic application, arriving as touch_down/touch_up with
+# the app's own PID, and the app takes action on it. The focused client runs as uid 0.

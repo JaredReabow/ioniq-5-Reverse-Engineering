@@ -72,6 +72,31 @@ to, and the base rootfs hash is rechecked after each experiment
 | CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed |
 | Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end |
 
+### The VM is interactive, and the app logs prove it
+
+A synthetic click travels the whole way in and is handled by the authentic application. Compositor side:
+
+```
+VM_INPUT_CLICK_ACCEPTED
+VM_INPUT_FOCUS_BEFORE_MOVE pid=821 uid=0
+VM_INPUT_FOCUS_AFTER_MOVE  pid=821 uid=0
+VM_INPUT_CLICK_DONE
+```
+
+and then the **application's own Qt/Wayland log**:
+
+```
+QWaylandInputDevice::Touch::touch_down: PID(821), ID(0)
+QWaylandInputDevice::Touch::touch_up:   PID(821), ID(0)
+[Re-enable touch]
+```
+
+So the click goes file → vendor `weston-vm-input.so` → compositor seat → `AppHomeScreen`'s Qt input device, arriving as a real touch
+event with the app's own PID, and the app acts on it. Raw capture: `evidence/vm-bringup/interactive-touch-2026-11-04.log`.
+
+Two practical notes: the surface must be placed first (`/usr/bin/ivi-wm 2080`) or the compositor reports `pid=NO_VIEW`/`NO_CLIENT`, and the
+window only draws after placement — placement, not drawing, was the blocker for a long time.
+
 ### The vendor userspace now boots in the VM
 
 The projection boots the **authentic rootfs under systemd as PID 1** with the **vendor kernel** (`boot/bzImage-4.1.27-abl`), reaching

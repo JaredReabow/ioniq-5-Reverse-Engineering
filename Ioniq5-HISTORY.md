@@ -4849,3 +4849,9 @@ and are superseded by corrections rather than silently rewritten.
 - The parameter is writable, but the driver puts it back to 0 during probe, and the init polls it before any userspace can write. So it can only be opened between the kernel and the init.
 - That wrapper exists now and is labelled as a stand-in for hardware, not part of the shipped system.
 - Installing it means moving eight gigabytes through an image for a fidelity improvement, and the interface already runs in the projection. Recorded rather than done, because saying so is more useful than a heroic injection.
+
+## 2026-11-04 - the encryption key was in the script
+
+- Asking whether the previous finding applied to real units led to the encryption routine itself: it formats the data and log partitions with a four-digit literal that ships in the same image.
+- So a dump of the storage opens both, and the thing it protects is application data and the vehicle logs that accumulate within minutes of boot. The cipher mode is a legacy one.
+- Recorded what is not known too - whether units reach this path, and whether another keying path exists. Neither was found, which is not the same as not existing.

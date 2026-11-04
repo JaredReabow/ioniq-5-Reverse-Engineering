@@ -1823,3 +1823,60 @@ projection, and the honest statement is that the *mechanism* is confirmed and th
 Make the security posture fail closed: treat an unrecognised or unreadable data partition as requiring confinement, derive the UNECE status
 from a value the platform cannot lose (a signed build property or a fuse), and do not let the same flag that enables the radio also
 disable MAC.
+
+## V-053 — user data and logs are "encrypted" with a hardcoded four-digit passphrase
+
+**Status:** confirmed from the shipped script. `cryptsetup` and the affected partitions are present in the image; the passphrase is a literal.
+Not exercised on hardware, and whether a given unit has been through first-boot encryption is not established.
+
+### What the image does
+
+`/etc/fde_test_v2.sh` runs on first boot to turn on encryption for `/rw_data` (`mmcblk0p11`) and `/log_data` (`mmcblk0p8`):
+
+```sh
+do_EncryptHomeDirectory () {
+    ...
+    # 1. Make Luksformat - add footer
+    echo "1234" | $CRYPTSETUP -v -c "aes-cbc-essiv:sha256" luksFormat $1 --batch-mode
+    ...
+    # 2. LuksOpen -> /dev/mapper/$1
+    echo "1234" | $CRYPTSETUP luksOpen $1 $2
+    ...
+}
+```
+
+and the teardown path uses the same literal:
+
+```sh
+echo "1234" | $CRYPTSETUP luksOpen $1 $2
+```
+
+The script's own header states what this protects: *"Needed for features such as secure storage daemon, user data encryption."*
+
+### Why it matters
+
+- **The passphrase is `1234`, identical on every unit built from this image, and it is in the image.** Anyone who obtains the flash contents —
+  a removed eMMC, a chip-off, a full firmware image, a service-centre dump — can unlock both partitions offline with a four-digit literal.
+  The confidentiality the feature is meant to provide against exactly that threat does not exist.
+- **The passphrase lives in the same image as the ciphertext**, so this is not key management with a weak default; it is a fixed key.
+- **The cipher mode is `aes-cbc-essiv:sha256`**, a legacy CBC construction rather than an AEAD mode, chosen explicitly on the command line.
+- **What is inside those partitions is not trivial:** `/rw_data` holds persistent application data, and `/log_data` is where `dlt-daemon`
+  writes vehicle logs — the projection shows `kernel_*.dlt` accumulating there within minutes. Paired devices, positions and user
+  preferences would be expected to land in that set.
+
+### Relationship to V-052
+
+They are two halves of the same first-boot decision. `esinit` decides "this is a UNECE vehicle" by asking whether `mmcblk0p11` is LUKS
+(V-052), and `fde_test_v2.sh` decides *how* it becomes LUKS — with `1234`. So on a unit that has been through first boot, the answer to
+"is the data protected" is: the probe succeeds, MAC stays enforcing, and the ciphertext is openable by anyone holding the image.
+
+### Not established
+
+Whether production units actually reach this path (the script runs on first boot after flashing, and the trigger conditions for
+`do_UserDataEncryptionConfiguration_*` are not fully traced), and whether any units derive a per-unit passphrase elsewhere. The literal
+`1234` is what this script uses; no other keying path was found in it.
+
+### Suggested patch direction
+
+Derive a per-unit key from a protected source (fuse/OTP or a hardware key store), never ship a passphrase in the image, and use an AEAD
+mode. Treat the current construction as obfuscation rather than encryption when assessing exposure from a device dump.

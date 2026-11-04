@@ -10,3 +10,6 @@ checkable rather than resting on their report.
 
 What we did **not** do: reproduce the dynamic-media demonstration. That needs programmable USB hardware, and the TOCTOU window itself is a property of the shipped code rather than
 of our image.
+
+Their documents keep their **original internal cross-references** (`01-vulnerability.md` and friends, under their own `docs/` directory), which are relative to the upstream layout. Those paths are
+allowlisted as `EXTERNAL` in `tools/doc_link_allowlist.txt` rather than edited, so the imported text stays verbatim.

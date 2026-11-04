@@ -101,6 +101,18 @@ on a stock unit, and it is not answered here.
    so the version gate's actual behaviour can be observed rather than inferred, which is what this project has learned
    to prefer.
 
+## 5b. The ceiling moved: V-059 circumvents the version gate entirely
+
+Everything above assumes the updater installs the bytes it checked. **V-059** says it does not have to: `AppUpgrade` verifies a file and then installs it in a **separate process that
+re-opens the same file**, while that file lives on attacker-supplied USB media. A programmable USB device can serve the genuine signed image during the check and different bytes during
+the install.
+
+That does not make a downgrade *easy* - it needs hardware and it needs the TE2 content key for the swapped payload - but it changes this document's central conclusion in one respect: the
+**version gate runs on the checked bytes, not the installed ones**, so the unresolved anti-rollback question no longer bounds what can be installed. Anti-rollback still decides whether a
+*signed older* image is accepted through the ordinary path; it does not decide this one.
+
+Corroborated statically in this image (the check and install command strings, `DecryptToPIPE`, and the absence of dm-verity); **not reproduced here**, and nothing was installed anywhere.
+
 ## 6. Honesty statement
 
 Every claim above is static analysis of shipped code or a quotation of this repository's prior recovery. **No downgrade

@@ -2417,11 +2417,22 @@ and `/app/share/AppUpgrade/DecryptToPIPE` (559,192 bytes) exists and is referenc
 Because the check and the install are **separate shell invocations that each name `%1`**, the file is opened twice with the integrity decision in between. That is the whole
 vulnerability, and it is visible in our binary without running anything.
 
-### An additional lead this repository turns up
+### The "verify skip" strings — checked, and duller than first reported
 
-The string `system update verify skip` appears next to the post-install verification. The upstream work measures that verification as too short to re-hash the partition; the
-presence of an explicit *skip* path suggests the check can also be bypassed by state rather than by timing. **Not investigated** — recorded because it is one grep away from being
-checkable and nobody has looked.
+I first recorded these as an uninvestigated lead that might bypass the post-install verification by state rather than by timing. Having looked, the honest reading is less exciting:
+
+```
+1  system update verify skip
+1  new gui update verify skip
+1  navi map update verify skip
+1  navi app update verify skip
+   each of the form:  [Info] :: %s file status = %d, <component> update verify skip
+```
+
+**All four components have one**, each keyed on that component's `file status`. The most plausible reading is the ordinary one: **a component that is not present in this package is
+skipped**, which is not a bypass at all. Nothing was found that lets a *present* component skip verification, and no claim to the contrary is made here.
+
+It stays recorded because the first version of this paragraph claimed otherwise, and because `file status` is the value to look at if anyone wants to settle it properly.
 
 ### Why it matters for the two standing questions
 

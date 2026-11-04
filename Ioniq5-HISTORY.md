@@ -5236,3 +5236,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - An external project claims a verify-then-install race in the USB update path. Every command string its mechanism depends on is present in our copy of the same build, including the separate re-read that is the whole vulnerability, and there is no boot-time rootfs integrity to catch the result.
 - Filed it with that corroboration and imported their documentation only, not their tooling. The dynamic demonstration is theirs and is not reproduced here; the entry says so plainly.
 - Checking it turned up a string upstream does not mention: a skip path for the post-install verification. Recorded as uninvestigated, because one grep would settle it and nobody has run it.
+
+## 2026-11-05 - walking back a lead, and following a finding into the documents it changes
+
+- Called a set of skip strings an uninvestigated bypass. There are four, one per component, each keyed on whether that component is present - the boring reading is the right one, and the entry now says so.
+- The finding itself then had to propagate: the downgrade document's central bound only holds for the ordinary path, and the root-access ranking gained a route above the serial console that needs no key at all.
+- Also let the imported upstream text keep its own internal links rather than editing someone else's document, and reworded one of my own sentences that looked like a link to a file we do not have.

@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.95.0 - the lead I oversold, corrected; and V-059 propagated to the two documents it changes
+
+**I over-sold a lead and am recording the correction.** Last entry called `system update verify skip` an uninvestigated path that might bypass the post-install verification by state
+rather than by timing. Having looked, there are **four** such strings, one per component, each keyed on that component's `file status`:
+
+```
+[Info] :: %s file status = %d, system update verify skip
+[Info] :: %s file status = %d, new gui update verify skip
+[Info] :: %s file status = %d, navi map update verify skip
+[Info] :: %s file status = %d, navi app update verify skip
+```
+
+The ordinary reading is the likely one: **a component not present in this package is skipped**. Nothing was found that lets a *present* component skip verification, and the entry now
+says so instead of leaving a tantalising unknown standing. `file status` is named as the value to look at if anyone wants to settle it properly.
+
+**V-059 then had to propagate**, because it changes conclusions the project had already published:
+
+- `docs/DOWNGRADE-POSSIBILITIES.md` gained §5b. Its central claim - that the version gate plus unresolved anti-rollback bounds what can be installed - holds only for the *ordinary* path.
+  V-059 says the gate runs on the **checked** bytes while the install consumes **different** ones, so anti-rollback does not bound that route.
+- `docs/root-access-paths.md` gained **route 0**, above the serial console: a programmable USB stick plus the TE2 content key installs unsigned content with **no RSA key at all**, and
+  there is no boot-time rootfs integrity to catch it. Marked corroborated-statically, not reproduced.
+
+Two small housekeeping fixes came with it: the imported upstream documents keep their own internal `docs/…` cross-references, which are now `EXTERNAL` entries in the link allowlist rather
+than edited text, and one of my own sentences in `PROVENANCE.md` was reworded so it stopped looking like a link to a file we do not have.
+
+Checks green again: register coherent, no new history rewrites, all references resolve.
+
 ## 4.94.0 - an external TOCTOU claim, checked against our own copy of the same build
 
 `CloudPapi/ioniq5-usb-toctou` was brought to my attention. Its claim is specific enough to test without running anything: `AppUpgrade` **verifies** an update file and then

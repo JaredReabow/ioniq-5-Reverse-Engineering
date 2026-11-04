@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.83.0 - the working path is ready instantly, so "too slow for the watchdog" does not hold either
+
+Measured how long a *working* `AppHomeScreen` takes to become ready, on the research chain:
+
+```
+SURFACE_2080_AT=55s
+READY_AT=1s after first probe (attempt 1)     answers Introspect immediately
+SHOT=17764                                    painted
+```
+
+So there is **no slow-startup window** to blame on software rendering: the app answers D-Bus introspection essentially the instant it is asked, and paints immediately after. That
+retires the "QML under softpipe is too slow, so the manager's watchdog reaps it before it can render" story before it could be written up.
+
+It also retires audit/SMACK overhead as a cause, from the previous run: 636 rules loaded, and the app still painted.
+
+What is left, narrowed to three: **plain CPU contention** with the full vendor unit set on two vCPUs, **DLT load**, or **the environment the launcher gives the app** - and the third
+is now the cheapest and most likely. `ApplicationLauncher.service` supplies `EnvironmentFile=/tmp/session_appmgr.env`, while the chain's own scripts write `/tmp/session_appmgr`. If
+those two disagree, or the file is empty when the launcher reads it, the app connects to no session bus at all: it stalls in Qt's bus setup, never introspects, never commits, and is
+reaped. That single misconfiguration would explain every symptom recorded so far, including `R` with `wchan=0`, because a bus-connect retry loop looks exactly like a busy thread.
+
+The worker has been asked for the differential that decides it: `/proc/<pid>/environ` for the app on both paths, compared field by field, and then launching the app by hand on the
+authentic path with the research chain's environment. If it paints there, the fault is ours and in one variable.
+
 ## 4.82.0 - `R` with `wchan=0` is what a WORKING home screen looks like
 
 Before the worker published §7c, I ran the control in my own workspace, and it inverts the diagnosis:

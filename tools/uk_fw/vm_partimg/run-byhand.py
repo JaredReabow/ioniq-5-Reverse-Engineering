@@ -44,6 +44,11 @@ def qemu_command(*args, **kwargs):
     # its -smp 2 default.
     j = argv.index("-smp")
     argv[j + 1] = SMP
+    # lossless probe channel: a second serial port whose output lands in a host file,
+    # because many small writes to the console get dropped while systemd spins.
+    if "-serial" in argv:      # note: the flag is "-serial", not "--serial"
+        argv += ["-chardev", "file,id=dbg,path=dbg-out.txt",
+                 "-device", "isa-serial,chardev=dbg,index=2"]
     return argv
 
 

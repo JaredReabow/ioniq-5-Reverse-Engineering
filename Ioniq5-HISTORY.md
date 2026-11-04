@@ -5283,3 +5283,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Probed the managed path properly this time: the process is running but does not own its bus name and creates no surface, while a hand-started instance registers and paints.
 - So the difference is what the launcher gives its children, not the app or the libraries - the same libraries work when the app is started by hand. The launcher's log meanwhile shows it reaping other apps on timeouts, so starvation cannot be ruled out either.
 - Both possibilities are one run apart and handed over: diff the two environments, and if they match, the answer is CPU.
+
+## 2026-11-05 - two of my own instruments failed on the last gap
+
+- Probed the managed path twice and got nothing useful both times. The first run lost its diagnostic lines to a busy console that drops small writes; the second wrote to a serial port that was never attached, because my runner tested for a flag name with two dashes while the harness emits one.
+- Fixed the guard and recorded both faults, since the channel has to be verified before its silence means anything - the same lesson three other entries tonight already carry.
+- Stopped rather than spending a third cycle on my own plumbing. What is measured about the managed path stands; the run that would settle it is one attempt away for the next person.

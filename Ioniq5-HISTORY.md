@@ -5117,3 +5117,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The three consistency checks were only discoverable by reading the changelog, which is the problem they exist to prevent. Put them in the readme, the index and the first line of the state page.
 - Verified the suite works from any directory, because one that only works from the repository root will be run from somewhere else and then distrusted.
 - Two workers continue on the HMI follow-ups and the filesystem fuzzing, both on their own clones.
+
+## 2026-11-05 - the stick did not break the drivers
+
+- Swept the closed-source filesystem drivers with twenty crafted images across nine mutation classes. No fault in either module, and the drivers were demonstrably parsing because clean images mounted.
+- Recorded as a weaker negative with its limits spelled out: single-field edits, read-only mounts, no deep traversal, and the kind of bug this method misses is exactly the kind that still mounts first.
+- So the finding keeps its surface and loses its promise. Twenty images is a reason to stop calling it promising, not to call it safe.

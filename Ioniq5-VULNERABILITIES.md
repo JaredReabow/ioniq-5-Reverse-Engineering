@@ -2298,6 +2298,27 @@ kernel module running at ring 0.
   (allocation tables, MFT, attribute runs) - the shape of code where such bugs live.
 - **The kernel is 4.1.27.** Old kernels plus out-of-tree filesystem drivers is a combination with a long history, and this image pins both.
 
+### Tested: 20 crafted images, no fault found (a weaker negative, not a proof of safety)
+
+A sweep was run against both drivers on the vendor kernel — the thing that was impossible before USB worked in the projection. Result:
+
+- **`texfat.ko` 3016.6.23.3** and **`tntfs.ko` 3016.7.1.2.3**, loaded and mounting clean images successfully (the baselines prove the instrument works);
+- **20 crafted images across 9 mutation classes**: truncated allocation tables, cyclic cluster chains (root and file), entry counts larger than the table, attribute/fragment runs
+  exceeding the cluster or volume, root-directory and file clusters pointing past the volume, absurd sector/cluster sizes, oversized MFT attribute/run lists, filename length at the
+  limit, and a valid header with a truncated body;
+- **no oops, panic, BUG or general-protection fault in either module across 23 boots.** Both drivers repeatedly detected and rejected the malformed structures through their own
+  validation - explicit `infinite chain` and bounds/`Inode is corrupt` checks - and returned `EIO`/`EINVAL` to the caller.
+
+**This is a weaker negative and is recorded as one.** What it does not cover: mutations were single-field edits rather than a coverage-guided sweep; the driver was mounted read-only, so
+write, truncate and decompression paths were not exercised; deep directory-tree traversal was not exercised; and "an image that still mounts and faults later in a specific syscall" is
+exactly the shape a one-edit sweep is least likely to find.
+
+**So the entry's status changes without the finding disappearing.** The surface is still real - closed-source, out-of-tree kernel code parsing attacker-supplied media that the unit
+auto-mounts - and the drivers handled everything this sweep threw at them. Twenty images and nine classes is a reason to stop calling it promising, not a reason to call it safe. The
+honest sentence is: *reachable, tested, no defect found in a limited sweep.*
+
+Full method, table and raw evidence: `docs/vm/tuxera-fs-probe.md`.
+
 ### What is not claimed
 
 **No vulnerability has been found or demonstrated here.** No crafted image was produced, no fuzzing was run, and no CVE is asserted against any specific version of

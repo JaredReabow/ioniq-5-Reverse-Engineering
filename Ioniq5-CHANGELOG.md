@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.75.0 - the kernel-driver sweep came back clean, and that changes the status without closing the question
+
+V-057 was the one finding whose required attacker capability was "hand someone a USB stick". The sweep is done and the answer is **no fault found** - recorded here because a clean
+negative reported honestly is worth as much as a hit, and because it was only possible at all once USB worked in the projection this morning.
+
+- **20 crafted images across 9 mutation classes**, mounted through **`texfat.ko` 3016.6.23.3** and **`tntfs.ko` 3016.7.1.2.3** on the vendor kernel.
+- **Zero oops, panic, BUG or general-protection faults** in either module across 23 boots.
+- The instrumented side is proven: clean images mount, and both drivers repeatedly rejected malformed structures with their own checks (`infinite chain`, `Inode is corrupt`) and
+  returned `EIO`/`EINVAL`.
+
+**It is a weaker negative and the entry now says so.** Single-field mutations rather than a coverage-guided sweep; read-only mounts, so write/truncate/decompression paths untouched;
+no deep directory traversal; and "mounts cleanly, faults later in one syscall" is the bug shape this method is least likely to catch.
+
+So V-057's status changes without the surface disappearing: **reachable, tested, no defect found in a limited sweep.** Twenty images is a reason to stop calling it promising, not a
+reason to call it safe - and the difference between those two sentences is the whole point of recording it this way.
+
+The register has now had findings narrowed by measurement four times tonight. That is not a failure mode; it is the mechanism working.
+
 ## 4.74.0 - making the checks findable, since a check nobody runs is decoration
 
 The three consistency checks were only discoverable by reading the changelog, which is exactly the problem they exist to solve. They are now in the three places a person actually

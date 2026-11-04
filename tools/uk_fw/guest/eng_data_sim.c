@@ -148,6 +148,19 @@ static int reply_ay(DBusConnection *conn, DBusMessage *request,
     return send_message(conn, reply);
 }
 
+static int reply_boolean(DBusConnection *conn, DBusMessage *request, int value)
+{
+    DBusMessage *reply = dbus_message_new_method_return(request);
+    dbus_bool_t b = value ? TRUE : FALSE;
+    if (reply == NULL)
+        return 0;
+    if (!dbus_message_append_args(reply, DBUS_TYPE_BOOLEAN, &b, DBUS_TYPE_INVALID)) {
+        dbus_message_unref(reply);
+        return 0;
+    }
+    return send_message(conn, reply);
+}
+
 /* Interface equality: a call that omits the interface field is accepted when
  * path + member + signature agree (Qt QDBusInterface sometimes omits it). */
 static int iface_matches(const char *actual, const char *expected)
@@ -184,6 +197,8 @@ static const struct ay_reply ay_replies[] = {
     { AUDIO_PATH, AUDIO_INTERFACE, "AskVolumeInfo", 8, NULL, "volume" },
     { AUDIO_PATH, AUDIO_INTERFACE, "AskSoundSetupInfo", 8, NULL, "sound-setup" },
     { AUDIO_PATH, AUDIO_INTERFACE, "AskAMPSupportInfo", 4, NULL, "amp-support" },
+    { AUDIO_PATH, AUDIO_INTERFACE, "AskAudioMuteInfo", 8, NULL, "audio-mute-info" },
+    { AUDIO_PATH, AUDIO_INTERFACE, "AskAudioLastMemory", 8, NULL, "audio-last-memory" },
     { CAN_PATH, CAN_INTERFACE, "AskNaviAppData", 32, NULL, "navi-app-data" },
 };
 
@@ -208,6 +223,13 @@ static const struct ack_call ack_calls[] = {
     { CAN_PATH, CAN_INTERFACE, "SetDATCInitialRequest", "" },
     { CAN_PATH, CAN_INTERFACE, "SetCARSETInitialRequest", "" },
     { CAN_PATH, CAN_INTERFACE, "SetLowFuelWarnningRequest", "" },
+    { AUDIO_PATH, AUDIO_INTERFACE, "SetAudioMainCHChange", "ay" },
+    { AUDIO_PATH, AUDIO_INTERFACE, "SetAudioMixingCHChange", "ay" },
+    { AUDIO_PATH, AUDIO_INTERFACE, "SetAudioVolume", "ay" },
+    { AUDIO_PATH, AUDIO_INTERFACE, "SetAudioSetup", "ay" },
+    { AUDIO_PATH, AUDIO_INTERFACE, "SetBeepPlay", "ay" },
+    { AUDIO_PATH, AUDIO_INTERFACE, "SetCurrentModeVolume", "ay" },
+    { AUDIO_PATH, AUDIO_INTERFACE, "SetAudioSpeakerCtrl", "ay" },
 };
 
 static const unsigned char region_reply[8] = { 1, 0, 0, 0, 0, 0, 0, 0 };
@@ -272,6 +294,85 @@ static DBusHandlerResult on_system_message(DBusConnection *conn, DBusMessage *ms
         return DBUS_HANDLER_RESULT_HANDLED;
     }
 
+    /* ------------------------------------------------------------------ */
+    /* ApplicationManager state-machine asks (the two that logged
+     * "reply is not VALID") plus the other unanswered methods the manager
+     * and its sibling apps issue. Reply types are recovered verbatim from
+     * micommanager_userspace's D-Bus introspection XML (all `ay`), and from
+     * AppVH's com.lge.avn.appvh.AmebaEnable introspection (`b`).
+     *
+     * AskDebuggingMode:  out ay, byte[0] = debug count. 0 = off. The
+     *   manager's AskDebugCntSlot parses byte[0]; <=0 skips the follow-up
+     *   SetSysDebuggingMode call.
+     * AskEtcAdmSettingValue: out ay, byte[0] = ADM-off value. 0 = normal;
+     *   non-zero would drive the manager's ADMOffSettingSlot toward a
+     *   "change power to Logic OFF".
+     * ------------------------------------------------------------------ */
+    if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskDebuggingMode", "")) {
+        static const unsigned char dbg_off[1] = { 0x00 };
+        reply_ay(conn, msg, dbg_off, sizeof dbg_off);
+        printf("ENG_DATA_SIM_ANSWER AskDebuggingMode -> cnt=0\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskEtcAdmSettingValue", "")) {
+        static const unsigned char adm_off[1] = { 0x00 };
+        reply_ay(conn, msg, adm_off, sizeof adm_off);
+        printf("ENG_DATA_SIM_ANSWER AskEtcAdmSettingValue -> value=0\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskSysUpmID", "")) {
+        static const unsigned char upm[1] = { 0x00 };
+        reply_ay(conn, msg, upm, sizeof upm);
+        printf("ENG_DATA_SIM_ANSWER AskSysUpmID -> 0\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskCameraSetting", "ay")) {
+        static const unsigned char cam[4] = { 0x00, 0x00, 0x00, 0x00 };
+        reply_ay(conn, msg, cam, sizeof cam);
+        printf("ENG_DATA_SIM_ANSWER AskCameraSetting -> 4 bytes\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskCameraBrightness", "")) {
+        static const unsigned char br[2] = { 0x50, 0x00 };
+        reply_ay(conn, msg, br, sizeof br);
+        printf("ENG_DATA_SIM_ANSWER AskCameraBrightness -> 2 bytes\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskEtcLcdThemaInfo", "ay")) {
+        static const unsigned char thema[4] = { 0x00, 0x00, 0x00, 0x00 };
+        reply_ay(conn, msg, thema, sizeof thema);
+        printf("ENG_DATA_SIM_ANSWER AskEtcLcdThemaInfo -> 4 bytes\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    /* askLcdInfo(): a manager ask the stand-in did not previously answer. */
+    if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskLCDSetInfoValue", "")) {
+        reply_ay(conn, msg, zeroes32, 8);
+        printf("ENG_DATA_SIM_ANSWER AskLCDSetInfoValue -> 8 bytes\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    /* The eng app's eCall-status ask (out ay). 0 = eCall inactive. */
+    if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskETCEcallStatus", "")) {
+        static const unsigned char ecall[1] = { 0x00 };
+        reply_ay(conn, msg, ecall, sizeof ecall);
+        printf("ENG_DATA_SIM_ANSWER AskETCEcallStatus -> 0\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    /* /Can SetFCEVInitialRequest: void, like its DATC/CARSET siblings. */
+    if (exact_call(msg, CAN_PATH, CAN_INTERFACE, "SetFCEVInitialRequest", "")) {
+        reply_empty(conn, msg);
+        printf("ENG_DATA_SIM_ANSWER SetFCEVInitialRequest -> (void)\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+
     /* Fixed-shape 'ay' table (includes AskFactoryModeInfo -> user mode). */
     for (i = 0; i < sizeof ay_replies / sizeof ay_replies[0]; i++) {
         const struct ay_reply *r = &ay_replies[i];
@@ -304,6 +405,21 @@ static DBusHandlerResult on_system_message(DBusConnection *conn, DBusMessage *ms
     /* /Eng AskMPModeInfo: no output arguments. */
     if (exact_call(msg, ENG_PATH, ENG_INTERFACE, "AskMPModeInfo", "")) {
         reply_empty(conn, msg);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+
+    /* Audio methods with an 'ay' input that answer with an 'ay' payload.
+     * Recovered from micommanager_userspace's com.lge.car.micom.audio XML:
+     * SetAudioMute/SetAudioLastMemory/SetAudioClusterAnimationCtrl/AskAudioSRCScaleInfo
+     * all declare (in ay, out ay).  A few zero bytes read as "nothing to report". */
+    if (exact_call(msg, AUDIO_PATH, AUDIO_INTERFACE, "SetAudioMute", "ay") ||
+        exact_call(msg, AUDIO_PATH, AUDIO_INTERFACE, "SetAudioLastMemory", "ay") ||
+        exact_call(msg, AUDIO_PATH, AUDIO_INTERFACE, "SetAudioClusterAnimationCtrl", "ay") ||
+        exact_call(msg, AUDIO_PATH, AUDIO_INTERFACE, "AskAudioSRCScaleInfo", "ay")) {
+        reply_ay(conn, msg, zeroes32, 8);
+        printf("ENG_DATA_SIM_ANSWER %s %s.%s -> 8 bytes\n", AUDIO_PATH,
+               AUDIO_INTERFACE, member);
+        fflush(stdout);
         return DBUS_HANDLER_RESULT_HANDLED;
     }
 
@@ -353,6 +469,14 @@ static DBusHandlerResult on_session_message(DBusConnection *conn, DBusMessage *m
     if (iface != NULL && strcmp(iface, PEER_INTERFACE) == 0 &&
         strcmp(member, "Ping") == 0) {
         reply_empty(conn, msg);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    /* com.lge.avn.appvh.AmebaEnable.AmebaEnable -> out b (AppVH asks whether
+     * Ameba VR is enabled). Answer false: Ameba VR is not running here. */
+    if (strcmp(member, "AmebaEnable") == 0) {
+        printf("ENG_DATA_SIM_ANSWER AmebaEnable -> false\n");
+        fflush(stdout);
+        reply_boolean(conn, msg, 0);
         return DBUS_HANDLER_RESULT_HANDLED;
     }
     if (strcmp(member, "AtVersionVrReq") == 0 ||

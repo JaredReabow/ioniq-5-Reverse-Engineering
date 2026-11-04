@@ -1762,3 +1762,64 @@ Worth recording here because it bounds every remote claim: the image has **no TC
 So the unit is not reachable over the network as configured. Those two components become the only inbound surface once WiFi is
 enabled (`docs/wifi-enable-procedure.md`), and both would parse attacker-reachable input **as root**. Nothing has been demonstrated
 against either, and this note exists so that "there is a network attack surface" is not asserted without that caveat.
+
+## V-052 — mandatory access control is switched to permissive by an unauthenticated filesystem check
+
+**Status:** mechanism statically confirmed and the deciding value **measured as 0** in the projection; not attempted on hardware. Whether the
+`isLuks` probe fails on any production unit is **not** established.
+
+### The chain
+
+`/lib/systemd/esinit` decides the value of a **kernel module parameter** from whether the read-write data partition happens to be LUKS:
+
+```sh
+/usr/sbin/cryptsetup -v isLuks /dev/${RW_PART}
+if [ $? -eq 0 ]; then endFde="1"; else endFde="0"; fi
+echo $endFde > /sys/module/micom/parameters/optUNECE
+```
+
+`/etc/smack_setup.sh` then reads that parameter, twice (once during setup, once in `check_label_final`), and acts on it:
+
+```sh
+CHECK_UNECE1=$(cat /sys/module/micom/parameters/optUNECE)
+if [ $CHECK_UNECE1 == "0" ]; then
+        echo "[SMACK] Not UNECE vehicle, Switch to permissive mode" > /dev/kmsg
+        echo "1" > /sys/fs/smackfs/bringup-switch
+fi
+```
+
+So "is this vehicle subject to UNECE R155/R156" is operationally defined as **"did `cryptsetup isLuks` succeed on the data partition just
+now"**, and a 0 puts SMACK into **permissive** mode — the mandatory confinement that would constrain a compromised application is switched
+off rather than merely reporting.
+
+Measured in the projection, with the vendor kernel:
+
+```
+optUNECE=0
+secure_console=0
+/sys/fs/smackfs/bringup-switch exists
+```
+
+i.e. the permissive path is taken on this image whenever the data partition is not recognised as LUKS.
+
+### Why it matters
+
+- **It is a whole-system security posture decided by an unauthenticated probe.** `cryptsetup isLuks` returns non-zero for *any* unreadable,
+  corrupt, truncated or replaced header — an attacker with write access to the data partition obtains "SMACK permissive" rather than "boot
+  failure", which is the wrong direction for the failure to point.
+- **The same parameter gates WiFi.** `AppLauncher` carries the string `/tmp/no_unece` (and the error text `/tmp/no_unece opne fail`), and
+  `supplicantmanager.path` is a `PathExists=/tmp/no_unece` unit. So the "not UNECE" state is also what brings the wireless daemon up.
+- **It is a file-system-shaped switch, not a signed one.** A kernel module parameter is writable by anything with root, and its value is
+  derived from state an attacker can perturb.
+
+### What is not established
+
+Whether production units ship with `RW_PART` encrypted such that the probe succeeds, and therefore whether stock European vehicles run
+SMACK enforcing. Our projection takes the permissive branch because the clone's data partition is not LUKS; that is a property of the
+projection, and the honest statement is that the *mechanism* is confirmed and the *field prevalence* is unknown.
+
+### Suggested patch direction
+
+Make the security posture fail closed: treat an unrecognised or unreadable data partition as requiring confinement, derive the UNECE status
+from a value the platform cannot lose (a signed build property or a fuse), and do not let the same flag that enables the radio also
+disable MAC.

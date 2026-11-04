@@ -6,7 +6,7 @@ See `Ioniq5-VULNERABILITIES.md` V-048 and `docs/engineering-mode/app-signature-c
 ## Files
 
 - `payload.c` — the test payload. It writes `/tmp/v048-proof.txt` containing its own `getuid()` and then idles.
-- `example_public_key.pem` — a throwaway public key generated for this demonstration. The matching private key was **not** kept.
+- A throwaway public key was generated for the demonstration. It is **not committed** (the repository ignores `*.pem`), and neither is the private key: generate a fresh pair with `openssl genrsa -out my_private.pem 2048` and `openssl rsa -in my_private.pem -pubout -out my_public.pem`. The file name does not matter to the verifier; only its PEM content does.
 - `repro_v048.sh` — guest script: stages the payload and key, then asks the manager for app id 301.
 - `../../uk_fw/poc_sign.py` — adds the `.sign` section and signs it (this host has no `objcopy`).
 

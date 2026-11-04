@@ -4687,3 +4687,10 @@ and are superseded by corrections rather than silently rewritten.
 - The menu is real, but the string says exactly what it does: pass the version compare. Signature verification is untouched, and production builds disable the facility anyway.
 - So the answer is no: there is no forced-update vector that does not first require a privileged write to replace the trust anchor.
 - The rollback angle is the interesting leftover — force update would accept an older package that is still correctly signed.
+
+## 2026-11-04 — the compositor was never dead, and the engineering mode is alive
+
+- `pidof weston` cannot match a process called weston-headless. Several conclusions about the compositor exiting were built on that, and all of them are withdrawn.
+- With the check corrected, engineering mode launches from the developer path under a real launcher, and its own log shows it counting PIN entries. That is the entry vector exercising itself for the
+  first time here.
+- The frame is still black, but black is not striped, and that difference confirms which of the two faults is which.

@@ -37,8 +37,14 @@ The app registers itself with `com.lge.avn.appmanager.registration.registration(
 projection the chain runs `AppLauncher` but not the real `ApplicationManager`, so **nobody calls `show_window_fg`** and the `QWindow` never shows.
 
 Measured on the session bus during a launch: every registration is addressed to **`com.lge.hyundai.avn.appmanager`**, which **nothing owns** - so the
-registration is a no-reply call into the void, and the app is never told to show. That is the next thing to deliver: either run the real
-`ApplicationManager`, or send `show_window_fg` to the app's own connection at the path it registered.
+registration is a no-reply call into the void, and the app is never told to show.
+
+Running the real manager is not enough on its own. `docs/engineering-mode/appmanager-micom-replies.md` names what is left: answering the manager's MICOM calls **worked**
+(`reply is not VALID` is now zero across a run), and the window still does not paint, for two compounding reasons.
+
+1. The `show_engineermode` trigger lives on the manager's `com.lge.avn.appmanager.appbase` interface, which the manager **does not register** in this projection, so
+   there is no D-Bus route to ask it to show engineering mode.
+2. The manager's **app-alive watchdog** then removes the unshown app anyway: `AB010512*time*AppEngineerMode-5-hang`, `appTerminateSlot`, deregistration.
 
 ## 1c. The next gap on the authentic path: the HMI does not start
 

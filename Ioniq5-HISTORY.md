@@ -4579,3 +4579,9 @@ and are superseded by corrections rather than silently rewritten.
 - What is being sampled is already striped. That points one layer further back, at the offscreen surface the application renders before it uploads it — which this log already measured as a 1926 by 753
   BGRA upload.
 - The next instrument reads that texture's pixels directly, and it decides whether any of the quad work could ever have fixed this.
+
+## 2026-10-31 — the texture is clean, and my last inference was wrong
+
+- Dumped the application's own 1926 by 753 upload. It is a blue bar and a black body. No stripes. The image was never the problem.
+- That refutes what I wrote one entry ago, and the correction is in the record rather than quietly dropped.
+- What is left fits every measurement now: a clean texture, a mapping proportional in effect, and a sampler that wraps. The likely mechanism is a texture matrix the vendor sets and this stack does not honour.

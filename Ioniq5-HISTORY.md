@@ -4694,3 +4694,9 @@ and are superseded by corrections rather than silently rewritten.
 - With the check corrected, engineering mode launches from the developer path under a real launcher, and its own log shows it counting PIN entries. That is the entry vector exercising itself for the
   first time here.
 - The frame is still black, but black is not striped, and that difference confirms which of the two faults is which.
+
+## 2026-11-04 — the VM can be touched now
+
+- The vendor ships its own input module, and the chain simply was not loading it. With it loaded, an injected click is accepted, delivered to the seat and reported complete.
+- It arrives with pid=NO_VIEW, which is the black screen described from the pointer's side: the click is fine, there is nothing underneath it.
+- That matters because the stock entry vector is touch-driven. A working click path plus a visible view is all it needs — no USB keyboard, so the udev gap stops mattering.

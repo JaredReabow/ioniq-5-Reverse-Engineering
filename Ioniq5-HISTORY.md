@@ -4615,3 +4615,9 @@ and are superseded by corrections rather than silently rewritten.
 - AppNavi dies asking for the valet-mode state and calling toBool on nothing. That is a missing reply, not a fault in the application, and it was predicted from the service landscape argument rather
   than discovered by staring at the crash.
 - The instrument took an hour to write. The answer had been sitting behind the missing tool all week.
+
+## 2026-11-02 — the dev mode was a path check
+
+- Three instructions decide whether the head unit thinks it is a production build: read a member, compare with one, return it. The only thing that writes that member compares the executable's own path.
+- Run the engineering binary from /tmp/app/bin and the full menu appears, including the switch that disables update encryption. That is a surprising amount of authority for a choice of directory.
+- Static only so far, and recorded as such. The runtime confirmation is one experiment away.

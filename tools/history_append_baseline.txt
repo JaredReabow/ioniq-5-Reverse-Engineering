@@ -1,0 +1,4 @@
+21
+# Known pre-session rewrites of Ioniq5-HISTORY.md, recorded in the log entry dated 2026-11-05.
+# The checker fails only if the count EXCEEDS this baseline, so a new rewrite is caught while the
+# historical ones do not block the suite. Lower this number only by never adding violations.

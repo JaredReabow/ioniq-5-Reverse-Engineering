@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.73.0 - one command for every consistency check, and it found three real defects on the way
+
+`sh tools/check_all.sh` now runs the three checks this repository has: register numbering and cross-references, the append-only history invariant, and document cross-references.
+Building it was worth more than the suite itself, because each checker found something real while being written.
+
+**The link checker found three genuine defects**, all of them mine:
+
+- `docs/trust-anchors-in-writable-runtime-paths.md` cited `../evidence/serial-console/tty2-login-prompt-…` - the file is `ttyS2-…`. A one-character typo in a citation for the *only*
+  evidence of the console finding.
+- `docs/engineering-mode/engineering-data-services.md` still pointed at the screenshot filenames I renamed when relabelling the mislabelled captures. The rename updated the index and
+  the register, not every document that referenced them.
+- Nothing was checking either, which is the actual defect.
+
+**It also took four attempts to stop the checker crying wolf**, and each attempt is a lesson in the same discipline this project keeps relearning: paths with spaces broke the initial
+`git ls-files` split (fixed with `-z`); guest-image paths (`/etc/fde_test_v2.sh`, `app/bin/…`, `R/…`) looked like repository files; bare filenames in prose (`appnavi-bg-probe.sh`) are
+not links; and citations of upstream source trees (ABL, AirPlay) are not ours. Only then did the twelve remaining hits resolve into six other-repository citations and five real gaps.
+
+**The five real gaps are recorded, not hidden.** `tools/doc_link_allowlist.txt` distinguishes `EXTERNAL` (paths inside other repositories, correctly absent) from `MISSING`
+(references to documents this repository promised and never wrote). A checker that silently ignored both would have been worthless.
+
+**The history check is now baseline-aware.** It fails only if the violation count **exceeds** the 21 known pre-session rewrites recorded in the log's own entry of 2026-11-05. A new
+rewrite fails the suite; the documented past does not block it. That is the difference between a check that enforces an invariant and one that is permanently red and therefore ignored.
+
+Suite status: register coherent, no new history rewrites, all references resolve.
+
 ## 4.72.0 - the vendor HMI stack now runs under the vendor init, and one root cause explains both black windows
 
 A worker's result on the authentic path is the best fidelity datapoint of the session, and it settles a question that had been approached from three directions.

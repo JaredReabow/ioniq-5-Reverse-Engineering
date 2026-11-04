@@ -5105,3 +5105,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Standing in for the micom bus name was enough for the whole chain: the launcher starts, and it brings up the manager and the home screen under the vendor init. A click reaches a real client.
 - The home screen then never attaches a frame, for exactly the same reason the engineering app never did. Two applications, two launch paths, one missing handshake - which turns a per-app mystery into a single defect.
 - Also found a wrong reply worth fixing: a property enumeration comes back as an unknown method instead of an empty dictionary.
+
+## 2026-11-05 - three checks, one command, and three real defects found while building it
+
+- The link checker found a one-character typo in the citation for the only evidence behind the console finding, and stale references to screenshots I had renamed. Nothing was checking either.
+- It took four passes to stop it crying wolf about paths with spaces, guest-image paths, prose filenames and other repositories' source trees. Only then did the remaining hits split cleanly into six external citations and five real gaps.
+- The five gaps are recorded as gaps rather than quietly ignored, and the history check now fails on regressions against a recorded baseline instead of being permanently red.

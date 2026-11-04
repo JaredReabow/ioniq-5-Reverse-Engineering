@@ -5218,3 +5218,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Ran the by-hand launch properly and the app's own log answered: it cannot initialise EGL, because the software driver is not on its search path. Everything else in its log is downstream noise.
 - The compositor gets the software GL environment from a wrapper; the applications get nothing, and inherit a search path containing only a stub. Copying the driver into place changed nothing, which showed the library path is what matters, not the file's location.
 - Five hypotheses died before this one and all were correctly eliminated - the app was failing at EGL before any of them could matter. The fix is one environment variable for the launcher.
+
+## 2026-11-05 - the checks now check themselves
+
+- A night of editing scripts is how a file ends up with a syntax error nobody notices until it is needed. The suite now parses every tracked python file and syntax-checks every shell script as a fourth stage.
+- It passed first time, which was worth confirming rather than assuming, since tonight's changes touched the suite itself and three checkers.
+- Kept the stage deliberately narrow: it answers whether the files load, nothing more. A check that does too much is a check people run once.

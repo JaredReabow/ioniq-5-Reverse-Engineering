@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.49.0 - running the real manager narrows it to MICOM replies
+
+`/app/bin/ApplicationManager` ships and the chain never started it. Started alongside the launcher, it comes up and does real work - its log shows
+registration events and its own MICOM conversation:
+
+```
+APPM_LWP[958]: ApplicationManager::systemUnregistered() service[:1.36]
+APPM_LWP[958]: MicomInterfaceM::ADMOffSettingSlot reply is not VALID
+APPM_LWP[958]: MicomInterfaceM::AskDebugCntSlot reply is not VALID
+```
+
+The engineering window still does not paint: the capture is 15,963 bytes, which is the **title bar only** - larger than the 4,117-byte black frame because the
+decoration renders, but the body is empty.
+
+So the manager is necessary but not sufficient, and it names what is missing: its state machine advances on MICOM replies, and every reply in this projection
+comes back `not VALID`, so it never reaches the call that shows the app's window. That converts the next step from a guess into a specific task: answer the
+manager's own MICOM methods (`ADMOffSettingSlot`, `AskDebugCntSlot`, and whatever else appears in its log) with the existing D-Bus stand-in, then watch
+whether the show handshake is finally delivered.
+
+Third attempt at this goal; the first that fails with a named, actionable reason instead of "still black".
+
 ## 4.48.0 - delivering the show handshake ourselves does not work, and it corroborates V-045
 
 The cheap fix for the black engineering window was to send `show_window_fg` directly. The app's registration was captured verbatim (appid 301, servicename

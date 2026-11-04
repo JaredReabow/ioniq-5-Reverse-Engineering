@@ -4955,3 +4955,9 @@ and are superseded by corrections rather than silently rewritten.
 - Captured what the application registers, resolved its live connection by asking the bus which connection belongs to which process, and sent the show call to exactly that.
 - One path replies never, another accepts the call and then the connection is gone. So the cheap route is closed, and it closes in a way that corroborates a much older entry about that call crashing its peer.
 - Which leaves the real manager as the only honest route, and that is now stated rather than worked around.
+
+## 2026-11-04 - the manager speaks, and says what it is waiting for
+
+- Started the real application manager, which our chain had never run. It works, logs its registrations, and talks to the micom interface - every answer comes back invalid.
+- The window's body still does not paint, but the frame is now the title bar only rather than pure black, and the manager's own log names the reason: it never gets past the point of showing the app because the replies it needs are missing.
+- That is the first failure on this thread with a specific cause instead of an observation, and it points at the same stand-in work as everything else here.

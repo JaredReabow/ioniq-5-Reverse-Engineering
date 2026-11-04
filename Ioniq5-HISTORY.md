@@ -4560,3 +4560,9 @@ and are superseded by corrections rather than silently rewritten.
 - Both attributes are vec4 and the shader takes texCoords.xy, which matches the two-component bindings in the trace. The clip-space positions are explained too.
 - What is left is the buffer: its corners pair positions with other corners' coordinates. If that is the buffer this shader draws, the quad is transposed rather than offset.
 - First time the evidence points at the vendor's own data rather than at our instruments.
+
+## 2026-10-31 — the tool works and the answer is still no
+
+- Rewriting the shader changed the picture, which proves the instrument. Swapping the texture axes did not fix the stripes, which refutes the tidy version of the transposition theory.
+- Two days ago the question was whether anything at all could be changed from outside. Now a vendor shader can be rewritten in memory in one run and the result measured.
+- The next hypotheses cost one run each instead of one evening each.

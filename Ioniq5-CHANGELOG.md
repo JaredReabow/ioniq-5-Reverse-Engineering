@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.21.0 - the shader-rewrite instrument works; the simplest transposition hypothesis does not
+
+- Built a working instrument that **rewrites the vendor's shader at upload time**: `glShaderSource` is intercepted, and if the source contains `outTexCoords = texCoords.xy;` the assignment is
+  replaced before compilation. The mode is selected by a marker file (`/tmp/shader-fix-swap`, `/tmp/shader-fix-flipu`) because the launcher rebuilds its children's environment and an environment
+  variable cannot reach the application.
+- **The rewrite demonstrably takes effect:** with `IAS_SHADER_FIX=swap` (`outTexCoords = texCoords.yx;`) the frame changes — a black band appears across the top, the striped field shifts, and the
+  scale markers move — so the modified shader compiled and ran. Saved as `docs/vm/20-shader-swap-experiment-2026-10-31.png`.
+- **But it does not correct the picture.** The stripes remain, merely rearranged. So the hypothesis of §3.20.0 in its simplest form — "the corners are transposed, swap the axes" — is **refuted**,
+  while the instrument that can test such hypotheses is now proven to work.
+- That is the useful combination: a refuted hypothesis *and* a validated tool. The `flipu` variant remains untested, and so do combined transforms; any of them can now be tried in one run each,
+  which is a different position from the ones this investigation occupied for the last two days.
+- Honest note on scope: this intervention changes vendor behaviour, so it is an experiment and not a fix. Nothing here modifies a vendor binary; the shader is rewritten in memory, at upload, by an
+  interposer that is installed only in the research clone.
+
 ## 3.20.0 - the vendor's own vertex shader, and what it says about the quad
 
 - `glShaderSource` interception recovered the shaders. The relevant one, verbatim (leading indentation stripped):

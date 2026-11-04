@@ -195,3 +195,27 @@ that receives `registration`, remembers `servicename`/`objectpath`, and speaks t
 therefore not a nicety; it is the only route to a painted engineering window that does not involve killing the app.
 
 This is also the third independent observation of the V-045 behaviour, which strengthens that entry: the crash is not a fluke of one call signature.
+
+## Attempted fix 2: run the real `ApplicationManager` — it runs, and it says why the window still does not appear
+
+`/app/bin/ApplicationManager` ships (3.9 MB) and the research chain never started it. Started alongside `AppLauncher`, it comes up and does real work — its
+log shows the registration events and its own MICOM conversation:
+
+```
+APPM_LWP[958]: ApplicationManager::systemUnregistered() service[:1.36]
+APPM_LWP[958]: MicomInterfaceM::ADMOffSettingSlot reply is not VALID
+APPM_LWP[958]: MicomInterfaceM::AskDebugCntSlot reply is not VALID
+```
+
+The engineering application still does not paint: capture is 15,963 bytes, which is the **title bar only** — larger than the 4,117-byte black frame because
+the decoration renders, but the body is still empty.
+
+So running the manager is **necessary but not sufficient**, and its log says what is missing: its state machine is driven by MICOM replies, and every one in
+this projection comes back `reply is not VALID`. The manager therefore never reaches the point of calling `show_window_fg` on the app — which is consistent
+with everything else measured here, and turns the next step from a guess into a specific one:
+
+> **give `ApplicationManager` valid MICOM replies.** The project already has a D-Bus MICOM stand-in (`/eng-data-sim`, built for the engineering app's own
+> queries); the manager asks different methods on the same services (`ADMOffSettingSlot`, `AskDebugCntSlot`, and others visible in its log), so the
+> admission work is to answer those too and then observe whether the show handshake is finally delivered.
+
+This is the third distinct attempt at the same goal and the first that fails with a **named, actionable reason** rather than "still black".

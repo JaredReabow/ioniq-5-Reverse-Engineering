@@ -72,6 +72,25 @@ to, and the base rootfs hash is rechecked after each experiment
 | CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed |
 | Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end |
 
+### Running and interacting with the VM
+
+Practical instructions, verified checks and a list of **false readings that have already misled this project** are in
+**`docs/VM-RUNBOOK.md`**. The essentials:
+
+- **The compositor's process name is `weston-headless`, not `weston`.** `pidof weston` returns nothing even when the
+  compositor is perfectly healthy; several "the compositor died" conclusions were that check and nothing else.
+- **Engineering mode launches from the developer path.** Copy `AppEngineerMode` to `/tmp/app/bin/`, then request
+  **app id 301** from `com.lge.avn.applauncher` with that path on the session bus. It works, and it takes **45–70 s** to
+  appear under software rendering — polling, not a short fixed sleep.
+- **The VM is interactive.** The vendor module `/weston-vm-input.so` accepts `click`, `drag` and `pdrag` over
+  `/tmp/weston-vm-input`, and the compositor acknowledges each with `VM_INPUT_CLICK_ACCEPTED` / `CLICK_DONE`. It must be
+  listed in the compositor config (`modules=/weston-vm-input.so`) or nothing is injected at all.
+- **`pid=NO_VIEW` is the black screen from the pointer's side**: the click is delivered and there is no surface under it.
+  Input works; a placed, drawn view is the remaining gap.
+- **False readings to avoid**: `pidof weston` (wrong name) · `wait` inside a subshell returning 127 · `ias-shot` writing
+  ASCII PPM with a `.png` extension · a successful capture not proving the compositor is alive · the chain's own teardown
+  killing the compositor after ~155 s.
+
 ### Downgrade — can older firmware be installed?
 
 Short answer: **not through engineering mode on a stock unit, and not with a modified package.** Full reasoning,

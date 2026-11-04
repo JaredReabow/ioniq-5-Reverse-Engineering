@@ -85,3 +85,39 @@ Installing it requires writing one file into the active-root partition `p5` of t
 the projection through the research-init chain (`/run-chain23.sh` plus `ivi-wm` placement), which is how the clean renders and the touch
 proof were produced. The honest summary is that the SPI gate is **understood and drivable**, and driving it is optional work for making the
 *systemd-managed* HMI faithful rather than for making the UI appear.
+
+## Correction, and an unresolved point (2026-11-04, after CHANGELOG 4.41.0)
+
+Two attempts were made to drive the gate from a wrapper `init`, and neither settles the question. The record of both, because the second one
+undoes the certainty of the first correction:
+
+1. **Wrapper without a sysfs mount — fails, provably.** As `init` it runs before `esinit` mounts `/sys`, so its write fails:
+   `/init-esinit-spi.sh: line 15: /sys/module/micom/parameters/spi_validation: No such file or directory`. With the guard
+   `if [ -f /sys/module/micom/parameters/spi_validation ]` false and `/tmp/spi_validation_NOK` already touched, `esinit` should take the
+   `SPI NOK` branch.
+2. **Wrapper that mounts `/sys` first — writes successfully, outcome still ambiguous.** The wrapper's own error disappears, so the parameter
+   existed and its write landed. But neither run produced the decision lines (`[esinit] micom SPI info is OK` / `SPI NOK`), because those go
+   through `/dev/kmsg`, which is not reliably present at that point in boot. Both the broken and the fixed run contain
+   `random: weston urandom read` at ~6.5 s, and **no unit in the image starts weston** — so that line cannot by itself distinguish the branches,
+   which is precisely the mistake made in 4.34.0.
+
+A first attempt to log the parameter's **early** value from the wrapper also failed to produce output (writing to `/dev/console` produced
+nothing, with or without a `devtmpfs` mount), so the most useful quantity — what the parameter reads *before* `esinit` looks — is still
+unmeasured.
+
+### The two candidate explanations, both consistent with the evidence
+
+- **The parameter's initial value is 1**, and the driver writes 0 later when the handshake fails. Then `esinit` always takes the OK branch, the
+  wrapper is unnecessary, and the correct statement is that the gate is open by default during boot - which would make 4.34.0 accidentally right
+  and 4.41.0's correction wrong.
+- **The parameter is created with value 0 and the OK branch is never taken**, in which case the wrapper must be installed *and* must mount
+  `/sys`, which the corrected script now does - but the branch it produces has not been observed.
+
+### The measurement that decides it
+
+Read `/sys/module/micom/parameters/spi_validation` at the earliest possible moment and get the answer somewhere visible. The clean way is a
+guest script that runs under `init=/init` (which allows commands) and prints the value immediately, before anything writes it; a timestamped
+`/tmp/spi_validation_OK` check afterwards then says which branch `esinit` took. Until that is done, this document does not claim the gate opens.
+
+**Why this is written down rather than resolved by assertion:** 4.34.0 asserted it, and was wrong; 4.41.0 corrected it to "never opened", and that
+is not established either. The honest state is one unmeasured value.

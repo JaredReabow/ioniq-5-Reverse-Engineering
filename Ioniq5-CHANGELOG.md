@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.42.0 - the SPI gate has one unmeasured value, and that is the honest state
+
+Neither attempt to drive the gate from a wrapper `init` settles it, and the second one weakens the certainty of the 4.41.0 correction rather than
+confirming it.
+
+- **Wrapper without mounting `/sys`** fails provably: `/sys/module/micom/parameters/spi_validation: No such file or directory`, because an `init`
+  runs before `esinit` mounts `/sys`.
+- **Wrapper that mounts `/sys` first** writes successfully - its error disappears - but the decision lines (`micom SPI info is OK`, `SPI NOK`) go
+  through `/dev/kmsg`, which is not reliably present at that point, so they never appear. And `random: weston urandom read` at ~6.5 s occurs in
+  **both** the broken and the fixed run, while no unit in the image starts weston - so that line cannot distinguish the branches. That is exactly
+  the mistake 4.34.0 made with it.
+- A probe of the parameter's **early** value from the wrapper produced no output at all, with or without `devtmpfs`.
+
+So there are two explanations consistent with the evidence: the parameter may **default to 1** and be cleared later by the driver (in which case
+`esinit` always takes the OK branch and 4.34.0 was accidentally right while 4.41.0's correction is wrong), or it may be created at 0 and the OK
+branch never taken. The deciding measurement is the parameter's value at the earliest moment, read from a run where commands are possible.
+
+`docs/vm/spi-gate.md` carries both attempts, both explanations and the exact measurement. Filing "one unmeasured value" is more useful than
+picking whichever reading flatters the last entry.
+
 ## 4.41.0 - CORRECTION: the SPI gate was never opened, and 4.34.0 said it was
 
 Entry 4.34.0 claimed that the MICOM stand-in worked, that `esinit` took its OK branch, and that the vendor compositor was launched by the vendor

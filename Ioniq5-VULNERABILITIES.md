@@ -1469,3 +1469,43 @@ For each new issue record: stable ID, affected artifact/build and digest, source
 - **Suggested patch direction:** constrain the demuxer's stream count, and treat media parsing for removable
   volumes as unprivileged — parse in a sandbox rather than in the root-owned media engine.
 
+
+## V-048 — the application manager verifies binaries against a key in `/tmp`, then launches them anyway
+
+**Status:** candidate, measured in the projection. Not attempted on hardware. Reachability of the writable key from an
+unprivileged or remote context is **not** established.
+
+**What was measured.** Running the authentic recovery chain with the vendor compositor, the application manager's own log
+records a signature check for each application it starts, and then starts it regardless:
+
+```
+"section name = [.sign]  size[256][266] | time 00:01:54.024"
+"signCheck first : [0] [0] [69] [325] | time 00:01:54.042"
+"CheckSign : /app/bin/AppStandbyClock /tmp/app_normal.key /tmp/AppStandbyClock.sign ret = 1 | time 00:01:54.043"
+"m_AppProcess->start(/app/bin/AppStandbyClock) PID[952] | time 00:01:54.046"
+```
+
+Two separate observations, and both matter:
+
+1. **The trust material is resolved from `/tmp`.** The binary contains the literal paths `/tmp/app_normal.key`,
+   `/tmp/navi_public.key` and the suffix `.sign`. `/tmp` is a world-writable tmpfs on this system, so the key that
+   decides whether an application binary is authentic is **replaceable by anything that can write to `/tmp`**. A `.sign`
+   section of exactly 256 bytes ships inside the binaries, which is consistent with a 2048-bit RSA signature.
+2. **A failed verification (`ret = 1`) did not stop the launch.** The manager proceeded to `m_AppProcess->start(...)` and
+   gave the process a pid. The application was later terminated, but for a different reason the log states explicitly:
+   `[TIMEOUT] [1 Group] AppID : 10, PID : 952` followed by `[ERR CODE:1] App has been Crashed.` — a ten-second
+   registration timeout, not a signature rejection.
+
+**Why it matters.** The application manager runs as **root**, and it is the component that turns "a file on disk" into "a
+process". If a replacement binary plus a matching `/tmp/app_normal.key` and `<name>.sign` is accepted, that is root code
+execution from a write to `/tmp` — no USB, no gesture, no PIN. This is the most direct root-access candidate found in this
+project so far, and unlike the USB media-parser class (V-047) it does not depend on a memory-corruption bug.
+
+**What is not established.** The signature algorithm and encoding, whether the checker accepts a key it is handed rather
+than pinning a trusted one, whether `ret = 1` is tolerated only during the startup group or on all paths, and whether the
+`appId 301 → /tmp/app/bin/AppEngineerMode` path (which the manager also knows) is checked at all. Until the checker's
+algorithm is recovered these are all open.
+
+**Suggested patch direction.** Pin the verification key inside the signed binary or in read-only storage rather than
+resolving it from `/tmp`; treat a verification failure as fatal on every path, including the startup group; and refuse to
+launch any binary whose path is writable by a non-privileged user.

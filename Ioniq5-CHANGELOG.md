@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.8.0 - the manager checks a signature in /tmp, then launches anyway; the screen renders clean
+
+Two things happened, one of them much more important than the other.
+
+**The pleasant one.** Placing the surface with `ivi-wm` on the vendor backend produced a **clean, stripe-free frame** of the real
+interface: the title bar with its window buttons, the left panel, the centre text, and separately a clean EV page with Battery and
+Range widgets. `docs/vm/25-home-screen-placed-clean-2026-11-04.png` and `docs/vm/26-ev-page-placed-clean-2026-11-04.png`. So the
+research backend's stripes were an artefact of that backend, and the vendor path renders correctly, as the earlier single clean
+capture suggested. What was missing was never drawing - it was **placement**: `Surface id(2080) W(1926) H(753)` existed and was
+simply not put on screen.
+
+**The important one.** The application manager's log shows it verifying each application binary against a key it reads from
+`/tmp`, and then starting the binary **even though the check returned 1**:
+
+```
+"CheckSign : /app/bin/AppStandbyClock /tmp/app_normal.key /tmp/AppStandbyClock.sign ret = 1"
+"m_AppProcess->start(/app/bin/AppStandbyClock) PID[952]"
+```
+
+The binary carries `/tmp/app_normal.key`, `/tmp/navi_public.key` and a 256-byte `.sign` section - a 2048-bit RSA signature by the
+look of it. `/tmp` is world-writable. Filed as **V-048**: the manager runs as root, and the key that decides authenticity is in a
+writable location. The process was later killed, but the log says why and it is not the signature: `[TIMEOUT] ... App has been
+Crashed.`, a ten-second registration timeout.
+
+**Still unresolved.** Requesting `appId 301` at 80, 100, 120, 140, 160, 180, 200 and 220 seconds produced **no** `AppID : 301` line
+in the manager's log at all - the request is accepted at the D-Bus level (`RC=0`) and then silently dropped. An earlier run did
+start it, so this is state-dependent rather than refused, but the trigger is not known. Recovery of the checker's algorithm is the
+next task, because a writable key path is a root-access candidate that needs no memory corruption and no USB.
+
 ## 4.7.0 - yes, engineering mode has the forced-update vectors — and one byte hides them
 
 The question that matters is whether the vectors exist at all, not whether the harness can click them. Quoted from the shipped

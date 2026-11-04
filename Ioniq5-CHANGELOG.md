@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.25.0 - no texture matrix exists, and the remaining suspect is NPOT sampling under GLES2 rules
+
+- The instrument from §3.24.0 was built and run: `glMatrixMode`, `glLoadMatrixf` and `glLoadIdentity` are intercepted and any texture-matrix activity would be logged. **Zero events** — the
+  application never sets a texture matrix. So "the vendor sets a matrix this stack ignores" is refuted as stated.
+- What is left, and it follows from the facts already measured:
+  - the texture is **clean** (§3.24.0);
+  - it is **1926×753** — not a power of two (§3.9.0: the upload is the application's own window surface at that size);
+  - the shader samples with `texCoords.xy` taken straight from a `vec4` attribute, with **no matrix and no uniform transform** in the vertex stage (§3.20.0);
+  - the artefact **tracks the mapping** and is **removed by negating `u`** (§3.22.0–§3.23.0).
+- Those together point at a specific and well-known rule violation: **under OpenGL ES 2.0, a non-power-of-two texture may not be used with `GL_REPEAT` or `GL_MIRRORED_REPEAT` wrapping.** Doing so is
+  *undefined*, not an error — which is exactly the behaviour observed throughout: no GL error, no warning, and a picture made of repeated diagonal fragments. On the vehicle's Intel driver it may be
+  tolerated; here it is not. The coordinates the application supplies exceed 0..1 (a `vec4` attribute used as `xy`, with values reaching ±1 on full-screen quads and hundreds on icon quads), so wrapping
+  is certainly being exercised.
+- **The test is one interposition and needs no shader rewrite:** intercept `glTexParameteri` and force `GL_TEXTURE_WRAP_S`/`GL_TEXTURE_WRAP_T` to `GL_CLAMP_TO_EDGE` (0x812F) for any texture that is not
+  a power of two. If the stripes clear, the fault is the vendor relying on undefined NPOT wrapping that the vehicle's GPU happens to accept — an emulation-compatibility finding of exactly the kind this
+  project exists to document, and a patchable one.
+
 ## 3.24.0 - CORRECTION: the uploaded texture is clean, so the fault is in the sampling after all
 
 - Made the measurement §3.23.0 called for: intercepted `glTexImage2D` and wrote the application's own 1926×753 upload out as a picture. **It is clean** — a blue title bar across the top and a

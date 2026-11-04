@@ -4585,3 +4585,9 @@ and are superseded by corrections rather than silently rewritten.
 - Dumped the application's own 1926 by 753 upload. It is a blue bar and a black body. No stripes. The image was never the problem.
 - That refutes what I wrote one entry ago, and the correction is in the record rather than quietly dropped.
 - What is left fits every measurement now: a clean texture, a mapping proportional in effect, and a sampler that wraps. The likely mechanism is a texture matrix the vendor sets and this stack does not honour.
+
+## 2026-10-31 — no matrix, and a rule that is being broken
+
+- The texture matrix does not exist. What does exist is a 1926-wide texture used with coordinates outside 0..1, in an OpenGL ES 2.0 stack where wrapping a non-power-of-two texture is undefined
+  behaviour rather than an error. That fits silence, stripes, and a picture that changes with the mapping.
+- The next test forces clamp-to-edge on non-power-of-two textures. If the stripes clear, the vendor was relying on something the vehicle's GPU tolerated and the emulation does not.

@@ -4621,3 +4621,11 @@ and are superseded by corrections rather than silently rewritten.
 - Three instructions decide whether the head unit thinks it is a production build: read a member, compare with one, return it. The only thing that writes that member compares the executable's own path.
 - Run the engineering binary from /tmp/app/bin and the full menu appears, including the switch that disables update encryption. That is a surprising amount of authority for a choice of directory.
 - Static only so far, and recorded as such. The runtime confirmation is one experiment away.
+
+## 2026-11-02 — the dev mode is documented, and the first fix attempt was properly refuted
+
+- Wrote up dev mode completely: it is a path check, the launcher has a developer override, and every route in — boot hook, one-byte patch, stock gesture, USB, modified firmware, Ethernet — now has a
+  measured status rather than a guess.
+- Tried to clear the striped rendering first so the screenshots would be worth looking at. Forced clamp-to-edge, verified the shim reached GL, and the stripes stayed. A refutation that can be trusted
+  because the instrument was proven to fire.
+- The screenshot included is the engineering app running from the dev path with the stripes still on it. It documents the entry, not the menu, and it is labelled that way.

@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.1.0 - dev mode documented, the entry vectors mapped, and the sampler-state test refuted with the instrument verified
+
+- **Sampler state tested and refuted, properly this time.** Built `gl_clamp_shim.c`, which rewrites `glTexParameteri` wrap state and — because the first version changed nothing and that was
+  ambiguous — also forces `CLAMP_TO_EDGE` at `glBindTexture` time, so it works even if the application never sets a wrap mode. Verified the instrument fired (`glBindTexture_clamped_first=1`,
+  `glTexParameteri_rewrites=1` in `/tmp/gl-clamp.log`), and the frames are **still striped** (`mean 48.7/91.0/108.6`). So Aster's ranked-first hypothesis — that wrap state is what turns
+  out-of-range coordinates into stripes — is **refuted with the instrument proven to have reached its target**. That distinction is the whole point: an unverified null would have meant nothing.
+- **Dev mode is documented end to end** in `evidence/engineering-mode-dev-activation.md` (§1–§13), including what it is (a path check, not a setting), what it unlocks (`Encryption Update`,
+  `UpgradeVerInfo.enableUpdateFile(10)`), and every entry vector examined.
+- **Entry vectors, and their status:**
+  | Vector | Status |
+  | --- | --- |
+  | Copy the binary to `/tmp/app/bin/AppEngineerMode`, open engineering mode | **works** — measured: launcher accepted app id 301 and `readlink` showed `/tmp/app/bin/AppEngineerMode` |
+  | One-byte patch `0x7372a6`: `74` → `EB` (forces the develop branch permanently) | **identified**, not applied |
+  | Engineering mode from the stock UI (`AppSetup`, `cmpl $0x12d` at `0x573194`) | **exists** — shows the reduced SOP menu |
+  | USB stick alone | **dead end** — `usb-automount` mounts and reports, nothing executes |
+  | Modified firmware via normal update | **dead end on its own** — RSA signature verified; the AES key ships but the signing key does not |
+  | Modified firmware after replacing the trust anchor (V-034) | **works in principle**, needs privileged write first |
+  | USB Ethernet adaptor | **dead end for this image** — drivers present, no `dropbear` binary and no `.socket` unit |
+- **Screenshot included**, honestly labelled: `docs/vm/23-engineering-mode-dev-launch-2026-11-02.png` is the engineering application running from the `/tmp` dev path. The launch is proven by
+  `readlink`; the screen itself is **striped by blocker 1**, so the image documents that dev mode was entered, not what the menu says.
+
 ## 4.0.0 - engineering-mode "DEV mode" is a path check, not a setting
 
 - Answered a direct question ("is there a dev mode in code, and how is it activated on the device?") by disassembling `AppEngineerMode` rather than guessing from the UI.

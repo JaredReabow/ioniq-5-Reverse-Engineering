@@ -72,6 +72,34 @@ to, and the base rootfs hash is rechecked after each experiment
 | CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed |
 | Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end |
 
+### Engineering mode and DEV mode — entry vectors and dead ends
+
+Engineering mode on this platform is entered from the stock UI (`AppSetup` requests app id `0x12D` at `0x573194`). What the menu then shows depends on **one check**:
+
+```c
+checkSOPVersion():  cmpl $0x1, this+0x13c ; sete %al      /* true = production (SOP) menu */
+```
+
+and the only thing that writes that field is `setEngType()`, which compares the process's own executable path against the literal **`/tmp/app/bin/AppEngineerMode`**. Equal ⇒ development
+state; otherwise production. **DEV mode is therefore not a setting and not a menu item — it is which file the launcher runs.** The full list it reveals adds **Encryption Update**, whose buttons call
+`UpgradeVerInfo.enableUpdateFile(10)`; the production list shows only Scheduled Update List.
+
+`AppLauncher` cooperates with this deliberately: it tests `QFile::exists("/tmp/app/bin/AppEngineerMode")` and, when the launch is for app id `0x12D`, runs that copy in preference to `/app/bin`.
+
+| Entry vector | Status |
+| --- | --- |
+| Copy the binary to `/tmp/app/bin/AppEngineerMode`, then open engineering mode | **works** — measured in the projection; `readlink` showed the dev path |
+| One-byte patch at file offset `0x7372a6`, `74` → `EB`, forces the develop branch always | identified, not applied |
+| Stock engineering-mode entry from `AppSetup` | exists — shows the reduced SOP menu |
+| USB stick carrying the file | **dead end** — `usb-automount` mounts and reports over D-Bus, never executes |
+| Modified firmware through a normal update | **dead end on its own** — RSA PKCS#1 signature verification; the AES key ships in the image, the signing key does not |
+| Modified firmware after replacing the trust anchor (**V-034**) | works in principle — requires a privileged local write first |
+| USB Ethernet adaptor | **dead end for this image** — drivers present, but `/usr/sbin/dropbear` is absent and there is no `dropbear.socket` |
+
+Full detail, with the disassembly and the QML quotes: **`evidence/engineering-mode-dev-activation.md`**.
+The engineering application running from the dev path is captured in `docs/vm/23-engineering-mode-dev-launch-2026-11-02.png`; the launch is proven by `readlink`, and the screen itself is
+striped by the rendering fault described below, so the image documents that dev mode was entered rather than what the menu says.
+
 ### Display investigation — current state
 
 The application renders: it calls `QWindow::show()`, creates a Wayland surface, attaches a buffer and commits, and the compositor reports a real window for it

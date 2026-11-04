@@ -3,6 +3,56 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.9.0 - engineering mode runs in the VM as root, and its log explains the black page
+
+**The entry vector works.** `appId 301` with a binary staged at `/tmp/app/bin/AppEngineerMode` launches, and the process runs as
+**root**:
+
+```
+ENG=941   UID=Uid: 0 0 0 0      (from /proc/941/status)
+```
+
+The manager's log records the whole path:
+
+```
+[onDemandLaunch] appId[301][AppEngineerMode] New Instance
+Request::launch appId[301] appName[AppEngineerMode] appLocation[/tmp/app/bin/AppEngineerMode]
+```
+
+and the application's own DLT log shows it reaching its code:
+
+```
+registration = REGISTRATION_OK!!!
+AppEngineerModeEngine::requestTouch()
+AppEngineerModeEngine::oomWrite()      oom_score_adj file write : 4
+AppEngineerModeEngine::getEnterPasswordCnt()   get status wrong password
+AppEngineerModeEngine::getEnterPasswordCnt()   no limit file
+```
+
+`docs/vm/27-engineering-mode-window-root-2026-11-04.png` is the window that produced it: title bar reading **"Engineering Mode"**,
+rendered by the vendor compositor, with the pointer at 960x400 after an injected click moved it there - so this window both draws and
+receives touch.
+
+**Why the page body is black, stated by the application itself.** Twenty seconds after start it issues a burst of queries and every
+one comes back empty:
+
+```
+SysInfoEng::ResponseAskSysVersionEng      AskVer Pending Err
+SysInfoEng::ResponseWipidInfo             wipid Pending Err
+SysInfoEng::ResponseTracedateInfo         trace-date Pending Err
+SystemProxyMethodEng::resRecvMicomPartInfo  Part Info Pending Err
+EngAutoTestRefactor::resRecvUserModeInfo  User Mode Info Pending Err
+AppEngineerModeEngine::Response_VH_VRVersion  retVal Error! - VR Version
+```
+
+These are the adaptors we have not built yet - version, Wi-PID, trace date, MICOM part info, user mode, VR version. The interface
+is not broken; it is **waiting for data we have not simulated**. That is the same class of work as the MICOM responder, and it is
+now a precisely bounded list instead of a guess.
+
+**Two smaller facts worth keeping.** The PIN gate reads a wrong-password counter and reports `no limit file`, i.e. the lockout file
+is absent in this state - so the lockout is file-backed and removable. And the launch is **flaky**: identical scripts produced
+`ENG=941` on the first request in one run and nothing at all in three others. `--print-reply` correlates with success but is not a
+proven cause; retrying every twelve seconds until `pidof AppEngineerMode` answers is the reliable recipe.
 ## 4.8.0 - the manager checks a signature in /tmp, then launches anyway; the screen renders clean
 
 Two things happened, one of them much more important than the other.

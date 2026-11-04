@@ -4873,3 +4873,8 @@ and are superseded by corrections rather than silently rewritten.
 - Standing in for the MICOM handshake worked: the vendor init took its OK branch and started the real compositor for the first time here. It cannot run without a display device the projection does not have, so boot stalls short of multi-user.
 - Checking what backend it wanted found the sixth instance of the same shape: the compositor's configuration is a symlink into tmp, and it names the shared objects a root process loads.
 - Two limits recorded rather than implied: nothing restarts the compositor automatically, so a changed config waits for the next start, and no non-root writer to that directory has been shown on this build.
+
+## 2026-11-04 - writing down the three substitutions
+
+- The fidelity work is delegated, and the reason it is fiddly is itself a finding: the compositor's config is one step removed from the file weston reads, through a symlink into tmp.
+- Recorded the three substitutions that remain between this projection and a vehicle - a software backend, a simulated handshake, and one neutralised driver - together, so the boundary is stated once and plainly rather than scattered across entries.

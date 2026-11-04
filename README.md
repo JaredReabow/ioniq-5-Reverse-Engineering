@@ -72,6 +72,25 @@ to, and the base rootfs hash is rechecked after each experiment
 | CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed |
 | Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end |
 
+### Fidelity: the vehicle's own boot now starts its own compositor
+
+With a MICOM SPI stand-in in front of the init (`tools/uk_fw/guest/init-esinit-spi.sh`, labelled projection-only), the authentic
+`esinit` takes its OK branch and launches the vendor display server itself:
+
+```
+[    6.545898] random: weston urandom read with 19 bits of entropy available
+```
+
+It cannot proceed further because `weston --tty=1` wants a DRM device the projection does not have — so boot stalls short of multi-user on
+that path. Making the **authentic** path render needs a backend substitution (`headless-backend.so` or our `ias-backend-soft.so`) in
+`/etc/xdg/weston/weston_${LCD_TYPE}.ini`, whose effect is indirect: `/etc/xdg/weston/weston.ini` is a **symlink to `/tmp/weston.ini`**
+written at boot by `/etc/install_westonPngLogo.sh`. That symlink is also why the compositor's configuration is filed as a vulnerability —
+see **V-055**, since that file names `shell=`, `backend=` and `ivi-module=`.
+
+What remains different from a vehicle, stated plainly: our software backend and its environment stand in for the vendor's `ias-backend.so`
+and hardware; the MICOM handshake is simulated; and `lge_usb_adapter` is neutralised because it oopses on non-vendor hardware. Those three
+are the honest boundaries of "as close to stock as reasonable".
+
 ### The vehicle's own boot sequence now runs, not a bypass
 
 A **GPT-partitioned image** with the real `p1…p17` layout lets `/lib/systemd/esinit` do its eMMC recovery and hand over to systemd

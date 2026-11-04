@@ -37,8 +37,8 @@ Required behavior:
 Verification:
 
 ```sh
-/Users/leo/.platformio/penv/bin/python3 -m pytest -q tests/test_tuxera_fs_probe.py tests/test_vm_boot.py
-/Users/leo/.platformio/penv/bin/python3 -m py_compile tools/uk_fw/tuxera_fs_probe.py
+python3 -m pytest -q tests/test_tuxera_fs_probe.py tests/test_vm_boot.py
+python3 -m py_compile tools/uk_fw/tuxera_fs_probe.py
 git diff --check
 ```
 

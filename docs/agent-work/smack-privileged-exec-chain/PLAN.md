@@ -67,6 +67,6 @@ it will not add active behavior.
 ## Verification
 
 ```sh
-/Users/leo/.platformio/penv/bin/python3 -m pytest -q tests/test_smack_privileged_exec_chain.py
-/Users/leo/.platformio/penv/bin/python3 -m pytest -q tests
+python3 -m pytest -q tests/test_smack_privileged_exec_chain.py
+python3 -m pytest -q tests
 ```

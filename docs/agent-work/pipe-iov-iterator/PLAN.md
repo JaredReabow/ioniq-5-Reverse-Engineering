@@ -49,7 +49,7 @@ performing any pipe, vector-copy, fault, concurrency, or exploit operation.
    inventory, handover, and IONIQ changelog.
 9. Run only focused tests, bytecode compilation, exact hash/patch/disassembly
    checks, and `git diff --check` with
-   `/Users/leo/.platformio/penv/bin/python3` where Python is required. Do not run
+   `python3` where Python is required. Do not run
    the complete suite or public harness and do not claim independent acceptance.
 
 ## Acceptance criteria

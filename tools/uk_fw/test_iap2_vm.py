@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "uk_fw"))
 import vm_boot as vb
 
-WS = Path("/Users/leo/Documents/ChatGPT/reverse engineering/ioniq research/work/vm/vendor-userspace-260128")
+WS = Path(__file__).resolve().parents[2] / "work/vm/vendor-userspace-260128"
 
 # Script to run inside the VM
 VM_SCRIPT = r"""

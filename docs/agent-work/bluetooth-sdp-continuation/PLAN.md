@@ -118,7 +118,7 @@ execution, unrestricted root, persistence, and owner-device applicability.
 
 ## Validation and acceptance
 
-Use `/Users/leo/.platformio/penv/bin/python3` and do not set a project-local
+Use `python3` and do not set a project-local
 `TMPDIR` for boundary tests. Required checks:
 
 1. focused model tests;
@@ -127,7 +127,7 @@ Use `/Users/leo/.platformio/penv/bin/python3` and do not set a project-local
    branch-polarity, and raw-range hash checks;
 4. retained-patch byte comparison and hash;
 5. deterministic report regeneration and hash;
-6. `/Users/leo/.platformio/penv/bin/python3 -m pytest -q tests`;
+6. `python3 -m pytest -q tests`;
 7. `git diff --check`;
 8. the public harness if feasible.
 

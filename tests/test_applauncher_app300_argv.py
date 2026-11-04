@@ -32,7 +32,7 @@ MANIFEST = ROOT / "evidence/artifacts/application-candidates/applauncher-app300-
 REPORT = ROOT / "evidence/artifacts/application-candidates/applauncher-app300-argv-report.json"
 OBJDUMP = Path("/opt/homebrew/opt/llvm/bin/llvm-objdump")
 READELF = Path("/opt/homebrew/opt/llvm/bin/llvm-readelf")
-PYTHON = Path("/Users/leo/.platformio/penv/bin/python3")
+PYTHON = Path("python3")
 
 
 def _have_inputs() -> bool:

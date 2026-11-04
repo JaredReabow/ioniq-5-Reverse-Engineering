@@ -89,7 +89,7 @@ UTF-8 bytes with one LF through `sys.stdout.buffer`, independent of
 ## Validation
 
 All required checks passed with
-`/Users/leo/.platformio/penv/bin/python3`; no project-local `TMPDIR` was set.
+`python3`; no project-local `TMPDIR` was set.
 
 - Focused test:
   `11 passed, 56 subtests passed`.

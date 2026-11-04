@@ -80,9 +80,9 @@ transition.
 ## Verification
 
 ```sh
-/Users/leo/.platformio/penv/bin/python3 -m pytest -q tests/test_bench_root_readiness.py
-/Users/leo/.platformio/penv/bin/python3 -m pytest -q tests
-/Users/leo/.platformio/penv/bin/python3 -m py_compile \
+python3 -m pytest -q tests/test_bench_root_readiness.py
+python3 -m pytest -q tests
+python3 -m py_compile \
   tools/uk_fw/bench_root_readiness.py tests/test_bench_root_readiness.py
 git diff --check -- \
   tools/uk_fw/bench_root_readiness.py \

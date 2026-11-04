@@ -155,6 +155,6 @@ All exact binaries, disassemblies, maps, and extracted ELFs remain ignored under
 Run from the repository root:
 
 ```sh
-/Users/leo/.platformio/penv/bin/python3 -m pytest -q tests
+python3 -m pytest -q tests
 git diff --check
 ```

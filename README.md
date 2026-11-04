@@ -197,6 +197,50 @@ measured evidence, what it exposes, the fix and how to verify the fix.
 The report ends with one sentence for the platform team: six of the nine are **one mistake** — a security decision resolved from state the threat model treats as
 untrusted — and the fix is to move those decisions onto read-only or hardware-backed state and make every one of them **fail closed**.
 
+### OTA envelope tooling: `gen5w_crypt.py`
+
+LG ships update payloads wrapped in a **TE2 envelope** — an AES-128-CBC body followed by a 0x4024-byte metadata trailer whose `[4:36]` field is a SHA-256 over the IV plus the rest of the
+metadata. `gen5w_crypt.py` (repository root) reads and writes that container:
+
+```sh
+python3 gen5w_crypt.py inspect  AppUpgrade                   # report layout, IV, integrity, cipher
+python3 gen5w_crypt.py decrypt  AppUpgrade AppUpgrade.plain
+python3 gen5w_crypt.py encrypt  AppUpgrade.plain AppUpgrade  # from scratch, or with --from <envelope>
+python3 gen5w_crypt.py decrypt-tree --root encrypted/ --out plain/
+python3 gen5w_crypt.py encrypt-tree --root plain/ --out new/
+```
+
+`--force` overwrites existing output.
+
+#### Round-trip verified, byte for byte
+
+Decrypting a shipped envelope and re-encrypting it reproduces the original **exactly**:
+
+```
+inspect   work/appfumo-iasimage-eu260128/encrypted/iasImage_1920_12
+          magic_valid: true   integrity_valid: true   cipher: AES-128-CBC
+decrypt   -> iasImage_1920_12              6,210,308 bytes, begins "ipk."
+encrypt   -> iasImage_1920_12  --from <original>
+cmp       byte-identical: YES (6,226,728 bytes)
+```
+
+Evidence: `evidence/te2-envelope/roundtrip-2026-11-05.log`.
+
+#### Two things that will bite you, both discovered the hard way
+
+- **The IV derives from the file's basename.** `IV = SHA256((basename + signed_int32(body_size)))`, so decrypt and encrypt must use the *same* name — for `encrypt`, that means the
+  **output** name. Writing to `iasImage_1920_12.new` produces a valid envelope with a different IV and byte-wise different ciphertext. Use identical names in different directories.
+- **`cryptography` is required for decrypt/encrypt, not for inspect.** It is not installed for this host's interpreters; a throwaway venv works:
+  `python3.13 -m venv /tmp/cryptenv && /tmp/cryptenv/bin/pip install cryptography`.
+
+#### What this does and does not give you
+
+- **Does**: read any TE2 payload to plaintext, and re-wrap a modified plaintext into a structurally valid, integrity-correct TE2 envelope. For a payload the device would accept, the
+  real trailer must be carried over (`--from`/`--trailer`), because the metadata's signature/key store is hashed into `[4:36]` — a from-scratch trailer zeroes those bytes and is explicitly
+  **not** device-faithful.
+- **Does not**: sign anything. `AppUpgrade`'s RSA verification of `.lge.upgrade.xml`, the version gate and any anti-rollback remain exactly as they were — see
+  `docs/DOWNGRADE-POSSIBILITIES.md`. Reproducing an envelope byte for byte proves the *container* is understood, not that the *contents* are trusted.
+
 ### Root access, ranked by cost
 
 `docs/root-access-paths.md` lists every route found and what each requires: **the serial console** (physical pads + the root password, prompt captured, password uncracked), **engineering

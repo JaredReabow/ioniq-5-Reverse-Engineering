@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.93.0 - the OTA envelope tool is in the tree, and it round-trips byte for byte
+
+`gen5w_crypt.py` (LG Gen5W TE2 OTA envelope reader/writer) is now committed, executable, and documented in the README. Before adding it, it was audited for host paths and secrets
+(none of either) and then exercised rather than assumed.
+
+**What it does, verified on a shipped payload:**
+
+```
+inspect  work/appfumo-iasimage-eu260128/encrypted/iasImage_1920_12
+         magic_valid: true   integrity_valid: true   cipher: AES-128-CBC
+decrypt  -> 6,210,308 bytes of plaintext beginning "ipk."
+encrypt  -> with the original's trailer, byte-identical to the shipped envelope (6,226,728 bytes)
+```
+
+So the container is fully understood: an AES-128-CBC body plus a 0x4024-byte trailer whose `[4:36]` is a SHA-256 over the IV and the remaining metadata, with the IV derived from the
+file's basename.
+
+**Two traps found the hard way, now in the README.** The IV comes from the basename - and on `encrypt` that means the *output* name - so writing to `iasImage_1920_12.new` produces a
+perfectly valid envelope with different ciphertext. And `cryptography` is needed for decrypt/encrypt but not for inspect, and is not installed for any interpreter on this host; a throwaway
+venv takes ten seconds.
+
+**What this does not do, stated in the README as plainly as what it does:** it signs nothing. `AppUpgrade`'s RSA verification, the version gate and any anti-rollback are untouched. A
+byte-identical envelope proves the *container* is understood, not that the *contents* are trusted - which is exactly the distinction the downgrade work turns on.
+
+Evidence kept at `evidence/te2-envelope/roundtrip-2026-11-05.log`.
+
 ## 4.92.0 - the check suite now verifies the tooling it depends on
 
 A night of rapid edits to scripts, checkers and guest helpers is exactly how a file ends up with a syntax error that nobody notices until someone needs it. `sh tools/check_all.sh` now

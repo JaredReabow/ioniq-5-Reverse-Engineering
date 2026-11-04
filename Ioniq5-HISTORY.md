@@ -5212,3 +5212,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The next experiment on the list was to disable audit and see whether the home screen paints. Counted the records instead and saved the boot: six hundred in ten minutes, one per second, all from the logging daemon.
 - Nearly wrote twenty-one thousand, because the audit serial number sat exactly where a record count goes. Counted lines instead of reading the number that looked like one.
 - Added that as the shortest rule in the discipline document, since it is a new shape: not a broken instrument or a leap of inference, just the wrong field.
+
+## 2026-11-05 - the app was never rendering because it never had a renderer
+
+- Ran the by-hand launch properly and the app's own log answered: it cannot initialise EGL, because the software driver is not on its search path. Everything else in its log is downstream noise.
+- The compositor gets the software GL environment from a wrapper; the applications get nothing, and inherit a search path containing only a stub. Copying the driver into place changed nothing, which showed the library path is what matters, not the file's location.
+- Five hypotheses died before this one and all were correctly eliminated - the app was failing at EGL before any of them could matter. The fix is one environment variable for the launcher.

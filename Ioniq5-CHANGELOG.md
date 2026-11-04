@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.10.0 - the physical vectors: a gated root console, a disabled radio, and no CAN
+
+A full inventory is in `docs/physical-and-wireless-vectors.md`. Three results change the picture.
+
+**The serial console is a root path with no software vulnerability in it at all.** `/etc/esinit_agetty.sh` starts `agetty` on
+`ttyS2` at 115200 8n1 and `/etc/securetty` lists it. Whether that login exists is decided by `/lib/systemd/esinit` reading
+`/sys/module/micom/parameters/secure_console` - a **runtime parameter**, not a fuse and not a build decision - and the login is
+available unless MICOM reports 1. The only account with a password is root, SHA-512-crypt, and the hash ships in
+`/etc/shadow.Global` (with `/etc/shadow` a symlink to `/tmp/shadow`) using a **fixed image-wide salt**. Sixty vendor-plausible guesses
+did not match, which says nothing about the password: an identical hash on every unit from this image means cracking it once gives root
+on the fleet. Filed as **V-049**.
+
+**The WiFi is real hardware that is switched off in software.** The image ships the complete stack for a Cypress/Broadcom CYW88359
+(BCM4359B1): `bcmdhd.ko` and `cfg80211.ko`, the radio firmware, a CLM blob for `4359b1`, and an NVRAM naming the module, the
+regulatory domain and even a MAC address. It is disabled by a `modprobe.d` blacklist, a GPIO power gate and a MICOM state gate - and
+the enable path ships as well (`app/bin/supplicantmanager`, `etc/wpa_supplicant.conf`). There is no sshd and no hostapd, so this is not
+a shell; it is a wireless channel. Filed as **V-050**.
+
+**CAN is a core with no controller.** `can`, `can-raw`, `can-bcm`, `can-gw` and `can-dev` are built in and loaded, but there is no
+controller driver, no vcan, no slcan and no userspace tooling. Vehicle CAN rides the MICOM link in this design, so socketcan is not a
+way in.
+
+**USB Ethernet** is drivable at kernel level (full usbnet family, symbols resolve) but ConnMan ignores `eth*`, the static-IP helper
+script is absent, and the dropbear binary does not exist in the image at all, so there is no address path and no shell.
+
 ## 4.9.0 - engineering mode runs in the VM as root, and its log explains the black page
 
 **The entry vector works.** `appId 301` with a binary staged at `/tmp/app/bin/AppEngineerMode` launches, and the process runs as

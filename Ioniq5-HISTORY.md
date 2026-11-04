@@ -4719,3 +4719,10 @@ and are superseded by corrections rather than silently rewritten.
 - The application's own log names the reason the body is black: version, Wi-PID, trace date, MICOM part info, user mode and VR version all return empty. We have not simulated those services yet. The list is now bounded.
 - Its PIN gate reads a wrong-password counter and reports no limit file, so the lockout is file-backed.
 - The launch is flaky: one run succeeded on the first request, three others produced nothing.
+
+## 2026-11-04 — the console was always the way in
+
+- The serial console is a root login gated by a runtime parameter read from /sys, not by a fuse or a build decision. Its only usable account is root, with one SHA-512 hash shipping identically on every unit from this image.
+- Sixty plausible defaults failed, which is not an answer. A fixed salt and an identical hash across the fleet is the finding, not the guess count.
+- The WiFi is complete hardware - driver, firmware, CLM blob, NVRAM with a MAC address - switched off by a blacklist, a GPIO and a MICOM gate, with the enable tooling shipped.
+- CAN has a core and no controller. USB ethernet has drivers and no address path, and no dropbear binary at all.

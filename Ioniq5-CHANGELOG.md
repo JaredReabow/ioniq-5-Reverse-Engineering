@@ -3,6 +3,36 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.82.0 - `R` with `wchan=0` is what a WORKING home screen looks like
+
+Before the worker published §7c, I ran the control in my own workspace, and it inverts the diagnosis:
+
+```
+SMACK_RULES_LOADED=636        (the shipped policy, accepted by load2)
+HOME_AT=60s home_pid=815
+SHOT=17874                    the home screen PAINTED - known painted sizes are 17,586 / 17,870 / 17,874
+State:  R (running)           the same state that was read as the cause
+Threads: 13
+wchan: 0                      the same wchan
+audit_denied=0
+```
+
+**`State: R` with `wchan=0` is the normal state of a working `AppHomeScreen`.** It painted a full frame while in exactly the state `§7c` concluded explains why it cannot paint.
+That is a correlation, not a cause - and `§4.78.0` repeated it, so this correction is mine as much as the worker's.
+
+Two things are worth keeping from the run:
+
+- **Loading the shipped SMACK policy does not by itself stop the paint.** 636 rules went in through `load2`, the app still rendered. That eliminates one of the three candidates from
+  §4.79.0.
+- What remains as the difference between a painting and a non-painting configuration: **service contention** (the full vendor unit set against two vCPUs), **`dlt-daemon`** with the app
+  logging megabytes to it, or **one of the projection instruments** (`/init-authentic-hmi.sh`, the `/usr/bin/weston` wrapper, the pixman shim).
+
+The worker has been told to record the state observation without the causal claim, and given the next discriminators: sample `utime+stime` deltas on the authentic path, and try
+launching the app **by hand** there - if it paints when launched manually, the difference is in what the launcher does or in the manager reaping it, not in the app at all.
+
+This is the seventh correction of the session and the fifth where the fault was in an inference rather than a measurement. The measurements have been holding up; it is the stories
+attached to them that keep failing.
+
 ## 4.81.0 - stopping the summary page from contradicting the register
 
 `docs/FINDINGS-SUMMARY.md` is one of the first documents anyone reads, and it was written mid-investigation. It still said the media-parser class was live-but-unproven because

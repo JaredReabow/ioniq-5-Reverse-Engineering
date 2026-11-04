@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.48.0 - delivering the show handshake ourselves does not work, and it corroborates V-045
+
+The cheap fix for the black engineering window was to send `show_window_fg` directly. The app's registration was captured verbatim (appid 301, servicename
+`com.lge.hkmc.avn.appfunc.AppEngineerMode`, objectpath `/com/lge/hkmc/avn/appfunc/engineermode`, plane 1), and the live connection was resolved to the
+running pid properly - by walking every unique name and matching `GetConnectionUnixProcessID`, after an earlier attempt had picked the wrong target from log
+order.
+
+Delivering the call to that exact connection:
+
+| destination | result |
+| --- | --- |
+| `/com/lge/hkmc/avn/appfunc/engineermode` (registered) | `NoReply` |
+| `/com/lge/hkmc/avn/appfunc/appInterface` | object exists, `NoReply`, **and the app's connection disappears** |
+| two other paths | `ServiceUnknown` |
+
+So the call at `appInterface` **kills the app** - which is precisely the behaviour V-045 recorded ("third reproducing call, NoReply, process gone"), now
+reproduced with the four-integer signature too. That is a third independent observation of it and it strengthens that entry.
+
+The cheap route is therefore closed, for an informative reason: the app does not serve the handshake at the path it registers, and the interface it does export
+destroys the caller's peer. The real `ApplicationManager` must be doing something else - receiving `registration`, remembering the service and object path, and
+speaking to the app on an object it actually exports. Running the real manager is not a nicety; it is the only route to a painted engineering window that does
+not involve killing the app.
+
 ## 4.47.0 - the engineering window's black body is answered: it waits to be shown
 
 `docs/engineering-mode/engineering-paint.md` settles it with `strace` on the app's stderr (the launcher discards that stream, but `write(2)` still

@@ -4754,3 +4754,8 @@ and are superseded by corrections rather than silently rewritten.
 - A payload with no signature section, run with the key deleted, was executed as root by the application manager. App id 10, an ordinary vendor app, was enough; our own path was the binary.
 - So V-048 had the narrower half of the problem. The manager trusts the caller about which file to run, and does not verify it, which no amount of key pinning would fix.
 - What remains is the ability to send one message on the session bus. Nothing else.
+
+## 2026-11-04 - the last precondition was the default
+
+- The session bus ships the stock policy that allows everything to be sent and anyone to own anything, with no vendor rule for the launcher. So nothing restricts who may ask it to run a binary.
+- That closes the chain as a local escalation: any code execution on the unit, then one message, then root. Not remote, and not a shell out of nothing.

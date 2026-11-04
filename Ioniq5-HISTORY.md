@@ -4566,3 +4566,9 @@ and are superseded by corrections rather than silently rewritten.
 - Rewriting the shader changed the picture, which proves the instrument. Swapping the texture axes did not fix the stripes, which refutes the tidy version of the transposition theory.
 - Two days ago the question was whether anything at all could be changed from outside. Now a vendor shader can be rewritten in memory in one run and the result measured.
 - The next hypotheses cost one run each instead of one evening each.
+
+## 2026-10-31 — one sign, and the stripes are gone
+
+- Negating the u coordinate removed the artefact completely. A clean window, no stripes, for the first time in this investigation.
+- The other rewrite merely rearranged it, so the difference between the two is the finding: the sampler is being handed a coordinate that walks the texture the wrong way.
+- The corrected frame is mostly empty, which means the mapping is not a pure mirror; a short sweep will find the rest.

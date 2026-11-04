@@ -4895,3 +4895,9 @@ and are superseded by corrections rather than silently rewritten.
 
 - Half of it held: the applications do carry the floor label rather than the privileged one. Half of it did not: setting the restriction at runtime left a new unlabelled process with full capabilities and the ability to write a root-owned file.
 - So the two findings stay latent. The measurement that would decide it on a real unit is named, and the refutation is written down so the next reader does not spend a week on the tidy version.
+
+## 2026-11-04 - testing the refutation twice, and finding a better question
+
+- The first refutation had a hole in it, so it was redone with the image's own labelling tool and a real exec-time transition. The labels took effect and the capabilities stayed full anyway.
+- So the tidy theory is dead in two configurations. What replaces it is a question worth more: if the restriction does not strip capabilities even when applied properly, what is the MAC layer actually enforcing here?
+- Recorded what could change the answer - LSM boot parameters and a populated rule table, neither of which is present - instead of asserting the stronger claim.

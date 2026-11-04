@@ -142,3 +142,34 @@ cat /proc/<pid>/attr/current             # expect "_", not "Privileged"
 
 Until that is run, V-054 and V-055 stay **latent**, and this document will not upgrade them on the strength of a plausible story. The value of
 recording the refutation is that the next reader does not spend a week believing the elegant version.
+
+### Second attempt, with proper exec-time labels — same result
+
+The first test was open to the objection that `onlycap` acts on **exec-time label transitions**, and the processes tested had inherited the floor label
+rather than been labelled by execution. That objection was tested properly, using the image's own `/sbin/chsmack`:
+
+```
+floor attr: /tmp/lf/sh access="_" execute="_"
+priv  attr: /tmp/pv/sh access="_" execute="Privileged"
+onlycap=Privileged
+
+floor: label=_          capEff=0000003fffffffff
+priv : label=Privileged capEff=0000003fffffffff
+```
+
+Two binaries, one whose `SMACK64EXEC` is the floor label and one whose `SMACK64EXEC` is `Privileged`, both executed **after** `onlycap` was set.
+The label transition is visible in `/proc/self/attr/current` — `_` for one, `Privileged` for the other — and **both kept full capabilities**
+(`CapEff=0000003fffffffff`, the maximum mask for this kernel).
+
+So the capability-stripping hypothesis is refuted in two configurations, not one.
+
+### Which raises a more interesting question than the hypothesis did
+
+If `onlycap` does not strip capabilities even for a correctly labelled exec, then the MAC restriction this image configures may not be
+delivering the containment its design implies. **Caveats, stated rather than buried:** neither this harness nor the recovered boot material shows a
+`security=smack` or `smack_onlycap=` boot parameter, and the full policy load (`load2` rules, which `smack_setup.sh` does not author in any case)
+does not happen under the research init. A vehicle that boots with different LSM parameters could behave differently.
+
+What can be said from measurement: **on this kernel and boot configuration, writing `onlycap` as `smack_setup.sh` does does not produce a
+capability barrier**, and the two things that would change the answer — an LSM boot parameter and a populated rule table — are absent. That is
+worth checking on a unit with the same two commands plus `cat /proc/cmdline`.

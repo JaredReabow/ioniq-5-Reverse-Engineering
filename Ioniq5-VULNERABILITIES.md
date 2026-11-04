@@ -1891,6 +1891,42 @@ They are two halves of the same first-boot decision. `esinit` decides "this is a
 (V-052), and `fde_test_v2.sh` decides *how* it becomes LUKS — with `1234`. So on a unit that has been through first boot, the answer to
 "is the data protected" is: the probe succeeds, MAC stays enforcing, and the ciphertext is openable by anyone holding the image.
 
+### Reachability settled: the script runs when the flag says so, and it then encrypts with `1234`
+
+The inference below - that the script never runs - was drawn from the normal boot flow and is **incomplete**. A later run that forced
+`optUNECE=1` in the init wrapper showed the encryption engaging, with the mappers active:
+
+```
+/dev/mapper/rw_data_enc is active.
+/dev/mapper/log_data_enc is active.
+EXT4-fs (dm-1): mounted filesystem with ordered data mode.
+```
+
+while in the same boot the raw probes still reported:
+
+```
+Device /dev/mmcblk0p11 is not a valid LUKS device.
+Device /dev/mmcblk0p8  is not a valid LUKS device.
+```
+
+Both are true, and the mechanism explains why. `esinit` does not recompute the flag before using it - it **reads** it:
+
+```sh
+if [ -f /etc/fde_test_v2.sh ]; then
+    endFde="$(cat /sys/module/micom/parameters/optUNECE)"     # read, not recomputed
+    case "$endFde" in "1") /etc/fde_test_v2.sh ;; "0") echo "FDE SUPPORT: No" ;; esac
+```
+
+and `fde_test_v2.sh` itself formats anything that is *not already* LUKS with the literal `1234`. So:
+
+| `optUNECE` at boot | what happens |
+| --- | --- |
+| **0** (the state a plaintext factory image produces) | no encryption, plaintext data, and SMACK is switched permissive by V-052 |
+| **1** | `fde_test_v2.sh` runs; if the partition is not already LUKS it formats it **with `1234`** and opens it |
+
+So the code is reachable - demonstrated here - and the flag is the only thing standing between a unit and encryption whose key is worthless. That makes the
+finding precise rather than speculative: **a unit whose flag is 1 but whose partition is not LUKS gets encrypted with `1234` on that boot.**
+
 ### Not established - and one strong indication that the script never runs at all
 
 Whether production units reach this path, and whether any units derive a per-unit passphrase elsewhere. The literal `1234` is what the script

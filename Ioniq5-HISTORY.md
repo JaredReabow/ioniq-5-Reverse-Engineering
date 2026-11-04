@@ -5020,3 +5020,9 @@ and are superseded by corrections rather than silently rewritten.
 - I reported that a floor-labelled process could read a protected object, and called it proof that the label is exempt from the policy. The probe never checked that the relabelling had actually worked, so it may have read an unlabelled file and proved nothing.
 - The audit records from the enforcing run say the opposite: every denial in that boot is that same label being refused, mostly the logging daemon. So the policy does constrain it.
 - Withdrew the claim, marked the question unproven rather than measured, and wrote down the version of the probe that checks its own precondition first. That is the second time this session I believed an instrument I had not verified.
+
+## 2026-11-05 - the contradiction was my own instrument
+
+- One run said the data was never encrypted; a later one showed the mappers active. Both were right, and the difference was a flag I had forced in one of them.
+- The init reads that flag rather than recomputing it, and the encryption script formats anything not already encrypted with the four-digit literal. So the code is reachable, and the flag decides everything.
+- Named the cause in the record: forcing a variable changed the behaviour being studied. Two of my own runs disagreed because of it.

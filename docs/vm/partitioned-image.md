@@ -138,7 +138,8 @@ before the esinit run is attempted.
    benign QEMU no-GPIO noise, as is the known `lge_gps_driver` warning loop).
 5. `exec /lib/systemd/systemd` → `systemd 225 running in system mode`, `Set hostname <prm-gen-5>`,
    then `Local File Systems` (14.1 s) → `Basic System`/`Login Prompts` (18.3 s) → `Multi-User`
-   (75.9 s). All 11 fstab partitions (`p6,p8,p9,p10,p11,p12,p13,p14,p15,p17`) show
+   (75.9 s). All 11 fstab entries mount (10 unique partitions: `p6,p8,p9,p10,p11,p12`×2,
+   `p13,p14,p15,p17`; `p12` is mounted at both `/Data/mnt-c` and `/Data/mnt-wt`), each with
    `EXT4-fs … mounted`.
 
 ### First failing line (verbatim)
@@ -159,7 +160,7 @@ bug, and it does **not** gate boot (`check-mount.service` is a `local-fs.target`
 | unit | first failure (verbatim) | cause |
 |---|---|---|
 | `auditd.service` | `auditd.service: Main process exited, code=exited, status=6/NOTCONFIGURED` | audit not configured in QEMU |
-| `dbus-com.lge.car.micom.service` | `Failed to start System service for micommanager.` | MICOM hardware absent |
+| `dbus-com.lge.car.micom.service` | `Failed to start System service for micommanager.` | no live MICOM over the platform bus (SPI never arrives) |
 | `ApplicationLauncher` etc. | `Dependency failed for HKMC Preminum AVN 2.1 -Launcher.` | `Requires` micommanager |
 | `TimeManager.service` | `TimeManager.service: Main process exited, code=exited, status=1/FAILURE` | depends on `pas-daemon`/`connman` |
 
@@ -176,10 +177,14 @@ No `emergency.target`, no `dev-mmcblk0p*.device` timeout, no `status=64` anywher
   never named by fstab/esinit/updater; they are placeholders here. `p16`'s observed
   "mounted without journal" behaviour is reproduced only as an empty ext4.
 * **`p1/p2` (iasImage/iasPreload) are empty.** esinit's PLK1/PLK2 recovery only triggers on
-  `spi_validation_OK` + `i915 splash_error`, neither of which occurs in QEMU (MICOM/i915 absent).
-* **MICOM absence** keeps the SPI gate in its `NOK` branch (so esinit still does not launch
-  `weston --tty=1`) and is why `micommanager` fails. This is a hardware-boundary limitation, not
-  an image defect; it is the same reason the earlier bind-mount run could not start the HMI.
+  `spi_validation_OK` + `i915 splash_error`, neither of which occurs in QEMU (no real MICOM SPI
+  data, and no i915 splash error).
+* **No live MICOM.** The `micom` platform driver registers and its `oem_type`/`car_type`/`country`
+  parameters read back defaults (`1`/`5`/`5`), but the real MICOM SPI handshake never completes
+  (`[lge_lcd_init_func] Micom didn't sent SPI data`), so `spi_validation` never becomes 1. That
+  keeps esinit's SPI gate in its `NOK` branch (so esinit still does not launch `weston --tty=1`)
+  and is why `micommanager` exits 1. This is a hardware-boundary limitation, not an image defect;
+  it is the same reason the earlier bind-mount run could not start the HMI.
 
 ## Evidence index
 

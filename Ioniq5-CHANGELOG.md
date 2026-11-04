@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.29.0 - the crash tracer works, and AppNavi's death is a missing valet-mode reply
+
+- Built `crash_trace.c` (installed via `/etc/ld.so.preload`, so it reaches launcher-spawned processes): it installs handlers for `SIGSEGV`/`SIGABRT`/`SIGBUS`/`SIGFPE`/`SIGILL`, writes the
+  signal, faulting address, a `backtrace_symbols_fd()` trace and the process's own `/proc/self/maps` to `/tmp/crash-trace.log`, then restores the default disposition and re-raises so the process
+  still dies exactly as before. **This is the capability the project has been missing for a week**, and it needs no debugger in the guest.
+- First run, 200 seconds, two crashes captured. The first — `pid 806`, `addr 0x8` — is fully symbolised:
+  ```
+  /usr/lib/libQt5Core.so.5  QVariant::toBool() +0x14
+  /navi/navi                CAppFuncComm::getValetModeOnOffState() +0x17c
+  /navi/navi                NimoExSLApplicationCreatorLinux::loadNaviSettingFromSystem() +0x117
+  /navi/navi                ExSLApplication::onInitialize(int, char**) +0x34f
+  /navi/navi                ExSLInitialize → ExSLMain → NimoExSLMainLinux → _start
+  ```
+- **That explains AppNavi completely.** During initialisation it asks for the **valet-mode on/off state**, receives something that is not a valid `QVariant`, and calls `toBool()` on it — faulting at
+  address `0x8`, the classic null-plus-offset read. It is **not** a Qt defect, not a stacking problem, and not related to the display work at all: it is a **missing or malformed service reply**,
+  which is blocker 4 wearing blocker 3's clothes. Fable predicted exactly this ("both deaths are service-timeout paths… don't chase them until the stubs exist") and was right.
+- The fix is therefore concrete rather than exploratory: **the chain must answer the valet-mode query with a well-formed reply.** `vm/repro` already contains AppNavi valet stubs from earlier work, so
+  this is a matter of wiring the reply into the running chain and confirming that AppNavi survives past 55 seconds.
+- The second crash (`pid 783`, `addr 0x7f7d0ffffff8`) is the `AppCamera` invalid free; its trace is in the same log and will be read on the next run. Astra's caution applies: two crash sites are
+  not evidence of one cause, so it gets its own reading rather than being folded into this one.
+
 ## 3.28.0 - the fragment shader is trivial, and normalising its sample does not fix the stripes
 
 - Captured the **fragment** shader, which had never been dumped. It is minimal:

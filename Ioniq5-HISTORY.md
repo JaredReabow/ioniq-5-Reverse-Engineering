@@ -4608,3 +4608,10 @@ and are superseded by corrections rather than silently rewritten.
 - The fragment shader samples with the varying directly. There is no normalisation in the pipeline at all, which is now certain rather than inferred.
 - Dividing by the texture size did not help, so the pixel-space theory does not explain the background. The sampler-state test is still the one that has not been run.
 - Astra's caution about the earlier u negation was right: that frame was clean because it was empty.
+
+## 2026-10-31 — a week of guessing ended by one stack trace
+
+- With no debugger in the image, every client crash so far had been inferred from a single kernel line. The signal-handler shim turned that into a named function and a named call.
+- AppNavi dies asking for the valet-mode state and calling toBool on nothing. That is a missing reply, not a fault in the application, and it was predicted from the service landscape argument rather
+  than discovered by staring at the crash.
+- The instrument took an hour to write. The answer had been sitting behind the missing tool all week.

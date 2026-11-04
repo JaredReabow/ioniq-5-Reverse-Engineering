@@ -1705,6 +1705,18 @@ component that owns it, decides whether a root login prompt exists on the serial
 it is not a privilege path: **no binary in this image carries the `/tmp/shells` string**, so nothing reads it. It is a vestige. It is
 written down here so the next reader does not spend time on it.
 
+### Corroborated on the authentic boot path (2026-11-05)
+
+The prompt above was captured by invoking the vendor's `agetty` script by hand. During the authentic boot - vendor kernel, vendor `esinit`, no instrumentation of ours - the same
+prompt appears **by itself**, captured from a second serial port:
+
+```
+OpenEmbedded 1.0 prm-gen-5 ttyS2
+prm-gen-5 login:
+```
+
+So the login is not an artefact of running the script manually: it is what the shipped boot produces.
+
 ### The credential
 
 `/etc/shadow` is a symlink to `/tmp/shadow`, populated at boot from `/etc/shadow.Global`. Exactly one entry carries a password:

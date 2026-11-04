@@ -5289,3 +5289,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Probed the managed path twice and got nothing useful both times. The first run lost its diagnostic lines to a busy console that drops small writes; the second wrote to a serial port that was never attached, because my runner tested for a flag name with two dashes while the harness emits one.
 - Fixed the guard and recorded both faults, since the channel has to be verified before its silence means anything - the same lesson three other entries tonight already carry.
 - Stopped rather than spending a third cycle on my own plumbing. What is measured about the managed path stands; the run that would settle it is one attempt away for the next person.
+
+## 2026-11-05 - the environment was fine all along, and the console appeared on its own
+
+- Got the lossless channel working and read the managed child's environment: driver path, gallium driver, Mesa library path, Qt platform and bus address are all correct, and every file it needs is present. So the launcher does not strip the driver path after all.
+- What remains is sequencing and starvation - the launcher starts the whole application set at once against two emulated cores while a single hand-started instance has the machine to itself.
+- The same channel captured something unplanned: the serial login prompt, on the vendor's own init, with none of our instrumentation involved. That finding had been proven by running a script by hand until now.

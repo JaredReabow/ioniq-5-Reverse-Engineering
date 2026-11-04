@@ -4867,3 +4867,9 @@ and are superseded by corrections rather than silently rewritten.
 - Swept for the pattern instead of waiting to trip over it, and found the account database itself living in /tmp, rebuilt each boot, with the console policy decided by which text file gets copied there.
 - Its practical weight is small today because everything here runs as root. What makes it worth fixing is that it is the fifth instance of the same shape, and any future lesser-privileged write turns it into account takeover.
 - Wrote the framing document, because the pattern is the argument the vendor can act on: none of the five needs signed code touched, four are a single file or parameter, and all of them fail in the unsafe direction.
+
+## 2026-11-04 - the display server starts, and its config is a symlink into tmp
+
+- Standing in for the MICOM handshake worked: the vendor init took its OK branch and started the real compositor for the first time here. It cannot run without a display device the projection does not have, so boot stalls short of multi-user.
+- Checking what backend it wanted found the sixth instance of the same shape: the compositor's configuration is a symlink into tmp, and it names the shared objects a root process loads.
+- Two limits recorded rather than implied: nothing restarts the compositor automatically, so a changed config waits for the next start, and no non-root writer to that directory has been shown on this build.

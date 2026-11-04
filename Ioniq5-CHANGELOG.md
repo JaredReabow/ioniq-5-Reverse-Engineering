@@ -3,6 +3,34 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.34.0 - the SPI gate opens, and the sixth instance turns up in the compositor's own config
+
+The MICOM SPI stand-in works: booting `/init-esinit-spi.sh`, which forces the parameter and then execs the authentic init, made `esinit`
+take its OK branch and start the real compositor -
+
+```
+[    6.545898] random: weston urandom read with 19 bits of entropy available
+```
+
+That is the first time the vendor display server has been launched by the vendor init in this projection. It cannot run, because `weston --tty=1`
+expects a DRM device the projection does not provide, so boot stalls short of multi-user - and that is precisely where a software backend
+substitution belongs, which is the next piece of fidelity work rather than a mystery.
+
+While checking what backend it wanted, the configuration turned out to be worth an entry of its own:
+
+```
+/etc/xdg/weston/weston.ini -> /tmp/weston.ini
+```
+
+created at boot by `install_westonPngLogo.sh` (`ln -sf /etc/xdg/weston/weston_${LCD_TYPE}.ini /tmp/weston.ini`), and the file names
+`shell=ivi-shell.so`, `backend=ias-backend.so` and `ivi-module=ivi-window-manager.so,ivi-controller.so`. So whatever can write that path
+chooses which shared objects the **root** compositor loads. Filed as **V-055**, with two honest limits recorded: `weston-crash.sh` does
+**not** restart the compositor (it dumps diagnostics and messages MICOM's watchdog), so a modified config takes effect at the next start
+rather than instantly; and no non-root `/tmp` writer has been demonstrated on this build.
+
+The framing document now carries six instances, because the pattern keeps paying: every one of them is a privileged decision resolved from a
+writable runtime path.
+
 ## 4.33.0 - the fifth instance of one flaw, and the document that frames it
 
 Sweeping for the shape rather than waiting to trip over it found the account database:

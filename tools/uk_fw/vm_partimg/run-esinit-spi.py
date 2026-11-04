@@ -43,7 +43,8 @@ WS = (PROJECT / "work/vm/partimg").resolve()
 ACTIVE_ROOT = "/dev/mmcblk0p5"
 
 vb.KERNEL_SHA256 = hashlib.file_digest((WS / "bzImage").open("rb"), "sha256").hexdigest()
-vb.INIT_CHOICES = ("/init", "/lib/systemd/esinit", "/lib/systemd/systemd")
+vb.INIT_CHOICES = ("/init", "/lib/systemd/esinit", "/lib/systemd/systemd",
+                    "/init-esinit-spi.sh")
 
 _orig_qemu_command = vb.qemu_command
 
@@ -55,9 +56,10 @@ def qemu_command(*args, **kwargs):
     # root must be the active-root partition.  One documented, token-scoped edit.
     argv[i + 1] = argv[i + 1].replace(
         "root=/dev/mmcblk0 ", f"root={ACTIVE_ROOT} ", 1)
-    # Report the MICOM SPI handshake as complete so esinit takes its OK branch and
-    # starts /usr/bin/weston.  Second documented append change.
-    argv[i + 1] += " micom.spi_validation=1"
+    # The MICOM SPI stand-in is installed at /init-esinit-spi.sh in p5 (see
+    # tools/uk_fw/guest/init-esinit-spi.sh): it forces the parameter and execs esinit.
+    # Use --init /init-esinit-spi.sh; no extra command-line token is needed, because the
+    # driver overwrites a command-line value during probe (measured).
     return argv
 
 

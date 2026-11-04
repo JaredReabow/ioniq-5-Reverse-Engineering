@@ -1472,8 +1472,10 @@ For each new issue record: stable ID, affected artifact/build and digest, source
 
 ## V-048 — root code execution through the application manager's `/tmp` verification key  — **CONFIRMED**
 
-**Status: confirmed in the projection.** A binary signed with a key generated during this work was launched by the application
-manager and executed as **uid 0**. Nothing was attempted on hardware. What remains unknown is only how an attacker gets a file into
+**Status: confirmed in the projection**, and **superseded in importance by V-051**: the signature check this entry subverts is not
+reached at all when the caller supplies its own path, so the `/tmp` key is the narrower half of the problem.
+
+A binary signed with a key generated during this work was launched by the application manager and executed as **uid 0**. Nothing was attempted on hardware. What remains unknown is only how an attacker gets a file into
 `/tmp` and a request onto the session bus on a live unit.
 
 ### The measurement
@@ -1645,3 +1647,58 @@ NVRAM for a named chip, not from hardware inspection.
 runs as root — will associate to a network. There is **no sshd and no hostapd** in the image, so this is not a direct shell; the value
 to an attacker is a command-and-control and exfiltration channel, and the value to a defender is that it exists at all. The shared
 `macaddr` in NVRAM is separately interesting: units would be identifiable and possibly colliding on the same address.
+
+## V-051 — the application manager runs any binary a caller names, as root, with no signature check at all
+
+**Status: confirmed in the projection.** This is a *different* defect from **V-048** and a more severe one: V-048 showed that the
+verification key lives in `/tmp`; V-051 shows that **for a caller-supplied `appLocation` there is no verification to subvert in the
+first place**.
+
+### The measurement
+
+A statically linked payload with **no `.sign` section whatsoever**, launched while `/tmp/app_normal.key` and every `/tmp/*.sign` file
+had been deleted first:
+
+```
+KEY_PRESENT=no
+$ poc_sign.py info payload_plain   ->  no .sign section
+=== manager log ===
+"m_AppProcess->start(/poc/payload_plain) PID[952]"
+"m_AppProcess->start(/poc/payload_plain) PID[954]"
+=== payload's own report ===
+V048_PAYLOAD_RAN
+uid=0 euid=0 gid=0
+```
+
+The request used app id **10** — `AppStandbyClock`, an ordinary vendor application with no development hook — and the path was ours:
+
+```
+dbus-send --session --print-reply --dest=com.lge.avn.applauncher /Request \
+  com.lge.avn.applauncher.request.launch \
+  int32:10 string:AppStandbyClock string:/poc/payload_plain
+```
+
+So the manager takes `appLocation` from the caller and executes it **as root, unverified**, for any app id it knows. The earlier
+app-301 result, and the whole `/tmp/app_normal.key` substitution in V-048, were unnecessary: those steps only matter for binaries
+launched from `/app/bin`, where the check is performed. A path under `/poc` (and, by the same logic, any writable path) is not
+checked at all.
+
+### Why this is the more important defect
+
+- **No key needed.** No `/tmp` write, no RSA, no `.sign` section.
+- **No development path needed.** The app-301 hook is irrelevant; any known app id works.
+- **The process runs as uid 0** because the manager does.
+
+What it still requires is the ability to send a message to the session bus. That is the only remaining precondition, and it is what
+decides whether this is a local escalation or something reachable from a lower-privileged context. It is **not** established here.
+
+### Relationship to V-048
+
+Both should be fixed, and they need different fixes. V-048's fix is "stop trusting a key in a writable directory". V-051's fix is
+"verify before executing, and only execute from a trusted directory" — pinning the key would not have prevented V-051, because the
+check is not reached for caller-supplied paths at all.
+
+### Suggested patch direction
+
+Ignore `appLocation` from the request entirely and launch only binaries from a fixed, read-only application directory resolved by app
+id; verify the signature on that resolved path; and treat a signature failure as fatal.

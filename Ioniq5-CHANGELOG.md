@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.15.0 - V-051: the manager executes any path a caller names, as root, unverified
+
+The V-048 work produced a worse finding than it set out to. A payload with **no `.sign` section at all**, launched with
+`/tmp/app_normal.key` and every `/tmp/*.sign` deleted, was started by the application manager and reported `uid=0 euid=0 gid=0`:
+
+```
+KEY_PRESENT=no
+"m_AppProcess->start(/poc/payload_plain) PID[952]"
+V048_PAYLOAD_RAN
+uid=0 euid=0 gid=0
+```
+
+The request used app id **10** - `AppStandbyClock`, an ordinary vendor app with no development hook - and our own path as
+`appLocation`. So the manager **takes the binary's path from the caller and runs it as root without verifying it**. The app-301 hook
+and the whole `/tmp` key substitution from V-048 were unnecessary: those matter only for binaries launched from `/app/bin`, where the
+check happens. A caller-supplied path elsewhere is not checked at all.
+
+Filed as **V-051**, with V-048 annotated as the narrower half: V-048's fix is "do not trust a key in a writable directory", V-051's fix
+is "do not execute a path the caller chose" - and pinning the key would not have prevented V-051, because the verifier is never
+reached.
+
+The remaining precondition is the ability to send a message on the session bus. That, and only that, decides whether this is local
+escalation or reachable from a lower-privileged context.
+
 ## 4.14.0 - the serial login prompt, captured
 
 Running the vendor's `/etc/esinit_agetty.sh` unmodified against `ttyS2` produced, on the far side of the port:

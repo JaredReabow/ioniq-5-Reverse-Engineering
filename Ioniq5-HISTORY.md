@@ -4837,3 +4837,9 @@ and are superseded by corrections rather than silently rewritten.
 - Eight partition sizes are measured from the vehicle's own fsck logs, and the active/inactive slot map is now a named fact rather than an inference.
 - One vendor driver oopses on non-vendor hardware and deadlocks the init until it is neutralised. Worth remembering that the fix was one line and the failure looked like a hang.
 - The root token had to name the active partition, because a partition table overwrites the superblock at a fixed offset. Recorded rather than quietly patched.
+
+## 2026-11-04 - one value stands between multi-user and the UI
+
+- The vendor init refuses to start the display server until a MICOM parameter says the SPI handshake succeeded, which never happens under emulation. Supplying it on the command line was accepted, but nothing in the log shows the gate opening.
+- Two explanations fit equally and neither was tested, so both are written down. The next move is to instrument the display server rather than guess again.
+- That makes this one value the last barrier to the vendor interface actually running.

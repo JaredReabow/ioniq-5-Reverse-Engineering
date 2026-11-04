@@ -5224,3 +5224,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - A night of editing scripts is how a file ends up with a syntax error nobody notices until it is needed. The suite now parses every tracked python file and syntax-checks every shell script as a fourth stage.
 - It passed first time, which was worth confirming rather than assuming, since tonight's changes touched the suite itself and three checkers.
 - Kept the stage deliberately narrow: it answers whether the files load, nothing more. A check that does too much is a check people run once.
+
+## 2026-11-05 - the update container is now readable and writable
+
+- Added the OTA envelope tool after auditing it for host paths and secrets, then exercising it rather than trusting it: inspect validates the shipped envelope, decrypt yields plaintext that starts with a package header, and re-encrypting reproduces the original byte for byte.
+- Two traps recorded: the initialisation vector comes from the file name, so the output name matters on encrypt; and one dependency is missing on this host, which a throwaway environment fixes.
+- The README says as plainly what it does not do: it signs nothing, so the signature check, the version gate and any rollback protection are exactly where they were. Reproducing a container is not the same as earning trust for its contents.

@@ -2077,25 +2077,47 @@ language, and a process carrying it is effectively outside the policy — which 
 2. **Second version said the count was 12 files and that confinement was "open".** Both were wrong: it is **27** files (the 12 came from a truncated listing),
    and the question is now answered by measurement rather than left open.
 
-### Both MAC branches measured: `_` is exempt whether the policy is permissive or enforcing
+### CORRECTION: the probe that "settled" this was not a valid test, and the real evidence says the opposite
 
-The earlier probe ran under the default branch (`optUNECE=0`, SMACK switched permissive). A second run forced `optUNECE=1` before `esinit` - the **enforcing**
-branch, where `smack_setup.sh` does *not* touch `bringup-switch` - and repeated the same probe:
+The previous two versions of this section reported a probe result -
 
-| branch | probe result | SMACK audit decisions |
-| --- | --- | --- |
-| `optUNECE=0` (permissive) | `SMACKPROBE label=_ read=[secret] write=[ok]` | 0 granted, 0 denied |
-| `optUNECE=1` (**enforcing**) | `SMACKPROBE label=_ read=[secret] write=[ok]` | 0 granted, **40 denied** |
+```
+SMACKPROBE label=_ read=[secret] write=[ok]
+```
 
-Two things follow, and they are different in character:
+- as proof that a `_` subject is exempt from the policy, "under both the permissive and enforcing branches". **That inference is withdrawn.** The probe created a
+file in `/tmp`, labelled it with `/sbin/chsmack -a Log::dlt`, and then read it. It never verified that the labelling **succeeded**, so the read may simply have been
+a `_` subject reading a `_` object - which is trivially allowed and proves nothing. A follow-up run that did print `chsmack`'s own report produced no output at
+all, so the check never landed.
 
-- **The `_` subject is exempt in both cases.** A process carrying the floor label read and wrote a `Log::dlt` object with the policy permissive *and* enforcing. So
-  the exemption is a property of the label, not of the permissive switch - which is the conclusion this entry has been circling, now measured on both sides.
-- **Enforcement is real and it bites elsewhere.** With the policy enforcing, 40 access decisions were **denied** while the `_` probe still succeeded. So the rule
-  set does constrain *some* subjects - just not the ones applications run under. That also means the enforcing branch on a real unit is likely to produce
-  functional failures in services that were developed against the permissive default, which is worth knowing before anyone flips `optUNECE`.
+### What the evidence actually shows
 
-The same boot also printed `SECURE CONSOLE Mode: NO !!!`, corroborating V-049 through the authentic path rather than through a standalone `agetty`.
+The enforcing run's audit records contradict the "exempt" reading outright. Every denial in that boot is a **`_` subject being refused**:
+
+```
+[251.467716] lsm=SMACK fn=smack_inode_permission action=denied subject="_" object="Log::dlt_vcrm" requested=x comm="dlt-daemon"
+[251.468695] ... subject="_" object="Log::dlt_vcrm" requested=r comm="dlt-daemon"
+[251.469515] ... subject="_" object="Log::dlt"        requested=r comm="dlt-daemon"
+```
+
+Six denials against `Log::dlt` and four against `Log::dlt_vcrm`, all from `dlt-daemon` running as `_`. So with the policy enforcing:
+
+- **`_` is not exempt.** It is refused access to objects the rules do not grant it.
+- The policy is functional, and the vendor's own logging daemon is one of the things it blocks when enforced.
+
+### What this means for V-054 and V-055
+
+Neither can be justified by "applications are outside the policy" - that claim was based on the invalid probe. What remains measured is narrower and still relevant:
+applications run as uid 0 with the label `_`, and `_` is a subject the rules *do* constrain (as `dlt-daemon` demonstrates). Whether an application process is
+confined therefore depends on what the rules grant `_`, which was not established either way.
+
+The correct experiment is a probe that **verifies the object label first**:
+
+```
+/sbin/chsmack -a Log::dlt $F && /sbin/chsmack $F     # must print access="Log::dlt" before the read
+```
+
+and only then attempts the access. Until that runs successfully, this entry's status is **unproven**, not "measured in both directions".
 
 ### How the labels are supposed to be applied - and why this cannot be settled from the artefact
 

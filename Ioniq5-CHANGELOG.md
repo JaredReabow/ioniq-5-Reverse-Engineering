@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.0.1 - the front page now says what the VM actually does
+
+The README's fidelity section was written when the best claim available was "the vehicle's own boot starts its own compositor, and the frame is the early background". That
+stopped being true two entries ago, and a front page that undersells the result by a whole milestone is a different kind of inaccuracy than one that oversells it - but it is still
+inaccuracy.
+
+Rewritten to state the chain and the evidence:
+
+```
+vendor kernel -> vendor esinit -> esinit's own weston --tty=1 -> vendor application stack
+[FTL] Using Wayland-EGL                (no DRI2 warning)
+BYHAND_NAME_OWNED=[com.lge.hkmc.avn.appfunc.AppHomeScreen]
+BYHAND_CAPTURE bytes=120556            (changed from the 129,844-byte early-background)
+```
+
+with the **three projection-only substitutions** named in one place - the software backend for `ias-backend.so` and the GPU, the MICOM SPI stand-in, and the software-GL driver path
+the vendor launcher strips from its children - and with what is still wrong stated in the same section: the *managed* launch is killed by the manager as a foreign instance, so the
+remaining gap is ownership rather than rendering.
+
+Two habits are behind this: the front page is a claim like any other and gets checked against the record, and the honest boundary ("three substitutions, everything else shipped") is
+more useful to a reader than either the triumph or the caveat on its own.
+
 ## 5.0.0 - the authentic path paints: vendor kernel, vendor init, vendor compositor, vendor HMI, and a frame
 
 The last substitution is in, and the milestone the project has been working toward all session is reached. On the **authentic** path - vendor kernel -> vendor `esinit` -> esinit's own

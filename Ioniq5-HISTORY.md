@@ -5002,3 +5002,9 @@ and are superseded by corrections rather than silently rewritten.
 - The register had become something only its author could navigate, so I wrote the version a platform team can act on: nine findings ordered by cost to fix, each with its evidence, its exposure, the fix and how to verify it.
 - Cheapest first, because here the cheapest fixes also remove the most: five are configuration, three need a release, and the data protection one is murky in a way the report states plainly.
 - It ends with the one sentence the whole register supports, and the readme now points at it.
+
+## 2026-11-05 - a bound on the finding I had just settled
+
+- The policy is written per application domain, and nothing in the shipped artifact applies those labels: no labelling command for any application binary, no unit setting one, no xattrs in the shipping archive.
+- So the measurement stands - a floor-labelled process read and wrote a protected object - but the conclusion narrows: either a step outside the artifact labels them, or they genuinely run unlabelled. The projection cannot tell.
+- Wrote down the one command that does tell, rather than letting a bounded finding read as a settled one.

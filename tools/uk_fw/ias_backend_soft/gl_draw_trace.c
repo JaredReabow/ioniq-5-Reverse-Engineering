@@ -412,6 +412,10 @@ static int shader_fix_mode(void)
 		cached = 2;
 		return cached;
 	}
+	if (access("/tmp/shader-fix-tinyuv", F_OK) == 0) {
+		cached = 6;
+		return cached;
+	}
 	if (access("/tmp/shader-fix-fragnorm", F_OK) == 0) {
 		cached = 5;
 		return cached;
@@ -443,6 +447,27 @@ static const char *rewrite_shader(const char *src)
 	 * normalisation exists anywhere. If the material supplies pixel-space coordinates (as
 	 * the icon quads measured), sampling wraps and produces the stripes. Divide by the
 	 * texture size to test that. */
+	/* Discriminating test for the stripes: collapse the sample into a tiny region near the
+	 * origin. If the diagonal pattern becomes a coherent (if blurred) image, the artefact is
+	 * caused by sampling at coordinates far outside the texture, i.e. wrap/minification, and
+	 * not by corrupt data. */
+	if (shader_fix_mode() == 6) {
+		static char tbuf[8192];
+		const char *tneedle = "outTexCoords = texCoords.xy;";
+		const char *tat = strstr(src, tneedle);
+		size_t thead;
+		if (tat == NULL)
+			return src;
+		thead = (size_t)(tat - src);
+		if (thead + 4096 > sizeof tbuf)
+			return src;
+		memcpy(tbuf, src, thead);
+		tbuf[thead] = 0;
+		strcat(tbuf, "outTexCoords = texCoords.xy * 0.001;");
+		strcat(tbuf, tat + strlen(tneedle));
+		return tbuf;
+	}
+
 	if (shader_fix_mode() == 5) {
 		static char fbuf[8192];
 		const char *fneedle = "texture2D(texture, outTexCoords)";

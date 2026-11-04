@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.92.0 - the check suite now verifies the tooling it depends on
+
+A night of rapid edits to scripts, checkers and guest helpers is exactly how a file ends up with a syntax error that nobody notices until someone needs it. `sh tools/check_all.sh` now
+has a fourth stage: every tracked `tools/**/*.py` is parsed with `ast.parse`, and every `tools/**/*.sh` is checked with `sh -n`.
+
+It passed on the first run - all Python parses, all shell parses, and the three checkers exit cleanly against their baselines - which is worth knowing rather than assuming, given that
+tonight's changes touched `check_all.sh` itself, three checkers, and several injection helpers.
+
+Deliberately *not* included: anything that runs a checker's own logic twice, or that invokes the VM harness. This stage answers one question - "will these files load" - and a check that
+tries to do too much is a check people run once and then skip.
+
+The suite is now four stages: register coherence, the append-only history invariant, tooling syntax, and 1,300+ document cross-references. Each of the first, second and fourth has
+already caught a real defect; the third exists because the other three are scripts.
+
 ## 4.91.0 - the black window has a cause: the applications never initialise EGL, and only the compositor got the software GL environment
 
 Two runs of the by-hand A/B produced the answer, and it is not in the launcher, the manager or the bus. Launching `/app/bin/AppHomeScreen` directly with the launcher's exact environment

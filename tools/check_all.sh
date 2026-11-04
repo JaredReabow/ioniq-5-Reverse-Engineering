@@ -17,6 +17,18 @@ echo
 echo "=== history is append-only ==="
 "$PY" tools/check_history_append_only.py || rc=1
 echo
+echo "=== tooling parses ==="
+pyfail=0
+for f in $(git ls-files 'tools/*.py' 'tools/**/*.py'); do
+  "$PY" -c "import ast,sys; ast.parse(open(sys.argv[1]).read())" "$f" 2>/dev/null || { echo "  SYNTAX FAIL: $f"; pyfail=1; }
+done
+shfail=0
+for f in $(git ls-files 'tools/*.sh' 'tools/**/*.sh'); do
+  sh -n "$f" 2>/dev/null || { echo "  SHELL FAIL: $f"; shfail=1; }
+done
+[ "$pyfail" = 0 ] && [ "$shfail" = 0 ] && echo "all tooling parses" || rc=1
+echo
+
 echo "=== document cross-references ==="
 "$PY" tools/check_doc_links.py || rc=1
 echo

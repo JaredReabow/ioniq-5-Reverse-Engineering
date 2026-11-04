@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.28.0 - the fragment shader is trivial, and normalising its sample does not fix the stripes
+
+- Captured the **fragment** shader, which had never been dumped. It is minimal:
+  ```glsl
+  varying highp vec2 outTexCoords;
+  uniform sampler2D texture;
+  void main() { gl_FragColor = texture2D(texture, outTexCoords); }
+  ```
+  So the program pair is now fully known: the vertex shader passes `texCoords.xy` through unchanged and the fragment shader samples with it directly. **No normalisation exists anywhere in the
+  pipeline** — no texture matrix, no size uniform, no coordinate scaling.
+- Tested the second opinion's leading hypothesis in one run: rewriting the sample to
+  `texture2D(texture, outTexCoords / vec2(1926.0, 753.0))`. Result **still striped** (`mean 51.3/92.7/113.5`, 42.45% nonzero, full width), so "the material supplies pixel-space coordinates
+  that should be divided by the texture size" is **refuted** for the background.
+- That leaves the sampler-state test Astra ranked first and which has still not been run: **A/B the existing sampler state against `GL_CLAMP_TO_EDGE`** with geometry, coordinates and texture
+  untouched. The predicted outcomes are distinct — a *stretched edge* means out-of-range sampling, a *complete image* means wrap state was the defect, and *unchanged stripes* weakens the whole
+  sampling hypothesis and points back at the attribute data.
+- Also worth recording from this run: Astra's warning about the earlier `flipu` result was justified. Negating `u` produced a clean frame that was **empty**, which is what invalid coordinates moved
+  onto a clamped edge look like — not a correction. The log called it "removes the shear"; it more accurately removed the *content*.
+
 ## 3.27.0 - the fastest-path plan
 
 - Wrote `docs/vm/fastest-path-plan.md`: the five blockers sequenced by cost-to-information rather than importance, each with a falsifiable outcome and a named failure mode.

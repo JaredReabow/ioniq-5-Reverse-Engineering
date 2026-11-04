@@ -3,6 +3,18 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.86.0 - the new finding goes into the fix-cost report, in the tier where it belongs
+
+V-058 was filed in the register but not in `REMEDIATION-REPORT.md`, which is the document a platform team acts on - so the report was less complete than the register for the first time.
+Added it as **item 3b**, in the configuration tier next to the other `/tmp` anchors, because the fix is the same shape as its neighbours: stop sourcing a privileged value from a
+world-writable path.
+
+Its position in the list matters. It sits *above* the code-release items because the change is a unit-file edit - pass the address as `Environment=` from the unit that owns the
+daemon, or move the file to a directory only that unit can write - while what it protects is the widest of any item in that tier: eleven services, every application at once.
+
+The report now has eleven items and its opening line says so. Keeping the register and the report in step is not bookkeeping: the register is what a researcher reads and the report is
+what a vendor schedules, and a finding that exists in only one of them is either unpublishable or unfixed.
+
 ## 4.85.0 - the Dbuslaunch discovery has a security face: eleven units take their bus address from `/tmp`
 
 Chasing the missing frame turned up a vendor script; reading it carefully turned up a finding worth more than the frame.

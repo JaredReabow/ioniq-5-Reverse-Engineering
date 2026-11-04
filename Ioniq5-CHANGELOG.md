@@ -3,6 +3,21 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.14.0 - the serial login prompt, captured
+
+Running the vendor's `/etc/esinit_agetty.sh` unmodified against `ttyS2` produced, on the far side of the port:
+
+```
+OpenEmbedded 1.0 (none) ttyS2
+
+(none) login:
+```
+
+captured as `evidence/serial-console/ttyS2-login-prompt-2026-11-04.log` via `-chardev file` on `isa-serial,index=2`, with
+`secure_console` reading 0. It is a **login**, not a shell - the `-a root` autologin in that script is commented out - so the root
+password is still required. But the prompt existing on a stock build with the parameter at its default is the V-049 claim, and it is
+now demonstrated rather than argued.
+
 ## 4.13.0 - V-049's gate is measured open, not just inferred
 
 Booting the vendor kernel with the vendor's `micom` module loaded, `/sys/module/micom/parameters/secure_console` reads **0**, the

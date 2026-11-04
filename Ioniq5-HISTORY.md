@@ -4743,3 +4743,8 @@ and are superseded by corrections rather than silently rewritten.
 - The parameter that decides whether a root login exists on the serial line reads 0 on this build, with the module loaded and the device present. It is on by default and switched off only at runtime.
 - The agetty line requires a password; an autologin line sits in the file, commented out.
 - /tmp/shells looked like a writable privilege path and is not: nothing reads it. Written down so it is not chased again.
+
+## 2026-11-04 - the prompt, in bytes
+
+- Running the vendor's own agetty script on ttyS2 produced OpenEmbedded 1.0 (none) ttyS2 and a login prompt on the far side of the port. Captured raw.
+- It is a login and not a shell: the autologin line is commented out. The prompt existing by default is the point, and it is now shown rather than argued.

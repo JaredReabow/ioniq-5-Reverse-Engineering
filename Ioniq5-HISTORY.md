@@ -5140,3 +5140,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - I said the manager never registered the interface the app waits on. It does register what it should, on the session bus, and the interface belongs to the application - the manager is its client. My diagnosis put it in the wrong component.
 - The real problem is inside the app: its main thread is running rather than waiting in its event loop, so it never renders, never answers, and gets killed. That may be an artefact of emulating a software-rendered QML app rather than a property of the vehicle.
 - Which turns the remaining work from building another adaptor into giving the emulated app enough progress to run its own loop - a better problem to have.
+
+## 2026-11-05 - the control case was sitting in our own screenshots
+
+- Learned that the home screen's main thread spins on the authentic path instead of waiting in its event loop. Before chasing that, noticed the same binary paints fine on the research chain, from screenshots we already had.
+- So emulation alone does not explain it. The difference is what the two paths load around the app - service contention, audit logging, or a slow logging pipe - and that distinction decides whether the missing frame is ours or the vehicle's.
+- Handed the control case to the worker so it cannot be missed, along with the three candidates ordered by how cheap they are to test.

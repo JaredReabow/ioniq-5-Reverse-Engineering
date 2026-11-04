@@ -2273,3 +2273,44 @@ That is what makes V-054 and V-055 reachable in principle: an application proces
 
 Give applications a real domain label (the scheme already exists — `App::*` labels are defined) and add the rules that let them do their work, then verify from a
 unit that an application process **cannot** read a `Log::*` object. The remaining gap is configuration, not design: the label vocabulary is already there.
+
+## V-057 — closed-source third-party kernel filesystem drivers parse removable media that the unit auto-mounts
+
+**Status:** candidate. The attack surface is established from the image; **no specific defect in these drivers has been identified, and none is claimed**. This entry exists
+because it is the only stock-reachable path to *kernel*-level code execution that does not require a physical console or a vehicle-bus adapter.
+
+### What the image ships
+
+- **`texfat.ko`** (Tuxera exFAT) and **`tntfs.ko`** (Tuxera NTFS) — third-party, closed-source kernel filesystem drivers under
+  `lib/modules/4.1.27-abl/kernel/fs/`. Their build paths are preserved in the binaries (`/tmp/build/tuxera_ntfs/aops.c`,
+  `/opt/tuxera/kernel/...`), which is how they are identified.
+- **`usb-automount.service`** → `/app/bin/usb-automount`, a daemon that carries `mount`/`umount2` and a configuration naming the front and rear USB ports and
+  the SD card slot (`/etc/usb-automount.conf`, `[port] front1=… rear1=… sdcard=…`), and exports `com.lge.car.automount` on D-Bus.
+
+So a USB stick inserted into a port the daemon watches is **mounted without user interaction**, and if it is exFAT or NTFS the parsing is done by a closed-source
+kernel module running at ring 0.
+
+### Why that matters
+
+- **Kernel parsing is a different class from the rest of this register.** Every other finding here yields uid 0 *after* an attacker already has code execution, or
+  requires a physical console. A defect in a filesystem driver is reached by *plugging in a stick*, which is the one action an attacker can usually arrange.
+- **The drivers are third-party and closed.** Their code cannot be audited from the image, their patch history is the vendor's, and both formats are complex
+  (allocation tables, MFT, attribute runs) - the shape of code where such bugs live.
+- **The kernel is 4.1.27.** Old kernels plus out-of-tree filesystem drivers is a combination with a long history, and this image pins both.
+
+### What is not claimed
+
+**No vulnerability has been found or demonstrated here.** No crafted image was produced, no fuzzing was run, and no CVE is asserted against any specific version of
+these drivers. Saying "these drivers have had CVEs historically" would be a general statement about the industry, not a finding about this unit.
+
+### The experiment that would settle it
+
+The projection can now do this, which it could not a few hours ago: USB works under the vendor kernel (`docs/vm/vendor-kernel-boot.md`). Load `texfat`/`tntfs`, then
+mount a sequence of deliberately malformed exFAT and NTFS images (truncated allocation tables, cyclic cluster chains, oversized attribute runs, bad MFT records) and
+watch for oopses or panics. Evidence would be a dmesg fault in `texfat`/`tntfs` with a crafted input; absence after a systematic sweep would be a (weaker) negative
+and worth recording as such.
+
+### Suggested patch direction
+
+Either drop the third-party drivers in favour of in-tree ones, or mount removable media through a userspace filesystem (FUSE) so a parser defect is not ring 0.
+Auto-mounting attacker-controlled filesystems with closed-source parsing is the combination worth removing.

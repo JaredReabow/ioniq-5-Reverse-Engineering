@@ -5062,3 +5062,9 @@ and are superseded by corrections rather than silently rewritten.
 - The remediation report was still citing the probe I had withdrawn. Fixed that first, because an invalid measurement matters more in the document a platform team reads.
 - Rewrote the first item around what is solid and what is not, and ordered the fix: verify on a unit, then label, then enforce - because enforcing first measures forty denials and confines nothing.
 - Added the marker pattern as its own item with the caveats attached, so it reads as a design weakness rather than a demonstrated capability.
+
+## 2026-11-05 - the one vector that needs nothing but a stick
+
+- Every finding so far needs code execution already, or a console. There is one class that needs neither and was sitting unremarked: closed-source third-party kernel filesystem drivers, auto-mounted.
+- Filed it as a candidate with no defect claimed and no CVE asserted, because the reason it matters is the required capability, not any bug I have shown.
+- The test is finally possible: usb works under the vendor kernel, so malformed images can be mounted with the logs watched.

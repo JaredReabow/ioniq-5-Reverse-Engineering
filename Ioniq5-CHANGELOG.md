@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.67.0 - filing the one stock-reachable path to kernel-level code execution
+
+Every finding in this register so far either needs prior code execution (which is already root) or a physical console. There is one class that needs neither, and it was
+sitting in the image unremarked: **closed-source third-party kernel filesystem drivers parsing removable media that the unit auto-mounts.**
+
+`texfat.ko` (Tuxera exFAT) and `tntfs.ko` (Tuxera NTFS) ship under `lib/modules/4.1.27-abl/kernel/fs/`, with their build paths still in the binaries. And
+`usb-automount.service` runs `/app/bin/usb-automount`, a daemon carrying `mount`/`umount2` and a config naming the front and rear USB ports and the SD slot. Plug
+in a stick, and exFAT/NTFS parsing happens **at ring 0** without user interaction.
+
+Filed as **V-057**, explicitly as a candidate: the surface is established, **no defect in those drivers has been found or is claimed**, and no CVE is asserted against
+any version of them. What makes it worth an entry is that it is the only path in this register where the attacker's required capability is "hand someone a USB
+stick" rather than "already be running code" or "open the dashboard".
+
+The experiment that would settle it is now possible, which it was not this morning: USB works under the vendor kernel, so the drivers can be loaded and mounted against
+deliberately malformed exFAT and NTFS images with dmesg watched.
+
 ## 4.66.0 - the remediation report corrected: it was citing the withdrawn probe
 
 The report is the document a platform team would act on, so an invalid measurement matters more there than in the register. Two changes:

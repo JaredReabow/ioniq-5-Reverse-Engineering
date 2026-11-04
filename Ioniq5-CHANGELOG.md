@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.0.0 - engineering-mode "DEV mode" is a path check, not a setting
+
+- Answered a direct question ("is there a dev mode in code, and how is it activated on the device?") by disassembling `AppEngineerMode` rather than guessing from the UI.
+- **`checkSOPVersion()` is three instructions**: read the int at `this+0x13c`, compare with 1, return the result. A sibling function is a plain getter for the same field.
+- **The only write to that field** in the entire binary is in `setEngType()`, which defaults it to 1 and then compares a member string — populated from the process's own executable path — against the literal
+  **`/tmp/app/bin/AppEngineerMode`**. Equal ⇒ develop branch (SOP field ends at 0); not equal ⇒ stays SOP.
+- **So the activation is: run the engineering binary from `/tmp/app/bin/AppEngineerMode`.** The path is the switch. The shipped QML then reveals the full update list, including
+  `Encryption Update`, whose Enable/Disable buttons call `UpgradeVerInfo.enableUpdateFile(10)` — matching the user's screenshots exactly.
+- Recorded in **`evidence/engineering-mode-dev-activation.md`** with the addresses, the disassembly, the QML quotes and an explicit statement of what is **not** yet verified: the conclusion is static,
+  and a runtime confirmation is one experiment.
+- **Security note, hedged:** enabling the state needs only that a binary be started from a writable path, and what it exposes is the ability to disable update encryption from a root-running
+  engineering UI. That belongs with the existing update-integrity entry **V-034** rather than as a new claim; no register entry filed on disassembly alone.
+
 ## 3.29.0 - the crash tracer works, and AppNavi's death is a missing valet-mode reply
 
 - Built `crash_trace.c` (installed via `/etc/ld.so.preload`, so it reaches launcher-spawned processes): it installs handlers for `SIGSEGV`/`SIGABRT`/`SIGBUS`/`SIGFPE`/`SIGILL`, writes the

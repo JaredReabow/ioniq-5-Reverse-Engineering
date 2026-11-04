@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.81.0 - stopping the summary page from contradicting the register
+
+`docs/FINDINGS-SUMMARY.md` is one of the first documents anyone reads, and it was written mid-investigation. It still said the media-parser class was live-but-unproven because
+"`lms_asf.so` is not present" - which is true of that filename and wrong about the plugin, since `asf.so` ships. A summary that contradicts the register is worse than no summary.
+
+Three changes:
+
+- **A status note at the top** naming the three claims that measurement has since narrowed: the MAC rules **do** ship (27 files, 636 rules) while whether applications carry
+  labels is unverified; the data "encryption" is **flag-gated** and may never engage, making "unencrypted" the likelier field state; and `IpConfigShell` is **dead QML** on this
+  build rather than a shell. It also says plainly which documents win when they disagree.
+- **The plugin correction inline** where the claim was made, not only in the note.
+- The page keeps its reasoning, because the reasoning is still worth reading - it is the *conclusions* that needed dating.
+
+This is the same discipline as separating V-045's observation from its attribution: a document can be honest about what it thought at the time, as long as it says when it was
+thinking it.
+
 ## 4.80.0 - the root-access page: every route, ranked by what it costs to use
 
 The register is organised by finding and the remediation report by fix cost. Neither answers the question the project exists to answer: **on a stock unit, what would I actually

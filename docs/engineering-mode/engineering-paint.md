@@ -160,3 +160,38 @@ app never owns that name.
   `cd /tmp` first or the file lands at `/wayland-screenshot.png`.
 - Surface counts differ between runs (1004 only, 1004+1006, 1004+1005+1006); always
   capture the newest post-launch surface and the home control surface in the same run.
+
+## Attempted fix: deliver `show_window_fg` ourselves — blocked, and it corroborates V-045
+
+The obvious cheap fix is to send the handshake directly. What the app registers, captured verbatim from the session bus:
+
+```
+sender=:1.47 -> dest=com.lge.hyundai.avn.appmanager path=/registration
+   int32 301                                            appid
+   string "AppEngineerMode"                             appname
+   string "com.lge.hkmc.avn.appfunc.AppEngineerMode"    servicename
+   string "/com/lge/hkmc/avn/appfunc/engineermode"      objectpath
+   int32 1                                              plane
+```
+
+The live connection was then resolved to the running process - not guessed from the log order, which had already produced one wrong target - by walking every
+unique name on the bus and asking `GetConnectionUnixProcessID` until it matched `pidof AppEngineerMode`. That worked: `TARGET=:1.47` for `ENG=1037`.
+
+Delivering the call to that exact connection gave:
+
+| destination | result |
+| --- | --- |
+| `/com/lge/hkmc/avn/appfunc/engineermode` (what it registered) | `NoReply` |
+| `/com/lge/hkmc/avn/appfunc/appInterface` | **object exists, then `NoReply` - and the app's connection disappears** |
+| `/com/lge/hkmc/avn/appfunc/AppEngineerMode`, `/` | `ServiceUnknown` |
+
+Read that last column carefully: after the call to `appInterface`, every subsequent path reports **`ServiceUnknown`**, i.e. the process that owned `:1.44` was
+gone. Sending `show_window_fg` to `appInterface` **kills the app**, which is exactly the behaviour recorded in **V-045** ("third reproducing call → NoReply,
+process gone") and now reproduced with the four-integer signature as well.
+
+**So the cheap route is closed, and it closes it for a good reason:** the app does not serve the handshake at the path it registers, and the interface at
+`appInterface` is a call that destroys the caller's peer. The real `ApplicationManager` must be doing something else - most plausibly it is the component
+that receives `registration`, remembers `servicename`/`objectpath`, and speaks to the app on the object it *does* export. Running the real manager is
+therefore not a nicety; it is the only route to a painted engineering window that does not involve killing the app.
+
+This is also the third independent observation of the V-045 behaviour, which strengthens that entry: the crash is not a fluke of one call signature.

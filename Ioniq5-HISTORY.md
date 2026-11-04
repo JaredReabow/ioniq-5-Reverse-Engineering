@@ -4949,3 +4949,9 @@ and are superseded by corrections rather than silently rewritten.
 - The trace is only twelve writes, all teardown: the application never sends a frame because something else is supposed to tell it to appear. That something is the app manager, which our chain does not run.
 - So the black body was never a rendering fault. It is a missing message, and the registers show every attempt going to a name nothing owns.
 - Two fixes, one cheap: send the show call ourselves to the app's own connection, or run the real manager.
+
+## 2026-11-04 - the cheap fix kills the app
+
+- Captured what the application registers, resolved its live connection by asking the bus which connection belongs to which process, and sent the show call to exactly that.
+- One path replies never, another accepts the call and then the connection is gone. So the cheap route is closed, and it closes in a way that corroborates a much older entry about that call crashing its peer.
+- Which leaves the real manager as the only honest route, and that is now stated rather than worked around.

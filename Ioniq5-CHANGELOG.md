@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.13.0 - V-049's gate is measured open, not just inferred
+
+Booting the vendor kernel with the vendor's `micom` module loaded, `/sys/module/micom/parameters/secure_console` reads **0**, the
+module is present, and `/dev/ttyS2` exists. `/lib/systemd/esinit` only removes the device when that value is `1`:
+
+```
+if [ -f /sys/module/micom/parameters/secure_console ]; then
+    secure_console_mode="$(cat /sys/module/micom/parameters/secure_console)"
+    if [ "$secure_console_mode" = "1" ]; then
+        /bin/rm /tmp/secure_console_disable
+        /bin/rm /dev/ttyS2
+    fi
+fi
+```
+
+So the serial console login is **on by default** on this build, and `/etc/esinit_agetty.sh` runs a normal `agetty` requiring the root
+password - with an `-a root` autologin line present in the file but commented out. The console is therefore not a
+manufacturing-only facility that production removes; it is switched off only if a runtime parameter says so.
+
+Rejected one thing rather than filing it: `esinit` also writes `echo "/bin/sh" >/tmp/shells` when the console is open, and `/tmp` is
+world-writable, which looks like a privilege path. **No binary in the image carries the `/tmp/shells` string**, so nothing reads it.
+It is a vestige, and it is recorded as such so nobody chases it again.
+
 ## 4.12.0 - the VM can be driven live from a terminal
 
 `tools/uk_fw/vm_console.py` boots the projection and hands over the guest shell: type a command, it runs, output comes back.

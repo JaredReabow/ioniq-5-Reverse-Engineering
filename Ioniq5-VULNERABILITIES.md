@@ -1539,46 +1539,81 @@ value's sense is the opposite of what that note assumed. The conclusion does not
 signed by our own key was launched as root, and the disassembly says the launch path accepts only one specific value from the
 verifier.
 
-## V-049 — a root shell on the serial console, gated by a MICOM runtime parameter, with one image-wide password hash
+## V-049 — a root shell on the serial console, enabled by default, gated only by a runtime parameter  — **gate measured open**
 
-**Status:** candidate, statically established from the shipped image. Not attempted on hardware. Physical access to the UART pads
-(or the OBD-side console wiring) is assumed and is **not** established.
+**Status:** the gate is **measured open on this build**, and the login is standard `agetty` requiring the root password. Not
+attempted on hardware; UART access on a production unit is assumed, not established.
 
-**What the image does.** `/etc/esinit_agetty.sh` runs `setsid /sbin/agetty -8 -L ttyS2 115200 xterm`, and `/etc/securetty` lists
-`ttyS2`. `/lib/systemd/esinit` decides whether that happens:
+### The gate is open by default (measured)
+
+Booting the vendor kernel with the vendor's own `micom` module loaded, the parameter reads **0**:
 
 ```
-touch /tmp/secure_console_disable                       # default: secure console OFF -> login allowed
-if [ "$(cat /sys/module/micom/parameters/secure_console)" = "1" ]; then
-    rm /tmp/secure_console_disable
+cat /sys/module/micom/parameters/secure_console   ->  0
+ls /sys/module | grep micom                        ->  micom
+ls -l /dev/ttyS2                                   ->  crw-------  1 0 root  4, 66
+```
+
+### The logic, verbatim from `/lib/systemd/esinit`
+
+```sh
+#secure_console : use console login
+touch /tmp/secure_console_disable
+...
+if [ -f /sys/module/micom/parameters/secure_console ]; then
+    secure_console_mode="$(cat /sys/module/micom/parameters/secure_console)"
+    if [ "$secure_console_mode" = "1" ]; then
+        /bin/rm /tmp/secure_console_disable
+        /bin/rm /dev/ttyS2                      # the device is deleted, not just unused
+    fi
 fi
-if [ -f /etc/esinit_agetty.sh ] && [ -f /tmp/secure_console_disable ]; then
-    /etc/esinit_agetty.sh &                              # start agetty on ttyS2
+touch /tmp/shells
+if [ -f /tmp/secure_console_disable ]; then
+    echo "/bin/sh" >/tmp/shells
+    echo "SECURE CONSOLE Mode: NO !!!"
+else
+    echo "SECURE CONSOLE Mode: YES!!!"
 fi
 ```
 
-So the console login is **on unless MICOM reports `secure_console=1`** — a runtime parameter read from a file in `/sys`, not a fuse,
-not a signed configuration, and not a build-time decision. Removing the file or clearing the parameter re-enables the login.
+So with the measured value of 0 the device survives and the console login proceeds. `/etc/esinit_agetty.sh` then runs
 
-**The credential.** `/etc/shadow` is a symlink to `/tmp/shadow`, populated at boot from the shipped `/etc/shadow.Global`. Exactly one
-entry carries a password and it is the one that matters:
-
-```
-root:$6$I6C6apC0ue$J1MSq...:2048        (SHA-512-crypt; 18 other accounts are locked)
+```sh
+#autologin root
+#setsid /sbin/agetty -a root -8 -L ttyS2 115200 xterm
+setsid /sbin/agetty  -8 -L ttyS2 115200 xterm
 ```
 
-A sweep of sixty vendor-plausible defaults (`root`, `0000`, `admin`, `hyundai`, `lge`, the two engineering PINs, the recovered user
-names and so on) produced **no match**. That is a statement about those sixty guesses, **not** about the password: SHA-512-crypt with a
-**fixed, image-wide salt** is crackable offline at whatever rate the hardware allows, and because the salt and hash are identical on
-every unit built from this image, **cracking it once yields the same root password on the entire fleet**.
+An **autologin root line exists and is commented out**. The active line requires the password, which is the single SHA-512 hash in
+`/etc/shadow.Global` at a fixed image-wide salt (§The credential).
 
-**Why it matters.** This is the only root path found in this project that requires **no software vulnerability at all** — no memory
-corruption, no signature bypass, no update manipulation — just a serial connection to a documented console at 115200 8n1 and a
-password that is shared across every unit and crackable offline at leisure.
+### What this means
 
-**Suggested patch direction.** Give each unit a unique salt and password, or disable the console login unconditionally in production
-rather than by a runtime parameter a component can clear; treat the serial console as a manufacturing-only facility and require its
-removal in the production build.
+The console is not a manufacturing-only facility that the production build removes — it is **on by default** and is switched off only
+if a loaded kernel module is told, at runtime, to report `secure_console=1`. Anything able to write that parameter, or the MICOM
+component that owns it, decides whether a root login prompt exists on the serial line. Clearing it re-enables the login.
+
+### Recorded as *not* a finding, to avoid overclaiming
+
+`esinit` also writes `echo "/bin/sh" >/tmp/shells` when the console is open, and `/tmp` is world-writable. That looks suggestive, and
+it is not a privilege path: **no binary in this image carries the `/tmp/shells` string**, so nothing reads it. It is a vestige. It is
+written down here so the next reader does not spend time on it.
+
+### The credential
+
+`/etc/shadow` is a symlink to `/tmp/shadow`, populated at boot from `/etc/shadow.Global`. Exactly one entry carries a password:
+
+```
+root:$6$I6C6apC0ue$J1MSq...:2048        (SHA-512-crypt; 18 other accounts locked)
+```
+
+Sixty vendor-plausible defaults produced no match — a statement about sixty guesses. Because the salt is **fixed and identical on
+every unit built from this image**, cracking it once yields the same root password fleet-wide.
+
+### Suggested patch direction
+
+Disable the console login unconditionally in production rather than through a runtime parameter that can be cleared; give each unit a
+unique salt; and treat `/dev/ttyS2` as a manufacturing artifact that the production build does not create at all.
 
 ## V-050 — WiFi is fully populated hardware, disabled in software, and re-enableable
 

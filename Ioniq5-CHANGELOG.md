@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.78.0 - the black window was a misdiagnosis, and the real blocker is the app's own thread
+
+A worker's follow-up to the pitchfork I handed it corrected my own claim from §4.61.0, and the correction is the most useful thing learned about the paint problem all session.
+
+**§4.61.0 said** "`ApplicationManager` never registers `com.lge.avn.appmanager.appbase`, so the show trigger is unreachable". **That was a misdiagnosis of where `appbase` lives.**
+The manager owns `com.lge.hyundai.avn.appmanager` **on the session bus** (it is absent on the system bus, which is where we had been looking), and its object tree is
+`/FactoryFanControl /Information /audiotransition /broadcast /registration /transition` - no appbase object, because **appbase is the application's interface and the manager is its
+client**. Its own log shows it speaking that contract to `AppHomeScreen`'s path (`registerfaceplatekey`, `registertouchkey`). So the manager registers what it should.
+
+**The real blocker is inside the application.** `AppHomeScreen`'s main thread is in state **R with `wchan=0`** - running, not parked in the Qt event loop, which would show
+`poll_schedule_timeout`:
+
+```
+[apps-check] APHOME_STATUS=[State: R (running);Threads: 11]
+[apps-check] APHOME_TASK_STATES=[1 R; 10 S]
+[apps-check] APHOME_WCHAN=[0]
+```
+
+A spinning main thread explains the whole cluster of symptoms at once: no reply to introspection (`NoReply`), no frame commit, no answer to the app-alive handshake - so the manager
+kills and deregisters it (`deregistration() a_nSigNum[9]`, i.e. SIGKILL). No `show_window_fg` appears in the DLT log at all, because the app never becomes ready to receive one.
+
+**Why that matters for the project's goal:** the paint failure may not be a missing adaptor at all. It may be the QML main thread unable to make progress under software GL plus the QV4
+interpreter in an emulated CPU - which would make it a *projection* limitation, not a property of the vehicle. That reframes the remaining work from "build another adaptor" to "give
+the emulated app enough progress to run its own event loop", which is a much better problem to have.
+
+`Properties.GetAll` was also answered in the same pass (empty property map instead of `UNKNOWN_METHOD`).
+
 ## 4.77.0 - an entry whose heading asserted a mechanism that is now disputed
 
 V-045's heading said the mismatched-arity call **terminates** `AppHomeScreen`, and its status said "demonstrated in emulation". The disappearance is certainly demonstrated - it has now

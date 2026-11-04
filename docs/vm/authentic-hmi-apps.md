@@ -168,7 +168,91 @@ ENG_DATA_SIM_UNKNOWN path=/Ihu interface=org.freedesktop.DBus.Properties member=
 ```
 
 `GetAll` on `org.freedesktop.DBus.Properties` is answered as `UNKNOWN_METHOD` rather than an empty property dict; it
-did not block the app stack (AppHomeScreen still launched), but it is on the list.
+did not block the app stack (AppHomeScreen still launched), but it is on the list. **Resolved in §7a.**
+
+---
+
+## 7. Follow-up: `Properties.GetAll` answered, and the "unreachable trigger" claim was a misdiagnosis
+
+Three follow-up runs in the same clone (`…1793807664591927000`, `…1793808390896928000`,
+`…1793809092146051000`).
+
+### 7a. `Properties.GetAll` now returns an empty property map
+
+The stand-in now answers `org.freedesktop.DBus.Properties.GetAll` (and `Get`) instead of `UNKNOWN_METHOD`:
+
+```
+ENG_DATA_SIM_ANSWER Properties.GetAll -> {} (empty a{sv})
+```
+
+So introspecting the stand-in is no longer a wrong reply on the work list.
+
+### 7b. The manager registers its name and the `registration` interface; `appbase` is the app's interface
+
+`ApplicationManager` owns `com.lge.hyundai.avn.appmanager` **on the session bus**, and it is absent on the system bus:
+
+```
+INTRO_SYSTEM_APPMGR_ROOT=[Error org.freedesktop.DBus.Error.ServiceUnknown:
+    The name com.lge.hyundai.avn.appmanager was not provided by any .service files]
+```
+
+Its object tree at `/` (session bus) is:
+
+```
+<node name="FactoryFanControl"/> <node name="Information"/> <node name="audiotransition"/>
+<node name="broadcast"/> <node name="registration"/> <node name="transition"/>
+```
+
+`/registration` exports `com.lge.avn.appmanager.registration` (methods `registration`, `deregistration`). There is **no
+appbase object** — `/appbase` answers `Error org.freedesktop.DBus.Error.UnknownObject: No such object path '/appbase'`.
+
+But appbase is **not a manager interface**: the manager is the appbase *client*. Its own log shows it speaking the
+app-side contract to `AppHomeScreen`'s path `/com/lge/hkmc/avn/appfunc/appInterface`:
+
+```
+interface="com.lge.avn.appmanager.appbase", member="registerfaceplatekey", signature="", contents=({318, 322})
+member="registertouchkey", ... contents=({30, 43, 44, 58, 5123, 5130, ...})
+```
+
+So the earlier claim (CHANGELOG §4.61.0) that "the manager does not register `com.lge.avn.appmanager.appbase`, so the
+show trigger is unreachable" is **a misdiagnosis of where appbase lives**. The manager registers what it should (bus
+name + `registration` + `broadcast`/`info`), and appbase is the app's side of the contract. The show trigger is on the
+app, not on the manager.
+
+### 7c. The real blocker: AppHomeScreen's event loop is starved, and the manager reaps it
+
+`AppHomeScreen`'s main thread is in state **R (running)** with `wchan=0` — it is not waiting in the Qt event loop
+(which would be `poll_schedule_timeout`), while ten worker threads sleep (`pipe_wait`, `futex_wait_queue_me`,
+`poll_schedule_timeout` ×8):
+
+```
+[apps-check] APPHOME_WCHAN=[0]
+[apps-check] APPHOME_STATUS=[State:  R (running);Threads:  11; ...]
+[apps-check] APPHOME_TASK_STATES=[      1 R;     10 S;]
+[apps-check] APPHOME_WCHAN_TASKS=[0, pipe_wait, futex_wait_queue_me, poll_schedule_timeout, ...]
+```
+
+That is why `AppHomeScreen` does not answer introspection:
+
+```
+INTRO_SESSION_HOME_com_lge_hkmc_avn_appfunc_appInterface=[Error org.freedesktop.DBus.Error.NoReply: Did not receive a reply...]
+INTRO_SESSION_HOME_com_lge_hkmc_avn_appfunc_AppHomeScreen=[Error ... NoReply: Message did not receive a reply (timeout by message bus)]
+```
+
+and why it never presents a frame (the starved main thread never runs the commit) and never answers the app-alive
+handshake — so the manager kills and deregisters it:
+
+```
+APPM_LWP[2257]: XXXXXXXXXX Registration::deregistration() a_nSigNum[9] a_strName[AppHomeScreen] XXXXXXXXXX
+```
+
+(`a_nSigNum[9]` = SIGKILL.) No `show_window_fg` appears anywhere in the DLT log, so the manager never reaches the
+show call — because the app never becomes ready for it.
+
+This is the same one-cause-behind-both-black-windows: the app's QML main thread spins/stalls under the software-GL +
+QV4-interpreter projection, starves its event loop, never renders, and is reaped. `show_window_fg` delivery was not
+attempted: the app's appbase is registered but unresponsive (`NoReply`), and §4.48.0 already recorded that this exact
+call at this exact path destroys the peer (V-045).
 
 ## Repro
 
@@ -179,5 +263,6 @@ python3.13 tools/uk_fw/vm_partimg/run-stockui.py --init /init-authentic-hmi.sh -
 ```
 
 Evidence directories: `work/vm/stockui/runs/1793805121692994000/` (surface 2080, capture, no focus trace — old
-`.so`) and `work/vm/stockui/runs/1793805905108459000/` (rebuilt `.so` — `VM_INPUT_FOCUS_* pid=769`, no
-`touch_down`).
+`.so`), `work/vm/stockui/runs/1793805905108459000/` (rebuilt `.so` — `VM_INPUT_FOCUS_* pid=769`, no
+`touch_down`), and the follow-up runs `…1793807664591927000` / `…1793808390896928000` / `…1793809092146051000`
+(manager introspection, `Properties.GetAll`, and the starved-main-thread evidence in §7).

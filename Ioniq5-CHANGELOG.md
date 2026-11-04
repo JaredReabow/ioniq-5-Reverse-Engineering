@@ -3,6 +3,21 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.24.0 - the black engineering body is not a data problem, and a worker's claim is corrected
+
+A worker reported that answering the six data services had fixed the black engineering-mode page body. That is wrong, and checking it
+took one run.
+
+With the simulator running, the DLT `Pending Err` count went from six-or-more to **zero** - so the queries really are answered - and the
+engineering window, surface `1004`, still captured at **4,117 bytes**: a title bar reading *Engineering Mode* over a black body
+(`docs/vm/30-engineering-window-black-data-answered-2026-11-04.png`). The worker's "rendered" screenshots were the **home screen's EV
+page** (surface `2080`, Battery and Range widgets), not the engineering window
+(`docs/vm/31-home-screen-STR_CAMERA_ALERT2-2026-11-04.png` for comparison, and `docs/vm/SCREENSHOT-LABELS.md` for the correction).
+
+So the adaptor work was real and useful - the queries are answered now - but it did not fix the paint. The blank body is a QML/paint fault,
+and the next diagnostic is the application's own `qmlLog` output, which prints `AppMain.qml : Component.onCompleted` and the root item's
+`width`/`height`, rather than more adaptors.
+
 ## 4.23.0 - V-014's payload is an unauthenticated root shell, confirmed in the image
 
 The unit that property-injection chain would start is present and needs no credential:

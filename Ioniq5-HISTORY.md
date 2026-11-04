@@ -4805,3 +4805,9 @@ and are superseded by corrections rather than silently rewritten.
 - Its neighbours require authentication. This one does not.
 - That makes "remove it" better advice than "leave it disabled", since a SYSTEMD_WANTS property names units directly rather than going through the enable links.
 - The partitioning work is delegated to a worker; it is mechanical iteration, not judgement.
+
+## 2026-11-04 - the right answer to the wrong question
+
+- The data adaptor work succeeded: the app's queries all answered, the pending-error count went to zero, and the page body stayed black anyway.
+- The screenshots that appeared to show success were the home screen's EV page, not the engineering window. Checking which surface is which cost one run and saved a wrong conclusion.
+- So the blank body is a paint fault, not a data fault, and the next thing to read is the app's own qmlLog lines rather than building more adaptors.

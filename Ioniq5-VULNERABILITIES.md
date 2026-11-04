@@ -1898,9 +1898,21 @@ mode. Treat the current construction as obfuscation rather than encryption when 
 
 ## V-054 — the account database lives in `/tmp`, and the console policy is a file copy
 
-**Status:** confirmed from the image; not exercised on a unit. Its practical weight depends on who can write `/tmp`: that `/tmp` **is**
-world-writable was measured (`stat -c %a /tmp` → `1777`, `tmpfs ... rw`), so the enabling condition exists; what is not established is a
-non-root context to exploit it from, since every vendor process observed here runs as uid 0.
+**Status: mechanism demonstrated** in the projection; not exercised on a unit. What is not established is a non-root context to exploit it from,
+since every vendor process observed here runs as uid 0.
+
+Measured: appending one line to `/etc/passwd` (which resolves through tmpfs) creates an account the system accepts immediately —
+
+```
+/etc/passwd -> /tmp/passwd
+echo "audit0:x:0:0:audit0:/tmp:/bin/sh" >> /etc/passwd
+id audit0        -> uid=0(audit0) gid=0(root) groups=0(root)
+getent passwd audit0 -> audit0:x:0:0:audit0:/tmp:/bin/sh
+```
+
+and the same works for `/etc/shadow`, whose entry was appended successfully. So a write to `/tmp` yields a **working uid-0 account entry, resolvable
+by NSS**, not merely a corrupted file. The two facts that bound it: `/tmp` is `1777` (measured), and every process on this build already runs as uid
+0 (measured) — so the mechanism is real and the attacker position is what is missing.
 
 ### What the image does
 

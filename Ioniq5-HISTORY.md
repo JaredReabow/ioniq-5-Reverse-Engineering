@@ -4937,3 +4937,9 @@ and are superseded by corrections rather than silently rewritten.
 - Put the probe inside a script the init calls after the decision and before the branch, writing to the serial port instead of the kernel log the vendor's own failure path writes wrongly.
 - Shut by default: no OK file, NOK present, parameter zero. With the corrected wrapper: OK present, NOK gone, parameter one. So the first claim was wrong, the correction was right, and the stand-in does work.
 - Two things stay untidy and are written that way: something invokes the compositor even with the gate shut, and with the gate open the boot now stalls on the compositor's own display requirement - which is the worker's job.
+
+## 2026-11-04 - the account file does what it looks like it does
+
+- Appended one line to the account file, which points into tmpfs, and the system immediately resolved the new name to uid zero, both by id and by getent. The shadow entry appends the same way.
+- So the finding is a working account entry rather than a corrupted file, and its status changed accordingly. What remains missing is not the mechanism but a non-root writer, since everything here is already root.
+- Updated the state page, which still described the gate as unmeasured after it had been settled.

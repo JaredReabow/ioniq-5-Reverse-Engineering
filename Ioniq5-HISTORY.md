@@ -4913,3 +4913,9 @@ and are superseded by corrections rather than silently rewritten.
 - I wrote that the handshake stand-in worked and that the vendor init had started its own display server. The log I quoted from contained the line proving otherwise: the file the wrapper writes did not exist yet when it ran.
 - So the guard was false, the block was skipped, and the branch taken was the one that starts nothing. My sentence was wrong and the evidence was in the same file.
 - The weston activity in that log is now recorded as unexplained rather than as proof. A worker found this; I should have.
+
+## 2026-11-04 - two corrections, and neither one is the answer
+
+- Fixed the wrapper to mount sysfs before writing, and its error went away. But the decision messages never appear, because they go through a device that is not reliably there yet, and the one line I had used as evidence appears in both the broken and the fixed run.
+- So the correction I made is not established either. What is established is that one value has never been read at the moment it matters, and that is now written down as the state rather than guessed at.
+- Two attempts, two plausible stories, one unmeasured number. That is the honest score.

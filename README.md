@@ -72,6 +72,28 @@ to, and the base rootfs hash is rechecked after each experiment
 | CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed |
 | Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end |
 
+### Downgrade — can older firmware be installed?
+
+Short answer: **not through engineering mode on a stock unit, and not with a modified package.** Full reasoning,
+evidence and the one unresolved question are in **`docs/DOWNGRADE-POSSIBILITIES.md`**.
+
+| Route | Status |
+| --- | --- |
+| Engineering mode → **Force Update** | real facility — its own log line is `Force update !! Pass version compare.` — but gated by `[FORCE_UPDATE_FUCTION_ENABLE] DEV -> MP`, so **disabled on production builds** |
+| Engineering mode → **Previous Version** | a *view* of prior versions, not an installer |
+| FUMO **equal-version local relaunch** (`/update/usb/bin`, `force_launch=run`) | evidenced to **skip both verifier-result contracts**, but requires root write access to `/update` and leaves later model/region, payload-binding, slot, boot and health checks unproven |
+| SCOMO path (`-un:1`) | its `MASS_PRODUCT`/`PENETRATION` startup **explicitly ignores** `/update/disableEncryptionUpdate` — worse, not better |
+| Modified/unsigned package | **rejected** by RSA `PKCS#1` verification of `.lge.upgrade.xml`; the anchor is only replaceable from a privileged write (**V-034**) |
+| **Authentic older package** | **unknown** — decided entirely by anti-rollback, which is unresolved here |
+
+The updater's version gate is a **strict "must be newer" comparison** plus a second reference where equality is
+allowed, so a lower version fails at the first gate. The mechanisms that relax it are dev-build-gated or need a
+privileged write first, which is the same wall every other route meets.
+
+**Measured against `NE_E.EUR.S5W_L.001.001.260128` (2026-01-28)** — later than late-2025, so these conclusions apply to a
+recent build. Nothing has been attempted on hardware; anti-rollback is the open question that decides whether an older
+*authentic* firmware would install.
+
 ### Findings summary
 
 A single consolidated document — **`docs/FINDINGS-SUMMARY.md`** — collects the whole state: what works in the VM,

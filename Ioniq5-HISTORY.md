@@ -4635,3 +4635,9 @@ and are superseded by corrections rather than silently rewritten.
 - The launcher hook is real, but on this build the binary writes the SOP field unconditionally. Relaunching it from /tmp changes a log line and nothing else.
 - Found the actual switch: a file at /update/disableEncryptionUpdate, created by a test app on a named MICOM event. That is a state transition you can observe, unlike a path comparison.
 - Recorded the mistake rather than editing it out. The pattern that produced it is the same one this log has been warning about for days.
+
+## 2026-11-04 — the flag is gated by build mode, and the paper's precondition is present
+
+- The encryption-disable flag is a file, created by a test application on a named MICOM event, and the updater says in plain text that mass-production and penetration builds ignore it.
+- Nothing yet ties it to signature verification, so the researcher's instinct was right: encryption and signing are separate walls here.
+- The updater is also a fully static binary with mbedtls inside, which is precisely the condition the 2024 Gen5W_L paper exploits. That is worth knowing before spending more nights hunting for new bugs elsewhere.

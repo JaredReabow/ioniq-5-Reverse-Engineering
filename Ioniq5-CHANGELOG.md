@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.3.0 - what the encryption flag actually does: an encryption-path selector, ignored on production builds
+
+- Answered the researcher's question with evidence rather than naming. The flag is a **file**, `/update/disableEncryptionUpdate`, referenced by **five** binaries — `AppUpgrade`, `AppDMClient`,
+  `AppScomoDM`, `AppLogExtractor`, `AppMPAutoTest` — and `AppMPAutoTest` is the one that **creates and removes it**, with the literal shell commands `touch /update/disableEncryptionUpdate` and
+  `rm -rf /update/disableEncryptionUpdate`, on the MICOM event `EVT_MP_ENCRYPTION_DISABLE_REQ`.
+- **The decisive string, found in `AppUpgrade` itself:**
+  ```
+  MASS_PRODUCT or PENETRATION Build mode -> Ignore disableEncryptionUpdate
+  ```
+  So on a mass-production or penetration build the flag is **ignored outright**. It is a build-gated convenience, not a universal switch.
+- What the flag governs is **encryption**, not verification. `AppUpgrade` carries the state globals `g_isEncryptionUpdate` and `g_is_UNECE_EncryptionUpdate`, logs
+  `Firmware Update file is non-encryption!!`, and has both `### Encryption Update. ####` and `### UNECE Encryption Update instead of legacy Encryption Update ####` paths. Nothing found so far connects the flag
+  to the RSA verification path, and a separate sentinel `/test_keep_encryption_disable` suggests the flag has test-build semantics.
+- **So the honest answer to "does disabling encryption also bypass the RSA signature check?" is: not on the evidence available, and on production builds the flag does not even take effect.** The signature
+  strings (`PKCS#1 sig. verify`, `RSA key validation`, `mbedtls_rsa_pkcs1_decrypt`) sit in the same static binary as an independent code path. Confirming the guard around them conclusively is still in progress
+  (`docs/engineering-mode/signature-vs-encryption.md`).
+- **Also relevant to the linked paper:** `AppUpgrade` is a **fully static binary with zero `NEEDED` entries** and contains mbedtls internally (`mbedtls_rsa_pkcs1_decrypt`, `mbedtls_ctr_drbg_random`,
+  `mbedtls_hmac_drbg_random`). That is exactly the precondition the 2024 Gen5W_L paper describes for its Chimaera attack — a printf vulnerability introduced by statically compiling mbedtls. The precondition
+  is present in this image.
+
 ## 4.2.0 - CORRECTION: the `/tmp` launch does not flip this build, and the real vector is a file
 
 - A deeper review of `setEngType()` overturns the conclusion in §4.1.0. The only write to the SOP field is `movl $0x1, 0x13c(%rbp)` at `0x737268`, and **the develop branch it jumps to does not

@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.80.0 - the root-access page: every route, ranked by what it costs to use
+
+The register is organised by finding and the remediation report by fix cost. Neither answers the question the project exists to answer: **on a stock unit, what would I actually
+try, in what order, and what does each attempt require?** `docs/root-access-paths.md` does, with nine routes each carrying its precondition, its evidence and what is still missing.
+
+Ranked by cost, the answer is uncomfortable for an attacker and reassuring for an owner:
+
+1. **serial console** - physical pads plus the root password; prompt captured, password uncracked across 45,000 plausible candidates;
+2. **engineering mode** - touch only, and it yields menus rather than a shell on this build;
+3. **a write to `/tmp`** - three demonstrated anchors (account database, compositor config, verification key) and **no non-root writer to exploit them from**;
+4. **`request.launch`** - executed as uid 0, but the session bus is root-only, so it is persistence rather than entry;
+5. **removable-media kernel drivers** - 20 crafted images, no fault;
+6. **USB SCSI property injection** - payload is an unauthenticated root shell, input needs programmable hardware;
+7. **media parsers** - components present and running as root, never exercised;
+8. **WiFi** - hardware present, gates documented, and no shell behind the interface;
+9. **downgrade** - decided by anti-rollback, which is unresolved.
+
+The page's own conclusion is the one worth carrying: **the cheapest route has no way in, and the most reliable one needs a screwdriver.** What the register actually establishes is
+not that the unit is easy to enter, but that every trust anchor it relies on sits where somebody already inside can rewrite it - a persistence and remediation problem, not an entry
+problem. That distinction is what the last three findings narrowed toward, and it is now stated in one place.
+
+README and the documentation index both point at it.
+
 ## 4.79.0 - the control case that reframes the spin: the same binary paints on the other path
 
 Before the worker spends more time on `AppHomeScreen`'s `R`/`wchan=0` main thread, there is a control observation the project already holds and had not put next to it: **the same

@@ -197,6 +197,16 @@ measured evidence, what it exposes, the fix and how to verify the fix.
 The report ends with one sentence for the platform team: six of the nine are **one mistake** — a security decision resolved from state the threat model treats as
 untrusted — and the fix is to move those decisions onto read-only or hardware-backed state and make every one of them **fail closed**.
 
+### Root access, ranked by cost
+
+`docs/root-access-paths.md` lists every route found and what each requires: **the serial console** (physical pads + the root password, prompt captured, password uncracked), **engineering
+mode** (touch only — and it yields menus, not a shell, on this build), **a write to `/tmp`** (three demonstrated anchors, but no non-root writer exists here), **`request.launch`**
+(executed as uid 0, but the bus is root-only), **the auto-mounted kernel filesystem drivers** (20 crafted images, no fault), **USB SCSI property injection** (payload is an
+unauthenticated root shell; needs a programmable bridge), **media parsers** (present, unexercised), **WiFi** (hardware there, no shell behind it), and **downgrade**
+(anti-rollback unresolved).
+
+The uncomfortable conclusion, in the page's own words: the cheapest route has no way in, and the most reliable one needs a screwdriver.
+
 ### Downgrade — can older firmware be installed?
 
 Short answer: **not through engineering mode on a stock unit, and not with a modified package.** Full reasoning,

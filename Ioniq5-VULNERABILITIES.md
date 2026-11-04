@@ -1465,9 +1465,12 @@ escalation hinge on the same directory, and a fix that hardens one leaves six ot
 
 For each new issue record: stable ID, affected artifact/build and digest, source location, evidence type, caller/reachability, preconditions, bounded impact, remediation owner/status, regression test and remaining unknowns. Keep secrets and private keys out of reports. Append discovery/validation/correction events to `Ioniq5-HISTORY.md`; edit this register to reflect current conclusions. Preserve rejected findings to avoid rediscovery.
 
-## V-045 — Introspection disagrees with dispatch on `show_window_fg`/`hide_window_bg`, and mismatched arity terminates `AppHomeScreen` (denial of service)
+## V-045 — Introspection disagrees with dispatch on `show_window_fg`/`hide_window_bg`, and the process disappears after a mismatched-arity call (cause now DISPUTED: see status; denial of service)
 
-- **Status:** demonstrated in emulation (2026-10-31). Not yet reproduced against physical hardware.
+- **Status:** the *disappearance* is demonstrated in emulation (2026-10-31, and twice more on 2026-11-05); **the attribution is disputed.** The original reading was that the
+  mismatched-arity call terminates the app. A competing explanation now has log evidence behind it: `ApplicationManager` enforces an app-alive handshake and reaps apps that
+  never answer it (`AB010512*time*AppEngineerMode-5-hang`, `appTerminateSlot`, deregistration - see `docs/vm/apphomescreen-dbus-contract.md` §3), so an unshown app may be
+  removed on a timer with the call blameless. Both readings are recorded below; neither has been separated experimentally. Not reproduced against physical hardware.
 - **Component:** `/app/bin/AppHomeScreen`, session bus name `com.lge.hkmc.avn.appfunc.AppHomeScreen`, object
   `/com/lge/hkmc/avn/appfunc/appInterface`.
 - **The interface advertises** (live `org.freedesktop.DBus.Introspectable.Introspect`, 10,990 bytes, saved as

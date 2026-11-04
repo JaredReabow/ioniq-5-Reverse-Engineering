@@ -5129,3 +5129,8 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The link checker had listed five documents this repository promised and never wrote. Wrote the one that matters most now: the application-to-manager contract, with a citation on every claim.
 - It records the registration call, the show interface, the liveness watchdog that reaps unshown apps, the micom methods with their reply types, and what is still missing. It also gives an older finding a competing explanation worth keeping open.
 - Deleted its place in the allowlist so the checker enforces the file's existence instead of tolerating its absence. That is what the missing category is for - a visible debt that disappears when it is paid.
+
+## 2026-11-05 - separating what was seen from why it happened
+
+- One entry's heading claimed a call terminates an application. The disappearance is demonstrated three times over; the explanation is not, and there is now a competing one with a log line behind it.
+- Changed the heading and the status to say the observation stands while the attribution is disputed, keeping both readings. Same failure shape as the stale heading found earlier, but subtler: the seeing was sound, only the reasoning was in doubt.

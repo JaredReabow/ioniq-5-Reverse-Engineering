@@ -3,6 +3,18 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.77.0 - an entry whose heading asserted a mechanism that is now disputed
+
+V-045's heading said the mismatched-arity call **terminates** `AppHomeScreen`, and its status said "demonstrated in emulation". The disappearance is certainly demonstrated - it has now
+been reproduced three times. **The attribution is not**, and since the app-manager work this session there is a competing explanation with a log line behind it: the manager enforces
+an app-alive handshake and reaps apps that never answer it (`AB010512*time*AppEngineerMode-5-hang`, `appTerminateSlot`, deregistration), so an unshown app may be removed on a timer
+with the call blameless.
+
+The heading and status now say exactly that: *the disappearance is demonstrated; the attribution is disputed*, with both readings kept and neither asserted as settled.
+
+This is the same failure pattern as the stale heading the register checker caught earlier - a claim that survives in the one line everybody reads after the body has been corrected - except
+this time it is subtler, because the *observation* is sound and only the *explanation* is in doubt. A register that cannot distinguish those two things is not worth reading.
+
 ## 4.76.0 - writing the document the checker had recorded as promised and never written
 
 The link checker's `MISSING` category listed five references to files this repository promised and never wrote. One of them,

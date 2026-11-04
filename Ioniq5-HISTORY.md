@@ -4919,3 +4919,9 @@ and are superseded by corrections rather than silently rewritten.
 - Fixed the wrapper to mount sysfs before writing, and its error went away. But the decision messages never appear, because they go through a device that is not reliably there yet, and the one line I had used as evidence appears in both the broken and the fixed run.
 - So the correction I made is not established either. What is established is that one value has never been read at the moment it matters, and that is now written down as the state rather than guessed at.
 - Two attempts, two plausible stories, one unmeasured number. That is the honest score.
+
+## 2026-11-04 - writing the page I would want to find
+
+- The session got long enough that the changelog stopped being a good entry point, so I wrote one page: what works with a pointer to the proof, what is blocked, the three substitutions, the register with statuses, and the corrections.
+- The corrections are in it deliberately. Someone finding only the first of three entries about the SPI gate would be actively misled.
+- I stopped working that one value. Three entries and one unmeasured number is enough; the recipe is written down and a worker has the parallel task.

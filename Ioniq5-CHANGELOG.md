@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.6.0 - forced update: the menu exists, but it only skips the version compare, and production builds disable it
+
+Checked directly whether "Force Update" gives a usable route to installing firmware. The strings in `AppUpgrade` answer it:
+
+- **`Force update !! Pass version compare.`** — what force update does is **skip the version comparison**. It is a downgrade/rollback bypass, not a verification bypass.
+- **`[FORCE_UPDATE_FUCTION_ENABLE] DEV -> MP`** and **`force update is not support`** — the facility is enabled in **development** builds and disabled for **mass production**, which is the same build-mode gate that ignores `disableEncryptionUpdate`.
+- **`m_isForceUpdate` / `m_supportForceUpdate`** — a flag pair, plus an `forceUpdate` boolean argument in an exposed interface, and OTA rollback paths that "Add Force Update Argument" for GPS and modem updates.
+- **The manifest is `.lge.upgrade.xml`**, referenced by `AppDMClient`, `AppUpgrade`, `AppMPAutoTest` and `AppScomoDM` — so a USB update is delivered as that manifest plus its payload, and (per **V-034**) the manifest is verified before any payload is unpacked.
+
+**Verdict: no usable forced-update vector without prior privilege.** Three independent gates stand in the way, and force update only relaxes one of them:
+
+| Gate | What relaxes it |
+| --- | --- |
+| RSA signature over the manifest | nothing found; the anchor would have to be replaced (**V-034**, needs write access) |
+| Build mode (MP disables force update and ignores the encryption flag) | a development build, i.e. a develop `AppUpgrade` — not obtainable from the stock unit |
+| Version/rollback comparison | **Force Update** — this is the only gate it opens |
+
+So a modified or unsigned package still fails, and "Force Update" would let an *authentically signed but older* package install, which is a rollback concern rather than a code-execution one.
+
 ## 3.33.0 - reading the compositor log found three real faults; the fatal one is still missing
 
 Worked the chain-on-vendor-backend problem by reading `/tmp/launcher-chain/weston.log` instead of guessing, as intended. Three concrete faults surfaced, each fixed in turn:

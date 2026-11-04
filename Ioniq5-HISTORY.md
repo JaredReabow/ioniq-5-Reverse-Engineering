@@ -5295,3 +5295,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Got the lossless channel working and read the managed child's environment: driver path, gallium driver, Mesa library path, Qt platform and bus address are all correct, and every file it needs is present. So the launcher does not strip the driver path after all.
 - What remains is sequencing and starvation - the launcher starts the whole application set at once against two emulated cores while a single hand-started instance has the machine to itself.
 - The same channel captured something unplanned: the serial login prompt, on the vendor's own init, with none of our instrumentation involved. That finding had been proven by running a script by hand until now.
+
+## 2026-11-05 - four cores are enough to register
+
+- Ran the confirming experiment: the managed home screen owns its bus name with four emulated cores and did not with two. So the last gap is emulated CPU, not configuration - the vendor launches its whole application set at once and two cores cannot finish Qt startup before the manager's timers fire.
+- That is a property of the projection, not the vehicle.
+- The surface check in that run was wrong again: I read the research chain's log path while the authentic compositor writes to the kernel log, so whether the managed instance paints is untested rather than refuted - and written down that way.

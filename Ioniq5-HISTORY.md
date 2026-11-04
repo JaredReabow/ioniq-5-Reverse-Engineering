@@ -5200,3 +5200,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The runbook was written when the research chain was the only way to see anything. Added the authentic path: two commands, what each reaches, the three instruments and why each exists.
 - Included the two traps that cost real time: pre-starting the session bus, and the root device with a partition table on it.
 - And listed the four explanations already eliminated for the missing frame, because a runbook saying only 'black, unknown' invites the same four investigations again.
+
+## 2026-11-05 - my instrument failed, and the run still paid
+
+- Cloned the worker's workspace to run the outstanding A/B rather than make it redo its setup. My probe never executed - the unit carrying it exited with failure and produced none of my markers while the clone's own instrumentation kept printing.
+- Two facts came out anyway. The app's thread state differs between boots: this run had it sleeping in its event loop, the earlier one had it running, and a painting instance also looked like the latter. So that signal is noise in both directions.
+- And the logging daemon is audited on every access to the log objects - 599 granted records in one boot - which is a volume problem rather than a denial one, and testable in a single boot.

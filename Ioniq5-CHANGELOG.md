@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.89.0 - my own A/B failed to run, and the run still produced two facts worth having
+
+I cloned the worker's workspace (`work/vm/byhand`, CoW from `stockui`) to run the outstanding A/B - launch `AppHomeScreen` by hand, bypassing the launcher - rather than make the worker redo
+its setup. **The probe did not execute.** `check-mount.service` (which carried my drop-in) exited `status=1` at 112 s and produced none of my markers, while the clone's own instrumentation
+kept printing its `[apps-check]` lines. So the A/B is still untested, and the hand-back is the honest outcome rather than a third attempt to out-instrument someone else's harness.
+
+The run was not wasted. Two facts came out of it:
+
+**1. The app's thread state varies between boots.** The worker measured `State: R (running)` with `wchan=0`; this run shows the opposite:
+
+```
+[apps-check] APPHOME_STATUS=[State:  S (sleeping);Threads: 11;]
+[apps-check] APPHOME_TASK_STATES=[     11 S;]
+[apps-check] APPHOME_WCHAN_TASKS=[poll_schedule_timeout, pipe_wait, wq_sleep.constprop.16, poll_schedule_timeout, …]
+```
+
+Sleeping, with the main thread in `poll_schedule_timeout` - i.e. parked in its event loop exactly as a healthy Qt app would be. Combined with the control I ran earlier (a *painting* app
+also showed `R`/`wchan=0`), the conclusion is that **thread state is not a stable signal for this fault in either direction.** Any entry that reasoned from it - mine included - was
+reasoning from noise.
+
+**2. `dlt-daemon` is audited on every access to the log objects.** 599 SMACK audit records in a ~615 s boot, **all `comm="dlt-daemon"`, all granted**, on `object="Log::dlt"` and
+`object="Log::dlt_vcrm"`. Not a denial problem - a volume problem: every log write by the daemon that produces the app's DLT output traverses an audited permission check. Under emulation
+that is a plausible source of the starvation, and it is testable in one boot by adding `audit=0` (or removing the SMACK policy) and seeing whether the app paints.
+
+Both are handed to the worker, whose clone this is, along with the observation that my instrument collided with theirs.
+
 ## 4.88.0 - the runbook only documented the path everyone should stop using by default
 
 `docs/VM-RUNBOOK.md` was written when the research chain was the only way to see the interface. It now has a section for the **authentic** path - vehicle kernel, vehicle `esinit`,

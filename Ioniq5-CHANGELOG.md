@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.29.0 - the SPI gate is the last barrier to the vendor UI, and it is not yet open
+
+`esinit` will not start the vendor compositor while `/tmp/spi_validation_NOK` exists, and in QEMU the real MICOM handshake never happens
+(`[lge_lcd_init_func] Micom didn't sent SPI data`), so the NOK branch is always taken. Since `spi_validation` is a module parameter,
+`tools/uk_fw/vm_partimg/run-esinit-spi.py` supplies `micom.spi_validation=1` on the kernel command line.
+
+Measured: the token reaches the command line (`root=/dev/mmcblk0p5`, `init=/lib/systemd/esinit`, `micom.spi_validation=1`), the MICOM
+driver registers at 0.409 s - early enough to matter - boot still reaches Multi-User, and `Weston Process Crash Monitoring` starts. **But
+there is no `[esinit] micom SPI info is OK`, no `SPI NOK`, and no weston output at all.**
+
+So the gate did **not** visibly open, and the note deliberately leaves two explanations open rather than picking one: the parameter may be
+read-only status that the driver overwrites during probe, or the OK branch was taken and the vendor weston died instantly without its output
+reaching the console. The next step is an instrument, not a guess: a logging wrapper ahead of `/usr/bin/weston` plus reading the parameter
+from a userspace boot.
+
+That single value now gates everything downstream - `weston --tty=1`, the HMI services and `ApplicationLauncher` - so it is the last
+barrier between "vendor userspace boots to multi-user" and "the vendor UI runs". `docs/vm/spi-gate.md` records it.
+
 ## 4.28.0 - the vehicle's own boot sequence runs to multi-user
 
 A **GPT-partitioned image** with the real `p1`-`p17` layout lets `/lib/systemd/esinit` run its eMMC recovery and then `exec` systemd on

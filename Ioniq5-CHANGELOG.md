@@ -3,6 +3,38 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.22.0 - the vendor userspace boots: systemd PID 1, udev up, login prompts
+
+Booting the **vendor kernel** with **systemd itself as init** - rather than the research `/init` or `esinit` - brings up the authentic
+rootfs:
+
+```
+systemd[1]: Listening on udev Control Socket.
+[  OK  ] Listening on udev Control Socket.
+systemd[1]: Starting udev Kernel Device Manager...
+```
+
+and the targets settle at `Basic System`, `Local File Systems(Pre)`, `Local File Systems`, `Login Prompts`, `Paths`, `Slices`, `Sockets`,
+`Swap`. Twenty-four units fail, all for missing hardware (persistence admin, connman with no NICs, TimeManager, a `tmp.mount` that this
+image does not define); none of them blocks udev or Basic System.
+
+This unblocks the thing every USB question depended on: `SYSTEMD_WANTS` only means something with systemd running, so V-014's tail is now
+measurable here instead of argued from a synthetic test. It also means the udev workaround from the previous entry is no longer needed -
+under systemd the daemon is started by its unit, as on the vehicle.
+
+**Media probe, same session, with two corrections.** A USB stick with a real ext4 filesystem mounts at `/media/usb` - it must be built
+without `metadata_csum`, which kernel 4.1 rejects with `unsupported optional features (2000)`. And the indexer's ASF plugin **is** present
+at `app/lib/lightmediascanner/plugins/asf.so`; the earlier note that it was absent came from looking for `lms_asf.so`, which is not the
+filename. So the ASF parser exists in the indexer and not only in `libgstasf.so`.
+
+The indexer itself runs as uid 0 but does not scan: it blocks on the DLT FIFO until `dlt-daemon` runs, and then still opens nothing
+because it expects the session bus and media manager to drive it. Parser behaviour on a crafted file is therefore **not** demonstrated;
+what is established is that the component exists, runs as root, and is reachable by path once the service mesh is up.
+
+**Still not faithful to the vehicle's own boot:** `esinit` stops at `[FDE] ***** use fstab for non FDE` because it recovers eMMC
+partitions `p8`-`p12` and our clone has one. Starting systemd directly bypasses esinit rather than fixing it, and that is the next
+structural gap.
+
 ## 4.21.0 - udev runs in the projection, so the USB rule chain is real
 
 `systemd-udevd` starts standalone, without systemd, and processes a plugged USB stick through the vendor's own rules:

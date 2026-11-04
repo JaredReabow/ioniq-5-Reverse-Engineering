@@ -4791,3 +4791,10 @@ and are superseded by corrections rather than silently rewritten.
 - Starting the vendor's udevd by hand works, and a plugged USB stick goes through the shipped rules to the shipped scsi_id, producing ID_BUS, ID_SERIAL and ID_SERIAL_SHORT. The real chain, not a synthetic one.
 - Two traps, both mine: the control file must be a socket made by udevd, not a directory I create first; and the gps driver warning loop buries the console output.
 - The USB property-injection vector still needs hardware for the crafted serial. Everything downstream of it is now testable here.
+
+## 2026-11-04 - the machine comes up
+
+- Booting the vendor kernel with systemd as init brings the authentic rootfs up to Basic System with udev running and login prompts reached. That is the first time this has been true.
+- It also means the sysemd question that blocked every USB idea is finally askable in the projection rather than by argument.
+- Two corrections from the media probe: the stick must be built without metadata_csum for a 4.1 kernel, and the indexer does have an ASF plugin - I had looked for the wrong filename.
+- The indexer runs as root but will not scan without the session bus and media manager, so the parser is reachable but not yet exercised.

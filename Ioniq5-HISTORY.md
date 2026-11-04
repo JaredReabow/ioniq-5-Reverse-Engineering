@@ -5164,3 +5164,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Before a worker published a diagnosis, I ran the control case in my own workspace: with the full policy loaded, the home screen painted a complete frame while sitting in exactly the thread state that was being blamed for it not painting.
 - So the state is normal, not diagnostic. The policy loading is eliminated as the cause; what remains is contention, the logging daemon, or one of my own instruments.
 - Sent the correction with the next discriminators, including launching the app by hand to see whether the launcher or the manager is what differs.
+
+## 2026-11-05 - ready in one second, so slowness is not the story
+
+- Measured the working path's readiness: the app answers introspection almost immediately and paints straight after. That retires the idea that software rendering is too slow for the manager's watchdog.
+- With the audit and policy candidate already eliminated, three remain: plain contention, the logging daemon, or the environment the launcher gives the app - and the last one is the cheapest test and the most likely.
+- A launcher environment pointing at a bus that is not there would explain every symptom at once, including a busy thread that never renders.

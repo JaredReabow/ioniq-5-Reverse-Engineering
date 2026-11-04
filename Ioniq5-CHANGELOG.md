@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.64.0 - the marker trigger fires, but nothing has been shown starting a privileged service
+
+Creating `/tmp/no_isa` in an authentic boot was tested against the static marker table. The result is half a demonstration, and the half that is missing matters:
+
+- **The path units are evaluated and fire.** The boot logs `Started ofono start path.` and then attempts `remote.service`, which fails on an unmet dependency
+  (`remote.service: Job remote.service/start failed with result 'dependency'`).
+- **The payload never starts.** `pidof TmsRemoteApp` and `pidof ofono` were empty before and after the marker was created (`MARKER before remote=[] ofono=[]`,
+  `MARKER after remote=[] ofono=[] marker=present`), because those units `Require` the MICOM manager, `Dbuslauncher`, `CryptoService` and `mof/ofono`, none of which
+  come up here.
+
+And one observation that complicates the table more than the failed payload does: **the path units fired at 25 s, before the probe created the marker at ~60 s.** So
+`/tmp/no_isa` already existed in that boot, and **no script in the image creates it** - a vendor binary does. On a system where the platform sets that marker
+itself, the remote/ofono path opens with no attacker action at all, which would make the real question "what sets `no_isa`" rather than "who can write `/tmp`".
+
+So V-042's table stays as a static capability list with an explicit caveat beside it: the wiring is confirmed, the trigger is observed, and **no marker has been shown
+starting a privileged service end to end**. That is the correct status, and it is the third time this session that a clean-sounding configuration fact turned out to
+need a dependency chain behind it before it meant anything.
+
 ## 4.63.0 - V-042 gets a full marker table, and two of its markers are worse than expected
 
 V-042 previously rested on examples. A sweep of all ten systemd `.path` units plus the `esinit` checks shows **seven privileged behaviours keyed on "does a

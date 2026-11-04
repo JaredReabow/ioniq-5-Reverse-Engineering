@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.44.0 - the missing diagnostics were missing by design: `> kmsg` is not `/dev/kmsg`
+
+Three entries of this investigation were ambiguous because the `SPI NOK` branch could not be observed. The cause is a typo in the shipped script:
+
+```sh
+if [ -e /tmp/spi_validation_NOK ]; then
+        echo "SPI NOK" > kmsg &
+else
+        (/usr/bin/weston --tty=1; touch /tmp/weston.crash) > /dev/kmsg 2>&1 &
+fi
+```
+
+`> kmsg` writes a file called `kmsg` in the init's working directory. **The failure branch reports nothing, ever.** Every success-side message uses
+`> /dev/kmsg` correctly, which is what made the absence of `SPI NOK` look like evidence for the OK branch - and what made me use `random: weston
+urandom read` as a proxy. Both readings were drawing conclusions from a line the code cannot emit.
+
+That is a real defect in its own right and not only an inconvenience to this project: on a unit whose display server does not start, the kernel log
+contains **no explanation**, because the explanation was written to a stray file. It is worth reporting as a diagnostics bug regardless of the security
+findings.
+
+What remains unmeasured is unchanged - the parameter's value at the instant `esinit` reads it - but the requirement for the measurement has sharpened:
+it must not use `/dev/kmsg`, and must come from a script with `/dev` mounted or from a boot where commands are possible.
+
 ## 4.43.0 - a current-state document, because the session outgrew the changelog
 
 After this many turns the useful artefact is a single page that says what works, what is blocked and what to do next without reading forty

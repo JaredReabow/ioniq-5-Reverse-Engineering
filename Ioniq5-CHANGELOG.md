@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.71.0 - the append-only log had been rewritten 21 times, and I am not going to fix that by rewriting it
+
+`tools/check_history_append_only.py` walks `Ioniq5-HISTORY.md`'s git history and asserts every stored version is a **prefix** of the next - which is what "append-only" actually means,
+and what a silent edit or an out-of-order insertion violates while looking perfectly normal to a reader.
+
+Result: **21 violations, every one between 2026-10-28 and 2026-11-02**. Entries were inserted mid-file rather than appended, which is also why some dates run out of order. **None are
+from this session** - the checker confirms every entry added today sits at the end and the file grew monotonically through those commits.
+
+It also surfaced a **future-dated entry**: `## 2026-11-07 — the harness removed the EGL hide transition it needed` at line 3688, in a session whose today is 2026-11-05. Either a typo
+or a machine with a wrong clock.
+
+**Neither defect is being fixed by editing.** Rewriting an append-only log to make it look as though it had always been append-only would destroy the one property that makes it worth
+keeping. Both are recorded as a new entry - the only repair this file permits - and the checker stays in the tree so the invariant is verifiable rather than aspirational.
+
 ## 4.70.0 - a consistency check for the register, and it immediately caught a stale heading
 
 The register is edited by hand, cross-referenced from a dozen documents, and has been corrected nine times in one session. `tools/check_register_consistency.py` now checks the two

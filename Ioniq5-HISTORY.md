@@ -5086,3 +5086,16 @@ and are superseded by corrections rather than silently rewritten.
 - Fifty-seven entries, no duplicates, no gaps, no document citing one that does not exist. That survived a session of edits, which was worth confirming rather than assuming.
 - The check found a stale heading: one entry still asserted the exact conclusion I had withdrawn, because the body was corrected and the heading - the part that appears in every summary - was not.
 - Wrote down the tool's limitation too: its status column is a keyword guess, so it is a spell-checker for numbering, not a verdict on the findings.
+
+## 2026-11-05 — the append-only log was not append-only
+
+Added a checker that walks this file's git history and asserts every stored version is a prefix of the next, which is what "append-only" means. It found **21 violations**, all of them
+between 2026-10-28 and 2026-11-02: entries were inserted mid-file rather than appended, and dates are consequently out of order in places.
+
+None of the 21 are from this session — every entry I added today sits at the end and the checker confirms the file grew monotonically through those commits.
+
+It also found a **future-dated entry**: `## 2026-11-07 — the harness removed the EGL hide transition it needed`, embedded at line 3688. Today is 2026-11-05, so that date is either a
+typo or was written on a machine with a wrong clock. It is left exactly where it is.
+
+I am not fixing either problem by rewriting. Editing history to make an append-only log look like it was always append-only would destroy the only property that makes it worth
+keeping. The defects are recorded here instead, which is the one repair this file permits.

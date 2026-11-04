@@ -5194,3 +5194,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The most likely explanation for the missing frame was that our chain had pre-empted the vendor script that writes the session-bus environment file. Checked on the authentic path: the script runs, three strings match exactly, and the address resolves to a live daemon. Eliminated.
 - The hypothesis stays in the checklist because it is real for the other chain, which does start its own bus. It does not weaken the finding about who may write that file - only the claim that we had made it wrong here.
 - Two candidates left, and one A/B that settles a lot: launch the app by hand, bypassing the launcher.
+
+## 2026-11-05 - the instructions described the path we no longer recommend
+
+- The runbook was written when the research chain was the only way to see anything. Added the authentic path: two commands, what each reaches, the three instruments and why each exists.
+- Included the two traps that cost real time: pre-starting the session bus, and the root device with a partition table on it.
+- And listed the four explanations already eliminated for the missing frame, because a runbook saying only 'black, unknown' invites the same four investigations again.

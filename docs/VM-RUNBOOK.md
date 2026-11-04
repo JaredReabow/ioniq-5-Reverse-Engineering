@@ -63,6 +63,48 @@ pidof keeper               # the long-lived ivi-shell user-interface placeholder
 
 `pidof weston` returning nothing has already produced several false "compositor died" conclusions. Do not use it.
 
+## 1b. Run the *authentic* path (vehicle kernel → vehicle init → vehicle compositor)
+
+The research chain above is convenient but bypasses the vehicle's own boot. The authentic path exists now and takes two commands:
+
+```sh
+# 1. the partitioned image: 17 partitions, p5 is the active root
+python3.13 tools/uk_fw/vm_partimg/run-esinit.py --init /lib/systemd/esinit --timeout 300
+
+# 2. the same, with the MICOM SPI stand-in that lets esinit start its own compositor
+python3.13 tools/uk_fw/vm_partimg/run-esinit-spi.py --init /init-esinit-spi.sh --timeout 320
+```
+
+What each one gives you, measured:
+
+| start | reaches | compositor |
+| --- | --- | --- |
+| `--init /lib/systemd/esinit` | Multi-User at 75.9 s, every fstab partition mounted | **not started** — the SPI gate stays shut (`param=0`) |
+| `--init /init-esinit-spi.sh` | Multi-User at 97.3 s | **started** — `esinit` runs `/usr/bin/weston --tty=1`; a 129,844-byte frame captures |
+
+Three projection-only instruments make the second case work, and each is labelled in its own file:
+
+- **`/init-esinit-spi.sh`** - mounts `/sys` (an `init` runs before `esinit` does), waits for `/sys/module/micom/parameters/spi_validation`, forces it to 1 and holds it across the poll
+  window. Without this the gate is shut: `SPI_STATE ok=no nok=yes param=0`.
+- **`/usr/bin/weston` wrapper** - records argv, supplies the software-GL environment, preloads the pixman solid-fill shim and strips `--tty=1`.
+- **`pixman-solid-shim.so`** - the vendor ivi shell draws solid-colour backgrounds through `pixman_image_create_solid_fill()`, which has no format, and `composite_clipped()` asserts on
+  it. A vehicle never hits this because it uses GL; `--use-pixman` is the only renderer here.
+
+### Two traps specific to this path
+
+- **Do not pre-start a session `dbus-daemon`.** `/app/bin/Dbuslaunch.sh` (via `Dbuslaunch.service`) is the only thing that writes `/tmp/session_appmgr.env`, and **eleven units** read
+  their bus address from it. A chain that starts its own bus and writes `/tmp/session_appmgr` by hand makes the vendor's `dbus-daemon --session --fork` fail or disagree, leaving those
+  units with no usable bus. The research chain does exactly that — it is fine there, and would be the first thing to check if you port a script across.
+- **`root=` must name `p5`, not the whole device.** A GPT header overwrites the ext4 superblock at byte 1024, so `root=/dev/mmcblk0` cannot mount. This is the one documented change to the
+  fixed command line, recorded in `docs/vm/partitioned-image.md`.
+
+### What is still missing on this path
+
+The vendor HMI **processes** run under the authentic init (launcher, manager, home screen), but the applications never attach a buffer, so the captured frame is still the
+early-background. Four explanations have been eliminated by measurement - MAC/audit overhead, the `R`/`wchan=0` thread state (it is the *working* state), slow startup versus the
+watchdog (ready in 1 s on the working path), and a missing or mismatched `/tmp/session_appmgr.env`. What remains is CPU contention, DLT load, or the launcher/manager path.
+See `docs/vm/authentic-hmi-apps.md` for the evidence and the outstanding A/B.
+
 ## 2. Launch engineering mode
 
 ```sh

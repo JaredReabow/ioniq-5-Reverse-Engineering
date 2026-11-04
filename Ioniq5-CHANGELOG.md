@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.26.0 - SMACK confinement is switched off by an unauthenticated filesystem check
+
+`esinit` derives a kernel module parameter from `cryptsetup isLuks` on the read-write data partition:
+
+```sh
+/usr/sbin/cryptsetup -v isLuks /dev/${RW_PART}
+if [ $? -eq 0 ]; then endFde="1"; else endFde="0"; fi
+echo $endFde > /sys/module/micom/parameters/optUNECE
+```
+
+and `smack_setup.sh` reads it twice, switching **SMACK to permissive** when it is 0:
+
+```sh
+if [ $CHECK_UNECE1 == "0" ]; then
+        echo "[SMACK] Not UNECE vehicle, Switch to permissive mode" > /dev/kmsg
+        echo "1" > /sys/fs/smackfs/bringup-switch
+fi
+```
+
+Measured in the projection with the vendor kernel: `optUNECE=0`, and `/sys/fs/smackfs/bringup-switch` exists. So "is this vehicle subject to
+UNECE R155/R156" is operationally "did the LUKS probe succeed just now", and any corrupt, truncated or replaced header yields **permissive**
+rather than a refusal to boot. That is the wrong direction for a failure to point.
+
+The same flag also governs the radio: `AppLauncher` carries `/tmp/no_unece` and `supplicantmanager.path` watches for that file, so the
+"not UNECE" state is what brings the wireless daemon up as well. Filed as **V-052**, with the field prevalence explicitly labelled unknown -
+the mechanism is confirmed, whether production units take the permissive branch is not.
+
 ## 4.25.0 - the QML lays out correctly, so the blank body is a surface problem
 
 The engineering app's own `qmlLog` output settles where the fault is not:

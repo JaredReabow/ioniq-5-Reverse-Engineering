@@ -4817,3 +4817,10 @@ and are superseded by corrections rather than silently rewritten.
 - The app's own qmlLog proves the QML loads, lays out at 1920x720 and runs its transitions. It is not a data problem and not a layout problem.
 - A click now reports no client under the pointer, which is a sharper symptom than no view: whatever is on screen is not receiving at that coordinate.
 - The paint question is delegated with a specific plan, because enumerating surfaces and reading one wayland log is mechanical work rather than judgement.
+
+## 2026-11-04 - the confinement is decided by a filesystem probe
+
+- The system decides whether it is subject to UNECE by asking whether the data partition is LUKS, and if that answer is no it switches its mandatory access control to permissive. Measured 0 in the projection.
+- A corrupt or replaced header therefore produces less confinement rather than a refusal to start, which is the wrong way for that decision to fail.
+- The same flag also enables the wireless daemon, so one derived value governs both confinement and radio.
+- Whether real units take the permissive branch is unknown and recorded as unknown. The mechanism is what is confirmed.

@@ -4984,3 +4984,9 @@ and are superseded by corrections rather than silently rewritten.
 - Traced who turns the data encryption on: nothing does. The only caller runs it when the partition is already encrypted, which it is not, and the factory data ships as plain files.
 - So the likely field state is no encryption at all, and the mac posture that keys off that same check is the permissive one. That is a different finding from the one the entry was written as.
 - Kept both readings, because weak encryption and no encryption with a disabled mac layer need different fixes, and quietly replacing one with the other would lose the distinction.
+
+## 2026-11-05 - the rules were there all along
+
+- Claimed the policy layer had no rules. It has six hundred and thirty-six of them across twelve files, and the authentic boot loads them visibly.
+- I missed them because I looked for the mechanism - writes to a kernel interface - instead of the artefact, which was a directory of data files. That is the third time this session that pattern produced a false absence.
+- Withdrew the test that appeared to prove the old claim, since it ran without the rules loaded. What stays open is whether an application's floor label is subject to them at all.

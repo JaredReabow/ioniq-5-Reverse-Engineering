@@ -3,6 +3,18 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.32.0 - the clean dev-mode capture needs its own recipe: the chain does not survive on the vendor backend
+
+- Tried the obvious combination for a clean engineering-mode screenshot: the **launcher chain** (so appmanager and applauncher context exist) running against the **vendor `headless-backend.so` with a single
+  output**, then engineering mode launched from the dev path by app id 301.
+- **It did not hold.** At the sixty-second checkpoint `WESTON=` was empty while `AppHomeScreen` was still alive (pid 849) and `Assertion` count was zero, so the compositor exited rather than aborted. Engineering
+  mode therefore never started (`ENG=` empty) and the only frame produced was a 5,471-byte uniform image.
+- Two candidate causes, both cheap to distinguish: the chain's config carries `[output] name=headless mode=1920x720` **and** the `pixman-solid-shim` preload, neither of which the working vendor recipe
+  (`vm/repro/vendor-userspace-260128/hmi-wayland-probe.sh`) uses, and that recipe runs a single application rather than a launcher plus appmanager. The next run should read `/tmp/launcher-chain/weston.log`
+  for the exit reason before changing anything, since guessing at it is what this log keeps warning about.
+- What this does **not** affect is the causal finding of §3.31.0: the vendor single-output recipe renders cleanly and reproduces the archived clean frame, while every ten-output run of our own backend produces
+  stripes. That comparison stands on its own two measurements and does not depend on this failed run.
+
 ## 3.31.0 - the stripes are our own backend's artefact: the vendor headless path renders cleanly
 
 - Followed the history instead of the theory, as suggested. The first striped frame is `docs/vm/15-…` (§2.78.0), and the first clean one is `docs/vm/13-…` (§2.74.0). Comparing what produced them gives

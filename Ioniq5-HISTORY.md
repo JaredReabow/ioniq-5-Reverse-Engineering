@@ -4654,3 +4654,8 @@ and are superseded by corrections rather than silently rewritten.
   question.
 - Every sampling test in the last stretch was therefore doomed before it ran. That is worth admitting plainly: six careful experiments, all aimed at a component that was never being exercised.
 - The engineering-mode screenshot needs the chain run against the vendor backend with one output. That combination has never been tried, and it is one run away.
+
+## 2026-11-04 — the right idea, the wrong recipe
+
+- The chain does not survive on the vendor backend: the compositor exits while the home screen keeps running, so engineering mode never starts and the capture is an empty frame.
+- The comparison that identified the stripes is unaffected. This is a recipe problem, and the next step is to read the compositor's own log rather than guess at the cause.

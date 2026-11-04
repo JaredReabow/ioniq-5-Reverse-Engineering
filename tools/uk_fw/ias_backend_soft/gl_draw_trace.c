@@ -33,6 +33,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #define LOG_PATH "/tmp/gl-draw.log"
@@ -380,6 +381,76 @@ void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void
  * coordinates. Whether that is a fault or simply a shader computing coordinates from another
  * attribute cannot be decided without reading the shader. glShaderSource carries it.
  */
+/*
+ * Experiment: rewrite the quad shader's varying assignment at upload time.
+ *
+ * The recovered shader is:
+ *     gl_Position = position;
+ *     outTexCoords = texCoords.xy;
+ * and the captured buffer pairs corners inconsistently, which would mirror and shear a
+ * full-screen quad. Two rewrites are offered so the picture itself can say which mapping is
+ * wrong:
+ *     IAS_SHADER_FIX=swap   -> outTexCoords = texCoords.yx;
+ *     IAS_SHADER_FIX=flipu  -> outTexCoords = vec2(-texCoords.x, texCoords.y);
+ * If either produces a correct background, the missing transform is identified. If neither
+ * changes anything, the fault is not in this assignment.
+ */
+static int shader_fix_mode(void)
+{
+	static int cached = -1;
+	const char *v;
+
+	if (cached >= 0)
+		return cached;
+	/* Marker files, because the launcher rebuilds its children's environment and an
+	 * environment variable cannot reach the application. */
+	if (access("/tmp/shader-fix-swap", F_OK) == 0) {
+		cached = 1;
+		return cached;
+	}
+	if (access("/tmp/shader-fix-flipu", F_OK) == 0) {
+		cached = 2;
+		return cached;
+	}
+	v = getenv("IAS_SHADER_FIX");
+	if (v == NULL)
+		cached = 0;
+	else if (strcmp(v, "swap") == 0)
+		cached = 1;
+	else if (strcmp(v, "flipu") == 0)
+		cached = 2;
+	else
+		cached = 0;
+	return cached;
+}
+
+static const char *rewrite_shader(const char *src)
+{
+	static char buf[8192];
+	const char *needle = "outTexCoords = texCoords.xy;";
+	const char *at;
+	size_t head;
+
+	if (src == NULL)
+		return src;
+	at = strstr(src, needle);
+	if (at == NULL || shader_fix_mode() == 0)
+		return src;
+
+	head = (size_t)(at - src);
+	if (head + 256 > sizeof buf)
+		return src;
+
+	memcpy(buf, src, head);
+	buf[head] = 0;
+	if (shader_fix_mode() == 1)
+		strcat(buf, "outTexCoords = texCoords.yx;");
+	else
+		strcat(buf, "outTexCoords = vec2(-texCoords.x, texCoords.y);");
+	strcat(buf, at + strlen(needle));
+	return buf;
+}
+
 static int shaderdumps;
 
 void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string,
@@ -388,6 +459,22 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string,
 	static void (*real)(GLuint, GLsizei, const GLchar *const *, const GLint *);
 	char path[64];
 	int fd, i;
+
+	if (count > 0 && string != NULL) {
+		const char *rw = rewrite_shader(string[0]);
+		if (rw != string[0]) {
+			GLchar *repl[1];
+			GLint len[1];
+			repl[0] = (GLchar *)rw;
+			len[0] = (GLint)strlen(rw);
+			(void)count;
+			if (!real)
+				real = dlsym(RTLD_NEXT, "glShaderSource");
+			if (real)
+				real(shader, 1, repl, len);
+			return;
+		}
+	}
 
 	if (shaderdumps < 8 && count > 0 && string != NULL) {
 		snprintf(path, sizeof path, "/tmp/gl-shader-%d.txt", shaderdumps++);
@@ -412,3 +499,4 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string,
 	if (real)
 		real(shader, count, string, length);
 }
+

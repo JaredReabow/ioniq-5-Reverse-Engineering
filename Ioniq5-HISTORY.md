@@ -4706,3 +4706,9 @@ and are superseded by corrections rather than silently rewritten.
 - The engineering application ships Force Update, Encryption Update and Scheduled Update Test. Production units get a different list, and one comparison decides which.
 - The deciding value is written with a single immediate that a one-byte change flips. That is the whole difference between a technician's menu and a development one.
 - The patch was injected but the application had not appeared by the time I checked, so the effect is unobserved. Static finding, runtime unconfirmed, and written down that way.
+
+## 2026-11-04 — the interface renders, and the thing that starts applications trusts /tmp
+
+- Placement, not drawing, was the missing step: the surface existed at 1926x753 and simply was not on screen. With it placed, the vendor backend produced a clean frame of the real interface, and a clean EV page, neither with a single stripe.
+- The application manager verifies each binary against a key path in world-writable /tmp, then starts the binary with the verification returning 1. It was stopped by a registration timeout instead. That is the first root-access candidate here that needs no memory corruption and no removable media.
+- Requesting the engineering application at appId 301 eight times across two minutes produced no log line at all, so the earlier success is state-dependent and its trigger is still unknown.

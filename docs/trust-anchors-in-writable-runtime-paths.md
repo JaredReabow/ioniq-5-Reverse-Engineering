@@ -13,6 +13,7 @@ cheaply.
 | V-053 | is **data protected**? | the literal passphrase `1234` in `/etc/fde_test_v2.sh` | **opens with `1234`, refuses a wrong one** |
 | V-055 | which **compositor modules load as root**? | `/etc/xdg/weston/weston.ini -> /tmp/weston.ini`, naming `shell=`, `backend=`, `ivi-module=` | file present; takes effect at next compositor start |
 | V-054 | which **accounts exist**, and does root get a shell? | `/etc/passwd` and `/etc/shadow` are **symlinks into `/tmp`**, rebuilt from a flag at boot | file copy from `/etc/passwd.{legacy,secure}` |
+| V-058 | **which D-Bus does the whole application ecosystem use?** | `/tmp/session_appmgr.env`, read by **eleven** units through `EnvironmentFile=` | confirmed from the units; would redirect every app's bus |
 
 ## The V-054 instance in detail
 

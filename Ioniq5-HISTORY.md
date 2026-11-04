@@ -5176,3 +5176,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Chased the environment hypothesis to a vendor script: the one thing that writes the session-bus environment file that six services read. Our chain starts that bus itself, so the script's own attempt either fails or points somewhere else.
 - Every symptom follows from a unit starting without a usable bus: no introspection, no frame, a reaped process, and a thread that looks busy because it is retrying. The state I blamed two entries ago is what that looks like.
 - Asked for the three strings to be compared and the file fixed if it is wrong. If the home screen then paints, the block was ours and the fix is one line of ordering.
+
+## 2026-11-05 - the frame hunt produced a finding instead
+
+- Reading the script behind the missing frame showed that eleven services take their bus address from a file in the world-writable runtime directory. Filed it.
+- The previous anchors each subverted one decision. This one redirects the bus the whole application stack talks on, so it buys interception and impersonation of every component at once - and it needs no defect in any of them, just the shipped configuration.
+- Same precondition as the others, so it is breadth rather than escalation. It is now the biggest row in the framing document.

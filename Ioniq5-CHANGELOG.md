@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.34.0 - CORRECTION: the compositor never stopped, and engineering mode now launches in the VM
+
+Two results, one of them a correction to §3.33.0.
+
+- **The compositor was running the whole time.** The chain launches `/usr/bin/weston-headless`, whose process name is `weston-headless` — so `pidof weston` **never matched it**, and every
+  "WESTON= empty" reading in §3.32.0–§3.33.0 was an artefact of the check, not a compositor exit. `pidof weston-headless` reports it alive throughout (`HEADLESS=734`). A second instrument error of
+  the same family as the rest: the process name, not the system, was wrong. The exit-status watcher added in §3.33.0 also returned a false reading for a different reason — `wait` inside a
+  **subshell** returns 127 ("not a child of this shell"), which is not the compositor's status at all. Both are recorded so neither number is reused.
+- **Engineering mode does launch, and it needs about a minute.** Requesting app id **301** from `com.lge.avn.applauncher` with the path `/tmp/app/bin/AppEngineerMode` returns a method reply and the
+  application comes up: `ENG=903`, and `readlink /proc/903/exe` confirms it is running from the dev path. The DLT log shows its own startup logic executing —
+  `AppEngineerModeEngine::oomWrite()`, **`AppEngineerModeEngine::getEnterPasswordCnt()`**, and `ivi_hmi_create_client - PID(903), DID(1)`.
+- **That is the first time the engineering-mode entry path has been exercised end to end in this projection**: the launcher accepted the request, ran the binary from the developer path, and the
+  application reached the code that counts PIN entries. Earlier attempts at 22–25 seconds were simply too early — the application takes roughly 45–70 s to appear under software rendering.
+- What is **not** yet achieved is the clean screenshot: the compositor's frame at that moment is a **4,117-byte black image**. Note that on the vendor backend the failure mode is *black*, not
+  *striped* — consistent with §3.31.0, where stripes were specific to our ten-output backend.
+
 ## 4.6.0 - forced update: the menu exists, but it only skips the version compare, and production builds disable it
 
 Checked directly whether "Force Update" gives a usable route to installing firmware. The strings in `AppUpgrade` answer it:

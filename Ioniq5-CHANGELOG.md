@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.54.0 - CORRECTION: V-056 was wrong, the MAC rule set ships and is loaded
+
+V-056 claimed the image "names labels but loads no rules". It is wrong. `/etc/smack/accesses.d/` ships **12 rule files and 636 rules**, and the authentic boot
+shows them being loaded:
+
+```
+systemd[1]: Starting Smack service loads smack rules in /etc/smack/accesses.d...
+systemd[1]: Started Smack service loads smack rules in /etc/smack/accesses.d.
+```
+
+They are a real per-domain scheme (`App::bluetooth _ rwxa--`, `App::bluetooth Log::bluetooth rwxat-`, and so on).
+
+**How the error happened, because the pattern matters:** I searched `/etc` and the unit directory for `smackfs/load2` and `smackfs/change-rule` writes, found
+none, and concluded there were no rules. The rules are **data files, not script writes**. That is the same class of mistake as concluding the ASF parser was
+absent because `lms_asf.so` does not exist — searching for the mechanism instead of the artefact. Third instance in this project, now recorded as such.
+
+What survives: applications carry the label `_` (measured on four processes), and the authentic runs show **210 granted, 0 denied** audit decisions with rules
+loaded. What is withdrawn: the test where a `_` process read a `Secret` file, because it ran **without** the rule set and cannot speak to production. What is
+open: whether a process carrying `_` is subject to the rules at all.
+
+Consequence: V-054 and V-055 revert from "latent because MAC is inert" to "latent, with confinement unknown". Their mechanisms are unchanged and still
+demonstrated; only my explanation of why they were latent was wrong.
+
 ## 4.53.0 - tracing the FDE gate inverts two entries: probably no encryption, and therefore permissive MAC
 
 Following who actually turns encryption on found that nobody does, in the shipped flow. `/etc/fde_test_v2.sh` is invoked **only** from `esinit`, and only

@@ -2034,58 +2034,56 @@ recorded as a latent weakness that turns any future lesser-privileged tmp write 
 Keep the compositor configuration in read-only storage, stop resolving it through a symlink in a writable directory, and require module
 paths to be absolute and inside a signed/read-only directory rather than whatever the config names.
 
-## V-056 — the shipped MAC configuration names labels but loads no rules, and applications run the wildcard label
+## V-056 — CORRECTED: the MAC rule set ships and is loaded; the open question is whether applications carry a confined label
 
-**Status:** measured in the projection and consistent with the image's own scripts. Not exercised on a unit; a vehicle that loads rules from a
-source this image does not contain could differ.
+**This entry originally claimed "the shipped MAC configuration names labels but loads no rules". That was wrong, and the correction is worth more than the
+claim was.**
 
-### What was measured
+### What is actually shipped
 
-A process carrying the floor label `_` can **read and write** a file labelled `Secret`, with no denial and no audit record:
-
-```
-my_label=_
-file_attr=/tmp/st.txt access="Secret"
-secret                       <- read succeeded
-WRITE_ALLOWED                <- write succeeded
-dmesg: [ 0.014072] Smack:  Initializing.    (no denial records)
-```
-
-And every vendor application carries that label:
+`/etc/smack/accesses.d/` contains **12 rule files and 636 rules**, loaded at boot by `smack.service` — which the authentic boot confirms:
 
 ```
-AppHomeScreen pid=926   label=_   Uid=0   CapEff=0000003fffffffff
-AppLauncher             label=_   Uid=0   CapEff=0000003fffffffff
-keeper / ApplicationManager likewise
+systemd[1]: Starting Smack service loads smack rules in /etc/smack/accesses.d...
+systemd[1]: Started Smack service loads smack rules in /etc/smack/accesses.d.
 ```
 
-### Why
+and they are a real per-domain scheme, not a stub:
 
-- `_` is SMACK's **floor label and wildcard**: it is deliberately allowed access to everything, so a process carrying it is outside the rule
-  system entirely.
-- `/etc/smack_setup.sh` **labels** things — `Log::dlt` on the log directories, `App::connman` on `/tmp/resolv.conf`, `App::upgrade` as the
-  `SMACK64EXEC` of `/update/usb/bin/AppUpgrade`, `_` on the device nodes — but it **never inserts a single access rule**: a search of `/etc` and
-  the unit directory for `smackfs/load2` or `smackfs/change-rule` finds nothing.
-- `/sys/fs/smackfs/onlycap` was set as the script does, and capabilities were **not** stripped even for a correctly `SMACK64EXEC`-labelled exec
-  (see `docs/trust-anchors-in-writable-runtime-paths.md`): `CapEff=0000003fffffffff` for both `_` and `Privileged` subjects.
+```
+App::bluetooth _ rwxa--
+App::bluetooth System::bluetooth rw----
+App::bluetooth Log::bluetooth rwxat-
+App::bluetooth App::tms rwx---
+```
 
-### Why it matters
+The original claim came from searching `/etc` and the unit directory for `smackfs/load2` and `smackfs/change-rule` writes, finding none, and concluding there
+were no rules. **The rules are data files, not script writes.** Searching for the mechanism instead of the artefact produced a false negative — the same class
+of error as concluding the ASF parser was absent because `lms_asf.so` does not exist. Third instance in this project, recorded here in those terms.
 
-**On this configuration the MAC layer provides no containment for application processes.** They are uid 0, carry the wildcard label, keep full
-capabilities, and there is no rule table to enforce anything. That is the piece that makes V-054 and V-055 reachable rather than theoretical: an
-application process is not "root but confined" — it is root with no confining mechanism, and `/tmp` (measured `1777`) holds the trust anchors.
+### What is still measured
 
-It also explains why the vendor's labelling is so sparse: with no rules loaded, any label other than the wildcard would be denied by default, so
-the only workable configuration is everything at `_` — which is equivalent to no MAC at all. V-052's permissive switch is then belt-and-braces on
-top of an already-inert policy.
+- Every vendor application observed carries the label **`_`** (`AppHomeScreen`, `AppLauncher`, `keeper`, `ApplicationManager` — all `_`, uid 0).
+- With the rules loaded, the authentic-path runs show **210 granted and 0 denied** SMACK audit decisions, so nothing in that boot was refused.
+- The earlier test in which a `_` process read a file labelled `Secret` ran **without** the rule set loaded, so it cannot speak to the production
+  configuration. It is withdrawn as evidence about it.
 
-### Not established
+### What is not established
 
-Whether a production unit loads a rule table from somewhere this image does not carry, and whether the vehicle boots with LSM parameters that change
-`onlycap` behaviour (no `security=smack` or `smack_onlycap=` appears in this harness or in the recovered boot material). Both would change the
-answer, and neither is evidenced here.
+**Whether `_` is a confined subject once rules are loaded.** In SMACK `_` is the floor label and doubles as a wildcard inside rules; whether a *process* carrying
+it is exempt, or simply had rules that permitted what was audited, cannot be decided from this evidence. The measurement that would decide it is unchanged, and
+must be taken on a unit with the shipped policy loaded:
 
-### Suggested patch direction
+```
+cat /proc/<pid>/attr/current      # is an application "_", or a real domain label?
+cat /proc/<pid>/status | grep Cap
+grep -c <that label> /etc/smack/accesses.d/*     # is that label subject to rules?
+```
 
-If MAC is intended, load a real rule table and give applications a label that is not the wildcard, then verify a labelled application cannot read
-another's data; if MAC is not intended, remove the labelling rather than shipping a configuration that reads as containment and is not.
+If applications carry a real domain label and the rules constrain it, the MAC layer is working and this entry should be withdrawn entirely. If they carry `_`,
+the narrower conclusion stands: the policy exists, but the applications sit outside it.
+
+### Consequence for other entries
+
+V-054 and V-055 were described as reachable "because MAC is inert". With the rule set established, that reasoning no longer holds: both revert to **latent with
+confinement unknown** rather than latent for a stated reason. Their mechanisms are unchanged and still demonstrated.

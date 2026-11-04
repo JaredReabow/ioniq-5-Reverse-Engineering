@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.39.0 - the refutation holds under a second, stricter test, and raises a better question
+
+The first refutation could be argued away: `onlycap` acts on exec-time label transitions, and the processes tested had inherited their label.
+So it was tested properly with the image's own `/sbin/chsmack`:
+
+```
+floor attr: /tmp/lf/sh access="_" execute="_"
+priv  attr: /tmp/pv/sh access="_" execute="Privileged"
+onlycap=Privileged
+
+floor: label=_          capEff=0000003fffffffff
+priv : label=Privileged capEff=0000003fffffffff
+```
+
+The label transition is visible in `attr/current` - `_` for one binary, `Privileged` for the other - and **both kept the full capability mask**. So the
+capability-stripping idea is refuted in two configurations rather than one.
+
+That raises a question better than the hypothesis was: **if `onlycap` does not strip capabilities even for a correctly labelled exec, is the MAC
+restriction this image configures doing anything?** The caveats are recorded rather than buried - no `security=smack` or `smack_onlycap=` appears in
+this harness or in the recovered boot material, and no `load2` rule table is populated (`smack_setup.sh` does not author one) - so a vehicle booting
+with different LSM parameters could differ. What measurement supports: on this kernel and boot configuration, writing `onlycap` as `smack_setup.sh`
+does does not produce a capability barrier.
+
 ## 4.38.0 - the elegant explanation was tested and did not hold
 
 The capability-stripping hypothesis from the last entry was worth testing, and the projection says no - at least in this configuration.

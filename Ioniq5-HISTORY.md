@@ -4830,3 +4830,10 @@ and are superseded by corrections rather than silently rewritten.
 - A synthetic click reaches the running application and the application's own Qt log records it as touch_down and touch_up with its own pid, then takes action. That is the interactive VM, demonstrated.
 - The earlier failures were placement, not input: an unplaced surface makes the compositor report no view or no client, which looks exactly like a broken input path.
 - Recorded with the raw log, because this is the claim most worth being able to check.
+
+## 2026-11-04 - the vehicle's own boot runs
+
+- A partitioned image with the real layout lets the vendor init do its recovery and hand to systemd itself, reaching multi-user with every filesystem mounted. That is the difference between booting the machine and booting its own sequence.
+- Eight partition sizes are measured from the vehicle's own fsck logs, and the active/inactive slot map is now a named fact rather than an inference.
+- One vendor driver oopses on non-vendor hardware and deadlocks the init until it is neutralised. Worth remembering that the fix was one line and the failure looked like a hang.
+- The root token had to name the active partition, because a partition table overwrites the superblock at a fixed offset. Recorded rather than quietly patched.

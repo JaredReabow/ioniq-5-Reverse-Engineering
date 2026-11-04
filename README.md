@@ -72,6 +72,28 @@ to, and the base rootfs hash is rechecked after each experiment
 | CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed |
 | Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end |
 
+### The vehicle's own boot sequence now runs, not a bypass
+
+A **GPT-partitioned image** with the real `p1…p17` layout lets `/lib/systemd/esinit` do its eMMC recovery and hand over to systemd
+**by itself**, reaching multi-user with every fstab partition mounted:
+
+```
+mmcblk0: p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p15 p16 p17
+VFS: Mounted root (ext4 filesystem) on device 179:5.
+[eMMC] ***** eMMC RW_DATA Partition Check and Recovery Complete!!!
+systemd[1]: Reached target Local File Systems.      (14.1 s)
+systemd[1]: Reached target Basic System.            (18.3 s)
+systemd[1]: Reached target Multi-User System.       (75.9 s)
+```
+
+`local-fs.target` is the specific target a single-partition clone could never reach. The layout table — with **eight sizes measured from
+the vehicle's own `e2fsck` logs**, the **A/B slot map** (active root `p5`, inactive `p3`, `/update` on `p9`, `/rw_data` on `p11`) and the
+one-line neutralisation that keeps a vendor USB driver from deadlocking esinit on non-vendor hardware — is in
+`docs/vm/partitioned-image.md`, and the image is reproducible with `tools/uk_fw/vm_partimg/build-partitioned-image.py`.
+
+**Honest caveat:** the harness's `root=/dev/mmcblk0` token must become `root=/dev/mmcblk0p5`, because a GPT header overwrites the ext4
+superblock at byte 1024. That is one documented change to the fixed command line, recorded rather than patched silently.
+
 ### The VM is interactive, and the app logs prove it
 
 A synthetic click travels the whole way in and is handled by the authentic application. Compositor side:

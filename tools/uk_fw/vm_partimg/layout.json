@@ -1,0 +1,121 @@
+[
+  {
+    "partition": 1,
+    "label": "plk1_iasImage",
+    "size_mib": 64,
+    "byte_offset": 1048576,
+    "source_dir": null
+  },
+  {
+    "partition": 2,
+    "label": "plk2_iasPreload",
+    "size_mib": 64,
+    "byte_offset": 68157440,
+    "source_dir": null
+  },
+  {
+    "partition": 3,
+    "label": "rootfs_a",
+    "size_mib": 8192,
+    "byte_offset": 135266304,
+    "source_dir": null
+  },
+  {
+    "partition": 4,
+    "label": "misc_unknown",
+    "size_mib": 16,
+    "byte_offset": 8725200896,
+    "source_dir": null
+  },
+  {
+    "partition": 5,
+    "label": "rootfs_b_active",
+    "size_mib": 8192,
+    "byte_offset": 8741978112,
+    "source_dir": "/Users/leo/Documents/ChatGPT/reverse engineering/ioniq research/work/decrypted-eu-260128/extracted-safe/mango-rootfs"
+  },
+  {
+    "partition": 6,
+    "label": "vr_a",
+    "size_mib": 64,
+    "byte_offset": 17331912704,
+    "source_dir": null
+  },
+  {
+    "partition": 7,
+    "label": "vr_b",
+    "size_mib": 64,
+    "byte_offset": 17399021568,
+    "source_dir": null
+  },
+  {
+    "partition": 8,
+    "label": "log_data",
+    "size_mib": 2048,
+    "byte_offset": 17466130432,
+    "source_dir": null
+  },
+  {
+    "partition": 9,
+    "label": "update",
+    "size_mib": 12288,
+    "byte_offset": 19613614080,
+    "source_dir": null
+  },
+  {
+    "partition": 10,
+    "label": "voicememo",
+    "size_mib": 150,
+    "byte_offset": 32498515968,
+    "source_dir": null
+  },
+  {
+    "partition": 11,
+    "label": "rw_data",
+    "size_mib": 1280,
+    "byte_offset": 32655802368,
+    "source_dir": "/Users/leo/Documents/ChatGPT/reverse engineering/ioniq research/work/decrypted-eu-260128/extracted-safe/mango-rootfs/rw_data"
+  },
+  {
+    "partition": 12,
+    "label": "mnt_c",
+    "size_mib": 40,
+    "byte_offset": 33997979648,
+    "source_dir": null
+  },
+  {
+    "partition": 13,
+    "label": "mnt_backup",
+    "size_mib": 40,
+    "byte_offset": 34039922688,
+    "source_dir": null
+  },
+  {
+    "partition": 14,
+    "label": "navi",
+    "size_mib": 2048,
+    "byte_offset": 34081865728,
+    "source_dir": "/Users/leo/Documents/ChatGPT/reverse engineering/ioniq research/work/decrypted-eu-260128/extracted-safe/mango-rootfs/navi"
+  },
+  {
+    "partition": 15,
+    "label": "navi2",
+    "size_mib": 2048,
+    "byte_offset": 36229349376,
+    "source_dir": null
+  },
+  {
+    "partition": 16,
+    "label": "unknown16",
+    "size_mib": 64,
+    "byte_offset": 38376833024,
+    "source_dir": null
+  },
+  {
+    "partition": 17,
+    "label": "space",
+    "size_mib": 256,
+    "byte_offset": 38443941888,
+    "source_dir": null
+  }
+]

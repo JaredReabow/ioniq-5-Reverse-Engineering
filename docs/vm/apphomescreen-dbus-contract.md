@@ -91,9 +91,13 @@ investigation to §2 above.
 
 ## 6. What is still missing from the contract
 
-- **Where the manager is supposed to register `com.lge.avn.appmanager.appbase`**, and under what precondition. Its absence is the single blocker for a painted window; a worker is
-  checking whether registration is gated on a service we are not providing (a follow-up to `authentic-hmi-apps.md`).
-- **`org.freedesktop.DBus.Properties.GetAll`** on the stand-in currently returns `UNKNOWN_METHOD` instead of an empty property dictionary. Wrong, though not blocking.
+- ~~Where the manager registers `com.lge.avn.appmanager.appbase`~~ — **resolved, and the earlier framing was wrong.** The manager owns `com.lge.hyundai.avn.appmanager` on the **session**
+  bus with `/registration`, `/broadcast`, `/transition`, `/information`, `/FactoryFanControl`; there is no appbase object because **appbase is the application's interface and the manager
+  is its client** (`authentic-hmi-apps.md` §7b). The manager registers what it should.
+- **The actual blocker is inside the application**: `AppHomeScreen`'s main thread is `R` with `wchan=0` — running rather than parked in the Qt event loop — so it answers neither
+  introspection nor the app-alive handshake, never commits a frame, and is reaped by the manager (`a_nSigNum[9]`). `show_window_fg` never appears in the DLT log because the app never
+  becomes ready for it (`authentic-hmi-apps.md` §7c).
+- **`org.freedesktop.DBus.Properties.GetAll`** is now answered with an empty property map rather than `UNKNOWN_METHOD`.
 - **`askMicomBigInfoFaultCode`**, one more MICOM ask the home screen makes, still unanswered.
 
 ## Provenance

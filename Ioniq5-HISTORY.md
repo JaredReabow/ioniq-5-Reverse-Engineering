@@ -5134,3 +5134,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 
 - One entry's heading claimed a call terminates an application. The disappearance is demonstrated three times over; the explanation is not, and there is now a competing one with a log line behind it.
 - Changed the heading and the status to say the observation stands while the attribution is disputed, keeping both readings. Same failure shape as the stale heading found earlier, but subtler: the seeing was sound, only the reasoning was in doubt.
+
+## 2026-11-05 - the missing handshake was in the wrong place
+
+- I said the manager never registered the interface the app waits on. It does register what it should, on the session bus, and the interface belongs to the application - the manager is its client. My diagnosis put it in the wrong component.
+- The real problem is inside the app: its main thread is running rather than waiting in its event loop, so it never renders, never answers, and gets killed. That may be an artefact of emulating a software-rendered QML app rather than a property of the vehicle.
+- Which turns the remaining work from building another adaptor into giving the emulated app enough progress to run its own loop - a better problem to have.

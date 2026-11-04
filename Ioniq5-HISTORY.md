@@ -4890,3 +4890,8 @@ and are superseded by corrections rather than silently rewritten.
 - The policy only lets one label hold capabilities, and nothing labels the applications. If that holds, an app is root without being able to ignore file permissions, and the only things it can still write are the world-writable files that hold every trust anchor in this document.
 - That would turn six curiosities into one coherent route back to full root. It is written as a hypothesis, with the two commands that would settle it on a real unit, because this projection cannot answer it.
 - Said plainly what is missing: no policy loaded here, and the stock path stalls before a compositor exists.
+
+## 2026-11-04 - the elegant explanation did not survive contact
+
+- Half of it held: the applications do carry the floor label rather than the privileged one. Half of it did not: setting the restriction at runtime left a new unlabelled process with full capabilities and the ability to write a root-owned file.
+- So the two findings stay latent. The measurement that would decide it on a real unit is named, and the refutation is written down so the next reader does not spend a week on the tidy version.

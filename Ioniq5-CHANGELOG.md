@@ -3,6 +3,34 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.38.0 - the elegant explanation was tested and did not hold
+
+The capability-stripping hypothesis from the last entry was worth testing, and the projection says no - at least in this configuration.
+
+Half of it is confirmed. Vendor applications do carry the floor label rather than `Privileged`, measured directly:
+
+```
+AppHomeScreen pid=926   label=_   Uid=0   CapEff=0000003fffffffff
+AppLauncher             label=_   Uid=0   CapEff=0000003fffffffff
+keeper / ApplicationManager likewise
+```
+
+The second half is refuted. Setting `onlycap` the way `smack_setup.sh` does, then starting a new process with label `_`:
+
+```
+SET_OK  onlycap_now=Privileged
+NEW PROCESS  child_label=_  child_CapEff=0000003fffffffff  child_uid=0
+WORLD_WRITABLE_OK   ROOT_OWNED_WRITE_OK
+```
+
+Full capabilities survived, and the child could still write a root-owned file. So on this kernel and this boot path, writing `onlycap` at runtime
+does not confine an unlabelled uid-0 process.
+
+The scope of that refutation is stated in the doc rather than stretched: `smack_setup.sh` never ran here, `onlycap` was set from a shell that
+already had capabilities, and the kernel is 4.1 where the exec-time label transition is what matters - whereas the stock path loads policy
+before applications start. So V-054 and V-055 stay **latent**, the outstanding measurement is named, and the refutation is recorded so nobody
+spends a week believing the elegant version.
+
 ## 4.37.0 - a testable reason why the six anchors matter: applications may be capability-stripped
 
 The sweep produced its most interesting hypothesis yet, and it is recorded as a hypothesis because the deciding measurement is out of reach in

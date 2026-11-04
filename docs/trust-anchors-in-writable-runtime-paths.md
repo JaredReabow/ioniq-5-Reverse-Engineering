@@ -93,40 +93,52 @@ So `/tmp` is a **`1777` world-writable tmpfs**, and a process under the research
 That is the honest status: the *substrate* for these six findings is confirmed world-writable; the *attacker position* needed to use it is not
 demonstrated on this build.
 
-## A likely reason these anchors are the *only* path: capabilities are stripped from unlabelled processes
+## The capability-stripping hypothesis, tested — and not supported here
 
-This is the most interesting hypothesis the sweep produced, and it is **not proven** — the reasoning and the missing measurement are both
-given so it can be checked rather than believed.
+The sweep suggested an attractive explanation: that `/etc/smack_setup.sh`'s `echo "Privileged" > /sys/fs/smackfs/onlycap` strips capabilities
+from application processes (which carry no label), which would make the six anchors the capability-stripped app's route back to full root.
+Two halves were measured. **The first holds; the second does not, in this configuration.**
 
-The evidence, statically:
-
-- `/etc/smack_setup.sh` ends with `echo "Privileged" > /sys/fs/smackfs/onlycap`. `onlycap` restricts **which label may hold capabilities at
-  all**; processes not carrying that label run without them.
-- **Nothing labels the applications.** `chsmack` in the shipped scripts labels devices (`/dev/i2c-*`, `/dev/ttyS0`, `/dev/ttyS1`,
-  `/dev/ttyIAP20` → `_`) and some `/rw_data` files, but no `/app/**` binary is labelled, the launcher carries **no SMACK strings at all**, and
-  `/etc/smack_setup.sh` authors no `load2` rules for application domains.
-- Therefore a vendor application runs as uid 0 with the floor label `_`, which by `onlycap` puts it **outside** the set allowed to hold
-  capabilities.
-
-If that holds, an application process is uid 0 but **capability-stripped**: `CAP_DAC_OVERRIDE` is what lets uid 0 ignore file permissions, and
-without it a compromised app cannot rewrite a root-owned mode-0644 file. What it *can* still do is write files that are already world-writable
-— and every anchor in this document is exactly that: `/tmp/passwd`, `/tmp/shadow`, `/tmp/weston.ini`, `/tmp/app_normal.key`,
-`/tmp/no_unece`, `/tmp/secure_console_disable`, all on a `1777` tmpfs.
-
-That would make these six findings the **capability-stripped process's route back to full root**, rather than curiosities that only matter once a
-non-root user appears. It also explains the design: the vendor did put a capability barrier around applications, and then left the trust anchors
-on the one filesystem those applications can still write.
-
-### What would settle it
-
-Boot the stock path (`esinit` → `smack_setup.sh` → systemd), start an application, and read, in that process:
+**Half one, confirmed — applications carry the floor label, not `Privileged`:**
 
 ```
-cat /proc/<pid>/status | grep Cap        # CapEff / CapPrm / CapBnd
-cat /proc/<pid>/attr/current             # expect "_" and not "Privileged"
+--- AppHomeScreen pid=926   label=_   Uid=0   CapEff=0000003fffffffff
+--- AppLauncher             label=_   Uid=0   CapEff=0000003fffffffff
+--- keeper                  label=_   Uid=0   CapEff=0000003fffffffff
+--- ApplicationManager      label=_   Uid=0   CapEff=0000003fffffffff
 ```
 
-If `CapEff` is `0` for an application while `CapEff` is non-zero for a privileged service, the hypothesis is confirmed and V-054/V-055 should be
-re-rated from latent to reachable-from-any-application. **This projection cannot answer it**, because the research init loads no SMACK policy
-(measured: `load2` empty, label `_`, full capabilities) and the stock path stalls before a compositor exists. Both facts are stated rather
-than papered over.
+So no vendor application is labelled `Privileged`, and `chsmack` never touches `/app/**` - consistent with the static reading.
+
+**Half two, refuted here — setting `onlycap` did not strip capabilities:**
+
+```
+BEFORE_onlycap  self label=_  CapEff=0000003fffffffff
+SET_OK          onlycap_now=Privileged
+NEW PROCESS     child_label=_ child_CapEff=0000003fffffffff child_uid=0
+WORLD_WRITABLE_OK     ROOT_OWNED_WRITE_OK
+```
+
+A brand-new process with label `_` still held **full capabilities** and could still write a root-owned file. So on this kernel and this boot
+path, `onlycap` written at runtime does not confine an unlabelled uid-0 process.
+
+### Why this is not the end of the question
+
+The measurement is honest but its scope is narrow, and the caveats matter:
+
+- **Our projection is not the stock boot.** `smack_setup.sh` never ran here; `onlycap` was empty beforehand, and it was set from a shell that
+  already had capabilities. SMACK's `onlycap` semantics are applied during exec-time label transitions, and this kernel is 4.1 where the
+  interaction with a runtime write is not what a stock boot performs.
+- **The stock path loads policy first** (devices labelled `_`, `onlycap` set before applications start), so applications there are exec'd
+  under the restriction rather than after it.
+
+So the correct statement is: **the mechanism is not supported by the projection's measurement, and the stock-path measurement remains
+outstanding.** On a unit, the two commands that decide it are unchanged:
+
+```
+cat /proc/<pid>/status | grep Cap        # CapEff for an application process
+cat /proc/<pid>/attr/current             # expect "_", not "Privileged"
+```
+
+Until that is run, V-054 and V-055 stay **latent**, and this document will not upgrade them on the strength of a plausible story. The value of
+recording the refutation is that the next reader does not spend a week believing the elegant version.

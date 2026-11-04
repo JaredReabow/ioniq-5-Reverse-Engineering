@@ -4712,3 +4712,10 @@ and are superseded by corrections rather than silently rewritten.
 - Placement, not drawing, was the missing step: the surface existed at 1926x753 and simply was not on screen. With it placed, the vendor backend produced a clean frame of the real interface, and a clean EV page, neither with a single stripe.
 - The application manager verifies each binary against a key path in world-writable /tmp, then starts the binary with the verification returning 1. It was stopped by a registration timeout instead. That is the first root-access candidate here that needs no memory corruption and no removable media.
 - Requesting the engineering application at appId 301 eight times across two minutes produced no log line at all, so the earlier success is state-dependent and its trigger is still unknown.
+
+## 2026-11-04 — the entry vector runs, as root, and tells us what it is waiting for
+
+- appId 301 launched the engineering binary from /tmp/app/bin, the manager logged the request and the path, and the process ran as uid 0. The window drew its "Engineering Mode" title bar and took an injected click at 960x400.
+- The application's own log names the reason the body is black: version, Wi-PID, trace date, MICOM part info, user mode and VR version all return empty. We have not simulated those services yet. The list is now bounded.
+- Its PIN gate reads a wrong-password counter and reports no limit file, so the lockout is file-backed.
+- The launch is flaky: one run succeeded on the first request, three others produced nothing.

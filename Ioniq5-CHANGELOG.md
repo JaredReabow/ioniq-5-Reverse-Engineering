@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.99.0 - the last difference between the working and failing EGL environments is one preload line
+
+Compared the two environments field by field instead of guessing, and they agree on everything except one line:
+
+| setting | research chain (renders) | authentic clone (fails) |
+| --- | --- | --- |
+| `LD_LIBRARY_PATH` | `/opt/software-egl18/lib:…` | same, and now includes it too |
+| `LIBGL_DRIVERS_PATH` | `/opt/software-egl18/dri` | **same** |
+| `GALLIUM_DRIVER` | `softpipe` | **same** |
+| `LD_PRELOAD` | **absent** | **`/usr/lib/libEGL.so.1`** |
+
+And both `libEGL.so.1.0.0` files are **Mesa** builds of identical size (849,912 bytes) - the vendor ships Mesa, so this was never a "vendor vs Mesa" ABI problem. The preload is what pins the loader to a specific copy and, with it, to the loader's own search behaviour for the DRI driver.
+
+**So the remaining difference is one line**, and it is the same line that the earlier buffer-commit work removed from the research chain for exactly this class of reason. I removed it in my clone (`work/vm/byhand`) and armed a probe - which fired at 100 s while the launcher had only just started at 60 s (`PROBE3_APPHOME=` empty, no EGL lines yet), so the test is **untested**, not refuted. The boot ordering means the probe needs ~180 s, not 100.
+
+Handed to the worker, whose clone has the harness timing right: comment out `export LD_PRELOAD=/usr/lib/libEGL.so.1` in the projection-only `AppLauncher.sh` and look for `Using Wayland-EGL` **without** the `DRI2: failed to open swrast` line in the child's log.
+
+This is the closest the VM has been to a painted, interactive interface on the authentic path: one commented line, and the two failing runs and one working chain now differ by nothing else that I can find.
+
 ## 4.98.0 - what V-059 actually asks of a USB device, and where the board choice stops mattering
 
 Asked whether an ESP32-S3 could carry V-059, the honest answer needed numbers rather than a yes. Written up as `evidence/external-ioniq5-usb-toctou/HARDWARE-FEASIBILITY.md`,

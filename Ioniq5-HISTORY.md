@@ -4931,3 +4931,9 @@ and are superseded by corrections rather than silently rewritten.
 - The message that would have told me which branch ran has been going to a file called kmsg in the working directory, because the redirect is missing its leading slash. The success paths do it correctly.
 - So two of my readings were inferences from a line the code cannot print. The defect is worth reporting on its own account: a technician whose display server fails gets nothing in the log to explain it.
 - The measurement still has to happen, and now I know it must avoid that channel too.
+
+## 2026-11-04 - resolved, with the instrument where it can be read
+
+- Put the probe inside a script the init calls after the decision and before the branch, writing to the serial port instead of the kernel log the vendor's own failure path writes wrongly.
+- Shut by default: no OK file, NOK present, parameter zero. With the corrected wrapper: OK present, NOK gone, parameter one. So the first claim was wrong, the correction was right, and the stand-in does work.
+- Two things stay untidy and are written that way: something invokes the compositor even with the gate shut, and with the gate open the boot now stalls on the compositor's own display requirement - which is the worker's job.

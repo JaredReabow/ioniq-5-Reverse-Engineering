@@ -4778,3 +4778,10 @@ and are superseded by corrections rather than silently rewritten.
 - One of them contradicted a value this repository had quoted from a sibling platform. Checked against the binary's own two SHA-256 constants: it does not match either. The dealer code does. Every document now carries the correction, and the plaintext stays out of the public tree.
 - The same opinion established that the IpConfigShell screen is dead QML, its button only present in the QML variant that production does not load. That hope is closed, which is worth more than another week of looking for it.
 - The tap gesture on About may not exist on this build at all. It has always been inference from elsewhere; that has not changed.
+
+## 2026-11-04 - the wrong kernel was the whole problem
+
+- USB never worked because we were booting the research kernel, which does not export what the vendor modules need. The image carries the vendor's own kernel. Booting it enumerated a USB stick and the vendor scsi_id read its serial.
+- The module load order was my mistake too: one module first, then the core, then the host controller.
+- That sets a bound on the USB property-injection vector: the emulator will not carry control characters in a SCSI serial, so that half needs real hardware with a programmable bridge. Written down so it is not chased again.
+- The kernel's own warning also gave up the build string, which is now recorded.

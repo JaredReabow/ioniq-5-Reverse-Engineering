@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.20.0 - the vendor kernel boots, USB enumerates, and V-014's last half is bounded
+
+The reason USB never worked here was the kernel, not the image. The research `bzImage` does not export the USB core symbols the
+vendor's modules need (`usbcore: Unknown symbol usb_speed_string`). The image ships the real one at
+`boot/bzImage-4.1.27-abl` (5,327,072 bytes, `4.1.27-abl #1 SMP Wed Jan 28 16:00:10 KST 2026`), and booting it - with a one-line
+`vb.KERNEL_SHA256` override rather than any harness edit - makes USB work for the first time:
+
+```
+ok usb-common.ko · ok usbcore.ko · ok scsi_mod.ko · ok sd_mod.ko · ok uhci-hcd.ko · ok usb-storage.ko
+uhci_hcd 0000:00:02.0: new USB bus registered, assigned bus number 1
+BLOCK=/dev/sda
+0QEMU    QEMU HARDDISK   INJECT01        <- the vendor's own scsi_id reading the serial
+```
+
+Load order was my earlier error: `usb-common.ko` before `usbcore.ko`. Every previous "USB is not demonstrable" conclusion in this project
+was drawn from a module load that could never have succeeded.
+
+The vendor kernel also discloses its build string in a warning: `s5w.26ru1.251203_MASS_PRODUCT_26RU1_001_260121101627`.
+
+**V-014's remaining half is now bounded rather than pending.** It needs control characters inside the SCSI serial, and QEMU cannot emit
+them: `usb-storage` caps `serial` at 20 characters, and `usb-bot` plus `scsi-hd` accepts 36 but the property parser drops the newline,
+so `serial=\nSYSTEMD_WANTS=debug-shell.service` silently yields `device_id` and `scsi_id` prints one clean line,
+`0INJECT  INJECT          STICK01`. The physical path therefore needs a programmable SCSI bridge on real hardware, not an emulated
+device - which is a useful thing to know before spending more time on it.
+
+`docs/vm/vendor-kernel-boot.md` records the recipe, the capability and both limits.
+
 ## 4.19.0 - an outside opinion corrected the PIN and killed the IpConfigShell hope
 
 Asked two models for a stock-unit triage (no modified firmware, no developer build, no pre-existing root). Both responses are

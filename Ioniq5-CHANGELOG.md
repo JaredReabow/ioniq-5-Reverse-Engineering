@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.37.0 - a testable reason why the six anchors matter: applications may be capability-stripped
+
+The sweep produced its most interesting hypothesis yet, and it is recorded as a hypothesis because the deciding measurement is out of reach in
+this projection.
+
+Statically: `/etc/smack_setup.sh` ends with `echo "Privileged" > /sys/fs/smackfs/onlycap`, which restricts **which label may hold capabilities
+at all**. Nothing labels the applications - `chsmack` touches devices and some `/rw_data` files, no `/app/**` binary is labelled, the launcher
+carries no SMACK strings, and no `load2` rules are authored for application domains. So a vendor app runs as uid 0 with the floor label `_`,
+outside the set allowed capabilities.
+
+If that holds, an application is uid 0 but **capability-stripped**: without `CAP_DAC_OVERRIDE` it cannot rewrite a root-owned mode-0644 file,
+but it *can* write what is already world-writable - which is precisely every anchor in this document, on a measured `1777` tmpfs. That would
+make the six findings the capability-stripped process's **route back to full root**, and would explain the design: a capability barrier was put
+around applications, and the trust anchors were left on the one filesystem those applications can still write.
+
+The measurement that settles it is `CapEff` and `attr/current` inside a running application on the **stock** path. This projection cannot
+produce it - the research init loads no SMACK policy (measured: empty `load2`, label `_`, full capabilities) and the stock path stalls before a
+compositor exists. Both limits are written down rather than glossed, and the framing document says what to run on a unit to convert the
+hypothesis into an entry.
+
 ## 4.36.0 - the premise under all six findings, measured
 
 The six entries all rest on "`/tmp` is writable", which had been assumed rather than checked. Measured:

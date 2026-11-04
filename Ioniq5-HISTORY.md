@@ -4884,3 +4884,9 @@ and are superseded by corrections rather than silently rewritten.
 - Every one of these findings rested on the directory being writable, which nobody had measured. It is: 1777 on tmpfs.
 - That does not make them live, and the entries now say so more precisely - the anchors are reachable by any code execution, but the only code execution here is root already.
 - Also noted that this projection does not enforce the MAC layer at all, so nothing about enforcement should be inferred from these runs.
+
+## 2026-11-04 - maybe the barrier is capabilities, and maybe the anchors are the way around it
+
+- The policy only lets one label hold capabilities, and nothing labels the applications. If that holds, an app is root without being able to ignore file permissions, and the only things it can still write are the world-writable files that hold every trust anchor in this document.
+- That would turn six curiosities into one coherent route back to full root. It is written as a hypothesis, with the two commands that would settle it on a real unit, because this projection cannot answer it.
+- Said plainly what is missing: no policy loaded here, and the stock path stalls before a compositor exists.

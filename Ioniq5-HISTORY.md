@@ -4737,3 +4737,9 @@ and are superseded by corrections rather than silently rewritten.
 
 - A live console now exists: type into the guest, get output back. Verified with the prompt and a typed echo.
 - Building it exposed that the boot depends on a debug-socket patch for the SD card; without it the kernel waits for a root device forever. And six abandoned QEMU processes were starving the emulator, which is why a forty-second boot looked like a hang.
+
+## 2026-11-04 - the console gate was open the whole time
+
+- The parameter that decides whether a root login exists on the serial line reads 0 on this build, with the module loaded and the device present. It is on by default and switched off only at runtime.
+- The agetty line requires a password; an autologin line sits in the file, commented out.
+- /tmp/shells looked like a writable privilege path and is not: nothing reads it. Written down so it is not chased again.

@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.70.0 - a consistency check for the register, and it immediately caught a stale heading
+
+The register is edited by hand, cross-referenced from a dozen documents, and has been corrected nine times in one session. `tools/check_register_consistency.py` now checks the two
+failure modes that matter: duplicate or missing entry numbers, and documents citing an entry that no longer exists.
+
+First run: **57 entries, V-001..V-057, no duplicates, no gaps, zero dangling references.** The numbering survived a session of edits, which is worth knowing rather than assuming.
+
+It also caught something a clever check could not have: **V-056's heading still asserted "a process carrying `_` is not confined by it"** - the exact claim withdrawn when the probe behind
+it failed its own precondition. The body had been corrected; the heading, which is what appears in every summary and table, had not. Fixed to *"whether a process carrying `_` is
+confined by it is unproven"*.
+
+The tool's status column is a **keyword heuristic** over the first lines of each entry, not an authoritative state machine - it reads "demonstrated" out of body text as happily as out
+of a status line. That limitation is stated in the script's own docstring so nobody quotes its summary as if it were the register's verdict. It is a spell-checker, not an editor.
+
 ## 4.69.0 - an index, because thirty documents is past the point where anyone guesses right
 
 The tree reached thirty documents in one session, which is fine for the person who wrote them and useless for anyone else. `docs/INDEX.md` now says what each one

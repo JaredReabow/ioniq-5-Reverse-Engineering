@@ -2146,7 +2146,7 @@ recorded as a latent weakness that turns any future lesser-privileged tmp write 
 Keep the compositor configuration in read-only storage, stop resolving it through a symlink in a writable directory, and require module
 paths to be absolute and inside a signed/read-only directory rather than whatever the config names.
 
-## V-056 — the MAC rule set ships and loads, and a process carrying `_` is not confined by it
+## V-056 — the MAC rule set ships and loads; whether a process carrying `_` is confined by it is unproven
 
 **Status:** measured on the **authentic** boot path with the shipped policy loaded. This entry has been corrected twice; both corrections are kept below, because
 the second is what makes the finding trustworthy.

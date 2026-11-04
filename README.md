@@ -127,7 +127,9 @@ Headline findings:
 - **DEV mode is a build-state integer**, not a setting, and on this `260128` build `setEngType()` writes it
   unconditionally — so relaunching the shipped binary from `/tmp` changes nothing.
 - **Engineering mode is reachable from the stock UI** by a **tap-the-software-version gesture plus a PIN**
-  (`19491003` engineer, `2400` dealer), per an independent project on the same LGE Gen5W platform; the code path for
+  (`19491003 *(see correction below — not valid on this build)*` engineer, `2400` dealer), per an independent project on the same LGE Gen5W platform; the code path for
+
+> **Corrected 2026-11-04:** the value `19491003` comes from the sibling platform and does **not** match this build. `AppEngineerMode` carries exactly two SHA-256 constants; the engineer one matches a different vendor default code, and the dealer one is `2400`. Both were verified against those constants. The plaintext engineer code is withheld from this public tree as V-041 requires.
   it exists in this image. Untested here.
 - **The strongest entry vector is a USB media file**: this image carries `libgstasf.so` from GStreamer 1.8.3 and a
   D-Bus-activated `lightmediascanner 0.5.1`, and the external report documents root execution from ASF/EBML payloads

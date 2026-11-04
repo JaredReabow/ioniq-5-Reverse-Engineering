@@ -4771,3 +4771,10 @@ and are superseded by corrections rather than silently rewritten.
 - The WiFi procedure is now written from the image's own machinery: two modprobes, the regulator pin at GPIO 466 that supplicantmanager drives, the /tmp/no_unece trigger its path unit watches, then supplicant and dhcp. None of it run on hardware, and none of it possible in QEMU.
 - Scanning for network services found none. No adbd, no ssh server, no telnetd, no hostapd, no dnsmasq, no TCP socket units. Only mdnsd and AppSDS, and those only once the radio is up.
 - That bounds every remote claim in this project, so it is written down rather than assumed.
+
+## 2026-11-04 - the outside opinion was right about the PIN
+
+- Two models were asked which weaknesses are reachable on an unmodified unit. Both said USB; they disagreed on which USB path. Neither offered exploit code, which is not what was wanted.
+- One of them contradicted a value this repository had quoted from a sibling platform. Checked against the binary's own two SHA-256 constants: it does not match either. The dealer code does. Every document now carries the correction, and the plaintext stays out of the public tree.
+- The same opinion established that the IpConfigShell screen is dead QML, its button only present in the QML variant that production does not load. That hope is closed, which is worth more than another week of looking for it.
+- The tap gesture on About may not exist on this build at all. It has always been inference from elsewhere; that has not changed.

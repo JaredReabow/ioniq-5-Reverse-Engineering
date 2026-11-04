@@ -473,10 +473,12 @@ dev-mode.md §1.3 and §4 below.
   `slotNotifyFactoryResetEngineerMode(int)`, `SetEngineerModeCameraBrightness` and the
   data paths `/app/data/AppEngineerMode/dynamicmenu`,
   `/app/data/AppEngineerMode/feedbackupdate`. **[E]**
-* The literal `19491003` does not occur anywhere in the extracted firmware tree
+* The literal `19491003 *(see correction below — not valid on this build)*` does not occur anywhere in the extracted firmware tree
+
+> **Corrected 2026-11-04:** the value `19491003` comes from the sibling platform and does **not** match this build. `AppEngineerMode` carries exactly two SHA-256 constants; the engineer one matches a different vendor default code, and the dealer one is `2400`. Both were verified against those constants. The plaintext engineer code is withheld from this public tree as V-041 requires.
   (recursive grep over `$ROOTFS` and the sibling `appnavi`, `new-gui`, `mango-rwdata`,
   `update` trees returns nothing). That is consistent with the earlier finding that the
-  accepted PIN is not stored as a constant, and it means the "19491003" figure cannot be
+  accepted PIN is not stored as a constant, and it means the "19491003 *(see correction below — not valid on this build)*" figure cannot be
   confirmed or refuted from these components. **[E]** for the absence, **[I]** for the
   interpretation.
 

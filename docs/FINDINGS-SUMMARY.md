@@ -49,7 +49,9 @@ everything they touched. The remaining question is bounded inside `ias-backend-s
 | Menu | Trigger | Status |
 | --- | --- | --- |
 | **Engineering mode** | Settings → General → About, tap the software version **5–10×** (or the blank area at the bottom), then enter a PIN | **documented by the external project**; the equivalent code path exists in our image (`AppSetup` compares app id `0x12D` at `0x573194`) |
-| Engineering PIN — engineer | **`19491003`** | external; verified as unsalted SHA-256 hashes in the binary. Overlaps this register's **V-041** |
+| Engineering PIN — engineer | **`19491003 *(see correction below — not valid on this build)*`** | external; verified as unsalted SHA-256 hashes in the binary. Overlaps this register's **V-041** |
+
+> **Corrected 2026-11-04:** the value `19491003` comes from the sibling platform and does **not** match this build. `AppEngineerMode` carries exactly two SHA-256 constants; the engineer one matches a different vendor default code, and the dealer one is `2400`. Both were verified against those constants. The plaintext engineer code is withheld from this public tree as V-041 requires.
 | Engineering PIN — dealer | **`2400`** | external; same |
 | `S/W Update → Encryption Update` | inside engineering mode | our binary analysis and their guide agree; creates `/update/disableEncryptionUpdate` |
 | `IpConfigShell` | inside engineering mode | external: described as shell-command execution |

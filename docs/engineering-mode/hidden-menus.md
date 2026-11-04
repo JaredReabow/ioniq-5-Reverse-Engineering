@@ -29,7 +29,9 @@ the named binary; on these binaries the `.rodata` file offset equals the VMA, so
    helpers (`_count++` in `wifi/Q_AppSettingWifi.qml:27`). `AppSetup`'s only
    engineering-related strings are factory-reset plumbing
    (`APP_SETTING_FACTORY_RESET_ENGINEERMODE`, `slotNotifyFactoryResetEngineerMode`). **[E]**
-3. **The engineer PIN on this build is `19480717`, not `19491003`.** The stored
+3. **The engineer PIN on this build is `19480717`, not `19491003 *(see correction below — not valid on this build)*`.** The stored
+
+> **Corrected 2026-11-04:** the value `19491003` comes from the sibling platform and does **not** match this build. `AppEngineerMode` carries exactly two SHA-256 constants; the engineer one matches a different vendor default code, and the dealer one is `2400`. Both were verified against those constants. The plaintext engineer code is withheld from this public tree as V-041 requires.
    engineer digest equals SHA-256 of `19480717` (§5). **[E]**
 
 ---

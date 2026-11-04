@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.90.0 - the audit hypothesis dies on arithmetic, and a number that looks like a count but is not
+
+The cheapest experiment on the list was `audit=0` to see whether SMACK audit volume starves the home screen. It does not need a boot: the volume can be counted in a log we already have.
+
+```
+total audit records: 600          in a ~615 s boot
+SMACK ones:          599          all comm="dlt-daemon", all granted
+                      334 on object="Log::dlt_vcrm", 265 on "Log::dlt"
+kernel command line: no audit=
+```
+
+**One record per second.** That is not a starvation source, so the hypothesis is eliminated and the boot is saved. What remains for the missing frame: plain CPU contention, DLT load, or the
+launcher/manager path.
+
+**The trap that nearly produced a wrong number.** The same log shows audit serials like `audit(615.831:21528)`, and it is easy to read `21528` as a record count - I did, briefly, and was
+one sentence away from writing "21,528 audit records" into an entry. It is the kernel's cumulative *serial number* for the audit subsystem, which includes records emitted before the
+offsets increment; the actual count is 600. Counting lines is cheap, reading a number that happens to sit where a count would sit is not the same thing.
+
+That is a new failure shape for this session's collection: not an unverified instrument, not an inference leap, but **misreading a field for another field**. It belongs next to the
+others in `MEASUREMENT-DISCIPLINE.md` as the shortest rule of the set: count the lines.
+
 ## 4.89.0 - my own A/B failed to run, and the run still produced two facts worth having
 
 I cloned the worker's workspace (`work/vm/byhand`, CoW from `stockui`) to run the outstanding A/B - launch `AppHomeScreen` by hand, bypassing the launcher - rather than make the worker redo

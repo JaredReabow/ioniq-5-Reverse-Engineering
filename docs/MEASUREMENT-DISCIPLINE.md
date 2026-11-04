@@ -82,3 +82,12 @@ vehicle".
 
 **State what you measured, with the raw line; prove the instrument could have produced the other answer; and change one thing at a time — including the things you
 changed yourself.**
+
+## 9. Count the lines; do not read a number that is sitting where a count goes
+
+**The case.** An audit log showed entries ending in `audit(615.831:21528)`, and `21528` was very nearly written up as "21,528 audit records" - which would have made audit volume look
+like a plausible cause of CPU starvation and sent someone chasing it for an hour. It is the kernel audit subsystem's cumulative **serial number**. The actual record count was **600**,
+one per second, which eliminates the hypothesis instead of supporting it.
+
+**Rule.** When a quantity matters, compute it from the data (`grep -c`, a sum over the field you mean) rather than from a number that merely appears in a plausible position. Serial
+numbers, timestamps, offsets and PIDs all live where counts live.

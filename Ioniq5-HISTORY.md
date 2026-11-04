@@ -5068,3 +5068,9 @@ and are superseded by corrections rather than silently rewritten.
 - Every finding so far needs code execution already, or a console. There is one class that needs neither and was sitting unremarked: closed-source third-party kernel filesystem drivers, auto-mounted.
 - Filed it as a candidate with no defect claimed and no CVE asserted, because the reason it matters is the required capability, not any bug I have shown.
 - The test is finally possible: usb works under the vendor kernel, so malformed images can be mounted with the logs watched.
+
+## 2026-11-05 - handing the fuzz job out, and fixing a stale table
+
+- The kernel-driver finding only matters if a crafted image actually reaches a defect, so that is now a delegated investigation with a strict honesty bar: baseline first, one field class at a time, only faults inside those modules count, and a clean negative is a result.
+- The state page had stopped at the fifth finding and still described one of them using a reason I had since withdrawn. Refreshed it with every entry and its real status.
+- Being able to delegate this at all is the payoff of the kernel work this morning: the drivers could not be loaded before, so the most reachable vector in the register was untestable.

@@ -109,7 +109,10 @@ Seven relevant entries. **Two are demonstrated**, one is captured, three are con
 | V-052 | MAC switched to permissive by a LUKS probe | value measured 0 |
 | V-053 | data/log encryption passphrase is `1234` | **opens with `1234`, refuses a wrong one** |
 | V-054 | account database symlinked into `/tmp` | **mechanism demonstrated** — a `uid=0` account appended there resolves via NSS; latent only for want of a non-root writer |
-| V-055 | compositor config is `/tmp/weston.ini`, names loadable modules | latent, same reason |
+| V-055 | compositor config is `/tmp/weston.ini`, names loadable modules | latent; effect waits for the next compositor start |
+| V-042 | seven privileged behaviours key on a file existing in `/tmp` | wiring confirmed, trigger observed, **no marker shown starting a service end to end** |
+| V-056 | 636 SMACK rules load, applications carry `_` | policy real; **whether unit binaries carry labels is unverified** (the shipping archive has no xattr records) |
+| V-057 | Tuxera exFAT/NTFS drivers parse auto-mounted media | **candidate** — surface established, no defect found; falsification in progress |
 | V-014 | USB property injection → installed root shell | payload is an unauthenticated root shell; injection needs real hardware |
 
 **The unifying argument** is `docs/trust-anchors-in-writable-runtime-paths.md`: six of these are one mistake — a privileged decision resolved from

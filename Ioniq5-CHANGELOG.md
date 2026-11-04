@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.68.0 - opening the V-057 falsification as delegated work, and refreshing the state table
+
+V-057 only matters if a crafted image actually drives those drivers somewhere bad, so that is now a delegated investigation with its own clone (`work/vm/tuxfuzz`) and
+a strict honesty bar in the brief:
+
+- **baseline first** - a valid image must mount before any "nothing happened" means anything;
+- **one field class at a time** - truncated allocation table, cyclic cluster chain, entry count larger than the table, oversized fragment run, root entry past the
+  volume, absurd cluster size, oversized MFT attributes, filename length limits, valid header with truncated body;
+- **only faults inside `texfat`/`tntfs` count** - a message from the VFS or the mount helper is not a driver fault, and a crash in a helper process is not a kernel
+  vulnerability;
+- **a clean negative is a result** and must be reported as one, including the number of crafted images tried.
+
+`docs/CURRENT-STATE.md` was also stale in a way worth fixing: its register table stopped at V-055 and still described V-055 as "latent, same reason" - referring to a
+reason that has since been withdrawn. It now carries V-042, V-056 and V-057 with their honest statuses, including that V-056's labelling question is unverified rather
+than settled.
+
+Being able to hand this to a worker at all is the payoff of the vendor-kernel work: this morning the drivers could not be loaded in the projection, so the most
+stock-reachable vector in the register was untestable.
+
 ## 4.67.0 - filing the one stock-reachable path to kernel-level code execution
 
 Every finding in this register so far either needs prior code execution (which is already root) or a physical console. There is one class that needs neither, and it was

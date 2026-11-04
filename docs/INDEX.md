@@ -39,6 +39,7 @@ matter** unless you know what you are looking for.
 
 | Document | Answers |
 | --- | --- |
+| **`root-access-paths.md`** | Every route to root, **ranked by what it costs to use** — the offensive view of the register: what you would try on a stock unit and what each attempt requires. |
 | `../Ioniq5-VULNERABILITIES.md` | The register: ten entries, each with status, evidence and what would falsify it. Corrections are kept in place, not edited away. |
 | `trust-anchors-in-writable-runtime-paths.md` | The argument behind six of the ten: a privileged decision resolved from writable state, and why that pattern matters more than any single instance. |
 | `advisory/stock-vector-triage.md` | Two outside models asked what is reachable on a stock unit, what they agreed on, and the two things they corrected here. |

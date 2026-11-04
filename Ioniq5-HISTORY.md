@@ -4785,3 +4785,9 @@ and are superseded by corrections rather than silently rewritten.
 - The module load order was my mistake too: one module first, then the core, then the host controller.
 - That sets a bound on the USB property-injection vector: the emulator will not carry control characters in a SCSI serial, so that half needs real hardware with a programmable bridge. Written down so it is not chased again.
 - The kernel's own warning also gave up the build string, which is now recorded.
+
+## 2026-11-04 - udev stands up on its own
+
+- Starting the vendor's udevd by hand works, and a plugged USB stick goes through the shipped rules to the shipped scsi_id, producing ID_BUS, ID_SERIAL and ID_SERIAL_SHORT. The real chain, not a synthetic one.
+- Two traps, both mine: the control file must be a socket made by udevd, not a directory I create first; and the gps driver warning loop buries the console output.
+- The USB property-injection vector still needs hardware for the crafted serial. Everything downstream of it is now testable here.

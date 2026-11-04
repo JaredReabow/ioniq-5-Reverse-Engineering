@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.21.0 - udev runs in the projection, so the USB rule chain is real
+
+`systemd-udevd` starts standalone, without systemd, and processes a plugged USB stick through the vendor's own rules:
+
+```
+UDEVD_PID=745
+DEV=/dev/sda
+ID_BUS=usb
+ID_SERIAL=QEMU_QEMU_HARDDISK_INJECT01-0:0
+ID_SERIAL_SHORT=INJECT01
+```
+
+`ID_SERIAL` comes from the shipped `60-persistent-storage.rules` calling the shipped `scsi_id` - the authentic chain, not a synthetic
+property. So the downstream half of the USB story is now measurable in the projection rather than argued from a synthetic test. The
+recipe is `tools/uk_fw/guest/run-udev-standalone.sh`.
+
+Two traps cost time and are recorded: `/run/udev/control` must be created by udevd **as a socket** (pre-creating it as a directory gives
+`error binding udev control socket`), and the kernel's `lge_gps_driver` warning loop floods the console so markers must be grepped
+rather than the log read linearly.
+
+What remains out of reach is unchanged and now precise: the crafted SCSI serial that V-014 needs cannot be produced by QEMU, and
+`esinit` still stops before systemd on a single-partition clone.
+
 ## 4.20.0 - the vendor kernel boots, USB enumerates, and V-014's last half is bounded
 
 The reason USB never worked here was the kernel, not the image. The research `bzImage` does not export the USB core symbols the

@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.85.0 - the Dbuslaunch discovery has a security face: eleven units take their bus address from `/tmp`
+
+Chasing the missing frame turned up a vendor script; reading it carefully turned up a finding worth more than the frame.
+
+`/app/bin/Dbuslaunch.sh` writes `/tmp/session_appmgr.env`, and **eleven units read their D-Bus address from it** through `EnvironmentFile=`:
+
+```
+ApplicationLauncher  CryptoService  MediaBrowser  credman  mediamanager  mof
+nua  ofono  remote  vbtd  watchdogd
+```
+
+Filed as **V-058**. The other writable anchors each subvert one decision - an account entry, a compositor module list, a verification key. This one **redirects the bus the entire
+application ecosystem runs on**, which yields interception (every registration, query and command passes through the attacker's daemon), impersonation (a fake
+`com.lge.car.micom`, `ApplicationManager` or `AppHomeScreen` answering on the names the real components expect), and it needs no defect in any component: the systemd configuration
+itself names a world-writable path as the source of a privileged environment variable.
+
+`Dbuslaunch.sh` `rm`s and rewrites that file at every boot, so its content is whatever ran last - ordering is not a defence.
+
+Same honest caveat as the rest of the family: the precondition is a `/tmp` write, which on this build requires root, so today it is interception and persistence rather than
+escalation. What is new is the **breadth** - the previous anchors each affected one decision, and this one affects every application at once. Added to the framing document's table,
+where it is now the largest row.
+
 ## 4.84.0 - the missing frame has a static explanation: a file the vendor's own script writes, and our chain pre-empted
 
 Chasing the environment hypothesis ended at a vendor script, and the mechanism fits every symptom recorded tonight.

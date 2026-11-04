@@ -2338,3 +2338,52 @@ and worth recording as such.
 
 Either drop the third-party drivers in favour of in-tree ones, or mount removable media through a userspace filesystem (FUSE) so a parser defect is not ring 0.
 Auto-mounting attacker-controlled filesystems with closed-source parsing is the combination worth removing.
+
+## V-058 — eleven services take their D-Bus address from a world-writable file, so a `/tmp` write redirects the whole application bus
+
+**Status:** confirmed from the shipped units and the one script that writes the file. Not exercised on a unit. Precondition is the same as the rest of the family: the ability to write `/tmp`,
+which on this build requires root — so today it is a **persistence and interception** primitive rather than an escalation.
+
+### The mechanism
+
+`/app/bin/Dbuslaunch.sh` (invoked by `Dbuslaunch.service`) is the only writer of the file:
+
+```sh
+SESSION_BUS_FILE="/tmp/session_appmgr"
+SESSION_ENV_FILE="/tmp/session_appmgr.env"
+rm $SESSION_BUS_FILE
+rm $SESSION_ENV_FILE
+dbus-daemon --session --print-address --fork > $SESSION_BUS_FILE
+session_addr=`cat $SESSION_BUS_FILE`
+echo "DBUS_SESSION_BUS_ADDRESS=$session_addr" > $SESSION_ENV_FILE
+```
+
+and **eleven units** read their bus address from that file through `EnvironmentFile`:
+
+```
+ApplicationLauncher  CryptoService  MediaBrowser  credman  mediamanager  mof
+nua  ofono  remote  vbtd  watchdogd
+```
+
+### Why it matters more than the other `/tmp` anchors
+
+The other writable anchors each subvert one decision - an account entry, a compositor module list, a binary verification key. **This one redirects the bus the entire application
+ecosystem runs on.** A process that can write `/tmp/session_appmgr.env` before those units start can point all eleven at a bus it controls, which yields:
+
+- **interception** - every `registration`, every data query, every command between the launcher, the manager and the applications passes through the attacker's daemon;
+- **impersonation** - a fake `com.lge.car.micom`, a fake `ApplicationManager`, a fake `AppHomeScreen`, all answering on the names the real components expect;
+- **ordering is not a defence**: `Dbuslaunch.sh` `rm`s and rewrites the file at every boot, which means the file's content is whatever ran last, and the units that read it start
+  afterwards.
+
+That is the most consequential instance of the family so far, because it does not need a defect in any component: the *systemd configuration itself* declares a writable path as the
+source of a privileged environment variable.
+
+### What is not established
+
+Whether a non-root writer to `/tmp` exists on a production unit (every vendor process observed runs as uid 0); whether systemd 225 tolerates the file being absent (older versions warn
+rather than fail, which would mean the units start with no address at all rather than a wrong one); and no unit has been tested with a substituted file.
+
+### Suggested patch direction
+
+Deliver the address over a channel that cannot be pre-created: pass it as a systemd `Environment=` value from a unit that owns the daemon (`BusAddress`-style), or put the file in a
+directory only the bus owner can write (`/run/user/0`, mode 0700), rather than `/tmp`. Any file that decides where eleven services connect must not be world-writable.

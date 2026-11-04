@@ -16,11 +16,29 @@ either demonstrated in the projection, quoted from the image, or explicitly mark
 | Authentic compositor renders | **works** | clean frames, no stripes, `docs/vm/25-…`, `docs/vm/31-…` |
 | **Touch reaches the app** | **works** | `QWaylandInputDevice::Touch::touch_down/touch_up` in the app's own log, `evidence/vm-bringup/interactive-touch-2026-11-04.log` |
 | Engineering mode launches as root | **works** | `appId 301` from `/tmp/app/bin`, uid 0, `getEnterPasswordCnt()` live |
-| Engineering mode's *page body* renders | **no** | QML loads and lays out at 1920x720; the body stays black — a surface/paint fault, see `docs/engineering-mode/` |
+| Engineering mode's *page body* renders | **no — cause now known** | the app **never attaches a buffer**: its whole Wayland trace over 70 s is four `wl_display.delete_id` calls, because it waits for `show_window_fg` from the app manager, which this projection never sends. See `docs/engineering-mode/engineering-paint.md` |
 | Vendor compositor started by `esinit` | **measured shut by default**, and the corrected stand-in opens it | `docs/vm/spi-gate.md` — `ok=no nok=yes param=0` without it, `ok=yes nok=no param=1` with it |
 
 How to drive it: `python3.13 tools/uk_fw/vm_console.py`, then `sh /run-chain23.sh &` and `sh /run-live.sh`. Full instructions:
 `docs/VM-RUNBOOK.md`.
+
+## 1b. Why the engineering window stays black — answered
+
+`strace` on the app's stderr (the launcher discards it, but `write(2)` still happens) shows **624 bytes, 12 writes, all of them object-id teardown**:
+no `create_surface`, no `attach`, no `commit`, no `damage`. The app never presents a frame because **the app manager is supposed to show the window, not
+the app**:
+
+```
+<interface name="com.lge.avn.appmanager.appbase">
+  <method name="show_window_fg"> reason, plane, avmode, command -> response_plan
+```
+
+The app registers itself with `com.lge.avn.appmanager.registration.registration(appid, appname, servicename, objectpath, plane)` and then waits. In this
+projection the chain runs `AppLauncher` but not the real `ApplicationManager`, so **nobody calls `show_window_fg`** and the `QWindow` never shows.
+
+Measured on the session bus during a launch: every registration is addressed to **`com.lge.hyundai.avn.appmanager`**, which **nothing owns** - so the
+registration is a no-reply call into the void, and the app is never told to show. That is the next thing to deliver: either run the real
+`ApplicationManager`, or send `show_window_fg` to the app's own connection at the path it registered.
 
 ## 2. The one blocker for init fidelity
 

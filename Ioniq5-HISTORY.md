@@ -4943,3 +4943,9 @@ and are superseded by corrections rather than silently rewritten.
 - Appended one line to the account file, which points into tmpfs, and the system immediately resolved the new name to uid zero, both by id and by getent. The shadow entry appends the same way.
 - So the finding is a working account entry rather than a corrupted file, and its status changed accordingly. What remains missing is not the mechanism but a non-root writer, since everything here is already root.
 - Updated the state page, which still described the gate as unmeasured after it had been settled.
+
+## 2026-11-04 - the dark window was waiting to be shown
+
+- The trace is only twelve writes, all teardown: the application never sends a frame because something else is supposed to tell it to appear. That something is the app manager, which our chain does not run.
+- So the black body was never a rendering fault. It is a missing message, and the registers show every attempt going to a name nothing owns.
+- Two fixes, one cheap: send the show call ourselves to the app's own connection, or run the real manager.

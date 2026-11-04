@@ -2417,6 +2417,23 @@ and `/app/share/AppUpgrade/DecryptToPIPE` (559,192 bytes) exists and is referenc
 Because the check and the install are **separate shell invocations that each name `%1`**, the file is opened twice with the integrity decision in between. That is the whole
 vulnerability, and it is visible in our binary without running anything.
 
+### The two opens are in different parts of the binary, not merely different strings
+
+The claim depends on the check and the install being **separate** operations that each name `%1`. Strings alone show the commands exist; they do not show the separation. A scan of
+the binary settles that much: for each command string, every 32-bit RIP-relative displacement that resolves **exactly** to its file offset was collected.
+
+```
+ionice -c3 md5sum %1        offset 0x2abb44   referenced from 1 site: 0x1877a8     (the check)
+pv -q %1 | tar -xvm -C %2   offset 0x28c285   referenced from 1 site: 0xbd744      (the install)
+```
+
+**One reference each, roughly 1.2 MB apart** in a 10.8 MB binary. So the integrity decision and the install are constructed at different places in the program, which is exactly the
+structure a verify-then-use flaw requires. It does not prove the caller of each site is sequenced as described - that is the upstream project's `[RE]` claim - but it does show the
+separation is real rather than an artefact of reading a string table.
+
+Method note, so the strength of this is not overstated: the scan does not decode instruction boundaries; it reports any 32-bit displacement that lands exactly on the string. A false
+positive would need a coincidental displacement to a specific offset, and each string resolved to one site, which is what a compiled reference looks like.
+
 ### The "verify skip" strings — checked, and duller than first reported
 
 I first recorded these as an uninvestigated lead that might bypass the post-install verification by state rather than by timing. Having looked, the honest reading is less exciting:

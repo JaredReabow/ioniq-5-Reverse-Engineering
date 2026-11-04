@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.96.0 - V-059 moves from "the strings exist" to "the two opens are in different code"
+
+Last entry recorded V-059 as corroborated because every command string its mechanism needs is present in our copy of the build. That is weaker than it sounds: strings show the
+commands exist, not that the check and the install are *separate* operations that each re-open the file.
+
+A scan of `app/bin/AppUpgrade` closes that gap for the structural half. For each command string, every 32-bit RIP-relative displacement that resolves exactly to the string's file offset
+was collected:
+
+```
+ionice -c3 md5sum %1        offset 0x2abb44   one site: 0x1877a8     (the check)
+pv -q %1 | tar -xvm -C %2   offset 0x28c285   one site: 0xbd744      (the install)
+```
+
+**One reference each, about 1.2 MB apart** in a 10.8 MB binary. The integrity decision and the install are constructed at different places in the program - which is precisely the shape a
+verify-then-use flaw requires, and is now measured rather than quoted.
+
+What it still does not prove: the *sequencing* of those two sites, and the dynamic-media behaviour upstream demonstrated with hardware. Both remain theirs (`[RE]` and `[LOG]`
+respectively). The method's limit is written into the entry too - the scan does not decode instruction boundaries, it reports displacements that land exactly on a string; each string
+resolving to exactly one site is what a real compiled reference looks like.
+
 ## 4.95.0 - the lead I oversold, corrected; and V-059 propagated to the two documents it changes
 
 **I over-sold a lead and am recording the correction.** Last entry called `system update verify skip` an uninvestigated path that might bypass the post-install verification by state

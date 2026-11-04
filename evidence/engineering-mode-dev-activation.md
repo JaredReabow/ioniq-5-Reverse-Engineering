@@ -216,3 +216,30 @@ flip to install an unsigned build.
    uses.
 2. Confirm the menu difference once blocker 1 is solved (or via input injection), to close check 1 properly.
 3. Trace `AppDMClient`'s copy arguments backwards to establish the source directory, which would show exactly which update channel feeds the developer path.
+
+## 12. Would a modified stock firmware file install through a normal update?
+
+Short answer: **not on its own, and the reason is the signature, not the encryption.** Two separate protections are in the shipped updater and only one of them is defeatable from
+shipped material.
+
+- **Encryption is not the barrier.** `AppUpgrade` references `/update/fota/velix_aes.key` and `./tool/velix_aes.key` — an AES key that **ships inside the image**. A modified package can therefore be
+  re-encrypted so that it looks correct to the encryption check; possessing the key is not a privilege.
+- **The signature is the barrier.** The same binary does `mbedtls_rsa_pkcs1_decrypt`, `PKCS#1 sig. verify` and `RSA key validation`, and obtains its verification key through
+  `VElix_GetPubKey` (the Velix update framework; `teruten5_pub.key` appears alongside). Without the vendor's **private** key, a modified image cannot be made to verify.
+- **The one thing that turns this into a yes is already in the register.** **V-034 / V-044**: the update verification anchor is held as an ordinary file on a **root filesystem mounted read-write**
+  (measured: kernel cmdline `rw`, `/ -> ext4 rw,noatime,data=ordered`, `fstab` empty and the `ro` root line commented out in `fstab_emmc`). Replace that anchor with your own public key, sign the modified
+  image with the matching private key, and the stock updater accepts it. The register's stated precondition is an existing **privileged local write primitive**, which is exactly the right framing: the
+  weakness is the anchor's protection, not the verification order (the manifest is verified before any payload is unpacked, which is sound design).
+- **So the realistic chain is two steps, not one:** privileged local write → replace the anchor → then a modified, self-signed package installs through the normal update path. A modified package offered
+  to an unmodified unit is rejected, and nothing in dev mode changes that: `Encryption Update: Disable` relaxes *encryption*, not signature verification, and it is itself gated behind dev mode.
+- **What that implies for the dev-mode question specifically:** modifying firmware is a *heavier* route than the dev-mode hook, not a lighter one. Dev mode needs one file at a writable path; a modified
+  firmware image needs the trust anchor replaced first, which is strictly more privilege.
+- **Caveats, unmeasured here:** anti-rollback/downgrade behaviour (the repository has a dedicated note on it) may reject an older version even when correctly signed; a modified *manifest* must be
+  re-signed along with the payload; and whether the running system verifies its own images at boot (dm-verity or equivalent) has not been checked in this project. Any of those would add a step, and none
+  of them is contradicted by the evidence above.
+
+### What this means for the practical question asked
+
+If the aim is **dev mode**, the firmware route is the long way round: it requires root first, so it cannot be the thing that gets you root. If the aim is **installing modified firmware**, then the answer is
+yes — but only after the anchor replacement that V-034 describes, which likewise requires root first. In both cases the real blocker is the same one this project has measured all along: obtaining a
+privileged local write on a stock unit.

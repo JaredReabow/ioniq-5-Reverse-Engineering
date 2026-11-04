@@ -4659,3 +4659,9 @@ and are superseded by corrections rather than silently rewritten.
 
 - The chain does not survive on the vendor backend: the compositor exits while the home screen keeps running, so engineering mode never starts and the capture is an empty frame.
 - The comparison that identified the stripes is unaffected. This is a recipe problem, and the next step is to read the compositor's own log rather than guess at the cause.
+
+## 2026-11-04 — the clean frame exists, and another project found the same things we did
+
+- The reference capture is banked: clean vendor-backend frame, no stripes.
+- A second project on the same platform documents the engineering-mode gesture and PINs, and independently quotes the same MASS_PRODUCT string we pulled out of our binary. Two methods, one answer.
+- That also means the stock unit does have a UI route into engineering mode, which we had only inferred. The PIN being an unsalted hash is already in our register.

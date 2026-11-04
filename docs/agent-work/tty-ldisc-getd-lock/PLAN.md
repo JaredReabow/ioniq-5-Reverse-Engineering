@@ -27,7 +27,7 @@ constructing trigger material.
    assertions for every emitted classification field.
 8. Integrate the narrow fixed-effect rejection into the candidate artifact
    index, exploit inventory, handover, and IONIQ changelog.
-9. Run focused tests with `/Users/leo/.platformio/penv/bin/python3`, bytecode
+9. Run focused tests with `python3`, bytecode
    compilation, and `git diff --check`.
 10. Leave the complete suite, public harness, and final independent acceptance
     pending for root review.

@@ -111,7 +111,7 @@ metadata and no recovered-code material.
 
 ## Validation
 
-Required interpreter: `/Users/leo/.platformio/penv/bin/python3`.
+Required interpreter: `python3`.
 
 - Focused unit validation: **PASS**, `10 tests, 131109 subtests`, zero
   failures/errors/skips. Subtests comprise 131072 exhaustive Boolean states, 14

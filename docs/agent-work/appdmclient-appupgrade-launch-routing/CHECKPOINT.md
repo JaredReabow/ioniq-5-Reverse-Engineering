@@ -75,7 +75,7 @@ inventory.
 Focused coordinator validation:
 
 ```text
-PYTHONDONTWRITEBYTECODE=1 /Users/leo/.platformio/penv/bin/python3 \
+PYTHONDONTWRITEBYTECODE=1 python3 \
   -m pytest -q tests/test_appdmclient_appupgrade_launch_routing.py
 ```
 
@@ -89,7 +89,7 @@ which exactly matched the retained report.
 Full tests-scoped integration validation after remediation:
 
 ```text
-/Users/leo/.platformio/penv/bin/python3 -m pytest -q tests
+python3 -m pytest -q tests
 ```
 
 Result: **868 passed, 351661 subtests passed in 115.01s**.

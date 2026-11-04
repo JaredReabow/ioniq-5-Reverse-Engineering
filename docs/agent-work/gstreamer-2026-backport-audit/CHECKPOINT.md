@@ -30,7 +30,7 @@ were created or modified. Nothing was staged, committed, or pushed.
 Focused tests (canonical exact run was available and was not skipped):
 
 ```text
-/Users/leo/.platformio/penv/bin/python3 -m unittest -v tests/test_gstreamer_2026_backport_audit.py
+python3 -m unittest -v tests/test_gstreamer_2026_backport_audit.py
 ```
 
 Result: `Ran 24 tests in 3.611s` and `OK`.
@@ -38,7 +38,7 @@ Result: `Ran 24 tests in 3.611s` and `OK`.
 Compilation checks:
 
 ```text
-/Users/leo/.platformio/penv/bin/python3 -m py_compile tools/uk_fw/gstreamer_2026_backport_audit.py tests/test_gstreamer_2026_backport_audit.py
+python3 -m py_compile tools/uk_fw/gstreamer_2026_backport_audit.py tests/test_gstreamer_2026_backport_audit.py
 ```
 
 Result: exit status 0, no output.
@@ -48,7 +48,7 @@ with `PYTHONIOENCODING=utf-16:strict` and once with
 `PYTHONIOENCODING=ascii:replace`:
 
 ```text
-/Users/leo/.platformio/penv/bin/python3 tools/uk_fw/gstreamer_2026_backport_audit.py --rootfs work/decrypted-eu-260128/HU/images/mango-rootfs.tar.gz --llvm-objdump /opt/homebrew/opt/llvm/bin/llvm-objdump --llvm-readelf /opt/homebrew/opt/llvm/bin/llvm-readelf --manifest evidence/artifacts/media-candidates/gstreamer-2026-backport-audit-manifest.json
+python3 tools/uk_fw/gstreamer_2026_backport_audit.py --rootfs work/decrypted-eu-260128/HU/images/mango-rootfs.tar.gz --llvm-objdump /opt/homebrew/opt/llvm/bin/llvm-objdump --llvm-readelf /opt/homebrew/opt/llvm/bin/llvm-readelf --manifest evidence/artifacts/media-candidates/gstreamer-2026-backport-audit-manifest.json
 ```
 
 Result: byte-for-byte `cmp` succeeded; the first output was installed as the
@@ -58,7 +58,7 @@ UTF-8/LF validation decoded each of the eight then-existing package files with
 strict UTF-8, rejected any CR byte, and required a final LF:
 
 ```text
-/Users/leo/.platformio/penv/bin/python3 - <<'PY'
+python3 - <<'PY'
 # strict UTF-8 decode + no-CR + final-LF assertions over the package paths
 PY
 ```

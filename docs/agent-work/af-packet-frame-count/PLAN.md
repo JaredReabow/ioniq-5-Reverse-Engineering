@@ -76,5 +76,5 @@ Let `F = floor(tp_block_size / tp_frame_size)`, `N = tp_block_nr`,
 - Every security classification separates accepted configuration, successful
   allocation, successful mmap, OOB access, corruption, privilege transition,
   root, and persistence.
-- Focused and complete tests pass with `/Users/leo/.platformio/penv/bin/python3`.
+- Focused and complete tests pass with `python3`.
 - Independent semantic/model review returns ACCEPT.

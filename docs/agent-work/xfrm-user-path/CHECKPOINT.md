@@ -93,7 +93,7 @@ only and no operational or target material prohibited by the task contract.
 
 ## Validation
 
-- Focused model validation with `/Users/leo/.platformio/penv/bin/python3`:
+- Focused model validation with `python3`:
   **PASS**, `8 tests, 1056 subtests`, zero failures/errors/skips.
 - Bytecode compilation for the model and focused test with the required Python:
   **PASS**.

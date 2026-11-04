@@ -4972,3 +4972,9 @@ and are superseded by corrections rather than silently rewritten.
 
 - With the authentic path rendering, I checked whether the applications come up: they do not, not once. The gate is the vendor manager's service, which exits with failure and takes the whole interface chain with it.
 - That is the last structural gap, and it is the tractable kind: only a bus name has to exist, and a stand-in that owns it already ships. A worker is trying exactly that.
+
+## 2026-11-05 - the public tree had my username in it
+
+- Audited the repository instead of assuming it was sanitised: no keys, but forty-one places carrying the real username, mostly a copied interpreter path in old plans.
+- Fixed by deriving paths from the file location rather than substituting text, because the plain substitution broke the scripts when run from elsewhere - caught before committing.
+- The two affected tests could not be run because the test runner is not installed here, so the change is verified structurally only. Said so rather than implying otherwise.

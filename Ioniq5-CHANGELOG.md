@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.52.0 - repository hygiene audit: the real username was in the public tree
+
+The repository is public, so it was worth auditing rather than assuming. Result: **no private key material**, and **41 occurrences of the actual username**,
+mostly a hard-coded interpreter path (`/Users/<name>/.platformio/penv/bin/python3`) copied into `docs/agent-work/**` plans and checkpoints, plus a few helper
+scripts with absolute workspace roots.
+
+Fixed structurally rather than textually: scripts now derive the repository root from `__file__` instead of a cwd-relative path (a plain text substitution
+would have made them break when run from anywhere else - caught before committing), and documentation refers to `python3` with `PYTHON` as an override.
+`layout.json` uses repo-relative source paths. Verified after: **zero occurrences of the real username in tracked text**, `layout.json` parses, and the
+rewritten Python files parse.
+
+**Not verified: the two affected tests were not run.** `pytest` is not installed for any interpreter on this host, which is a pre-existing condition rather
+than something the rewrite caused - but it does mean the change is verified structurally, not by execution, and saying so is the only honest option. The
+sanitised docs keep `PY="${PYTHON:-python3}"` so a machine with pytest and a virtualenv can still run them.
+
+Also removed a stray `inst.tmp` from the repository root, and kept the workers' in-progress files (`eng_data_sim.c`, `eng-data-sim`, `run-engpaint*`,
+`run-micomsim*`, `stderr_tee_pid.c`, two new tests) out of this commit - they belong to their own workstreams and committing them mid-flight would
+misrepresent their state.
+
 ## 4.51.0 - the next gap named: the HMI never starts on the authentic path
 
 The authentic boot renders, but no applications start. In the run that reached Multi-User with the compositor alive, `AppLauncher`, `AppHomeScreen` and

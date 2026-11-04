@@ -1736,3 +1736,19 @@ otherwise be confined to.
 
 Ignore `appLocation` from the request entirely and launch only binaries from a fixed, read-only application directory resolved by app
 id; verify the signature on that resolved path; and treat a signature failure as fatal.
+
+### Reachability, measured: there is no network-facing service on this build
+
+Worth recording here because it bounds every remote claim: the image has **no TCP listeners and no remote shell server**.
+
+- **No `adbd`** anywhere in the image.
+- **No `sshd`, no `dropbear` binary, no `telnetd`, no `hostapd`, no `dnsmasq`.** `busybox` carries `telnetd`/`httpd` applets but no
+  symlink activates them and no unit starts them.
+- **No TCP socket units**: `lib/systemd/system/*.socket` contains only `dbus.socket`, `dm-event.socket`, `lvm2-lvmetad.socket`,
+  `syslog.socket`, `systemd-bus-proxyd.socket`, `systemd-initctl.socket` and the two `udevd` sockets, all unix-domain.
+- Scanning every binary in `/app/bin` and `/usr/bin` for `AF_INET`, `SOCK_STREAM`, `0.0.0.0` and `bind(` finds exactly **one** network
+  component: **`mdnsd`**, plus **`AppSDS`**, which carries the UPnP/SSDP strings (`miracast=3 ssdp/upnp=41`).
+
+So the unit is not reachable over the network as configured. Those two components become the only inbound surface once WiFi is
+enabled (`docs/wifi-enable-procedure.md`), and both would parse attacker-reachable input **as root**. Nothing has been demonstrated
+against either, and this note exists so that "there is a network attack surface" is not asserted without that caveat.

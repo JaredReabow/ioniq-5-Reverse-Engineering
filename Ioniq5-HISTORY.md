@@ -5044,3 +5044,9 @@ and are superseded by corrections rather than silently rewritten.
 - Swept all ten path units and the init checks: seven privileged behaviours depend only on whether a file exists in a world-writable directory.
 - Two stand out. One enters manufacturing test mode. The other starts the telematics remote-control service, which means a temporary-file write decides whether a remote-command consumer is running.
 - Not an open port - the service talks over the vehicle bus - but a module that only exists when somebody writes a file is a module an attacker can summon.
+
+## 2026-11-05 - half a demonstration, and the interesting half is elsewhere
+
+- Tested one of the marker files properly. The path units fired, the service was attempted, and it failed on an unmet dependency - so the trigger works and the payload does not.
+- More interesting: the marker had already been set before my probe ran, and no script in the image sets it. If the platform sets it itself, the remote path opens with no attacker at all, and the question becomes what sets it.
+- Recorded the caveat next to the table rather than letting a static list read as a capability.

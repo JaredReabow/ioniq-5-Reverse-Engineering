@@ -1326,6 +1326,25 @@ directory is what decides whether the remote-control service exists on the bus.
 `TmsRemoteApp` is not an IP listener: its symbols are MICOM/telematics request services (`RemoteRequestService`, `EVRemoteServiceSendOBCWakeUp`,
 `EVRemoteMonitoringSMSNotiControlService`). The exposure is therefore not "an open port" but "a remote-command consumer that an attacker can start".
 
+### The trigger fires, but the payload needs its dependencies - a bounded demonstration
+
+Creating `/tmp/no_isa` in an authentic boot was tested. The marker mechanism itself is real, but the demonstration only reached half way:
+
+- **The path units are evaluated** and do fire: the boot logs `Started ofono start path.` and then attempts `remote.service`, which fails on an unmet
+  dependency (`remote.service: Job remote.service/start failed with result 'dependency'`).
+- **The payload does not start.** `pidof TmsRemoteApp` and `pidof ofono` were empty both before and after the marker was created
+  (`MARKER before remote=[] ofono=[]`, `MARKER after remote=[] ofono=[] marker=present`), because those services `Require` the MICOM manager,
+  `Dbuslauncher`, `CryptoService` and `mof/ofono` - none of which come up in this projection.
+
+One further observation worth recording, because it complicates the picture: the path units fired at **25 s**, well before the probe created the marker at ~60 s. So
+`/tmp/no_isa` already existed in that boot, and no script in the image creates it - a vendor binary does. That means on systems where the platform itself sets this
+marker, the remote/ofono path opens **without any attacker action at all**, which would make the interesting question "what sets `no_isa`" rather than "who can
+write `/tmp`".
+
+So the honest state of this entry is: the marker-to-service wiring is confirmed statically and the trigger is observed being evaluated, **but no marker has been shown
+starting a privileged service end to end**, because the services in question depend on a chain this projection does not satisfy. Stating the static table as a
+capability requires that caveat next to it.
+
 **Why this matters more than any single marker:** fs the unit already had a reason to keep `/tmp` writable, each of these is an independent privilege
 escalation hinge on the same directory, and a fix that hardens one leaves six others.
 

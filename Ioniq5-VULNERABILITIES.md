@@ -2387,3 +2387,58 @@ rather than fail, which would mean the units start with no address at all rather
 
 Deliver the address over a channel that cannot be pre-created: pass it as a systemd `Environment=` value from a unit that owns the daemon (`BusAddress`-style), or put the file in a
 directory only the bus owner can write (`/run/user/0`, mode 0700), rather than `/tmp`. Any file that decides where eleven services connect must not be world-writable.
+
+## V-059 — verify-then-install TOCTOU on attacker-supplied USB media (corroborated in our own image)
+
+**Status:** the *mechanism* is **statically corroborated in this repository's copy of the same build**; the dynamic demonstration is external and has **not** been reproduced here.
+Imported analysis: `evidence/external-ioniq5-usb-toctou/` (documentation only; their PoC and key tooling were deliberately not vendored).
+
+### The claim
+
+`AppUpgrade` **verifies** an update file and then **installs** it in a *separate process that re-opens the same file*, while that file lives on attacker-controlled removable media.
+A device that returns different bytes on the second read installs unsigned content after a signed check has already passed — and there is no boot-time rootfs integrity to catch it.
+
+### What is independently confirmed in this image (EU `260128`)
+
+Every string the mechanism depends on is present in our own extraction of `app/bin/AppUpgrade`:
+
+```
+ionice -c3 md5sum %1 | awk '{print $1}'      the integrity check, as a shell command taking %1
+  PKCS#1 sig. verify:                        the signature step, with md5WithRSAEncryption
+pv -q %1 | tar -xvm -C %2                    the install of the system rootfs, re-reading %1
+nice -n 19 dd if=%1 bs=4k skip=%2            other partitions, again re-reading %1
+[%s] System Update Verify Time = %d          the post-install verification the upstream project timed at 46 ms
+[Info] ... %s file status = %d, system update verify skip      ← see below
+```
+
+and `/app/share/AppUpgrade/DecryptToPIPE` (559,192 bytes) exists and is referenced by the same binary. There is **no dm-verity** anywhere in `/etc` or the unit set; the only match for
+"verity" in the image is an unrelated `lvm.conf` line. The boot image is RSA-covered, but the rootfs is plain ext4 on `mmcblk0p3`/`p5`.
+
+Because the check and the install are **separate shell invocations that each name `%1`**, the file is opened twice with the integrity decision in between. That is the whole
+vulnerability, and it is visible in our binary without running anything.
+
+### An additional lead this repository turns up
+
+The string `system update verify skip` appears next to the post-install verification. The upstream work measures that verification as too short to re-hash the partition; the
+presence of an explicit *skip* path suggests the check can also be bypassed by state rather than by timing. **Not investigated** — recorded because it is one grep away from being
+checkable and nobody has looked.
+
+### Why it matters for the two standing questions
+
+- **Root access:** it is the first credible path to installing **unsigned content without the RSA private key** — the genuine signed image satisfies the check, and the swapped image is
+  consumed by the install. No forgery, no key extraction, no engineering mode.
+- **Downgrade:** it sidesteps the version gate entirely, because the gate runs on the bytes that were *checked*, not on the bytes that are *installed*. The unresolved anti-rollback
+  question therefore does not bound this route.
+
+### What is not established
+
+- **Not reproduced here.** The demonstration needs programmable USB mass-storage hardware; this project has no such device and did not attempt it.
+- The `md5WithRSAEncryption` observation is theirs from decompilation; this repository confirmed only that the string is present.
+- Whether the swapped payload must be a well-formed TE2 envelope depends on the install path's use of `DecryptToPIPE`; that is plausible and untested.
+- No attempt was made to install anything on any unit.
+
+### Suggested patch direction
+
+Do not verify a file and then re-read it: hash **during** the install, or copy to protected local storage once and install from the copy, then verify the copy. Better: mount removable
+media with the update path reading through a single handle. And give the rootfs a boot-time integrity mechanism, so "installed unsigned content" is not the same as "runs at next
+boot".

@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.94.0 - an external TOCTOU claim, checked against our own copy of the same build
+
+`CloudPapi/ioniq5-usb-toctou` was brought to my attention. Its claim is specific enough to test without running anything: `AppUpgrade` **verifies** an update file and then
+**installs** it in a separate process that re-opens the same file, while the file sits on attacker-supplied USB media - so a device that serves different bytes on the second read
+installs unsigned content after a signed check has passed.
+
+**It corroborates in our own extraction of the same build.** Every string the mechanism needs is present in `app/bin/AppUpgrade`:
+
+```
+ionice -c3 md5sum %1 | awk '{print $1}'     the check, as a shell command naming %1
+  PKCS#1 sig. verify:  /  md5WithRSAEncryption
+pv -q %1 | tar -xvm -C %2                   the install, re-reading %1
+nice -n 19 dd if=%1 bs=4k skip=%2           other partitions, again re-reading %1
+[%s] System Update Verify Time = %d         the post-install step they timed at 46 ms
+```
+
+`/app/share/AppUpgrade/DecryptToPIPE` exists and is referenced; there is **no dm-verity** anywhere in `/etc` or the unit set. Filed as **V-059** with that corroboration, the upstream
+evidence imported as documentation only (their PoC, gadget scripts and key tooling deliberately not vendored), and the provenance recorded.
+
+**One lead came out of the check that upstream does not mention**: the string `system update verify skip` sits next to the post-install verification. Upstream argues that step is
+too fast to re-hash the partition; an explicit skip path would make even that argument unnecessary. One grep from being checkable, and nobody has looked - so it is recorded as
+uninvestigated rather than assumed either way.
+
+**Why this entry matters more than most.** It is the first credible route to installing **unsigned content without the RSA private key** - the genuine signed image satisfies the
+check and the swapped image is what the install consumes - which also means the version gate runs on the *checked* bytes rather than the *installed* ones, so the unresolved
+anti-rollback question does not bound it.
+
+What it does not do: it has not been reproduced here, needs programmable USB hardware, and no unit was touched. The entry says so in exactly those words.
+
 ## 4.93.0 - the OTA envelope tool is in the tree, and it round-trips byte for byte
 
 `gen5w_crypt.py` (LG Gen5W TE2 OTA envelope reader/writer) is now committed, executable, and documented in the README. Before adding it, it was audited for host paths and secrets

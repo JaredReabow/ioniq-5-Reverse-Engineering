@@ -5230,3 +5230,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Added the OTA envelope tool after auditing it for host paths and secrets, then exercising it rather than trusting it: inspect validates the shipped envelope, decrypt yields plaintext that starts with a package header, and re-encrypting reproduces the original byte for byte.
 - Two traps recorded: the initialisation vector comes from the file name, so the output name matters on encrypt; and one dependency is missing on this host, which a throwaway environment fixes.
 - The README says as plainly what it does not do: it signs nothing, so the signature check, the version gate and any rollback protection are exactly where they were. Reproducing a container is not the same as earning trust for its contents.
+
+## 2026-11-05 - somebody else's claim that our image corroborates
+
+- An external project claims a verify-then-install race in the USB update path. Every command string its mechanism depends on is present in our copy of the same build, including the separate re-read that is the whole vulnerability, and there is no boot-time rootfs integrity to catch the result.
+- Filed it with that corroboration and imported their documentation only, not their tooling. The dynamic demonstration is theirs and is not reproduced here; the entry says so plainly.
+- Checking it turned up a string upstream does not mention: a skip path for the post-install verification. Recorded as uninvestigated, because one grep would settle it and nobody has run it.

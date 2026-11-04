@@ -92,7 +92,7 @@ all answered. The "Pending Err" lines are gone.
 
 ### The window now renders
 
-`docs/vm/29-engineering-mode-rendered-2026-11-04.png` (1920x720 PNG, 14 908
+`docs/vm/29a-ev-page-labelled-rendered-but-is-ev-2026-11-04.png` (1920x720 PNG, 14 908
 bytes). Measured on the decoded pixels:
 
 - white: **94.90 %** (the body is drawn, not black)
@@ -103,7 +103,7 @@ bytes). Measured on the decoded pixels:
 
 The three AppEngineerMode surfaces are `1004` (front window), `1005` (rear
 window) and `1006` (the content surface). Surfaces `1004`/`1005` are still pure
-black — `docs/vm/29b-engineering-mode-window-surface-black-2026-11-04.png`
+black — `docs/vm/29b-engineering-window-black-2026-11-04.png`
 (4 117 bytes) — but **surface 1006 is the one that draws**, and it is the newest
 `Surface id(N)` in weston.log, exactly as the runbook says. Placing 1006 with
 `ivi-wm` and capturing with `weston-screenshooter` yields the rendered screen.

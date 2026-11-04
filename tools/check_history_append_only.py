@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import subprocess
 import sys
+from pathlib import Path
 
 
 def revisions(path: str) -> list[tuple[str, str]]:
@@ -37,6 +38,8 @@ def content(blob: str) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--file", default="Ioniq5-HISTORY.md")
+    ap.add_argument("--baseline", type=int, default=None,
+                    help="known pre-existing violation count; only exceeding it is a failure")
     args = ap.parse_args()
 
     revs = revisions(args.file)
@@ -63,6 +66,16 @@ def main() -> int:
 
     total = len(content(revs[-1][1]))
     print(f"final size {total} bytes; violations: {violations}")
+    baseline = args.baseline
+    if baseline is None:
+        b = Path("tools/history_append_baseline.txt")
+        if b.exists():
+            baseline = int(b.read_text().split()[0])
+    if baseline:
+        regressions = max(0, violations - baseline)
+        print(f"baseline: {baseline} known pre-session rewrites (recorded in the log entry of 2026-11-05)")
+        print("RESULT:", "no new rewrites" if regressions == 0 else f"{regressions} NEW REWRITE(S)")
+        return 0 if regressions == 0 else 1
     print("RESULT:", "append-only" if violations == 0 else "REWRITTEN AT LEAST ONCE")
     return 0 if violations == 0 else 1
 

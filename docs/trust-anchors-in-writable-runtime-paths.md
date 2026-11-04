@@ -67,7 +67,7 @@ proceeding with the permissive branch.
 ## Provenance
 
 Everything above is measured or quoted from the recovered EU `260128` image, with the demonstrations recorded at
-`evidence/fde/passphrase-1234-2026-11-04.log`, `evidence/serial-console/tty2-login-prompt-2026-11-04.log`,
+`evidence/fde/passphrase-1234-2026-11-04.log`, `../evidence/serial-console/ttyS2-login-prompt-2026-11-04.log`,
 `evidence/vm-bringup/interactive-touch-2026-11-04.log` and in V-048's entry. Field prevalence is labelled per entry; V-052 and V-053 in
 particular state that whether production units reach those branches is not established.
 

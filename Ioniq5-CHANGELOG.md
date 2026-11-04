@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.16.0 - V-051's precondition is the shipped default, so the chain is complete locally
+
+`/etc/dbus-1/session.conf` carries the distribution default policy, with no vendor rule for the launcher:
+
+```xml
+<policy context="default">
+    <allow send_destination="*" eavesdrop="true"/>   <!-- Allow everything to be sent -->
+    <allow eavesdrop="true"/>
+    <allow own="*"/>                                 <!-- Allow anyone to own anything -->
+</policy>
+```
+
+Searching `/etc/dbus-1` and `/usr/share/dbus-1` for `com.lge.avn.applauncher` returns nothing, so nothing restricts who may call it.
+Any process able to reach the session bus can therefore ask the manager to execute an arbitrary path as root.
+
+That completes V-051 as a **local privilege escalation**: code execution as any user, plus one bus message, equals uid 0. It is
+explicitly **not** remote, and not an unauthenticated shell - something must already be running on the unit. Its practical value is
+escalation from any lesser-privileged context and re-launch after reboot.
+
 ## 4.15.0 - V-051: the manager executes any path a caller names, as root, unverified
 
 The V-048 work produced a worse finding than it set out to. A payload with **no `.sign` section at all**, launched with

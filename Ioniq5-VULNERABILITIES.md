@@ -1698,6 +1698,35 @@ Both should be fixed, and they need different fixes. V-048's fix is "stop trusti
 "verify before executing, and only execute from a trusted directory" — pinning the key would not have prevented V-051, because the
 check is not reached for caller-supplied paths at all.
 
+### The remaining precondition is satisfied by the shipped configuration
+
+V-051 needs one thing: a message on the session bus. `/etc/dbus-1/session.conf` ships the distribution default policy:
+
+```xml
+<policy context="default">
+    <!-- Allow everything to be sent -->
+    <allow send_destination="*" eavesdrop="true"/>
+    <!-- Allow everything to be received -->
+    <allow eavesdrop="true"/>
+    <!-- Allow anyone to own anything -->
+    <allow own="*"/>
+</policy>
+```
+
+There is **no vendor rule restricting `com.lge.avn.applauncher`**; a search of `/etc/dbus-1` and `/usr/share/dbus-1` for that name
+returns nothing. Any process that can connect to the session bus may therefore send `request.launch`.
+
+That makes V-051 a **local privilege escalation whose only precondition is code execution as any user on the unit**, plus a
+`dbus-send`-equivalent call. It is not a remote vector, and nothing here shows it is reachable from off the device.
+
+### What it is not
+
+- **Not remote.** No network listener is involved; the session bus is a local socket.
+- **Not an unauthenticated shell.** Something must already be running code on the unit to send the message.
+- **Its real value is escalation and persistence**: any non-root context, any sandboxed application, any code path that runs as a
+  lesser user, instantly becomes uid 0; and the same call re-launches the payload after a reboot if the sender runs again (it does not
+  survive on its own).
+
 ### Suggested patch direction
 
 Ignore `appLocation` from the request entirely and launch only binaries from a fixed, read-only application directory resolved by app

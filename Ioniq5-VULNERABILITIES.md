@@ -1943,3 +1943,53 @@ takeover. This is stated rather than implied, because overstating it would be ea
 Keep the account database in read-only storage and make account changes explicit and authenticated; do not decide whether root has a shell
 by copying one of two files into a writable directory; and treat a missing or unexpected `/tmp/shadow` as a reason to refuse login rather
 than to proceed.
+
+## V-055 — the compositor's configuration is a symlink into `/tmp`, and it names loadable modules
+
+**Status:** confirmed from the image. Not exercised on a unit, and it needs two things that this build has not demonstrated from a
+non-privileged context: a write to `/tmp`, and a compositor start.
+
+### What the image does
+
+```
+/etc/xdg/weston/weston.ini -> /tmp/weston.ini
+```
+
+and `/etc/install_westonPngLogo.sh`, which `esinit` runs during boot, creates that link:
+
+```sh
+ln -sf /etc/xdg/weston/weston_${LCD_TYPE}.ini /tmp/weston.ini
+```
+
+The file it points at is what selects the compositor's behaviour:
+
+```ini
+[core]
+shell=ivi-shell.so
+backend=ias-backend.so
+
+[ivi-shell]
+ivi-module=ivi-window-manager.so,ivi-controller.so
+ivi-shell-user-interface=/usr/lib/weston/weston-ivi-shell-user-interface
+```
+
+### Why it matters
+
+- **`shell=`, `backend=` and `ivi-module=` are loadable-object selectors.** Whatever can write the file that `/tmp/weston.ini` resolves to
+  chooses which shared objects the **root** compositor loads at startup. That is code execution in the display server, which runs as uid 0
+  and sits in front of everything the driver sees.
+- **It is the same shape as V-054**: a privileged component's configuration resolved from a world-writable tmpfs path, re-pointed at boot by
+  a symlink.
+- **Honest limit on the impact:** the `weston-crash.sh` handler does **not** restart the compositor — it dumps diagnostics and sends a MICOM
+  watchdog message (`SetETCCPUWDTRese…`) — so a modified config takes effect on the next compositor start (a reboot, or any path that
+  starts it), not immediately. Saying "instant root" would be wrong.
+
+### Not established
+
+Whether a non-root writer to `/tmp` exists on a production unit. As with V-054, every vendor process observed here runs as uid 0, so this is
+recorded as a latent weakness that turns any future lesser-privileged tmp write into root code execution, not as a live escalation.
+
+### Suggested patch direction
+
+Keep the compositor configuration in read-only storage, stop resolving it through a symlink in a writable directory, and require module
+paths to be absolute and inside a signed/read-only directory rather than whatever the config names.

@@ -5026,3 +5026,9 @@ and are superseded by corrections rather than silently rewritten.
 - One run said the data was never encrypted; a later one showed the mappers active. Both were right, and the difference was a flag I had forced in one of them.
 - The init reads that flag rather than recomputing it, and the encryption script formats anything not already encrypted with the four-digit literal. So the code is reachable, and the flag decides everything.
 - Named the cause in the record: forcing a variable changed the behaviour being studied. Two of my own runs disagreed because of it.
+
+## 2026-11-05 - two blockers named, and an old explanation demoted
+
+- A worker answered every micom method the manager was asking for, with reply types taken from the shipping binaries rather than guessed. The gate is now open - zero invalid replies across a run - and the window still does not paint.
+- Two compounding reasons: the trigger lives on an interface the manager never registers here, and the liveness watchdog removes the unshown app before anything could show it.
+- That also demotes an older explanation: the app vanishing after our call may not be the call's fault but the watchdog reaping it. Both readings kept, one now has a log line behind it.

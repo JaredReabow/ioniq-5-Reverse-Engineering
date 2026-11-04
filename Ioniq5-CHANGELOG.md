@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.23.0 - the sweep shows the artefact tracks the UV mapping, and the sampled texture is itself striped
+
+- Third candidate tested: `outTexCoords = vec2((u + 1.0) * 0.5, (v + 1.0) * 0.5)` — normalising clip-space-style coordinates into a 0..1 texture range, which the captured ±1
+  values suggested. Result: `mean 19.8/31.4/44.5`, 15.73% nonzero (against 40.95% unmodified), and the frame changes shape rather than merely rearranging:
+  the **striped region now occupies the left third** of the window instead of the whole width, with black to its right and the application's top-bar markers visible in the dark area.
+- **That is diagnostic rather than corrective.** The striped area's *extent* changes with the coordinate transform, in proportion to it. So the artefact is a direct function of the mapping — and,
+  crucially, what is being sampled is a **texture whose own content is striped**. The quad is not corrupting a clean image; it is displaying an image that is already stripes.
+- That reframes the search one step further back, and it is consistent with something already measured: the application **uploads its own window surface as a BGRA texture at 1926×753** (§3.9.0).
+  If that offscreen surface is striped, then the stripes originate in whatever the application renders into it, and every mapping tweak on the quad merely changes how much of that striped
+  surface is shown.
+- Next, and it is the last untested layer: **dump the bound texture's contents** rather than the quad's coordinates. `glTexImage2D`/`glTexSubImage2D` already expose the pixel data on upload, and the
+  instrument can write a frame's worth of it to a PPM. If that texture is striped, the fault is inside the application's offscreen render and none of the quad work was ever going to fix it.
+
 ## 3.22.0 - negating the u coordinate removes the shear entirely
 
 - Completed the falsification matrix started in §3.21.0. The second rewrite — `outTexCoords = vec2(-texCoords.x, texCoords.y)` — produces a **completely different result**:

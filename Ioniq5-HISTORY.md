@@ -4572,3 +4572,10 @@ and are superseded by corrections rather than silently rewritten.
 - Negating the u coordinate removed the artefact completely. A clean window, no stripes, for the first time in this investigation.
 - The other rewrite merely rearranged it, so the difference between the two is the finding: the sampler is being handed a coordinate that walks the texture the wrong way.
 - The corrected frame is mostly empty, which means the mapping is not a pure mirror; a short sweep will find the rest.
+
+## 2026-10-31 — the stripes are in the picture being sampled
+
+- Normalising the coordinates moved the striped band from the full width to a third of it, in proportion. The artefact follows the mapping, which means the mapping is not corrupting a clean image.
+- What is being sampled is already striped. That points one layer further back, at the offscreen surface the application renders before it uploads it — which this log already measured as a 1926 by 753
+  BGRA upload.
+- The next instrument reads that texture's pixels directly, and it decides whether any of the quad work could ever have fixed this.

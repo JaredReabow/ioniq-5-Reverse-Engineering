@@ -412,6 +412,14 @@ static int shader_fix_mode(void)
 		cached = 2;
 		return cached;
 	}
+	if (access("/tmp/shader-fix-norm", F_OK) == 0) {
+		cached = 3;
+		return cached;
+	}
+	if (access("/tmp/shader-fix-flipv", F_OK) == 0) {
+		cached = 4;
+		return cached;
+	}
 	v = getenv("IAS_SHADER_FIX");
 	if (v == NULL)
 		cached = 0;
@@ -445,8 +453,15 @@ static const char *rewrite_shader(const char *src)
 	buf[head] = 0;
 	if (shader_fix_mode() == 1)
 		strcat(buf, "outTexCoords = texCoords.yx;");
-	else
+	else if (shader_fix_mode() == 2)
 		strcat(buf, "outTexCoords = vec2(-texCoords.x, texCoords.y);");
+	else if (shader_fix_mode() == 3)
+		/* The captured quads carry clip-space positions and coordinates in the same
+		 * -1..1 range; a texture expects 0..1. */
+		strcat(buf, "outTexCoords = vec2((texCoords.x + 1.0) * 0.5, "
+			    "(texCoords.y + 1.0) * 0.5);");
+	else
+		strcat(buf, "outTexCoords = vec2(texCoords.x, -texCoords.y);");
 	strcat(buf, at + strlen(needle));
 	return buf;
 }

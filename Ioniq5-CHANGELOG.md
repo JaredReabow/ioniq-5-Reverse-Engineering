@@ -3,6 +3,17 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.27.0 - the fastest-path plan
+
+- Wrote `docs/vm/fastest-path-plan.md`: the five blockers sequenced by cost-to-information rather than importance, each with a falsifiable outcome and a named failure mode.
+- Three cheap tests come first because each can eliminate a whole category: forcing clamp-to-edge on non-POT textures (blocker 1); aiming the existing `ivi_wm` foreground request at **AppNavi**
+  rather than the home screen (blocker 2); and booting with a DRM device so the vendor's own `ias-backend.so` can be tried (blocker 5). The third is worth doing first because if the vendor backend
+  binds, GL becomes possible and blocker 5 stops being structural.
+- The plan states explicitly what **not** to re-derive (asset formats, ASTC, upload parameters, output geometry, capture tooling, compositor, research backend, Gallium driver — all measured clear), and
+  what **not** to do again (build an instrument without the check that it reached its target; kill `early-background` to clear the screen).
+- Parallelisation is drawn on evidence rather than convenience: blockers 1, 2, 3 and 5 share one VM and one instrument set and must run in sequence, while blocker 4 is **four independent adaptors**
+  (audio/MMUS, persistence, input, restart/suspend) that can be built concurrently by worker agents following the MICOM pattern.
+
 ## 3.26.0 - consolidated blocker list for a fully working VM
 
 Asked directly what stands between the current state and a fully working VM. Recorded here so the answer is durable rather than living in one reply.

@@ -4596,3 +4596,9 @@ and are superseded by corrections rather than silently rewritten.
 
 - Five things stand between here and a fully working VM, and only one of them is the fault being chased today.
 - The hardest is not a bug at all: this VM can only render with pixman, so anything the vendor's driver tolerated and pixman does not has to be designed around rather than fixed.
+
+## 2026-10-31 — a plan ordered by what each step costs to learn
+
+- Five blockers, three of them cheap tests that can each delete a whole category. One of those, the DRM device, could turn the structural blocker into a solvable one.
+- The plan says what not to re-derive as clearly as what to do, because most of this week's cost was re-derivation.
+- Only one blocker is throughput, and that one is four independent adaptors, which is what the workers are for.

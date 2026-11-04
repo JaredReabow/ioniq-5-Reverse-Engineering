@@ -5,6 +5,9 @@ either demonstrated in the projection, quoted from the image, or explicitly mark
 
 ---
 
+> **Before trusting anything below**, run `sh tools/check_all.sh`. It verifies the register's numbering and cross-references, that the history log has not been rewritten, and that
+> every document reference resolves. The suite exists because three defects survived careful reading.
+
 ## 1. The interactive VM: working
 
 | Capability | State | Where it is shown |

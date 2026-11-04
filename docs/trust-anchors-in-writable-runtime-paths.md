@@ -70,3 +70,25 @@ Everything above is measured or quoted from the recovered EU `260128` image, wit
 `evidence/fde/passphrase-1234-2026-11-04.log`, `evidence/serial-console/tty2-login-prompt-2026-11-04.log`,
 `evidence/vm-bringup/interactive-touch-2026-11-04.log` and in V-048's entry. Field prevalence is labelled per entry; V-052 and V-053 in
 particular state that whether production units reach those branches is not established.
+
+## The premise, measured: `/tmp` really is world-writable
+
+Every instance above depends on the same enabling condition, which was previously assumed. It was measured in the projection:
+
+```
+TMP_MODE=1777
+tmpfs /tmp tmpfs rw,relatime 0 0
+SELF_LABEL=_
+```
+
+So `/tmp` is a **`1777` world-writable tmpfs**, and a process under the research init carries SMACK's floor label `_` with no rules loaded
+(`/sys/fs/smackfs/load2` empty). Two consequences for how these entries should be read:
+
+- **The anchors are reachable by any code execution, not only by root.** The reason V-054 and V-055 are labelled *latent* is not that `/tmp`
+  is protected — it is not — but that every vendor process observed on this build already runs as uid 0, so there is no lesser-privileged
+  context to exploit them *from*. Any future sandboxed component, media parser or lesser user changes that immediately.
+- **This projection does not enforce SMACK**, so no MAC claim can be made from these runs. On the stock path `smack_setup.sh` loads policy
+  and then, per V-052, switches to permissive when `optUNECE` is 0 — which is what was measured. The research init skips that entirely.
+
+That is the honest status: the *substrate* for these six findings is confirmed world-writable; the *attacker position* needed to use it is not
+demonstrated on this build.

@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.36.0 - the premise under all six findings, measured
+
+The six entries all rest on "`/tmp` is writable", which had been assumed rather than checked. Measured:
+
+```
+TMP_MODE=1777
+tmpfs /tmp tmpfs rw,relatime 0 0
+SELF_LABEL=_
+```
+
+`/tmp` is a **`1777` world-writable tmpfs**, and a research-init process carries SMACK's floor label `_` with an empty rule table. So the
+enabling condition for V-048, V-053's co-location, V-054 and V-055 genuinely exists - the anchors are reachable by **any** code execution,
+not only by root.
+
+Two things follow, and both are corrections to how the entries should be read. **The reason V-054 and V-055 are called latent is not that
+`/tmp` is protected - it is not - but that every vendor process observed already runs as uid 0**, so no lesser-privileged context exists to
+exploit them from yet. And **this projection does not enforce SMACK at all** under the research init (`load2` empty, label `_`), so no MAC
+claim can be drawn from these runs; the stock path loads policy in `smack_setup.sh` and then, per V-052, goes permissive when `optUNECE`
+reads 0.
+
+The framing document now carries this as its stated premise, since the argument is stronger with the measurement than with the assumption.
+
 ## 4.35.0 - naming the three things that stand between this and stock
 
 The fidelity work is delegated to a worker with its own clone (`work/vm/stockhmi`): install a headless/software-backend variant of

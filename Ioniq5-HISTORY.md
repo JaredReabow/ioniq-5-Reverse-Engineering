@@ -5206,3 +5206,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Cloned the worker's workspace to run the outstanding A/B rather than make it redo its setup. My probe never executed - the unit carrying it exited with failure and produced none of my markers while the clone's own instrumentation kept printing.
 - Two facts came out anyway. The app's thread state differs between boots: this run had it sleeping in its event loop, the earlier one had it running, and a painting instance also looked like the latter. So that signal is noise in both directions.
 - And the logging daemon is audited on every access to the log objects - 599 granted records in one boot - which is a volume problem rather than a denial one, and testable in a single boot.
+
+## 2026-11-05 - one record per second is not starvation
+
+- The next experiment on the list was to disable audit and see whether the home screen paints. Counted the records instead and saved the boot: six hundred in ten minutes, one per second, all from the logging daemon.
+- Nearly wrote twenty-one thousand, because the audit serial number sat exactly where a record count goes. Counted lines instead of reading the number that looked like one.
+- Added that as the shortest rule in the discipline document, since it is a new shape: not a broken instrument or a leap of inference, just the wrong field.

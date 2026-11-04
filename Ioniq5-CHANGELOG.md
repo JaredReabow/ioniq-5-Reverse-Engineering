@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.31.0 - V-053: the data encryption key is "1234", in the image
+
+Checking whether V-052 applies to real units led somewhere worse. `/etc/fde_test_v2.sh` turns on encryption for `/rw_data` (`p11`) and
+`/log_data` (`p8`) on first boot, and the passphrase is a literal in the shipped script:
+
+```sh
+echo "1234" | $CRYPTSETUP -v -c "aes-cbc-essiv:sha256" luksFormat $1 --batch-mode
+echo "1234" | $CRYPTSETUP luksOpen $1 $2
+```
+
+The script's own header says what it protects - *"secure storage daemon, user data encryption"*. So the confidentiality feature that matters
+against a device dump is defeated by a four-digit constant that ships alongside the ciphertext, in a legacy CBC mode rather than an AEAD
+one. What is inside is not trivial: persistent application data, and `/log_data` is where `dlt-daemon` writes vehicle logs within minutes of
+boot.
+
+Filed as **V-053**, and it explains V-052's other half: `esinit` asks whether `p11` is LUKS to decide the UNECE/SMACK posture, and this script
+is what makes it LUKS - with `1234`.
+
+Explicitly not established: whether production units reach this path, and whether any other per-unit keying exists. The literal `1234` is
+what the script uses and no other keying path was found in it.
+
 ## 4.30.0 - the SPI gate is understood and drivable, and the UI never actually depended on it
 
 The question left open in the previous entry is closed by one userspace measurement:

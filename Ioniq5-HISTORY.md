@@ -5248,3 +5248,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The finding was corroborated by the presence of command strings, which is weaker than it looks: it shows the commands exist, not that the check and the install are separate operations.
 - Scanned the binary for displacements resolving exactly to each string. The check resolves to one site, the install to another, about a megabyte apart. The separation is structural, not textual.
 - Recorded the method's own limit and what remains theirs rather than ours: the sequencing of the two sites and the hardware demonstration.
+
+## 2026-11-05 - the same line, twice
+
+- The applications cannot start a renderer because one vendor script preloads the vendor libEGL into every child, and a preload outranks any library path we set. Both the fix that did nothing and the copy that did nothing are explained by it.
+- That exact line had already been identified once, for a different symptom, and the two notes were never connected. Naming causes rather than symptoms is the discipline that would have caught it.
+- Handed the one-line fix to the worker with a note about which log to watch - the child's, not the parent's.

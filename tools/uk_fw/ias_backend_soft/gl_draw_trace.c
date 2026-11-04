@@ -577,3 +577,66 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 		real(target, level, internalformat, width, height, border, format,
 		     type, pixels);
 }
+
+/*
+ * Texture matrix state.
+ * --------------------
+ * The texture is clean and the artefact tracks the coordinate transform, so the question is
+ * whether the application sets a texture matrix that this stack is not honouring. Coordinates of
+ * +-1 for full-screen quads and texel-space values for icons only make sense if something
+ * transforms them before sampling.
+ */
+static int matrix_mode = 0x1700;	/* GL_MODELVIEW by default */
+
+void glMatrixMode(GLenum mode)
+{
+	static void (*real)(GLenum);
+
+	matrix_mode = (int)mode;
+	if (!real)
+		real = dlsym(RTLD_NEXT, "glMatrixMode");
+	if (real)
+		real(mode);
+}
+
+void glLoadMatrixf(const GLfloat *m)
+{
+	static void (*real)(const GLfloat *);
+
+	if (matrix_mode == 0x1702 && m != NULL) {	/* GL_TEXTURE */
+		char line[256];
+		char *q = line;
+		int i;
+		put(&q, "TEXTURE MATRIX");
+		for (i = 0; i < 16; i++) {
+			float f = m[i];
+			long long scaled = (long long)(f * 1000000.0f);
+			put(&q, " ");
+			putn(&q, scaled);
+		}
+		put(&q, "\n");
+		emit_line(line, q);
+	}
+
+	if (!real)
+		real = dlsym(RTLD_NEXT, "glLoadMatrixf");
+	if (real)
+		real(m);
+}
+
+void glLoadIdentity(void)
+{
+	static void (*real)(void);
+
+	if (matrix_mode == 0x1702) {
+		char line[64];
+		char *q = line;
+		put(&q, "TEXTURE MATRIX identity\n");
+		emit_line(line, q);
+	}
+
+	if (!real)
+		real = dlsym(RTLD_NEXT, "glLoadIdentity");
+	if (real)
+		real();
+}

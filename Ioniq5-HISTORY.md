@@ -4549,3 +4549,8 @@ and are superseded by corrections rather than silently rewritten.
 
 - Full-screen quads in normalised device coordinates, carrying texture coordinates that belong to other corners. The position and the texture data disagree.
 - It might be explained by a shader computing coordinates from an attribute this trace did not decode, so it is recorded as an inconsistency rather than a cause. But it is the first piece of evidence in this whole investigation that is itself anomalous rather than merely inconclusive.
+
+## 2026-10-31 — the repository still stands up
+
+- Eleven hundred tests and three hundred thousand subtests pass after days of instrument work. The guest was modified heavily; the repository was not, and that separation held.
+- Worth checking occasionally, because the tempting alternative was to keep editing things in place.

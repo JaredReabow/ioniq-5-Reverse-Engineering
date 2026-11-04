@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.91.0 - the black window has a cause: the applications never initialise EGL, and only the compositor got the software GL environment
+
+Two runs of the by-hand A/B produced the answer, and it is not in the launcher, the manager or the bus. Launching `/app/bin/AppHomeScreen` directly with the launcher's exact environment
+reproduces the failure identically - `NoReply` to introspection, no surface, no frame - and the app's **own log** says why:
+
+```
+[FTL]  Using Wayland-EGL
+libEGL warning: DRI2: failed to open swrast (search paths /usr/lib/dri)
+[FTL]  [QtMsg] failed to initialize EGL display
+```
+
+**The application cannot initialise EGL at all**, so it never reaches the code that would commit a frame. Everything else in its log - `commit Fail` on its layout databases, timer errors -
+is downstream noise from a Qt app whose scene graph has no renderer.
+
+**Why only the apps suffer:** the research chain exports `LD_LIBRARY_PATH=/opt/software-egl18` and `GALLIUM_DRIVER=softpipe` for the processes it starts, and the authentic path's
+`/usr/bin/weston` wrapper does the same **for the compositor**. Nothing gives that environment to the applications, which inherit the default search path and find only the vendor's
+`/usr/lib/dri/i965_dri.so` symlink (a 25-byte stub) - no software driver.
+
+**Putting the driver in place is not enough, and that was measured too.** Copying `swrast_dri.so` into `/usr/lib/dri/` changed nothing: the warning is identical, because the app is
+loading the **vendor** `libEGL`/`libGL`, which cannot use a Mesa driver built against Mesa's ABI. The library path has to change, not just the driver's location.
+
+So the last hypothesis standing is the one that matches every observation: **the applications need the same software-GL environment the compositor already gets.** The fix is a
+projection-only environment for the launcher (children inherit it) - `LD_LIBRARY_PATH=/opt/software-egl18` plus `GALLIUM_DRIVER=softpipe` - and it should be tried before anything else.
+
+This also retroactively explains the five eliminated hypotheses: thread state, readiness time, audit volume, the env file and the launcher path were all measured correctly and all
+irrelevant, because the app died at EGL long before any of them mattered.
+
 ## 4.90.0 - the audit hypothesis dies on arithmetic, and a number that looks like a count but is not
 
 The cheapest experiment on the list was `audit=0` to see whether SMACK audit volume starves the home screen. It does not need a boot: the volume can be counted in a log we already have.

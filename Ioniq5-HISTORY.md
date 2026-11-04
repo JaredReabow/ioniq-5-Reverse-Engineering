@@ -5152,3 +5152,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The register answers what is wrong and the report answers what to fix. Neither answered what someone would actually try on a unit, so I wrote that page: nine routes, ranked by what each one costs.
 - Ranked honestly, it is a discouraging list for an attacker. The cheapest route has no way in, and the reliable one needs a screwdriver and a password that resisted forty-five thousand guesses.
 - Which sharpens what the register really says: not that the unit is easy to enter, but that everything it trusts can be rewritten by anyone already inside. That is a persistence problem wearing an entry problem's clothes.
+
+## 2026-11-05 - dating a summary so it stops arguing with the register
+
+- A summary written mid-investigation still claimed the media parser was unproven because one filename was absent, when the plugin ships under a different name. A summary that contradicts the register is worse than none.
+- Added a status note naming the claims that measurement has since narrowed, and corrected the plugin inline. Kept the reasoning, dated the conclusions.
+- Same principle as separating what was seen from why it happened: a document can be honest about what it thought, as long as it says when.

@@ -5,6 +5,11 @@ project or explicitly attributed to an external source; each section says which.
 
 ---
 
+> **Status note (2026-11-05).** This page is a summary written mid-investigation and is kept for its reasoning. Several of its claims have since been narrowed or corrected by
+> measurement; where they disagree, `CURRENT-STATE.md` and `Ioniq5-VULNERABILITIES.md` are authoritative and this page carries a correction note. The three that changed most:
+> the MAC layer's rules **do** ship (27 files, 636 rules) but whether applications carry labels is unverified; the data "encryption" is flag-gated and may never engage, which
+> makes "unencrypted" the likelier field state; and the engineering-mode faceplate `IpConfigShell` is **dead QML** on this build rather than a shell.
+
 ## 1. What works
 
 | Capability | State | Evidence |
@@ -92,12 +97,13 @@ execution with no user interaction beyond insertion**:
 /usr/lib/liblightmediascanner.so.0.5.1  present
 /usr/share/dbus-1/services/org.lightmediascanner.service   D-Bus activatable
 /app/bin/lightmediascannerctl           present
-lms_asf.so                              NOT present in this image
+lms_asf.so                              NOT present — **but the plugin is `asf.so`, which ships** (correction, see §6)
 libebml.so.4                            present (major 4, newer than their 1.3.4)
 ```
 
 So the **GStreamer 1.8.3 ASF demuxer** and a **D-Bus-activated lightmediascanner 0.5.1** are both here, while
-their specific `lms_asf.so` plugin and libebml 1.3.4 are not. The media-parser class is therefore **live but not
+their specific `lms_asf.so` plugin and libebml 1.3.4 are not — **but this image ships `asf.so`, the plugin's actual filename, so the indexer does have an ASF parser**
+(correction, 2026-11-05). The media-parser class is therefore **live but not
 identical**: the same product family, different components and versions. That is a concrete research lead rather
 than a copyable exploit.
 

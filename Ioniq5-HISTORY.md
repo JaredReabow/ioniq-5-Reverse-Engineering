@@ -4855,3 +4855,9 @@ and are superseded by corrections rather than silently rewritten.
 - Asking whether the previous finding applied to real units led to the encryption routine itself: it formats the data and log partitions with a four-digit literal that ships in the same image.
 - So a dump of the storage opens both, and the thing it protects is application data and the vehicle logs that accumulate within minutes of boot. The cipher mode is a legacy one.
 - Recorded what is not known too - whether units reach this path, and whether another keying path exists. Neither was found, which is not the same as not existing.
+
+## 2026-11-04 - the key was checked, not assumed
+
+- Ran the shipped cipher and passphrase: the container it makes opens with the literal and refuses a wrong one. The refusal is what makes it evidence rather than a guess.
+- The vendor's own encryption script also ran end to end in the projection, formatting the partition and creating a filesystem inside it before the run ended.
+- What remains unknown is unchanged: whether real units go through this path.

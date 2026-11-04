@@ -1,0 +1,17 @@
+# V-053 demonstration: the shipped FDE parameters produce a container that opens with "1234"
+#
+# Guest: partitioned image (work/vm/partimg), vendor kernel, init=/init.
+# Command: the cipher string and passphrase taken verbatim from /etc/fde_test_v2.sh:
+#   echo "1234" | cryptsetup -v -c "aes-cbc-essiv:sha256" luksFormat $1 --batch-mode
+#   echo "1234" | cryptsetup luksOpen $1 $2
+
+FORMAT_RC=0                      # the shipped parameters format a LUKS container
+ISLUKS_RC=0                      # cryptsetup agrees it is one
+OPEN_WITH_1234_RC=0              # the shipped passphrase opens it
+OPEN_WITH_WRONG_RC=5             # a wrong passphrase does not (negative control)
+Cipher name:    aes
+Cipher mode:    cbc-essiv:sha256
+
+# The negative control is the point: OPEN_WITH_1234_RC=0 alone could mean the container was
+# created without a passphrase. rc=5 for a wrong passphrase shows the passphrase is checked and
+# that "1234" is the correct one.

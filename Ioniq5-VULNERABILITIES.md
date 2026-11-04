@@ -1826,8 +1826,23 @@ disable MAC.
 
 ## V-053 — user data and logs are "encrypted" with a hardcoded four-digit passphrase
 
-**Status:** confirmed from the shipped script. `cryptsetup` and the affected partitions are present in the image; the passphrase is a literal.
-Not exercised on hardware, and whether a given unit has been through first-boot encryption is not established.
+**Status: demonstrated in the projection**, not merely read from the script. Whether a production unit has been through first-boot encryption is
+still not established.
+
+Measured, using the cipher string and passphrase taken verbatim from `/etc/fde_test_v2.sh`, on the partitioned image with the vendor kernel:
+
+```
+FORMAT_RC=0                 # the shipped parameters create a LUKS container
+ISLUKS_RC=0                 # cryptsetup agrees it is one
+OPEN_WITH_1234_RC=0         # the shipped passphrase opens it
+OPEN_WITH_WRONG_RC=5        # a wrong passphrase does not  <- negative control
+Cipher name:    aes
+Cipher mode:    cbc-essiv:sha256
+```
+
+The negative control is the part that makes this evidence rather than an assumption: `OPEN_WITH_1234_RC=0` on its own could mean the container
+was created without a passphrase, and `rc=5` for a wrong one shows the passphrase is genuinely checked and that `1234` is the correct one.
+Raw capture: `evidence/fde/passphrase-1234-2026-11-04.log`.
 
 ### What the image does
 

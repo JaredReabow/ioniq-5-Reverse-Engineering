@@ -95,3 +95,44 @@ That is worth filing alongside the existing update-integrity entry (**V-034**, u
 
 - `AutoTest/AppEngineerMode_AutoTest_Sop.qml`, `bool AppEngineerModeEngine::checkSOPVersion()`, `static void AppUtil::writeLogFunctionRunatSOP(QString)`, `ENG SOP LogFileName :` — the SOP state is used in several places, not only the update list.
 - `/tmp/ENG_CAPTURE_ENABLE`, `/tmp/eng_limit_check.txt`, `/tmp/upgrade_msg_srv` — other `/tmp` sentinels in the same binary; none of them governs this gate.
+
+## 8. Running it on a physical head unit
+
+**Prerequisite: a shell on the unit.** This project has verified nothing on physical hardware — every step below is a procedure to try, not a tested recipe, and the access it assumes is itself
+unproven here. The leads in the user's own notes are the candidates: an enabled debug network (`ip_setup.sh`, 192.168.1.100 via 192.168.1.1), a dropbear key installed on the unit, or the Linux root
+credential recovered from `/etc/shadow`. Whichever is used, the command below must run **as root**, because engineering mode does.
+
+**A copy is required, not a symlink.** The compared value comes from the process's own executable path, which on Linux resolves through `/proc/self/exe` and therefore follows symlinks. A symlink at
+`/tmp/app/bin/AppEngineerMode` pointing at `/app/bin/AppEngineerMode` would resolve to the real path and still report SOP. The file must physically be at the `/tmp` path. *(This is inference from how
+Qt obtains the application path, not a measurement; if the state does not change, test the symlink case to confirm it.)*
+
+```sh
+mkdir -p /tmp/app/bin
+cp /app/bin/AppEngineerMode /tmp/app/bin/AppEngineerMode
+chmod 755 /tmp/app/bin/AppEngineerMode
+
+export XDG_RUNTIME_DIR=/run/user/root
+export WAYLAND_DISPLAY=wayland-0
+export LD_LIBRARY_PATH=/app/lib:/usr/lib:/lib
+export QT_QPA_PLATFORM=wayland
+unset QT_WAYLAND_SHELL_INTEGRATION
+
+/tmp/app/bin/AppEngineerMode &
+```
+
+Notes that matter in practice:
+
+- Start it **directly from a shell**, not through the vendor launcher: the launcher would pass the real `/app/bin/...` path and the check would pass as SOP again.
+- `QT_WAYLAND_SHELL_INTEGRATION` is deliberately unset. This project measured that the vendor launcher appends `:ivi` for children, and that pre-setting it produces an invalid `ivi:ivi` value; the same
+  failure mode would apply here.
+- Engineering mode is reported to run as root, so the launch should be from a root shell; a non-root launch may fail before reaching the menu.
+- If `/tmp` is small or mounted `noexec` on the unit, the copy will not run. `mount | grep ' /tmp '` answers that in one line; a `noexec` mount would need a different writable path that the check
+  accepts — and the check names exactly one path, so this would then be a dead end rather than a workaround.
+
+**What to look for:** `Engineer Mode > Update` should now list **Force Update**, **Encryption Update**, **Scheduled Update List**, **Scheduled Update Test**, VESS/ADP/AMP Logging. Selecting
+Encryption Update should show `Encryption Update: Disable` with Enable / Disable buttons calling `UpgradeVerInfo.enableUpdateFile(10)`.
+
+**To revert:** delete `/tmp/app/bin/` (or reboot — `/tmp` is volatile, which is why this is a per-boot development state). Nothing persistent is written by the check itself.
+
+**Risks, stated plainly:** this is a research device procedure. Disabling update encryption from a root engineering UI changes the update-integrity posture of the unit, the action may be logged by the
+update service, and the vendor launcher may restart the real `/app/bin/AppEngineerMode` behind the copy. None of those have been measured here.

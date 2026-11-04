@@ -5099,3 +5099,9 @@ typo or was written on a machine with a wrong clock. It is left exactly where it
 
 I am not fixing either problem by rewriting. Editing history to make an append-only log look like it was always append-only would destroy the only property that makes it worth
 keeping. The defects are recorded here instead, which is the one repair this file permits.
+
+## 2026-11-05 - the product's own software runs, and the black windows are one bug
+
+- Standing in for the micom bus name was enough for the whole chain: the launcher starts, and it brings up the manager and the home screen under the vendor init. A click reaches a real client.
+- The home screen then never attaches a frame, for exactly the same reason the engineering app never did. Two applications, two launch paths, one missing handshake - which turns a per-app mystery into a single defect.
+- Also found a wrong reply worth fixing: a property enumeration comes back as an unknown method instead of an empty dictionary.

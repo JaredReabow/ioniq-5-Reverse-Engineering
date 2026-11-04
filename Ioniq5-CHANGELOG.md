@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.72.0 - the vendor HMI stack now runs under the vendor init, and one root cause explains both black windows
+
+A worker's result on the authentic path is the best fidelity datapoint of the session, and it settles a question that had been approached from three directions.
+
+**The MICOM stand-in route works.** Overriding `dbus-com.lge.car.micom.service` to satisfy `BusName=com.lge.car.micom` with `/eng-data-sim` (instead of the vendor
+`micommanager_userspace`, which exits 1 because no live MICOM answers over SPI) is enough for the whole chain:
+
+- `dbus-com.lge.car.micom.service` reaches **active**;
+- `ApplicationLauncher` starts, and brings up **`ApplicationManager` and `AppHomeScreen`** under systemd;
+- a synthetic click is delivered to a **real compositor client**.
+
+So on the authentic boot path — vendor kernel → `esinit` → esinit's own `weston` → systemd — the vendor HMI processes are running. That is the point where "the platform
+boots" became "the product's own software runs".
+
+**And the black windows have one cause, not two.** `AppHomeScreen` registers (`registeredFromNativeApp`), creates surface 2080, `ivi-wm 2080` round-trips - and it never
+attaches a buffer, exactly like the engineering app. The reason is the same pair of blockers recorded on the engineering thread in §4.61.0: `ApplicationManager` never
+registers `com.lge.avn.appmanager.appbase`, so the show trigger is unreachable, and the app-alive watchdog reaps apps that never answer.
+
+That convergence is worth more than either finding alone: **two different applications, two different launch paths, one missing handshake.** It converts "the UI does not
+paint" from a per-app mystery into a single defect in the manager's interface registration.
+
+One more item for the work list: the app introspects the stand-in and `org.freedesktop.DBus.Properties.GetAll` comes back `UNKNOWN_METHOD` rather than an empty property
+dictionary. It did not block startup, but it is wrong and should be answered.
+
 ## 4.71.0 - the append-only log had been rewritten 21 times, and I am not going to fix that by rewriting it
 
 `tools/check_history_append_only.py` walks `Ioniq5-HISTORY.md`'s git history and asserts every stored version is a **prefix** of the next - which is what "append-only" actually means,

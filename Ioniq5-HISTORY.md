@@ -5254,3 +5254,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The applications cannot start a renderer because one vendor script preloads the vendor libEGL into every child, and a preload outranks any library path we set. Both the fix that did nothing and the copy that did nothing are explained by it.
 - That exact line had already been identified once, for a different symptom, and the two notes were never connected. Naming causes rather than symptoms is the discipline that would have caught it.
 - Handed the one-line fix to the worker with a note about which log to watch - the child's, not the parent's.
+
+## 2026-11-05 - what the exploit asks of a gadget, and what no board can fix
+
+- Wrote up the hardware feasibility for the update race: the device must survive a full sequential read for the check, notice the phase, and serve different bytes to the second open, holding two images.
+- The board choice comes down to link speed - full-speed boards need half an hour per pass, a high-speed one about a minute - and the microcontroller cannot help with the page cache, which may mean the second read never touches the device at all.
+- Named the three questions that settle it before anyone buys hardware, all of them answerable without any hardware.

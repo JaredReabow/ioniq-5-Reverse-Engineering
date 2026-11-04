@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.98.0 - what V-059 actually asks of a USB device, and where the board choice stops mattering
+
+Asked whether an ESP32-S3 could carry V-059, the honest answer needed numbers rather than a yes. Written up as `evidence/external-ioniq5-usb-toctou/HARDWARE-FEASIBILITY.md`,
+alongside the imported upstream documentation.
+
+**The requirement, stated plainly:** enumerate as an ordinary stick with a stable identity; serve the genuine signed image through a **full sequential read** for the `md5sum` check;
+notice the phase change; serve different bytes to the second, independent open; and hold both images resident (about 2 GB for a ~879 MB system image).
+
+**The board comparison comes down to link speed:**
+
+| Board | Link | Realistic rate | One pass | Two passes |
+| --- | --- | --- | --- | --- |
+| ESP32-S3 | Full-Speed 12 Mbit/s | 0.5-1.2 MB/s | 12-29 min | 25-60 min |
+| RP2040 / Pico | Full-Speed | 0.5-1 MB/s | 12-29 min | 25-60 min |
+| Pi Zero (dwc2) | High-Speed 480 Mbit/s | 20-30 MB/s | ~35 s | ~1.5 min |
+
+So the S3 *can* do it - TinyUSB's MSC class lets you answer `read10` however you like, and an SD card over SDMMC keeps the SD from being the bottleneck - but it is **25x slower**, which
+turns the demonstration into a 30-60 minute ritual.
+
+**And two constraints are not about the microcontroller at all.** The page cache is the serious one: `md5sum` reads through it, so if the file is still cached the install pass never
+touches the device and nothing swaps, on any board. Our `AppUpgrade` has `umount` and `fsync` but **no `drop_caches`**, so whether the media is genuinely re-read depends on whether the
+flow unmounts the stick between phases - which the document names as the first thing to instrument on a rig, because if the answer is "it does not", no gadget engineering saves the
+vector. The second is timing tolerance: a 20-60 minute read is not a normal update.
+
+Recommendation recorded: High-Speed board to reproduce, S3 for a small covert device if the cache question resolves favourably. Three questions settle it before buying anything, and all
+three are answerable from shipped code and the upstream journal.
+
 ## 4.97.0 - the preload that has now cost this project twice
 
 The authentic path's applications fail their EGL initialisation with `DRI2: failed to open swrast (search paths /usr/lib/dri)`, and the reason turned out to be a single line we had already

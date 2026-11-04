@@ -1698,34 +1698,39 @@ Both should be fixed, and they need different fixes. V-048's fix is "stop trusti
 "verify before executing, and only execute from a trusted directory" — pinning the key would not have prevented V-051, because the
 check is not reached for caller-supplied paths at all.
 
-### The remaining precondition is satisfied by the shipped configuration
+### Reachability, measured: the session bus is root-only, so this is not an escalation
 
-V-051 needs one thing: a message on the session bus. `/etc/dbus-1/session.conf` ships the distribution default policy:
+The bus policy is permissive, but policy is not the gate — **connection** is. `/etc/dbus-1/session.conf` also carries
+`<listen>unix:tmpdir=/tmp</listen>` and `<auth>EXTERNAL</auth>` with no `<user>` element, and `Dbuslaunch.service` starts the daemon
+with no `User=`. EXTERNAL authentication accepts only the daemon's own uid, i.e. root. Measured in the projection:
 
-```xml
-<policy context="default">
-    <!-- Allow everything to be sent -->
-    <allow send_destination="*" eavesdrop="true"/>
-    <!-- Allow everything to be received -->
-    <allow eavesdrop="true"/>
-    <!-- Allow anyone to own anything -->
-    <allow own="*"/>
-</policy>
+```
+=== as root ===
+method return sender=org.freedesktop.DBus -> dest=:1.43 reply_serial=2      (ListNames succeeded)
+
+=== as uid 65534 (nobody) ===
+as-uid: now uid=65534
+Failed to open connection to "session" message bus: Did not receive a reply. ...
+
+=== as uid 65534, the launch request ===
+Failed to open connection to "session" message bus: ...
+PROOF_AFTER_NOBODY=none
 ```
 
-There is **no vendor rule restricting `com.lge.avn.applauncher`**; a search of `/etc/dbus-1` and `/usr/share/dbus-1` for that name
-returns nothing. Any process that can connect to the session bus may therefore send `request.launch`.
+And the image provisions no `uid >= 1000` accounts and starts no vendor process non-root (no `User=` in the unit files, and
+`AppLauncher` makes no `set*uid` call), so every local process is already uid 0.
 
-That makes V-051 a **local privilege escalation whose only precondition is code execution as any user on the unit**, plus a
-`dbus-send`-equivalent call. It is not a remote vector, and nothing here shows it is reachable from off the device.
+**Correction to this entry's first draft**, which claimed "any code execution as any user → root": that is **wrong**. Only a
+process already running as root can connect. V-051 is therefore **not** a privilege escalation; it is a **persistence and
+re-launch primitive for code that already has root**, plus a way to run a payload outside the SMACK/app-manager label it would
+otherwise be confined to.
 
-### What it is not
+### What it is, precisely
 
-- **Not remote.** No network listener is involved; the session bus is a local socket.
-- **Not an unauthenticated shell.** Something must already be running code on the unit to send the message.
-- **Its real value is escalation and persistence**: any non-root context, any sandboxed application, any code path that runs as a
-  lesser user, instantly becomes uid 0; and the same call re-launches the payload after a reboot if the sender runs again (it does not
-  survive on its own).
+- **Not remote.** No network listener; the session bus is a local socket.
+- **Not an escalation from a lesser user.** Non-root cannot reach the bus (measured above).
+- **Still worth fixing**, because it converts *any* root-level foothold into repeated execution of an arbitrary binary, and because no
+  signature check stands in the way — V-048's key pinning would not help here at all.
 
 ### Suggested patch direction
 

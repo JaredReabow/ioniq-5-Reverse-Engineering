@@ -4759,3 +4759,9 @@ and are superseded by corrections rather than silently rewritten.
 
 - The session bus ships the stock policy that allows everything to be sent and anyone to own anything, with no vendor rule for the launcher. So nothing restricts who may ask it to run a binary.
 - That closes the chain as a local escalation: any code execution on the unit, then one message, then root. Not remote, and not a shell out of nothing.
+
+## 2026-11-04 - correcting myself: the bus only talks to root
+
+- Non-root cannot connect to the session bus: EXTERNAL authentication accepts only the daemon's own uid, and the daemon is root. Measured with nobody: connection refused, no proof file.
+- So what I said last turn was wrong. This is not an escalation from any user; it is a persistence primitive for code that already has root, and a way out of the label such code would be confined to.
+- Worth writing down as a correction rather than quietly changing the claim.

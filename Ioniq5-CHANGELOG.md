@@ -3,6 +3,18 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.30.0 - collapsing the texture coordinates changes nothing, so the stripes are not a sampling artefact
+
+- Sixth and sharpest sampling test: rewrite the vertex shader to `outTexCoords = texCoords.xy * 0.001`, collapsing every sample into a tiny region near the origin. If the diagonal pattern came from
+  sampling far outside the texture — wrapping, minification, an over-large coordinate — this would replace it with a coherent, if blurred, image.
+- **It does not.** The frame is still stripes (`mean 59.7/83.4/109.8`, 42.39% nonzero), essentially identical to the unmodified render.
+- That completes a full sweep of the sampling side, every one of them refuted: wrap state forced to `CLAMP_TO_EDGE` (verified firing), `u` negated, axes swapped, coordinates normalised to 0..1, sample
+  divided by the texture size, and now the sample collapsed by a factor of 1000. **Nothing on the sampling side changes the outcome**, which means the pattern is in the data being sampled or in the
+  framebuffer the picture is written to — not in how it is fetched.
+- It also sits oddly with the earlier clean dump: `glTexImage2D` for the 1926×753 window surface produced a **clean** image (§3.24.0). If that is the texture this quad samples, collapsing the
+  coordinates should have shown it small. So either the striped quad samples a **different** texture from the one dumped, or the stripes are introduced downstream of sampling.
+- **Next, and it is now a data-collection step rather than another hypothesis:** raise the texture-dump limit above the current three and dump **every** large upload, then classify each as structured
+  (UI-like) or striped. The striped source, if it is a texture at all, will identify itself.
 ## 4.3.0 - what the encryption flag actually does: an encryption-path selector, ignored on production builds
 
 - Answered the researcher's question with evidence rather than naming. The flag is a **file**, `/update/disableEncryptionUpdate`, referenced by **five** binaries — `AppUpgrade`, `AppDMClient`,

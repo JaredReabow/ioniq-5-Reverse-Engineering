@@ -4641,3 +4641,9 @@ and are superseded by corrections rather than silently rewritten.
 - The encryption-disable flag is a file, created by a test application on a named MICOM event, and the updater says in plain text that mass-production and penetration builds ignore it.
 - Nothing yet ties it to signature verification, so the researcher's instinct was right: encryption and signing are separate walls here.
 - The updater is also a fully static binary with mbedtls inside, which is precisely the condition the 2024 Gen5W_L paper exploits. That is worth knowing before spending more nights hunting for new bugs elsewhere.
+
+## 2026-11-04 — every way of fetching the texture, and none of them matter
+
+- Collapsing the sample by a factor of a thousand left the stripes exactly as they were. Six sampling tests, six refutations, one of them with the instrument proven to fire.
+- That moves the question off the sampler entirely: the pattern is either in the data being sampled or introduced after it. The clean texture dump says it is not simply the data.
+- So the next step is bookkeeping rather than theory: dump every large upload and find which one is striped.

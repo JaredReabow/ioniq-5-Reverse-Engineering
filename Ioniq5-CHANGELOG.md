@@ -3,6 +3,16 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.19.0 - maintenance pass: the test suite still passes after this much churn
+
+- Ran the repository's test suite after several days of instrument work, image edits and document churn: **1,103 passed, 352,357 subtests passed** (159 s). The suite has grown from the 782 passing
+  recorded earlier in this log, and nothing in the instrumentation work broke it.
+- That is worth stating explicitly because this session added a great deal of *guest-side* machinery — interposers, `/etc/ld.so.preload`, backend rebuilds, a replaced launcher script — while the
+  committed repository itself only ever gained source files, documentation and evidence. The two have stayed separate, which was the point of working in clones.
+- Repository state at this point: working tree clean, both remotes at the same commit.
+- Note for anyone reading the register: the vulnerability entries are unaffected by this stretch. **V-028** remains runtime-confirmed with escalation excluded by measurement, **V-045** carries three
+  reproducing calls, and **V-046** remains a candidate whose cross-client test has not been run. Forty-three numbered entries, forty-one distinct, all with cited evidence.
+
 ## 3.18.0 - the full-screen quads are in, and their coordinates do not pair up
 
 - Retrieved the two 64-byte buffers — the small payloads that a full-screen quad would be. Both decode identically, four vertices of position and texture coordinate:

@@ -4748,3 +4748,9 @@ and are superseded by corrections rather than silently rewritten.
 
 - Running the vendor's own agetty script on ttyS2 produced OpenEmbedded 1.0 (none) ttyS2 and a login prompt on the far side of the port. Captured raw.
 - It is a login and not a shell: the autologin line is commented out. The prompt existing by default is the point, and it is now shown rather than argued.
+
+## 2026-11-04 - the check was never reached
+
+- A payload with no signature section, run with the key deleted, was executed as root by the application manager. App id 10, an ordinary vendor app, was enough; our own path was the binary.
+- So V-048 had the narrower half of the problem. The manager trusts the caller about which file to run, and does not verify it, which no amount of key pinning would fix.
+- What remains is the ability to send one message on the session bus. Nothing else.

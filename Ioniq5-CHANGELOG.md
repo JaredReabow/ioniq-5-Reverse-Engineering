@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.61.0 - the engineering paint thread reaches two named blockers, and an older finding gets a better explanation
+
+A worker answered every MICOM method `ApplicationManager` was asking for, recovering the reply types from the shipping binaries rather than guessing them - including
+from the real manager's own introspection XML, which ships inside `/app/bin/micommanager_userspace`. Result: **`reply is not VALID` is now zero** across a run. The
+manager's MICOM gate is open.
+
+The window still does not paint, and the reason is now two named things rather than "still black":
+
+1. **The trigger is unreachable.** `show_engineermode` lives on the manager's `com.lge.avn.appmanager.appbase` interface, and the manager **does not register that
+   interface** in this projection - verified by introspection and by `UnknownObject`/`UnknownInterface` on every candidate path. There is no D-Bus route to ask it.
+2. **The watchdog removes the app first.** Because the app is never shown, it never satisfies the manager's app-alive handshake, so the manager logs
+   `AB010512*time*AppEngineerMode-5-hang`, runs `appTerminateSlot`, and deregisters it. The app is gone before any later trigger could show it.
+
+That second point also **reinterprets V-045**. That entry records an app's "process gone" after a `show_window_fg` call and reads it as the call killing its peer. A more
+likely explanation, with a log line behind it, is that the manager is reaping an app that never answered its liveness handshake - the call may be blameless. Both readings
+stay open; the reaping one now has evidence.
+
+**Delegated work paid off twice here:** a mechanical iteration (recover reply types, rebuild the stand-in, re-run) produced both the answer to the MICOM question and a
+better explanation of an old finding, without touching the shared tree.
+
 ## 4.60.0 - the FDE contradiction resolved: the flag is read, not recomputed, and my own instrument triggered it
 
 A run that forced `optUNECE=1` showed the encryption engaging, with mappers active:

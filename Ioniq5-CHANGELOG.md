@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 3.22.0 - negating the u coordinate removes the shear entirely
+
+- Completed the falsification matrix started in §3.21.0. The second rewrite — `outTexCoords = vec2(-texCoords.x, texCoords.y)` — produces a **completely different result**:
+  ```
+  mean R=22.6 G=25.8 B=29.7   (was 38.7/58.1/74.4 with swap, 40.1/61.6/81.1 unmodified)
+  ```
+  The frame is a **clean dark window**: blue title bar, window buttons, cursor, and **no stripes at all**, and the PNG compresses to 7,931 bytes because the image is nearly uniform. Saved as
+  **`docs/vm/21-flipu-removes-shear-2026-10-31.png`**.
+- **So the striped garbage is produced by the sign of the u coordinate.** Negating `u` eliminates it completely. That is the first intervention in this investigation that removes the artefact
+  rather than merely changing it, and it is a one-line change to a value the application itself supplies.
+- What that implies, and what it does not yet prove: the sampler is being handed a `u` that walks the texture the wrong way, and the correct mapping is at least a mirror. Whether the correct mapping is
+  a pure mirror, or a mirror plus a scale/offset, is not decided by this run — the corrected frame is mostly empty because the sampled region is dark, so the content is somewhere the flipped
+  coordinate does not reach.
+- Next: sweep the mapping rather than guess it. The instrument already supports a mode per run; three or four candidates (`-x`, `1-x`, `(1-x)·scale`, `-x·scale`) will bracket the correct transform, and
+  whichever produces the real background art is the answer. That is now four runs of work, not four days.
+
 ## 3.21.0 - the shader-rewrite instrument works; the simplest transposition hypothesis does not
 
 - Built a working instrument that **rewrites the vendor's shader at upload time**: `glShaderSource` is intercepted, and if the source contains `outTexCoords = texCoords.xy;` the assignment is

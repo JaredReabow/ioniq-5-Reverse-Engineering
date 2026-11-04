@@ -5242,3 +5242,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Called a set of skip strings an uninvestigated bypass. There are four, one per component, each keyed on whether that component is present - the boring reading is the right one, and the entry now says so.
 - The finding itself then had to propagate: the downgrade document's central bound only holds for the ordinary path, and the root-access ranking gained a route above the serial console that needs no key at all.
 - Also let the imported upstream text keep its own internal links rather than editing someone else's document, and reworded one of my own sentences that looked like a link to a file we do not have.
+
+## 2026-11-05 - from strings to code sites
+
+- The finding was corroborated by the presence of command strings, which is weaker than it looks: it shows the commands exist, not that the check and the install are separate operations.
+- Scanned the binary for displacements resolving exactly to each string. The check resolves to one site, the install to another, about a megabyte apart. The separation is structural, not textual.
+- Recorded the method's own limit and what remains theirs rather than ours: the sequencing of the two sites and the hardware demonstration.

@@ -4990,3 +4990,9 @@ and are superseded by corrections rather than silently rewritten.
 - Claimed the policy layer had no rules. It has six hundred and thirty-six of them across twelve files, and the authentic boot loads them visibly.
 - I missed them because I looked for the mechanism - writes to a kernel interface - instead of the artefact, which was a directory of data files. That is the third time this session that pattern produced a false absence.
 - Withdrew the test that appeared to prove the old claim, since it ran without the rules loaded. What stays open is whether an application's floor label is subject to them at all.
+
+## 2026-11-05 - measured instead of argued
+
+- Put a probe on the authentic boot, after the policy loads, and asked whether the label the applications actually use is confined. It is not: the process read and wrote an object the rules were written to protect.
+- So the finding's conclusion was right and its reasoning was wrong twice over. Both wrong numbers are fixed too - twenty-seven rule files, not twelve.
+- The lesson keeps repeating: check the artefact, then measure the effect, and do not trust a count taken from a truncated listing.

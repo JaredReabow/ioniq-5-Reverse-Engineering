@@ -173,3 +173,21 @@ does not happen under the research init. A vehicle that boots with different LSM
 What can be said from measurement: **on this kernel and boot configuration, writing `onlycap` as `smack_setup.sh` does does not produce a
 capability barrier**, and the two things that would change the answer — an LSM boot parameter and a populated rule table — are absent. That is
 worth checking on a unit with the same two commands plus `cat /proc/cmdline`.
+
+## The MAC question, settled by measurement under the authentic boot
+
+An earlier version of this document argued the anchors were reachable because the MAC layer was inert, and a later correction found the layer is not inert at
+all: `/etc/smack/accesses.d/` ships **27 rule files with 636 rules over 28 labels**, and the authentic boot loads them
+(`Smack service loads smack rules in /etc/smack/accesses.d`). What was then open — whether an application process is subject to those rules — is now measured.
+
+Under the authentic boot, with the policy loaded, in a process carrying the label the applications actually use:
+
+```
+SMACKPROBE label=_ rules=27 read=[secret] write=[ok]
+```
+
+A `_` subject **read and wrote** a file labelled `Log::dlt` without being refused. `_` is SMACK's floor label and doubles as a wildcard, so a process carrying
+it sits outside the rule set. The policy is real, loaded, and does not cover the applications.
+
+That is the accurate basis for V-054 and V-055 being reachable from an application: uid 0, wildcard subject label, and a measured `1777` `/tmp` holding every
+anchor in this document.

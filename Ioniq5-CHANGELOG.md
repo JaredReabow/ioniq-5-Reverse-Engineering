@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.55.0 - the MAC question settled: the policy loads, and `_` is not confined by it
+
+The correction to V-056 left one thing open - whether an application process is subject to the 636 shipped rules - and it is now measured rather than argued.
+A projection-only systemd drop-in (on `TimeManager.service`, chosen because drop-ins need no enabling and it runs after `smack.service`) ran a probe on the
+**authentic** boot:
+
+```
+SMACKPROBE label=_ rules=27 read=[secret] write=[ok]
+```
+
+A process carrying `_` **read and wrote** a file labelled `Log::dlt` without being refused. So the policy is real, is loaded, and does not cover the
+applications - `_` is SMACK's floor label and doubles as a wildcard, which puts a process carrying it outside the rule set.
+
+Two numbers in the previous entry were also wrong and are fixed: the rule set is **27 files**, not 12 (the 12 came from a truncated directory listing), and
+**636 rules over 28 labels**.
+
+So the conclusion V-056 originally reached was right and its reasoning was wrong twice - first "there are no rules" (they are data files, and I had searched for
+script writes), then "confinement unknown" (it is measured). What survives, with evidence: applications are uid 0, carry the wildcard subject label, and can
+read and write objects the policy was written to protect. That is the honest basis for V-054 and V-055 being reachable.
+
 ## 4.54.0 - CORRECTION: V-056 was wrong, the MAC rule set ships and is loaded
 
 V-056 claimed the image "names labels but loads no rules". It is wrong. `/etc/smack/accesses.d/` ships **12 rule files and 636 rules**, and the authentic boot

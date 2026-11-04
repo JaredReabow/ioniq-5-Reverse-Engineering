@@ -5170,3 +5170,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Measured the working path's readiness: the app answers introspection almost immediately and paints straight after. That retires the idea that software rendering is too slow for the manager's watchdog.
 - With the audit and policy candidate already eliminated, three remain: plain contention, the logging daemon, or the environment the launcher gives the app - and the last one is the cheapest test and the most likely.
 - A launcher environment pointing at a bus that is not there would explain every symptom at once, including a busy thread that never renders.
+
+## 2026-11-05 - the missing frame may be a file we failed to let the vendor write
+
+- Chased the environment hypothesis to a vendor script: the one thing that writes the session-bus environment file that six services read. Our chain starts that bus itself, so the script's own attempt either fails or points somewhere else.
+- Every symptom follows from a unit starting without a usable bus: no introspection, no frame, a reaped process, and a thread that looks busy because it is retrying. The state I blamed two entries ago is what that looks like.
+- Asked for the three strings to be compared and the file fixed if it is wrong. If the home screen then paints, the block was ours and the fix is one line of ordering.

@@ -3,6 +3,37 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.84.0 - the missing frame has a static explanation: a file the vendor's own script writes, and our chain pre-empted
+
+Chasing the environment hypothesis ended at a vendor script, and the mechanism fits every symptom recorded tonight.
+
+`/app/bin/Dbuslaunch.sh`, executed by `Dbuslaunch.service`:
+
+```sh
+SESSION_BUS_FILE="/tmp/session_appmgr"
+SESSION_ENV_FILE="/tmp/session_appmgr.env"
+rm $SESSION_BUS_FILE
+rm $SESSION_ENV_FILE
+dbus-daemon --session --print-address --fork > $SESSION_BUS_FILE
+session_addr=`cat $SESSION_BUS_FILE`
+echo "DBUS_SESSION_BUS_ADDRESS=$session_addr" > $SESSION_ENV_FILE
+```
+
+**That is the only writer of `/tmp/session_appmgr.env` in the image**, and six units depend on it through `EnvironmentFile=/tmp/session_appmgr.env`: `ApplicationLauncher`,
+`CryptoService`, `MediaBrowser`, `credman`, `mediamanager`, `mof`. (`setup_timemanager.sh` looks like a candidate but only *reads* `/tmp/session_appmgr`; its own `dbus-daemon` line is
+commented out.)
+
+Our projection's scripts start a session `dbus-daemon` themselves and export the address by hand. If `Dbuslaunch.service` then runs into an already-running session bus, its
+`dbus-daemon --session --fork` either fails or yields a different address, and `/tmp/session_appmgr.env` ends up missing or pointing somewhere nothing else is listening. Every unit
+that reads it starts with **no usable session bus**: the app never introspects, never commits a frame, is reaped by the watchdog, and its main thread sits in `R` retrying - which is
+exactly the state that was mistaken for the cause two entries ago.
+
+**So the most likely answer to "why is the frame missing" is our own setup**, not a missing adaptor: a vendor script that creates the environment file was pre-empted by the chain
+starting the same bus itself. The worker is checking the three strings (`/tmp/session_appmgr`, `/tmp/session_appmgr.env`, and the daemon the app is actually on), whether
+`Dbuslaunch.service` ran, and whether the app's `environ` matches. If writing the file correctly makes the home screen paint, the VM goal is unblocked by one line of ordering.
+
+That is a better outcome than another adaptor, and it is the third time tonight that the fault was in the instrumentation rather than the target.
+
 ## 4.83.0 - the working path is ready instantly, so "too slow for the watchdog" does not hold either
 
 Measured how long a *working* `AppHomeScreen` takes to become ready, on the research chain:

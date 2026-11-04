@@ -5260,3 +5260,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Wrote up the hardware feasibility for the update race: the device must survive a full sequential read for the check, notice the phase, and serve different bytes to the second open, holding two images.
 - The board choice comes down to link speed - full-speed boards need half an hour per pass, a high-speed one about a minute - and the microcontroller cannot help with the page cache, which may mean the second read never touches the device at all.
 - Named the three questions that settle it before anyone buys hardware, all of them answerable without any hardware.
+
+## 2026-11-05 - one line left between the two environments
+
+- Compared the working and failing GL environments field by field. They agree on the library path, the driver path and the gallium driver; the only difference is that one has a preload line and the other does not.
+- Both libraries are the same Mesa build at the same size, so this was never an ABI story. The preload pins the loader, and the research chain deliberately runs without it.
+- Removed it in my clone and armed a probe, which fired before the launcher had started. Untested rather than refuted, and handed to the worker whose timing is right.

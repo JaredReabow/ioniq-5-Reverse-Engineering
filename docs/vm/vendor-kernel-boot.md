@@ -52,6 +52,27 @@ made earlier attempts report `Unknown symbol` and conclude, wrongly, that USB wa
 
 ## What it does not fix
 
+### udev runs standalone (this is the harness the USB rules need)
+
+`systemd-udevd` can be started without systemd, which is what makes the vendor's storage rules observable:
+
+```
+UDEVD_PID=745
+DEV=/dev/sda
+ID_BUS=usb
+ID_SERIAL=QEMU_QEMU_HARDDISK_INJECT01-0:0
+ID_SERIAL_SHORT=INJECT01
+```
+
+Those `ID_*` values are produced by the vendor's own `60-persistent-storage.rules` invoking the shipped `scsi_id` — i.e. the real rule
+chain, not a synthetic property. `tools/uk_fw/guest/run-udev-standalone.sh` is the recipe.
+
+Two traps, both hit here first: `/run/udev/control` must be created **by udevd as a socket** — pre-creating it as a directory fails with
+`error binding udev control socket`; and the kernel's `lge_gps_driver` warning loop floods the console, so grep for markers rather than
+reading the log linearly.
+
+### What it still does not fix
+
 - **`/lib/systemd/esinit` still does not reach systemd.** It recovers eMMC partitions `p8`–`p12`, then stops at
   `[FDE] ***** use fstab for non FDE`. Our clone has a single partition, so the fstab mounts it expects cannot succeed. Reaching udev
   therefore needs either a multi-partition image or a different, minimal path to start `systemd-udevd`.

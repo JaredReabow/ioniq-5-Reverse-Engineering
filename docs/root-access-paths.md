@@ -11,6 +11,7 @@ Nothing here has been tried on a vehicle. Each row cites the evidence that exist
 
 | # | Route | Costs | Gets you | Status |
 | --- | --- | --- | --- | --- |
+| 0 | **USB update TOCTOU (V-059)** | a programmable USB stick + the TE2 content key | installing **unsigned content without any key**; no boot-time rootfs integrity to catch it | **corroborated statically**; not reproduced here |
 | 1 | **Serial console (`ttyS2`)** | physical access to UART pads + the root password | a root login prompt | **prompt captured**, password uncracked |
 | 2 | **Engineering mode** | touch only, stock gesture + PIN | diagnostic menus | launcher path measured; **no shell found on this build** |
 | 3 | **A write to `/tmp`** | *any* code execution, any user | root, via three separate anchors | mechanisms demonstrated; **no non-root writer exists here** |

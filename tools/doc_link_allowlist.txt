@@ -18,3 +18,13 @@ Ioniq5-CHANGELOG.md -> docs/INSTALLATION.md | MISSING referenced while describin
 Ioniq5-CHANGELOG.md -> tests/support.py | MISSING test helper referenced from a changelog entry
 Ioniq5-CHANGELOG.md -> tests/test_workflow.py | MISSING test module referenced from a changelog entry
 docs/agent-work/tuxera-fs-harness/PLAN.md -> docs/agent-work/tuxera-fs-harness/WORKER-REPORT.md | MISSING the worker report this plan expects
+
+# Imported upstream documentation keeps its own internal links (see PROVENANCE.md).
+evidence/external-ioniq5-usb-toctou/02-attack-chain.md -> docs/03-evidence.md | EXTERNAL upstream internal cross-reference, paths are theirs not ours
+evidence/external-ioniq5-usb-toctou/02-attack-chain.md -> docs/04-field-journal.md | EXTERNAL upstream internal cross-reference, paths are theirs not ours
+evidence/external-ioniq5-usb-toctou/README-upstream.md -> docs/01-vulnerability.md | EXTERNAL upstream internal cross-reference, paths are theirs not ours
+evidence/external-ioniq5-usb-toctou/README-upstream.md -> docs/02-attack-chain.md | EXTERNAL upstream internal cross-reference, paths are theirs not ours
+evidence/external-ioniq5-usb-toctou/README-upstream.md -> docs/03-evidence.md | EXTERNAL upstream internal cross-reference, paths are theirs not ours
+evidence/external-ioniq5-usb-toctou/README-upstream.md -> docs/04-field-journal.md | EXTERNAL upstream internal cross-reference, paths are theirs not ours
+evidence/external-ioniq5-usb-toctou/README-upstream.md -> docs/05-mitigations.md | EXTERNAL upstream internal cross-reference, paths are theirs not ours
+evidence/external-ioniq5-usb-toctou/REPRODUCE.md -> docs/04-field-journal.md | EXTERNAL upstream internal cross-reference, paths are theirs not ours

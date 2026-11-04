@@ -145,3 +145,37 @@ the security work: the failure mode of the most important startup dependency is 
 **What is still unmeasured is unchanged**: the value of `/sys/module/micom/parameters/spi_validation` at the instant `esinit` reads it. The difference
 now is that the measurement must not rely on `/dev/kmsg` either - it must go to `/dev/console` or a file, from a script with `/dev` mounted, or be
 taken from a boot where commands are possible.
+
+## RESOLVED — measured on both sides, with the instrument placed after the decision
+
+The fix for the broken diagnostics was to stop using `/dev/kmsg` and instead append one line to `/etc/install_westonPngLogo.sh`, which
+`esinit` calls **after** its SPI block and **before** it chooses between the `SPI NOK` branch and launching weston. The line writes to
+`/dev/ttyS0`:
+
+```sh
+echo "SPI_STATE ok=$([ -e /tmp/spi_validation_OK ] && echo yes || echo no) \
+     nok=$([ -e /tmp/spi_validation_NOK ] && echo yes || echo no) \
+     param=$(cat /sys/module/micom/parameters/spi_validation 2>/dev/null)" > /dev/ttyS0
+```
+
+Two boots, same image, same instrument, one difference - whether the corrected wrapper `init` ran first:
+
+| boot | measurement | meaning |
+| --- | --- | --- |
+| `init=/lib/systemd/esinit` | `SPI_STATE ok=no nok=yes param=0` | gate **shut**; `esinit` takes the `SPI NOK` branch and does not start the compositor |
+| `init=/init-esinit-spi.sh` | `SPI_STATE ok=yes nok=no param=1` | gate **open**; the stand-in worked, `OK` present, `NOK` removed, parameter reads 1 |
+
+So, finally, on the record:
+
+- **The gate is shut by default.** The parameter reads **0** at the decision point, not 1. Entry 4.34.0's claim that the gate opened by itself was
+  wrong, and 4.41.0's correction was right.
+- **The corrected wrapper does open it.** `tools/uk_fw/guest/init-esinit-spi.sh` mounts `/sys` (the original failed because an `init` runs before
+  `esinit` mounts it), waits for the parameter, forces it to 1 and holds it across the poll window. Measured, not argued.
+- **`esinit` then launches `/usr/bin/weston --tty=1`**, which is why `random: weston urandom read` appears in both the shut and open cases: some
+  other path invokes the binary even when the gate is shut. That still has no identified source, and it was never evidence of anything.
+
+### The remaining blocker is now unambiguous
+
+With the gate open, boot stalls at `Timers`/`System Initialization` instead of reaching Multi-User. The cause is the compositor itself:
+`weston --tty=1` asks for a DRM device the projection does not provide, so it blocks and takes the boot with it. That is exactly the substitution the
+worker on `work/vm/stockhmi` is making - a headless/software backend in the `[core]` section of the ini that `esinit`'s own weston will read.

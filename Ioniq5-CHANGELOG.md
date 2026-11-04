@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.45.0 - RESOLVED: the SPI gate is shut by default, and the stand-in opens it
+
+The ambiguity of the last three entries is closed by putting the instrument where it can actually be read. Instead of `/dev/kmsg` - which is what the
+vendor's own failure branch gets wrong, writing to a stray `kmsg` file - one line was appended to `/etc/install_westonPngLogo.sh`, which `esinit` calls
+**after** its SPI block and **before** it picks a branch. It writes to `/dev/ttyS0`:
+
+| boot | measurement | meaning |
+| --- | --- | --- |
+| `init=/lib/systemd/esinit` | `SPI_STATE ok=no nok=yes param=0` | gate shut, `SPI NOK` branch, no compositor |
+| `init=/init-esinit-spi.sh` | `SPI_STATE ok=yes nok=no param=1` | gate open, stand-in worked |
+
+So the three entries resolve like this: **4.34.0 was wrong** that the gate opened by itself (the parameter is 0 at the decision point, not 1);
+**4.41.0 was right** that it had never opened; and **4.42.0's second possibility** - that the stand-in was needed and would work - is now the measured
+one. The corrected wrapper mounts `/sys` (an `init` runs before `esinit` mounts it, which is why the first version failed), waits for the parameter,
+forces it to 1 and holds it.
+
+Two loose ends are recorded rather than tidied: `random: weston urandom read` appears in **both** cases, so some unidentified path invokes the
+compositor even with the gate shut - it was never evidence, and it still is not explained; and with the gate open the boot now stalls at
+`Timers`/`System Initialization` instead of Multi-User, because `weston --tty=1` blocks waiting for a DRM device. That is precisely the substitution
+the worker on `work/vm/stockhmi` is making.
+
 ## 4.44.0 - the missing diagnostics were missing by design: `> kmsg` is not `/dev/kmsg`
 
 Three entries of this investigation were ambiguous because the `SPI NOK` branch could not be observed. The cause is a typo in the shipped script:

@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.23.0 - V-014's payload is an unauthenticated root shell, confirmed in the image
+
+The unit that property-injection chain would start is present and needs no credential:
+
+```
+/lib/systemd/system/debug-shell.service
+  DefaultDependencies=no
+  ConditionPathExists=/dev/tty9
+  ExecStart=/bin/sh
+```
+
+It is simply **not enabled**, which is why it never runs on a stock unit today. `SYSTEMD_WANTS=debug-shell.service` would start it
+regardless of the link state, and it would give a **root shell on `/dev/tty9` with no password prompt** - the `/dev/tty9` existence check
+being the only gate.
+
+Two neighbours show the safe pattern for contrast: `console-shell.service` runs `-/sbin/sulogin` (authentication required) and
+`console-getty.service` runs `agetty` (a prompt). Only `debug-shell` drops straight to `/bin/sh`.
+
+This sharpens the register's existing remediation note: removing the unit from production matters more than leaving it disabled, because
+`SYSTEMD_WANTS` names units directly and does not consult the enable/disable links.
+
+**Delegated:** the partitioned-image work needed to let `esinit` finish faithfully has been handed to a worker with its own clone
+(`work/vm/partimg`), since it is mechanical build-and-iterate work rather than judgement.
+
 ## 4.22.0 - the vendor userspace boots: systemd PID 1, udev up, login prompts
 
 Booting the **vendor kernel** with **systemd itself as init** - rather than the research `/init` or `esinit` - brings up the authentic

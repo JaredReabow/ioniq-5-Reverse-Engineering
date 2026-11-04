@@ -4798,3 +4798,10 @@ and are superseded by corrections rather than silently rewritten.
 - It also means the sysemd question that blocked every USB idea is finally askable in the projection rather than by argument.
 - Two corrections from the media probe: the stick must be built without metadata_csum for a 4.1 kernel, and the indexer does have an ASF plugin - I had looked for the wrong filename.
 - The indexer runs as root but will not scan without the session bus and media manager, so the parser is reachable but not yet exercised.
+
+## 2026-11-04 - the thing at the end of that chain is a shell with no password
+
+- The unit the USB property-injection chain would start is debug-shell.service: no dependencies, an existence check on /dev/tty9, and ExecStart=/bin/sh. It is not enabled, which is the only reason it never runs.
+- Its neighbours require authentication. This one does not.
+- That makes "remove it" better advice than "leave it disabled", since a SYSTEMD_WANTS property names units directly rather than going through the enable links.
+- The partitioning work is delegated to a worker; it is mechanical iteration, not judgement.

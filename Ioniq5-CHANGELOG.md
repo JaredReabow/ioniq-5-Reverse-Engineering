@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.27.0 - the VM is interactive, proven from the client's own input log
+
+A synthetic click now demonstrably reaches the running application, and the proof is not from our own instrumentation but from the app's
+Qt/Wayland input device:
+
+```
+compositor:  VM_INPUT_CLICK_ACCEPTED
+             VM_INPUT_FOCUS_BEFORE_MOVE pid=821 uid=0
+             VM_INPUT_FOCUS_AFTER_MOVE  pid=821 uid=0
+             VM_INPUT_CLICK_DONE
+
+client:      QWaylandInputDevice::Touch::touch_down: PID(821), ID(0)
+             QWaylandInputDevice::Touch::touch_up:   PID(821), ID(0)
+             [Re-enable touch]
+```
+
+So the event travels file -> `weston-vm-input.so` -> compositor seat -> the application's Qt input device as a genuine touch, and the
+application reacts to it. This is the "interactive VM" half of the project's goal, demonstrated rather than asserted, and it was reached
+by placing the surface with `ivi-wm` first - without placement the compositor correctly reports `pid=NO_VIEW` or `pid=NO_CLIENT`, which is
+what several earlier attempts measured and mistook for a broken input path.
+
+Evidence: `evidence/vm-bringup/interactive-touch-2026-11-04.log`; README updated.
+
 ## 4.26.0 - SMACK confinement is switched off by an unauthenticated filesystem check
 
 `esinit` derives a kernel module parameter from `cryptsetup isLuks` on the read-write data partition:

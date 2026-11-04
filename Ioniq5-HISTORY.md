@@ -4824,3 +4824,9 @@ and are superseded by corrections rather than silently rewritten.
 - A corrupt or replaced header therefore produces less confinement rather than a refusal to start, which is the wrong way for that decision to fail.
 - The same flag also enables the wireless daemon, so one derived value governs both confinement and radio.
 - Whether real units take the permissive branch is unknown and recorded as unknown. The mechanism is what is confirmed.
+
+## 2026-11-04 - the click arrives
+
+- A synthetic click reaches the running application and the application's own Qt log records it as touch_down and touch_up with its own pid, then takes action. That is the interactive VM, demonstrated.
+- The earlier failures were placement, not input: an unplaced surface makes the compositor report no view or no client, which looks exactly like a broken input path.
+- Recorded with the raw log, because this is the claim most worth being able to check.

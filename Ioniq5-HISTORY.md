@@ -5080,3 +5080,9 @@ and are superseded by corrections rather than silently rewritten.
 - Wrote an index that says what each document answers, starting with the four that matter: where things stand, what to fix, whether to trust the numbers, and how to run it.
 - Grouped by the questions people actually ask rather than by folder, and link-checked it before committing, which caught three bad references.
 - An index with dead links is worse than none, and this session has enough unverified instruments in its history to know better.
+
+## 2026-11-05 - checking the register's own plumbing
+
+- Fifty-seven entries, no duplicates, no gaps, no document citing one that does not exist. That survived a session of edits, which was worth confirming rather than assuming.
+- The check found a stale heading: one entry still asserted the exact conclusion I had withdrawn, because the body was corrected and the heading - the part that appears in every summary - was not.
+- Wrote down the tool's limitation too: its status column is a keyword guess, so it is a spell-checker for numbering, not a verdict on the findings.

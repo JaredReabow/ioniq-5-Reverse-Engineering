@@ -5111,3 +5111,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The link checker found a one-character typo in the citation for the only evidence behind the console finding, and stale references to screenshots I had renamed. Nothing was checking either.
 - It took four passes to stop it crying wolf about paths with spaces, guest-image paths, prose filenames and other repositories' source trees. Only then did the remaining hits split cleanly into six external citations and five real gaps.
 - The five gaps are recorded as gaps rather than quietly ignored, and the history check now fails on regressions against a recorded baseline instead of being permanently red.
+
+## 2026-11-05 - a check nobody runs is decoration
+
+- The three consistency checks were only discoverable by reading the changelog, which is the problem they exist to prevent. Put them in the readme, the index and the first line of the state page.
+- Verified the suite works from any directory, because one that only works from the repository root will be run from somewhere else and then distrusted.
+- Two workers continue on the HMI follow-ups and the filesystem fuzzing, both on their own clones.

@@ -3,6 +3,21 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.74.0 - making the checks findable, since a check nobody runs is decoration
+
+The three consistency checks were only discoverable by reading the changelog, which is exactly the problem they exist to solve. They are now in the three places a person actually
+starts from:
+
+- **`README.md`** gains a short section that says what each check catches and cites the three defects they found - the stale heading, the 21 historical history rewrites, and the
+  one-character typo in the citation for the only evidence behind the console finding.
+- **`docs/INDEX.md`** lists `tools/check_all.sh` alongside the four documents that matter, because "can I trust this" now has a mechanical answer.
+- **`docs/CURRENT-STATE.md`** opens with a one-line instruction to run it first, since that page is the entry point for anyone picking the work up.
+
+Also verified the suite works from any working directory (it changes to the repository root itself), because a checker that only runs from one place is a checker that will be run from
+the wrong place.
+
+Two workers are still running - the authentic-path HMI follow-ups and the V-057 filesystem fuzzing - both on their own clones, neither disturbed.
+
 ## 4.73.0 - one command for every consistency check, and it found three real defects on the way
 
 `sh tools/check_all.sh` now runs the three checks this repository has: register numbering and cross-references, the append-only history invariant, and document cross-references.

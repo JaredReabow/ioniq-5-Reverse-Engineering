@@ -219,6 +219,24 @@ privileged write first, which is the same wall every other route meets.
 recent build. Nothing has been attempted on hardware; anti-rollback is the open question that decides whether an older
 *authentic* firmware would install.
 
+### Checking the record itself
+
+The documentation verifies itself, and has already caught three defects a careful read missed:
+
+```sh
+sh tools/check_all.sh
+```
+
+- **`check_register_consistency.py`** — every `V-NNN` exists, none duplicated, nothing cites an entry that is gone. It found a stale heading still asserting a claim that had been
+  withdrawn (the body was corrected; the heading, which appears in every table, was not).
+- **`check_history_append_only.py`** — walks the git history of `Ioniq5-HISTORY.md` and asserts every stored version is a prefix of the next, which is what "append-only" means. It found
+  **21 historical rewrites** and one future-dated entry, all before this session; it now fails only on *regressions* against that recorded baseline.
+- **`check_doc_links.py`** — resolves 1,300+ cross-references between documents. It found a one-character typo in the citation for the only evidence behind the console finding, and stale
+  references to screenshots that had been renamed.
+
+References that are deliberately not repository paths are listed in `tools/doc_link_allowlist.txt` as either `EXTERNAL` (inside other repositories) or `MISSING` (documents this tree
+promised and never wrote) — recorded rather than ignored.
+
 ### Findings summary
 
 A single consolidated document — **`docs/FINDINGS-SUMMARY.md`** — collects the whole state: what works in the VM,

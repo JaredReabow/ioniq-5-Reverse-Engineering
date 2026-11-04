@@ -10,6 +10,7 @@ matter** unless you know what you are looking for.
 | **`CURRENT-STATE.md`** | What works, what is blocked, what to do next. The entry point; everything else is detail behind it. |
 | **`REMEDIATION-REPORT.md`** | Ten findings ordered by **cost to fix**, each with evidence, exposure, fix and verification. The document to put in front of a platform team. |
 | **`MEASUREMENT-DISCIPLINE.md`** | Eight rules distilled from nine corrections this project made, each with the concrete case. Read before trusting any number here. |
+| **`../tools/check_all.sh`** | Runs every consistency check: register numbering, the append-only history invariant, and 1,300+ document cross-references. Each has already caught something a careful read missed. |
 | **`VM-RUNBOOK.md`** | How to boot the projection, drive it live, inject touch, and the false readings that have already misled this project. |
 
 ## The VM: how faithful it is, and how it got there

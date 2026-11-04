@@ -371,6 +371,136 @@ name). So the app's environment is correct and the missing-env-file hypothesis i
 trap for any chain that pre-empts `Dbuslaunch.service` (e.g. the research chain, which starts its own session bus), and
 is worth keeping in the checklist.
 
+## 7g. The audit-volume hypothesis is out — by rate, not just by experiment
+
+The authentic path audits every log-object access by `dlt-daemon`: **600 audit records in a ~615 s boot, of which 599
+are SMACK** (334 on `Log::dlt_vcrm`, 265 on `Log::dlt`), all `comm="dlt-daemon"`, all granted. That is **~1 record per
+second** — negligible, and it cannot starve a Qt event loop. (Note the trailing `audit(615.831:21528)`: `21528` is the
+kernel audit **serial number**, not a count; `grep -c` gives 600.) So the audit volume is already eliminated by
+arithmetic, ahead of any experiment.
+
+For completeness the experiment agrees: with `-smp 4 --audit-off` (`…1793817865938068000`) the audit subsystem is gone
+from the boot — **zero** `audit: type=1400` records — yet the frame is unchanged:
+
+```
+boot: audit: type=1400 count = 0        (was 600)
+[apps-check] CAPTURE_final bytes=129844 magic=89504e470d0a1a0a      <- still the early-background, not painted
+[apps-check] PIDS_FINAL AppLauncher=[2144] AppHomeScreen=[2633] ApplicationManager=[2202]
+```
+
+So audit is out on both grounds. Remaining candidates: **CPU contention** and **the launcher/manager path** (the show
+handshake). The by-hand launch A/B separates them: run `/app/bin/AppHomeScreen` by hand on the authentic path with the
+same environment and socket; if it then paints, the difference is in the launcher/manager path (or the reap), not in the
+app or in system overhead.
+
+(`--audit-off` and `--smp` are runner overrides in `tools/uk_fw/vm_partimg/run-stockui.py`.)
+
+## 7h. The by-hand A/B: a relaunched app registers, introspects, and intermittently paints — the boot-time launch does not
+
+The by-hand A/B (kill the launcher-started `AppHomeScreen`, relaunch `/app/bin/AppHomeScreen` with the environment
+captured from `/proc/<pid>/environ`) was run five times (`…1793818763548084000`, `…1793819454386039000`,
+`…1793820173885782000`, `…1793820881107851000`, `…1793821607874858000`). The relaunched instance behaves differently
+from the boot-time one:
+
+```
+BASELINE_LISTNAMES=[com.lge.hyundai.avn.appmanager]                 <- no AppHomeScreen, as before
+BASELINE_INTRO=[Error … ServiceUnknown: … AppHomeScreen was not provided …]   <- boot-time app never registered
+
+BYHAND_NAME_OWNED=[com.lge.hkmc.avn.appfunc.AppHomeScreen]           <- registered (5/5 runs)
+BYHAND_INTRO=[method return … Introspectable …]                      <- answers introspection (4/5 runs)
+BYHAND_CAPTURE bytes=120562 / 120556                                 <- frame changed from 129844 (2/5 runs)
+BYHAND_CAPTURE bytes=129844                                          <- unchanged (3/5 runs)
+BYHAND_LOG_TAIL=[… ClimateWidget … CPCallWidget … VoiceMemoWidget … setAutoLight …]  <- QML actively rendering
+```
+
+So a *relaunched* `AppHomeScreen` registers its bus name and answers introspection — which the boot-time instance
+never does (`ServiceUnknown`) — and in two of five runs the capture changes to ~120,5xx bytes, i.e. a surface got a
+buffer and painted, while the app's QML was concurrently updating widgets. (The painted frames could not be decoded
+on the host: the base64 stream over the serial console is corrupted by interleaved kernel output; the clean decodes
+were the 129,844-byte early-background. The byte-count change is the paint signal.)
+
+Two honest caveats. First, the paint is **intermittent** (~2/5), so the relaunch is still marginal — residual
+contention or a race — not a clean fix. Second, in several runs the by-hand process itself was reaped
+(`BYHAND_ALIVE=[no]`) and the name was then owned by the launcher's own restarted instance, which is the one that
+introspected and painted; the manager/launcher SIGKILLs a foreign `AppHomeScreen` (§7c's `a_nSigNum[9]`).
+
+**Conclusion: the app is not intrinsically broken in this projection.** A (re)launch — by hand or by the launcher's
+own restart — can register, introspect, and intermittently paint, while the boot-time launch never does. That points
+the remaining cause at the boot-time launch path (the launcher/manager's boot-time state, or the residual contention
+around the first launch), not at the app, the bus, SMACK, audit, or DLT.
+
+---
+
+## 8. Root cause found: AppHomeScreen never initialises EGL — and the launcher-level drop-in is insufficient
+
+The app's own stderr (head of the by-hand log, `…1793824685011102000`) shows the real failure and confirms the
+diagnosis:
+
+```
+[01-01-70 00:02:04:737][FTL]  Using Wayland-EGL
+libEGL warning: DRI2: failed to open swrast (search paths /usr/lib/dri)
+[01-01-70 00:02:04:825][FTL]  [QtMsg] failed to initialize EGL display
+```
+
+`AppHomeScreen` never initialises EGL, so it never reaches the commit-a-frame code; the `NoReply`, no-surface,
+no-frame, `ServiceUnknown` symptoms are all downstream of this. The eliminated hypotheses (SMACK policy loading, audit
+volume, DLT load, the session-bus environment/file, and thread state) were correctly eliminated and were downstream
+noise from a Qt app with no renderer.
+
+The proposed drop-in was tried and is **insufficient on its own**. The launcher (`AppLauncher 3`) receives the full
+software-GL environment — the drop-in plus `AppLauncher.sh` both set it:
+
+```
+LAUNCHER_ENVIRON_GL=[LD_PRELOAD=/usr/lib/libEGL.so.1; LP_NUM_THREADS=1; LIBGL_DRIVERS_PATH=/opt/software-egl18/dri;
+                     LD_LIBRARY_PATH=/opt/software-egl18/lib:…; GALLIUM_DRIVER=softpipe; LIBGL_ALWAYS_SOFTWARE=1]
+```
+
+but its child does not. `AppHomeScreen`'s environ keeps `GALLIUM_DRIVER`, `LD_LIBRARY_PATH` and `LD_PRELOAD`, yet
+drops `LIBGL_DRIVERS_PATH` / `LIBGL_ALWAYS_SOFTWARE` / `LP_NUM_THREADS` (the vendor launcher filters the child
+environment):
+
+```
+APPHOME_ENVIRON=[DBUS_SESSION_BUS_ADDRESS=…; QT_QPA_PLATFORM=wayland; LD_PRELOAD=/usr/lib/libEGL.so.1;
+                 GALLIUM_DRIVER=softpipe; XDG_RUNTIME_DIR=…; WAYLAND_DISPLAY=wayland-0;
+                 LD_LIBRARY_PATH=/usr/lib/media-libva/:/opt/software-egl18/lib:…]
+```
+
+So the child loads the preloaded vendor `libEGL`, has no `LIBGL_DRIVERS_PATH`, searches `/usr/lib/dri`, and fails —
+exactly the warning above. The library-path fix has to reach the *child* (or provide a Mesa-ABI-compatible `libEGL`),
+which the launcher-level drop-in does not do.
+
+**Next (unresolved):** get the Mesa-ABI-compatible GL stack (libEGL + swrast + its LLVM/glapi deps) into the child
+process, or make the vendor libEGL load a working swrast from its default `/usr/lib/dri` — the vendor libEGL is ABI-
+incompatible with the injected Mesa-18 swrast (tested: copying swrast into `/usr/lib/dri` does not change the warning).
+
+## 9. The EGL root cause is closed: the swrast was unreachable, not the preload
+
+The cause is confirmed and §8's “preload” framing is corrected. The child's log with the software-GL driver path
+restored is clean:
+
+```
+[FTL]  Using Wayland-EGL          <- no “libEGL warning: DRI2: failed to open swrast” any more
+```
+
+and the by-hand app then registers, answers introspection, and paints (`…1793829575437696000`):
+
+```
+BYHAND_NAME_OWNED=[com.lge.hkmc.avn.appfunc.AppHomeScreen]
+BYHAND_INTRO=[method return … Introspectable …]
+BYHAND_CAPTURE1..3 bytes=120556   <- frame changed from the 129844 early-background (painted)
+```
+
+The cause was **not** the `LD_PRELOAD` line. The preloaded `libEGL.so.1.0.0` is the vendor's own Mesa build
+(849,912 bytes — the same Mesa as the research chain), and it works once it can find a swrast. What was missing is
+`LIBGL_DRIVERS_PATH` **in the child** — the vendor launcher strips `LIBGL_*` from its children (§8's launcher-vs-child
+split) — so the libEGL searched only `/usr/lib/dri` and found the i965 stub. Restoring the swrast path
+(`LIBGL_DRIVERS_PATH=/opt/software-egl18/dri`, run20, removes the warning) or placing `swrast_dri.so` in
+`/usr/lib/dri` (run21) both clear the warning, and in run21 the app registers, introspects, and paints.
+
+So the last substitution is the software-GL environment (one path), not the preload. The preload line remains a real
+difference from the research chain but is not the cause; the same line that cost the earlier buffer-commit
+investigation is, again, not the culprit here — the swrast search path is.
+
 ## Repro
 
 ```sh
@@ -383,5 +513,10 @@ Evidence directories: `work/vm/stockui/runs/1793805121692994000/` (surface 2080,
 `.so`), `work/vm/stockui/runs/1793805905108459000/` (rebuilt `.so` — `VM_INPUT_FOCUS_* pid=769`, no
 `touch_down`), the follow-up runs `…1793807664591927000` / `…1793808390896928000` / `…1793809092146051000`
 (manager introspection, `Properties.GetAll`, and the State R/wchan=0 observation in §7c), the `-smp 4` runs
-`…1793811409658169000` / `…1793812134562822000` (CPU-time delta and `poll_schedule_timeout` samples in §7d), and
-`…1793814291074215000` (env/bus differential and the early `ServiceUnknown` in §7e).
+`…1793811409658169000` / `…1793812134562822000` (CPU-time delta and `poll_schedule_timeout` samples in §7d),
+`…1793814291074215000` (env/bus differential and the early `ServiceUnknown` in §7e), `…1793817865938068000`
+(`--audit-off`: zero audit records but still no paint, §7g), and the by-hand A/B runs `…1793818763548084000` /
+`…1793819454386039000` / `…1793820173885782000` / `…1793820881107851000` / `…1793821607874858000` (§7h), and
+`…1793824685011102000` (the app's EGL log and the launcher-vs-child environment split, §8),
+`…1793826961162159000` (`LIBGL_DRIVERS_PATH` restores EGL with the preload kept, §9), and `…1793829575437696000`
+(swrast in `/usr/lib/dri`: registers, introspects, paints 120,556 bytes, §9).

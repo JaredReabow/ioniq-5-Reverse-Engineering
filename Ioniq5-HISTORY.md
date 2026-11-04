@@ -5266,3 +5266,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Compared the working and failing GL environments field by field. They agree on the library path, the driver path and the gallium driver; the only difference is that one has a preload line and the other does not.
 - Both libraries are the same Mesa build at the same size, so this was never an ABI story. The preload pins the loader, and the research chain deliberately runs without it.
 - Removed it in my clone and armed a probe, which fired before the launcher had started. Untested rather than refuted, and handed to the worker whose timing is right.
+
+## 2026-11-05 - the authentic path paints
+
+- On the vendor kernel through the vendor init and the vendor compositor, the home screen now registers its name, answers introspection and paints a frame that is not the background. The last substitution was the software-GL driver path, one variable.
+- My confident explanation was wrong again: the preload line is not the cause, the library it pins is the same Mesa build and works. What the launcher does is strip the driver path from its children.
+- What remains on that path is not rendering but ownership - the manager kills the instance systemd started while a hand-started one paints.

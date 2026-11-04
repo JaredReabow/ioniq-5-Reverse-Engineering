@@ -3,6 +3,21 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.18.0 - the WiFi procedure, and the bound on every remote claim
+
+`docs/wifi-enable-procedure.md` sets out how the radio could be turned on using the image's own machinery: `modprobe cfg80211` then
+`modprobe bcmdhd` (blacklist entries only suppress alias autoloading), drive the regulator pin **GPIO 466 = 0x1D2**
+(`WLAN_REG_ON`, recovered from `supplicantmanager`'s `reset_WLAN_REG_ON(): movl $0x1d2,%edi`), create `/tmp/no_unece` - the trigger
+the shipped `supplicantmanager.path` unit actually watches - and let the daemon run its state machine, then `wpa_supplicant` and
+`udhcpc`. None of it has been executed on hardware, and none of it can be executed in QEMU: there is no CYW89359 device and no GPIO
+controller for the pin.
+
+While writing it I bounded the remote question properly, and the answer is worth having: **there is no network-facing service on this
+build at all.** No `adbd`; no `sshd`, `dropbear`, `telnetd`, `hostapd` or `dnsmasq` binary; the only socket units are unix-domain; and
+scanning every binary in `/app/bin` and `/usr/bin` for `AF_INET`/`SOCK_STREAM`/`0.0.0.0`/`bind(` finds exactly one network component -
+**`mdnsd`** - plus **`AppSDS`**, which carries the UPnP/SSDP strings. Those two are the entire inbound surface that enabling WiFi would
+create, and both would parse that input as root. Nothing has been demonstrated against them.
+
 ## 4.17.0 - V-051 is root-only, and my previous claim was wrong
 
 The session-bus policy is permissive but irrelevant, because the gate is **connection**: `session.conf` pairs

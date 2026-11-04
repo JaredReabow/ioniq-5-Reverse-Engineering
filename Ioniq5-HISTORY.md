@@ -4765,3 +4765,9 @@ and are superseded by corrections rather than silently rewritten.
 - Non-root cannot connect to the session bus: EXTERNAL authentication accepts only the daemon's own uid, and the daemon is root. Measured with nobody: connection refused, no proof file.
 - So what I said last turn was wrong. This is not an escalation from any user; it is a persistence primitive for code that already has root, and a way out of the label such code would be confined to.
 - Worth writing down as a correction rather than quietly changing the claim.
+
+## 2026-11-04 - how the radio would come on, and what is not listening
+
+- The WiFi procedure is now written from the image's own machinery: two modprobes, the regulator pin at GPIO 466 that supplicantmanager drives, the /tmp/no_unece trigger its path unit watches, then supplicant and dhcp. None of it run on hardware, and none of it possible in QEMU.
+- Scanning for network services found none. No adbd, no ssh server, no telnetd, no hostapd, no dnsmasq, no TCP socket units. Only mdnsd and AppSDS, and those only once the radio is up.
+- That bounds every remote claim in this project, so it is written down rather than assumed.

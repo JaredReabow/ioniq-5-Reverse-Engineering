@@ -3,6 +3,21 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.4.0 - clean capture banked, and a second project confirms the dev-mode path independently
+
+- Banked the clean frame: **`docs/vm/24-clean-vendor-backend-2026-11-04.png`** (747,445 bytes) — the home screen rendered on the vendor headless backend with a single output, smooth wave background and
+  crisp text, with no stripes. This is the reference frame that proves clean rendering is reachable today and that the stripes are our own backend's artefact (§3.31.0).
+- **Independent corroboration from a second project** (`coopermarino/2022-cerato-au-jailbreak`, LGE Gen5W "mango", same kernel 4.1.27-abl and glibc 2.25):
+  - **Engineering-mode entry is a UI gesture plus a PIN**: Settings → General → About, then tap the software version **5–10 times** (or the blank area at the bottom of About), which raises a keypad; enter
+    **`19491003`** for full engineer mode or **`2400`** for dealer mode. The PINs are verified as **unsalted SHA-256** against hashes in the binary — which matches the entry already in this register
+    (**V-041**, engineering keypad credential from static unsalted digests).
+  - Their `UPDATED_STRATEGY.md` independently documents the same toggle we reverse engineered — `S/W Update → Encryption Update → Disable` creates **`/update/disableEncryptionUpdate`** — and quotes the very
+    same string we found in our binary: **`MASS_PRODUCT or PENETRATION Build mode -> Ignore disableEncryptionUpdate`**. Two projects, different methods, same conclusion: the flag is build-gated and governs
+    encryption, not signing.
+  - Engineer mode exposes **IpConfigShell**, which their guide describes as shell-command execution — a second root-level facility beyond the file-based routes.
+- That the same gesture and PIN are documented for a different model on the same platform is strong evidence the entry is platform-wide rather than model-specific, and it means the dev-mode question has a
+  **stock-UI answer after all — for engineering mode** — which this project had only inferred from `AppSetup`.
+
 ## 3.32.0 - the clean dev-mode capture needs its own recipe: the chain does not survive on the vendor backend
 
 - Tried the obvious combination for a clean engineering-mode screenshot: the **launcher chain** (so appmanager and applauncher context exist) running against the **vendor `headless-backend.so` with a single

@@ -4811,3 +4811,9 @@ and are superseded by corrections rather than silently rewritten.
 - The data adaptor work succeeded: the app's queries all answered, the pending-error count went to zero, and the page body stayed black anyway.
 - The screenshots that appeared to show success were the home screen's EV page, not the engineering window. Checking which surface is which cost one run and saved a wrong conclusion.
 - So the blank body is a paint fault, not a data fault, and the next thing to read is the app's own qmlLog lines rather than building more adaptors.
+
+## 2026-11-04 - the layout is fine, so the fault is lower down
+
+- The app's own qmlLog proves the QML loads, lays out at 1920x720 and runs its transitions. It is not a data problem and not a layout problem.
+- A click now reports no client under the pointer, which is a sharper symptom than no view: whatever is on screen is not receiving at that coordinate.
+- The paint question is delegated with a specific plan, because enumerating surfaces and reading one wayland log is mechanical work rather than judgement.

@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 4.47.0 - the engineering window's black body is answered: it waits to be shown
+
+`docs/engineering-mode/engineering-paint.md` settles it with `strace` on the app's stderr (the launcher discards that stream, but `write(2)` still
+happens): **624 bytes, 12 writes, all object-id teardown** - no `create_surface`, no `attach`, no `commit`, no `damage`. The app never presents a frame
+because **the app manager is meant to show its window, not the app itself**.
+
+The app exports an adaptor:
+
+```
+<interface name="com.lge.avn.appmanager.appbase">
+  <method name="show_window_fg"> reason, plane, avmode, command -> response_plan
+```
+
+registers via `com.lge.avn.appmanager.registration.registration(appid, appname, servicename, objectpath, plane)`, and waits. Our chain runs
+`AppLauncher` but **not** the full `ApplicationManager`, so nobody ever calls `show_window_fg` and `QWindow::show()` is never reached - which is why the
+QML logs "lays out at 1920x720" while the surface stays transparent and a click finds `NO_CLIENT`.
+
+Measured this turn on the session bus: every registration is addressed to **`com.lge.hyundai.avn.appmanager`, which nothing owns**, so the calls go
+into the void. Two ways to fix it, and the second is cheaper: run the real `ApplicationManager`, or send `show_window_fg` to the app's own connection
+name at the path it registered.
+
+This also closes the loop with V-045, which recorded the `show_window_fg` dispatch and left the meaning open: it is not an anomaly in a window
+manager, it is the handshake the app is waiting for.
+
 ## 4.46.0 - V-054 demonstrated, and the state page brought up to date
 
 Appending a single line to `/etc/passwd` — which resolves through tmpfs — produces an account the system accepts immediately:

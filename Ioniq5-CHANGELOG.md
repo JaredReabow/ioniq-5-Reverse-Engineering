@@ -3,6 +3,40 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.0.4 - the managed child has the right environment, so the last gap is not an environment problem
+
+The lossless channel worked on the first attempt after the flag fix, and it answers the question the three previous runs could not.
+
+**The environment the launcher gives `AppHomeScreen` is correct:**
+
+```
+LIBGL_ALWAYS_SOFTWARE=1
+LIBGL_DRIVERS_PATH=/opt/software-egl18/dri
+GALLIUM_DRIVER=softpipe
+XDG_RUNTIME_DIR=/var/run/user/root
+WAYLAND_DISPLAY=wayland-0
+QT_QPA_PLATFORM=wayland
+DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-xZKnY8LMJR,guid=b4c65cef…
+LD_LIBRARY_PATH=/usr/lib/media-libva/:/opt/software-egl18/lib:/app/lib:/usr/lib:/lib:/navi/Lib:/navi/navi/Lib
+```
+
+**And the files it needs are all present:** `swrast_dri.so` in both `/usr/lib/dri` and `/opt/software-egl18/dri`, and `libLLVM-6.0.so.1` in the Mesa library directory.
+
+So **the "launcher strips `LIBGL_*` from its children" reading is refuted for this chain** - the child has the driver path, the gallium driver and the Mesa library path. The managed instance (pid 2805) is alive at the probe and still owns no bus name and creates no surface, while a by-hand instance registers, introspects and paints.
+
+What is left is **sequencing and starvation**, not configuration: the launcher is starting the whole vendor application set at once - its log shows group launches and `[TIMEOUT] … AppID : 121` reaping while this app is initialising - against two vCPUs under TCG. A single by-hand instance has the machine to itself; the managed one does not.
+
+**The confirming experiment** is now well-defined: raise `-smp`, or stop the other application groups, and see whether the managed instance registers within the same window. If it does, the last gap is emulated CPU, which is a property of the projection and not of the vehicle.
+
+**An unplanned corroboration.** The same lossless channel captured the console side of the run:
+
+```
+OpenEmbedded 1.0 prm-gen-5 ttyS2
+prm-gen-5 login:
+```
+
+That is **V-049 on the authentic boot path** - the serial login prompt, on the vendor's own init, with no instrumentation of ours involved. The register has carried it as "prompt captured" from a manual `agetty` invocation until now; this is the same prompt appearing by itself.
+
 ## 5.0.3 - two instrument failures in a row on the last gap, both mine
 
 Chasing the managed-path environment difference produced no measurement, for two reasons, and both are instrument faults rather than findings.

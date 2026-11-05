@@ -1008,3 +1008,39 @@ Two options, and the second is more honest:
 
 **The finding is worth the entry either way**: *the vendor's surface-id table omits the home screen* is a specific, checkable
 defect in a shipped binary, and it explains the whole of §42 better than any of the timing hypotheses that preceded it.
+
+## 47. The lookup loop, read - and the missing row is a one-entry patch
+
+The loop that reads the table (around `0x14e50` in `AppLauncher`):
+
+```
+14e6a: cmpl $0x11, %esi        if (appId == 17) -> separate handler
+14e73: leaq 0x475c0, %r8       table base
+14e7f: movl $0x1, %eax         i = 1
+14e93: cmpl %ecx, %esi         compare appId with entry.appId
+14e95: je   0x14ec8            found -> use entry.surfaceId
+14e9a: addq $0x8, %rdx         next entry
+14e9e: cmpl $0x8, %eax         while (i != 8)
+```
+
+**Eight entries, hard bound, stride 8, pairs of int32.** The table:
+
+```
+entry 0 @0x475c0:  17 -> 1030     entry 4 @0x475e0: 112 -> 2160
+entry 1 @0x475c8:  12 -> 2080     entry 5 @0x475e8: 113 -> 2170
+entry 2 @0x475d0: 110 -> 2110     entry 6 @0x475f0:  73 -> 2200
+entry 3 @0x475d8: 111 -> 2110     entry 7 @0x475f8:  30 -> 3000
+```
+
+**So the patch is one entry, not an extension** - `0x47600` is already the next string (`ApplicationLauncher::LastAV is %1`), so appending would overwrite data. Instead the entry for an app that never launches can be repurposed:
+
+```
+0x475e8  before: 71 00 00 00 7a 08 00 00    appId=113 surfaceId=2170
+0x475e8  after : 0b 00 00 00 20 08 00 00    appId=11  surfaceId=2080
+```
+
+**2080 is not a guess** - it is the surface id this project has observed for the home screen since the first captures.
+
+**The trade, stated rather than hidden:** whichever app is id 113 loses its surface id. `111`/`112`/`113` look like media-player variants and `73` is unidentified, so **the correct choice is whichever id never appears in the launcher log** - checked with one `grep` before patching. That makes it a substitution with **no observed victim**.
+
+**And the proof to look for is textual before it is visual:** `QT_WAYLAND_SET_SURFACE_ID=2080` appearing **for `AppID : 11`** in the launcher log would show the table being read for the home screen at all. If that line appears, the patch works; the frame is the second question.

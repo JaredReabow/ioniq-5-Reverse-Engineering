@@ -6304,3 +6304,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Followed the missing surface id to its source instead of guessing: it is a static table of application and surface id pairs in the launcher binary, and the home screen has no entry.
 - That settles several earlier hypotheses at once. It is not a timing race, not a backend problem, not a database problem and not a placement problem, and it explains why the failure is specific to the home screen while every other managed application has an id.
 - Did not patch it: extending the table needs its count read properly, and a patch that guesses is worse than none. The alternative touches the launcher's environment handling instead. Recorded that the last step is now one missing row in a vendor data table.
+
+## 2026-11-05 - the missing row has a one entry patch
+
+- Read the lookup loop instead of guessing at the table layout: eight entries, a hard bound, a fixed stride and pairs of application and surface id, all confirmed from the code.
+- So the fix is one entry rather than an extension, because the next bytes are already another string and appending would corrupt data. Repurposing the entry of an application that never launches is the minimal change, and which one that is can be decided by one grep rather than by preference.
+- Recorded that the proof is textual before it is visual: the surface id appearing for the home screen in the launcher log. Noted that the last blocker is now a specific integer at a specific offset with a documented patch and a named trade.

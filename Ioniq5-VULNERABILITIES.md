@@ -1927,6 +1927,9 @@ That is consistent with the upstream demonstration succeeding - their system ima
 guaranteed, and it is the cheapest thing to check on a rig: watch whether the install pass generates USB traffic at all. If it does not, shrink the payload or grow the pressure until it
 does.
 
+**And the cache problem has a practical answer: target the largest payload.** `HU/images/new_gui.tar.gz` is **2,091,925,601 bytes (1.95 GiB)**, which exceeds any plausible head-unit RAM, so
+its install pass must return to the medium regardless of cache policy - unlike the 879,109,759-byte `mango-rootfs.tar.gz`, which is at the edge of what a unit might keep resident.
+
 **Nothing here weakens the finding itself.** The verify-then-install structure and the two-read separation are measured in our own binary; what the cache does is decide how easily the
 second read can be made to differ, and that is a property of the payload and the RAM, not of the flaw.
 

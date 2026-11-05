@@ -35,6 +35,28 @@ the payload not fitting in RAM. If the file is still cached when the install pas
 
 **2. Update-path timing tolerance.** A 20–60 minute read is not a normal update. Any inactivity watchdog, progress timeout or user prompt in the flow will interrupt it. The upstream field journal is the place to look for how long the real flow tolerated; this repository does not know.
 
+### The payload sizes, from our own package, and why the biggest one is the target
+
+The manifest (`/HU/.lge.upgrade.xml`) and the payloads in our decrypted EU `260128` package give real numbers rather than a cited figure:
+
+| payload | bytes | GiB | Pi Zero HS (~25 MB/s) | ESP32-S3 FS (~0.8 MB/s) |
+| --- | --- | --- | --- | --- |
+| `HU/images/mango-rootfs.tar.gz` | 879,109,759 | 0.82 | 0.6 min/pass | **18 min/pass** |
+| `HU/images/new_gui.tar.gz` | 2,091,925,601 | 1.95 | 1.4 min/pass | **44 min/pass** |
+| `HU/images/update.tar.gz` | 42,101,042 | 0.04 | seconds | 0.9 min |
+| `HU/images/mango-rwdata.tar.gz` | 16,721,058 | 0.02 | seconds | 0.3 min |
+
+Two things follow.
+
+**The 879 MB figure in the upstream work is confirmed exactly** - `mango-rootfs.tar.gz` is 879,109,759 bytes - which is a useful independent check on their measurements.
+
+**And the cache problem has a practical answer: target the big one.** The page-cache risk is that a payload small enough to stay resident is never re-read from the device. `new_gui.tar.gz` is
+**2.09 GB**, which exceeds any plausible head-unit RAM (a Gen5W unit runs on roughly a gigabyte, and our projection boots comfortably in 2 GiB), so its install pass **must** come back to the
+medium. A crafted swap of that payload is therefore the version of this attack that does not depend on cache pressure at all.
+
+It also settles the board question in one line: **44 minutes per pass on an ESP32-S3 versus 1.4 minutes on a High-Speed gadget** for the same payload. The S3 is not disqualified, but nobody will
+iterate on a two-hour loop.
+
 ## Recommendation
 
 - **To reproduce or validate:** a **High-Speed** gadget board — Pi Zero (Linux `g_mass_storage`, two loop images, swap on phase) or any equivalent. Fast enough to iterate, and the phase logic lives on the host side where it is easy.

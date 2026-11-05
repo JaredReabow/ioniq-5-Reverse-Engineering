@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.17.0 - a cheaper experiment than the one the worker proposed
+
+The worker's stall hypothesis - `drm-backend` waiting for a vblank or page-flip that bochs KMS under TCG never delivers - is the right first suspect, and it is properly labelled a hypothesis.
+
+**But there is a second backend that ships and cannot fail that way.** `fbdev-backend.so` is in the vendor's own module set (348,776 bytes), and the same kernel that gives `card0` also gives:
+
+```
+[    0.566980] bochs-drm 0000:00:01.0: fb0: bochsdrmfb frame buffer device
+```
+
+**fbdev writes into a mapped framebuffer on a timer - no vblank wait, no page-flip, no atomic commit.** So the hypothesised mechanism **cannot occur on it**, which makes it a two-for-one:
+
+1. if weston serves a client on fbdev, the **application question** gets answered;
+2. if it does not, the stall is **not about vblank** - worth knowing *before* anyone traces ioctls.
+
+**And the check order is the lesson from two entries ago:** socket first, then application registration, then the error. An `invalid object` verdict on a backend that never served a client is not a verdict - that is precisely the mistake I made by reading a missing error out of a compositor that had never accepted a connection.
+
+Sent as a suggestion with the three checks named and the instruction that **a negative is a result**. I did not run it: the worker has the clone, the kernel and the wrapper, and duplicating a two-hour run to save a message would be the wrong trade.
+
 ## 5.16.9 - the README's VM story was missing the kernel it now runs on
 
 The README has said "vendor kernel" since the beginning. **That is no longer the whole truth**: the display work runs on a **rebuilt** 4.1.27 with `bochs-drm`, and a reader following the README would have built the shipped kernel and hit the dead end this project spent hours documenting.

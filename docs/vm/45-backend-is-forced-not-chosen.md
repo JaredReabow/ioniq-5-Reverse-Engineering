@@ -237,3 +237,28 @@ process truncated (rule 14) and the 30-second boot that could not reach userspac
 **Where that leaves the display ceiling:** the *device* half is done - `/dev/dri/card0` exists and the vendor's
 `drm-backend.so` accepts it. The *compositor* half is not: weston stalls before serving. The application question is
 therefore still open, and it is blocked on a stall rather than on hardware.
+
+## 9. A second backend with no page-flip path, and why that is the cheaper experiment
+
+The worker's stall hypothesis is that `drm-backend` waits for a vblank or page-flip event that **bochs KMS under QEMU TCG
+never delivers** - measurably consistent (`alive`, `wchan=hrtimer_nanosleep`, no socket) and explicitly labelled a
+hypothesis by the worker.
+
+**`fbdev-backend.so` ships in the same module set** (348,776 bytes) and the same kernel that provides `card0` also provides
+a framebuffer:
+
+```
+[    0.566980] bochs-drm 0000:00:01.0: fb0: bochsdrmfb frame buffer device
+```
+
+**fbdev writes into a mapped framebuffer on a timer - there is no vblank wait, no page-flip, no atomic commit** - so the
+hypothesised stall mechanism **cannot occur on it**. That makes it a two-for-one experiment:
+
+1. if weston serves a client on fbdev, the **application question** gets answered;
+2. and if it does not, the stall is **not about vblank**, which is worth knowing *before* anyone traces ioctls.
+
+**The order of checks matters and is the lesson of §8:** socket first, then application registration, then the error. An
+`invalid object` verdict on a backend that never served a client is not a verdict.
+
+**Status:** delegated as a suggestion with those three checks named; whether fbdev serves is the next measurement, and a
+negative is a result.

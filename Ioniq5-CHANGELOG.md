@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.3 - the duplicate instance was the cause, and both error families go to zero
+
+Killed every instance except the oldest and compared the counters.
+
+```
+M1_BEFORE=[2527 2460]                 two instances
+M1_KILLED=2460 kept=2527   (x6)       the kill did not take - same pid reappeared
+M1_AFTER=[2671]                       one instance
+M1_p1=129,844  M1_p2=129,844  pid=[2671]   stable across both captures
+M1_COUNTS  wlerr=[0]  commitfail=[0]
+```
+
+| counter | two instances | one |
+|---|---|---|
+| `invalid object` / Wayland fatal | 2-3 per run | **0** |
+| `DB UPDATE COMMIT FAIL` | 23 | **0** |
+
+**Confirmed: the duplicate process caused both.** Which means the two entries before this - the missing database directory, the empty `WidgetSettingFront` table - were **symptoms of two processes competing, not causes of anything.** Both remain true facts about the symptom, and neither explains the screen.
+
+**Two things this run did not achieve, and one hazard it exposed.** The application still is not painting - both captures are the **early background** - because the survivor was the *loser* of a race whose sibling I killed mid-flight. And **`busybox kill` did not remove the target**: the same pid was reported killed **six times** and kept running. I printed `M1_KILLED=2460` six times for a process that was alive - the same class of mistake as trusting a capture without looking at it. Future tests use `kill -9` and verify the process list, not the intent.
+
+**The next test is now clean:** `SIGKILL` both, confirm the list is empty, let the launcher start exactly one, then capture. If it paints with no errors, the projection has a steady state and the remaining question is the layout/power one; if it paints nothing, surface ownership is next - and for the first time in this stretch, there is a stable platform to ask from.
+
 ## 5.11.2 - two instances of the app run at once, and I have been reading past it for hours
 
 Tested the untried half of the interface - **emitting** `power_status` rather than calling `ask_power_status`:

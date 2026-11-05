@@ -5782,3 +5782,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Tested emitting the signal instead of calling the method. It changed nothing measurable, and the honest reading is that the emission did not reach the application rather than that the signal is irrelevant.
 - The pid columns showed something I had read past for hours: two instances of the application alive at the same time, from before anything of ours ran.
 - That single fact explains both the Wayland fatal error and the database commit failures without inventing anything, which means the last two entries were diagnosing symptoms of a duplicate process.
+
+## 2026-11-05 - the duplicate instance was the cause
+
+- Killed down to one instance and the two error families went to zero: no Wayland fatal errors and no database commit failures, where two instances had produced both.
+- That makes the last two entries symptoms of two processes competing rather than causes of anything, which is recorded rather than quietly dropped.
+- Also recorded that plain kill did not remove the process: I announced the same process id killed six times while it was still running, the same class of mistake as trusting a capture without looking at it.

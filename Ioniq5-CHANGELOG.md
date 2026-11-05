@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.13 - the front pages catch up with the FUMO analysis
+
+V-059 changed materially tonight - the check and the apply step are now located in FUMO's own code, and the apply stream has a measured rate limit - while the README's downgrade table and the
+state page still described it as "the updater verifies one read and installs a second". That was true and is now the vague version of a sharper sentence.
+
+Both updated:
+
+- the README row now names the two commands and the rate limit, so a reader sees the shape rather than a summary of it;
+- `CURRENT-STATE.md` gains a short §4b that states the finding in one paragraph, names where the full measurements live, and says plainly that **one question is open and needs a runtime
+  observation on a unit** rather than more static analysis.
+
+That is the fifth front-page catch-up tonight, and the trigger is the same every time: a finding got *more specific*, and specificity that stays in the register is specificity nobody acts on.
+
 ## 5.1.12 - what FUMO's apply stage is made of, and the one thing it still does not say
 
 Reading the strings that the apply site (`0x60f0b`) actually references names its components:

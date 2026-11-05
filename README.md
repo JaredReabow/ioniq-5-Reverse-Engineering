@@ -282,7 +282,7 @@ Short answer: **not through any menu, and not with a modified package — but ye
 
 | Route | Status |
 | --- | --- |
-| **USB update TOCTOU (V-059)** | **yes, and keyless**: the updater verifies one read of a file from removable media and installs a **second** read of the same file, so a genuine older package is installed after the version gate has been satisfied against the current bytes. No AES key, no RSA key, and anti-rollback does not apply to it |
+| **USB update TOCTOU (V-059)** | **yes, and keyless**: the updater the vehicle runs (FUMO) checks the payload with `md5sum`, then applies it in a **separate process** that opens it again — `DecryptToPIPE -d <src> <offset> 0 \| pv -q -L 8m \| dd of=<partition>`. A genuine older package is therefore installed after the version gate has been satisfied against the current bytes. No AES key, no RSA key, and anti-rollback does not apply. The apply stream is **rate-limited to 8 MB/s by its own command**, so a gadget never has to outrun that |
 | Engineering mode → **Force Update** | real facility — its own log line is `Force update !! Pass version compare.` — but gated by `[FORCE_UPDATE_FUCTION_ENABLE] DEV -> MP`, so **off on production builds** |
 | Engineering mode → **Previous Version** | a *view* of prior versions, not an installer |
 | FUMO **equal-version local relaunch** (`/update/usb/bin`, `force_launch=run`) | evidenced to **skip both verifier-result contracts**, but needs root write access to `/update` first |

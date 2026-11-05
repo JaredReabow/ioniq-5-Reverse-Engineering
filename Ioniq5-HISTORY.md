@@ -5434,3 +5434,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Named the components of the apply stage from the strings its code site references: the shipped decryptor, the key read at apply time, and a rate-limited write to a device.
 - The one thing it still does not decide is what the source argument points at - the removable medium or a local file staged first. One message hints a file is resized, which leans towards staging and against what the external project reports.
 - Recorded that as a hint rather than a measurement, and named the runtime observation that would settle it. Nothing in the strings will.
+
+## 2026-11-05 - the summary was the vague version of a sharper sentence
+
+- The leading finding got materially more specific tonight, and the front pages still described it in its earlier form. Updated both to name the two commands and the measured rate limit.
+- The state page now states the finding in one paragraph, points at the full measurements, and says plainly that the remaining question needs a runtime observation rather than more reading.
+- Fifth catch-up of the night, same trigger each time: specificity that stays in the register is specificity nobody acts on.

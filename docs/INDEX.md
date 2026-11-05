@@ -56,6 +56,7 @@ matter** unless you know what you are looking for.
 | --- | --- |
 | `evidence/serial-console/` | The raw bytes of the ttyS2 login prompt, and the recipe. |
 | `evidence/vehdata-ground-truth.md` | What Battery and Range read on a real IONIQ 5 (321 value pairs from 545 vehicle logs) - the standard any injection is judged against |
+| `docs/vehdata/03-can-shim-first-run.md` | The SocketCAN shim: the app's own `socket(PF_CAN)`/bind sequence intercepted, and why the visual result is still unmeasured |
 | `evidence/fde/` | The passphrase demonstration with its negative control. |
 | `docs/v059-command-substitution-filtering.md` | Whether the mount image path is filtered before it reaches a shell string - measured: it is not |
 | `docs/v059-producer-trace.md` | What feeds the substituted path: `QFileInfo::absoluteFilePath`, and `%1` in `cp -a %1 /app/bin/` is the payload's own binary |

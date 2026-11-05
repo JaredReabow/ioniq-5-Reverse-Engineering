@@ -1195,3 +1195,29 @@ much narrower miss than 3 ms against 10 s, and it means the fix has to be the *a
 **Eight steps demonstrated, the ninth blocked, and my last two candidate constants were both wrong** - the surface-id table was
 right, the app-load timer was not. The remaining work is to find the timer that emits that message at ~48 s, which is a
 matter of instrumenting `QTimer::start`/`setInterval` at run time rather than reading constants out of the binary.
+
+## 58. The next measurement is a logging shim, not a fourth guess
+
+The deadline fires at 48.4 s, which matches no immediate in the binary. So the question is not "which constant is it" but **"which timer
+is armed, and when"** - and that is answerable only by observing the running process.
+
+**The shim, specified:** intercept `QTimer::setInterval(int)`, `QTimer::start()` and `QTimer::start(int)`, and for each call write one
+line to `/dev/ttyS2` carrying the object pointer, the interval, and a timestamp. **`LD_PRELOAD` for the launcher only** - never
+process-wide, which is the mistake that cost a whole evening earlier.
+
+**And the three possible answers, each with its fix:**
+
+| observation | cause | where the fix goes |
+|---|---|---|
+| ~48,000 ms armed at process start | a fourth timer whose immediate I did not find | a new search for its patch site |
+| 60,000 ms armed ~11.6 s *before* the app started | armed by an earlier event - the group, or the previous app | why patching the per-app timer changed nothing |
+| 30,000 ms armed and re-armed repeatedly | reset by group progress | the group, not the app |
+
+## 59. The honest state, and a legitimate place to stop
+
+**My last two candidate constants were both wrong**: the surface-id table was right, the app-load timer was not. **Reading a constant
+out of a binary and reading the *effect* of that constant are different skills**, and this thread has now shown that twice in a row.
+
+**So the stopping rule is stated plainly:** eight steps demonstrated, the ninth blocked by a deadline whose firing point does not match
+any constant in the binary, with three plausible causes named and the instrument that would distinguish them specified. **That is a
+better ending than a fourth guess** - and it is the difference between a limitation and a mystery.

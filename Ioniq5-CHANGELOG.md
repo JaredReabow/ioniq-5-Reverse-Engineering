@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.4.3 - engineering mode cannot be entered from the touchscreen on this build, and the ranking was overstating it
+
+The QML enumeration left one possibility open: a handler in compiled code. Checking it the same way closes the question.
+
+**`AppHomeScreen` - the application that owns the settings and About screens - contains no engineering-mode entry point.** Its QML has no match for `engineer|engmode|secretMode|hidden|develop`, and
+its binary's only engineering-related strings are:
+
+```
+/app/data/AppEngineerMode/dynamicmenu        two data paths used BY the engineering application
+/app/data/AppEngineerMode/feedbackupdate
+virtual void AppHomeEngine::slotNotifyFactoryResetEngineerMode(int)     a factory-reset NOTIFICATION,
+virtual void AppEngineerBase::slotNotifyFactoryResetEngineerMode(int)   delivered while already inside
+```
+
+No "enter engineering mode" signal, slot or property exists anywhere in it. **So the About-screen tap is not a stock entry vector on this firmware** - excluded in the QML tree by enumeration and in
+the compiled interface by symbol inspection.
+
+**And that made the root-access ranking wrong.** It listed engineering mode as *"touch only, stock gesture + PIN"* - a no-privilege route - which is what the field reports and what this repository
+had inherited. The honest entry is: **not reachable by gesture; only via an app-manager request for app id 301, which needs a root process on the session bus, or a developer path.** Both require
+privilege first.
+
+`docs/root-access-paths.md` is corrected in place, with the old text kept below the correction rather than deleted, and `docs/engineering-mode/dev-mode.md` carries the full evidence.
+
+This is the answer to a question the user asked several times in the plainest possible terms - *does engineering mode offer a route in?* - and the answer on this build is **no, not from the
+screen.** It is also the second external claim tonight that this image refutes.
+
 ## 5.4.2 - the About gesture is absent from this build's QML, and that is now exhaustive rather than argued
 
 The external project's stock entry vector - tap the software version 5-10 times on **Settings -> General -> About** - has been an **inferred** assumption in this repository all session. Checking it

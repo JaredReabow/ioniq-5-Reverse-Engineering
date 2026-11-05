@@ -575,3 +575,27 @@ that tree are `5` (the lap timer) and `0` (an initialiser).**
 the one thing static analysis cannot exclude, and it is settled by a single observation on a unit or in the projection: tap the version string repeatedly and see whether anything reacts.
 
 So the stock vector narrows rather than closes: **the gesture as described on the sibling platform is absent**, and the remaining possibility is a C++-side equivalent elsewhere in the interface.
+
+## And the binary has no entry point either: the About gesture is excluded twice over (2026-11-05)
+
+The QML enumeration above left one possibility open - a handler in compiled code. That is now checked the same way.
+
+**`AppHomeScreen` contains no engineering-mode entry point:**
+
+```
+grep -rniE 'engineer|engmode|secretMode|hidden|develop' app/share/AppHomeScreen/qml_new2.0/   -> no matches
+strings app/bin/AppHomeScreen | grep -aiE 'engineer|secret|devmode|develop'                   ->
+    /app/data/AppEngineerMode/dynamicmenu
+    /app/data/AppEngineerMode/feedbackupdate
+    virtual void AppHomeEngine::slotNotifyFactoryResetEngineerMode(int)
+    virtual void AppEngineBase::slotNotifyFactoryResetEngineerMode(int)
+```
+
+The only engineering-related symbols are two **data paths** used by the engineering application itself, and a **notification slot** for a factory reset *while already in engineering mode*. There is
+no "enter engineering mode" signal, slot, or property anywhere in the application that owns the settings and About screens.
+
+**So on this build engineering mode cannot be entered from the touchscreen at all.** The gesture reported for a sibling platform is absent from both the QML and the compiled interface. The routes
+that do exist are the ones this project has measured: an app-manager launch request for app id 301 pointing at a binary (as root, from the session bus), or the developer-path container.
+
+This is the firmest negative in the engineering-mode section, and it is worth stating plainly because it is the opposite of what the field assumes: **the widely reported About-screen tap is not a
+stock entry vector on this firmware.**

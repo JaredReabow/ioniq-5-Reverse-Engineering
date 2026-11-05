@@ -13,7 +13,7 @@ Nothing here has been tried on a vehicle. Each row cites the evidence that exist
 | --- | --- | --- | --- | --- |
 | 0 | **USB update TOCTOU (V-059)** | a programmable USB stick. For a **downgrade: nothing else**; for arbitrary content also the unit's TE2 key | installing content that was never verified; **a genuine older image installs with no key and without anti-rollback applying** | **corroborated statically**; not reproduced here |
 | 1 | **Serial console (`ttyS2`)** | physical access to UART pads + the root password | a root login prompt | **prompt captured**, password uncracked |
-| 2 | **Engineering mode** | touch only, stock gesture + PIN | diagnostic menus | launcher path measured; **no shell found on this build** |
+| 2 | **Engineering mode** | **not reachable by gesture on this build** - see below; only via an app-manager request for app id 301 (root, session bus) or a developer path | diagnostic menus | gesture **excluded by enumeration** in QML and in the binary |
 | 3 | **A write to `/tmp`** | *any* code execution, any user | root, via three separate anchors | mechanisms demonstrated; **no non-root writer exists here** |
 | 4 | **`request.launch` from the bus** | root already (bus is root-only) | arbitrary binary as root, re-launched | **executed as uid 0** |
 | 5 | **Removable-media kernel drivers** | a USB stick | potential ring-0 parsing | **20 crafted images, no fault** |
@@ -37,9 +37,16 @@ side of the port: `OpenEmbedded 1.0 (none) ttyS2` then `(none) login:` (`../evid
 
 **Cheapest next step.** An offline dictionary/GPU attack on that hash. Because the salt is shared, it is a *fleet* attack, not a per-unit one.
 
-## 2. Engineering mode — reachable by touch, and that is where it stops
+## 2. Engineering mode — **not reachable by the reported gesture on this build**
 
-**What it needs.** The stock About-screen gesture and a PIN. No cable, no privilege.
+**Correction (2026-11-05).** The About-screen tap that the field describes is **absent from this firmware**, checked twice: every tap counter in the shipped QML tree was enumerated (three exist,
+none near About), and `AppHomeScreen` - the application that owns the settings and About screens - contains **no engineering-mode entry point at all**, only two data paths used by the engineering
+application and a slot for a factory reset *while already inside* it.
+
+**What entering it actually needs on this build:** an app-manager launch request for **app id 301** naming a binary - which requires a **root** process on the session bus - or the
+developer-path container. Neither is a no-privilege route.
+
+**What it needs (as previously written).** The stock About-screen gesture and a PIN. No cable, no privilege.
 
 **What is established.** The launcher will run `AppEngineerMode` as **root** (`appId 301` from `/tmp/app/bin`), the PIN gate runs (`getEnterPasswordCnt`), and the app's window
 is created — it just never attaches a buffer, because its main thread never enters the Qt event loop on this path (`vm/authentic-hmi-apps.md` §7c).

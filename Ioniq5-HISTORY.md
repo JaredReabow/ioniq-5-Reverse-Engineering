@@ -5482,3 +5482,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Enumerated every tap counter in the shipped QML instead of guessing at a screen: three exist, all accounted for, and none is anywhere near About or a version string.
 - So the stock entry vector as described on a sibling platform is absent here. That is stronger than a failed search because the tree was searched by pattern rather than sampled by hand.
 - What remains possible is a handler in compiled code, which one observation settles and no amount of reading will. Redirected the worker accordingly.
+
+## 2026-11-05 - engineering mode cannot be reached from the screen
+
+- Checked the compiled interface after the QML enumeration: the application that owns the settings and About screens has no engineering entry point at all, only data paths used by the engineering app itself and a factory-reset notification delivered while already inside it.
+- So the About tap everyone describes is not a stock entry vector on this firmware, and the ranking that called engineering mode a no-privilege route was overstating it. Corrected in place.
+- Second external claim tonight that this image refutes, and the plainest answer yet to a question asked several times: no, not from the screen.

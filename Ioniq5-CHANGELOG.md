@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.16.3 - V-074: the VIN is persisted in logs and handed to the voice backend
+
+Swept the layer nobody had: **what the platform writes to persistent storage**. The vehicle's own DLT dump answers it for one identifier:
+
+```
+[VH_VoiceHandler::sendServerInfoVin(6165)]  [VH -> SDS] VIN KMHCX5LD3HT713710
+```
+
+78 occurrences across the sampled files, on `/log_data` - a **writable partition that survives reboot** and is exported by the offline-trace mechanism.
+
+**Two different problems in one line:**
+
+1. **The VIN persists** in logs that travel with any dump, service ticket or returned unit.
+2. **`sendServerInfoVin` says it is sent to `SDS`** - the speech service, network-backed on this platform. The `[VH -> SDS]` marker is a direction annotation, so the *code intends a transfer*; **the transfer itself is not observed here**.
+
+### And what I rejected, which is the more useful half
+
+The loose sweep suggested **695 password mentions, 24,076 `SSID`/`psk` hits, 75,572 coordinate-like hits and 30,745 phone numbers**. Sampled:
+
+- the password hits include **`###Title : Kia Engineering Mode password for August 2024 EU Maps…`** - a **forum post captured inside the dump**, not the vehicle's logging;
+- the coordinate pattern matched substrings like *"related"*;
+- `token`/`secret` matched a filename inside an open error.
+
+**Only the VIN survived sampling.** That is the difference between a grep and a finding - and it is the same discipline that turned four "assumed" replies into evidence two turns ago, and three "missing" resources back into the repository.
+
+### Why it belongs in a security register at all
+
+Not because it can be exploited. Because a security review of a connected vehicle has to answer **"what leaves the unit, and what persists"** - and this is a measured answer for one identifier: **the VIN leaves twice, and the driver is told neither time.**
+
 ## 5.16.2 - the ceiling is lifted, and I nearly destroyed the state page proving it
 
 **The measurement:** the delegated boot lists `/dev/dri` on the rebuilt kernel:

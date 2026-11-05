@@ -405,6 +405,7 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | 21 one tmp marker enables the root console and SSH, created every boot | V-071 |
 | 22 an enabled mDNS responder runs as root with no sandboxing | V-072 |
 | 23 an unauthenticated TCP-to-serial bridge on port 9997 | V-073 |
+| 24 the VIN is persisted in logs and handed to the voice backend | V-074 |
 
 ## What is not claimed
 
@@ -417,6 +418,25 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 Six of these findings are one mistake: **a security decision resolved from state the threat model treats as untrusted** — a key in `/tmp`, a writable kernel
 parameter, a filesystem probe, a literal passphrase, a symlinked account database, a symlinked compositor config. Move those decisions onto read-only or
 hardware-backed state, and make every one of them **fail closed**.
+
+### 24. The VIN is persisted in logs and handed to the voice backend
+
+**Evidence.** In the vehicle's own DLT dump:
+`[VH_VoiceHandler::sendServerInfoVin(6165)]  [VH -> SDS] VIN KMHCX5LD3HT013710`, with the identifier appearing 78 times.
+The logs live on `/log_data`, a persistent writable partition, and are exported by the offline-trace mechanism.
+
+**Exposes.** The vehicle identity survives reboot on a writable partition and travels with any dump, service ticket or
+returned unit; and the function name plus the `[VH -> SDS]` marker indicate the VIN is also sent toward the speech
+backend - **not observed on a wire here**. Neither path is disclosed to the driver.
+
+**Fix.** Log a hash or session id instead of the VIN unless a diagnostic build asks otherwise; treat `/log_data` as part of
+the data-retention story; make any VIN in the voice session conditional on the feature and disclose it.
+
+**Verify.** `grep -a 'VIN ' /log_data/dlt/*.dlt | head` on a unit proves persistence; capturing an assistant session would
+prove transmission.
+
+**Sampling note.** A loose sweep produced thousands of password, SSID, coordinate and phone-number hits; **all were noise or
+imported forum text**, and only the VIN survived sampling. Recorded so nobody re-derives it.
 
 ## Why the tiers were rebuilt (2026-11-05)
 

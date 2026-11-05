@@ -6088,3 +6088,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The delegated boot lists the drm device node, a control node and a framebuffer on a kernel that reaches multi-user with the vehicle's own rootfs. That makes the forced-backend conclusion false for this project, though it was true of the shipped kernel.
 - Nearly lost the state page doing it: I sliced a section between two markers assuming their order, the slice came back empty, and replacing an empty string inserted the new text between every character, turning twenty-eight kilobytes into thirty-three megabytes.
 - What caught it was a count that should have been one and came back in the thousands. Restored from the last commit and redid the edit with three assertions, and wrote the rule: assert the region, check the size afterwards, and keep the file restorable.
+
+## 2026-11-05 - the vehicle identification number persists in logs
+
+- Swept what the platform writes to persistent storage, using the vehicle's own log dump. The identification number is logged by the voice handler, on a writable partition that survives reboot and gets exported off the unit.
+- The same function name and direction marker indicate it is also sent toward the speech backend, which is inferred rather than observed, and that distinction is written down.
+- Rejected most of the sweep: the password, network name, coordinate and phone number counts were noise or forum text captured inside the dump, and only the identification number survived sampling. That difference between a grep and a finding is the half worth keeping.

@@ -2729,6 +2729,61 @@ listeners".
 
 ---
 
+## V-074 - the VIN is written to persistent logs and handed to the voice backend
+
+**Status:** the log line is **measured** in the vehicle's own DLT dump; the transmission is **inferred from the function
+name and direction marker**, not captured on a wire. Class: data exposure / privacy (not an exploit).
+
+### Measured
+
+From the upstream dump (`evidence/upstream/Ioniq5_Gen5W_Log_Dump`, 545 files), with the context intact:
+
+```
+[VH_VoiceHandler::sendServerInfoVin(6165)]  [VH -> SDS] VIN KMHCX5LD3HT013710
+```
+
+and the bare identifier appears **78 times** across the sampled files.
+
+Two things follow, and they are different problems:
+
+1. **The VIN is persisted in DLT logs.** Those logs live on `/log_data` - a **writable partition that survives reboot**
+   (V-065's neighbours) - and are exported off the unit by the offline trace mechanism. Any dump of that partition, any
+   service ticket, any returned unit carries the vehicle identity.
+2. **`sendServerInfoVin` says the VIN is sent to `SDS`** - the speech/dialog service, which on this platform is a
+   network-backed assistant. The `[VH -> SDS]` marker is a direction annotation, so the code intends a transfer. **That
+   transfer is not observed here**; it requires a live SDS session.
+
+### Why it belongs in a security register
+
+Not because it can be exploited. Because a security review of a connected vehicle has to answer **"what leaves the unit
+and what persists"**, and this is a measured answer for one identifier: **the VIN leaves twice** - once into local logs that
+outlive the trip, once toward a voice backend, and the driver is not told either way.
+
+### What I checked and rejected, recorded so it is not re-derived
+
+A loose sweep suggested 695 password mentions, 24,076 `SSID`/`psk` hits, 75,572 coordinate-like hits and 30,745 phone
+numbers. **Sampled, they were noise or imported text:**
+
+- the password hits include **`###Title : Kia Engineering Mode password for August 2024 EU Maps...`** - a *forum post*
+  captured inside the dump, not the vehicle's own logging;
+- the coordinate pattern matched substrings such as *"related"*;
+- the `token`/`secret` hits were a filename (`google...`) inside an open error.
+
+**Only the VIN survived sampling.** That is the difference between a grep and a finding.
+
+### Fix
+
+- Stop logging the VIN at `[VH -> SDS]`: log a hash of it, or a session id, unless a diagnostic build asks otherwise.
+- Include `/log_data` in the data-retention story: it is a persistent partition holding vehicle identity.
+- If the voice backend needs the VIN, say so in the privacy notice and make it conditional on the feature being enabled.
+
+### Verify
+
+On a unit: `grep -a 'VIN ' /log_data/dlt/*.dlt | head`, and with the assistant active, capture the outbound session to see
+whether the identifier is in it. The first command proves persistence; the second would prove transmission.
+
+---
+
 ## V-073 - an unauthenticated TCP-to-serial bridge ships in two applications
 
 **Status:** the command strings are **measured verbatim** in the shipped binaries; the code paths that run them are **not

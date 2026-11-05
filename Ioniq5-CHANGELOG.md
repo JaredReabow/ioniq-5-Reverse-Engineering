@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.3.2 - testing the reproducible claim found a silent failure in my own tool
+
+"The image is reproducible" is a claim like any other, so I tested it against a clone that did not have the injects. The script **reported `MISSING` for every file and then exited 0.**
+
+Two faults, both mine:
+
+1. **The stage directory and the image path were resolved against different `cd`s.** My parameterisation made `$STAGE` absolute but the write step still composed the image path relative to
+   the stage directory, so debugfs was pointed at a file that did not exist. The verify loop then dutifully reported `MISSING` for every path - and the script carried on to "sync", writing
+   zero chunks and refreshing a hash. **A failure that reports itself and then succeeds is worse than one that stops.**
+2. **The extra partition image was absent entirely.** My test cloned `vkernel`, which has never been through `build-partitioned-image.py`, so `partimg-build/p5.img` did not exist. That is my
+   test's fault rather than the script's, but it exposed the first fault.
+
+Both fixed. `IMG` is now absolute and the write step uses it; and the script has **preconditions that exit 2** with instructions - naming the build command for a missing image, and pointing
+at `docs/vm/reproducing-the-authentic-image.md` for a missing staged file.
+
+Verified after the fix:
+
+- **bad base → `exit 2`** with `ERROR: no partition image at …`, before touching anything;
+- **already-injected workspace → `exit 0`** with `0 MISSING`, `0 changed chunk(s)` - i.e. the script is **idempotent**, which is what a re-run of a documented procedure should be.
+
+What is *not* verified: a full from-scratch build (partitioned image → inject → boot → painted frame), because `build-partitioned-image.py` writes a 36 GiB image and takes tens of minutes.
+The preconditions and idempotency are measured; the end-to-end run is stated as outstanding rather than implied.
+
 ## 5.3.1 - the working image is reproducible from the repository, which it was not two hours ago
 
 Every part of the authentic-path result lived in ignored `work/` directories: the injection script, the staged files, and the knowledge of which surface is the application's. If the machine

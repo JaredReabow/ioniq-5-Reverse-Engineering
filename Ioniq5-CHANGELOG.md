@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.4.0 - the stock gesture is now worth trying, because the interface behind it finally renders and takes clicks
+
+Every entry about engineering mode until now has carried the same caveat: the About-screen tap gesture was **inferred from a sibling platform**, never observed on this build, and the interface it
+would be performed on did not render or accept input in the projection. As of tonight both of those are false - the managed `AppHomeScreen` paints the vendor interface
+(`docs/vm/32-managed-home-screen-kia-logo-authentic-2026-11-05.png`) and a synthetic click reaches a real client at `pid=797 uid=0`.
+
+So the gesture is now testable, and it is delegated to a worker with its own clone (`work/vm/gesture`) and one instruction that matters more than the rest: **look at each frame before choosing the
+next click.** This project has burned many runs guessing coordinates blind, and the failure mode is indistinguishable from "the gesture does nothing".
+
+What the worker is asked to produce, either way:
+
+- the **click sequence** and a capture at each step, so the navigation is reproducible rather than narrated;
+- whether an About / software-version screen exists on this build at all;
+- whether **5-10 rapid taps** on the version string produce a keypad, start `AppEngineerMode`, or nothing.
+
+**A null result is a real result here.** If the gesture does nothing, that upgrades the standing caveat from "inferred from a sibling platform, never checked" to "checked on this build and absent or
+gated", which is the difference between an assumption and a finding - and it would be the fourth time tonight that looking produced the opposite of what was expected.
+
 ## 5.3.5 - the newest correction becomes a rule, because it is about the checks themselves
 
 Tonight's last fault was not a measurement or an inference but a **verification step that ran, produced the answer, and was ignored**: a scripted insertion matched nothing, printed success, and the

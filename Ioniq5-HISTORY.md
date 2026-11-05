@@ -5692,3 +5692,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Checked where the string in the title bar actually comes from and found it in exactly one application, the camera one, in fifty-four files. The home screen's own strings are present in all of its translation files, so its translations were never missing.
 - The black region is a camera preview with nothing attached, not missing theme images. Corrected the claim in place rather than quietly.
 - Noted why the captures could not have told me: every surface returned the same size, so the ids identified nothing and the compositor log is what has to be read.
+
+## 2026-11-05 - screenshooter was never capturing a surface
+
+- Pulled the compositor log off the guest and read it. It dates every surface and shows three applications running at once, which explains why a window I analysed belonged to the camera app.
+- It also shows the capture tool composites the entire output regardless of which surface was placed first, so a method used for days was never doing what its name suggested, and a rule about which surface to avoid was wrong in its premise.
+- Found the compositor respawning a keyboard binary that does not exist, which burns CPU and perturbs timing measurements.

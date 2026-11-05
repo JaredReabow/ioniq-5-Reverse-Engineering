@@ -59,6 +59,7 @@ matter** unless you know what you are looking for.
 | `docs/vehdata/03-can-shim-first-run.md` | The SocketCAN shim: the app's own `socket(PF_CAN)`/bind sequence intercepted, and why the visual result is still unmeasured |
 | `docs/vehdata/04-capture-channel-and-light-frame.md` | Getting frames off the guest losslessly (and the `\n`->`\r\n` trap), plus what the first real frames show |
 | `docs/vehdata/05-day-shell-untranslated-and-black-region.md` | The settled frame: untranslated `STR_` keys and a black region, i.e. an unloaded resource model rather than missing CAN data |
+| `docs/vehdata/06-surface-identity-and-why-captures-looked-identical.md` | Surface identity from the compositor log: why every capture had the same size, and what that retires |
 | `evidence/fde/` | The passphrase demonstration with its negative control. |
 | `docs/v059-command-substitution-filtering.md` | Whether the mount image path is filtered before it reaches a shell string - measured: it is not |
 | `docs/v059-producer-trace.md` | What feeds the substituted path: `QFileInfo::absoluteFilePath`, and `%1` in `cp -a %1 /app/bin/` is the payload's own binary |

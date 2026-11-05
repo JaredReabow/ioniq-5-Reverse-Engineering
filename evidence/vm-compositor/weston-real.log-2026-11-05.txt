@@ -1,0 +1,68 @@
+Date: 1970-01-01 UTC
+[00:00:04.874] weston 1.10.0
+               http://wayland.freedesktop.org
+               Bug reports to: https://bugs.freedesktop.org/enter_bug.cgi?product=Wayland&component=weston&version=1.10.0
+               Build: unknown (not built from git or tarball)
+[00:00:04.901] OS: Linux, 4.1.27-abl, #1 SMP Wed Jan 28 16:00:10 KST 2026, x86_64
+[00:00:04.907] Using config file '/etc/xdg/weston/weston.ini'
+[00:00:04.910] Output repaint window is 7 ms maximum.
+[00:00:04.913] Loading module '/usr/lib/weston/headless-backend.so'
+[00:00:05.118] Compositor capabilities:
+               arbitrary surface rotation: yes
+               screen capture uses y-flip: yes
+               presentation clock: CLOCK_MONOTONIC_RAW, id 4
+[00:00:05.152] Loading module '/usr/lib/weston/ivi-shell.so'
+[00:00:05.167] launching '/usr/libexec/weston-keyboard'
+[00:00:05.214] Loading module '/usr/lib/weston/ivi-window-manager.so'
+[00:00:05.225] compositor: executing '/usr/libexec/weston-keyboard' failed: No such file or directory
+[00:00:05.443] Loading module '/usr/lib/weston/ivi-controller.so'
+[00:00:05.551] ivi-controller: No ivi-input-module set
+[00:00:05.555] Loading module '/weston-vm-input.so'
+VM_INPUT_READY
+[00:00:05.559] launching '/usr/bin/early-background'
+[00:00:05.563] input_method disconnected, respawning...
+[00:00:05.563] launching '/usr/libexec/weston-keyboard'
+[00:00:05.566] /usr/libexec/weston-keyboard exited with status 255
+[00:00:05.574] compositor: executing '/usr/libexec/weston-keyboard' failed: No such file or directory
+[00:00:05.587] input_method disconnected, respawning...
+[00:00:05.587] launching '/usr/libexec/weston-keyboard'
+[00:00:05.600] /usr/libexec/weston-keyboard exited with status 255
+[00:00:05.603] compositor: executing '/usr/libexec/weston-keyboard' failed: No such file or directory
+[00:00:05.614] input_method disconnected, respawning...
+[00:00:05.614] launching '/usr/libexec/weston-keyboard'
+[00:00:05.636] [00:00:05.636] compositor: executing '/usr/libexec/weston-keyboard' failed: No such file or directory
+/usr/libexec/weston-keyboard exited with status 255
+[00:00:05.644] input_method disconnected, respawning...
+[00:00:05.645] launching '/usr/libexec/weston-keyboard'
+[00:00:05.651] [00:00:05.651] /usr/libexec/weston-keyboard exited with status 255
+compositor: executing '/usr/libexec/weston-keyboard' failed: No such file or directory
+[00:00:05.653] input_method disconnected, respawning...
+[00:00:05.653] launching '/usr/libexec/weston-keyboard'
+[00:00:05.678] compositor: executing '/usr/libexec/weston-keyboard' failed: No such file or directory
+[00:00:05.735] /usr/libexec/weston-keyboard exited with status 255
+[00:00:05.754] /usr/libexec/weston-keyboard exited with status 255
+[00:00:05.775] input_method disconnected, giving up.
+Not found rear background image
+cairo_surface: 0xb524df1800
+[00:00:06.351] Surface id(30000), Weston surface W(1920), H(720)
+[00:01:55.273] Surface id(2080), Weston surface W(1926), H(753)
+[00:02:39.946] Surface id(1000), Weston surface W(1926), H(123)
+[00:02:42.329] Surface id(1001), Weston surface W(1926), H(108)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:02:57.560] Buffer Sharing Request bind: version(1)
+[00:03:04.524] Surface id(1006), Weston surface W(1926), H(753)
+[00:03:16.945] Surface id(1007), Weston surface W(1926), H(753)
+[00:03:17.118] Surface id(1004), Weston surface W(1926), H(753)

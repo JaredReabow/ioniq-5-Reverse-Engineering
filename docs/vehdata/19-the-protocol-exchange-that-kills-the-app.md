@@ -174,3 +174,49 @@ it received, sent to whoever was still holding a surface id from the earlier act
 
 **Established by measurement:** the start-up client is not the application; the application's error is at minimum
 partly a consequence of earlier surface activity by something else.
+
+---
+
+## 9. When the startup client connects, from the compositor's clock
+
+The compositor log's first lines carry an uptime clock, which lets the bind be placed in time:
+
+```
+line 30  [  6307.277]  -> wl_display@1.get_registry(new id wl_registry@2)     a client connects
+line 34  [  6330.510] wl_display@1.get_registry(new id wl_registry@2)         another connects
+line 35  [  6331.875]  -> wl_registry@2.global(12, "ivi_application", 1)
+line 37  [  6332.538]  -> wl_registry@2.global(13, "ivi_window_manager", 1)
+line 42  [  6332.704]  -> wl_registry@2.global(17, "ivi_controller", 1)
+line 43  [  6332.746]  -> wl_registry@2.global(18, "weston_screenshooter", 1)
+```
+
+**The client that enumerates the globals - including `ivi_window_manager` and `ivi_controller` - connects at about
+6.3 seconds of compositor uptime**, minutes before any application. And the compositor's own launch lines in that
+window name only two things:
+
+```
+[00:00:05.389] launching '/usr/libexec/weston-keyboard'      (fails, respawns forever)
+[00:00:05.770] launching '/usr/bin/early-background'         (the splash surface)
+```
+
+**So the startup client is one of those two**, or a client the compositor started without logging. `early-background`
+is the only launched client that survives, and it is the one holding a surface at the moment the environment is
+established.
+
+## 10. Why this matters for the application
+
+The application arrives ~108 seconds later and binds its own objects into a namespace that already contains
+`ivi_controller_surface` objects created by that startup client. **An `invalid object 19` delivered to the
+application minutes later is what a stale id looks like from the receiving side.** That is consistent with
+everything measured: the app survives, its `wl_display` dies, and the compositor reports an object it does not
+know.
+
+## 11. The one measurement left in this thread
+
+**Snapshot the process table at ~8 seconds of compositor uptime** - our probe can simply `sleep 8; pidof` a list
+of candidates and print them. That names the client by elimination, without instrumenting anything, and it is one
+short run.
+
+If `early-background` is the owner, the honest conclusion for the VM goal is that **this projection's own splash
+client is creating an ivi surface that later breaks the application's connection** - which would be a defect in
+the projection, not the vendor, and the fix would be in the splash replacement this project wrote.

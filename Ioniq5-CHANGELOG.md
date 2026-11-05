@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.11 - the startup client connects at six seconds, and the candidates are two
+
+The compositor log carries an uptime clock, which places the bind in time:
+
+```
+[  6307.277]  -> wl_display@1.get_registry(...)          a client connects at ~6.3 s
+[  6332.538]  -> wl_registry@2.global(13, "ivi_window_manager", 1)
+[  6332.704]  -> wl_registry@2.global(17, "ivi_controller", 1)
+```
+
+**The client that enumerates the globals connects at about six seconds of compositor uptime** - minutes before any application. And the compositor's own launch lines in that window name exactly two things:
+
+```
+[00:00:05.389] launching '/usr/libexec/weston-keyboard'    (fails, respawns forever)
+[00:00:05.770] launching '/usr/bin/early-background'       (the splash surface)
+```
+
+**So the startup client is one of those two, or something the compositor started without logging.** `early-background` is the only launched client that survives, and it is the one holding a surface while the namespace is established.
+
+### Why that would explain everything
+
+The application arrives ~108 s later and binds its objects into a namespace that **already contains `ivi_controller_surface` objects created by that startup client.** An `invalid object 19` delivered to the application minutes later is exactly what a **stale id looks like from the receiving side** - consistent with the app surviving while its `wl_display` dies.
+
+### The one measurement left, and its implication
+
+**Snapshot the process table at ~8 s of uptime.** That names the client by elimination, with no instrument, in one short run.
+
+**And if it turns out to be `early-background`, the conclusion is important for how this project talks about the VM**: the splash client **this projection wrote** would be the thing creating an ivi surface that later breaks the application - a defect in the projection, not the vendor. That is a very different sentence from "the vendor UI does not render", and it is the kind of sentence a record like this exists to get right.
+
 ## 5.11.10 - the ordering test settles it: a startup client, not the application
 
 Compared **line numbers** in the compositor log - append-only, so line order is time order - against a marker taken the instant the application first appeared:

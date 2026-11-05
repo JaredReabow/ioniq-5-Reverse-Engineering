@@ -5962,3 +5962,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Refreshed the ranked route table, which predated five of today's findings. Two routes moved to the top, and the cheapest is no longer the one that needs programmable hardware.
 - Added the sentence the ranking needed: because nearly every service runs as root, a file write is not a high bar but the ambient condition, so the cheapest routes are persistence and pivot options for someone who already has root.
 - Kept each entry's unproven parts visible in the status column, since a ranking that hides them is a ranking someone acts on wrongly. The old table told a reader the cheapest path needed hardware, which is a different risk conversation and a different fix.
+
+## 2026-11-05 - the entry documents were quoting old numbers
+
+- Found the readme and the state page both stale by ten register entries and eight fix items, and the readme still naming the old strongest finding.
+- Rewrote both around the three entries that set the frame now: the service hardening count that explains why the others are severe, the writable certificate authority that is the cheapest path, and the shipped ssh key. Kept the two refutations beside them so nobody chases what was already disproved.
+- Noted honestly that this is the third time the record lagged the work in one session, and that the checks cannot catch a document that is internally consistent but out of date.

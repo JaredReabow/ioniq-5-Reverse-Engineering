@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.14.1 - the two entry documents were quoting 60 entries and 12 fixes; it is 70 and 20
+
+The README's goal-2 paragraph and the state page's register block were both **stale by ten entries and eight fix items**, and the README still named **V-059 as the strongest finding**. That was true when it was written and is no longer the most useful thing to read first.
+
+**Rewritten around what actually sets the frame now:**
+
+| entry | why it leads |
+|---|---|
+| **V-064** | 106 of 107 services run as root with no hardening - **the reason every other finding is severe**, and why "root-only bus" is not a boundary |
+| **V-069** | the navi CA group-writable on a read-write partition - **the cheapest path, and it needs no hardware** |
+| **V-067** | a static root SSH key ships, blocked only by a missing daemon binary and a `/tmp` marker |
+| **V-059** | still the strongest **demonstrated** mechanism - the keyless downgrade |
+| **V-070** | persistence: a script path on a persistent partition, referenced by the manufacturing app |
+
+And I kept the two **refutations** in the same paragraph, because a reader who skips them will chase a crafted USB filename and an About-screen gesture that this build does not have.
+
+**The state page** now carries the same three-entry frame and points at `docs/root-access-paths.md` for the ranking instead of reproducing a table that goes stale.
+
+### The honest note on why this keeps happening
+
+This is the third time in this session that the *record* lagged the *work*, and each time the fix was the same: read the page before adding to it. The checks catch broken links, register gaps and forward references - they cannot catch a document that is internally consistent and factually a week out of date. **That one is on me, not the tooling.**
+
 ## 5.14.0 - the root-access ranking was five findings out of date
 
 The ranked route table was written before V-064, V-065, V-067, V-069 and V-070 existed. Refreshed, and **two routes moved to the top**:

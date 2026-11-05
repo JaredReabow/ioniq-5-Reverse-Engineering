@@ -294,7 +294,16 @@ Everything else on the boot path is shipped software: kernel, `esinit`, eMMC rec
 
 ## 4. Root access — the register
 
-**Thirteen relevant entries**, and the count keeps moving - the authoritative list is `Ioniq5-VULNERABILITIES.md` (60 entries) with a fix-cost mapping in `docs/REMEDIATION-REPORT.md`. one is hardware-bounded.
+**The authoritative list is `Ioniq5-VULNERABILITIES.md` - 70 entries, 20 fix items**, cross-referenced in
+`docs/REMEDIATION-REPORT.md`. The three that set the frame:
+
+| entry | why it matters |
+|---|---|
+| **V-064** | 106 of 107 services run as root with no systemd hardening - the reason "root-only bus" is not a boundary |
+| **V-069** | the navi update root CA is group-writable on a read-write partition - the cheapest path, no hardware |
+| **V-067** | a static root SSH key ships, blocked only by a missing daemon binary and a `/tmp` marker |
+
+Ranked route table: `docs/root-access-paths.md` (route 0 is V-069).**Thirteen relevant entries**, and the count keeps moving - the authoritative list is `Ioniq5-VULNERABILITIES.md` (60 entries) with a fix-cost mapping in `docs/REMEDIATION-REPORT.md`. one is hardware-bounded.
 
 | # | Finding | State |
 | --- | --- | --- |

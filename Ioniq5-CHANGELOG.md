@@ -3,6 +3,21 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.9 - the "if you have one hour" list was stale, and had me repeating closed work
+
+The actionable section of the state page still recommended the SPI-gate measurement (closed) and **the About-screen gesture** (refuted: absent in code). A list like that costs the next person an hour re-deciding what is already decided.
+
+**Replaced with a ranked list - by what it would settle, not by what is easiest:**
+
+1. the argument document, because six of thirteen fixes are one idea
+2. **the last VM measurement: the widget values**, judged against the real-vehicle standard (65 % reads 287 km; 0 with 0 is not success)
+3. **the last engineering-mode measurement: which precondition is false** - instrument `ask(301)` and `ask(71)` rather than trying more payloads, which are decoded and delivered
+4. on a unit, whether the special-key route works with a **real MICOM**, which is what bounds V-060's practical severity
+
+**And a "what not to spend time on" table**, because every entry in it cost me real time today: the About tap (absent in code), the one-byte `SOPVersion` patch (withdrawn - wrong site), the crafted-filename route (refuted - staging renames), and `show_engineermode` (inert twice).
+
+Also re-untracked `tools/uk_fw/guest/eng-data-sim`; it had reappeared in the index at HEAD after the earlier removal, so a background worker's git operation must have restored it. The rule stands: the rebuilt binary embeds host build paths and is regenerated, so it does not belong in the repository.
+
 ## 5.9.8 - the state page contradicted itself, and now it does not
 
 The page meant to be read first was arguing with itself: section 0 announced that the home screen lays out, and a later section was still titled *"the one call that should fix it"* with a **"Not yet demonstrated"** paragraph. Both cannot be true, and the stale one was mine.

@@ -254,7 +254,24 @@ Recorded because the corrections are part of the value:
 
 ## 6. If you have one hour
 
-1. Read `docs/trust-anchors-in-writable-runtime-paths.md` — it is the argument, not the inventory.
-2. Run the one measurement in `docs/vm/spi-gate.md` to close the init-fidelity question.
-3. On a unit: engineering mode (About-screen gesture, PIN) and record whether `Force Update` / `Encryption Update` appear — that is the only
-   no-privilege vector and it is still unconfirmed on hardware.
+Ranked by what it would settle, not by what is easiest.
+
+1. **Read `docs/trust-anchors-in-writable-runtime-paths.md`** - it is the argument, not the inventory,
+   and it covers six of the thirteen fixes in one idea.
+2. **The last VM measurement: the widget values.** Inject a value and judge it against
+   `evidence/vehdata-ground-truth.md` - 65 % reads 287 km on a real car, ~4.4 km per percentage point,
+   and **0 % with 0 km is the pre-data state, not success**.
+3. **The last engineering-mode measurement: which precondition is false.** The payload is decoded
+   (`[0x01, 0x05]`) and delivery is proven, so trying more payloads is wasted effort. Instrument the two
+   calls - `ask(301)` at `0x2062c3` and `ask(71) == 1` at `0x2062dd` - and read which one declines.
+4. **On a unit:** whether the special-key route reaches engineering mode with a **real MICOM**, since our
+   stand-in never emits that signal. That is what bounds V-060's practical severity.
+
+**What not to spend time on**, because each was checked and closed this session:
+
+| Don't | Why not |
+|---|---|
+| the About-screen tap gesture | **absent in this build's code** - three tap counters total, none near a version string, and the version screen's only `MouseArea` is a virtual knob |
+| the one-byte `SOPVersion` patch | **withdrawn** - the immediate patched was a stack local in unrelated code, not the SOP state |
+| a crafted USB filename reaching the shell | **refuted** - the staging copy renames every artefact to a fixed name |
+| `show_engineermode` as the way in | **inert** - accepted twice, starts nothing, including with the home screen running |

@@ -5621,3 +5621,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Found the page meant to be read first arguing with itself: one section said the home screen lays out, a later one still said the call was not demonstrated. The stale one was mine.
 - Fixed it in place, keeping the API mapping and stating that my mechanism was wrong, and added where engineering mode actually stands, the standard for the remaining gap, and the missing register rows.
 - Named the pattern: the checks catch broken links and numbering, not a page disagreeing with itself. Reading the page before adding to it does.
+
+## 2026-11-05 - the one-hour list was recommending closed work
+
+- The actionable section of the state page still told the reader to run measurements that had already been closed and to try the gesture that was refuted. That would have cost the next person an hour re-deciding settled questions.
+- Replaced it with a ranked list by what each item would settle, plus a short table of things not to spend time on and why.
+- Also found the stand-in binary had reappeared in the index, so untracked it again and restated the reason it does not belong in the repository.

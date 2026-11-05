@@ -5554,3 +5554,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Followed the substituted path back to what feeds it. Both extraction templates take their source from a filesystem entry's absolute path, which then goes straight into the string substitution.
 - One command that looked like an attacker-controlled copy into the executable directory turned out to copy the payload's own binary, so that lead is closed rather than open.
 - With no character-class test in either payload, and with FAT permitting semicolons and dollar signs in filenames, the remaining question is the staging copy, and nothing else.
+
+## 2026-11-05 - the staging copy renames, and the filename route closes
+
+- Chased the last link in the injection question and found the answer already in the repository: the update logs show every staged and installed artefact carrying a fixed name.
+- So the copy renames, the path substituted into the shell is a constant, and a crafted filename on a stick cannot reach it. The route is closed rather than open.
+- That is a severity correction recorded in place. What survives is the part that never needed injection: the version and signature decisions and the keyless downgrade.

@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.7.2 - the staging copy renames, so the filename route into the shell is closed
+
+I said last round that the only remaining link was whether an attacker-chosen filename reaches the shell. It does not, and the evidence was already in the repository.
+
+**The staging copy normalises every name.** This project's own collected update logs carry 36 distinct references into `/update/usb/bin` and they name the artefacts:
+
+```
+/update/usb/temp/AppUpgrade            the staged copy
+/update/usb/temp/.lge.upgrade.xml      the staged manifest
+/update/usb/bin/AppUpgrade             the installed binary
+/update/usb/bin/AppScomoUpgrade        the installed SCOMO
+```
+
+Every staged and installed artefact carries a **fixed name**. Nothing shows a USB-chosen filename crossing into the directory, so the copy **renames**, and the path that `QFileInfo::absoluteFilePath()` later reports - the one `QString::arg` substitutes - is a constant.
+
+**So the injection route through a crafted filename is closed.** A stick carrying `x;id>.tar.gz` stages as `/update/usb/temp/AppUpgrade`, and the shell sees the fixed name. The substitution remains unfiltered, but **there is no attacker-controlled string in it**.
+
+**What survives is the part that never depended on injection**, and it is the stronger half anyway: the version and signature decisions and the **keyless downgrade** - a genuine older package is encrypted with the unit's own key, so it installs while the version gate was satisfied against genuine current bytes.
+
+That is a severity correction to V-059 recorded in place, not a deletion: three of its elements are measured, the filename route is refuted, and the apply pipeline at `0x60f0b` stands as measured.
+
 ## 5.7.1 - the path comes from the filesystem, and nothing filters it anywhere
 
 The follow-on question was what feeds `%1` and whether the producer filters. Both answered.

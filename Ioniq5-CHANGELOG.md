@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.17 - the layout database had no directory, and fixing that was not enough
+
+The `DB UPDATE COMMIT FAIL` line in the application's log led somewhere real.
+
+**The chain:** the binary opens `/app/data/AppHomeScreen/CustomLayoutDB/CustomLayoutDB`; `/app/data` is a symlink to `/rw_data/app_data`; and **`/rw_data/app_data/` contains only `NMode`, `common`, `vbt` - there is no `AppHomeScreen` directory**. SQLite cannot create a missing parent directory, so every save fails and a fresh instance has nothing to restore.
+
+**I created the directory** in the clone's data partition (`p11.img`, 0755 root:root) and recorded it as **a change to the projection, not to the vendor image** - it belongs in the reproduction script only if it proves to matter.
+
+**It does not prove to matter yet.** The run after the fix, with no instruments:
+
+```
+Z1_a_pre=129,844  pids 2535 2465     two instances at once
+Z1_c_75=120,562   pids 2676 2535
+Z1_d_135=120,562  pid  3326          a third instance later
+Z1_ERRS=2
+```
+
+**The application still restarts**, and the frame settled on **standby** rather than the splash - different from the previous run, not better.
+
+**And I made the same class of mistake again:** I changed a variable and did not capture that variable's own diagnostic. The application's log after this change was not pulled, so the restart is still unexplained and I have one more unexplained state than I had before.
+
+Next, and only this: **pull the application's log from a run with the directory present**, and read whether `DB UPDATE COMMIT FAIL` is gone. If it is gone and the app still restarts, the log's tail will name the next reason; if it is still there, the directory was not the write failure's cause and I should not have said it was "the cause" in the first sentence of this entry.
+
 ## 5.10.16 - with nothing of ours in the way, the app is stable and shows a splash
 
 No preload, no `ivi-wm`, no `ivi_place`. Only the power-on call and captures:

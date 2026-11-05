@@ -6112,3 +6112,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The delegated run shows the vendor compositor loading its own drm backend, finding a connected output and reaching multi-user with no fatal wayland errors, where every headless run had ended with exactly that error.
 - Kept the gaps explicit: whether the application started, that input devices are missing, and that no capture was taken on this path are three separate measurements, not one.
 - Noted that the session's standing conclusion, that this could not be fixed inside the emulator, is now half false, and that it became false with a driver already present in the kernel while I was sending the worker after a symbol that does not exist in this version.
+
+## 2026-11-05 - the rebuild's four documents committed
+
+- Committed the delegated worker's four documents while it is still running the fifth experiment, so nothing sits uncommitted in a working tree.
+- Two of them are the kind of thing I would have wanted hours earlier: the four source level fixes needed to build this kernel on this host, and an honest account of the vendor symbols the reconciled config drops and the board support it does not restore.
+- Linked them from the index and confirmed none carries a host path, then left the running experiment alone.

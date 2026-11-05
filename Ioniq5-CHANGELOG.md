@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.16.7 - the rebuild's four documents, committed while the worker is still running
+
+The delegated worker produced four documents and is still iterating on the fifth, so its work is committed now rather than left in a working tree:
+
+| document | what it contains |
+|---|---|
+| `01-build.md` | the build, the config delta from `vendor.config`, **what `olddefconfig` dropped and why it matters**, and the boot result |
+| `02-virtio-gpu-does-not-exist-in-4.1.27.md` | the correction to my premise - no virtio directory, no Kconfig symbol; **bochs-drm** is the device |
+| `03-macos-cross-build-workarounds.md` | **four source-level fixes** to build 4.1.27 on macOS arm64: the path-with-spaces, no `<elf.h>`, no `<byteswap.h>`, and a fourth |
+| `04-micom-and-lge-board-standins.md` | the `micom` parameter stand-in, and **what it does not restore** - stated rather than discovered |
+
+**Doc 3 is the one I would have wanted hours ago.** Every one of those four fixes is a build-time trap I never mentioned to the worker, and it found them without me.
+
+**Doc 4 is the one to read with V-064 in mind**: the worker had to stand in for `micom` because a config reconciled against vanilla 4.1.27 **drops the vendor-only symbols** - including the built-in driver that creates `can0`. It says so explicitly and names the `lge_board` gap it does not cover, which is exactly the trade I warned about in the brief and it turned out to be real.
+
+Committed with the INDEX linked, no host paths in any of the four, and the worker's still-running experiment left undisturbed.
+
 ## 5.16.6 - the vendor compositor runs on drm-backend, and the Wayland fatal error is gone
 
 From the delegated run `boot8-drm.log`:

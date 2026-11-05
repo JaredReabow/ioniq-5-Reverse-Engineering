@@ -136,3 +136,16 @@ exact fault.
 
 **Corollary.** The same applies to the console: it is a log channel. Anything larger than a few KB, or
 anything that is not text, belongs on a dedicated file-backed device.
+
+## 13. Never elide a path in committed text
+
+**The case.** Twice in one session I wrote a house path with a middle elision -
+`01-...md` in the data notes, then `42-...png` in the VM captures. Both read fine, both are unusable: a reader cannot open
+them, and the link checker resolves them literally and fails the build. The second one I wrote *after*
+having been corrected for the first.
+
+**Rule.** A path in committed text is an address. Write it complete or write a description instead -
+"the 22,057-byte day-shell capture" is better prose than a truncated file name, and it cannot break.
+
+**Tell.** If a fix for a broken reference is to edit a checker allowlist, the path was wrong. The allowlist
+exists for references to things **outside this repository**, not for paths I was too lazy to type.

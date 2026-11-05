@@ -34,6 +34,18 @@ the setter does is **push the state event**, which is what makes the app re-lay-
 a probe for this at all, and my "the manager says the vehicle is off" reasoning was wrong in mechanism
 even though the fix worked.
 
+### But the nearer gap is the resource model (measured 2026-11-05)
+
+**Timing first:** the frame is not settled at +30 s. Captures at +30 / +90 / +150 s gave
+**129,844 -> 22,057 -> 22,057**, so earlier readings inside that window were mid-transition states.
+
+**What the settled frame shows** (`docs/vm/42-day-shell-untranslated-string-black-region-2026-11-05.png`, 22,057 bytes): the day theme, a title bar containing
+the literal text **`STR_CAMERA_ALERT2`**, a light left panel, and a **black region over the right third**.
+
+A `STR_` key rendered as text means **the translations model is not resolving**, and missing theme images
+draw black - two symptoms of **one unloaded resource model**, not of missing CAN data. So before widget
+*values* can be judged, the widgets need *text and images*, and that load is the nearer question.
+
 ### The remaining gap is a transport, not an adaptor (measured 2026-11-05)
 
 The widgets do not read the D-Bus MICOM interface. They are fed from the application's own raw-CAN

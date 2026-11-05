@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.5 - the frame settles at ninety seconds, and what it settles into
+
+Tested the timing first, because it decided whether anything I had captured was a result at all:
+
+| when | surface 1004 | surface 2080 |
+|---|---|---|
+| +30 s | 129,844 | 129,844 |
+| **+90 s** | **22,057** | **22,057** |
+| +150 s | 22,057 | 22,057 |
+
+**The frame is not settled at +30 s.** Everything captured in that window - including my own "light frame with a placeholder glyph" at 7,510 bytes - was a **mid-transition state**. The application needs roughly **90 seconds** after the power-on call.
+
+### What the settled frame shows, and why it matters more than the CAN work
+
+`docs/vm/42-day-shell-untranslated-string-black-region-2026-11-05.png` (22,057 bytes): the **day theme**, a title bar containing the literal text **`STR_CAMERA_ALERT2`**, a light left panel, and a **black region over the right third**.
+
+**`STR_CAMERA_ALERT2` is a translation key rendered as text** - the application is being handed its own key back, so the **translations model is not resolving**. The black region is the same failure in a different medium: missing theme images draw black, missing translations draw keys.
+
+So the visible defect is **an unloaded resource model**, not the CAN data and not the layout. That reframes the plan: widget values still need CAN, but before values can appear the widgets need **text and images**, and they are currently getting keys and black.
+
+### And a rule about my own repeat offence
+
+Twice today I wrote a house path with a middle elision - which reads fine, is unusable, and fails the link check. The second time was *after* being corrected for the first. **Rule 13**: a path in committed text is an address - write it complete or describe the thing instead. **Tell:** if the fix for a broken reference is to edit the checker's allowlist, the path was wrong; that list is for things outside this repository.
+
+I then broke the rule *inside the rule* by quoting the elided paths as examples, and the checker resolved them. Reworded without resolvable paths.
+
 ## 5.10.4 - frames now come off the guest losslessly, and the first real ones are informative
 
 Two dead ends first: the console corrupted a 129 KB capture at 174,117 base64 characters, and writing the PNG to `/log_data` failed for a reason I should have remembered - **guest writes never persist**, the disk is `snapshot=on`, so the file is gone when QEMU exits.

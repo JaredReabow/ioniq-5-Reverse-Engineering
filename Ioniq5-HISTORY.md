@@ -6334,3 +6334,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Applied and verified the one immediate patch, and the timeout still fires. The launcher log timestamps correct three numbers I had repeated: the deadline fires about forty eight seconds after process start, the application registers thirty eight milliseconds late, and the patched timer is not the one that fires.
 - The application takes about forty eight and a half seconds to register under emulation and misses by thirty eight milliseconds, a far narrower miss than the previous figures suggested.
 - Recorded that my last two candidate constants were both wrong, the surface table right and the timer wrong, and that the remaining work is run time instrumentation rather than reading constants out of a binary.
+
+## 2026-11-05 - a logging shim, and a legitimate place to stop
+
+- Since the deadline fires at a time matching no constant in the binary, the next question is which timer is armed and when, which only observation of the running process can answer. Specified a logging-only shim for the launcher alone, and the three possible observations with the fix each implies.
+- Stated the stopping rule plainly: my last two candidate constants were both wrong, so eight steps are demonstrated, three causes are named, and the instrument that separates them exists. That is better than a fourth guess.
+- Summarised both goals as they now stand, and recorded that this is the first time the session wrote a stopping rule before the temptation to guess again.

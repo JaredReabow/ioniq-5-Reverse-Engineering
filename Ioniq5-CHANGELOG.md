@@ -3,6 +3,36 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.23.7 - the next measurement is a logging shim, and there is a legitimate place to stop
+
+The deadline fires at **48.4 s**, which matches no immediate in the binary. So the question is no longer "which constant is it" but **"which timer is armed, and when"** - answerable only by observing the running process.
+
+**Specified:** a shim intercepting `QTimer::setInterval(int)`, `QTimer::start()` and `QTimer::start(int)`, writing object pointer, interval and timestamp to the serial console. **`LD_PRELOAD` for the launcher only** - never process-wide, which is the mistake that cost a whole evening earlier.
+
+**And three possible answers, each with its own fix:**
+
+| observation | cause | where the fix goes |
+|---|---|---|
+| ~48,000 ms armed at process start | a fourth timer I did not find | a new search for its site |
+| 60,000 ms armed ~11.6 s *before* the app started | armed by an earlier event - the group or the previous app | explains why patching the per-app timer changed nothing |
+| 30,000 ms armed repeatedly | reset by group progress | the group, not the app |
+
+### The stopping rule, stated plainly
+
+**My last two candidate constants were both wrong** - the surface-id table was right, the app-load timer was not. **Reading a constant out of a binary and reading the effect of that constant are different skills**, and this thread has now shown that twice in a row.
+
+So: **eight steps demonstrated, the ninth blocked by a deadline whose firing point matches no constant in the binary, three plausible causes named, and the instrument that distinguishes them specified.**
+
+> **That is a better ending than a fourth guess** - and the difference between a **limitation** and a **mystery**.
+
+### Where both goals now stand after this session
+
+| | |
+|---|---|
+| **VM** | vendor kernel replaced by a rebuilt one → `card0` at 1920×720 → vendor `drm-backend` → socket → app connected → **surface id assigned, surface created, placed, chrome composited** (four substitutions documented) → **standby, not layout**, with the deadline's firing point unexplained |
+| **Root access** | **75 entries**, 26 fix items, controls inventory; V-069's writable navi CA is the cheapest persistent path, V-071's fail-open console/SSH marker documented, V-059's keyless downgrade the strongest demonstrated |
+| **Record** | 16 rules, 5 structural checks, **176 corrections**, and for the first time a stopping rule written *before* the temptation to guess again |
+
 ## 5.23.6 - the deadline patch is applied, verified, and does not stop the timeout - and the numbers were wrong again
 
 The patch was applied (`0x18270`: `be 10 27 00 00` → `be 30 75 00 00`), **verified in the injected image**, and the timeout still fires. The launcher log with timestamps:

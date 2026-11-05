@@ -47,3 +47,44 @@ capture.
 That the laid-out home screen appears with the corrected sequencing. It should - the same call is what
 produced `docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png` in a run where it was issued
 after the name was owned - but that has to be measured, not assumed.
+
+---
+
+## 14. Corrected sequencing still standby, and the real finding: the app keeps restarting
+
+**Test: poll for ownership, then power on.**
+
+```
+S1_OWNED_AFTER=0s   home=[2452] weston=[797]
+S1_POWER=method return
+S1_AFTER90          home=[2619]        <- a DIFFERENT pid
+S1_placed=114,783                      <- the standby face again
+```
+
+**Test: force an edge (off, then on) in case the state event is edge-triggered.**
+
+```
+E1_OWNED=16s        home=[2581 2500]   <- TWO instances at once
+E1_EDGE_SENT        home=[2581 2500]
+E1_t60=120,562      E1_t105=120,562    <- standby size, not the layout
+E1_END              home=[3225]        <- a third pid
+```
+
+Neither works, and the reason is in the pid columns: **`AppHomeScreen` is being restarted repeatedly** - two
+instances alive simultaneously at one point, a new pid at the end. Each restart begins in the standby
+presentation, so any state event sent to the previous instance is lost.
+
+This also explains the earlier "`AppHomeScreen was not p...`" line in the console log: the launcher is
+relaunching it.
+
+**So the sequencing fix was necessary but not sufficient.** The obstacle is **why the application restarts**.
+
+## 15. The next measurement, and it is the right one
+
+The vendor launcher redirects the application's own stderr to a file - the console log contains the literal
+line `AppHomeScreen ) >> /tmp/apphome-byhand.log 2>&1`. **The application's crash reason is sitting in
+`/tmp/apphome-byhand.log` inside the guest**, and this project now has a lossless channel to retrieve it
+(base64 over the second serial device).
+
+That is the next run: retrieve that log, and read why the app dies. Everything else - power state, CAN
+values, widgets - is downstream of an application that stays alive.

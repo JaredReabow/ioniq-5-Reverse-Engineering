@@ -96,3 +96,44 @@ reading #2 is live; if it maps the vendor's, the plugin's use of `ivi_controller
 
 **Not established:** which of the two. **Established:** the failure is the third message of surface creation, with
 one application instance, no preload, no placement tool, and only vendor libraries in the image.
+
+---
+
+## 5. Correction: the traced client is probably **not** the application
+
+`/proc/<pid>/maps` of the running application came back **empty of any wayland entry** (`R1_MAPS_N=0`), which is
+more likely a **SMACK restriction on reading another domain's maps** than a real absence. So the runtime check
+failed, and the static check was run instead - with a result that contradicts my own attribution.
+
+```
+libqwayland-generic.so   10,200 bytes    zero occurrences of ivi_controller / ivi_window_manager / ivi_application
+libqwayland-egl.so       63,480 bytes    zero occurrences of the same
+```
+
+**Neither Qt Wayland plugin contains a single `ivi_` protocol string.** They cannot bind `ivi_window_manager` or
+call `ivi_controller.surface_create`, because those interfaces are not in them at all.
+
+**Therefore the client in the compositor trace is not the application.** Something else in the projection binds
+`ivi_window_manager` and creates surfaces through `ivi_controller`, and it produced the `invalid object 19` I have
+been attributing to `AppHomeScreen` for the last three entries.
+
+The candidates are the vendor's own shell-side clients - `/usr/libexec/weston-ivi-shell-user-interface`
+(present in the image but named at a different path by the ini), `weston-desktop-shell`, or the vendor's
+`ivi-window-manager` interaction - and the trace alone cannot say which, because weston 1.10's protocol trace
+does not name clients.
+
+## 6. What is still true, and what has changed
+
+**Still true and valuable:** there is a real, reproducible protocol failure - a surface created through
+`ivi_controller` whose object id the compositor then does not know - and it is visible in the compositor's own
+trace, with no instrument of ours in the path. **Wayland protocol debug on the compositor works** and produced a
+four-line diagnosis of *a* client, which is a capability this project did not have before tonight.
+
+**Changed:** it is **not established** that this failure belongs to the application, and the entries above that
+attributed it to `AppHomeScreen` are wrong on that point. The application's own death - `wl_display@1: error 0:
+invalid object 19` in *its* log - may be the same server error delivered to it, or a different one; the log line
+is identical, which is exactly why I assumed it was the sender.
+
+**The next measurement must identify the client:** start the compositor trace and record **when** the
+`ivi_window_manager` bind appears relative to the application's first log line. Before the app starts, it is a
+shell-side client and the application is a victim; after, it is the application and my earlier reading stands.

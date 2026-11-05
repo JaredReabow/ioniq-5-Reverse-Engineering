@@ -5818,3 +5818,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Turned on the compositor's own protocol trace, which required touching only our wrapper, and the failing exchange is four lines: the application binds the window manager interface, asks the controller to create a surface with its own object id, and the compositor reports an object it does not know.
 - Did the cheap static check first and it weakened my own theory: there is one wayland client library in the image and we did not inject it, and the application reaches wayland through the Qt platform plugin rather than directly. The protocol definition is not shipped at all.
 - Named the measurement that separates the two remaining readings, which needs no new instrument: read the running process's library map and see which wayland library it actually has.
+
+## 2026-11-05 - the client I blamed is probably not the application
+
+- The runtime check I named came back empty, most likely because the system's mandatory access control stops one domain reading another's memory map, so I fell back to a static check.
+- That check contradicted my own attribution: neither Qt wayland plugin contains any of the ivi protocol strings, so the client in the trace cannot be the application I had been blaming for three entries.
+- Kept what survives, that protocol tracing on the compositor works and found a real failure, and made the next measurement about ordering: when the interface is bound relative to the application's first log line.

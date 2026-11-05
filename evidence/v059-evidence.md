@@ -59,7 +59,10 @@ mount p3 original, p6 original, p5 mnt, p7 mnt
 mkfs.ext4 -E nodiscard -j /dev/mmcblk0p16
 ```
 
-A fresh invocation opens the payload again, separate from the `md5sum` site at `0x13a550`. The stream is **rate-limited to 8 MB/s** by its own `pv -L 8m`, so 879 MB needs ~110 s and 2.09 GB
+A fresh invocation opens the payload again, separate from the `md5sum` site at `0x13a550`.
+
+**Where that second open points is still unresolved**, and the path counts lean towards staging rather than the mount: `/update/usb` appears 7 times in FUMO against `/media/usb` 1 (SCOMO: 12 and 1).
+`/update/usb` is on the local `/update` partition, so its presence is a staging hint - against the external report, which describes an in-place read. The stream is **rate-limited to 8 MB/s** by its own `pv -L 8m`, so 879 MB needs ~110 s and 2.09 GB
 ~260 s of apply, and a gadget never has to exceed 8 MB/s to saturate the stage.
 
 **Withdrawn claim.** An earlier version said the check and the install were "constructed in different parts of the program, ~1.2 MB apart" on the strength of a displacement scan. Both sites it

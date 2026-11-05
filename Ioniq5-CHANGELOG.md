@@ -3,6 +3,38 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.23.8 - "just disable sleep?" - checked, no sleep involved, and the idea redirects usefully
+
+Answered by checking rather than by agreeing or dismissing.
+
+**No sleep is involved.** The 49 `sleep`/`standby` hits in the launcher log are the **application name `AppStandbyClock`**, not a power transition, and there is no sleep request during startup to suppress.
+
+**The kill is a duplicate-registration guard, and the margin is 167 ms** - a figure I have now stated wrongly twice (3 ms, then 38 ms), corrected here from the timestamps:
+
+```
+[TIMEOUT]          [2 Group] AppID : 11, PID : 2305              19:59:12.511
+[REGISTERED]       registeredFromNativeApp AppId[11] groupNum[2] 19:59:12.514
+[REGISTERED ERROR] Already registered AppId[11][AppHomeScreen]   19:59:12.592
+[onDemandAppKill]  appId[11] is killed                           19:59:13.157
+```
+
+**The timeout marks the app as registered, and the real registration then looks like a duplicate.**
+
+### But the instinct behind the question is the right one, redirected
+
+Not "disable the thing that kills it" but **"remove what makes it 167 ms slow"** - and the log names it: `groupNum[2]`, so app 11 starts **in a group with siblings** contending for CPU and for the launcher's own thread.
+
+**167 ms is small enough that starting it alone may simply be enough.** Three options, cheapest first:
+1. reduce the group to just app 11 for one run, if the group list is data;
+2. **pre-warm** - let the stack settle, then relaunch the app alone via `request.launch`, so the 45 s window runs against a warm cache with no siblings;
+3. measure registration again: **below ~48.2 s and the app survives its own deadline with no patch and no forgery.**
+
+**That is actively better than patching a computed constant**, and it is a fix in the projection rather than a byte in a vendor binary - which is the standard this project has held all along.
+
+### And the honest note on my own arithmetic
+
+**Three times tonight I have quoted a margin that was wrong** (3 ms, 38 ms, now 167 ms), each time from a different subtraction of the same two log lines. The arithmetic was always one `python3 -c` away; what was missing was doing it.
+
 ## 5.23.7 - the next measurement is a logging shim, and there is a legitimate place to stop
 
 The deadline fires at **48.4 s**, which matches no immediate in the binary. So the question is no longer "which constant is it" but **"which timer is armed, and when"** - answerable only by observing the running process.

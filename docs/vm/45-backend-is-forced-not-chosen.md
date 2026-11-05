@@ -1221,3 +1221,62 @@ out of a binary and reading the *effect* of that constant are different skills**
 **So the stopping rule is stated plainly:** eight steps demonstrated, the ninth blocked by a deadline whose firing point does not match
 any constant in the binary, with three plausible causes named and the instrument that would distinguish them specified. **That is a
 better ending than a fourth guess** - and it is the difference between a limitation and a mystery.
+
+## 60. The shim's census: the deadline is a single 45,000 ms interval, and it is computed
+
+The logging-only shim (launcher only, zero behaviour change) recorded every timer the launcher arms. The deadline-scale values:
+
+```
+ms=10000  x24     ms=5000   x22     ms=30000  x17     ms=60000  x12
+ms=120000 x8      ms=20000  x4      ms=6000/14000 x2
+ms=9000, 7000, 45000, 40000, 180000, 15000  x1 each
+```
+
+**There is no interval near 48,000 ms.** The only value in range is a **single `ms=45000`**, which fits the observed fire time exactly:
+the app started at `21:39:22.948`, the deadline fired at `21:40:11.359` - **48.4 s**, i.e. 45 s plus ~3.4 s of arming delay.
+
+**So the deadline is one 45-second timer**, and it is **computed rather than immediate**: only three immediates ever reach
+`QTimer::setInterval` in this binary (10,000 / 30,000 / 60,000), and 45,000 is not one of them. That is why patching the 10 s
+immediate changed nothing - **the value is not in the instruction I patched**.
+
+## 61. What that makes the next measurement, and why it is not another guess
+
+A computed constant has a caller. **One added field in the shim answers it**: log `__builtin_return_address(0)` on the
+`setInterval(45000)` call. The return address names the function that arms it, and disassembling *that* function shows where 45 comes
+from - a loaded field, a product, or a value read from configuration.
+
+**That is a one-line change to an instrument that already works**, applied to the one event that matters rather than to the census. It
+is the difference between searching a binary for a number and **asking the binary which number it used.**
+
+## 62. "Can we just disable sleep?" - no, and the numbers behind the answer
+
+Checked rather than assumed. **No sleep is involved:**
+
+- the 49 `sleep`/`standby` hits in the launcher log are the **application name `AppStandbyClock`**, not a power transition;
+- there is **no sleep request during startup** to suppress.
+
+**The kill is a duplicate-registration guard, and the margin is 167 ms** - a number this document has now stated wrongly twice (3 ms, then 38 ms):
+
+```
+[TIMEOUT]          [2 Group] AppID : 11, PID : 2305              19:59:12.511
+[REGISTERED]       registeredFromNativeApp AppId[11] groupNum[2] 19:59:12.514
+[REGISTERED ERROR] Already registered AppId[11][AppHomeScreen]   19:59:12.592
+[onDemandAppKill]  appId[11] is killed                           19:59:13.157
+```
+
+**The timeout marks the app as registered, and the real registration then looks like a duplicate.**
+
+## 63. The workable version of the idea: remove what makes it 167 ms slow
+
+The log names the competition - `groupNum[2]`, `[TIMEOUT] [2 Group]` - so app 11 is launched **in a group with siblings**, contending for CPU and for the launcher's own thread during startup. **167 ms is small enough that starting it alone may simply be enough.**
+
+Three options, cheapest first:
+
+1. if the launcher's group list is data, reduce group 2 to just app 11 for one run;
+2. **pre-warm**: let the whole stack settle, then relaunch the app alone through
+   `com.lge.avn.applauncher.request.launch` so its 45 s window runs against a warm page cache with no siblings;
+3. measure the registration time again - **if it drops below ~48.2 s the app survives its own deadline**, which is a fix with
+   **no patch and no forgery at all**.
+
+**That is a better idea than patching a computed constant**, and it came from the right question: not "how do I disable the thing
+that kills it" but "what is making it slow, and can I remove that instead".

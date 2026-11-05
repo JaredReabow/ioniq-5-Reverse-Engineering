@@ -5566,3 +5566,10 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Read the instructions around the byte I had chosen to patch for the development menu, and found it stores into a stack slot inside QDebug logging and a string trim. That is a local flag, not the engine's SOP state.
 - So the patch was never established, and the runtime result I had recorded as an unobserved effect is better read as a wrong site.
 - Recorded the corrected route: the method is invokable, so its address lives in the metacall dispatch rather than beside its name.
+
+## 2026-11-05 - the home screen lays out
+
+- One call to the application manager produced the real home screen: a light layout with battery and range widgets in place, where every earlier capture had been the app's powered-down face.
+- That explains the black menu bar and the clicks falling through - there had been nothing to click.
+- My own prediction for how it would work was wrong: the power query read one before and after the call, so the setter pushes a state change rather than changing a stored value. Recorded in place.
+- What remains is placeholder data under the widgets, which is the same kind of adaptor work the rest of this has been.

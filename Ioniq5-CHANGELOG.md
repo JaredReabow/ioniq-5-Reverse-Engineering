@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.0 - the home screen lays out
+
+**One D-Bus call produced the home screen.** After `AppHomeScreen` owns its bus name:
+
+```sh
+dbus-send --session --print-reply --dest=com.lge.hyundai.avn.appmanager /Information \
+  com.lge.avn.appmanager.info.set_power_on_status int32:1 int32:0
+```
+
+`docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png` (16,062 bytes, 1920x720) is a light day-theme layout with the **Battery** widget at `(817,393)`, **Range** at `(1212,551)`, a light menu bar where the standby frame had a black one, and placeholder dashes where values go. I looked at the frame myself rather than trusting its size.
+
+**So the standby frame was the power-off face of the app** - `STR_CAMERA_ALERT2` and the KIA logo at 120,5xx bytes - which is why the menu bar rendered black and every click fell through to the compositor. There was nothing wrong with the click path; there was nothing to click.
+
+### My prediction was wrong, and the mechanism matters
+
+I said `ask_power_status` would read 0 before and 1 after. **It read `int32 1` both times**, as did `ask_acc_status` and `ask_ign_status`. The stored state was already "on"; the setter **pushes the state event**, and that is what makes the app re-lay-out. So "the manager thinks the vehicle is off" was the wrong mechanism even though the call fixed the symptom - recorded in `docs/CURRENT-STATE.md` where the wrong version was.
+
+### What remains
+
+The widgets are **placed with placeholder values** (`---`) because no CAN or vehicle data reaches them. That is the last step to an informative home screen and it is the same class of work as every adaptor already built.
+
+The About-tap verdict is unchanged and independent: the gesture is statically absent from this build, and `AppSetup` still launches without painting.
+
 ## 5.8.0 - the SOPVersion patch site was wrong, and I can show why
 
 The one-byte patch meant to reveal the development menu targeted `0x73726e`, the immediate in `movl $0x1, 0x13c(%rbp)`. Reading the instructions around it:

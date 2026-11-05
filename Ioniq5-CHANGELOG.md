@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.14.7 - four of the five assumed replies had evidence sitting in the repo
+
+Last entry said the reply values were assumed "because the encoding is not recovered". That was true of the **binary** and false of the **project**: the vehicle's own DLT dump records what the real MICOM returned.
+
+| method | what the vehicle logged | stub now |
+|---|---|---|
+| `AskExternalSPDIFAMPVersion` | `Response LgeDBus_AskAMPVersion() Data Count :: 8` | **8 bytes** - it was 1, and wrong |
+| `AskEtcLcd2SensorNotSupportPwmControl` | consumer logs three reply fields, `Value-Manual: 2` | **3 bytes**, manual = 2 |
+| `AskUSMSetting` | `slotUSMSetting ... ] 2`, repeatedly | **1 byte = 2** - it was 0 |
+| `AskVolumeTuneKeySwap` | **absent from the dump entirely** | 1 byte 0, still assumed - and now known unreferenced on the vehicle |
+| `AskInfoFaultCodeStatus` | `returnValue: "0a1501..."` - hex string, not fully reconstructed | 1 byte 0, still assumed |
+
+Rebuilt, injected, booted: **403 accepts, 0 unknowns, 206 answers of which 53 reached the new handlers**. The corrected replies **did not break anything**.
+
+### The lesson, and it is the same one as the XML sweep
+
+**I called something "not recoverable" when I had 545 log files of it in the repository.** The assumption was reasonable about the binary and lazy about the project - and the same habit that found the bus policies and the service hardening (look outside the binaries) applies to *values* as much as to configuration.
+
+### Honest state of the adaptor now
+
+- every method the stack calls is answered, with the right type - measured twice
+- four of ten replies carry values **recovered from the vehicle**; one is known-unreferenced; one is a placeholder
+- **none of this proves the replies are correct** - it proves they are shaped right and, where the logs spoke, sourced from the vehicle rather than invented
+
+That is the difference between an adaptor that **fails** and one that can be **wrong in a specific, checkable way** - which is the state where comparing against real hardware is worth doing.
+
 ## 5.14.6 - the stand-in now answers every call the stack makes
 
 Implemented all ten backlog methods - the five `Set*` as acknowledgements, the five `Ask*` with reply **types recovered from the calling binaries' introspection XML** and reply **values assumed zero** - rebuilt with no host paths, injected, and booted:

@@ -592,3 +592,32 @@ signal.
 **Both are one run.** And the reference for what a correct frame looks like already exists: `docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png`
 (**16,062 bytes at 1920×720**), the only fully-laid-out frame this project has captured, taken on the **headless** backend long
 before tonight's kernel work.
+
+## 24. The 1920x720 frame, looked at rather than described: it is the application's own standby face
+
+The worker's doc 11 fixed two things properly and earned its frame:
+
+- **The mode.** `-device VGA,edid=on,xres=1920,yres=720` **did nothing** - bochs-drm 4.1.27 calls `drm_add_modes_noedid()` and never reads EDID, and 1920×720 is not a standard mode. So the kernel source was patched (`bochs_kms.c`: `defx/defy` defaults, plus a CVT 1920×720@60 mode marked preferred), rebuilt, and verified: `/sys/class/drm/card0-Virtual-1/modes` now **lists `1920x720` first**.
+- **The channel.** `/dev/ttyS3` is smack-relabelled `System::GPS` by the vendor's udev rules in the authentic boot, so the monitor's write was **denied**; the capture went over `/dev/ttyS2` instead.
+
+The saved frame is `work/vm/kbuild/painted-1920x720.png` - **144,501 bytes, sha256 `59253cf6...`, PNG 1920×720** - and a copy is kept at
+`docs/vm/48-drm-backend-1920x720-app-standby-face-2026-11-06.png`.
+
+**The worker described it programmatically and concluded "a text screen, not the widget grid". I looked at it, and it is more specific than that:**
+
+> **a full-width blue title bar, the KIA logo centred on black, and one small placeholder glyph at top centre.**
+
+**That is the application's own standby face** - the same content as the 120,5xx-byte headless standby frames, but now rendered at the vendor's own 1920×720 on the vendor's own DRM backend. The logo is the application's asset and the bar is its chrome, so **the application is drawing**; it is simply in its powered-off presentation.
+
+## 25. Which means the last step is the call found hours ago
+
+The app shows standby because nothing has told it the vehicle is on. That is `set_power_on_status(1, 0)` on
+`com.lge.hyundai.avn.appmanager` - **the exact call that produced `docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png` on the headless backend**, and the reason
+that frame was laid out.
+
+**So the DRM path is now behaviourally identical to the headless path**: compositor serving, application connected, application
+painting its own standby frame. The one difference left is that nobody has made the power-on call *on this backend*.
+
+**That is the next run, and it is one line**: after `AppHomeScreen` owns its bus name, call `set_power_on_status(1, 0)`, wait for
+the frame to settle, then capture. **If it produces a 1920×720 frame with a left panel and Battery/Range widgets placed, the VM
+goal's central claim is met on the stock display path.**

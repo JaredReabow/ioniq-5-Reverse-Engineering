@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.21.0 - I looked at the 1920×720 frame, and it is the application painting its own standby face
+
+The worker's doc 11 is good work: **EDID did nothing** because bochs-drm 4.1.27 calls `drm_add_modes_noedid()` and never reads it, so it **patched the kernel source** to add a CVT 1920×720@60 mode and verified that `/sys/class/drm/card0-Virtual-1/modes` now lists it first; and `/dev/ttyS3` turned out to be **smack-relabelled `System::GPS`** in the authentic boot, so the capture had to go over `ttyS2`.
+
+The frame is saved: **144,501 bytes, PNG 1920×720**, kept in `docs/vm/48-drm-backend-1920x720-app-standby-face-2026-11-06.png`.
+
+**The worker described it programmatically - ~93 % black, a blue bar at the top, large anti-aliased text - and concluded "a text screen, not the widget grid". I opened it, and it is more specific:**
+
+> **a full-width blue title bar, the KIA logo centred, one small placeholder glyph at top centre.**
+
+**That is the application's own standby face.** The logo is its asset, the bar is its chrome - so **the application is drawing**, at the vendor's own 1920×720, on the vendor's own DRM backend. It is simply in its powered-off presentation.
+
+### Which makes the last step the call we found hours ago
+
+Standby means nothing has told the app the vehicle is on: **`set_power_on_status(1, 0)`** on `com.lge.hyundai.avn.appmanager` - **the exact call that produced the laid-out frame on the headless backend.**
+
+**So the DRM path is now behaviourally identical to the headless path**: compositor serving, app connected, app painting its own standby frame. One line separates it from the laid-out home screen.
+
+### The contribution worth naming
+
+**The worker could not render the image and I could.** Its description was accurate and its conclusion was cautious; **one look turned "a text screen" into "the application's standby face", which is a different and much more useful fact** - it says the app is alive and painting, not that the backend is showing something else. That division - programmatic description by the agent that has the run, visual check by the agent that has the eyes - is worth keeping.
+
 ## 5.20.4 - and I did it a second time, then broke rule 13 inside rule 13's own lesson
 
 The commit before this one went in with the check suite failing **again**, three minutes after I wrote an entry about doing exactly that.

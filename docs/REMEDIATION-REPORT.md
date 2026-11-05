@@ -198,6 +198,9 @@ systemd containment. A service that needs only to write a log has the privileges
 
 ### 16. Nine `/etc` trust anchors point into world-writable `/tmp` - one change fixes all nine
 
+**Implementation:** `docs/remediation/V-065-nine-anchors-implementation.md` - the change is **four scripts and 23 references**, counted, with the `mkdir -p /run/etc && chmod 700` line, the symlink retargeting, the trade (anything reading `/tmp/passwd` directly), and a five-step verification whose fourth step distinguishes "the file moved" from "the weakness closed".
+
+
 **Evidence, counted:** `/etc/passwd`, `/etc/shadow`, `/etc/shells`, `/etc/fstab`, `/etc/resolv.conf`,
 `/etc/ecnr/config`, `/etc/xdg/weston/weston.ini`, `/etc/front_lcd.png`, `/etc/rear_lcd.png` are all **symlinks into
 `/tmp`**, written at boot by `esinit`, `smack_setup.sh`, `setup_ecnr_engine_db.sh` and `install_westonPngLogo.sh`.

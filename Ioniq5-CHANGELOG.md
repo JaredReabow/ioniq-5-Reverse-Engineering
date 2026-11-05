@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.25.0 - the top remediation item specified as a change, not a wish
+
+The four-planner plan put **V-065 / item 16** first - nine `/etc` trust anchors pointing into world-writable `/tmp`. It is now a **specified change** rather than a recommendation: `docs/remediation/V-065-nine-anchors-implementation.md`.
+
+**The change is enumerable, which is why it is credible: four scripts and 23 references.**
+
+```
+lib/systemd/esinit   etc/smack_setup.sh   etc/setup_ecnr_engine_db.sh   etc/install_westonPngLogo.sh
+```
+
+with `/tmp/front_lcd.png` accounting for 11 of them, `/tmp/ecnr_config` 3, and one or two each for the rest. The edit is a mechanical substitution to `/run/etc/<name>`, a `mkdir -p /run/etc && chmod 700 /run/etc` line placed where `esinit` mounts `/run`, and re-pointing the nine symlinks.
+
+**Trades and limits stated rather than assumed.** Anything outside those four scripts that reads `/tmp/passwd` or `/tmp/weston.ini` directly would stop finding it - so the check is a grep of the image **before** the change, not after. `/etc/rear_lcd.png` has a symlink and **no writer**, which the count shows and a prose description would have hidden.
+
+**The verification's fourth step is the one that matters:** as a non-root process, `touch /tmp/passwd` must produce a file that is not the account database and must not change `getent passwd`. That is the difference between *the file moved* and *the weakness closed* - and the register has already learned that lesson once, when a marker was found to grant eligibility rather than access.
+
+**Not applied, and that is deliberate.** It edits four vendor boot scripts and nine symlinks inside a working image; a broken clone costs more than a spec, and the spec is what a platform team actually needs.
+
 ## 5.24.0 - four independent plans, and the most valuable output was an error of mine they caught
 
 Asked four planners the same question independently - **Fable 5.1, Astra, Daybreak Blue and Opus 5.5** - with the same repository state and the same constraints: read only, no experiments, name the offset and the trade for any vendor patch.

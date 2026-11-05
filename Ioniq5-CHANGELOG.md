@@ -12410,3 +12410,16 @@ came out of it.
   selection and that published-family evidence is not installed-car evidence.
 
 - Prepared a public release snapshot: removed raw owner and upstream diagnostic exports, removed full-text third-party artifacts, anonymized local paths, and added a sanitized owner USB finding note. Public visibility awaits cached-history cleanup.
+
+- Built the positive control for the crash-trace interposer (blocker 3, step 1 of
+  `docs/vm/fastest-path-plan.md`). The shim already existed and its `.init_array`
+  entry resolves to `install` at `0x17c0`, so it is structurally sound; what was
+  missing is that **nothing in the image build installs `/etc/ld.so.preload`**, so
+  the instrument has never been consulted and its empty log has never meant "no
+  crash". Added `tools/uk_fw/guest/crash_probe.c` (deterministic SIGSEGV/SIGABRT
+  probe, static musl build) and `tools/uk_fw/guest/crash-trace-selftest.sh`, which
+  first proves `ld.so.preload` is consulted at all by pointing it at a bogus path
+  and requiring `/bin/true` to fail, then asserts the trace file exists, carries a
+  signal banner, a backtrace of at least three frames, and a maps section naming
+  `crash_probe`. The script fails loudly rather than returning success with no
+  trace. Not yet executed in the guest; that is the next run.

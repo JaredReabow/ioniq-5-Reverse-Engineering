@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.10 - the unfiltered run answers it: hmi-controller kills the compositor at 5.3 seconds
+
+Captured the log whole this time, which is what the previous entry said was needed:
+
+```
+[00:00:05.235] Loading module '/usr/lib/weston/ivi-controller.so'
+[00:00:05.320] ivi-controller: No ivi-input-module set
+[00:00:05.322] Loading module '/usr/lib/weston/hmi-controller.so'
+[00:00:05.334] Failed to initialize hmi-controller
+```
+
+At +110 s: `home= cam= setup= launcher= mgr= weston=` - **all empty**.
+
+**So the compositor was dead at 5.3 seconds**, not "the launcher chain failed" as I wrote last entry. That correction only existed because the unfiltered capture happened; the truncated one hid a five-second death.
+
+### Correction: the shell user-interface exists, just not where the ini says
+
+I wrote that `/usr/lib/weston/weston-ivi-shell-user-interface` is missing from the image. It is missing **at that path** - the binary lives at **`/usr/libexec/weston-ivi-shell-user-interface`**, alongside `weston-screenshooter`, `weston-simple-im` and `weston-desktop-shell`. Only `weston-keyboard` is genuinely absent, which is the respawn storm.
+
+### The lead that is actually actionable
+
+`hmi-controller.so` contains the literal string **`hmi-controller failed: permission denied`**. That is a compiled-in permission failure path, this image enforces SMACK (V-056) on a permissive policy, and the audit log is **live** - the same boot logged `lsm=SMACK ... action=granted` for the DLT daemon.
+
+**So the next measurement is narrow:** enable the module and grep the audit stream for `action=denied` naming `weston`. A denial explains the init failure and the fix becomes a rule rather than a code change. No denial means a bad configuration input, and the `/usr/libexec` versus `/usr/lib/weston` mismatch is the first thing to correct.
+
+The clone is reverted again; it stays on the known-good module list.
+
 ## 5.10.9 - hmi-controller: a negative, a truncated measurement, and the file that really decides the config
 
 **The useful discovery first.** The compositor does not read `/etc/xdg/weston/weston.ini` - that is a symlink to `/tmp/weston.ini`, created at line 73 of `/etc/install_westonPngLogo.sh`:

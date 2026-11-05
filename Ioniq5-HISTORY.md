@@ -6184,3 +6184,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The worker was idle with the trace it had named still unrun, so I checked which tools the image actually has and sent a specification instead of an idea: the tool, the fastest reproducing configuration, the exact trace expression and how to return the log.
 - Attached the reading rules, because the interesting part is what happens immediately before the first sleep and that determines which subsystem is at fault.
 - Sent my own two mistakes back to it as cautions, including the kernel symbol that does not exist and cost it two builds, and told it to treat this instruction as a hypothesis with a cheap test as well.
+
+## 2026-11-05 - a page of what the platform gets right
+
+- The register was thorough on failure and silent on success, which is a poor instrument for the people who have to patch it, because nothing in it said what must not be broken.
+- Wrote a controls inventory: eight measured controls with their evidence, what each is worth and where each actually stands.
+- Two are structural and clean, no setuid surface and no world-writable directory, and six place a decision on state an attacker can reach. That split, good hygiene where it is structural and weak where it is configured, is the same conclusion as the trust anchors argument reached from the opposite direction.

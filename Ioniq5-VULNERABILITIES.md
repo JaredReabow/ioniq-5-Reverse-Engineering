@@ -3821,6 +3821,20 @@ confirms the oracle; an unchanged value is itself a finding about coverage.
 
 ---
 
+## Scope note - the register has a companion: the controls that exist
+
+Every entry above is a weakness. **`docs/defences/controls-inventory.md` lists the eight controls the platform does have**, each
+with its evidence, what it is worth, and where it actually stands - because a patch team reading only this document will not
+know what it must not break.
+
+Two of the eight are clean and structural: **there is no setuid or setgid binary in the image (0), and no world-writable
+directory outside the volatile areas (0)**. Six place a decision on attacker-reachable state.
+
+That split - **good hygiene where it is structural, weak where it is configured** - is the same conclusion as the
+trust-anchors document, reached from the opposite direction.
+
+---
+
 ## Defence note - a MICOM-coupled hash and seed/key-check exists in the launcher
 
 Not a vulnerability: the counterpart to V-051, recorded so the register is not one-sided.

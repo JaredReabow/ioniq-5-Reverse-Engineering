@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.15.3 - V-071 corrected: the marker grants eligibility, not access
+
+Went to establish V-071's field severity and instead found that one of its sentences was too strong.
+
+**Checked for field evidence first:** `secure_console` appears **zero times** in the 545-file vehicle log dump (those logs are user-space DLT; `esinit`'s console messages go to the serial port). So the parameter's field value is **unmeasured**, exactly as the entry said.
+
+**Then read the thing that starts the console**, which is what settles it:
+
+```
+/etc/esinit_agetty.sh:
+  #autologin root
+  #setsid /sbin/agetty -a root -8 -L ttyS2 115200 xterm       <- COMMENTED OUT
+  setsid /sbin/agetty  -8 -L ttyS2 115200 xterm               <- active: a normal login prompt
+```
+
+**The autologin is commented out.** And a second candidate console is also disabled: `/etc/iap2_mod.sh` has
+`#setsid /sbin/agetty -8 -L ttyGS0 115200 xterm &` under *"getty login for TEST"* - **commented out**, so the USB-gadget
+serial console does not start either.
+
+**So V-071's claim that "the password may not be the binding constraint" was wrong**, and I have corrected it in place rather than leaving it to be quoted. The marker makes console access, the shell-bearing passwd and SSH **possible**; it does not grant access. What stands between an attacker and root is still **V-049's uncracked password** or **V-067's private key**.
+
+### What still earns the entry
+
+**Fail-open design.** The safe behaviour depends on one MICOM value being `1`; the marker sits in a world-writable directory; and three other mechanisms inherit its state. **A single wrong or unset MICOM value converts "latched" into "open", with no second check anywhere.** That is a design defect even when the latch holds.
+
+### The habit this is part of
+
+Three turns running, the pattern has been: file the finding, then go looking for the bound - and **find that the bound is real**. That is the right direction for a register a platform team will act on, and it is cheaper than being corrected by the vendor.
+
 ## 5.15.2 - V-071: the root console and SSH hang on one file that the init script creates every boot
 
 Reading `esinit` properly - the most privileged component in the image, which I had only read in fragments - produced the mechanism behind two existing entries.

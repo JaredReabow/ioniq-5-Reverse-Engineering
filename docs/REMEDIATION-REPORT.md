@@ -442,6 +442,11 @@ The **only** code that removes it is a MICOM parameter check: `secure_console ==
 every boot, whose only off-switch is a MICOM value** - measured as `0` in this image (V-049). The marker also lives in a
 world-writable directory (V-065), so even with `secure_console = 1` an attacker can recreate it after boot.
 
+**Bounded by authentication, and this is measured:** the console is an ordinary `agetty` - the autologin line in
+`/etc/esinit_agetty.sh` is **commented out** - and the USB-gadget console in `/etc/iap2_mod.sh` is commented out
+too. So the marker grants *eligibility*, not access; what stands in the way is V-049's password or V-067's private
+key. **The defect is fail-open design, not a bypass.**
+
 **Fix.** Invert the default: create the marker only when MICOM reports a debug state. Move it out of `/tmp` to a
 root-owned path. Drop `/etc/passwd.legacy` from production images and keep root `nologin` unconditionally.
 

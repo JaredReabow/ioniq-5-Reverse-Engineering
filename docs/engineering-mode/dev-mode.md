@@ -620,3 +620,28 @@ foreground *detection* by other applications, and the manager's **launch-by-requ
 
 So the conclusion stands, now on the whole set rather than one application: **there is no touch entry to engineering mode on this build.** The earlier sentence naming `AppHomeScreen` as the owner
 of the settings and About screens was wrong and is corrected here.
+
+### The version screen itself, and the one clickable thing on it (2026-11-05)
+
+Since the search is over, the screen is worth mapping for the record. The About/version page is `app/share/AppSetup/qml_new2.0/general/Q_AppSettingSysInfoVersion.qml` (22,104 bytes) - in
+**`AppSetup`**, which owns the settings tree. It presents three items:
+
+```
+idx 0   STR_SETUP_INFOTAINMENT_MAP
+idx 1   STR_SETUP_VEHICLE_SOFTWARE
+        STR_SETUP_OVER_AIR_UPDATE     (+ an OTA update loader)
+```
+
+**It contains exactly one `MouseArea`, and it is a virtual rotary-knob emulator:**
+
+```qml
+/* Virtual knob button */
+MouseArea{
+    visible: isDefaultState
+    width: 141; height: 78; y: 400; x: 763
+    onClicked: { console.log("Clicked!!!"); AppSettingModel.sendVirtualPressComand(0x02); }
+}
+```
+
+So the version text itself has **no tap handler**: the only clickable region on that page logs a line and sends a knob-press event. That is the third independent confirmation of the same conclusion -
+the QML enumeration, the binary symbol inspection, and now the screen's own source - and it explains why a person tapping the version number on this build would see nothing at all.

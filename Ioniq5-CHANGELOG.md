@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.4.5 - the version screen mapped, and the only clickable thing on it is a knob emulator
+
+With the gesture question answered, the screen itself is worth recording - it is what anyone repeating this work will look at.
+
+`app/share/AppSetup/qml_new2.0/general/Q_AppSettingSysInfoVersion.qml` (22,104 bytes, in **`AppSetup`**) presents `STR_SETUP_INFOTAINMENT_MAP`, `STR_SETUP_VEHICLE_SOFTWARE` and
+`STR_SETUP_OVER_AIR_UPDATE`. **It contains exactly one `MouseArea`:**
+
+```qml
+/* Virtual knob button */
+MouseArea{ visible: isDefaultState; width: 141; height: 78; y: 400; x: 763
+    onClicked: { console.log("Clicked!!!"); AppSettingModel.sendVirtualPressComand(0x02); } }
+```
+
+A virtual rotary-knob emulator at (763,400) 141x78 that logs a line and sends a knob press. **The version text has no handler at all.**
+
+That is the **third independent confirmation** of the same conclusion - the QML counter enumeration, the binary symbol inspection of every application, and now the screen's own source - and it
+explains what a person would actually see on a stock unit: nothing at all, no matter how many times they tap the number.
+
+The gesture worker has been told to stop clicking and write up whatever captures it obtained, because the question is answered and further runs would only produce more of the same negative.
+
 ## 5.1.18 - the missing mount call was delegation, not absence
 
 The withdrawn "resolved" comes back a third time, and this time with a mechanism instead of a log string.

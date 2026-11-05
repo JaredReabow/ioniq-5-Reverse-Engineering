@@ -3,6 +3,43 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.15.7 - V-073: an unauthenticated TCP-to-serial bridge ships in two applications
+
+Followed up `socat` shipping in the image, and it is not shipped idle. Two applications carry the same service shape:
+
+```
+AppMPAutoTest:  socat -d -d tcp-l:9997,reuseaddr,fork /dev/ttyUSB0,nonblock,rawer,waitlock=/var/run/ttyUSB0 &
+TmsGuiApp:      socat tcp-l:9997,reuseaddr,fork file:/dev/ttyUSB0,nonblock,raw,echo=0,waitlock=/var/run/ttyUSB0.lock &
+```
+
+**Every flag matters:**
+
+| flag | effect |
+|---|---|
+| `tcp-l:9997` | **listens on TCP 9997**, not loopback-restricted |
+| `fork` | serves **multiple clients concurrently** |
+| `reuseaddr` | rebinds immediately after restart |
+| `waitlock` | serialises device access - the authors **expected contention** |
+| `raw`/`rawer` | byte-for-byte, no translation |
+
+**No authentication, no TLS, no allow-list, no bind address.** Anyone who can reach 9997 gets a bidirectional pipe to whatever USB serial device is attached - and on this platform those are the devices telematics and manufacturing tools talk to.
+
+### Why it is more than a stray line
+
+`fork` + `reuseaddr` + `waitlock` is a **deliberate service shape**: concurrent clients, immediate rebind, device contention handling. And it appears in **two different applications** - the manufacturing test app and the telematics GUI - so it is a **pattern**.
+
+### What is not claimed
+
+**That either path runs on a normal boot** - these are manufacturing/TMS paths, nothing in our runs showed `socat` running, and `/dev/ttyUSB0` does not exist in the projection. Nor what device would be attached, nor that 9997 is reachable (WiFi gated three ways by V-050; USB/Ethernet unmeasured).
+
+### The fix is three options, in order of preference
+
+1. **Bind to loopback** if the peer is local.
+2. **Authenticate** (TLS or a per-session token in a root-only file) if it must be reachable.
+3. **Remove from production**, keep in the manufacturing build - the split the platform already makes for engineering mode.
+
+**Verify:** `netstat -ltnp | grep 9997`, then attempt `socat - TCP:<unit>:9997` from another host. **A connection that succeeds without credentials is the finding.**
+
 ## 5.15.6 - the build was failing on a space in the path
 
 The delegated kernel build failed four times and the fourth failure names the cause plainly:

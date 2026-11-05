@@ -6256,3 +6256,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The run polling for the bus name and making the call did it all correctly, and the call landed. Every capture afterwards was the standby face and the process id changed mid-sequence, so the application crashes during the power-on layout and is restarted.
 - That is a fourth outcome the decision table did not anticipate, behind the seat, mode and socket problems that are now fixed.
 - Named where the answer is: the launcher's own log of the application's stderr, which this run did not collect, for the third time this session. Added a specific hypothesis from the database work, since the layout path is exactly the one that writes the two empty widget tables.
+
+## 2026-11-05 - the layout crash is the launcher deregistering the app three milliseconds late
+
+- The launcher's own log answered it: the application registers its handle three milliseconds after a registration timeout, the launcher treats the late registration as a duplicate and terminates the app, and the pid changes read as crashes all night are that deregister and relaunch loop.
+- Both earlier hypotheses were refuted in the same log, and one of them was mine: no database failure text and no wayland error text at all.
+- So the remaining gap is a timing margin, and the cheapest attempt is a flag rather than a patch: more virtual cpus before touching a vendor binary. Added a pid stability check to precede any capture, and noted that for the third time the answer was in a log nobody had collected.

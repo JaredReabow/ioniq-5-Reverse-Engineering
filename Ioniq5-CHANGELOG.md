@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.20.1 - my own run did not reproduce, and the observability gap is why I cannot say why
+
+Tried to close §20's gap myself - a saved frame - in my own clone with the rebuilt kernel and the fixed module. It did not reproduce:
+
+```
+SHOT_SOCKET=[]                    no wayland socket
+SHOT_APPS home=[] launcher=[1981] the launcher ran, the app did not
+SHOT_TESTTOUCH=[0]                no SEAT_BOUND, no NO_SEAT_DEFERRED
+```
+
+**Not even the module's deferral message** means weston did not reach module loading. The likely cause is that I forced the backend **on the command line** (`--backend=drm-backend.so --use-pixman --width=1920 --height=720`), and `--width`/`--height` are headless/windowed options that `drm-backend` does not take - the same class of failure the wrapper exists to strip for `--tty`.
+
+**I cannot confirm it**, because **weston's log goes to `/tmp/weston-real.log` and dies with the snapshot**. That is a genuine gap in this project's observability and worth stating on its own: **the compositor's log is the one file most worth keeping, and the only one never saved.** Every diagnosis tonight has had to infer the compositor's behaviour from the console, the kernel, or an strace, never from its own log after the fact.
+
+### The difference between my configuration and the working one
+
+**The worker selects the backend with the ini's `backend=` line; I overrode it on the command line.** That single difference is enough to lose the socket, and it is now written into the handover so the next attempt changes one variable rather than three.
+
+### What I did instead of a second attempt
+
+Asked the worker for the one run that matters - **the frame, saved** - with the decoder ready on my side, the serial-channel route specified, and my failure mode passed along as a caution. **Two of my last four self-run experiments have now failed to reproduce its configuration**; the record should say that plainly rather than presenting my runs as equivalent.
+
 ## 5.20.0 - the VM display thread is closed: socket, application, drawing, no Wayland error
 
 The boot that tested the seat fix (`docs/kernel/09-vm-input-fix-result.md`, run `1793901922927628000`) is the result this whole line of work existed for, and the payload is stated as required: kernel sha256 `893e1a6b…`, the rebuilt module **13,008 bytes** sha256 `514da5de…` with its new markers, `backend=drm-backend.so`, `ivi-shell-user-interface=/usr/libexec/…`, `[output] name=Virtual-1`, authentic init, `--smp 4`.

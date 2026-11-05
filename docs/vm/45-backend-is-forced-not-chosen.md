@@ -530,3 +530,32 @@ console framebuffer, not the application.
 **By this project's own rule, a capture that was not kept is not evidence.** The log lines are strong and they are the
 reason §19 is written as a result, but **"the application draws" will not be settled until someone saves the frame.** That is
 one run with the image channel enabled, and it is the first item for whoever picks this up next.
+
+## 21. My own attempt to save the frame did not reproduce, and the difference is the wrapper
+
+Trying to close the one gap in §20 - a saved frame - I ran my own clone (`work/vm/fbdev`, the rebuilt kernel, the fixed
+module injected, `compat=False`) with the compositor wrapper forcing the backend **on the command line**:
+
+```
+/usr/bin/weston.real --backend=drm-backend.so --use-pixman --width=1920 --height=720 $new
+```
+
+Result, at 150 s:
+
+```
+SHOT_SOCKET=[]                                   no wayland socket
+SHOT_APPS home=[] launcher=[1981]                the launcher ran, the app did not
+SHOT_TESTTOUCH=[0]                               no SEAT_BOUND or NO_SEAT_DEFERRED in the weston log
+```
+
+**No socket, no seat markers, and not even the module's deferral message** - which means weston did not reach module loading.
+The most likely cause is that `--width`/`--height` are not valid options for `drm-backend` in weston 1.10 (they belong to the
+headless/windowed backends) and the compositor aborted on the option, exactly the class of failure the wrapper itself exists to
+strip for `--tty`.
+
+**Not confirmed**, because weston's own log goes to `/tmp/weston-real.log` and dies with the snapshot. That is a real gap in
+this project's observability: **the compositor's log is the one file most worth keeping and the only one never saved.**
+
+**So the working configuration is the worker's, not mine**: backend selected by the **ini's `backend=` line**, with no CLI
+override. The remaining task - save one frame - is specified to it with that difference called out, and with the instruction to
+change one variable only.

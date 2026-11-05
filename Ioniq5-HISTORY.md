@@ -6214,3 +6214,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The boot that tested the seat fix produced the result the whole line of work existed for: the socket appeared before any application check, the launcher and home screen started, the application connected as a live client and reached its drawing path, and the wayland error that consumed fifteen sections was absent.
 - It was the empty seat all along: one return value in a module this project wrote.
 - Recorded the gap in my own result rather than smoothing it: the frames were measured by size and are a new size, which is real evidence, but no image was saved, and by this project's own rule a capture that was not kept is not evidence. Saving one frame is the next item.
+
+## 2026-11-05 - my own run did not reproduce
+
+- Tried to close the one gap from the result by saving a frame myself, in my own clone, with the rebuilt kernel and the fixed module. It did not reproduce: no socket, no seat markers, not even the module's deferral message, which means the compositor never reached module loading.
+- The likely cause is my own wrapper overriding the backend on the command line with options that backend does not take, but I cannot confirm it because the compositor's log dies with the snapshot. That is worth stating on its own: the one log most worth keeping is the one never saved.
+- Handed the single remaining run to the worker with my failure passed along, and recorded plainly that two of my last four self-run experiments failed to reproduce its configuration.

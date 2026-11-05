@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.14.2 - V-070 tested in the VM: starting the app with the marker does not run the script
+
+Left the register's "unproven" label alone for as long as it took to actually test it, and then tested it.
+
+Staged the payload on the data partition, created the trigger marker, and started the manufacturing binary as root:
+
+```
+V70_PRE script=[-rwxr-xr-x]        payload in place
+V70_MARKER=[do_mpauto]             trigger present
+V70_STARTED pid=4141
+V70_ALIVE=[yes]                    ran the full 60 s
+MP_EJECT_RAN                       NEVER APPEARED
+```
+
+**The script was not executed.** So the cheapest reading of V-070 - *drop a file, start the app, get root execution* - is **refuted**, and the entry now says so where it previously said "unproven".
+
+**What survives:** the persistence primitive is a possibility only, and its trigger is something else - an engineering-mode action, or an actual media eject (the file is named `eject.sh`). Whoever pursues it next should read `AppMPAutoTest`'s handling of eject events rather than its start-up path. That is a much more useful sentence than the one I wrote before, and it took one run.
+
+**A side-observation worth keeping:** the application logs `No such slot MMUSControl::NotifyEngAirConditionKeyTest(QByteArray)` - a signal connected to a slot that does not exist in this build. Harmless by itself, but it means the manufacturing UI and its control object are out of sync in this image, which is worth knowing before trusting either.
+
+### The point of the exercise
+
+**Two of the last three register entries have now been narrowed by measurement rather than widened by inference** - V-069's trust root came from the image rather than the update stream, and V-070's trigger is not start-up. The register is becoming more accurate and *smaller* in its claims as it grows in entries, which is the right direction for something a platform team will act on.
+
 ## 5.14.1 - the two entry documents were quoting 60 entries and 12 fixes; it is 70 and 20
 
 The README's goal-2 paragraph and the state page's register block were both **stale by ten entries and eight fix items**, and the README still named **V-059 as the strongest finding**. That was true when it was written and is no longer the most useful thing to read first.

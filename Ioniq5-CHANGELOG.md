@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.4.4 - the exclusion widened to every binary, and one attribution corrected
+
+The previous entry concluded "no engineering-mode entry point" from `AppHomeScreen` alone, and added that `AppHomeScreen` owns the settings and About screens. **That second part is wrong - `AppSetup`
+owns them** - so the check was scoped to the wrong application. Widened to every shipped binary that mentions engineering mode, and each classified:
+
+| binary | mentions | what they are |
+| --- | --- | --- |
+| `AppEngineerMode` | 243 | the application itself |
+| `AppMPAutoTest` | 186 | manufacturing test, driven by a `/tmp` marker |
+| `ApplicationManager` | 27 | `requestHide --> AppEngineerMode Terminate`, `/app/bin/AppEngineerMode` - **launch by request** |
+| `AppSetup` | 14 | `APP_SETTING_FACTORY_RESET_ENGINEERMODE`, `checkFactoryResetEngineermode()` - **factory-reset integration while inside** |
+| `BluetoothHMI` | 12 | `isEngineerModeFG()` - **detects** it in the foreground |
+| others | 1-7 each | termination, APP ids, launch table |
+
+**None contains a gesture, signal or slot that starts engineering mode.** The references divide into the app itself, factory-reset integration, foreground detection, and launch-by-request.
+
+So the conclusion survives the wider check and is now stronger - but the sentence about which application owns the About screens was wrong, and it is the kind of error that would send the next
+person to the wrong binary. Corrected in place.
+
 ## 5.4.3 - engineering mode cannot be entered from the touchscreen on this build, and the ranking was overstating it
 
 The QML enumeration left one possibility open: a handler in compiled code. Checking it the same way closes the question.

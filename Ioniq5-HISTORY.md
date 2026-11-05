@@ -5488,3 +5488,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Checked the compiled interface after the QML enumeration: the application that owns the settings and About screens has no engineering entry point at all, only data paths used by the engineering app itself and a factory-reset notification delivered while already inside it.
 - So the About tap everyone describes is not a stock entry vector on this firmware, and the ranking that called engineering mode a no-privilege route was overstating it. Corrected in place.
 - Second external claim tonight that this image refutes, and the plainest answer yet to a question asked several times: no, not from the screen.
+
+## 2026-11-05 - the right answer from the wrong binary
+
+- Concluded there was no engineering entry point from one application. That application does not own the settings or About screens; the one that does is a different binary, and I had never checked it.
+- Widened to every binary that mentions engineering mode and classified each: the app itself, manufacturing test, the manager's launch-by-request, factory-reset integration inside, and foreground detection by another app. No gesture anywhere.
+- The conclusion held, the scoping sentence did not. That is the kind of error that sends the next reader to the wrong file, so it is corrected where it was written.

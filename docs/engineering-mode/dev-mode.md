@@ -599,3 +599,24 @@ that do exist are the ones this project has measured: an app-manager launch requ
 
 This is the firmest negative in the engineering-mode section, and it is worth stating plainly because it is the opposite of what the field assumes: **the widely reported About-screen tap is not a
 stock entry vector on this firmware.**
+
+### Widened to every binary, and an attribution corrected (2026-11-05)
+
+The check above was scoped to `AppHomeScreen`. That is the wrong application: **`AppSetup`** owns the settings and About screens. Widening the check to every shipped binary that mentions engineering
+mode at all gives this set, and each was classified:
+
+| binary | mentions | what they are |
+| --- | --- | --- |
+| `AppEngineerMode` | 243 | the application itself |
+| `AppMPAutoTest` | 186 | manufacturing test, driven by a `/tmp` marker, not by the UI |
+| `ApplicationManager` | 27 | `requestHide --> AppEngineerMode Terminate`, `/app/bin/AppEngineerMode` - **launch by request**, which is the route this project measured |
+| `AppSetup` | 14 | `APP_SETTING_FACTORY_RESET_ENGINEERMODE`, `checkFactoryResetEngineermode()`, `slotNotifyFactoryResetEngineerMode` - **factory-reset integration while already inside**, no entry |
+| `BluetoothHMI` | 12 | `isEngineerModeFG()` - **detects** engineering mode in the foreground; `APP_*_ENGINEERMODE` ids |
+| `AppHomeScreen` | 7 | the two data paths and the factory-reset slot documented above |
+| `AppUpgrade`, `AppCamera`, `AppEURadio`, `AppLauncher`, `AppVH` | 1-6 each | termination, APP ids, and the manager's own launch table |
+
+**No shipped application contains a user gesture, signal or slot that starts engineering mode.** The references divide cleanly into: the application itself, factory-reset integration inside it,
+foreground *detection* by other applications, and the manager's **launch-by-request** path - which requires a root process on the session bus.
+
+So the conclusion stands, now on the whole set rather than one application: **there is no touch entry to engineering mode on this build.** The earlier sentence naming `AppHomeScreen` as the owner
+of the settings and About screens was wrong and is corrected here.

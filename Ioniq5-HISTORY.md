@@ -6016,3 +6016,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Wrote down once what had been discovered three times at the cost of a run each: five open items are blocked by a single absence, the display path, rather than by their own difficulty.
 - The leverage is now unambiguous. A kernel rebuild with the virtual gpu driver would unblock all five, and it needs a kernel tree this project does not have, which makes acquiring one the highest-leverage action available.
 - Listed what is not blocked and worth doing instead: adaptor completeness measured without a display, static security work, and the record itself.
+
+## 2026-11-05 - the kernel tree was already in the repository
+
+- Corrected an entry from a turn ago: I said the project had no matching kernel tree. It has one, sitting in the working directory alongside earlier build outputs and logs.
+- So the highest-leverage action changed from acquiring a tree to building from the one in hand, and that is now delegated with the trade-offs written down in advance rather than discovered: the vendor-only symbols fall out of the config, which costs the built-in driver that would have created the can interface.
+- Named the pattern, because it is the third time this session: the reply values, the bus policies and now the kernel tree were all already in the repository while I looked only at the binaries.

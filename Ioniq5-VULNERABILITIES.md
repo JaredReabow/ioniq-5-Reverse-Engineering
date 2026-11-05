@@ -2740,6 +2740,35 @@ That is a **persistence** primitive, not an escalation: it needs root, but it co
 - Whether the script would be run with any verification (hash, owner, label) - nothing in the strings suggests one,
   but absence of strings is not absence of a check.
 
+### Measured negative - starting the application with the marker does not run the script
+
+Tested in the projection rather than left as a shape. `/app_data/AppEngineeringMode/shell/eject.sh` was created on the
+data partition containing a command that writes to the console, `/tmp/AppMPAutoTest/do_mpauto` was created, and
+`/app/bin/AppMPAutoTest` was started as root:
+
+```
+V70_PRE script=[-rwxr-xr-x]           the payload script is in place
+V70_MARKER=[do_mpauto]                the trigger marker exists
+V70_STARTED pid=4141
+V70_ALIVE=[yes]                       ran for the full 60 s
+V70_MPOUT_TAIL=[Using Wayland-EGL | libEGL warning: failed to initialize EGL display |
+                No such slot MMUSControl::NotifyEngAirConditionKeyTest(QByteArray)]
+MP_EJECT_RAN                          NEVER APPEARED
+```
+
+**The script was not executed.** So this entry's shape is **not reachable by starting the application with the marker in
+place** - the trigger must be something else: an engineering-mode action, an actual media-eject event (the file is named
+`eject.sh`), or a state that the projection does not produce.
+
+**What that changes:** the persistence primitive stands as a *possibility* only, and the cheapest reading of it - "drop
+a file, start the app, get root execution" - is **refuted here**. Anyone pursuing it next should look for the code path
+that would run an eject script, in `AppMPAutoTest`'s own handling of eject events, rather than at its start-up.
+
+**Also observed, and recorded because it is the kind of defect that matters later:** the application logs
+`No such slot MMUSControl::NotifyEngAirConditionKeyTest(QByteArray)` - a signal emitted or connected to a slot that does
+not exist in this build. Harmless on its own; it means the manufacturing UI and its control object are out of sync in
+this image, which is worth knowing before trusting either.
+
 ### Fix
 
 Do not execute scripts from a persistent writable partition. If field diagnostics need a script, ship it on a

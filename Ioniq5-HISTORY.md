@@ -5968,3 +5968,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Found the readme and the state page both stale by ten register entries and eight fix items, and the readme still naming the old strongest finding.
 - Rewrote both around the three entries that set the frame now: the service hardening count that explains why the others are severe, the writable certificate authority that is the cheapest path, and the shipped ssh key. Kept the two refutations beside them so nobody chases what was already disproved.
 - Noted honestly that this is the third time the record lagged the work in one session, and that the checks cannot catch a document that is internally consistent but out of date.
+
+## 2026-11-05 - the manufacturing script test came back negative
+
+- Stopped calling the manufacturing script entry unproven and tested it: staged the payload, created the trigger marker, and started the binary as root. It ran for a full minute and never executed the script.
+- So the cheapest reading of that finding is refuted, and the entry now says so. What remains is a possibility whose trigger is something else, most likely a media eject given the file name, which is where the next reader should look.
+- Noted that two of the last three entries have been narrowed by measurement rather than widened by inference, and that a register becoming smaller in its claims as it grows in entries is the right direction.

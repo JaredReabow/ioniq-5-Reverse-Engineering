@@ -410,10 +410,11 @@ for sameness. For the CA: replace it, sign a navi package, attempt an update.
 persists across reboots; the shell directory **is not shipped**. Manufacturing mode is already known to be triggered by
 a `/tmp` marker (V-042).
 
-**Exposes.** If that path is executed, one directory plus one file on a persistent partition, plus the known `/tmp`
-trigger, gives **unattended root execution that survives reboot** - converting temporary root into permanent code.
-It needs root, so it is persistence rather than escalation, and that is exactly the primitive an attacker who has
-reached root wants next.
+**Exposes.** *If* that path is executed, one directory plus one file on a persistent partition, plus the known `/tmp`
+trigger, would give **unattended root execution that survives reboot**. **Measured negative:** starting
+`AppMPAutoTest` as root with the script in place and the marker created did **not** run it, so the cheap reading -
+"drop a file, start the app, get root execution" - is refuted; the trigger is some other event (the file is named
+`eject.sh`, so a media-eject path is the first place to look).
 
 **Fix.** Never execute scripts from a persistent writable partition: ship any field-diagnostic script on a read-only
 partition and run that path, or verify a signature over it with a key that is not itself writable (V-069's failure

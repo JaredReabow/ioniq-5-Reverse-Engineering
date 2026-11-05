@@ -3,6 +3,43 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.23.2 - the missing row has a one-entry patch, and the loop is read rather than guessed
+
+I said last entry that a patch needs the table's count read properly before touching anything. Read:
+
+```
+14e6a: cmpl $0x11, %esi     if (appId == 17) -> separate handler
+14e73: leaq 0x475c0, %r8    table base
+14e7f: movl $0x1, %eax      i = 1
+14e93: cmpl %ecx, %esi      compare appId with entry.appId
+14e95: je   0x14ec8         found -> use entry.surfaceId
+14e9a: addq $0x8, %rdx      next entry
+14e9e: cmpl $0x8, %eax      while (i != 8)
+```
+
+**Eight entries, a hard bound of 8, stride 8, `(appId, surfaceId)` int32 pairs.** So **the patch is one entry, not an extension**: `0x47600` is already the next string in the file (`ApplicationLauncher::LastAV is %1`), so appending would overwrite data rather than grow the table.
+
+**The minimal patch repurposes the entry for an app that never launches:**
+
+```
+0x475e8  before: 71 00 00 00 7a 08 00 00    appId=113 surfaceId=2170
+0x475e8  after : 0b 00 00 00 20 08 00 00    appId=11  surfaceId=2080
+```
+
+**2080 is not a choice** - it is the surface id this project has observed for the home screen since the first captures.
+
+### The trade, and how to make it have no victim
+
+Whichever app is id 113 loses its surface id. `111`/`112`/`113` look like media-player variants; `73` is unidentified. **So the entry to repurpose is whichever id never appears in the launcher log** - one `grep`, decided by evidence instead of by preference.
+
+### And the proof is textual before it is visual
+
+`QT_WAYLAND_SET_SURFACE_ID=2080` appearing **for `AppID : 11`** in the launcher log would show the table being read for the home screen at all. **That line is the proof; the frame is the second question** - which is the discipline this whole session kept having to relearn.
+
+### Where this leaves the goal
+
+**The last blocker is now a specific integer in a specific table at a specific offset, with a documented patch, a named trade and a textual test.** That is as far from "the UI does not render" as a finding can get in one night.
+
 ## 5.23.1 - the surface-id table is in the binary, and the home screen is not in it
 
 Followed the missing id to its source instead of guessing at the launcher's logic, and it is a **static data table** at file offset `0x475c0` in `app/bin/AppLauncher`, read as `(appId, surfaceId)` int32 pairs:

@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.4.2 - the About gesture is absent from this build's QML, and that is now exhaustive rather than argued
+
+The external project's stock entry vector - tap the software version 5-10 times on **Settings -> General -> About** - has been an **inferred** assumption in this repository all session. Checking it
+properly means enumerating the QML tree rather than guessing at a path, and the enumeration is small:
+
+```
+/app/share/AppEngineerMode/qml/AutoTest/AppEngineerMode_GhostTouchTest.qml
+/app/share/AppEngineerMode/qml/AutoTest/AppEngineerMode_TouchTest.qml
+/app/share/AppHomeScreen/qml_new2.0/NMode/PerformanceTimer/Q_NMode_PT_Lap_Main_Track.qml
+```
+
+**Three counters exist in the entire shipped QML tree**, all accounted for - two are engineering mode's own touch tests, the third is the lap-timer toggle that flips a cosmetic flag. The only
+thresholds anywhere are `5` and `0`.
+
+**So the About-screen gesture is not in this build.** That is stronger than a failed search: the tree was enumerated by pattern, not sampled by hand.
+
+What survives as an open possibility is **a C++-side handler** - `AppHomeScreen` is compiled and could bind a tap without any QML `MouseArea` - and that is settled by one observation, not by more
+reading. The worker has been redirected from hunting QML counters to capturing whether the version string reacts to a tap at all.
+
+This is the fifth time tonight that systematic checking produced a **negative** where an inherited claim had been standing, and the first where the claim came from the external project rather
+than from this repository's own earlier work.
+
 ## 5.4.1 - the hidden five-tap toggle exists, on the lap timer rather than on About
 
 Checking the static half while the gesture experiment runs: the external triage claimed this image contains no About-screen tap counter. That is right about **About** and wrong about the image.

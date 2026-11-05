@@ -100,3 +100,25 @@ The earlier version of this rule, from §7, was "verify the marker, not the exit
 
 **Rule.** After a scripted edit, assert positively - `grep -q` the exact new phrase and exit non-zero if it is absent - rather than eyeballing a number. And when a verification produces an unexpected value, stop the commit; do not reword the search and carry on.
 
+
+## 11. A byte size is a hint about which frame you captured, never a verdict about what it shows
+
+**The case.** This project has used PNG byte sizes as a shorthand for state for days: 129,844 is the
+early background, 120,5xx is the application's standby face, ~16,000 is the laid-out home screen. It
+worked often enough that "compare the size" became the first check.
+
+It broke on 2026-11-05. A worker captured `docs/vm/39-…png` at **131,845 bytes** and treated it as
+evidence that a CAN injection had been applied. I opened it: 1920x720, dark, title bar, **KIA logo, no
+widgets** - the **standby face**, the powered-off presentation. So one standby frame is 120,5xx and
+another is **131,845**, an 11 KB spread that is larger than the gap between two of the "reference"
+sizes this project quotes. The run had never powered the application on, so the injection could not
+have shown anything.
+
+**Rule.** Size tells you whether you captured *something new*. Only the image tells you *what*. When a
+state claim matters, describe the frame in words that a second person could check without your file -
+"KIA logo and no widgets" versus "Battery and Range placed with placeholder dashes" - and open it.
+Two frames of the *same* state can differ by more than two frames of *different* states.
+
+**Corollary for delegation.** A worker told "compare against these reference sizes" will treat a
+mismatched size as a state change. Give workers the **visual** test as well, in words, and require them
+to say which surface id a capture came from.

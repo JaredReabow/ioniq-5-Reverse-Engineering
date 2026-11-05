@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.8 - the state page contradicted itself, and now it does not
+
+The page meant to be read first was arguing with itself: section 0 announced that the home screen lays out, and a later section was still titled *"the one call that should fix it"* with a **"Not yet demonstrated"** paragraph. Both cannot be true, and the stale one was mine.
+
+Fixed in place rather than deleted: the section is now titled **resolved**, keeps the `com.lge.avn.appmanager.info` API mapping that is still useful, and says plainly that the call was made and worked - **and that my stated mechanism was wrong**, because the power queries read `1` before and after and the setter pushes a state event.
+
+**Three things added to the page where the next reader will look:**
+
+- **§1e, engineering mode in the projection** - the three findings and what none of them is: the method route is inert, the signal route is unfiltered (V-060), and the payload is decoded with delivery proven by a monitor, so the obstacle is **state, not transport and not authentication**.
+- **The standard for the remaining VM gap** - 321 real-vehicle pairs: **65 % reads 287 km**, ~4.4 km per percentage point, and **0 % with 0 km is the pre-data state, not success**.
+- **The register table** now carries V-058, V-059 and **V-060**, and its "seven relevant entries" heading - which had already drifted from the content - now states the authoritative count: 60 entries in the register, 13 fix items in the report.
+
+**The pattern worth naming:** every one of these was a document I had written, going stale within hours because the work moved. The checks catch broken links and register numbering; they do not catch a page disagreeing with itself. Reading the page before adding to it does.
+
 ## 5.9.7 - the fix list now points at the evidence, and includes the newest finding
 
 The register is the evidence base and the remediation report is the fix list, but nothing joined them: **no item cited a register id, and the newest finding was missing entirely.**

@@ -34,6 +34,11 @@ the setter does is **push the state event**, which is what makes the app re-lay-
 a probe for this at all, and my "the manager says the vehicle is off" reasoning was wrong in mechanism
 even though the fix worked.
 
+### The standard for the remaining gap (added 2026-11-05)
+
+`evidence/vehdata-ground-truth.md`: 321 battery/range pairs from 545 real-vehicle logs - **65 % reads
+287 km**, ~4.4 km per percentage point, and **0 % with 0 km is the pre-data state, not success**.
+
 ### What is still not there
 
 The widgets are **placed with placeholder values** - `---` under Battery and Range - because no CAN or
@@ -104,7 +109,7 @@ The About-screen tap that the field describes is **absent**, checked by enumerat
 shipped binary - including `AppSetup`, which owns the settings screens - contains a gesture, signal or slot that starts engineering mode. Entering it needs an app-manager request for **app id 301**
 from a **root** process on the session bus, or a developer path.
 
-## Why the home layout does not appear, and the one call that should fix it (2026-11-05)
+## Why the home layout did not appear, and the call that fixed it (2026-11-05) - **resolved**
 
 The application window paints - title bar, left panel, KIA logo - but the home screen's **content** never lays out. The application's own API says why.
 
@@ -132,7 +137,7 @@ dbus-send --session --print-reply --dest=com.lge.hyundai.avn.appmanager /Informa
 
 `set_power_on_status(on, position)` is an **incoming** method on the manager's own `info` interface - something in the vehicle is meant to call it, and nothing in our projection does.
 
-**Not yet demonstrated:** my own attempt ran into the harness it was sharing (the clone's own instrumentation completed the run before my probe fired), so the call has not been made and observed. The worker with the working harness has it. If the layout appears after that call, the last named gap in the VM closes; if it does not, the state it is waiting for is something else, and the manager's other `ask_acc_status` / `ask_ign_status` answers are the next thing to read.
+**Resolved.** The call was made and the layout appeared - see section 0 and `docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png`. My own first attempt failed on my instrument, not the target; the worker with the working harness made it. **My stated mechanism was wrong and section 0 records why**: the power queries read `1` before and after, so the setter pushes a state event rather than changing a stored value.
 
 ### Measured: power is already on, and `show_engineermode` is accepted (2026-11-05)
 
@@ -152,6 +157,21 @@ manager implements it and honours the call at the interface level.
 **What is not established:** whether it actually starts `AppEngineerMode`. In that run the home screen had not yet started when the call was made (`home=` empty at the 105-second probe), and no
 `AppEngineerMode` process appeared in the following 80 seconds. So the entry is **accepted but unobserved in effect** - the call must be repeated **after** `AppHomeScreen` owns its bus name, which is
 a timing detail this project has already been bitten by more than once.
+
+## 1e. Engineering mode in the projection: three findings, none of them "it works"
+
+1. **The method route is inert.** `com.lge.avn.appmanager.info.show_engineermode` returns a clean
+   `method return` and starts nothing - measured twice, the second time with the home screen running.
+2. **The signal route is unfiltered.** The manager connects to `NotifyKeyFrontSpecialEvent` with an
+   **empty service and an empty path**, so any process on the system bus can deliver a key event (V-060).
+3. **The payload is decoded, and delivery is proven.** `[0x01, 0x05]` selects the engineering path and
+   reaches app id 301 after `ask(301)` and `ask(71) == 1`. A monitor on the interface **saw the signal on
+   the system bus** while no application started - so the obstacle is **state, not transport, and not
+   authentication**.
+
+`docs/engineering-mode/special-key-payload-decoded.md`, `show-engineermode-accepted-but-inert.md`.
+
+**Not established:** that engineering mode can be opened in the projection by any route.
 
 ## 2. The one blocker for init fidelity
 
@@ -187,7 +207,7 @@ Everything else on the boot path is shipped software: kernel, `esinit`, eMMC rec
 
 ## 4. Root access — the register
 
-Seven relevant entries. **Two are demonstrated**, one is captured, three are confirmed from code/config, one is hardware-bounded.
+**Thirteen relevant entries**, and the count keeps moving - the authoritative list is `Ioniq5-VULNERABILITIES.md` (60 entries) with a fix-cost mapping in `docs/REMEDIATION-REPORT.md`. one is hardware-bounded.
 
 | # | Finding | State |
 | --- | --- | --- |
@@ -202,6 +222,9 @@ Seven relevant entries. **Two are demonstrated**, one is captured, three are con
 | V-042 | seven privileged behaviours key on a file existing in `/tmp` | wiring confirmed, trigger observed, **no marker shown starting a service end to end** |
 | V-056 | 636 SMACK rules load, applications carry `_` | policy real and loaded; **labelling unverified** (no xattr records in the archive); whether `_` is confined by the rules is unproven |
 | V-057 | Tuxera exFAT/NTFS drivers parse auto-mounted media | **candidate** — surface established, no defect found; falsification in progress |
+| V-058 | eleven services read their bus address from `/tmp/session_appmgr.env` | confirmed from unit files |
+| V-059 | updater verifies, then installs from a second read | **strongest**: keyless downgrade; the shell-substitution route is **refuted** (staging renames to fixed names) |
+| **V-060** | engineering mode requestable by **any system-bus process** | connect uses an **empty service and empty path**; payload decoded (`[0x01,0x05]`); **signal observed on the bus**, handler declines on state |
 | V-014 | USB property injection → installed root shell | payload is an unauthenticated root shell; injection needs real hardware |
 
 **The unifying argument** is `docs/trust-anchors-in-writable-runtime-paths.md`: six of these are one mistake — a privileged decision resolved from

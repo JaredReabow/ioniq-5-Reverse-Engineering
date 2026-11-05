@@ -3,6 +3,36 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.6.1 - why the home layout never appears: the app asks the manager, and the manager was never told the vehicle is on
+
+Two captures showing a title bar and a logo, and no widgets, sent me to the application's own API. It answers the question precisely.
+
+**`AppHomeEngine::askPowerStatus()` asks the application manager, not MICOM**, over the manager's own `info` interface:
+
+```
+com.lge.avn.appmanager.info
+    ask_power_status      ()                     -> int status
+    ask_acc_status        ()                     -> int status
+    ask_ign_status        ()                     -> int status
+    set_power_on_status   (int on, int position)        <- an INCOMING method
+    power_status          (int status)                  <- a signal
+```
+
+The app has the matching slots - `slotPowerStatus(int)`, `slotAccStatusChanged()`, `slotIGNStatusChanged()` - so the chain is **MICOM -> manager -> `ask_power_status` -> home layout**. Our stand-in owns
+`com.lge.car.micom` and answers the app's own queries, but **nothing ever drives the manager's power state**, so the manager reports the vehicle as off and the app shows its standby branding.
+
+**The candidate fix is one call**, and the API is built to receive it:
+
+```
+set_power_on_status(1, 0)   on com.lge.avn.appmanager.info at /Information
+```
+
+**Not demonstrated.** My attempt collided with the clone's own instrumentation and the run completed before my probe fired - the third time tonight that my instrument, not the target, was the problem on
+this question. The worker with the working harness has been given the exact call, the object-path fallback, and the instruction to record `ask_power_status` before and after, so the result will be
+either a laid-out home screen or a named remaining state.
+
+Recorded in `docs/CURRENT-STATE.md` beside the "what does not render" note, because that is where the next person will look.
+
 ## 5.6.0 - the interface paints a title bar and a logo, not a home screen
 
 A second worker's independent capture shows the same frame as the first: **title bar, left panel, KIA logo, and nothing else.** Two captures from two clones at the same size (120,561 and 120,565 bytes)

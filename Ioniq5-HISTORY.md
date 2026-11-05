@@ -5530,3 +5530,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Two independent captures from two workers show the same frame: title bar, left panel, vendor logo, and no home content at all. That is the steady state in the projection, not a timing artefact.
 - Which corrects what I had been saying: the application paints, the home screen does not. It also explains why clicks had nothing to navigate to.
 - The likely cause is state rather than rendering: the layout is gated on the vehicle power status, and our stand-in answers queries without driving that state machine. Supplying it is the next named step.
+
+## 2026-11-05 - the app asks the manager, and the manager was never told
+
+- Read the application's own API to find why the home layout never appears: it asks the application manager for power status, and has slots for power, ACC and ignition changes.
+- So the chain is the vehicle bus feeding the manager, and the manager feeding the app. Our stand-in answers the app's queries but never drives the manager's state, so the manager says off and the app shows standby branding.
+- The manager exposes an incoming setter for exactly this, so the candidate fix is one call. My own attempt collided with the harness again; handed it to the worker with the working one.

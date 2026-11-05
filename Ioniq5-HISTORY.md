@@ -5384,3 +5384,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The managed application now paints: capturing each surface by identity rather than taking the newest showed the background's surface is created last and had been winning every attempt. The application's own surface renders the title bar, a widget label, and the vendor's KIA logo.
 - So the chain from the vehicle's init through its launcher and manager to the home screen produces a real frame, on the vendor kernel, under the vendor compositor.
 - Five failures had one cause: asking which surface was newest instead of which surface it was.
+
+## 2026-11-05 - making the result rebuildable instead of remembered
+
+- The working image depended on an injection script and staged files that lived only in ignored directories. Moved the script into the tool tree, parameterised it, and wrote a page naming where every staged file comes from.
+- The honest part of that provenance table: five of the staged artefacts are host Mesa files, because the vendor image ships only a stub driver. That is the single machine-specific dependency and it is now stated rather than implied.
+- Also recorded the boot flag that matters and the measurement trap that cost five attempts, so a future rebuild can identify the application's surface by measurement instead of luck.

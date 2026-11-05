@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.3.1 - the working image is reproducible from the repository, which it was not two hours ago
+
+Every part of the authentic-path result lived in ignored `work/` directories: the injection script, the staged files, and the knowledge of which surface is the application's. If the machine
+were lost, the result would be described in the changelog and not rebuildable.
+
+Two additions fix that.
+
+**`tools/uk_fw/vm_partimg/inject-stockui.sh`** is the injection script, moved out of `work/vm/stockui` and parameterised (`<stage-dir> <workspace>`), with the absolute `debugfs` path made
+overridable. Its `debugfs -f` command-file form is kept, because `-R` splits on whitespace and that has bitten this project twice.
+
+**`docs/vm/reproducing-the-authentic-image.md`** says where every staged file comes from, and the honest answer is a table: our scripts and configs, one **vendor** file
+(`weston-vm-input.so`), and **five host-provided Mesa artefacts** (`swrast_dri.so` plus four libraries) - the single machine-specific dependency, because the vendor image ships only an
+`i965_dri.so` symlink stub. Binaries are deliberately not committed; the provenance is, which is what a rebuild needs.
+
+It also records the boot command (`--smp 4`, with the reason: at two vCPUs the managed app never registers), what a successful run looks like, and **the measurement trap that cost five
+attempts** - that the background's surface is created last, so capturing "the newest" always selects the splash. With the two reference sizes beside it, a future attempt can identify the
+application's surface by measurement rather than by luck.
+
 ## 5.3.0 - the MANAGED instance paints, on the vendor boot path, with the vendor's own artwork
 
 The last VM thread is closed, and not by the method that had failed five times.

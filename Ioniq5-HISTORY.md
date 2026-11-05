@@ -5573,3 +5573,10 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - That explains the black menu bar and the clicks falling through - there had been nothing to click.
 - My own prediction for how it would work was wrong: the power query read one before and after the call, so the setter pushes a state change rather than changing a stored value. Recorded in place.
 - What remains is placeholder data under the widgets, which is the same kind of adaptor work the rest of this has been.
+
+## 2026-11-05 - the D-Bus engineering entry is accepted and does nothing
+
+- Called the engineering-mode method on the manager with the home screen actually running this time. It answered cleanly and the engineering application never started, in eighty-four seconds of polling.
+- The earlier attempt had been inconclusive because the app was not up yet; that caveat is now gone.
+- Noted the route that should have come first: the micom manager exposes test methods for the front-panel special key, which means any client on the session bus can forge a technician's key press.
+- The run's capture was the known background rather than the application, and that is stated rather than glossed, because the conclusion rests on the process check instead.

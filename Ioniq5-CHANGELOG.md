@@ -3,6 +3,16 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.1 - the D-Bus engineering entry is accepted and does nothing
+
+Twice now, and the second time properly. With the manager up and the home screen running (`home=2494` after `set_power_on_status`), `show_engineermode` returned a clean `method return` and **no `AppEngineerMode` process appeared in 84 seconds**.
+
+The first attempt was inconclusive because the app had not started yet; this one removes that caveat. **So E1 - the D-Bus entry that looked like the technician's route - is inert as called.** Three readings stay open and are distinguishable: it wants arguments the interface block does not advertise, its handler is gated on build state (consistent with everything else about engineering mode here), or it sets a state a later event consumes.
+
+**The better next route is E2b**, and it should have been tried first: `micommanager_userspace` exposes **test methods** for the front-panel special key, and the front-panel key is a signal the manager is known to act on (`HWKeyInterface::SpecialKey`). That means **any session-bus client can forge a technician's key press**, which is both easier to exercise and a sharper security fact than a method whose handler behaviour is unknown.
+
+One caveat recorded rather than glossed: the run's capture came back at **129,844 bytes**, the known early background, because the screenshooter composited the newest surface. It carries no information about the application, so the negative rests on the process check and the two method returns, not on the image.
+
 ## 5.9.0 - the home screen lays out
 
 **One D-Bus call produced the home screen.** After `AppHomeScreen` owns its bus name:

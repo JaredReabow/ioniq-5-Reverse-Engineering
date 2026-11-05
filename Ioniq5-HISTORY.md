@@ -5403,3 +5403,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Validated the reproduction script against a workspace with none of the projection files. The writes work, the guard works, the re-run is idempotent - and the script never injected the init file that the documented boot command names.
 - It also never wrote the preserved vendor script, so its own verify loop reported both missing on every run and carried on. The instructions were internally inconsistent.
 - Fixed and re-verified on the empty base: zero missing, and every expected file present including the init with its execute bit. Third defect in a tool written an hour earlier, all found by running it.
+
+## 2026-11-05 - the procedure works, after three bugs in a tool an hour old
+
+- Rebuilt a working image from a workspace with none of the projection files, and booted it to multi-user with the launcher running and the micom stand-in active.
+- It took four attempts. One bug made the script report success while doing nothing; one pointed the write step at the wrong directory; and one hardcoded a different workspace in the sync call, so it kept reporting that other workspace's state as the target's.
+- The last one is the memorable kind: the tool reported another directory's idempotency as if it were this directory's success, and only a kernel panic exposed it.

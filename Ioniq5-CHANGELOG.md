@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.12.0 - the first real defence in the image, and it is inert under emulation
+
+The VM work left a question with security content: **why did a replaced application binary refuse to run?** Answering it turned up something the register has never had - a **defence**.
+
+`app/bin/AppLauncher` carries:
+
+```
+interface  com.lge.avn.applauncher.cipher
+  method     getIVDHash() -> ay            a system hash, exposed over D-Bus
+classes    HashCipherInterface, CipherAdaptor, OsslCipherUtils, AskCipherThread
+strings    AskCipherThread::SystemIVD=
+           onNotifySystemHashDataEvent
+           onNotifyAdvancedSecurityKeyEvent KeyCheck / Seed
+```
+
+**A hash identity plus a `Seed`/`KeyCheck` challenge with the MICOM, backed by OpenSSL.** That is the shape of a genuine anti-tamper control - the first this project has found in the shipped image.
+
+### It also nuances V-051 rather than contradicting it
+
+V-051 records that the launch path **executes any caller-named path as root**, and that stays measured. What this shows is that the platform **has the parts for verification** next to a launch path that does not use them. Both facts belong in the record, and a register that only ever lists weaknesses is not an honest picture of a system.
+
+### What is not established, and why the hedge matters
+
+**Enforcement is unproven.** The wrapper experiment - no process, no log - is consistent with a hash check, and **equally consistent with an `exec` that requires an ELF**, or a path table never consulted. Three cheap tests would separate them: wrap a *different* application, call `getIVDHash` and see if it answers and changes, and read the launcher's handling of the hash event on a unit with a real MICOM.
+
+**And the important possibility: the control is inert in the projection**, because the MICOM events it depends on never arrive here. That means everything this project can run is **untested by that control** - which is itself worth knowing.
+
+Recorded as a defence note in the register (so the register is not one-sided) and as a document under `docs/defences/`. I resisted writing "the launcher verifies binaries", which the evidence does not support and which the next person would quote back at me.
+
 ## 5.11.14 - every display path is closed, so the ceiling is now a measured fact
 
 The framebuffer was the last hope: `fbdev-backend.so` needs no DRM, and QEMU's standard VGA could provide one. The vendor kernel closes it:

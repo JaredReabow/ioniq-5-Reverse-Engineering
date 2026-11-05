@@ -5,14 +5,34 @@
 set -e
 cd "$(dirname "$0")/../../.."
 ZIG=${ZIG:-work/toolchains/zig-macos-aarch64-0.13.0/zig}
-DBUS_INC=${DBUS_INC:-/opt/homebrew/include/dbus-1.0}
-DBUS_ARCH_INC=${DBUS_ARCH_INC:-/opt/homebrew/lib/dbus-1.0/include}
+# The dbus headers are a build-host dependency, not something the guest image ships,
+# so they are supplied by the caller and never hardcoded here (no host paths in the repo).
+#   DBUS_INC=/path/to/dbus-1.0 DBUS_ARCH_INC=/path/to/dbus-1.0/include sh build-eng-data-sim.sh
+if [ -z "$DBUS_INC" ] || [ -z "$DBUS_ARCH_INC" ]; then
+    echo "build-eng-data-sim.sh: set DBUS_INC and DBUS_ARCH_INC to the dbus-1.0 headers" >&2
+    echo "  e.g. DBUS_INC=/usr/include/dbus-1.0 DBUS_ARCH_INC=/usr/lib/dbus-1.0/include" >&2
+    exit 2
+fi
 GUEST_LIBDBUS=${GUEST_LIBDBUS:-work/decrypted-eu-260128/extracted-safe/mango-rootfs/usr/lib/libdbus-1.so.3}
 SRC=tools/uk_fw/guest/eng_data_sim.c
-OUT=tools/uk_fw/guest/eng-data-sim
+OUT=${OUT:-tools/uk_fw/guest/eng-data-sim}
 
-"$ZIG" cc -target x86_64-linux-gnu -O1 \
+"$ZIG" cc -target x86_64-linux-gnu -O1 -g0 \
+  -ffile-prefix-map="$PWD"=. -fdebug-prefix-map="$PWD"=. \
   -I "$DBUS_INC" -I "$DBUS_ARCH_INC" \
   -o "$OUT" "$SRC" "$GUEST_LIBDBUS"
 
 file "$OUT" | cut -c1-100
+
+# Sanitise the artefact: the compiler still records the build root in a few diagnostic
+# strings. Overwrite any occurrence of it with dots so the binary carries no host path.
+# Length is preserved, and these strings are unused at run time.
+python3 - "$OUT" "$PWD" <<'PYEOF'
+import sys
+path, root = sys.argv[1], sys.argv[2].encode()
+data = open(path, 'rb').read()
+if root in data:
+    data = data.replace(root, b'.' * len(root))
+    open(path, 'wb').write(data)
+    print(f"  sanitised {path}: build root replaced with dots")
+PYEOF

@@ -2641,6 +2641,75 @@ boot".
   repository has only the strings, which support either.
   **The observation that settles it is a `lsof`/`inotify`/`strace` on the unit during a real update**: which path does the `md5sum` open, and which does the `pv`/`dd` open.
 
+## V-065 - nine `/etc` trust anchors point into world-writable `/tmp`, and the pattern is systemic
+
+**Status:** the symlinks are **counted** in the shipped image; the effect is **demonstrated** for one of them
+(V-054, account database) and **latent** for the rest. Class: trust anchor in a writable runtime path - the family
+this register already documents, now with its true size.
+
+### The nine
+
+```
+/etc/passwd              -> /tmp/passwd            writer: esinit (boot)          <- V-054, demonstrated
+/etc/shadow              -> /tmp/shadow            writer: esinit (boot)          <- V-054
+/etc/shells              -> /tmp/shells            writer: esinit (boot)
+/etc/fstab               -> /tmp/fstab             writer: esinit (boot)
+/etc/resolv.conf         -> /tmp/resolv.conf       writer: /etc/smack_setup.sh
+/etc/ecnr/config         -> /tmp/ecnr_config       writer: /etc/setup_ecnr_engine_db.sh
+/etc/xdg/weston/weston.ini -> /tmp/weston.ini      writer: install_westonPngLogo.sh  <- V-055
+/etc/front_lcd.png       -> /tmp/front_lcd.png     writer: install_westonPngLogo.sh
+/etc/rear_lcd.png        -> /tmp/rear_lcd.png      writer: install_westonPngLogo.sh
+```
+
+V-054 and V-055 recorded two of these as findings. **There are nine**, and they are one design decision.
+
+### The fair reading of *why*, and the unfair part
+
+`esinit`'s remount lines are **commented out** (`#mount -o remount,ro /`), so the root filesystem is left read-only as
+mounted. **That makes the symlinks reasonable**: a generated config file needs a writable location on a read-only root.
+
+**The mistake is not the symlink - it is the destination.** `/tmp` is `1777` in this image (measured for V-054). A
+root-only writable directory exists and is used elsewhere (`/run`, `/rw_data`). So the vendor solved "root is
+read-only" with "put it somewhere every process can write", for **nine** files including the account database, the
+mount table, the DNS resolver configuration and the login shell list.
+
+### Which of the nine matter most, in order
+
+1. **`/etc/resolv.conf`** - read continuously by every resolver call, so a post-boot modification redirects name
+   resolution **immediately**, with no restart. A poisoned resolver on a connected vehicle is traffic redirection and
+   update-channel redirection (V-059's neighbour).
+2. **`/etc/passwd` + `/etc/shadow`** - V-054 **demonstrated**: appending a `uid=0` account yields a working root login.
+3. **`/etc/fstab`** - consumed by any later `mount -a` or `systemctl mount`; a mount entry pointing at attacker
+   content is a persistence primitive.
+4. **`/etc/shells`** - consulted by `su`/`chsh` validation: adding a path makes a shell "valid".
+5. **`/etc/xdg/weston/weston.ini`** - V-055: names `shell=`, `backend=`, `ivi-module=`.
+6. The ECNR config and the two splash images - lower value, but the splash images are loaded by the compositor path.
+
+### What it does not claim
+
+That each of the nine is reachable *before* its consumer reads it. The writers run at boot, so the **initial** content
+is trusted; the exposure is **post-boot** modification by any process that can write `/tmp` - which, per V-064, is any
+of the 106 root services, and would be *any user at all* if `/tmp` were reachable by a non-root process.
+
+### Fix - one change, nine findings
+
+Point these **nine** symlinks at a root-only writable directory instead:
+
+```
+/etc/passwd -> /run/etc/passwd        with /run/etc/ mode 0700, files 0600 root:root
+```
+
+and have the boot scripts create that directory before writing. `/run` is tmpfs as well, so nothing else changes except
+**who can write it**. Alternatively keep them in `/tmp` and set `PrivateTmp=yes` on every unit that does not need the
+shared one (V-064), which removes the reachable path for most processes.
+
+### Verify
+
+On a unit, as a non-root process, attempt to append a line to `/tmp/passwd`; on this image that succeeds only because
+`/tmp` is `1777` - after the fix it must fail. V-054's existing reproduction already demonstrates the root consequence.
+
+---
+
 ## V-064 - one hundred and six services run as root with no systemd hardening at all
 
 **Status:** **counted** from the shipped unit files. No exploitation is implied - this is the reason the *other*

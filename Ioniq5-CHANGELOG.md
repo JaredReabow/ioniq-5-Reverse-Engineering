@@ -3,6 +3,40 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.12.8 - V-065: nine /etc trust anchors point into /tmp, and the reason is fair even though the target is not
+
+The V-054/V-055 family had two members on record. It has **nine**:
+
+```
+/etc/passwd -> /tmp/passwd            /etc/shadow -> /tmp/shadow        (V-054, demonstrated)
+/etc/shells -> /tmp/shells            /etc/fstab  -> /tmp/fstab
+/etc/resolv.conf -> /tmp/resolv.conf  /etc/ecnr/config -> /tmp/ecnr_config
+/etc/xdg/weston/weston.ini -> /tmp/weston.ini                          (V-055)
+/etc/front_lcd.png, /etc/rear_lcd.png -> /tmp/...
+```
+
+All written at boot by `esinit`, `smack_setup.sh`, `setup_ecnr_engine_db.sh` and `install_westonPngLogo.sh`.
+
+### The fair reading of why, and the part that is not fair
+
+**`esinit`'s remount lines are commented out** (`#mount -o remount,ro /`), so the root filesystem is read-only at runtime. **That makes the symlinks reasonable** - a generated config file needs somewhere writable on a read-only root.
+
+**The mistake is the destination.** `/tmp` is `1777`; root-only writable locations (`/run`, `/rw_data`) exist and are used elsewhere. So the vendor solved "root is read-only" with "put it somewhere every process can write" - for the account database, the mount table, the DNS resolver configuration and the login shell list.
+
+### Ranked by what they cost
+
+1. **`resolv.conf`** - read continuously, so a change redirects name resolution **immediately, with no restart**. Traffic and update-channel redirection on a connected vehicle.
+2. **`passwd`/`shadow`** - **demonstrated** in V-054: an appended `uid=0` account is a working root login.
+3. **`fstab`** - consumed by any later `mount -a`; a persistence primitive.
+4. **`shells`** - `su`/`chsh` validation.
+5. **`weston.ini`** - V-055: names `shell=`, `backend=`, `ivi-module=`.
+
+### One change, nine findings
+
+Point them at `/run/etc/*` with a `0700` directory and `0600` root-owned files - `/run` is tmpfs too, so nothing changes except **who can write it**. Or `PrivateTmp=yes` on every unit that does not need the shared `/tmp` (which is V-064's fix doing double duty).
+
+**Filed as V-065**, fix item 16, with the honest bound: the writers run at boot so **initial** content is trusted; the exposure is post-boot modification by anything that can write `/tmp` - which per V-064 is any of 106 root services.
+
 ## 5.12.7 - V-064: 106 of 107 services run as root with no hardening, and that is the cause behind the pattern
 
 Applied the XML lesson to the unit files, and the count is stark:

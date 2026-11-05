@@ -322,6 +322,26 @@ systemd containment. A service that needs only to write a log has the privileges
 **Verify.** Count `NoNewPrivileges=` across `/lib/systemd/system/*.service` and require it non-zero before release;
 `systemd-analyze security` on a candidate unit gives the same assessment.
 
+### 16. Nine `/etc` trust anchors point into world-writable `/tmp` - one change fixes all nine
+
+**Evidence, counted:** `/etc/passwd`, `/etc/shadow`, `/etc/shells`, `/etc/fstab`, `/etc/resolv.conf`,
+`/etc/ecnr/config`, `/etc/xdg/weston/weston.ini`, `/etc/front_lcd.png`, `/etc/rear_lcd.png` are all **symlinks into
+`/tmp`**, written at boot by `esinit`, `smack_setup.sh`, `setup_ecnr_engine_db.sh` and `install_westonPngLogo.sh`.
+
+**The reason is legitimate:** `esinit`'s remount lines are commented out, so the root filesystem is read-only at
+runtime, and a generated config file needs a writable location. **The mistake is the destination** - `/tmp` is `1777`,
+while root-only writable locations (`/run`, `/rw_data`) exist and are used elsewhere.
+
+**Exposes.** Post-boot, any process that can write `/tmp` can replace the account database (V-054 **demonstrated**:
+`uid=0` login), the DNS resolver config (continuous consumers - immediate traffic redirection), the mount table, the
+valid-shell list, and the compositor configuration (V-055). Per V-064 that is any of 106 root services.
+
+**Fix.** Point the nine symlinks at `/run/etc/*` with a `0700` directory and `0600` root-owned files, created by the
+boot script that writes them. Alternatively `PrivateTmp=yes` on every unit that does not need the shared `/tmp`.
+
+**Verify.** As a non-root process, attempt to append to `/tmp/passwd`; on this image `1777` permits it, and after the
+fix it must fail. V-054 already carries the root-consequence reproduction.
+
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
@@ -365,6 +385,7 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | 13 the application-set hash is queryable on the session bus | V-061 |
 | 14 nine bus policies allow the default context | V-063 |
 | 15 106 of 107 services run as root with no systemd hardening | V-064 |
+| 16 nine /etc trust anchors point into /tmp | V-065 |
 
 ## What is not claimed
 

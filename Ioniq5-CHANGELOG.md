@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.14.4 - the simulator now logs what it accepts, and the number changes what I can claim
+
+The simulator logged only **rejections**, so "no rejection appeared" was indistinguishable from "never called" - the same failure mode as counting a truncated log (rule 14), one layer down. Accepted calls are now logged.
+
+Same boot, new binary:
+
+```
+ENG_DATA_SIM_ACK      393
+ENG_DATA_SIM_UNKNOWN   57
+SetEnginnerModeEntryCheck  called: 0
+AskMPModeInfo              called: 0
+```
+
+**And the accepts are concentrated:** eight methods account for all 393 calls, with **`AskCANMMCANMicomReq` alone at 330** - the CAN polling loop. That is why CAN values matter so much to the widgets and why their absence shows up as missing data rather than as an error.
+
+### The entry-check row is added and **unexercised**
+
+`SetEnginnerModeEntryCheck` was **never called** during a normal boot, so the row added last entry has been tested by nothing. **Honest status: implemented, rebuilt, injected, unreached.**
+
+**And it closes a loop worth naming:** the VM needs engineering mode reachable to verify that method; the method exists to let the settings app enter engineering mode. **Neither side can be verified without the other**, and the way out is the engagement from the manager side (V-060's signal or the entry-check reply), not another normal boot.
+
+### Why logging accepts was worth a rebuild
+
+Because the alternative was to write "the fix works, no rejection appears" in a register, and that sentence would have been **wrong in a way that looks like evidence**. An instrument that reports only one direction of a binary outcome is not an instrument; it is a source of plausible sentences.
+
 ## 5.14.3 - the stand-in's backlog, measured: 60 unanswered calls across 10 methods
 
 Went back to the VM goal with the concrete gap I had identified, and it turned out my description of the gap was wrong as well as the fix being small.

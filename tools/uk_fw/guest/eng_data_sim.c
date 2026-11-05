@@ -498,6 +498,11 @@ static DBusHandlerResult on_system_message(DBusConnection *conn, DBusMessage *ms
                               strcmp(a->member, "AskCANMMCANMicomReq") == 0 ||
                               strcmp(a->member, "AskCANICANMicomReq") == 0))
                 log_ay_payload(msg);
+            /* PROJECTION-ONLY: log accepted calls too. Rejections were logged from the start, so an
+             * accepted method was silent - which made "no rejection" indistinguishable from
+             * "never called". This makes a fix positively verifiable instead of inferred. */
+            printf("ENG_DATA_SIM_ACK path=%s interface=%s member=%s\n",
+                   a->path, a->iface, a->member ? a->member : "(null)");
             reply_empty(conn, msg);
             return DBUS_HANDLER_RESULT_HANDLED;
         }

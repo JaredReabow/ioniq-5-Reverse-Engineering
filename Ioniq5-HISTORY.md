@@ -5980,3 +5980,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Returned to the virtual machine goal with the gap I had named. Corrected the description first: the stand-in does implement the engineering interface, just not the one method in question, and that is now one added row in its acknowledgement table.
 - Measured the backlog from the simulator's own rejection log: sixty calls across ten distinct methods during one boot, each with a caller that wanted it. That makes the remaining adaptor work a ranked list with known consumers rather than a guess.
 - Recorded a limit of my own instrument immediately: it logs only rejections, so the absence of the method after the fix is consistent with success and with never being called. The next change is to log accepted calls.
+
+## 2026-11-05 - the simulator now logs accepted calls
+
+- The simulator reported only rejections, which made a silent log look like a working fix. Rebuilt it to log acceptances as well, and the same boot now shows three hundred and ninety-three accepted calls against fifty-seven rejected.
+- The accepts are concentrated: one can polling method accounts for three hundred and thirty of them, which explains why that data path matters to the widgets and why its absence looks like missing data rather than an error.
+- The engineering entry check added earlier was never called during a normal boot, so it is recorded as implemented and unreached rather than verified. Noted the loop it closes: the virtual machine needs engineering mode to test the method, and the method exists to enter engineering mode.

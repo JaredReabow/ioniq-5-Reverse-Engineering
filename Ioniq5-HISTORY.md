@@ -6190,3 +6190,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The register was thorough on failure and silent on success, which is a poor instrument for the people who have to patch it, because nothing in it said what must not be broken.
 - Wrote a controls inventory: eight measured controls with their evidence, what each is worth and where each actually stands.
 - Two are structural and clean, no setuid surface and no world-writable directory, and six place a decision on state an attacker can reach. That split, good hygiene where it is structural and weak where it is configured, is the same conclusion as the trust anchors argument reached from the opposite direction.
+
+## 2026-11-05 - root cause, and it was our own input module
+
+- The trace answered the whole display thread: our own input module returns failure when there is no seat, and the compositor shuts down before serving. The vendor's display path was never the problem.
+- The source explains why one backend worked and the others did not: only the headless backend creates a seat unconditionally, and the others wait for an input device that the emulator does not provide. So the framing of real output versus virtual output was really has a seat versus does not.
+- Kept what survives: the display device work is real and is the prerequisite for presenting the interface at its own resolution. Noted that this is the fifth time an instrument of ours was the cause rather than the target, and that every one of them looked like a property of the vendor system.

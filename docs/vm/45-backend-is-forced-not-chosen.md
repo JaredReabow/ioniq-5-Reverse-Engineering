@@ -406,3 +406,57 @@ With vblank refuted (doc 06) and the shell path refuted (doc 07), the failure is
 module load and `wl_display_run`**, and the next instrument is named by the worker: **one userspace trace of the main
 thread** - not a kernel change, not DRM ioctl tracing. That is the right next step, and both of tonight's cheaper ideas are
 on record as having been tried first.
+
+---
+
+## 16. ROOT CAUSE: our own input module aborts the compositor when there is no seat
+
+The `strace` the worker ran with `/tmp/dlt` pre-created answers the whole of §5-§15, and the answer is **not** the display
+backend:
+
+```
+Loading module '/weston-vm-input.so'
+VM_INPUT_NO_SEAT
+epoll_ctl(3, EPOLL_CTL_DEL, 25, NULL) = 0            teardown begins
+ioctl(12, DRM_IOCTL_DROP_MASTER, 0)    = 0
+ioctl(10, VT_SETMODE, ...)             = 0
++++ exited with 1 +++
+```
+
+**`/weston-vm-input.so` - this project's own input module - returns -1 when the seat list is empty, and weston shuts down
+before serving.** The trace shows the teardown starting on the line after the module's own message.
+
+### Why headless worked and drm/fbdev did not
+
+In weston 1.10, **the seat is created by the backend**, and only `headless` does it unconditionally:
+
+```c
+/* compositor-headless.c */
+weston_seat_init(&b->fake_seat, b->compositor, "default");   /* line 186 */
+```
+
+`drm` and `fbdev` do not call `weston_seat_init`; they rely on the libinput/udev path, which creates a seat only when udev
+reports an input device. **Under QEMU there are none** - the log's `failed to create input device '/dev/input/event0'` is the
+Power Button, *"not tagged as input device"* - so `seat_list` stays empty and our module fails.
+
+| backend | seat | `weston-vm-input.so` | result |
+|---|---|---|---|
+| headless | fake seat created | finds it, returns 0 | **serves** (`WAYLAND_SOCKET_UP`) |
+| drm | none (no udev input) | `VM_INPUT_NO_SEAT`, returns -1 | exits, no socket |
+| fbdev | none (no udev input) | `VM_INPUT_NO_SEAT`, returns -1 | exits, no socket |
+
+**The display/scanout mechanism was never the issue.** The entire "real-output versus virtual-output" framing in §5-§15 was
+a **proxy for "has a seat versus does not"** - and the variable that decided it is a `return -1` in a module this project
+wrote.
+
+### What this means, stated plainly
+
+- **The DRM work was not wasted**: `/dev/dri/card0`, `bochs-drm` and the rebuilt kernel are real, reproducible, and the
+  prerequisite for ever presenting this UI at 1920x720.
+- **But none of the display failures were the vendor's, the kernel's, or the backend's.** They were ours, for the fifth time
+  this session: an instrument that changed the system under test and was read as a property of the system.
+- **The fix is a return value**: make `/weston-vm-input.so` tolerate an empty seat list - return 0 and attach when a seat
+  appears, or create the seat itself as headless does - then retry `drm-backend`.
+
+**And the application question is finally reachable**: with a seat and a socket on `drm-backend`, a Qt client can connect,
+and `wl_display@1: error 0: invalid object N` becomes testable for the first time.

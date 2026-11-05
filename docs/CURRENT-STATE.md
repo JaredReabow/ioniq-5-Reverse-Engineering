@@ -224,40 +224,37 @@ manager implements it and honours the call at the interface level.
 `AppEngineerMode` process appeared in the following 80 seconds. So the entry is **accepted but unobserved in effect** - the call must be repeated **after** `AppHomeScreen` owns its bus name, which is
 a timing detail this project has already been bitten by more than once.
 
-### The display backend ceiling has been LIFTED, by rebuilding the kernel (2026-11-05)
+### The display ceiling was lifted, and then the real cause turned out to be ours (2026-11-05)
 
-This section previously said `headless` was forced, because the vendor kernel's only DRM driver is `i915`, `BOCHS`/`QXL`
-are not set and `# CONFIG_FB is not set`. **All true of `vendor.config` - and all irrelevant once a kernel was built with
-those options enabled.**
+**1. The rebuild gave the projection a DRM device.** With `bochs-drm` the vendor rootfs reaches Multi-User with
+`/dev/dri/card0`, `controlD64` and a framebuffer, and the vendor's `drm-backend.so` binds it and reports `Output Virtual-1`.
+So *"headless is the only backend that can exist"* was a property of the **shipped kernel's configuration**, not the hardware
+(`virtio-gpu` does not exist in 4.1.27; bochs-drm was already in the tree).
 
-Measured on the rebuilt kernel, booting the vehicle's own rootfs:
+**2. But the compositor never served a client on drm or fbdev, and the reason is this project's own module.** `strace`:
 
 ```
-[drm] Found bochs VGA, ID 0xb0c5.
-bochs-drm 0000:00:01.0: fb0: bochsdrmfb frame buffer device
-[drm] Initialized bochs-drm 1.0.0 for 0000:00:01.0 on minor 0
-Reached target Multi-User
-
-/dev/dri:  crw------- 1 root root 226, 0 card0
-           crw------- 1 root root 226, 64 controlD64
+Loading module '/weston-vm-input.so'
+VM_INPUT_NO_SEAT
+epoll_ctl(... DEL ...)            teardown
+ioctl(12, DRM_IOCTL_DROP_MASTER)  ioctl(10, VT_SETMODE)
++++ exited with 1 +++
 ```
 
-**`/dev/dri/card0` exists.** `drm-backend.so` (ships, 536 KB) and `fbdev-backend.so` (348 KB) are now reachable;
-`ias-backend.so` still is not, because the vendor GPU interface does not exist here.
+**`/weston-vm-input.so` returns -1 when the seat list is empty, and weston exits.** In weston 1.10 only **headless** creates a
+seat unconditionally (`weston_seat_init(&b->fake_seat, ...)`); drm and fbdev rely on libinput/udev, which needs an input
+device, and QEMU has none.
 
-**And it has now been tried - with a result that corrects the obvious reading.** On `drm-backend` the vendor compositor
-initialises `/dev/dri/card0` and reports `Output Virtual-1`, **and then stalls before creating its Wayland socket**
-(`NO_WAYLAND_SOCKET after 240s`, `wchan=[hrtimer_nanosleep]`, no `wayland-*` socket anywhere).
+| backend | seat | our module | result |
+|---|---|---|---|
+| headless | fake seat | returns 0 | **serves** |
+| drm / fbdev | none | `VM_INPUT_NO_SEAT`, returns -1 | **exits** |
 
-So the log's lack of `invalid object N` is **"no client ever connected"**, not "the error is fixed". The comparison the VM
-goal needs **cannot be made on this backend until weston serves a client**.
+So *"real output versus virtual output"* was a proxy for *"has a seat versus does not"*, and the deciding variable is a return
+value in code this project wrote - the fifth instrument-caused failure of the session.
 
-**Where that leaves it:** the *device* half is done; the *compositor* half is blocked on a stall, not on hardware.
-
-**Not yet established:** that the application started, that input works (`failed to create input device '/dev/input/event0'`,
-*"no input devices"*), or what the screen shows - no capture was taken on the DRM path. Each is a separate measurement, and
-they are the next three rather than one.
-
+**The fix is one return value**: tolerate an empty seat (return 0 and attach when one appears, or create it as headless does).
+Then a Qt client can connect on `drm-backend` and `invalid object N` becomes testable for the first time.
 
 ## 1e. Engineering mode in the projection: three findings, none of them "it works"
 

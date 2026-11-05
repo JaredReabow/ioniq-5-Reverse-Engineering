@@ -5746,3 +5746,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Removed the preload and the application still restarted. The difference from the stable run was exactly one thing: that run made no placement calls, and this one places the surface before every capture.
 - So the placement tool races the client's surface and kills it, which explains why every placed capture showed a powered-off screen: I was photographing a freshly restarted instance and calling it the state of the system.
 - Wrote down both findings against our own instruments, and the honest test that follows: capture repeatedly with nothing of ours interfering and see what is actually on screen.
+
+## 2026-11-05 - with nothing of ours in the way the app is stable and shows a splash
+
+- Removed every instrument and captured repeatedly. The application held one process id for a hundred and five seconds, so the instability was ours, and the screen is a logo with no chrome: the application's splash, a third distinct frame rather than the standby or the layout.
+- So the application is not crashing, it is waiting. The three frames are now distinguishable by what they look like rather than by size.
+- The log pulled earlier already contains the first real candidate: the application fails to commit its own layout database repeatedly, which would explain a fresh instance never restoring a home screen.

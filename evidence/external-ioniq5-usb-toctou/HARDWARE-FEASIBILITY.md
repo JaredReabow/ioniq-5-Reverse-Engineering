@@ -54,6 +54,9 @@ Two things follow.
 **2.09 GB**, which exceeds any plausible head-unit RAM (a Gen5W unit runs on roughly a gigabyte, and our projection boots comfortably in 2 GiB), so its install pass **must** come back to the
 medium. A crafted swap of that payload is therefore the version of this attack that does not depend on cache pressure at all.
 
+**And the checksummed payloads are the small ones**: `Checksum.txt` ships only for MICOM (152 CRC32 entries) and frontkey (2), both `.BIN` lists; neither large payload appears in any
+checksum file, so the interface payload is both cache-safe and unchecksummed.
+
 It also settles the board question in one line: **44 minutes per pass on an ESP32-S3 versus 1.4 minutes on a High-Speed gadget** for the same payload. The S3 is not disqualified, but nobody will
 iterate on a two-hour loop.
 

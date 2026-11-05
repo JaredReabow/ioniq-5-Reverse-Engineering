@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.6 - the checksum scope answered: it covers the small binaries, not the payloads that matter
+
+The open question from the previous entry was which files `Checksum.txt` lists, because a checksummed payload would fail after a swap no matter how the read was staged. The package answers
+it, and the answer is reassuring for the attacker rather than the vendor.
+
+`Checksum.txt` ships in exactly two places, and both are CRC32 lists for **small firmware binaries**:
+
+```
+update/micom/Checksum.txt      152 entries   HCR_PE.DV.260120.09.REVC.BIN   CRC32=0x31D8C50F
+update/frontkey/Checksum.txt     2 entries   MKBD_2_1F_00_NX4.BIN           CRC32=0x0E969002
+```
+
+**Neither large payload appears in any checksum file**, and the navigation payload (`appnavi.tar`) carries no `Checksum.txt` either.
+
+So the three-way trade-off resolves:
+
+- **`new_gui.tar.gz` (2.09 GB)** - cache-safe *and* unchecksummed: the first choice;
+- **`mango-rootfs.tar.gz` (879 MB)** - also unchecksummed, but the payload most likely to be partly resident: second choice;
+- **MICOM and frontkey binaries** - genuinely CRC-verified, so those are the ones a swap would fail on.
+
+What stays open is smaller than what it replaced: the code-level `NaviChecksumThread` exists and parses a checksum file, but this package's navigation payload carries none, so it is either
+generated at install time or covers content delivered another way. That question does not touch the interface or system payloads.
+
+Three entries ago the advice was "target the biggest, it is cache-safe". One entry ago it became "three-way, and the checksum scope is unknown". Now the scope is measured, and the original
+instinct survives - but it survives because it was checked, not because it was tidy.
+
 ## 5.1.5 - there is heavy verification after all, but it guards navigation rather than the system image
 
 Last entry said the post-install verification was the short one and that the largest payload was the natural target. Our own binary shows the verification effort is real - and pointed

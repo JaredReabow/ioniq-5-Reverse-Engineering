@@ -5350,3 +5350,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Said last entry that post-install verification was too short to matter. The binary shows a long-running checksum thread with a checksum file, cancellation paths and error handling - all of it for navigation.
 - So the payload choice is not simply 'the biggest one': navigation is checked, the interface payload is cache-safe but may be inside the checksummed tree, and the system image is the cheap route with the cache risk.
 - The question that would settle it is what the checksum file lists, not anything about hardware. Written into the entry rather than leaving the easier advice standing.
+
+## 2026-11-05 - the checksums guard the small things
+
+- The open question was which files the checksum lists cover. They ship for two components only, both small firmware binaries delivered as individual files: 152 entries for the micom and two for the front keypad.
+- Neither large payload appears in any checksum file, so the interface payload is both too big to stay cached and not checksummed - which is the best case for the attack and the worst for the vendor.
+- My first instinct on this was the same conclusion, arrived at without evidence. It only stands now because the scope was measured; three entries ago it was a guess that happened to be right.

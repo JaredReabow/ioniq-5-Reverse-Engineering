@@ -6244,3 +6244,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The worker fixed the mode properly by patching the kernel, since the driver never reads the display data the emulator advertises, and worked around a mandatory-access label on the capture channel.
 - It described the frame programmatically and concluded it was a text screen. I opened the image: it is a blue title bar, the vendor logo, and a placeholder glyph, which is the application's own powered-off presentation and means the application is drawing.
 - That makes the display path behaviourally identical to the one that produced the laid-out frame hours ago, with one call separating them. Noted the division worth keeping: the agent with the run describes it programmatically, the agent with the eyes checks it visually.
+
+## 2026-11-05 - the last line is a call the project already knows works
+
+- The frame on the display backend is the application's standby face, which is the same state the headless backend was in before one call fixed it, and that call is already recorded with the frame it produced.
+- Wrote the sequence with the mistake that cost three runs inside it: poll for the application owning its name rather than sleeping a fixed interval, and never use the power getter as a pass or fail because the setter pushes an event.
+- Excluded the widget values deliberately, since they need a transport the vendor kernel cannot provide, and mixing them into this run would make a clean result ambiguous.

@@ -621,3 +621,38 @@ painting its own standby frame. The one difference left is that nobody has made 
 **That is the next run, and it is one line**: after `AppHomeScreen` owns its bus name, call `set_power_on_status(1, 0)`, wait for
 the frame to settle, then capture. **If it produces a 1920×720 frame with a left panel and Battery/Range widgets placed, the VM
 goal's central claim is met on the stock display path.**
+
+## 26. The one remaining line, and the reference frame it should reproduce
+
+The application on the DRM backend is in **standby** - its own logo and chrome - because nothing has told it the vehicle is on.
+**That is the same state the headless backend was in before the call that fixed it**, and the call is known:
+
+```sh
+dbus-send --session --print-reply --dest=com.lge.hyundai.avn.appmanager /Information \
+  com.lge.avn.appmanager.info.set_power_on_status int32:1 int32:0
+```
+
+**The reference is already in the repository** - `docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png`, **16,062
+bytes at 1920×720**: light day theme, left panel, Battery and Range widgets placed with `---`. It was captured on **headless**
+hours before the kernel work; the DRM path now needs to produce the same content at the same size.
+
+**The sequence for that run, in the order this session earned:**
+
+1. boot authentic, `--smp 4`, timeout 360+, patched kernel, fixed input module;
+2. wait for `WAYLAND_SOCKET_UP` **and** for `AppHomeScreen` to own its bus name - **poll `NameHasOwner`, do not sleep a fixed
+   interval** (the mistake that cost three runs earlier);
+3. make the call;
+4. let the frame settle (~90 s on headless), then capture **while that instance is alive**;
+5. return it with its byte count.
+
+## 27. What each outcome would mean
+
+| outcome | reading |
+|---|---|
+| light frame, left panel, Battery/Range with `---` | **the VM goal's central claim, met on the stock display path at the stock resolution** |
+| still standby | the call did not land - check that the name was owned at call time; **do not** use `ask_power_status` as pass/fail, it reads `1` before and after because the setter pushes an event |
+| mostly black | state whether the mode was still 1920×720 and whether an instance was alive at capture |
+
+**And a deliberate exclusion:** the widget *values* are not part of this run. They need the CAN transport, which the vendor
+kernel's own configuration makes unreachable - the separate problem documented in `docs/vm/47-...`. **The target here is the
+laid-out frame and nothing more.**

@@ -5591,3 +5591,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 
 - The README had two overlapping status tables and both had drifted, still calling navigation the open problem and input unwired. Rewrote the status section to the measured state, with both goals, the three substitutions and their reasons, and the two real open problems.
 - Narrowed two claims rather than leave them flattering: a click target that was the compositor rather than the application, and an input row that said unwired when the path demonstrably works.
+
+## 2026-11-05 - a standard for the last gap
+
+- The home widgets still show dashes, and it occurred to me that when a value finally arrives I would have no way to say whether it was right. The repository already held the answer: 545 log files from a real vehicle, 321 value pairs from the application's own model.
+- Recorded the observed pairs and the relationship between battery and range, so an injected pair can be judged rather than merely observed.
+- The important detail is that zeros are the pre-data state, the same thing as a dash, so a run producing zero has demonstrated nothing.

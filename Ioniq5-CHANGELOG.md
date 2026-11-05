@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.13.5 - V-070: a script path on a persistent partition, run by the manufacturing test app
+
+Extended V-069's sweep to **everything** the binaries reference under the writable partitions, and one entry stood out:
+
+```
+app/bin/AppMPAutoTest contains:  /app/data/AppEngineeringMode/shell/eject.sh
+and links:                       QProcess::start, startDetached, setStandardOutputFile, waitForFinished
+```
+
+`/app/data` is a symlink to **`/rw_data/app_data`** - a read-write partition that **persists across reboots** - and the `shell` directory **is not shipped**, so the script is not in the image but the path is in the binary.
+
+**Combined with V-042** (this application's manufacturing mode is triggered by `/tmp/AppMPAutoTest/do_mpauto`), the shape is:
+
+1. one directory and one file on a persistent partition,
+2. a `/tmp` trigger,
+3. **unattended execution as root, surviving reboot.**
+
+**That is persistence, not escalation** - it needs root, but root is ambient here (V-064) and several findings achieve it. Converting temporary root into permanent automatically re-executed code is precisely the next thing an attacker wants.
+
+**What I did not establish:** that `AppMPAutoTest` executes *that* file. It links `QProcess` and contains the path; the string could be a log line, a check, or an argument to something else. **That is the measurement that turns a shape into a finding**, and it is a five-minute test on a unit.
+
+Filed as V-070 and fix item 20, with the fix being the obvious one: **never execute scripts from a persistent writable partition** - ship them read-only, or verify with a key that is not itself writable (which is V-069's failure mode, one layer up).
+
 ## 5.13.4 - the navi CA is managed by the updater's own code, and the shipped copy is the one trusted
 
 Went after V-069's one open question with static work instead of another boot.

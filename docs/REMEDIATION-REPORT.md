@@ -403,6 +403,24 @@ it itself signed by a read-only-side key so replacement requires the vendor's si
 **Verify.** `grep -c 'BEGIN .*PRIVATE KEY' /app/bin/*` → four files; compare public-key fingerprints across two units
 for sameness. For the CA: replace it, sign a navi package, attempt an update.
 
+### 20. The manufacturing test application references a script on a persistent writable partition
+
+**Evidence.** `app/bin/AppMPAutoTest` contains `/app/data/AppEngineeringMode/shell/eject.sh` and links `QProcess::start`,
+`startDetached`, `setStandardOutputFile` and `waitForFinished`. `/app/data` symlinks to **`/rw_data/app_data`**, which
+persists across reboots; the shell directory **is not shipped**. Manufacturing mode is already known to be triggered by
+a `/tmp` marker (V-042).
+
+**Exposes.** If that path is executed, one directory plus one file on a persistent partition, plus the known `/tmp`
+trigger, gives **unattended root execution that survives reboot** - converting temporary root into permanent code.
+It needs root, so it is persistence rather than escalation, and that is exactly the primitive an attacker who has
+reached root wants next.
+
+**Fix.** Never execute scripts from a persistent writable partition: ship any field-diagnostic script on a read-only
+partition and run that path, or verify a signature over it with a key that is not itself writable (V-069's failure
+mode).
+
+**Verify.** On a unit, create the script with a marker command, trigger manufacturing mode, and see whether it runs.
+
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
@@ -450,6 +468,7 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | 17 world-writable navi binary and a navi key in /tmp | V-066 |
 | 18 a static root SSH key ships in the image | V-067 |
 | 19 embedded private keys, and a navi CA on a writable partition | V-068, V-069 |
+| 20 a script path on a persistent writable partition, run by the manufacturing app | V-070 |
 
 ## What is not claimed
 

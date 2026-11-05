@@ -890,3 +890,40 @@ Each half is proven separately:
 pid changes after placing, the run is **inconclusive rather than negative**, and if placement reliably kills it, that is itself a
 finding: **one of this project's instruments is incompatible with the layout it is trying to observe** - the fifth
 instrument-caused failure of the session, and a legitimate stopping point.
+
+## 40. The combined test: the surviving instance has no surface, and the call deregisters it anyway
+
+```
+NAME_OWNED=yes at +85s
+PID_STABLE_GATE=yes pid=[2238] after +0s
+SURFACES=[Surface id(30000)|Surface id(1000)|Surface id(1001)]
+APP_SURFACE_ID=[]                 no application surface exists
+PID_AFTER_PLACE=[2238] PLACE_SURVIVED=yes      placement was a no-op
+SET_POWER_SENT
+AFTER_CALL pid=[] (was 2238) preload=[int32 1] the instance died on the call
+CAP_30s/60s/90s/120s pid=[2635] bytes=129844
+```
+
+**Two facts, both measured:**
+
+1. **The pid-stable instance never created a Wayland surface** - `weston-real.log` lists only the ivi-shell's own surfaces
+   (30000, 1000, 1001), so there was nothing to place. Doc 11's surface existed because that monitor caught a *different*,
+   already-painting instance.
+2. **The power-on call deregisters it anyway**, and the replacement (2635) never gets that far.
+
+**So the blocker is earlier than placement**: the instance that survives the registration race does not reach surface
+creation, and the one that does reach it is the one that gets killed first.
+
+## 41. What would close it, and what would end the thread honestly
+
+**The read that decides it is the launcher log, for the fourth time in this project**: the application's own lines
+(`Using Wayland-EGL`, `SCREEN_STATE: START DRAW`, `injectWidgetItemToAdvancedPage` in doc 09) **timestamped against the
+deregister**. That distinguishes two very different situations:
+
+| finding | means |
+|---|---|
+| no surface lines at all before the kill | the application never gets there in this configuration - a projection limitation to document |
+| surface created, then killed 3 ms later | **nothing about the application is broken**; the vendor's preload deadline is simply shorter than this projection's margin, and the only fix that does not depend on winning a race is **patching that deadline** as a labelled substitution |
+
+**And the stopping rule:** if it is the second, this thread ends with a documented limitation and a named cause, not with an open
+question - which is the honest end for a gap that is a vendor timing constant under emulation rather than an unexplored area.

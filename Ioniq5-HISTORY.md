@@ -6286,3 +6286,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Polled for stability before making the call, and mechanically it went right: the call landed on the instance that survived, it stayed up, and the preload flag reads complete.
 - The frame is still the background though, with no title bar, which means the application is not being composited at all rather than failing to lay out. So the preload gate was a precondition and not the blocker, exactly as the caution attached before the run said it might be.
 - Identified the one experiment never run: both proven halves at once, stability then placement then the call. Named the risk in advance, that placement has killed this application before, and what that would mean if it does so reliably.
+
+## 2026-11-05 - the combined test finds no surface on the stable instance
+
+- Combined the two proven halves and learned the blocker is earlier than placement: the instance that survives the registration race never creates a window surface at all, and the call deregisters it in any case.
+- Named the read that distinguishes the two remaining explanations, with the application's own log lines timestamped against the deregistration, and a stopping rule: if the surface existed briefly, the gap is a vendor timing constant and the thread ends with a documented limitation rather than an open question.
+- Recorded what the goal has to show for itself: every layer beneath the application demonstrated, including a frame of the application's own chrome, with only a three millisecond vendor deadline left.

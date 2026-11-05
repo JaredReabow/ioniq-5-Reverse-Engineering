@@ -62,3 +62,42 @@ Three cheap tests would:
 **A defence-shaped mechanism, unproven in effect, and inert in the projection because the MICOM events it depends
 on never arrive.** Recorded so nobody concludes from the wrapper experiment that the launcher verifies binaries -
 and so that the next person knows where to look if they want to prove it does.
+
+---
+
+## 4. Test 1, run against a different application: it fails the same way
+
+Replaced `/app/bin/AppSetup` with a wrapper that simply `exec`s the real binary - **copying to `.real` first and
+verifying the ELF magic before replacing the original**, per rule 15 - and let the projection start normally.
+
+```
+T1_SETUP_PID=[]     AppSetup is not running
+T1_HOME=[3200]      AppHomeScreen, whose binary is the vendor's own, is running
+```
+
+**A second, different application also refuses to start when its binary is a shell script.** So the behaviour is
+**general**, not a per-application manifest - which moves the explanation toward an **`exec` or format
+requirement** in the launch path rather than toward per-app integrity verification.
+
+Both clones are restored: `/app/bin/AppSetup` and `/app/bin/AppHomeScreen` are the vendor binaries again, with no
+`.real` copies left behind.
+
+**This weakens the integrity hypothesis rather than killing it.** A launcher could still verify every binary and
+refuse all wrappers; the observation cannot distinguish "refuses non-ELF" from "refuses anything whose hash does
+not match". What it does show is that the *specific* case of `AppHomeScreen` was not special, and that the earlier
+suspicion of a targeted check was unnecessary.
+
+## 5. A probe bug in the same run, recorded rather than dropped
+
+`getIVDHash` was never actually called:
+
+```
+Failed to open connection to "session" message bus: ...
+```
+
+**I forgot to export `DBUS_SESSION_BUS_ADDRESS` in this probe**, so the one direct test of the mechanism did not
+happen. The mechanism is still untested; the test itself remains valid and cheap, and needs the same environment
+every other D-Bus probe in this project uses.
+
+**What is established:** wrapping a second application fails identically. **Not established:** whether the
+launcher verifies binaries, and whether `getIVDHash` works in the projection at all.

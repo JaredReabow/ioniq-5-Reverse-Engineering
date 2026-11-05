@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.12.1 - a second app refuses the wrapper too, so it is general and not per-app
+
+Ran test 1 from the previous entry: replaced `/app/bin/AppSetup` with a wrapper that execs the real binary - **copying to `.real` first and verifying the ELF magic before replacing the original**, which is rule 15 applied properly this time.
+
+```
+T1_SETUP_PID=[]     AppSetup not running
+T1_HOME=[3200]      AppHomeScreen, vendor binary, running
+```
+
+**A second, different application also refuses to start as a shell script.** So the behaviour is **general**, which moves the explanation toward an **`exec` or format requirement** rather than per-app integrity verification - and makes my earlier suspicion of a targeted check unnecessary.
+
+**It weakens the integrity hypothesis rather than killing it:** a launcher could verify every binary and refuse all wrappers alike, and this observation cannot tell "refuses non-ELF" from "refuses wrong hash". What it does establish is that `AppHomeScreen` was not special.
+
+Both clones restored: the vendor binaries are back, no `.real` copies left behind.
+
+### And a probe bug in the same run, recorded rather than dropped
+
+The direct test of the mechanism never happened:
+
+```
+Failed to open connection to "session" message bus: ...
+```
+
+**I forgot to export `DBUS_SESSION_BUS_ADDRESS`**, which every other D-Bus probe in this project sets. So `getIVDHash` is still untested - and the test remains valid and cheap, which is the difference between a bug I record and a bug I hide.
+
 ## 5.12.0 - the first real defence in the image, and it is inert under emulation
 
 The VM work left a question with security content: **why did a replaced application binary refuse to run?** Answering it turned up something the register has never had - a **defence**.

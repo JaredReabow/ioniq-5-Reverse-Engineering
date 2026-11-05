@@ -6040,3 +6040,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Looked in on the kernel build and found it failing on a host tool, the classic old kernel with a modern toolchain problem, three attempts in.
 - Two things in the working directory should have been in the brief: an earlier successful build that already reports the vendor's version string, and a name that reads as a virtio display attempt. So the first experiment is not a build at all but booting what already exists.
 - Also got a config detail wrong myself: the virtual pci option is disabled in the vendor config, so enabling only the gpu driver would produce nothing. Sent all three to the worker in one message instead of letting it rediscover them.
+
+## 2026-11-05 - an apple mdns responder runs as root with no sandboxing
+
+- Swept the network layer for the first time: the image ships and enables an apple mdns responder that answers multicast on the local link, running as root with no unit level restriction at all.
+- Found a string in that binary that reads like a failed privilege drop, and checked it before filing: the account it names does exist in both shipped password databases, so the path does not trigger. Recorded the withdrawal alongside the finding.
+- Kept the bounds honest: no specific vulnerability is claimed, the code was not fuzzed, and reachability depends on an interface that is gated on one path and unmeasured on another.

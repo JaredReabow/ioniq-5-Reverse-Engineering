@@ -2701,6 +2701,65 @@ fixed by an existing item**, which is the useful outcome: the family is enumerat
 
 ---
 
+## V-072 - Apple's mDNSResponder runs as a root network daemon with no sandboxing
+
+**Status:** the binary, its provenance, the unit's lack of hardening and the absence of a user setting are **measured**; no
+specific parsing vulnerability is claimed or demonstrated. Class: attack surface / hardening.
+
+### What ships
+
+```
+lib/systemd/system/carplay_mdnsd.service   ENABLED in multi-user.target.wants
+  ExecStart=/app/bin/mdnsd
+  Requires=dbus-com.lge.car.micom.service
+  (no User=, no NoNewPrivileges, no CapabilityBoundingSet, no ProtectSystem)
+
+/app/bin/mdnsd        436,352 bytes
+  @(#) mDNSResponder (Engineering Build) (Jan 28 2026 16:05:56)
+  mDNSPosix.c / mDNSPlatformSendUDP ...        Apple's mDNSResponder, on UDP 5353
+/etc/mdnsd.conf       present
+```
+
+**An mDNS responder - a daemon whose entire job is parsing multicast packets from the local network - runs as root, with
+no unit-level restriction at all.** That is a second instance of the pattern V-064 names: everything on this platform is
+root, and this one is additionally **network-facing**.
+
+### Why it is worth a line even without a vulnerability
+
+- **Untrusted input, maximum privilege.** mDNS is unauthenticated by design and answers to anything on the link; the
+  parser is Apple's, a component with a long history of parsing advisories. Running it as root means any such defect is
+  immediately a root defect, with no capability or filesystem restriction to contain it.
+- **It is enabled, not optional.** `multi-user.target.wants` includes it, so it is part of the shipped behaviour.
+- **It depends on the MICOM service**, so on a unit where that service fails the unit fails - which is a reliability
+  observation, not a security one, but it is why the daemon is coupled to vehicle state.
+
+### A claim I made and withdrew
+
+`/app/bin/mdnsd` contains the string **`WARNING: mdnsd continuing as root because user "nobody" does not exist`**, which
+looks like a fail-open privilege drop. **It is not, on this image:** `nobody` is present in **both** `/etc/passwd.legacy`
+and `/etc/passwd.secure`, so the fallback path does not trigger. **Recorded because the string is exactly the kind of thing
+that gets quoted as a finding**, and checking it took one `grep`.
+
+### What is not claimed
+
+- That this build is vulnerable to anything. No fuzzing was performed and none is implied.
+- That the daemon is **reachable** on a given unit: mDNS needs an interface, and the WiFi path is gated three ways
+  (V-050). The **USB/Ethernet** path is unmeasured here.
+
+### Fix
+
+Give the unit the containment it lacks: `User=nobody` (which exists), `NoNewPrivileges=yes`, `CapabilityBoundingSet=`,
+`ProtectSystem=strict`, `PrivateTmp=yes`, and restrict it to the interfaces it must serve. None of that requires changing
+Apple's code, and all of it is configuration this platform already owns - the same recommendation as V-064, applied to the
+one service that answers the network.
+
+### Verify
+
+On a unit with a network interface: `ss -lunp | grep 5353`, then `ps -o user= -p $(pidof mdnsd)` - the answer to the second
+command is this entry.
+
+---
+
 ## V-071 - one `/tmp` marker enables the root console and SSH, and `esinit` creates it every boot
 
 **Status:** the **init logic is measured verbatim** in `lib/systemd/esinit`; the console prompt it produces is

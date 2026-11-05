@@ -453,6 +453,21 @@ root-owned path. Drop `/etc/passwd.legacy` from production images and keep root 
 **Verify.** On a unit, three commands: `cat /sys/module/micom/parameters/secure_console`,
 `ls /tmp/secure_console_disable`, `getent passwd root`.
 
+### 22. Apple's mDNSResponder is an enabled root network daemon with no sandboxing
+
+**Evidence.** `lib/systemd/system/carplay_mdnsd.service` is in `multi-user.target.wants` and runs `/app/bin/mdnsd` -
+`mDNSResponder (Engineering Build) (Jan 28 2026)`, Apple's mDNS responder on UDP 5353 - with **no `User=`, no
+`NoNewPrivileges`, no `CapabilityBoundingSet`, no `ProtectSystem`**. `Requires=dbus-com.lge.car.micom.service`.
+
+**Exposes.** A daemon that exists to parse unauthenticated multicast packets runs **as root with no containment**. Any
+parsing defect in a component with a long advisory history becomes a root defect immediately. It is enabled by default,
+not optional. Reachability depends on an interface; the WiFi path is gated (V-050) and the USB/Ethernet path is unmeasured.
+
+**Fix.** `User=nobody` (**verified present** in both shipped passwd variants), plus `NoNewPrivileges=yes`,
+`CapabilityBoundingSet=`, `ProtectSystem=strict`, `PrivateTmp=yes`, and interface restriction. Configuration only.
+
+**Verify.** `ss -lunp | grep 5353` and `ps -o user= -p $(pidof mdnsd)`.
+
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
@@ -502,6 +517,7 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | 19 embedded private keys, and a navi CA on a writable partition | V-068, V-069 |
 | 20 a script path on a persistent writable partition, run by the manufacturing app | V-070 |
 | 21 one tmp marker enables the root console and SSH, created every boot | V-071 |
+| 22 an enabled mDNS responder runs as root with no sandboxing | V-072 |
 
 ## What is not claimed
 

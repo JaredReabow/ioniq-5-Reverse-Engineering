@@ -6292,3 +6292,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Combined the two proven halves and learned the blocker is earlier than placement: the instance that survives the registration race never creates a window surface at all, and the call deregisters it in any case.
 - Named the read that distinguishes the two remaining explanations, with the application's own log lines timestamped against the deregistration, and a stopping rule: if the surface existed briefly, the gap is a vendor timing constant and the thread ends with a documented limitation rather than an open question.
 - Recorded what the goal has to show for itself: every layer beneath the application demonstrated, including a frame of the application's own chrome, with only a three millisecond vendor deadline left.
+
+## 2026-11-05 - the display thread closes with a named failing step
+
+- One grep of the launcher log answered the question three entries chased: every managed application is handed a wayland surface id except the home screen, which never is. No surface id means nothing composited, so the frames stay the background and no brief window was missed.
+- Wrote the whole path as a table: seven steps demonstrated including the application painting its own chrome, two not, and the first failing step named.
+- Recorded what the goal actually got: the vehicle kernel was unusable for a display path so a matching one was built, and everything vendor side runs, with two substitution shaped fixes left. And the finding worth more than any of it: five times tonight an instrument looked like a property of the vendor system.

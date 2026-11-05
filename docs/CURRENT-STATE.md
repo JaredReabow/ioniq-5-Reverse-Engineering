@@ -224,37 +224,32 @@ manager implements it and honours the call at the interface level.
 `AppEngineerMode` process appeared in the following 80 seconds. So the entry is **accepted but unobserved in effect** - the call must be repeated **after** `AppHomeScreen` owns its bus name, which is
 a timing detail this project has already been bitten by more than once.
 
-### The display ceiling was lifted, and then the real cause turned out to be ours (2026-11-05)
+### Where the display work actually ended (2026-11-06)
 
-**1. The rebuild gave the projection a DRM device.** With `bochs-drm` the vendor rootfs reaches Multi-User with
-`/dev/dri/card0`, `controlD64` and a framebuffer, and the vendor's `drm-backend.so` binds it and reports `Output Virtual-1`.
-So *"headless is the only backend that can exist"* was a property of the **shipped kernel's configuration**, not the hardware
-(`virtio-gpu` does not exist in 4.1.27; bochs-drm was already in the tree).
+**Seven steps demonstrated, two not, and the first failing step has a name.**
 
-**2. But the compositor never served a client on drm or fbdev, and the reason is this project's own module.** `strace`:
+| step | state |
+|---|---|
+| matching kernel source builds (`4.1.27-abl`) | yes |
+| `/dev/dri/card0` via `bochs-drm` | yes |
+| native 1920x720 mode (bochs_kms patch) | yes |
+| vendor `drm-backend.so` binds `card0` | yes |
+| Wayland socket (the seat fix) | yes |
+| application connects, `Wayland-EGL`, `START DRAW` | yes |
+| **application chrome painted** - its own standby face, 144,501 bytes | yes |
+| application surface composited after power-on | **no** |
+| laid-out home screen (Battery/Range) | **no** |
 
-```
-Loading module '/weston-vm-input.so'
-VM_INPUT_NO_SEAT
-epoll_ctl(... DEL ...)            teardown
-ioctl(12, DRM_IOCTL_DROP_MASTER)  ioctl(10, VT_SETMODE)
-+++ exited with 1 +++
-```
+**The failing step is named, and it is not the application.** The launcher hands a `QT_WAYLAND_SET_SURFACE_ID` to every managed
+app - camera 2080, OSD 3000, media 2110, notification 1030 - **and never to app id 11, the home screen.** No surface id means no
+composited surface, which is why the frames stay the background.
 
-**`/weston-vm-input.so` returns -1 when the seat list is empty, and weston exits.** In weston 1.10 only **headless** creates a
-seat unconditionally (`weston_seat_init(&b->fake_seat, ...)`); drm and fbdev rely on libinput/udev, which needs an input
-device, and QEMU has none.
+**Two candidate fixes remain, both substitutions:** patch the launcher to assign the id, or set the variable for that app - the
+second complicated by the launcher stripping its environment from children (already documented for `LIBGL_*`).
 
-| backend | seat | our module | result |
-|---|---|---|---|
-| headless | fake seat | returns 0 | **serves** |
-| drm / fbdev | none | `VM_INPUT_NO_SEAT`, returns -1 | **exits** |
-
-So *"real output versus virtual output"* was a proxy for *"has a seat versus does not"*, and the deciding variable is a return
-value in code this project wrote - the fifth instrument-caused failure of the session.
-
-**The fix is one return value**: tolerate an empty seat (return 0 and attach when one appears, or create it as headless does).
-Then a Qt client can connect on `drm-backend` and `invalid object N` becomes testable for the first time.
+**And the five instrument-caused failures, because they are the session's most reusable finding:** the process-wide `LD_PRELOAD`,
+the placement tool, a truncated log, `CONFIG_DRM_VIRTIO_GPU` (which does not exist in 4.1.27), and the input module's
+`return -1` on an empty seat. **Every one of them looked like a property of the vendor's system.**
 
 ## 1e. Engineering mode in the projection: three findings, none of them "it works"
 

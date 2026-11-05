@@ -11,16 +11,24 @@ Nothing here has been tried on a vehicle. Each row cites the evidence that exist
 
 | # | Route | Costs | Gets you | Status |
 | --- | --- | --- | --- | --- |
-| 0 | **USB update TOCTOU (V-059)** | a programmable USB stick. For a **downgrade: nothing else**; for arbitrary content also the unit's TE2 key | installing content that was never verified; **a genuine older image installs with no key and without anti-rollback applying** | **corroborated statically**; not reproduced here |
-| 1 | **Serial console (`ttyS2`)** | physical access to UART pads + the root password | a root login prompt | **prompt captured**, password uncracked |
-| 2 | **Engineering mode via the front-panel key signal (V-060)** | a system-bus write; **no gesture and no PIN needed to request it** | app id 301 = `AppEngineerMode`, which the manager runs as root | **signal decoded and delivered; the handler declines on internal state** - see below |
-| 3 | **A write to `/tmp`** | *any* code execution, any user | root, via three separate anchors | mechanisms demonstrated; **no non-root writer exists here** |
-| 4 | **`request.launch` from the bus** | root already (bus is root-only) | arbitrary binary as root, re-launched | **executed as uid 0** |
-| 5 | **Removable-media kernel drivers** | a USB stick | potential ring-0 parsing | **20 crafted images, no fault** |
-| 6 | **USB SCSI property injection** | a programmable SCSI bridge | a root unit started by udev | payload confirmed (root shell unit); emulator cannot produce the input |
-| 7 | **Media parser (GStreamer/LMS)** | a crafted media file | root, if a parser is reachable | components exist and run as root; **parser never exercised** |
-| 8 | **WiFi** | root first (three software gates) | a network interface, no shell | hardware present, enable tooling ships |
-| 9 | **Firmware downgrade** | a signed older image | an older, possibly weaker build | version gate strict; **anti-rollback unresolved** |
+| **0** | **Navigation CA on a writable partition (V-069)** | **root, then one file write** | **a package the unit accepts, running as root, surviving reboot** | path, file, mode and the updater's own management of it: **measured**; that the package signature is checked against it: **unproven** |
+| 1 | **USB update TOCTOU (V-059)** | a programmable USB stick. For a **downgrade: nothing else**; for arbitrary content also the unit's TE2 key | installed content that was never verified | mechanism statically corroborated; **keyless downgrade stands** |
+| 2 | **A script on a persistent partition (V-070)** | root, then one file | **unattended root execution, surviving reboot** | path and process APIs measured; **execution unproven** |
+| 3 | **A write to `/tmp` (V-065 family)** | *any* code execution and a `/tmp` write | root, via **nine** anchors - account database demonstrated, resolver immediate | name database **demonstrated**; resolver **latent and immediate** |
+| 4 | **Serial console (`ttyS2`)** | physical access to UART pads **plus the root password** | a root login prompt | prompt captured on both boot paths; **password uncracked after 45,000 candidates** |
+| 5 | **SSH with the shipped key (V-067)** | possession of the private key matching `rsa-key-20181102`, and `/tmp/secure_console_disable` | root login, **on every unit sharing the key** | key **ships**; daemon **absent**, unit not enabled - **latent** |
+| 6 | **Engineering mode via the front-panel key signal (V-060)** | a system-bus write; **no gesture and no PIN** | app id 301, the engineering app, as root | payload decoded and **delivered**; handler **declines on internal state** |
+| 7 | **`request.launch` from the bus** | root already | arbitrary binary as root | **executed as uid 0** |
+| 8 | **Removable-media kernel drivers** | a USB stick | potential ring-0 parsing | **20 crafted images, 9 mutation classes, no fault** |
+| 9 | **USB SCSI property injection** | a programmable SCSI bridge | a root unit started by udev | payload confirmed; **the emulator cannot emit it** |
+| 10 | **Media parser (GStreamer/LMS)** | a crafted media file | root, if a parser is reachable | components run as root; **parser never exercised** |
+| 11 | **WiFi** | root first (three software gates) | a network interface, no shell | hardware present, enable tooling ships |
+| 12 | **Firmware downgrade** | a signed older image | an older, possibly weaker build | version gate strict; **anti-rollback unresolved** |
+
+**Read the top of this table with V-064 in mind.** One hundred and six of the 107 services run as root with no systemd
+hardening, so "root, then one file write" is not a high bar on this platform - it is the ambient condition. Routes 0, 2
+and 3 are therefore **persistence and pivot** options for anyone who has already reached root, and they are ranked above
+the remote routes because they need no additional hardware at all.
 
 ---
 

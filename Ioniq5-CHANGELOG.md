@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.14.0 - the root-access ranking was five findings out of date
+
+The ranked route table was written before V-064, V-065, V-067, V-069 and V-070 existed. Refreshed, and **two routes moved to the top**:
+
+| new position | route | why it moved |
+|---|---|---|
+| **0** | **Navigation CA on a writable partition (V-069)** | root, then **one file write** - no hardware, no race, no window |
+| 2 | Script on a persistent partition (V-070) | root, then one file; unattended and reboot-surviving |
+| 3 | A write to `/tmp` (V-065 family) | now **nine** anchors, not two; the resolver is immediate |
+| 5 | SSH with the shipped key (V-067) | dropped from nowhere to here: a static key, blocked only by a missing binary |
+
+**And the table now says out loud what V-064 established:** 106 of 107 services run as root with no hardening, so *"root, then one file write"* is **not a high bar — it is the ambient condition**. Routes 0, 2 and 3 are **persistence and pivot** options for someone who already has root, and they rank above the remote routes because they need **no additional hardware at all**.
+
+### Why this mattered enough to do instead of another sweep
+
+A ranking is read as an instruction. The previous one told a reader that the cheapest path needed **programmable USB hardware**; the measured answer is that the cheapest path needs **a file write on a partition the platform mounts read-write** - which is a different risk conversation and a different fix.
+
+Two entries also carry their own limits in the status column, because a ranking that hides "unproven" is a ranking someone will act on wrongly: V-069's signature-verification link and V-070's execution link are both marked as the measurements that would promote them.
+
 ## 5.13.6 - a referenced config file that does not exist, and the writable-path sweep completed
 
 The last item from the writable-path sweep was `/rw_data/applaunch-config.json`, which `AppLauncher` contains. A boot checked at 150 s:

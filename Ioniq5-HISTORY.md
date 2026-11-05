@@ -5956,3 +5956,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Closed the writable path sweep with a negative: the launcher names a configuration file on the persistent partition that a running system does not have, so there is nothing in it to tamper with and nothing to read.
 - Recorded that the inference behind it was weak from the start, because the strings that looked like configuration keys are also the parameter names of the launch interface.
 - Tabulated the whole family of writable path trust anchors with their state, three of five absent or already covered by a fix, so the list can be scheduled rather than feared.
+
+## 2026-11-05 - the root-access ranking was five findings out of date
+
+- Refreshed the ranked route table, which predated five of today's findings. Two routes moved to the top, and the cheapest is no longer the one that needs programmable hardware.
+- Added the sentence the ranking needed: because nearly every service runs as root, a file write is not a high bar but the ambient condition, so the cheapest routes are persistence and pivot options for someone who already has root.
+- Kept each entry's unproven parts visible in the status column, since a ranking that hides them is a ranking someone acts on wrongly. The old table told a reader the cheapest path needed hardware, which is a different risk conversation and a different fix.

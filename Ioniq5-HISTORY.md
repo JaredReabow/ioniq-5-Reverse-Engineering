@@ -5650,3 +5650,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The ranked list still sent the reader toward an app-manager launch request, which requires root already and so cannot be a route to root. Replaced that row with the front-panel key signal: a system-bus write, no gesture and no PIN to request, reaching the engineering application which the manager runs as root.
 - Kept the status honest, that the signal is delivered and the handler declines on internal state, and noted that the separate method route is inert so nobody retries it.
 - The point worth keeping: a ranked list is read as an instruction, and that row was pointing the wrong way.
+
+## 2026-11-05 - a byte size was standing in for the image
+
+- Opened a delegate's capture that had been treated as proof an injection worked. It was the application's powered-off face, so the run had never got far enough for the injection to show anything.
+- That also broke a shortcut used for days: one standby frame measured eleven kilobytes larger than the size we had been quoting as standby, a spread bigger than the difference between two states we treat as distinct.
+- Added a rule that a size tells you something new was captured but only the image tells you what, and noted the delegation lesson: a worker told to compare sizes will read a size mismatch as a state change.

@@ -3,6 +3,18 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.0 - a byte size was standing in for looking at the image, and it broke
+
+The delegate run for the widget values captured **131,845 bytes** and treated that as evidence the CAN injection had been applied. **I opened the frame: 1920x720, dark, title bar, KIA logo, no widgets - the standby face.** The run had never powered the application on, so there was nothing for an injection to change.
+
+**That also destroys a shortcut this project has leaned on for days.** We had been quoting **120,5xx** as "the standby app". This standby frame is **131,845** - an 11 KB spread, **larger than the gap between two of the reference sizes we quote as different states**. Byte size tells you whether you captured something new; only the image tells you what.
+
+**Added rule 11 to `docs/MEASUREMENT-DISCIPLINE.md`**: describe a frame in words a second person could check without your file - *"KIA logo and no widgets"* versus *"Battery and Range placed with placeholder dashes"* - and open it. **Two frames of the same state can differ by more than two frames of different states.**
+
+**The corollary is about delegation**: a worker told "compare against these reference sizes" will read a mismatched size as a state change, because that is what the instruction says to do. Workers need the **visual** test in words, and they need to name the **surface id** a capture came from.
+
+Told the worker the same, so its document records Part B as **not a valid test** rather than a negative result.
+
 ## 5.9.13 - the root-access ranking had the engineering row wrong
 
 `docs/root-access-paths.md` ranks every route by cost, and its row 2 still said engineering mode was *"only via an app-manager launch request"* - which is both true and no longer the shortest answer.

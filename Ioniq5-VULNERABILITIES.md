@@ -2640,3 +2640,45 @@ boot".
   does not exist on this flow; if they read a **mount over the removable medium**, it does. The upstream project reports the latter for this build and demonstrated it dynamically; this
   repository has only the strings, which support either.
   **The observation that settles it is a `lsof`/`inotify`/`strace` on the unit during a real update**: which path does the `md5sum` open, and which does the `pv`/`dd` open.
+
+## V-060 — the engineering-mode special-key signal is forgeable by any process on the system bus
+
+**Status:** the **subscription is unfiltered — measured by disassembly**; the *effect* of a forged signal is **not demonstrated** in the projection (measured negative, 9 payload variants). Class: unreliable-input / defence-in-depth.
+
+### What the manager does with the signal
+
+`ApplicationManager` connects to the **system bus** for the front-panel special key:
+
+```
+214dc9  leaq 0x30ca0d  len 0x1a   "NotifyKeyFrontSpecialEvent"          the signal name
+214de3  leaq 0x2fce8c  len 0x15   "com.lge.car.micom.can"               the interface
+214df3  leaq QArrayData::shared_null -> -0x60(%rbp)                     an EMPTY string
+214dfa  leaq QArrayData::shared_null -> -0x70(%rbp)                     another EMPTY string
+214e13  callq QDBusConnection::systemBus()
+214e3e  leaq 0x30ca28  "1specialKeySlot(QByteArray)"                   the slot
+```
+
+`QDBusConnection::connect(service, path, interface, name, receiver, slot)` is given **empty service and empty path**. Empty means *any sender, any path*: the match rule is interface + member only. So **any process that can write a signal to the system bus can deliver a front-panel key event to the manager**, with no sender check.
+
+This corroborates `hidden-menus.md` E2b from the receiving side: `micommanager_userspace` exposes `TestNotifyKeyFrontSpecialKeyEvent`-style test methods, and the manager would accept a signal from anywhere regardless of whether those methods exist.
+
+### The measured negative (and why it is not a refutation)
+
+In the projection, with the home screen running (`AppHomeScreen` pid 2490/2534), nine payloads were emitted from a normal session client:
+
+```
+dbus-send --system --type=signal /Can com.lge.car.micom.can.NotifyKeyFrontSpecialEvent array:byte:0x01,0x<00..08>
+```
+
+No `AppEngineerMode` process appeared for any of them. `micommanager_userspace` was **not running** (the stand-in owns `com.lge.car.micom`), so the sender was a plain client rather than the service that normally emits it. Two readings remain open:
+
+1. **Payload semantics.** `micommanager`'s own decoder (`0x206308`, per `hidden-menus.md` E2a) maps two payload bytes to two registers and `cmpl $0x1,%r13d; je` takes the special-key path — that is the *producer* of the signal from a raw key event. What `specialKeySlot(QByteArray)` expects is a separate, unread decode.
+2. **A further gate** after the slot — the same build-gate pattern seen everywhere else in engineering mode.
+
+**Not established:** that a forged signal opens engineering mode. **Established:** there is no sender filtering, so the only remaining obstacle is the payload format and any downstream gate — not authentication.
+
+### Fix
+
+Require the emitting connection to be the expected service. Pass `com.lge.car.micom` as the connect service (or verify `message().service()` in the slot) instead of relying on interface and member alone, and validate the payload length and key range before acting on it.
+
+---

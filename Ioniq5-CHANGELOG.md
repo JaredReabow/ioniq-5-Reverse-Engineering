@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.0.7 - the managed capture varies between runs, and one of them was not the background
+
+Two runs with identical settings, `--smp 4`, 210 s probe, `cd /tmp` before the screenshot:
+
+| run | surface placed | capture |
+| --- | --- | --- |
+| A | `1005` | **144,577 bytes** |
+| B | `30000` | **129,844 bytes** |
+
+129,844 is the **early-background** frame - the size this project has seen for the splash since the beginning. So run B captured the background because its "newest surface" was `30000`
+(early-background's own), not the application's. Run A placed `1005` and captured **144,577 bytes**, which is neither the background (129,844) nor the by-hand painted frame (120,556).
+
+**So the managed instance sometimes has a surface of its own and sometimes the newest surface is still the background**, depending on ordering at the moment the probe runs. Run A's frame is
+15 KB larger than the background, which is consistent with the home screen being composited on top of it - but "consistent with" is not "seen", and I have not looked at it.
+
+**What I am not claiming:** that the managed instance paints. What I am claiming: under four vCPUs it registers, it has an IVI surface (`1005`), and one capture in that state differs from
+the background by 15 KB. Reproducing run A and *viewing* the image is the remaining step, and it needs a deterministic wait - poll for the application's own surface id rather than taking
+whatever is newest.
+
+**Stopping here deliberately.** This is the fifth consecutive attempt on one question, and the pattern in all five is the same: my instrument selects the wrong thing - wrong console,
+wrong flag, wrong log, wrong directory, and now wrong surface. The project's actual goal is demonstrated; this is polish on the *managed* path, and the honest note about how to do it
+properly is worth more than a sixth attempt that might again capture the background and tempt a wrong conclusion.
+
 ## 5.0.6 - the managed instance has a surface under four vCPUs; my capture looked in the wrong directory
 
 Final run of this thread, with the compositor's real log path (`/tmp/weston-real.log`, which the projection's `weston` wrapper writes):

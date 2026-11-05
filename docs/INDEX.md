@@ -63,6 +63,7 @@ matter** unless you know what you are looking for.
 | `docs/vehdata/07-ivi-controller-announces-nothing.md` | A late `ivi_controller` client sees zero layers and surfaces, and the composited output is the background even with three apps running |
 | `docs/vehdata/08-hmi-controller-negative.md` | Adding `hmi-controller.so` to the ivi-module list: the launcher chain never starts, and which file really decides the config |
 | `docs/vehdata/09-placement-works-and-my-sequencing-bug.md` | Placement works on the shipped config; the app is in standby because the power-on call is issued before it owns its bus name |
+| `docs/vehdata/10-the-shim-was-crashing-the-app.md` | The app's own log shows a Wayland fatal error, and the A/B test says the CAN shim was causing the restart loop |
 | `evidence/fde/` | The passphrase demonstration with its negative control. |
 | `docs/v059-command-substitution-filtering.md` | Whether the mount image path is filtered before it reaches a shell string - measured: it is not |
 | `docs/v059-producer-trace.md` | What feeds the substituted path: `QFileInfo::absoluteFilePath`, and `%1` in `cp -a %1 /app/bin/` is the payload's own binary |

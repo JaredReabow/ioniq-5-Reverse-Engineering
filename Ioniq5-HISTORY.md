@@ -6322,3 +6322,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The refined sequence ran with the surface patch in place: the call landed on a stable instance that owned the surface and reported preload complete, and the application was deregistered again about twenty five seconds later by the same deadline race.
 - Recorded the table as final: eight steps demonstrated including the surface being assigned, created, placed and its chrome composited, with only leaving standby not achieved and its cause named.
 - Two reorderings have now been tried, so it is not sequencing. Left two substitution shaped options on record, and stated the goal's standing honestly: the interface renders its powered-off face and the vendor launcher does not let it finish powering on under emulation.
+
+## 2026-11-05 - the deadline is ten seconds and has a name
+
+- Followed the last blocker into the binary: a timer set to ten thousand milliseconds whose timeout is connected to the slot named for application load timeouts. That is the deadline that deregisters the application.
+- It corrects a number this document has repeated for ten entries. The three milliseconds is the margin by which the application misses a ten second deadline, not the deadline itself, which explains why the failure is consistent and why more cpu changed nothing.
+- Specified the one immediate patch to thirty seconds, a value the same function already uses for a sibling timer, and restated that the first check is textual: the timeout line for the application must disappear from the launcher log.

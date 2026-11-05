@@ -1130,3 +1130,34 @@ tried and documented.
 one could not provide a display path, and after that the vendor's DRM backend, compositor, launcher and home screen all work. **The
 application composites on the vendor display path at the vendor resolution and shows its own standby chrome; it does not leave
 standby, and the reason is a 3 ms deadline in the vendor's launcher under TCG.**
+
+## 54. The deadline is 10 seconds, it is `appLoadTimeoutSlot()`, and it is one immediate
+
+`QTimer::setInterval` is called three times in `AppLauncher`, with `0x2710` (10,000 ms), `0x7530` (30,000 ms) and `0xea60`
+(60,000 ms). **The first is the one that deregisters the app**, and the code says so:
+
+```
+0x18270: be 10 27 00 00            movl $0x2710, %esi        10,000 ms
+0x18275: callq QTimer::setInterval(int)
+0x18287: leaq 0x2eb69(%rip), %r8   # 0x46df7 -> "1appLoadTimeoutSlot()"
+0x1828e: leaq 0x2eb78(%rip), %rdx  # 0x46e0d -> "2timeout()"
+0x18295: callq QObject::connect
+```
+
+**So the app-load deadline is ten seconds, not three milliseconds.** What the logs showed as "3 ms late" is the **miss margin** - the
+application registers three milliseconds after a ten-second deadline. That is a very different number from the one this document
+has been repeating for ten entries, and it changes the reading: the app is not far too slow, it is **just barely too slow**, which
+is why the failure is consistent rather than erratic.
+
+## 55. The patch, and why 30 seconds is the right value to reach for
+
+```
+file offset 0x18270:  be 10 27 00 00   (10,000 ms)
+              ->      be 30 75 00 00   (30,000 ms)
+```
+
+**30,000 is not arbitrary**: the next timer built in the same function is set to `0x7530`. **Raising the app-load deadline to match a
+sibling deadline the vendor already uses is the smallest change that stays inside the vendor's own vocabulary.**
+
+**And the first check is textual, not visual:** the launcher log must stop printing `[TIMEOUT] [2 Group] AppID : 11`. If that line
+disappears, the patch is doing its job and the frame is the second question.

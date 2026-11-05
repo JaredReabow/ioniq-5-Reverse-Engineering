@@ -656,3 +656,43 @@ hours before the kernel work; the DRM path now needs to produce the same content
 **And a deliberate exclusion:** the widget *values* are not part of this run. They need the CAN transport, which the vendor
 kernel's own configuration makes unreachable - the separate problem documented in `docs/vm/47-...`. **The target here is the
 laid-out frame and nothing more.**
+
+## 28. The power-on call lands, and the application dies during the layout
+
+The run that made the call did everything right (`docs/kernel/12-power-on-call-result.md`):
+
+```
+SOCKET_UP after 2s
+BUS_AT_+10s=[unix:abstract=...]
+NAME_OWNED=yes at +100s              polled NameHasOwner, not a fixed sleep
+APPHOME_PID=[2328]
+ASK_POWER_BEFORE=int32 1             not used as a pass/fail
+SET_POWER=method return              the call landed
+```
+
+**And five captures at +5/+15/+30/+60/+90 s were all `129,844` bytes - the standby size - with the pid changing from 2328 to
+2564 between the +15 s and +30 s samples.**
+
+So this is a **fourth outcome** the decision table did not anticipate: not the laid-out frame, not "the call did not land", but
+**the application crashes during the power-on layout** and the launcher restarts it in standby. The seat, the mode and the socket
+are all fixed; this is a new problem behind them.
+
+## 29. Where the answer is, and it has been there every time
+
+The worker's own bounding fact: **the launcher-started app's stderr goes to `/tmp/applauncher-stdio.log`, and this run did not
+dump it.** That is the same route that produced `wl_display@1: error 0: invalid object 19` in the first place.
+
+**And there is a specific hypothesis worth testing alongside it**, drawn from this session's own database work: during an earlier
+layout the app logged `DB UPDATE COMMIT FAIL` **23 times**, plus `BEGIN TRANSACTION FAIL` and `DELETE FAIL QSqlError(...)`, and the
+pulled database had **`WidgetSettingFront` and `WidgetSettingAdvList` empty** while `CustomLayoutFront` held 25 rows. **The
+power-on layout is exactly the path that writes those two tables.** A SQLite failure in the widget-settings write would explain
+all three observations at once: crash on the call, no Wayland error text, and "commits fail but the layout commit succeeds".
+
+**The check costs no instrument:** grep the launcher log around the crash for `COMMIT FAIL` / `BEGIN TRANSACTION` / `QSqlError`,
+and pull the database again to see whether those tables gain rows when the call lands.
+
+## 30. The caution that keeps being needed
+
+**Do not read the crash as "the laid-out layout does not exist on this backend".** It exists - `docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png`,
+16,062 bytes, produced on **headless**. If DRM cannot reach it, the difference is something DRM-specific that has not been
+measured, and the launcher log is where it will be found.

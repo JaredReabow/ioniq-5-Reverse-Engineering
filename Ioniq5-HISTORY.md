@@ -6280,3 +6280,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The measurement came back decisive: preload read zero before the call and one after, and the process id had become stable in between because the launcher had deregistered the first instance and replaced it.
 - So the second instance wins the race and the manager reports preload complete for it. The call had simply been made to the instance that died.
 - Promoted process stability from a check to a gate: wait for the same id twice, then make the call, then confirm the flag and the id, then capture. That needs no vendor binary and no forged signal, and the result would be the display thread closing with no new substitutions.
+
+## 2026-11-05 - the reordering works and the frame is still the background
+
+- Polled for stability before making the call, and mechanically it went right: the call landed on the instance that survived, it stayed up, and the preload flag reads complete.
+- The frame is still the background though, with no title bar, which means the application is not being composited at all rather than failing to lay out. So the preload gate was a precondition and not the blocker, exactly as the caution attached before the run said it might be.
+- Identified the one experiment never run: both proven halves at once, stability then placement then the call. Named the risk in advance, that placement has killed this application before, and what that would mean if it does so reliably.

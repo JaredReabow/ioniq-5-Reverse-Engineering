@@ -5776,3 +5776,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Pulled the database out of the guest and inspected it. The schema exists, the layout table holds twenty-five entries, and only the two widget settings tables are empty, so the failing commits are the widget inserts and not the layout.
 - That withdraws my suggestion that the missing directory might explain the splash: the layout is on disk and the screen is still splash. The second plausible cause this session to survive one check and die on the next.
 - Noted the untried half of the same interface: the application listens for a power status signal and this project has only ever called the method.
+
+## 2026-11-05 - two instances of the app run at once
+
+- Tested emitting the signal instead of calling the method. It changed nothing measurable, and the honest reading is that the emission did not reach the application rather than that the signal is irrelevant.
+- The pid columns showed something I had read past for hours: two instances of the application alive at the same time, from before anything of ours ran.
+- That single fact explains both the Wayland fatal error and the database commit failures without inventing anything, which means the last two entries were diagnosing symptoms of a duplicate process.

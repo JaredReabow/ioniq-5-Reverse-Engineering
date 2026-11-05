@@ -3,6 +3,37 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.2 - two instances of the app run at once, and I have been reading past it for hours
+
+Tested the untried half of the interface - **emitting** `power_status` rather than calling `ask_power_status`:
+
+```
+G1_APPUP=4s   pid=[2510]
+G1_pre=129,844  pid=2572 2510       TWO instances before anything of ours ran
+G1_s75=120,565  pid=2691 2572       standby frame, not the layout
+```
+
+**The finding is in the pid columns, not the frames.** Two `AppHomeScreen` processes are alive simultaneously from before the probe acts. It has been visible in several earlier runs and I read past it every time: `2535 2465`, `2581 2500`, `2572 2510`.
+
+**So the "restart loop" is at least partly a duplicate launch** - a new instance starts while the old one is still alive.
+
+### Why that matters more than the power question
+
+Two live instances of a single-instance application explain **both** failures this project has been chasing separately, with no further hypothesis:
+
+1. **`wl_display@1: error 0: invalid object 19`** - two clients racing the same surface ids through one compositor, one referring to an object the other replaced.
+2. **`DB UPDATE COMMIT FAIL` on `WidgetSettingFront`** - both open the same SQLite file in `journal_mode=delete`, the second writer takes `SQLITE_BUSY`, and the application logs the generic failure with no text.
+
+**Both are symptoms of the duplicate, not causes of anything.** Which also means my last two entries were diagnosing symptoms of a duplicate process.
+
+### The signal test itself: inconclusive, stated as such
+
+Emitting `power_status int32:1` twice changed nothing measurable - background to standby, not layout. A signal from a client that is not the manager's owner may not match the application's subscription, the same caveat as the special-key experiment. **This shows my attempt did not reach the application, not that the signal is irrelevant.**
+
+### The next test
+
+**Stop the duplicate.** One instance, no instruments, then check four things together: the pid, the log's `invalid object` count, the `COMMIT FAIL` count, and whether `WidgetSettingFront` gains rows after pulling the database again. If the duplicate is the cause they should all improve at once; if they do not, the duplicate is itself a symptom and the launcher's log is the next target.
+
 ## 5.11.1 - pulled the layout database out of the guest, and it is not the blocker
 
 The database is a valid SQLite 3 file (36,864 bytes, 9 pages) and **the schema and the layout are both present**:

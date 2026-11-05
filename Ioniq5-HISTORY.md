@@ -6316,3 +6316,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Applied the one entry patch to the launcher's surface id table and it is now read for the home screen, proven textually by the launcher log line that never existed before, and the surface exists and is placed.
 - Opened the resulting frame rather than trusting the description: it is the standby face, a wide white left panel, the title bar with a literal string and the logo, and its size is in the standby class. The worker had called it the light home screen.
 - That isolates two things which had been tangled: compositing was the blocker for painting at all, and it was not the blocker for leaving standby. The power on question returns with a surface this time, and a textual precondition before placement.
+
+## 2026-11-05 - the display thread's final state
+
+- The refined sequence ran with the surface patch in place: the call landed on a stable instance that owned the surface and reported preload complete, and the application was deregistered again about twenty five seconds later by the same deadline race.
+- Recorded the table as final: eight steps demonstrated including the surface being assigned, created, placed and its chrome composited, with only leaving standby not achieved and its cause named.
+- Two reorderings have now been tried, so it is not sequencing. Left two substitution shaped options on record, and stated the goal's standing honestly: the interface renders its powered-off face and the vendor launcher does not let it finish powering on under emulation.

@@ -3,6 +3,48 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.23.4 - the display thread's final state: eight steps demonstrated, one blocker with a name
+
+The refined sequence ran with the surface-id patch in place:
+
+```
+PID_STABLE_GATE=yes pid=[3021]     (2316 → 2475 → 2696 → 2803 → 3021)
+SURFACES include 2080    APP_SURFACE_ID=[2080]   IVI_WM_RC=0
+SET_POWER_SENT
+AFTER_CALL pid=[3021] preload=[int32 1]        the call landed on the right instance
+CAP_30s pid=[4584]  CAP_60s pid=[5198]  CAP_90s pid=[]   ...and it is deregistered again
+120,460 bytes - the standby class
+```
+
+**The call landed on a pid-stable, preload-complete instance that owned surface 2080, and the application was deregistered ~25 s later by the same preload-deadline race.** The power-on state dies with the instance; the relaunched ones start in standby.
+
+### The table, final
+
+| step | state |
+|---|---|
+| matching kernel source builds | ✓ |
+| `/dev/dri/card0` via bochs-drm | ✓ |
+| native 1920×720 mode | ✓ |
+| vendor `drm-backend.so` binds it | ✓ |
+| Wayland socket (seat fix) | ✓ |
+| application connects, `Wayland-EGL`, `START DRAW` | ✓ |
+| **surface id assigned to app id 11** (fourth substitution) | ✓ |
+| **surface created, placed, chrome composited** | ✓ |
+| leaving standby for the laid-out home screen | **✗** |
+
+**Eight demonstrated, one not, and the ninth is blocked by one constant**: the launcher's preload-complete deadline, which deregisters every instance that responds to the power-on call. **Two reorderings have now been tried and documented**, so it is not a sequencing problem.
+
+### The two remaining options, both substitutions, both on record
+
+1. **Patch the deadline** in `AppLauncher` - read the value and units from the binary first, same class of change as the surface-id table: one constant, offset recorded.
+2. **Emit `preload_complete_status(bool)`** on `com.lge.avn.appmanager.info` so the launcher never reaches its deadline - **no vendor binary touched**, and the interface is already mapped.
+
+### The goal's standing, in one paragraph
+
+**Everything the vehicle runs, runs.** The kernel was replaced because the shipped one could not provide a display path; after that the vendor's DRM backend, compositor, launcher and home screen all work. **The application composites on the vendor display path at the vendor resolution and shows its own standby chrome; it does not leave standby, and the reason is a 3 ms deadline in the vendor's launcher under emulation.**
+
+That is where this thread honestly ends: **not "the UI does not render", but "the UI renders its powered-off face and the vendor's launcher will not let it finish powering on under TCG".**
+
 ## 5.23.3 - the surface-id patch works, and the frame it produces is standby
 
 The one-entry patch was applied and it is **read for the home screen**, proven textually for the first time in this session:

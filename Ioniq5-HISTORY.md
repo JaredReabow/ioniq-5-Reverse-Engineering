@@ -6172,3 +6172,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Tidying the report's closing sections revealed that it contained twenty items while its cross-reference table listed twenty-six. Six findings had no sections at all, and the table went on mapping them to register entries that were correct.
 - The loss happened during my own mechanical rebuild two turns ago: I split the document on headings and reassembled it from a dictionary, and six items never made the journey. I committed it without counting the output.
 - Reconstructed the six from their register entries, and added a check that every table row has a section and every section has a row, running in the check suite so a silent loss is visible. The lesson is the sharpest of the session: a cross-reference makes a document look verified, and its accuracy is what stopped me looking.
+
+## 2026-11-05 - a tool for the failure I caused
+
+- Wrote a check that asks whether any document lost headings between commits, so a silent loss of the kind I committed today would be visible rather than remembered.
+- The first version compared commits against the working tree and reported nothing, because the lost sections had since been restored: a repaired loss is invisible to that comparison, which is exactly how it survived two turns.
+- Fixed to compare consecutive commits, it immediately found the act, the very commit that dropped the six items. Added to the check suite as report only, because a deliberate merge is a legitimate decrease. The uncomfortable lesson is that the zero was mine, on my own tool, and I did not believe it.

@@ -6274,3 +6274,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Traced the preload signal statically rather than speculating: the launcher listens for one notification and emits another, while the application manager owns the fact and publishes it as a method and a signal, with a per component variant beside it.
 - That puts the authority in the manager, which means the launcher is not the thing to patch first. One bus call during the race window separates the two possible fixes, and each answer has a named response.
 - Recorded a caution before it was needed: the status method takes no application id, so it is a global flag and not obviously the one that gates the affected app. Named the interface and the call rather than asserting a cause, after two of my causes were refuted by logs tonight.
+
+## 2026-11-05 - the preload gate measured, and the fix is a reordering
+
+- The measurement came back decisive: preload read zero before the call and one after, and the process id had become stable in between because the launcher had deregistered the first instance and replaced it.
+- So the second instance wins the race and the manager reports preload complete for it. The call had simply been made to the instance that died.
+- Promoted process stability from a check to a gate: wait for the same id twice, then make the call, then confirm the flag and the id, then capture. That needs no vendor binary and no forged signal, and the result would be the display thread closing with no new substitutions.

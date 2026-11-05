@@ -809,3 +809,41 @@ dbus-send --session --print-reply --dest=com.lge.hyundai.avn.appmanager /Informa
 **And a caution on my own inference:** `ask_preload_complete_status` takes **no app-id argument**, so it is a *global* flag, and
 there is at least one per-component variant (`preload_navi_complete_status`). It is not safe to assume the global flag is what
 gates app 11 - the measurement has to say which one moves.
+
+## 37. The preload gate is measured - 0 before the call, 1 after, and the replacement instance is stable
+
+The one measurement §36 asked for (`docs/kernel/16-preload-gate-measured.md`):
+
+```
+NAME_OWNED=yes at +105s
+APPHOME_PID_0=[2321]
+PRELOAD_BEFORE=int32 0            ← the manager has not seen preload complete
+SET_POWER_SENT                    ← the call goes to the instance that is about to be deregistered
+PID_STABLE=yes  pid10=[2505]  pid25=[2505]    ← the REPLACEMENT is stable
+PRELOAD_AFTER=int32 1             ← preload complete, on the stable instance
+```
+
+**So the answer is not option 2 or option 3 - it is a reordering.** The launcher's deregister-and-relaunch produces a second
+instance that **wins the race**, and the manager reports **preload complete** for it. The only thing wrong with the run is *when*
+the call was made: it landed on `2321`, which was deregistered, and **the surviving instance `2505` never received it**.
+
+**The corrected order, with pid stability promoted from a check to a gate:**
+
+1. wait for `WAYLAND_SOCKET_UP`
+2. poll `NameHasOwner` for `com.lge.hkmc.avn.appfunc.AppHomeScreen`
+3. **poll `pidof AppHomeScreen` until the same pid appears in two samples 15 s apart** - this is now a precondition, because a
+   deregister-and-relaunch happens inside that window
+4. **then** `set_power_on_status(1, 0)`
+5. confirm `ask_preload_complete_status` reads `1` **and** the pid is still the instance that was called
+6. wait ~90 s, confirm stability again, **then** capture
+
+**Why this beats patching:** it touches **no vendor binary** and forges **no signal**. The vendor's launcher completes its own
+preload bookkeeping on the second instance; the projection only has to address the instance that survived. If it works, the
+display thread closes with **no substitutions beyond the three already documented**.
+
+**And if it does not**, the surviving instance is failing for a different reason, and the deadline patch (option 2) is justified -
+but only after this.
+
+**Caution, recorded before it is needed:** `PRELOAD_AFTER=1` is the **precondition**, not the result. The result is a frame of the
+`16,062`-byte class with a left panel and Battery/Range placed - or a statement that it did not appear, with the pid and preload
+value at the moment of capture.

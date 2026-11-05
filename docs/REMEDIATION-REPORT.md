@@ -9,7 +9,9 @@ because the cheapest ones also happen to remove the most.
 
 ---
 
-## Tier 1 — configuration changes, hours not weeks
+## Tier 1 - configuration and image changes, hours not weeks
+
+These are fixes a platform team can land without touching application code: policy files, unit directives, symlink targets, permissions and boot-script defaults. **Items 15, 16, 21 and 22 are the leverage**: between them they contain a large fraction of this report's impact.
 
 ### 1. Applications may not be running under the policy that was written for them
 
@@ -140,134 +142,6 @@ than by existence checks in `/tmp`.
 
 ---
 
-## Tier 2 — code changes, requiring a release
-
-### 8. The application manager executes a caller-named path as root, unverified
-
-**Evidence.** `request.launch(appid, appname, applocation)` takes the binary's path **from the caller**. A payload with no signature section, launched with the
-verification key deleted, ran as `uid=0`:
-
-```
-m_AppProcess->start(/poc/payload_plain) PID[952]
-V048_PAYLOAD_RAN / uid=0 euid=0 gid=0
-```
-
-**Exposes.** Root code execution for anything able to send one session-bus message. Reachability is bounded: the session bus accepts only uid 0
-(EXTERNAL auth, measured — uid 65534 cannot connect), so on this build it is a **persistence and re-launch primitive**, not an escalation from a lesser user. It
-becomes an escalation the moment any non-root context exists.
-
-**Fix.** Ignore `appLocation` from the request; resolve binaries by app id from a fixed read-only directory; verify the signature on the resolved path; treat
-verification failure as fatal.
-
-**Verify.** A launch request naming an arbitrary path is refused, and a correctly signed binary in the trusted directory still starts.
-
-### 9. The signature check itself trusts a key in `/tmp`
-
-**Evidence.** The manager verifies with `RSA_verify(NID_sha256, …)` against a **PEM key read from `/tmp/app_normal.key`**. The authentic keys are pinned as Qt
-resources (`:/app_normal.key`) but are copied to `/tmp` once and the copy is trusted thereafter without comparison.
-
-**Exposes.** Where the check *is* applied (binaries launched from `/app/bin`), the trust anchor is replaceable. A binary signed with a key generated during this
-work was accepted and ran as uid 0.
-
-**Fix.** Verify against the pinned resource; never read a key from a writable directory.
-
-**Verify.** Replacing `/tmp/app_normal.key` has no effect on verification.
-
-### 10. The installed `debug-shell.service` is an unauthenticated root shell
-
-**Evidence.** `DefaultDependencies=no`, `ConditionPathExists=/dev/tty9`, `ExecStart=/bin/sh`. Not enabled — and `SYSTEMD_WANTS` names units directly, ignoring
-enable links. Neighbours are the safe pattern: `console-shell.service` runs `sulogin`, `console-getty.service` runs `agetty`.
-
-**Exposes.** Any device property that reaches `SYSTEMD_WANTS=debug-shell.service` yields a root shell with no password. The upstream advisory for the udev
-property-injection defect names exactly that property.
-
-**Fix.** Remove the unit from production rather than leaving it disabled.
-
-**Verify.** `systemctl cat debug-shell.service` fails on a production image.
-
----
-
-### 7. The updater verifies a file and then installs it from a second read of the same file
-
-**Evidence.** `app/bin/AppUpgrade` is a 16 KB wrapper whose data contains the two real updaters as complete ELF images: **SCOMO** (5,678,432 bytes at `0x7c64`) and **FUMO** (5,066,264 bytes at
-`0x5721c8`). This vehicle's launcher row selects FUMO. In **FUMO's own code** the check and the apply are separate invocations that each name the same input file:
-
-```
-0x13a550   ionice -c3 md5sum %1 | awk '{print $1}'                                     the check
-0x60f0b    DecryptToPIPE -d <src> <off> 0 | pv -q -L 8m | dd of=<partition> bs=512      the apply
-```
-
-The apply pipeline opens the payload again, decrypts it and writes it to a **partition device**, and the stream is **rate-limited to 8 MB/s by its own command**. The payload sits on removable
-media the user supplies. Extract both updaters with `tools/uk_fw/extract_embedded_elfs.py`; the full measurements are in `evidence/v059-evidence.md`.
-
-**Exposes.** A programmable USB device that serves the genuine image during the check and different bytes during the apply installs content that was never verified. Two consequences, which need
-different responses:
-
-- **arbitrary content** needs the unit's TE2 content key (`velix_aes.key`), which does **not** ship in the package;
-- **a genuine older image** needs **nothing** - it is already encrypted with the key the unit holds, and the version gate and anti-rollback were satisfied against the genuine current bytes.
-
-**Fix.** Never verify a file and then re-open it: hash during the install over the same handle that writes, or copy once into protected storage and verify *and* install from that copy. Give the
-rootfs a boot-time integrity mechanism so "installed unverified content" is not the same as "runs at next boot".
-
-**Verify.** On a unit, confirm the install consumes the bytes it verified - hash the source while writing and compare against the check digest, or refuse a file whose contents changed since the
-check.
-
-### 12. Engineering mode can be requested by any process on the system bus
-
-**Evidence.** `ApplicationManager` subscribes to the front-panel special-key signal with an **empty service
-and an empty path**, so the match rule is interface plus member only:
-
-```
-214dc9   leaq 0x30ca0d, len 0x1a   "NotifyKeyFrontSpecialEvent"
-214de3   leaq 0x2fce8c, len 0x15   "com.lge.car.micom.can"
-214df3   QArrayData::shared_null    EMPTY service
-214dfa   QArrayData::shared_null    EMPTY path
-214e13   callq QDBusConnection::systemBus()
-214e3e   leaq 0x30ca28             "1specialKeySlot(QByteArray)"
-```
-
-The handler takes a **two-byte payload**, and the second byte selects the action (`0x206308`-`0x2062f8`):
-
-```
-payload[0] == 0x01                 the special-key discriminant
-payload[1] == 0x05                 -> movl $0x12d (301 = AppEngineerMode) -> ask(301) -> ask(71) == 1 -> action
-payload[1] == 0x01 / 0x0a          two other branches
-```
-
-Measured in the projection: the payload `[0x01, 0x05]` **reaches the system bus** (a monitor on the
-interface sees it) and the handler **declines on internal state** - so the transport is open and what
-stops it today is a state condition, not authentication.
-
-**Exposes.** Any process that can write a signal to the system bus can request engineering mode with two
-bytes, and can drive the other two branches the same way. On a vehicle that means a compromised
-non-privileged component - or anything that gets code into one - can reach a maintenance surface without
-a physical key or a PIN. The practical severity today is bounded by the state gate, which is exactly why
-the sender check should be added **before** that gate is found to be satisfiable.
-
-**Fix.** Pass `com.lge.car.micom` as the connect service (or verify `message().service()` inside the slot),
-and re-check the payload length and byte range before dispatch. Both are small changes in one function.
-
-**Verify.** Emit `[0x01, 0x05]` from a client that is *not* `com.lge.car.micom` and confirm nothing
-happens; then emit it from the owning service and confirm the normal behaviour is unchanged.
-
-### 13. The application-set hash is queryable by any session-bus client
-
-**Evidence.** `com.lge.avn.applauncher` implements `com.lge.avn.applauncher.cipher.getIVDHash() -> ay` on the
-session bus. The launcher holds `/app/bin/AppHomeScreen`, `AppClimate`, `AppCamera`, `AppMediaPlayer` and the rest as
-strings beside `SHA256_Init/Update/Final`, and labels the result `SystemIVD`. A call in the projection returned a
-32-byte digest (`d4 d8 03 8c ... 6c df 98`).
-
-**Exposes.** The digest is a fingerprint of the installed application set. For a process already running as root -
-which on this unit is most of the application stack - it answers **"did my tampering change the platform's
-integrity view?"**, and an unchanged value after a modification tells an attacker which changes are invisible.
-That is the inverse of what an integrity mechanism should offer. The bus is root-only, so it is not an escalation
-and leaks no content.
-
-**Fix.** Restrict the interface to the MICOM bridge or drop the method from the public object; if attestation is
-genuinely required, make it a challenge-signed response rather than a stable digest.
-
-**Verify.** Query the digest, change one byte in one application binary, query again: a changed value confirms the
-oracle, and an unchanged value is a finding about coverage.
 
 ### 14. Nine bus policies allow the default context, including state-changing services
 
@@ -342,86 +216,6 @@ boot script that writes them. Alternatively `PrivateTmp=yes` on every unit that 
 **Verify.** As a non-root process, attempt to append to `/tmp/passwd`; on this image `1777` permits it, and after the
 fix it must fail. V-054 already carries the root-consequence reproduction.
 
-### 17. The navigation payload: world-writable binary and a verification key in `/tmp`
-
-**Evidence.** `/navi/Bin/AppNavi` (143,718,392 bytes) and `/navi/Bin/CANService.sh` are **`-rwxrwxrwx`**, along with
-126 configuration files. `/navi` is read-only in normal boot, but `app/bin/AppLauncher` carries
-`mount -o remount,rw /navi` / `remount,ro /navi`, so a **read-write window** opens at runtime. The same binary contains
-`/tmp/navi_public.key`, `:/navi_public.key`, `LOCFILE:/update/activeNaviPath…` and `RSA_verify`, and **no navi public key
-ships in the image**, so the key is materialised in `/tmp` at runtime.
-
-**Exposes.** During the read-write window, any non-root process can modify the navigation binary or the startup shell
-script in place. If the key is read from the navi tree it verifies, the check is self-referential and the payload can be
-replaced with a matching key. V-048 already demonstrated the consequence of trusting a `/tmp` key: a binary this project
-signed ran as `uid=0`.
-
-**Fix.** `chmod go-w` on `/navi/Bin/AppNavi` and `/navi/Bin/CANService.sh` - **two paths, not a tree audit**: the image has
-**no world-writable directories at all**, so this is an anomaly in two files rather than a permissions model. Also
-mount `/navi` read-only unconditionally, direct writers at `/rw_data`, and move the verification key to a
-root-owned read-only location and **ship it**, as fix item 9 also requires.
-
-**Verify.** During the launcher's window, open `/navi/Bin/AppNavi` for writing from a non-root process; compare the
-contents of `/tmp/navi_public.key` against any key present in the navi tree.
-
-### 18. A static root SSH key ships in the image, behind a `/tmp` marker and a missing binary
-
-**Evidence.** `/etc/dropbear/authorized_keys` ships **397 bytes, one RSA key, `rsa-key-20181102`**.
-`lib/systemd/system/dropbear@.service` exists with **`ConditionPathExists=/tmp/secure_console_disable`** as its only
-gate and `ExecStart=-/usr/sbin/dropbear -i -s …`. `/etc/default/dropbear` has `# DROPBEAR_EXTRA_ARGS="-w"` **commented
-out** (`-w` disallows root logins). `/etc/dropbear/dropbear_publickey_installer.sh` copies the shipped key into
-`/home/root/.ssh/authorized_keys`. **The dropbear binaries are absent and the unit is not enabled**, so it cannot run
-on this image.
-
-**Exposes.** The credential is **static and shared**: every unit built from this image accepts the same private key, so
-one leak of it is root on all of them, with no per-device rotation. The daemon/credential boundary is a **file in a
-world-writable directory** - and its name ("secure console disable") reads like a hardening flag. The unit file is
-already installed, so adding the `dropbear` package for field debugging makes the whole chain live.
-
-**Fix.** Remove `authorized_keys`, `dropbear@.service` and `dropbearkey.service` from production images; if SSH must
-exist, provision a per-device credential and gate it on MICOM state or a signed flag in `/rw_data`, with `-w` enabled;
-and treat `rsa-key-20181102` as compromised-by-distribution for any fleet built from this image.
-
-**Verify.** `grep -c . /etc/dropbear/authorized_keys` on a unit: any non-zero result is this finding.
-
-### 19. Private keys embedded in four shipped binaries, and a navi CA on a writable partition
-
-**Evidence.** Four application binaries carry PEM private-key blocks: `AppProjection` (2 keys + **3 certificates**),
-`AppUpgrade` (6), `AppScomoDM` (3), `AppDMClient` (3). One parsed block is **RSA 2048**, public-key SHA-256 beginning
-`af1e9a9a…`. Separately, `AppUpgrade` reads `/rw_data/navi_data/certificates/TomTom_Root_CA.crt`, which ships at
-**1,588 bytes, mode `-rwxrwxr-x`, on the read-write partition**; `AppUpgrade` links mbedtls.
-
-**Exposes.** Everything shipped is **compromised by distribution**: keys identical on every unit, no per-device
-rotation, and a backend that authenticates clients by certificate cannot tell units apart. The navi CA is worse in
-practice: **a single file write on a writable partition** could let an attacker sign a navigation package the unit
-accepts, and the payload runs as root - the cheapest persistent root path in this report, contingent on the
-verification actually using that file.
-
-**Fix.** Establish what the embedded keys authenticate and rotate them, reissuing per-device credentials; move key
-material to manufacture-time provisioning or a secure element. Move the navi CA to read-only storage (`0444`), or make
-it itself signed by a read-only-side key so replacement requires the vendor's signature.
-
-**Verify.** `grep -c 'BEGIN .*PRIVATE KEY' /app/bin/*` → four files; compare public-key fingerprints across two units
-for sameness. For the CA: replace it, sign a navi package, attempt an update.
-
-### 20. The manufacturing test application references a script on a persistent writable partition
-
-**Evidence.** `app/bin/AppMPAutoTest` contains `/app/data/AppEngineeringMode/shell/eject.sh` and links `QProcess::start`,
-`startDetached`, `setStandardOutputFile` and `waitForFinished`. `/app/data` symlinks to **`/rw_data/app_data`**, which
-persists across reboots; the shell directory **is not shipped**. Manufacturing mode is already known to be triggered by
-a `/tmp` marker (V-042).
-
-**Exposes.** *If* that path is executed, one directory plus one file on a persistent partition, plus the known `/tmp`
-trigger, would give **unattended root execution that survives reboot**. **Measured negative:** starting
-`AppMPAutoTest` as root with the script in place and the marker created did **not** run it, so the cheap reading -
-"drop a file, start the app, get root execution" - is refuted; the trigger is some other event (the file is named
-`eject.sh`, so a media-eject path is the first place to look).
-
-**Fix.** Never execute scripts from a persistent writable partition: ship any field-diagnostic script on a read-only
-partition and run that path, or verify a signature over it with a key that is not itself writable (V-069's failure
-mode).
-
-**Verify.** On a unit, create the script with a marker command, trigger manufacturing mode, and see whether it runs.
-
 ### 21. One `/tmp` marker enables the root console and SSH, and the init script creates it every boot
 
 **Evidence.** `lib/systemd/esinit` contains, verbatim:
@@ -486,6 +280,80 @@ if it exists only for manufacturing, which is the split the platform already mak
 **Verify.** `netstat -ltnp | grep 9997` on a unit, then attempt `socat - TCP:<unit>:9997` from another host: a connection
 that succeeds without credentials is this finding.
 
+## Tier 2 - code changes, requiring a release
+
+These need a change in a shipped component: a verification routine, an execution path, or a build that no longer embeds credentials.
+
+### 7. The updater verifies a file and then installs it from a second read of the same file
+
+**Evidence.** `app/bin/AppUpgrade` is a 16 KB wrapper whose data contains the two real updaters as complete ELF images: **SCOMO** (5,678,432 bytes at `0x7c64`) and **FUMO** (5,066,264 bytes at
+`0x5721c8`). This vehicle's launcher row selects FUMO. In **FUMO's own code** the check and the apply are separate invocations that each name the same input file:
+
+```
+0x13a550   ionice -c3 md5sum %1 | awk '{print $1}'                                     the check
+0x60f0b    DecryptToPIPE -d <src> <off> 0 | pv -q -L 8m | dd of=<partition> bs=512      the apply
+```
+
+The apply pipeline opens the payload again, decrypts it and writes it to a **partition device**, and the stream is **rate-limited to 8 MB/s by its own command**. The payload sits on removable
+media the user supplies. Extract both updaters with `tools/uk_fw/extract_embedded_elfs.py`; the full measurements are in `evidence/v059-evidence.md`.
+
+**Exposes.** A programmable USB device that serves the genuine image during the check and different bytes during the apply installs content that was never verified. Two consequences, which need
+different responses:
+
+- **arbitrary content** needs the unit's TE2 content key (`velix_aes.key`), which does **not** ship in the package;
+- **a genuine older image** needs **nothing** - it is already encrypted with the key the unit holds, and the version gate and anti-rollback were satisfied against the genuine current bytes.
+
+**Fix.** Never verify a file and then re-open it: hash during the install over the same handle that writes, or copy once into protected storage and verify *and* install from that copy. Give the
+rootfs a boot-time integrity mechanism so "installed unverified content" is not the same as "runs at next boot".
+
+**Verify.** On a unit, confirm the install consumes the bytes it verified - hash the source while writing and compare against the check digest, or refuse a file whose contents changed since the
+check.
+
+### 8. The application manager executes a caller-named path as root, unverified
+
+**Evidence.** `request.launch(appid, appname, applocation)` takes the binary's path **from the caller**. A payload with no signature section, launched with the
+verification key deleted, ran as `uid=0`:
+
+```
+m_AppProcess->start(/poc/payload_plain) PID[952]
+V048_PAYLOAD_RAN / uid=0 euid=0 gid=0
+```
+
+**Exposes.** Root code execution for anything able to send one session-bus message. Reachability is bounded: the session bus accepts only uid 0
+(EXTERNAL auth, measured — uid 65534 cannot connect), so on this build it is a **persistence and re-launch primitive**, not an escalation from a lesser user. It
+becomes an escalation the moment any non-root context exists.
+
+**Fix.** Ignore `appLocation` from the request; resolve binaries by app id from a fixed read-only directory; verify the signature on the resolved path; treat
+verification failure as fatal.
+
+**Verify.** A launch request naming an arbitrary path is refused, and a correctly signed binary in the trusted directory still starts.
+
+### 9. The signature check itself trusts a key in `/tmp`
+
+**Evidence.** The manager verifies with `RSA_verify(NID_sha256, …)` against a **PEM key read from `/tmp/app_normal.key`**. The authentic keys are pinned as Qt
+resources (`:/app_normal.key`) but are copied to `/tmp` once and the copy is trusted thereafter without comparison.
+
+**Exposes.** Where the check *is* applied (binaries launched from `/app/bin`), the trust anchor is replaceable. A binary signed with a key generated during this
+work was accepted and ran as uid 0.
+
+**Fix.** Verify against the pinned resource; never read a key from a writable directory.
+
+**Verify.** Replacing `/tmp/app_normal.key` has no effect on verification.
+
+### 10. The installed `debug-shell.service` is an unauthenticated root shell
+
+**Evidence.** `DefaultDependencies=no`, `ConditionPathExists=/dev/tty9`, `ExecStart=/bin/sh`. Not enabled — and `SYSTEMD_WANTS` names units directly, ignoring
+enable links. Neighbours are the safe pattern: `console-shell.service` runs `sulogin`, `console-getty.service` runs `agetty`.
+
+**Exposes.** Any device property that reaches `SYSTEMD_WANTS=debug-shell.service` yields a root shell with no password. The upstream advisory for the udev
+property-injection defect names exactly that property.
+
+**Fix.** Remove the unit from production rather than leaving it disabled.
+
+**Verify.** `systemctl cat debug-shell.service` fails on a production image.
+
+---
+
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
@@ -549,3 +417,26 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 Six of these findings are one mistake: **a security decision resolved from state the threat model treats as untrusted** — a key in `/tmp`, a writable kernel
 parameter, a filesystem probe, a literal passphrase, a symlinked account database, a symlinked compositor config. Move those decisions onto read-only or
 hardware-backed state, and make every one of them **fail closed**.
+
+## Why the tiers were rebuilt (2026-11-05)
+
+Items had been **appended** to this report without re-reading it, so by item 23 the structure said something false: a
+dozen **configuration-only** fixes (bus policies, unit hardening, symlink targets, an inverted boot default, a daemon's
+missing `User=`, an unauthenticated listener) sat under the heading *"code changes, requiring a release"*, and two items
+were out of numeric order - item 11 at the very end, after item 23.
+
+That matters because **the tier is the reader's only signal for cost**, and every one of those twelve is a change a
+platform team could land in an afternoon.
+
+The report is now:
+
+| tier | items | what they are |
+|---|---|---|
+| **1 - configuration and image changes** | 13 | policy files, unit directives, symlink targets, permissions, boot-script defaults |
+| **2 - code changes, requiring a release** | 11 | a verification routine, an execution path, or a build that stops embedding credentials |
+
+and the four leverage items are named at the head of Tier 1 rather than being findable only by reading all of it.
+
+**The lesson is the same one as the state page and the README:** a document that is only ever appended to will
+eventually contradict itself, and the fix is to read it before adding - not to trust that the last edit was the whole
+document. **This is the fourth time in this session that the record, not the work, was the thing that needed correcting.**

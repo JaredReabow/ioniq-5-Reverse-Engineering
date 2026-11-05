@@ -5446,3 +5446,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Went looking for the mount path in the updater, expecting it to settle the last question. Found the local staging path seven times for every mention of the mount - the opposite of the direction I was looking for.
 - Neither path settles where the payload is read from, so the question stays open, but the leaning is now recorded against the external report rather than for the answer I wanted.
 - Third time on this question that checking produced the opposite of the expected direction, and the first time the check ran before the sentence was written.
+
+## 2026-11-05 - the corrected claim was still standing where it mattered
+
+- Audited the documents for the phrasing of a claim withdrawn two entries earlier and found it in the remediation report, which is the page a platform team acts from, while the register and the evidence sheet had been fixed.
+- Replaced it with the measured commands and the extractor, and annotated the register's earlier list so the commands quoted there are marked as belonging to the other updater.
+- The check suite cannot see a superseded sentence surviving in the most-read document. This one was found by looking for it deliberately, which is a habit rather than a script.

@@ -2492,8 +2492,8 @@ Every string the mechanism depends on is present in our own extraction of `app/b
 ```
 ionice -c3 md5sum %1 | awk '{print $1}'      the integrity check, as a shell command taking %1
   PKCS#1 sig. verify:                        the signature step, with md5WithRSAEncryption
-pv -q %1 | tar -xvm -C %2                    the install of the system rootfs, re-reading %1
-nice -n 19 dd if=%1 bs=4k skip=%2            other partitions, again re-reading %1
+pv -q %1 | tar -xvm -C %2                    SCOMO's install command (see the correction below: the vehicle runs FUMO)
+nice -n 19 dd if=%1 bs=4k skip=%2            other partitions, again re-reading %1  (also SCOMO)
 [%s] System Update Verify Time = %d          the post-install verification the upstream project timed at 46 ms
 [Info] ... %s file status = %d, system update verify skip      ← see below
 ```

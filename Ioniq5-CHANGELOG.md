@@ -3,6 +3,18 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.10 - a rebuild with host paths reached a pushed commit, and how
+
+`tools/uk_fw/guest/eng-data-sim` is a build artifact. It was untracked earlier today for exactly the right reason - the rebuild embeds absolute host paths - and then **a 50,944-byte rebuild carrying six of them, including the real username, landed in commit `1d06040`.**
+
+The mechanism is worth recording because it was not carelessness at the keyboard: a **concurrent worker** was rebuilding and staging that file at the same moment I staged its deletion, so my `git rm --cached` was undone by its `git add` and the commit captured a *new binary* rather than a removal. Two git clients in one repository, neither aware of the other.
+
+**Actions taken:** the worker has been told plainly not to run `git add` or `git commit` at all - commits are mine, and a concurrent commit collided with mine tonight - to restore the file from the index if it has staged it, and that the **source** `.c` is tracked and worth committing while the compiled binary never is.
+
+**What is not yet clean, stated rather than implied:** the binary is still in `HEAD` because the worker's staging keeps restoring it, and the blob also exists in **history** from an earlier commit that tracked it. Removing it at `HEAD` is a one-line fix once staging stops; removing it from history needs a rewrite on both remotes, which is the user's call and not something to do unilaterally at the end of a session.
+
+**The lesson:** the sanitisation scan has to run against **what git is about to publish**, not only against the working tree. My earlier scan of pending paths found the host paths precisely because it read the files themselves - and it would have caught this one too, had it run after the worker's `git add` rather than before.
+
 ## 5.9.9 - the "if you have one hour" list was stale, and had me repeating closed work
 
 The actionable section of the state page still recommended the SPI-gate measurement (closed) and **the About-screen gesture** (refuted: absent in code). A list like that costs the next person an hour re-deciding what is already decided.

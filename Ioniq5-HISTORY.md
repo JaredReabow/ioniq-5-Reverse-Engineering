@@ -5627,3 +5627,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The actionable section of the state page still told the reader to run measurements that had already been closed and to try the gesture that was refuted. That would have cost the next person an hour re-deciding settled questions.
 - Replaced it with a ranked list by what each item would settle, plus a short table of things not to spend time on and why.
 - Also found the stand-in binary had reappeared in the index, so untracked it again and restated the reason it does not belong in the repository.
+
+## 2026-11-05 - a rebuild with host paths reached a pushed commit
+
+- A concurrent worker was rebuilding and staging the stand-in binary while I was staging its deletion, so my removal was undone and the commit captured a new binary carrying six host paths rather than a deletion.
+- Told the worker not to run git at all, since commits are mine and we collided tonight, and restated that the source is tracked while the compiled binary never is.
+- Left the remaining exposure on the record rather than smoothing it: the blob is still at head until staging stops, and also in history from an earlier commit, which needs a rewrite the user should decide on.

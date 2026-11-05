@@ -112,3 +112,49 @@ from the binary's `writeGPIO` caller.
 - the application also expects **sysfs GPIO nodes** that do not exist
 - so "why the splash never becomes a home screen" now has two named, unrelated candidates, both in the
   application's own logging rather than in a hypothesis
+
+---
+
+## 6. Pulled the database out of the guest, and it is not the blocker
+
+The file is a valid SQLite 3 database (36,864 bytes, 9 pages, `journal_mode=delete`) and **the schema and the
+layout are both there**:
+
+| table | rows |
+|---|---|
+| `CustomLayoutFront` | **25** |
+| `CustomLayoutVersion` | 1 - `(1.9, 1.6, 1.3, 2, 0, 0)` |
+| `sqlite_sequence` | 1 - `('CustomLayoutFront', 24)` |
+| `WidgetSettingFront` | **0** |
+| `WidgetSettingAdvList` | **0** |
+
+A copy is kept at `evidence/vehdata-CustomLayoutDB-empty-widget-tables.db`.
+
+**So the `DB UPDATE COMMIT FAIL` lines are the *widget settings* inserts failing, not the layout.** The
+application has a persisted layout of 25 entries and still does not render a home screen.
+
+**That withdraws the suggestion in §1-§2 that the missing directory might explain the splash.** The directory
+was genuinely missing and creating it genuinely let the database be created - that part stands - but **the
+layout is present and the screen is still splash/standby**, so the database is not what stands between the
+application and its home screen.
+
+## 7. What the empty widget tables suggest instead
+
+`WidgetSettingFront` and `WidgetSettingAdvList` are empty while the layout is populated. Two readings:
+
+1. **Two instances at once** (measured repeatedly: pids `2535 2465`, `2581 2500`) both open the same database.
+   SQLite in `journal_mode=delete` serialises writers with a file lock, so a second writer gets `SQLITE_BUSY`
+   and the application reports exactly the generic "COMMIT FAIL" it logs without the error text.
+2. A schema/insert mismatch in this build, which is not supported by any evidence here and should not be
+   assumed.
+
+**Reading 1 is testable and cheap:** one instance, no restarts, then look at whether the two widget tables have
+rows. If they do, the commit failure is a symptom of the restart loop and not a cause of anything.
+
+## 8. So where is the screen actually blocked
+
+Not the database, and not placement. The application sits in its **splash** with a valid layout on disk and a
+manager that reports the vehicle is on. The next thing to test is the **event the application actually
+listens for**: `com.lge.avn.appmanager.info` carries a `power_status(int)` **signal** as well as the
+`ask_power_status` method, and this project has only ever called the method. Emitting that signal on the
+session bus to the application is the untried half of the same interface.

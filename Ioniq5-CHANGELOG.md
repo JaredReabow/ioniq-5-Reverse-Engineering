@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.1 - pulled the layout database out of the guest, and it is not the blocker
+
+The database is a valid SQLite 3 file (36,864 bytes, 9 pages) and **the schema and the layout are both present**:
+
+| table | rows |
+|---|---|
+| `CustomLayoutFront` | **25** |
+| `CustomLayoutVersion` | 1 - `(1.9, 1.6, 1.3, 2, 0, 0)` |
+| `sqlite_sequence` | 1 - `('CustomLayoutFront', 24)` |
+| `WidgetSettingFront` | **0** |
+| `WidgetSettingAdvList` | **0** |
+
+Copy kept at `evidence/vehdata-CustomLayoutDB-empty-widget-tables.db`.
+
+**So the 23 `DB UPDATE COMMIT FAIL` lines are the *widget settings* inserts failing, not the layout.** The application has a persisted layout of 25 entries and still does not draw a home screen.
+
+**Which withdraws what I suggested two entries ago**: the missing directory was genuinely missing and creating it genuinely let the database be created - that stands - but **the layout is on disk and the screen is still splash/standby**, so the database is not what stands between the application and its home screen. That is the second time this session that a plausible cause survived one check and died on the next.
+
+**What the empty widget tables suggest instead:** two instances at once have been measured repeatedly (`2535 2465`, `2581 2500`), both open the same database, and in `journal_mode=delete` a second writer gets `SQLITE_BUSY` and the application logs a generic `COMMIT FAIL` with no error text. **That is testable:** one instance, no restarts, then look at whether those two tables have rows. If they do, the commit failure is a *symptom* of the restart loop and not a cause of anything.
+
+**And where the screen is actually blocked:** not the database, not placement. The application sits in splash with a valid layout on disk and a manager that reports the vehicle is on. The untried half of the interface is the **`power_status(int)` signal** - this project has only ever *called* the method, never *emitted* what the application listens for.
+
 ## 5.11.0 - the record was behind the work, so I stopped and corrected it
 
 Eight turns have overturned the model this project was working from, and the two documents people read first still described the old one. Corrected rather than left to drift.

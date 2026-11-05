@@ -34,6 +34,28 @@ the setter does is **push the state event**, which is what makes the app re-lay-
 a probe for this at all, and my "the manager says the vehicle is off" reasoning was wrong in mechanism
 even though the fix worked.
 
+### The remaining gap is a transport, not an adaptor (measured 2026-11-05)
+
+The widgets do not read the D-Bus MICOM interface. They are fed from the application's own raw-CAN
+listener: `slot_CR_Bms_DisplaySoc`, `slot_CLU_DTEVal` and the rest are members of `AppPHEVModel` bound
+through `connectCanListenerSignals(QCANControllerListener*)`. So no amount of D-Bus work fills them -
+`docs/vehdata/01-battery-range-data-path.md`, with the negative test in `02-partb-injection-attempt.md`.
+
+**And there is no CAN interface in the projection at all:** `/sys/class/net` is `lo rmnet_usb0..7` — no
+`can0`. The vendor's `can0`/`can1` are created by the **built-in** micom driver
+(`CONFIG_LGE_MICOM_USE_COMMON_DRV=y`) once its link is alive, and in QEMU that link never comes up.
+Every CAN device driver in `vendor.config` is `# ... is not set`, including `CAN_VCAN`, and `can-utils`
+is not in the image (`ip` is).
+
+Two routes, both honest about cost:
+
+| route | what it needs | stock fidelity |
+|---|---|---|
+| **vcan** | a 4.1.27 tree matched to `vendor.config` (we have neither the tree nor a shipped `vcan.ko`), then `ip link add can0 type vcan` and a frame sender (a few lines of C; `cansend` is absent) | lower - a virtual bus the vendor kernel never had |
+| **bring the micom link up** | make the built-in micom driver believe its link is alive so it creates the real `can0` | **higher** - the vendor's own path |
+
+The SOC frame is pinned from the real vehicle's logs: **`0x2fc`, byte 7 = 119 → 59.5 %**.
+
 ### The standard for the remaining gap (added 2026-11-05)
 
 `evidence/vehdata-ground-truth.md`: 321 battery/range pairs from 545 real-vehicle logs - **65 % reads

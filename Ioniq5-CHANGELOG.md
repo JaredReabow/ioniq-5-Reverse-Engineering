@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.1 - the last VM gap is a transport, not an adaptor
+
+The worker's mapping came back with a finding that changes the shape of the last gap, and I verified its premises myself before recording it.
+
+**The widgets are not fed by D-Bus.** `slot_CR_Bms_DisplaySoc`, `slot_CLU_DTEVal` and the rest are members of `AppPHEVModel` bound through `connectCanListenerSignals(QCANControllerListener*)` - the application's own **raw-CAN listener**. So every D-Bus adaptor built so far, including the one that produced the layout, was never going to fill Battery or Range. `docs/vehdata/01-battery-range-data-path.md`; the negative run is `02-partb-injection-attempt.md`.
+
+**And the projection has no CAN interface at all.** Verified here:
+
+```
+/sys/class/net                     lo rmnet_usb0..7      - no can0
+vendor.config                      CONFIG_LGE_MICOM_USE_COMMON_DRV=y   - micom is BUILT IN
+vendor.config                      CONFIG_CAN_VCAN / SLCAN / M_CAN / MCP251X   all "# ... is not set"
+rootfs                             ip present; cansend / candump / canconfig ABSENT
+```
+
+So the vendor's `can0`/`can1` are created by the **built-in micom driver** once its link is alive, and in QEMU that link never comes up. Two routes, with their costs stated rather than optimised for:
+
+| route | what it needs | fidelity |
+|---|---|---|
+| **vcan** | a 4.1.27 tree matched to `vendor.config` - we have **neither the tree nor a shipped `vcan.ko`** - then `ip link add can0 type vcan`, plus a frame sender because `can-utils` is absent | **lower**: a virtual bus the vendor kernel never had |
+| **micom link up** | convince the built-in micom driver its link is alive, so it creates the vendor's own `can0` | **higher**: the vehicle's own path |
+
+The SOC frame is pinned from the vehicle's own logs: **`0x2fc`, byte 7 = 119 → 59.5 %**.
+
+**What I am not claiming:** that the micom route works, only that it is the faithful one and that the vcan route needs a kernel tree this project does not have. The "last adaptor" framing was wrong - it is a transport, and the honest choice is between a lower-fidelity shortcut and the vendor's own path.
+
 ## 5.10.0 - a byte size was standing in for looking at the image, and it broke
 
 The delegate run for the widget values captured **131,845 bytes** and treated that as evidence the CAN injection had been applied. **I opened the frame: 1920x720, dark, title bar, KIA logo, no widgets - the standby face.** The run had never powered the application on, so there was nothing for an injection to change.

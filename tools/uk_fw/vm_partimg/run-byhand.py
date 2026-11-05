@@ -49,6 +49,10 @@ def qemu_command(*args, **kwargs):
     if "-serial" in argv:      # note: the flag is "-serial", not "--serial"
         argv += ["-chardev", "file,id=dbg,path=dbg-out.txt",
                  "-device", "isa-serial,chardev=dbg,index=2"]
+        # second file-backed channel for binary payloads (captures). The console cannot carry
+        # more than a few KB without corrupting; this one has no tty and lands in its own file.
+        argv += ["-chardev", "file,id=img,path=img-out.bin",
+                 "-device", "isa-serial,chardev=img,index=3"]
     return argv
 
 

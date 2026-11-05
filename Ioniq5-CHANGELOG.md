@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.15.5 - V-072: an Apple mDNS responder runs as root, enabled, with no sandboxing
+
+Swept the layer I had not looked at - **what the image exposes on a network** - and found it in the enabled units:
+
+```
+carplay_mdnsd.service    ENABLED in multi-user.target.wants
+  ExecStart=/app/bin/mdnsd          Apple mDNSResponder (Engineering Build) (Jan 28 2026)
+  no User=, no NoNewPrivileges, no CapabilityBoundingSet, no ProtectSystem
+```
+
+**A daemon whose entire job is parsing unauthenticated multicast packets from the local link runs as root with no containment.** That is V-064's pattern applied to the one service that *answers the network*: any parsing defect in a component with a long advisory history becomes a root defect immediately.
+
+### A claim I made and withdrew in the same turn
+
+`/app/bin/mdnsd` contains **`WARNING: mdnsd continuing as root because user "nobody" does not exist`** - which looks exactly like a fail-open privilege drop, and is the kind of string that gets quoted as a finding. **I checked before filing it: `nobody` is present in *both* `/etc/passwd.legacy` and `/etc/passwd.secure`**, so that path does not trigger here. One `grep`, and the finding evaporated.
+
+### What is claimed, and what is not
+
+**Claimed:** the binary, its provenance, the unit's total lack of hardening, the absence of a user setting, and that it is enabled. **Not claimed:** any specific vulnerability (no fuzzing was done), or reachability on a unit - WiFi is gated three ways (V-050), and the USB/Ethernet path is unmeasured.
+
+### The fix is the one already written
+
+`User=nobody` (**verified present**), `NoNewPrivileges=yes`, `CapabilityBoundingSet=`, `ProtectSystem=strict`, `PrivateTmp=yes`, interface restriction. **Configuration only, no vendor code, and it is the same recommendation as V-064 applied to the one service that faces the network.**
+
+**Verify in two commands:** `ss -lunp | grep 5353`, then `ps -o user= -p $(pidof mdnsd)`.
+
 ## 5.15.4 - the worker was stuck, and the answer was two files away
 
 Checked on the kernel build and found it failing on `arch/x86/tools/relocs_*.o` - the known "old kernel, modern host toolchain" problem, three build attempts in. Two things in `work/kbuild/` that should have been in my brief:

@@ -2520,22 +2520,36 @@ proves the point: `objdump -h app/bin/AppUpgrade` reports `.text 0x3f73`.
 RIP-relative displacements that resolved exactly to each command string. Both sites it found (`0x1877a8`, `0xbd744`) lie in **`.rodata`** - they are pointers inside the embedded images' data, not
 code references. **The claim is withdrawn**: the scan cannot distinguish code from data, and on this binary nearly everything is data.
 
-**And the separation is real in the updater this vehicle runs - measured in code, with the section checked.** Running the same displacement scan *inside the extracted FUMO image*, and keeping only
-sites that fall in its `.text` range (`0x24830..0x209a33`), gives:
+### The separation is real, and it is not where I first said: FUMO re-reads the payload in its apply step
 
-| command | string VA | code reference sites (in `.text`) |
+Running the same displacement scan inside the extracted FUMO image and keeping only sites in its `.text` (`0x24830..0x209a33`) gives these references:
+
+| command | string VA | code sites |
 | --- | --- | --- |
-| `ionice -c3 md5sum %1` (the check) | `0x22c4e0` | **1 site: `0x13a550`** |
-| `tar xf %1 -C %2` (the extraction) | `0x20be5a` | **2 sites: `0x633e0`, `0x101d2f`** |
-| `tar -tvf %1` (a listing pass over the same file) | `0x20b358` | 1 site: `0x5ea1c` |
-| `pv -q` (streaming) | `0x210fc8` | 1 site: `0x70c75` |
+| `ionice -c3 md5sum %1` (the check) | `0x22c4e0` | 1: **`0x13a550`** |
+| `tar xf %1 -C %2` | `0x20be5a` | 2: `0x633e0`, `0x101d2f` |
+| `tar -tvf %1` | `0x20b358` | 1: `0x5ea1c` |
+| `pv -q` | `0x210fc8` | 1: `0x70c75` |
 
-So in **FUMO** - the updater the launcher row selects - the integrity check is constructed at `0x13a550` and the extraction at `0x633e0`/`0x101d2f`: **different code, roughly 1.2 MB apart**, and
-this time the addresses are instructions rather than data. FUMO also carries a listing pass (`tar -tvf %1`) over the same file, which is a third read of the same input.
+**Correction to what this entry said an hour ago.** I described the two `tar xf` sites as "the extraction" of the system image. Mapping every string referenced around both sites shows
+`cp -a %1 %2`, `cp -a %1/. %2`, `.whatsnew.tar.gz`, `whatsnew_usb.json` and `copyWhatsNewFiles` - **they are a copy/whatsnew helper, not the partition install.** The identification was
+wrong and is withdrawn.
 
-Note what the vehicle does *not* run: `pv -q %1 | tar -xvm -C %2`, the install command that appears in the wrapper's data, belongs to **SCOMO**. The FUMO equivalents are the `tar xf` sites above.
+**The apply step is elsewhere in FUMO, and it is the one that matters:**
 
+```
+%1 -d %2 %3 0 | pv -q -L 8m | dd of=%4 bs=512
+%1 -d %2 %3 0 | dd of=%4 bs=512
+mount p3 original, p6 original, p5 mnt, p7 mnt
+mkfs.ext4 -E nodiscard -j /dev/mmcblk0p16
+```
 
+`%1` is the decryptor, `%2 %3` are its arguments (a source and an offset by position), and the stream is piped through **`pv -q -L 8m`** into **`dd of=%4 bs=512`** - a **partition device**. So
+the payload is decrypted and written **from a fresh invocation that opens the source again**, exactly the check-then-use shape this entry is about, and visibly separate from the `md5sum` site at
+`0x13a550`.
+
+Two useful figures fall out. The install stream is **rate-limited to 8 MB/s by the command itself**, so a 879 MB payload needs ~110 s of apply and a 2.09 GB one ~260 s - the device never has to
+deliver faster than 8 MB/s to saturate that stage. And the A/B mount juggling (`p3`/`p5`, `p6`/`p7`) plus `mkfs.ext4 … /dev/mmcblk0p16` confirms which partitions the flow touches.
 
 ### What an attacker actually needs — and a keyless downgrade that falls out of it
 

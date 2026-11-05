@@ -5421,3 +5421,10 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Extracted both embedded updaters and reran the reference scan inside the one the vehicle actually runs, keeping only sites in its code section. The check and the extraction are different instructions about a megabyte apart.
 - Two things came out of doing it properly: the install command quoted all evening belongs to the other updater, and the one in use performs an extra listing pass over the same file, so the pattern is slightly wider than filed.
 - The correction of an hour ago is now demonstrated rather than asserted: identical method, one extra filter, wrong claim becomes right one and a third read appears.
+
+## 2026-11-05 - reading around the site, not just finding it
+
+- Located the extraction sites in the updater the vehicle runs, then looked at what the code around them does: they are a copy helper for whatsnew files, not the partition install. Withdrew that identification.
+- The real apply step is a pipeline that decrypts the payload and writes it to a partition device, opening the payload again - which is the check-then-use shape, now located in the right program.
+- Its stream is rate-limited to eight megabytes a second by the command itself, which gives the hardware question a real number for the first time.
+- Third attempt on the same question. A string maps to a site, a site maps to a function, and only the last one says what the code does.

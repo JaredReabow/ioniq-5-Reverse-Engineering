@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.12 - the startup client is the vendor's, and my speculation is refuted
+
+The launch line named `/usr/bin/early-background`, so the question was whose client that is. Answered statically, with no boot:
+
+```
+pristine image:  /usr/bin/early-background              34,864 bytes, shipped
+launcher:        /app/lib/weston/ivi-window-manager.so   contains "early-background", ivi_controller, surface_create
+both module copies identical (129,144 bytes each)
+```
+
+**So the IVI surface creation at six seconds is the vendor's own start-up path**, not something this projection introduced. **Which refutes the speculation I wrote one entry ago** - that our splash client might be the defect. That was recorded as a possibility before the check, and the check killed it.
+
+### Where the thread actually lands
+
+| question | answer |
+|---|---|
+| Is the app crashing? | **No** - survives with a dead `wl_display` |
+| Our preload or placement tool? | **No** for this error |
+| The database? | **No** - a layout commit succeeds in the same window |
+| Who creates IVI surfaces at start-up? | **the vendor's module and its `early-background` client** |
+| Why does the app get `invalid object 19`? | **unresolved** |
+
+**The remaining difference between this projection and a vehicle is the display backend.** The vehicle runs the vendor's `ias-backend` with a GPU; here the vendor's compositor runs on the **headless backend with `--use-pixman`** plus a solid-fill shim. Every other component in the failing sequence is the vendor's own.
+
+**So the honest sentence is neither "our code breaks it" nor "the vendor code is broken", but: the vendor's start-up sequence is running against a display backend it was not written for.** That is the same class of substitution as the MICOM stand-in and the GL driver path - and the first time this project has located one of its three substitutions *inside* a failing sequence.
+
 ## 5.11.11 - the startup client connects at six seconds, and the candidates are two
 
 The compositor log carries an uptime clock, which places the bind in time:

@@ -5836,3 +5836,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Used the compositor's own uptime clock to place the suspect bind in time: a client connects at about six seconds and enumerates the globals, minutes before any application exists.
 - The compositor's launch lines in that window name only the failing keyboard and the splash client, so the suspect is one of those.
 - Noted what that would imply if confirmed: the splash client this project wrote would be breaking the application's connection, which is a defect in the projection rather than in the vendor software, and a materially different claim.
+
+## 2026-11-05 - the startup client is the vendor's
+
+- Checked whose client the launch line names, statically and with no boot: it is a vendor binary shipped in the pristine image, launched by a vendor module that also carries the surface creation calls.
+- That refutes the speculation from the previous entry, that our own splash client might be the defect. Written down as a possibility before the check, and killed by the check.
+- Left the thread in an honest place: the application is not crashing, our instruments are not involved in this error, the database is not the cause, and the remaining difference from a vehicle is the display backend the vendor's start-up sequence is running against.

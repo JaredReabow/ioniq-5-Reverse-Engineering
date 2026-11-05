@@ -5332,3 +5332,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The readme's downgrade section opened by saying there was no route and that the answer depended on unresolved rollback protection. Both were true when written; the update race has made the second one moot.
 - Rewrote it to lead with the route that works and to keep the other rows honest about what still fails.
 - Third document tonight corrected because a later finding overtook it. The check suite watches numbering, the history invariant and links; nothing watches a front page for meaning.
+
+## 2026-11-05 - the cache question had an answer in the binary
+
+- The weakest point of the update race was the page cache: if the checked file stays cached, the install never touches the device and nothing swaps. The binary answers it - cache dropping exists, but only in the older updater, and this vehicle uses the newer one which never mentions it.
+- So on the path the vehicle takes, the swap depends on the payload not fitting in memory. That makes the technique size-dependent rather than guaranteed, and it names the cheapest check on a rig: does the install pass generate any traffic at all.
+- The flaw itself is unchanged - the two reads are separate in our own binary. What varies is how easily the second one can be made to differ.

@@ -1903,6 +1903,33 @@ i.e. the permissive path is taken on this image whenever the data partition is n
 - **It is a file-system-shaped switch, not a signed one.** A kernel module parameter is writable by anything with root, and its value is
   derived from state an attacker can perturb.
 
+### The page-cache question, partly answered by the binary: FUMO does not drop caches
+
+`HARDWARE-FEASIBILITY.md` names the page cache as the thing that could defeat the whole vector regardless of hardware: if the file is still cached when the install pass runs, the second
+read never reaches the device. The shipped binary speaks to it, and the answer is uncomfortable rather than reassuring.
+
+`AppUpgrade` contains cache-dropping code — but it is **SCOMO's**:
+
+```
+###[scomo][%s:%d] %s() [OK] drop_caches
+###[scomo][%s:%d] %s() [ERROR] drop_caches request: %s
+echo 1 > /proc/sys/vm/drop_caches
+echo 3 > /proc/sys/vm/drop_caches
+```
+
+and of the two embedded updaters' tags in the binary — `[scomo]` 765 strings, `[newota]` 138 — **`[newota]` (FUMO) contains zero references to `drop_caches`**. This vehicle's launcher row
+routes it to FUMO (`-un:0`), not SCOMO.
+
+So on the path this vehicle actually takes, **nothing explicitly evicts the checked file from the page cache before the install re-opens it.** The swap then depends on cache pressure: a
+payload that does not fit in RAM must be re-read from the device, and one that fits may not be.
+
+That is consistent with the upstream demonstration succeeding - their system image is ~879 MB and unit RAM is finite - but it makes the technique **size-dependent** rather than
+guaranteed, and it is the cheapest thing to check on a rig: watch whether the install pass generates USB traffic at all. If it does not, shrink the payload or grow the pressure until it
+does.
+
+**Nothing here weakens the finding itself.** The verify-then-install structure and the two-read separation are measured in our own binary; what the cache does is decide how easily the
+second read can be made to differ, and that is a property of the payload and the RAM, not of the flaw.
+
 ### What is not established - and one strong indication that it applies in the field
 
 Whether production units ship with `RW_PART` encrypted such that the probe succeeds, and therefore whether stock European vehicles run SMACK

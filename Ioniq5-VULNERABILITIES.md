@@ -2563,22 +2563,20 @@ So the apply stage runs the shipped `DecryptToPIPE` against a source and an offs
 hint that a *file* is being resized rather than a stream being read in place, which would lean towards staging - **a hint, not a measurement**, and the reverse of what the upstream project
 reports for its own unit. Settling it needs the runtime observation already named (`lsof`/`inotify` during a real update); nothing in the strings is going to answer it.
 
-**Resolved since: `/update/usb/bin` is a mount point, not a staging copy.** FUMO carries a generic `mount %1 %2` and its own log string
+**Best available reading, and it is weaker than "resolved": `/update/usb/bin` is called a mountPath by FUMO itself.** The updater carries the log string
 
 ```
 mountPath is /update/usb/bin CloseApp called !
 ```
 
-and `/update` is the ext4 partition (`mmcblk0p9` per `fstab_emmc`), whose subdirectory can host the mounted USB volume. So the directory the flow reads the manifest and payloads from **is** the
-removable medium, and the two observations that looked contradictory reconcile: seven references to `/update/usb` because that is where the medium is mounted, and no copy of the payload because
-there is nothing to copy. The second read opens the same media the first one did, which is what the upstream project reports.
+which is naming evidence that a filesystem is mounted there rather than a payload copied there, and `/update` is the ext4 partition (`mmcblk0p9` per `fstab_emmc`) whose subdirectory can host
+the mounted USB volume. **What is not found:** the mount call that does it. FUMO's generic `mount %1 %2` resolves to a single code site (`0xb2a1b`), and the strings that site references are
+`/rw_data/mnt/root`, `/space/vr_fixed` and `Run Script for Smack Rule - VrFixed` - a VR/rw_data helper, **not** a USB mount.
 
-**Residual caveat:** `mount %1 %2` is generic and would equally mount a loop image from local storage, so nothing here proves what is mounted there at run time. The leaning is **in place**, for a
-reason rather than a preference; `lsof`/`inotify` on a unit still settles it beyond argument.
+So the honest state is: **naming says mount, the code found so far says otherwise, and a copy into `/update/usb` is not excluded.** The leaning is in place because the application calls the path a
+mountPath; the alternative is live; and `lsof`/`inotify` on a unit remains the only thing that decides it.
 
-
-Two useful figures fall out. The install stream is **rate-limited to 8 MB/s by the command itself**, so a 879 MB payload needs ~110 s of apply and a 2.09 GB one ~260 s - the device never has to
-deliver faster than 8 MB/s to saturate that stage. And the A/B mount juggling (`p3`/`p5`, `p6`/`p7`) plus `mkfs.ext4 … /dev/mmcblk0p16` confirms which partitions the flow touches.
+**Earlier phrasing, kept for the record:** the count of `/update/usb` references (7 in FUMO, 12 in SCOMO) against `/media/usb` (1 each) had been read as a staging hint.
 
 ### What an attacker actually needs — and a keyless downgrade that falls out of it
 

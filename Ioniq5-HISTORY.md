@@ -5500,3 +5500,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The state page still said the HMI does not start, hours after it painted. Replaced with what happens, including the two details that cost five failed attempts: the core count and choosing the surface by identity rather than by recency.
 - Added the finding that the About gesture does not exist on this build, and refreshed three register rows whose status had moved.
 - Sixth front-page update of the night. The automated checks cannot see a document describing a stale world, which is why these get re-read.
+
+## 2026-11-05 - resolved was one word too strong
+
+- Called the source-path question resolved on the strength of the updater calling the directory a mount path. Following the method that has worked all night, the only mount call resolves to a helper that mounts VR and rw_data content, not the stick.
+- So the evidence is naming only, and a copy into that directory is not excluded. Softened in both the register and the evidence sheet.
+- Recorded because resolved is the word that ends investigation, and here it was ending it on a log message while the obvious next check disagreed. The confirmation step is the one most likely to be skipped once a satisfying answer exists.

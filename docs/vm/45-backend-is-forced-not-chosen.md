@@ -489,3 +489,44 @@ Order of checks - the order is the lesson of §8, §12 and §15, all of which we
 | no socket | the deferral is wrong or insufficient - report `wchan`/fd and correct the module |
 
 **And the record requirement:** the document must state the payload that was booted and whether the socket appeared before the application was checked. An `invalid object` verdict from a client that never connected is the mistake I made twice tonight.
+
+
+---
+
+## 19. RESULT: the seat fix closes the thread - socket, application, drawing, no Wayland error
+
+The boot that tested the fix (`docs/kernel/09-vm-input-fix-result.md`, run `1793901922927628000`), payload stated as
+required: kernel `bzImage` sha256 `893e1a6b...a6392`, module `/weston-vm-input.so` **13,008 bytes** sha256
+`514da5de...bd58c` carrying `VM_INPUT_READY`, `VM_INPUT_SEAT_BOUND`, `VM_INPUT_NO_SEAT_DEFERRED`, config `backend=drm-backend.so`,
+`modules=/weston-vm-input.so`, `ivi-shell-user-interface=/usr/libexec/weston-ivi-shell-user-interface`,
+`[output] name=Virtual-1`, authentic init, `--smp 4`.
+
+**Checked in the required order:**
+
+```
+1  WAYLAND_SOCKET_UP after 2s                  socket BEFORE any application check
+2  APPLAUNCHER_PID=[1953] at +45s
+   APPHOME_PID=[2205] at +30s
+   PIDS_FINAL AppLauncher=[1953] AppHomeScreen=[2420] ApplicationManager=[1995]
+3  Using Wayland-EGL | SCREEN_STATE: START DRAW | constructMenuModel
+   prepareAdvancedDisplayList ... numItemsPerPage: 12
+   injectWidgetItemToAdvancedPage ... itemWidgetPlaceHolder FOUND!!!
+   D-Bus name owned: com.lge.hkmc.avn.appfunc.AppHomeScreen
+4  BYHAND_CAPTURE1 bytes=87818  2 bytes=88172  3 bytes=87883
+   invalid object | wl_display@1: error   ->  0 occurrences
+```
+
+**So: the vendor's own application runs against a real DRM output, connects as a live Wayland-EGL client, and reaches its
+drawing path.** The `invalid object` fault that this document spent fifteen sections on **was the empty seat all along**.
+
+## 20. The gap in that result, stated rather than smoothed
+
+**The frames were measured but not preserved.** The log carries `BYHAND_CAPTURE1 bytes=87818` and two more, and
+`87,8xx` is a **new size** - not the 129,844-byte early background and not the 120,5xx-byte standby face - which is real
+evidence that something different was on screen. **But no PNG of those frames was saved**: the run's `img-out.bin` is
+0 bytes, and the one inline PNG that could be recovered from the serial log decodes to **6,145 bytes at 1024x768**, which is a
+console framebuffer, not the application.
+
+**By this project's own rule, a capture that was not kept is not evidence.** The log lines are strong and they are the
+reason §19 is written as a result, but **"the application draws" will not be settled until someone saves the frame.** That is
+one run with the image channel enabled, and it is the first item for whoever picks this up next.

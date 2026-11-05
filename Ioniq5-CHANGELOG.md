@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.7.1 - the path comes from the filesystem, and nothing filters it anywhere
+
+The follow-on question was what feeds `%1` and whether the producer filters. Both answered.
+
+**SCOMO builds the same class of command** - `pv -q %1 | tar -xzvm -C %2`, `unzip -o %1 -d %2`, `cp -rf %1 %2`, `cp -ar %1 %2` - and at both extraction sites the substituent comes from **`QFileInfo::absoluteFilePath()`**, passed straight into `QString::arg`. So `%1` is a **path taken from a filesystem entry**: whatever the file is called on disk is what reaches the shell.
+
+**One false lead recorded so it is not chased again:** `cp -a %1 /app/bin/` looks like an attacker-controlled copy into the executable directory, and it is not - the instruction immediately before it is `QCoreApplication::applicationFilePath()`, so `%1` is SCOMO's **own binary**. A self-install, not an input.
+
+**So there is no filtering layer anywhere** in the path from a filename to a root shell command: the consumer substitutes raw, the producer is the filesystem, and neither payload contains a character-class test. Two facts make the remainder narrow:
+
+- **FAT and exFAT forbid `\ / : * ? " < > |` and permit `;`, `$`, backtick and quotes** - so a legitimate stick can carry a package named `x;id>.tar.gz` and the filesystem layer will not stop it.
+- The staging copy into `/tmp/update/usb` or `/update/usb/bin` is the **only** step that could sanitise, and no sanitiser exists in either payload.
+
+**Not established:** that a staged file's name reaches one of these templates on the vehicle. That needs the copy step read or a measurement on a unit. It is now a narrowly posed question rather than an open one.
+
+`docs/v059-producer-trace.md`.
+
 ## 5.7.0 - the shell-string builder applies no filter, and the payload has none
 
 The question standing between the V-059 primitive and a real USB-to-root injection was whether the package path is filtered before it is substituted into a shell command. It is not, on either side.

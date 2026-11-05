@@ -56,6 +56,7 @@ matter** unless you know what you are looking for.
 | `evidence/serial-console/` | The raw bytes of the ttyS2 login prompt, and the recipe. |
 | `evidence/fde/` | The passphrase demonstration with its negative control. |
 | `docs/v059-command-substitution-filtering.md` | Whether the mount image path is filtered before it reaches a shell string - measured: it is not |
+| `docs/v059-producer-trace.md` | What feeds the substituted path: `QFileInfo::absoluteFilePath`, and `%1` in `cp -a %1 /app/bin/` is the payload's own binary |
 | `evidence/vm-bringup/` | The touch proof: `QWaylandInputDevice::Touch::touch_down` in the application's own log. |
 | `evidence/engineering-mode-appmanager-micom-methods-*.txt` | The exact MICOM methods the manager asked for and the stand-in did not answer. |
 | `../Ioniq5-CHANGELOG.md` | Newest first, every change, including every correction and why it was needed. |

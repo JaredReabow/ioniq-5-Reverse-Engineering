@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.13.4 - the navi CA is managed by the updater's own code, and the shipped copy is the one trusted
+
+Went after V-069's one open question with static work instead of another boot.
+
+The CA path is not an incidental string. In the SCOMO payload embedded in `AppUpgrade`, immediately adjacent to it:
+
+```
+/rw_data/navi_data/certificates/TomTom_Root_CA.crt
+[%s] TomTom Root CA copy : %s to %s
+[%s] TomTom Root CA is exist already.
+```
+
+**The updater copies a TomTom root CA to that writable path, and if one is already there it does not copy at all.** This image ships the file, so **the shipped, group-writable file is the one the update stack treats as the TomTom root CA**. The refresh path only matters when it is missing.
+
+That moves V-069 from *"`AppUpgrade` contains a path string"* to *"the update component's own logic names and manages this file as a trust root"* - which was the previously unproven half.
+
+**What stays unproven, narrower:** whether the **navi package signature** is checked against it, or only some other connection. The path appears in SCOMO's upgrade flow rather than in a verification routine that can be read in isolation, and the copy's **source** is a runtime argument (`%s to %s`) that cannot be resolved statically.
+
+### Why the "is exist already" branch matters
+
+It means the trust root on a shipped unit **never came from the update process at all** - it came from the image. So the question "does the updater bootstrap trust from the package it is verifying?" has a partial answer: **on a fresh unit, no** - the file is pre-seeded, which is *better* for integrity and confirms that the exposure is the file's writability, not the update protocol.
+
+That is a good outcome for a static check: it narrowed the concern rather than confirming the worst reading. V-069 now says exactly which half is measured.
+
 ## 5.13.3 - V-068 and V-069: embedded private keys, and a CA on a writable partition
 
 Following V-067's question - what other credential material ships - produced two findings, and the second is the cheapest root path in this register.

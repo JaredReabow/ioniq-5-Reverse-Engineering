@@ -16,6 +16,7 @@ echo "=== register consistency ==="
 echo
 echo "=== history is append-only ==="
 "$PY" tools/check_history_append_only.py || rc=1
+"$PY" tools/check_remediation_items.py || rc=1
 echo
 echo "=== tooling parses ==="
 pyfail=0

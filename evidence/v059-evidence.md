@@ -100,7 +100,10 @@ update/frontkey/Checksum.txt     2 entries    MKBD_2_1F_00_NX4.BIN          CRC3
 
 - No reproduction: the dynamic-media behaviour is the upstream project's, not measured here.
 - The `NaviChecksumThread` in the binary parses a checksum file, but this package's navigation payload contains none - so its scope is open. It does not touch the interface or system payloads.
-- Whether the install reads `%1` from the USB mount in place is the upstream `[RE]` finding (`pv -q %1 …`, `dd if=%1 …` naming the source path directly). Not independently instrumented here.
+- **Which path the two reads open is unresolved here.** The binary shows a staging area (`/update/usb/bin`, `/update/usb/upgrade`), FUMO mount points (`/update/fota/mnt/rootfs`,
+  `/update/fota/mnt/navi/system`), a manifest-only copy (`cp /update/usb/bin/.lge.upgrade.xml /tmp/`) and a family of `cp`/`mv`/`tar` commands on `%1`. A staged local copy would mean the
+  race does not exist on this flow; a mount over the removable medium means it does. Upstream reports the latter and demonstrated it; this repository has strings that support either.
+  **Settling it needs `lsof`/`inotify`/`strace` on a unit during a real update** - which path the `md5sum` opens, and which the `pv`/`dd` opens.
 
 ## 9. The fix this all points at
 

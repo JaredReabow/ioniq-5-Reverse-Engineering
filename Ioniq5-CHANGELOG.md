@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.6.2 - power is already on, and a D-Bus engineering entry is accepted
+
+Two calls against the running manager on the authentic path settled one hypothesis and opened a better one.
+
+```
+ask_power_status   ->  int32 1
+show_engineermode  ->  method return sender=:1.7 -> dest=:1.31 reply_serial=2
+```
+
+**The power-state hypothesis is refuted.** I had concluded the home layout was waiting for vehicle power, and the manager answers **1** - the very state the application asked about. So the widgets are
+not gated on power; whatever stops them laying out happens after the application already believes it is on. The next candidates are the per-widget data it loads in that state.
+
+**`show_engineermode` is the first D-Bus engineering entry this project has seen accepted** - a normal method return rather than `UnknownMethod`, which establishes that the manager implements it and
+honours the call. That makes it a *stock-reachable* engineering entry that does not involve a screen gesture at all, which is what the field's About-tap advice was looking for and the firmware does
+not use.
+
+**Unobserved in effect, and honestly stated:** no `AppEngineerMode` process appeared in the following 80 seconds, but the home screen had not started when the call was made (`home=` empty at the
+105-second probe). The call has to be repeated **after** `AppHomeScreen` owns its bus name - a timing detail this project has been bitten by repeatedly.
+
+Both recorded in `docs/CURRENT-STATE.md`, the refutation beside the hypothesis it replaces.
+
 ## 5.6.1 - why the home layout never appears: the app asks the manager, and the manager was never told the vehicle is on
 
 Two captures showing a title bar and a logo, and no widgets, sent me to the application's own API. It answers the question precisely.

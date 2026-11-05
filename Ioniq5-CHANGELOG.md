@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.18.3 - the register has 75 weaknesses and needed a page of what the platform gets right
+
+The vulnerability document is thorough on failure and silent on success, which is a poor instrument for a patch team: **nothing in it says what must not be broken.** Added `docs/defences/controls-inventory.md` - eight measured controls, each with evidence, worth, and where it actually stands.
+
+| control | state |
+|---|---|
+| **system bus deny-by-default** | correct in form; nine services add a `context="default"` allow (V-063) |
+| **SMACK loaded and specific** | 636 rules, **no rule grants `w` or `x` broadly**; enforcement unproven (V-056) |
+| **no setuid or setgid binaries** | **0** - genuinely clean |
+| **no world-writable directories** | **0** outside volatile areas - so V-066 is two files, not a tree |
+| **packages are signature-checked** | FUMO PKCS#1 + SCOMO `run_signatureCheck`; **anchors read from writable paths** (V-048, V-069) |
+| **A/B boot with self-repair** | `fsck` → `mke2fs` → restore from the other slot; **nothing verifies the image** (V-075) |
+| **application-set hash + MICOM challenge** | exists and computes; reference lives in firmware; digest is queryable (V-061) |
+| **WiFi gated three ways** | a gate, not a control - one `/tmp` write removes it (V-050) |
+
+### The split across all eight, and it is the most useful line
+
+**Two are structural and clean** - no setuid surface, no world-writable directory. **Six place a decision on state an attacker can reach.**
+
+> **The platform's hygiene is good where it is structural and weak where it is configured.**
+
+That is the trust-anchors conclusion reached from the opposite direction - by looking at what stands rather than what falls - and it makes the recommendation concrete for a patch team:
+
+1. **Don't lose the two structural ones** while fixing anything else.
+2. **#1 and #2 are already correct in form**; the fixes are V-063's default allows and V-052's `optUNECE`, not replacements.
+3. **#5, #6 and #7 are good designs with unreachable anchors** - and each becomes sound the moment its anchor moves to read-only storage. **The same fix, three times.**
+
 ## 5.18.2 - the next instrument, specified rather than hinted
 
 The worker is idle after doc 07, so the trace it named had not been run. Instead of sending another idea, I sent a **specification**: which tool exists (I checked - `strace` ships at `/usr/bin/strace`, `gdb` does not), which configuration reproduces the failure fastest (its own manual run, ~13 s, rather than a full authentic boot), the exact trace expression, and how to send the log back.

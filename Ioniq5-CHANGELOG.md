@@ -3,6 +3,34 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.7 - screenshooter was never capturing a surface, so every capture was the same picture
+
+Pulled `/tmp/weston-real.log` off the guest through the base64 channel and read it. Three findings, one of which retires a method this project has used for days.
+
+**1. The surfaces, by creation time and size:**
+
+```
+00:00:06  id(30000) 1920x720   early-background      (created FIRST, not last)
+00:01:55  id(2080)  1926x753   the application's main surface
+00:02:39  id(1000)  1926x123   a bar
+00:02:42  id(1001)  1926x108   another bar
+00:03:04  id(1006)  1926x753   a later window
+00:03:16  id(1007)  1926x753   another
+00:03:17  id(1004)  1926x753   created LAST
+```
+
+And in that run **`AppHomeScreen` (2583), `AppCamera` (2391) and `AppSetup` (3046) were all running at once.** So surface id is not a stable name across runs - which is exactly how I came to analyse a camera window and call it the home screen.
+
+**2. `weston-screenshooter` captures the whole output, not a surface.** Every capture in a run returns the same size whatever id was placed beforehand: 120,528 and 120,528; 22,057 and 22,057. That is not "the surfaces look identical", it is the tool compositing the entire output. **So "capture each non-layer surface" was never something it could do** - the id controls *placement*, and the screenshot shows *whatever is on top*.
+
+That also retires a rule I have repeated for days: "the background's surface is created last, so do not capture the newest surface". **The background here was created first**, and the newest surface was a real application.
+
+**3. A defect in the projection:** `/usr/libexec/weston-keyboard` does not exist, so the compositor logs `respawning...` forever. That burns CPU in a software-rendered 4-vCPU guest and perturbs every timing measurement, including the 90-second settling time.
+
+**Next, and it is now well defined:** use `ivi_place` - which already speaks `ivi_controller` - to set the other `1926x753` surfaces **invisible** and surface **2080** visible, then capture. Until an application can be brought to the front deliberately, no capture is attributable, and the shim's effect on the widgets cannot be judged at all.
+
+Also fixed a **third** elided path of mine, this one in a changelog entry, after writing rule 13 to stop exactly that.
+
 ## 5.10.6 - the frame I called the home screen was the camera app
 
 Last entry said the settled frame showed an "unloaded resource model". **It was `AppCamera`, and the correction came from the strings themselves.**
@@ -20,7 +48,7 @@ app/share/AppCamera/localization/AppCamera_en_GB.qm   (+ 51 more locale files)
 
 **Why the captures could not tell me:** every surface id returned the **same 22,057 bytes**, so `weston-screenshooter` was compositing the same output whatever I placed in front. **The ids identified nothing.** Surface identity has to come from the compositor log - which is the next measurement, and it is cheap: pull `/tmp/weston-real.log` through the base64 channel.
 
-**Two lessons.** First, a string is an identifier: one grep would have told me whose window I was looking at before I built a theory on it. Second, this is rule 11 again one level down - I applied it to *reading the image* and not to *attributing it*. Corrected in `docs/vehdata/05-...md` §7 and in `docs/CURRENT-STATE.md` rather than quietly rewritten.
+**Two lessons.** First, a string is an identifier: one grep would have told me whose window I was looking at before I built a theory on it. Second, this is rule 11 again one level down - I applied it to *reading the image* and not to *attributing it*. Corrected in `docs/vehdata/05-day-shell-untranslated-and-black-region.md` §7 and in `docs/CURRENT-STATE.md` rather than quietly rewritten.
 
 ## 5.10.5 - the frame settles at ninety seconds, and what it settles into
 

@@ -46,8 +46,12 @@ the literal text **`STR_CAMERA_ALERT2`**, a light left panel, and a **black regi
 `AppCamera`, not the home screen. `STR_CAMERA_ALERT2` exists **only** in `AppCamera`'s translations (54
 files), while `STR_EV_BATTERY` and `STR_EV_RANGE` are in **all 26** of the home screen's own `.qm` files, so
 the home screen's translations were available. The black region is a camera preview with no camera. Every
-surface id returned the same 22,057 bytes, so the ids identified nothing - **surface identity must come
-from the compositor log**, which is the next measurement.
+surface id returned the same 22,057 bytes, so the ids identified nothing. **The compositor log now explains why** (`docs/vehdata/06-…`): 
+`weston-screenshooter` captures the **whole output**, not a surface, so every id returns the same picture -
+the id only controls placement. The log dates each surface (2080 at 00:01:55 was the application's main
+window; 1004 was created last, by a later app), and in that run `AppHomeScreen`, `AppCamera` and `AppSetup`
+were **all running at once**. To photograph a specific application it must be brought to the front with
+`ivi_place`, which is the next measurement.
 
 ### The remaining gap is a transport, not an adaptor (measured 2026-11-05)
 

@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.10 - the ordering test settles it: a startup client, not the application
+
+Compared **line numbers** in the compositor log - append-only, so line order is time order - against a marker taken the instant the application first appeared:
+
+```
+O1_FIRSTAPP_PID=2536   MARKERLINE=1430
+O1_BIND_LINES=[60 85 145]        ivi_window_manager binds
+O1_SURF_LINES=[1108 1128 1358]   ivi_controller surface_create
+O1_INVALID_LINES=[1629]          invalid object error
+```
+
+**The window-manager binds are at lines 60, 85, 145 - the application does not exist until line 1430.** So the client binding `ivi_window_manager` at start-up is **not the application**, and last entry's correction now rests on measurement instead of on an absent string.
+
+**The surface creations at 1108-1358 are also before the application appears.** The `invalid object` at 1629 is after it, so that error could still belong to the application - **as a recipient**: it may be receiving an error about a surface id that earlier activity left behind.
+
+### Where this points
+
+**A start-up client binds `ivi_window_manager` within the first 150 lines of the compositor's life.** Candidates are the shell-side clients in the image: `weston-ivi-shell-user-interface` (present, but named at a path the ini gets wrong), `weston-desktop-shell`, or the vendor's window-manager interaction.
+
+**The next read is four lines of context, not another theory:** dump lines **40-80** of the compositor log, where a `launching ...` line should sit immediately before the first bind at line 60. That names the client in the compositor's own words.
+
+Three entries of attribution, one correction, and now a measurement that says which way it goes. The trace was always real; only my label on it was wrong.
+
 ## 5.11.9 - the client I blamed is probably not the application
 
 Tried the runtime check I named - read the application's library map - and got nothing (`R1_MAPS_N=0`), which is more likely a **SMACK restriction** on reading another domain's `/proc/<pid>/maps` than a real absence. So I ran the static check instead, and it **contradicts my own attribution**:

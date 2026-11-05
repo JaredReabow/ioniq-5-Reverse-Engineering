@@ -5824,3 +5824,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The runtime check I named came back empty, most likely because the system's mandatory access control stops one domain reading another's memory map, so I fell back to a static check.
 - That check contradicted my own attribution: neither Qt wayland plugin contains any of the ivi protocol strings, so the client in the trace cannot be the application I had been blaming for three entries.
 - Kept what survives, that protocol tracing on the compositor works and found a real failure, and made the next measurement about ordering: when the interface is bound relative to the application's first log line.
+
+## 2026-11-05 - the ordering test settles the attribution
+
+- Compared line numbers in the compositor log against a marker taken the instant the application appeared, since that log only ever appends.
+- The window-manager binds happen in the first hundred and fifty lines, and the application does not exist until line fourteen hundred and thirty, so a startup client owns them and the application is at most a recipient of the later error.
+- Named the next read as four lines of context from the compositor log, where its own launch message should name the startup client directly.

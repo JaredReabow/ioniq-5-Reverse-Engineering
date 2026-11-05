@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.22.3 - the preload gate is measured, and the fix is a reordering rather than a patch
+
+The measurement §36 asked for came back decisive:
+
+```
+NAME_OWNED=yes at +105s
+APPHOME_PID_0=[2321]
+PRELOAD_BEFORE=int32 0                     the manager has not seen preload complete
+SET_POWER_SENT                             the call goes to the instance about to be deregistered
+PID_STABLE=yes  pid10=[2505]  pid25=[2505] the REPLACEMENT is stable
+PRELOAD_AFTER=int32 1                      preload complete, on the stable instance
+```
+
+**So the answer is neither patching the deadline nor forging the signal - it is a reordering.** The launcher's deregister-and-relaunch produces a **second instance that wins the race**, and the manager reports **preload complete** for it. The only thing wrong with the run is *when* the call was made: it landed on `2321`, which was then deregistered, and **the surviving instance `2505` never received it.**
+
+**Pid stability is promoted from a check to a gate:** wait for two samples 15 s apart with the same pid, **then** make the call, then confirm preload reads 1 and the pid has not changed, then capture.
+
+### Why this is better than either patch
+
+**No vendor binary touched, no signal forged.** The vendor's launcher completes its own preload bookkeeping on the second instance; the projection only has to address the instance that survived. **If it works, the display thread closes with no substitutions beyond the three already documented** - which is what "as close to stock as reasonable" means in practice.
+
+**And if it does not work**, the surviving instance is failing for a different reason and the deadline patch is justified - but only after this.
+
+### The caution, written before it is needed
+
+**`PRELOAD_AFTER=1` is the precondition, not the result.** The result is a frame of the `16,062`-byte class with a left panel and Battery/Range placed - or a statement that it did not appear, with the pid and the preload value **at the moment of capture**. That sentence exists because I have twice tonight read a precondition as a result.
+
 ## 5.22.2 - the preload chain traced: the manager owns the fact, the launcher only times out
 
 Option 3 ("emit the preload-complete signal ourselves") was speculative. It is now traced statically, and the answer moves the authority somewhere useful:

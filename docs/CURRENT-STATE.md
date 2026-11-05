@@ -8,6 +8,38 @@ either demonstrated in the projection, quoted from the image, or explicitly mark
 > **Before trusting anything below**, run `sh tools/check_all.sh`. It verifies the register's numbering and cross-references, that the history log has not been rewritten, and that
 > every document reference resolves. The suite exists because three defects survived careful reading.
 
+## 0. The home screen lays out (2026-11-05)
+
+**One D-Bus call, after the app owns its bus name, produces the laid-out home screen:**
+
+```sh
+dbus-send --session --print-reply --dest=com.lge.hyundai.avn.appmanager /Information \
+  com.lge.avn.appmanager.info.set_power_on_status int32:1 int32:0
+```
+
+`docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png` (16,062 bytes, 1920x720): a light
+day-theme layout with the **Battery** widget at `(817,393)` and **Range** at `(1212,551)`, a light menu
+bar where the standby frame had a black one, and placeholder dashes where the values go. Verified by
+looking at the frame, not by its size.
+
+**The standby frame was the power-off presentation.** Everything earlier - `STR_CAMERA_ALERT2` and the
+KIA logo at 120,5xx bytes - was the app's powered-down face, which is why the menu bar rendered black
+and why clicks had nothing to hit.
+
+### Correction to my own hypothesis
+
+I predicted `ask_power_status` would read 0 before the call and 1 after. **It read `int32 1` before and
+`int32 1` after**, as did `ask_acc_status` and `ask_ign_status`. The stored state was already "on"; what
+the setter does is **push the state event**, which is what makes the app re-lay-out. So the getter is not
+a probe for this at all, and my "the manager says the vehicle is off" reasoning was wrong in mechanism
+even though the fix worked.
+
+### What is still not there
+
+The widgets are **placed with placeholder values** - `---` under Battery and Range - because no CAN or
+vehicle data feeds them. That is now the only thing between this and an informative home screen, and it is
+the same class of work as every adaptor already built: supply the data the widgets ask for.
+
 ## 1. The interactive VM: working
 
 | Capability | State | Where it is shown |

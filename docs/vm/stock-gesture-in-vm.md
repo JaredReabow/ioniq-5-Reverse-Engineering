@@ -48,6 +48,16 @@ presents the version screen (the Settings affordance is dead and `AppSetup` does
 is no capture of the version string reacting or not reacting. §3 records the full enumeration plus the
 one nearby-but-different tap sequence in the telematics app.
 
+**Follow-up (same day): why the capture was standby branding, and that it is now fixed.** The home
+layout never laid out because the application manager's power state was not driven: the app shows its
+dark standby branding (`STR_CAMERA_ALERT2`, KIA logo — the 120,5xx frames) instead of its widgets.
+One call fixes it (see §6): after
+`com.lge.avn.appmanager.info.set_power_on_status(int32:1 int32:0)` the app lays out its real, light
+EV home screen — `Battery` and `Range` widgets — captured at 16,062 bytes
+(`docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png`). This closes the last named gap
+in the VM: the home layout *does* lay out when the manager is told the vehicle is on. The About-tap
+verdict is unchanged by this.
+
 ---
 
 ## 1. Boot and capture method (unchanged from the session's measured path)
@@ -234,6 +244,34 @@ triggers it. A keypad never appeared, and none is claimed.
 | `35-gesture-after-allmenu-click-no-nav-2026-11-05.png` | 120,514 | after `click 771 613` — unchanged, no All Menus grid |
 | `36-gesture-after-camera-widget-click-no-nav-2026-11-05.png` | 120,453 | after `click 959 321` — unchanged, click reached `weston.real` |
 | `37-gesture-after-appsetup-dbus-launch-splash-2026-11-05.png` | 129,844 | after launching `AppSetup` via D-Bus — still the background, no Settings UI |
+| `38-gesture-home-layout-after-set-power-on-2026-11-05.png` | 16,062 | the real home layout after `set_power_on_status(1,0)` — light EV home screen, `Battery` + `Range` widgets |
+
+## 6. The home layout lays out when the manager's power state is driven
+
+`AppHomeEngine::askPowerStatus()` asks the **application manager** (`com.lge.avn.appmanager.info`),
+not MICOM. The chain is MICOM → application manager → `ask_power_status` → home layout. Our micom
+stand-in answers the app's own queries but never drives the manager's power state, so the home screen
+stayed on its dark standby branding. One call fixes it, run after `AppHomeScreen` owns its bus name:
+
+```sh
+dbus-send --session --print-reply --dest=com.lge.hyundai.avn.appmanager /Information \
+  com.lge.avn.appmanager.info.set_power_on_status int32:1 int32:0
+```
+
+Measured this session:
+
+- `ask_power_status` / `ask_acc_status` / `ask_ign_status` all returned `int32 1` **before** the call
+  (the manager's stored value was already "on"), and still `int32 1` after — the stored value did not
+  move. What changed is that `set_power_on_status` drives the manager to (re-)emit the power-on state
+  and the app then re-lays-out.
+- `set_power_on_status` returned `method return` (accepted).
+- After ~20 s, surface 2080 still captured the standby frame (120,562), but a **new** 1926×753 surface
+  (1004, re-created after the call) captured the laid-out home screen — **16,062 bytes**, OCR:
+  `Battery` @ (817,393) and `Range` @ (1212,551), light day-theme background, light menu bar.
+
+So the home layout *does* lay out once the manager is told to power on; the standby frame was not a
+failed navigation, it was the power-off state. This is the capture that closes the named VM gap; no
+further clicks were made after it.
 
 ## 5. Honest limitations
 

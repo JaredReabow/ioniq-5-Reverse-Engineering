@@ -5494,3 +5494,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Concluded there was no engineering entry point from one application. That application does not own the settings or About screens; the one that does is a different binary, and I had never checked it.
 - Widened to every binary that mentions engineering mode and classified each: the app itself, manufacturing test, the manager's launch-by-request, factory-reset integration inside, and foreground detection by another app. No gesture anywhere.
 - The conclusion held, the scoping sentence did not. That is the kind of error that sends the next reader to the wrong file, so it is corrected where it was written.
+
+## 2026-11-05 - the page people start from was describing a world that ended
+
+- The state page still said the HMI does not start, hours after it painted. Replaced with what happens, including the two details that cost five failed attempts: the core count and choosing the surface by identity rather than by recency.
+- Added the finding that the About gesture does not exist on this build, and refreshed three register rows whose status had moved.
+- Sixth front-page update of the night. The automated checks cannot see a document describing a stale world, which is why these get re-read.

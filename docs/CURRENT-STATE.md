@@ -52,23 +52,20 @@ Running the real manager is not enough on its own. `docs/engineering-mode/appman
    there is no D-Bus route to ask it to show engineering mode.
 2. The manager's **app-alive watchdog** then removes the unshown app anyway: `AB010512*time*AppEngineerMode-5-hang`, `appTerminateSlot`, deregistration.
 
-## 1c. The next gap on the authentic path: the HMI does not start
+## 1c. The authentic HMI runs, paints, and takes clicks
 
-The authentic boot now renders, but **no applications start**. In that run `AppLauncher`, `AppHomeScreen` and `ApplicationManager` appear **zero** times
-in the log, and the first failure is the one that gates them:
+The managed `AppHomeScreen` - launched by the vehicle's own `esinit` -> systemd -> `ApplicationLauncher` -> `ApplicationManager` - renders the vendor interface on the vendor compositor:
+title bar, `STR_CAMERA_ALERT2`, left panel and **the vendor's own KIA logo** (`docs/vm/32-managed-home-screen-kia-logo-authentic-2026-11-05.png`, 120,561 bytes). A synthetic click reaches a
+real client at `pid=797 uid=0`.
 
-```
-systemd[1]: Starting System service for micommanager...
-systemd[1]: dbus-com.lge.car.micom.service: Main process exited, code=exited, status=1/FAILURE
-systemd[1]: Failed to start System service for micommanager.
-```
+Two things that mattered and are cheap to get wrong: **`--smp 4` is required** (at two vCPUs the managed app never registers its bus name), and **capture surfaces by identity, not recency** - the
+background's surface is created last, so "newest" always returns the splash. Reference sizes: **129,844** background, **120,561** painted application.
 
-`lib/systemd/system/dbus-com.lge.car.micom.service` is `Type=dbus` with `BusName=com.lge.car.micom` and
-`ExecStart=/app/bin/micommanager_userspace`, and `ApplicationLauncher`'s unit `Requires` it — so the whole HMI chain stops there.
+## 1d. The engineering-mode gesture does not exist on this build
 
-The obvious, cheap fix is a **projection-only unit override** that satisfies the bus name with the project's existing stand-in (`/eng-data-sim`) instead of
-the vendor manager. A worker is trying exactly that in `work/vm/stockui`; the success criteria are: the unit goes active, `AppLauncher` and `AppHomeScreen`
-start, a vendor surface captures, and a synthetic click is recorded as `touch_down` in the app's own Qt log.
+The About-screen tap that the field describes is **absent**, checked by enumeration rather than by search: three tap counters exist in the entire shipped QML tree and none is near About, and no
+shipped binary - including `AppSetup`, which owns the settings screens - contains a gesture, signal or slot that starts engineering mode. Entering it needs an app-manager request for **app id 301**
+from a **root** process on the session bus, or a developer path.
 
 ## 2. The one blocker for init fidelity
 
@@ -117,7 +114,7 @@ Seven relevant entries. **Two are demonstrated**, one is captured, three are con
 | V-054 | account database symlinked into `/tmp` | **mechanism demonstrated** — a `uid=0` account appended there resolves via NSS; latent only for want of a non-root writer |
 | V-055 | compositor config is `/tmp/weston.ini`, names loadable modules | latent; effect waits for the next compositor start |
 | V-042 | seven privileged behaviours key on a file existing in `/tmp` | wiring confirmed, trigger observed, **no marker shown starting a service end to end** |
-| V-056 | 636 SMACK rules load, applications carry `_` | policy real; **whether unit binaries carry labels is unverified** (the shipping archive has no xattr records) |
+| V-056 | 636 SMACK rules load, applications carry `_` | policy real and loaded; **labelling unverified** (no xattr records in the archive); whether `_` is confined by the rules is unproven |
 | V-057 | Tuxera exFAT/NTFS drivers parse auto-mounted media | **candidate** — surface established, no defect found; falsification in progress |
 | V-014 | USB property injection → installed root shell | payload is an unauthenticated root shell; injection needs real hardware |
 

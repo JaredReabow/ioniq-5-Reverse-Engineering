@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.5.0 - the state page caught up with five changes it had missed
+
+`docs/CURRENT-STATE.md` is the page a reader starts from, and tonight overtook three of its sections:
+
+- **§1c said "the HMI does not start"** and described the manager killing it. It now records that the managed instance paints the vendor interface with its own KIA logo, that a click reaches
+  `pid=797 uid=0`, and the two things that cost five failed attempts - `--smp 4` is required, and surfaces must be chosen **by identity rather than recency** because the background is created last.
+- **A new §1d** records that the About-screen gesture does not exist on this build, by enumeration rather than search, and that entering engineering mode needs an app-manager request from a
+  **root** process.
+- **The register table** gained **V-059** and corrected two rows whose status had moved: V-057 is now *tested* (20 crafted images, no fault, a weaker negative) rather than *being fuzzed*, and V-056's
+  labelling caveat is stated as unverified rather than as a settled question.
+
+That is the sixth front-page update tonight. The check suite verifies numbering, the history invariant, tool syntax and links; it cannot notice a state page describing a world that ended
+hours ago, which is why these get re-read rather than trusted.
+
 ## 5.4.4 - the exclusion widened to every binary, and one attribution corrected
 
 The previous entry concluded "no engineering-mode entry point" from `AppHomeScreen` alone, and added that `AppHomeScreen` owns the settings and About screens. **That second part is wrong - `AppSetup`

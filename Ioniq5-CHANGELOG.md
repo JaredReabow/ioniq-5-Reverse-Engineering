@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.14 - I went looking for the decisive path and found the opposite one seven times
+
+The open question is whether FUMO's second read opens the removable medium or a staged local copy. Looking for the mount path in FUMO's strings, expecting it to be decisive, gave:
+
+```
+                     /media/usb    /update/usb
+SCOMO                    1            12
+FUMO                     1             7
+```
+
+**Both paths are there, and the staging path outnumbers the mount seven to one in the updater the vehicle runs.** `/update/usb` is a directory on the local `/update` partition, so its presence is a staging hint; `/media/usb` is the stick. Neither settles where the *payload* is read from, because both are used for different files in the same flow.
+
+So the question stays open, but the leaning is now recorded honestly - **towards staging, against the external report** - rather than towards whichever answer I was hoping to find. That is the third time on this question that checking has produced the opposite of the expected direction, and the first time the check was cheap enough to run before writing the sentence.
+
+The runtime observation remains the only thing that decides it: `lsof`/`inotify` during a real update, watching which path the `md5sum` opens and which the `DecryptToPIPE` pipeline opens.
+
 ## 5.1.13 - the front pages catch up with the FUMO analysis
 
 V-059 changed materially tonight - the check and the apply step are now located in FUMO's own code, and the apply stream has a measured rate limit - while the README's downgrade table and the

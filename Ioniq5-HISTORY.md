@@ -5440,3 +5440,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The leading finding got materially more specific tonight, and the front pages still described it in its earlier form. Updated both to name the two commands and the measured rate limit.
 - The state page now states the finding in one paragraph, points at the full measurements, and says plainly that the remaining question needs a runtime observation rather than more reading.
 - Fifth catch-up of the night, same trigger each time: specificity that stays in the register is specificity nobody acts on.
+
+## 2026-11-05 - the evidence pointed the other way again
+
+- Went looking for the mount path in the updater, expecting it to settle the last question. Found the local staging path seven times for every mention of the mount - the opposite of the direction I was looking for.
+- Neither path settles where the payload is read from, so the question stays open, but the leaning is now recorded against the external report rather than for the answer I wanted.
+- Third time on this question that checking produced the opposite of the expected direction, and the first time the check ran before the sentence was written.

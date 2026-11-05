@@ -5950,3 +5950,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Swept everything the binaries reference under the writable partitions and found the manufacturing test application pointing at a shell script in a directory that persists across reboots and does not ship.
 - Combined with the known trigger for that application, that would be unattended root execution surviving reboot: persistence rather than escalation, and precisely what an attacker who already has root wants next.
 - Recorded that the execution link itself is unproven, named the five-minute test that settles it, and gave the fix in one sentence: never execute scripts from a persistent writable partition.
+
+## 2026-11-05 - a referenced config file that does not exist
+
+- Closed the writable path sweep with a negative: the launcher names a configuration file on the persistent partition that a running system does not have, so there is nothing in it to tamper with and nothing to read.
+- Recorded that the inference behind it was weak from the start, because the strings that looked like configuration keys are also the parameter names of the launch interface.
+- Tabulated the whole family of writable path trust anchors with their state, three of five absent or already covered by a fix, so the list can be scheduled rather than feared.

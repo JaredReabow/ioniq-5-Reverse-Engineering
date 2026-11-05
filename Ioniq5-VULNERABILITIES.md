@@ -2667,6 +2667,40 @@ world-writable directories (outside /tmp, /run, /var/volatile)  0
 
 ---
 
+## Scope note - `applaunch-config.json` is referenced but never created
+
+`app/bin/AppLauncher` contains `/rw_data/applaunch-config.json`. A boot of the projection, checked at 150 s, found:
+
+```
+J1_EXISTS=no
+/rw_data:  app_data  dlt  home  lib  <one 0700 root dir>
+```
+
+**The file does not exist**, so nothing in it can be tampered with on this image and its content cannot be read. Whether
+it is created after a settings change, or by a component that does not run here, is unmeasured.
+
+**This is recorded as a negative rather than a finding.** The key names that suggested it might hold application paths
+(`appName`, `appid`, `applocation`) are also the **parameter names of `com.lge.avn.applauncher.request.launch`**, so the
+inference was weak to begin with and the file's absence settles nothing about what it would contain.
+
+**Why it is worth a line:** someone reading `AppLauncher`'s strings later will wonder the same thing. The answer is "the
+file is not there on a running unit of this build", measured, and that is cheaper to read than to re-derive.
+
+### The writable-path sweep is now complete for the paths that matter
+
+| path | state |
+|---|---|
+| `/rw_data/navi_data/certificates/TomTom_Root_CA.crt` | **exists, group-writable, managed by the updater** - V-069 |
+| `/app/data/AppEngineeringMode/shell/eject.sh` | **referenced, directory absent** - V-070 |
+| `/rw_data/applaunch-config.json` | **referenced, absent** - this note |
+| `/etc/*` symlinks into `/tmp` | nine, of which one demonstrated - V-065 |
+| `/tmp/*.key` | two, both filed - V-048, V-066 |
+
+That is every writable-path trust anchor the sweeps found, with its state. Three of the five are **absent or already
+fixed by an existing item**, which is the useful outcome: the family is enumerated.
+
+---
+
 ## V-070 - a shell script path in a writable data partition, referenced by the manufacturing test application
 
 **Status:** the **path string and the process-execution APIs are measured**; the directory does not exist in the

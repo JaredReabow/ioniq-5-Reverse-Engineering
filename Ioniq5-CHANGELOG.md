@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.13.6 - a referenced config file that does not exist, and the writable-path sweep completed
+
+The last item from the writable-path sweep was `/rw_data/applaunch-config.json`, which `AppLauncher` contains. A boot checked at 150 s:
+
+```
+J1_EXISTS=no
+/rw_data:  app_data  dlt  home  lib  <one 0700 root dir>
+```
+
+**The file is not there.** So nothing in it can be tampered with on this image, and its content cannot be read.
+
+**Recorded as a negative, not a finding** - and the inference that prompted it was weak anyway: the key names that suggested it holds application paths (`appName`, `appid`, `applocation`) are also the **parameter names of `request.launch`**, so I could not have told a JSON key from a D-Bus argument by strings alone. The file's absence settles nothing about what it would contain; it settles that there is nothing to attack here.
+
+**Worth a line anyway**, because someone reading those strings later will wonder the same thing, and "measured: not present on a running unit" is cheaper to read than to re-derive.
+
+### The family is now enumerated
+
+| writable-path trust anchor | state |
+|---|---|
+| `/rw_data/…/TomTom_Root_CA.crt` | exists, group-writable, managed by the updater - **V-069** |
+| `/app/data/…/shell/eject.sh` | referenced, directory absent - **V-070** |
+| `/rw_data/applaunch-config.json` | referenced, **absent** - this note |
+| nine `/etc` symlinks into `/tmp` | one demonstrated - **V-065** |
+| two `/tmp` keys | both filed - **V-048, V-066** |
+
+**Three of five are absent or covered by an existing fix**, which is the useful outcome: a platform team can see the whole family and what each costs, instead of a growing list of suspicions.
+
+That is what the last several sweeps have been for - and it is the difference between a register that frightens and one that schedules.
+
 ## 5.13.5 - V-070: a script path on a persistent partition, run by the manufacturing test app
 
 Extended V-069's sweep to **everything** the binaries reference under the writable partitions, and one entry stood out:

@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.2 - why can0 never appears, measured from inside the guest
+
+Rather than infer it, I booted the authentic path and read the driver's own state:
+
+```
+/sys/class/net            lo rmnet_usb0..7            no can0
+/sys/module               can  can_gw  micom          ALL THREE LOADED
+/sys/bus/spi/devices      (empty)                     no SPI device
+/sys/bus/platform/drivers (no micom entry)            nothing to bind
+dmesg  0.68 CAN device driver interface
+       0.72 can: controller area network core (rev 20120528 abi 9) / can: raw protocol
+       0.69 MICOM I> [micom_init] Registering LGE MICOM interface driver
+       4.38 [esinit] micom SPI info is OK
+```
+
+**The stack is present and the driver is registered - it simply never probes a device.** QEMU provides no SPI device and no micom platform device, so the probe path that creates the netdevs never runs. The micom route is therefore blocked **earlier than the handshake**: it needs a board/device change.
+
+And a fidelity gap worth naming: **userspace reports `micom SPI info is OK` while the kernel has no SPI device at all.** The SPI *gate* and the SPI *bus* are different things, and only one is satisfied here - the kind of sentence that would have saved me a day if I had written it earlier.
+
+**Third route, and the cheapest: a CAN shim.** `LD_PRELOAD` interposition on the application's CAN socket calls, delivering real frames from the stand-in. No kernel change, vendor application and compositor untouched - it substitutes the *transport*, which is exactly the class of substitution this projection already documents three times over (IAS backend, MICOM D-Bus, GL driver path).
+
+Recorded in `docs/vehdata/01-...md` §6 and the routes table in `docs/CURRENT-STATE.md`, with the shim named as the next attempt.
+
 ## 5.10.1 - the last VM gap is a transport, not an adaptor
 
 The worker's mapping came back with a finding that changes the shape of the last gap, and I verified its premises myself before recording it.

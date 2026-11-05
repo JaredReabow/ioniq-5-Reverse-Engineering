@@ -281,6 +281,13 @@ static const struct ack_call ack_calls[] = {
     { AUDIO_PATH, AUDIO_INTERFACE, "SetAudioSpeakerCtrl", "ay" },
     /* V-0xx: the settings application asks MICOM whether engineering mode may be entered. */
     { ENG_PATH, ENG_INTERFACE, "SetEnginnerModeEntryCheck", "" },
+    /* Backlog methods whose argument lists were recovered from the calling binaries' own
+     * introspection XML: all three take no arguments (the simulator logged signature= empty). */
+    { CAN_PATH, CAN_INTERFACE, "SetCANAMP_HU_P_01Request",   "" },
+    { CAN_PATH, CAN_INTERFACE, "SetLevelGearInitialRequest", "" },
+    { CAN_PATH, CAN_INTERFACE, "SetUSMInitialRequest",       "" },
+    { IHU_PATH, IHU_INTERFACE, "SetETCLanguageInfoSet",      "ay" },
+    { IHU_PATH, IHU_INTERFACE, "SetSettingValueStatusMsg",   "ay" },
 };
 
 static const unsigned char region_reply[8] = { 1, 0, 0, 0, 0, 0, 0, 0 };
@@ -393,6 +400,38 @@ static DBusHandlerResult on_system_message(DBusConnection *conn, DBusMessage *ms
         fflush(stdout);
         return DBUS_HANDLER_RESULT_HANDLED;
     }
+    /* ------------------------------------------------------------------ */
+    /* Backlog Ask* methods. Signatures are RECOVERED from the calling binaries' introspection
+     * XML (com.lge.car.micom.ihu, out ay). The REPLY VALUES are ASSUMED to be zero/"absent",
+     * because the encoding is not recovered - recorded in docs/vm/46-sim-unimplemented-backlog.md.
+     * Every one of them is answered rather than rejected, so the caller stops being told the
+     * method does not exist; whether the value is meaningful is a separate, unmeasured question.
+     * ------------------------------------------------------------------ */
+    {
+        static const unsigned char zero_one[1] = { 0x00 };
+        static const struct { const char *member; const char *sig; } asks[] = {
+            { "AskEtcLcd2SensorNotSupportPwmControl", "ay" },
+            { "AskExternalSPDIFAMPVersion",           ""   },
+            { "AskUSMSetting",                        "ay" },
+            { "AskVolumeTuneKeySwap",                 ""   },
+        };
+        for (i = 0; i < (int)(sizeof asks / sizeof asks[0]); i++) {
+            if (exact_call(msg, IHU_PATH, IHU_INTERFACE, asks[i].member, asks[i].sig)) {
+                reply_ay(conn, msg, zero_one, sizeof zero_one);
+                printf("ENG_DATA_SIM_ANSWER %s -> 1 zero byte (value assumed)\n", asks[i].member);
+                fflush(stdout);
+                return DBUS_HANDLER_RESULT_HANDLED;
+            }
+        }
+    }
+    if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskInfoFaultCodeStatus", "ay")) {
+        static const unsigned char no_fault[1] = { 0x00 };
+        reply_ay(conn, msg, no_fault, sizeof no_fault);
+        printf("ENG_DATA_SIM_ANSWER AskInfoFaultCodeStatus -> 0 (no fault reported)\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+
     if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskCameraSetting", "ay")) {
         static const unsigned char cam[4] = { 0x00, 0x00, 0x00, 0x00 };
         reply_ay(conn, msg, cam, sizeof cam);

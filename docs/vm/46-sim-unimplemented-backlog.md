@@ -89,3 +89,46 @@ which this projection cannot currently do.
 let the settings application enter engineering mode. Neither side can be verified without the other, and the way out is
 the same as before - the engagement has to come from the manager side (`V-060`'s signal or the entry-check reply), not
 from a normal boot.
+
+---
+
+## 4. The backlog is now empty, and the new handlers were exercised
+
+All ten methods were implemented - the five `Set*` as acknowledgements in the ack table, the five `Ask*` with reply
+**types recovered from the calling binaries' introspection XML** and reply **values assumed zero**. Rebuilt (no host
+paths), injected, one boot:
+
+```
+ENG_DATA_SIM_ACK      403      (was 393)
+ENG_DATA_SIM_UNKNOWN    0      (was 57)
+ENG_DATA_SIM_ANSWER   265
+  of which the five new Ask* handlers:  61 calls
+still-unknown members:  (none)
+```
+
+**Zero unanswered MICOM calls.** The stack now gets an answer to everything it asks, and the new handlers were genuinely
+reached - 61 calls - so this is not a silent no-op like the entry-check row still is.
+
+## 5. What is and is not claimed about those replies
+
+**Claimed, measured:** every method the running stack calls now receives a reply of the **correct type** (`ay` or none),
+and the rejections stopped.
+
+**Not claimed:** that the **values** are right. The reply contents for the five `Ask*` methods are a single zero byte,
+chosen because the encoding is not recovered; `AskInfoFaultCodeStatus` returning zero means "no fault reported", which is
+plausible but unverified, and `AskExternalSPDIFAMPVersion` returning one zero byte is a placeholder for a version string.
+
+**So the honest description of the stand-in is now:** it answers everything, with correct types, and with values that are
+right where they have been recovered (bootinfo, versions, part number, WIP ID, trace date, debug/ADM/UPM flags) and
+**assumed** everywhere else. That distinction is the difference between "the adaptor is complete" and "the adaptor is
+complete in shape".
+
+## 6. Does the application behave differently?
+
+**Not measured.** The screen in this projection cannot show it (`docs/vm/45-backend-is-forced-not-chosen.md`), and the
+application's own log does not obviously change. What can be said is that **the reason a value would be wrong changed**:
+it used to be "the method does not exist" and is now "the answer is zero because we assumed zero".
+
+That is progress of the kind that matters for the goal - **the interface is now complete enough to be wrong in specific
+ways instead of failing wholesale** - and it is the precondition for anyone on real hardware comparing replies with the
+real MICOM.

@@ -5764,3 +5764,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Pulled the log as planned. The database file now exists, so the missing directory really was blocking creation, but the commit failures continue and print no error detail.
 - The same tail shows the application opening kernel GPIO nodes that do not exist here, which is the same kind of gap as the missing CAN interface and also a thing we could stub with files.
 - So the question now has two named candidates from the application's own logging rather than from my reading of frames.
+
+## 2026-11-05 - the record was behind the work
+
+- Stopped and corrected the two documents people read first, because eight turns had overturned the model they described.
+- Added a warning at the top naming both of our instruments that kill the application, with the numbers from both runs, and the instruction to add one instrument at a time. Every capture taken with either active is now marked suspect, including ones already committed.
+- Narrowed two README rows that were no longer true, and rebuilt the one-hour list from what is actually open plus an explicit list of things closed today so nobody revisits them.

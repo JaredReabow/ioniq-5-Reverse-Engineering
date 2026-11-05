@@ -57,8 +57,8 @@ components that need hardware we do not have, all documented:
 | --- | --- | --- |
 | Vendor kernel → vendor `esinit` → systemd | **Working** | Multi-User at ~97 s on the authentic path; `docs/vm/authentic-hmi.md` |
 | Vendor compositor (`weston.real`) | **Working** | the vehicle's own binary and its own `weston_1920.ini` |
-| Managed `AppHomeScreen` | **Working** | paints, then **lays out the home screen** once the manager is told the vehicle is on |
-| Interaction (synthetic touch) | **Accepted; delivery to the app unmeasured** | `VM_INPUT_CLICK_ACCEPTED`, `VM_INPUT_FOCUS_BEFORE_MOVE pid=797 uid=0` - that pid was the compositor's client on the standby frame |
+| Managed `AppHomeScreen` | **Runs stably; shows its splash** | with no instruments it holds one pid for 105 s and shows the KIA splash. The laid-out home screen was seen **once** (16,062 B) and has not been reproduced since - see the three-frame table in `docs/CURRENT-STATE.md` |
+| Interaction (synthetic touch) | **Accepted; delivery unmeasured, and the placement tool crashes the app** | `VM_INPUT_CLICK_ACCEPTED`, `VM_INPUT_FOCUS_BEFORE_MOVE pid=797 uid=0` - that pid was the compositor's client on the standby frame |
 | Home widget values (Battery, Range) | **Placeholder** | widgets are placed, values render `---`; the data path is being mapped |
 | Engineering mode inside the projection | **Not open** | D-Bus `show_engineermode` is accepted and *does nothing* (two runs); see below |
 | Reproduction from an empty base | **Working** | `tools/uk_fw/vm_partimg/inject-stockui.sh`, verified end-to-end |

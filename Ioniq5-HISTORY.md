@@ -6106,3 +6106,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The delegated worker's first document corrected my premise: the virtual gpu driver I twice told it to enable was added to Linux after 4.1, so the instruction could not be followed at all. Verified against the tarball rather than taking either claim on trust.
 - What provides the device is the bochs driver already in the kernel, which binds the VGA adapter the harness was already presenting, so no runner change was needed at all.
 - Recorded the lesson that is new to this session: an instruction to another agent carries the same burden of verification as a measurement, and this correction is the first one paid for by someone else's time rather than my own.
+
+## 2026-11-05 - the vendor compositor runs on a real display backend
+
+- The delegated run shows the vendor compositor loading its own drm backend, finding a connected output and reaching multi-user with no fatal wayland errors, where every headless run had ended with exactly that error.
+- Kept the gaps explicit: whether the application started, that input devices are missing, and that no capture was taken on this path are three separate measurements, not one.
+- Noted that the session's standing conclusion, that this could not be fixed inside the emulator, is now half false, and that it became false with a driver already present in the kernel while I was sending the worker after a symbol that does not exist in this version.

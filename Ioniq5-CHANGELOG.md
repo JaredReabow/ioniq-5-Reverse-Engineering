@@ -3,6 +3,38 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.16.6 - the vendor compositor runs on drm-backend, and the Wayland fatal error is gone
+
+From the delegated run `boot8-drm.log`:
+
+```
+Loading module '/usr/lib/weston/drm-backend.so'
+Output Virtual-1
+Failed to initialize backlight
+failed to create input device '/dev/input/event0'
+warning: no input devices on entering Weston
+Reached target Multi-User
+fatal error | invalid object      -> 0 occurrences
+```
+
+**The vendor compositor loaded its own `drm-backend.so`, found a connected output, and reached Multi-User with no Wayland fatal errors in the capture** - where **every headless run** ended with `wl_display@1: error 0: invalid object N`.
+
+That is the first time in this project the application stack has had a real display backend underneath it.
+
+### What is *not* established, and each is its own measurement
+
+- **Whether the application started** - the capture shows Multi-User and the backend, not `AppHomeScreen`.
+- **Input** - `no input devices`; even with a display there is nothing to click with yet.
+- **What the screen shows** - no capture was taken on the DRM path.
+
+**So the honest sentence: the display ceiling is gone, the compositor accepts the device, and the Wayland failure that killed the application everywhere else is absent from this capture - but nobody has yet seen the application paint on it.**
+
+### Why this is the milestone, stated plainly
+
+For most of this session the conclusion was *"the vendor's start-up sequence runs against a display path it was not written for, and that cannot be fixed inside QEMU."* **The second half of that sentence is now false**, and it became false because of a rebuilt kernel with `bochs-drm` - a driver that was **already in the 4.1.27 tree** while I spent several turns telling the worker to enable a symbol that does not exist in that version.
+
+The fix cost one config delta and one honest correction. The wrong instruction cost the worker two builds.
+
 ## 5.16.5 - I told the worker to enable a kernel symbol that does not exist
 
 The delegated worker's first document corrects my premise, and it is right. I had written twice, confidently, that the way forward was a rebuild with **`CONFIG_DRM_VIRTIO_GPU`**. Verified against the tarball the project actually holds:

@@ -5615,3 +5615,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Noticed the register and the remediation report had no link between them: not one fix item cited a register entry, and the newest finding was missing from the fix list altogether.
 - Added the engineering-mode item with its evidence, its one-function fix and a verify step, and a cross-reference table mapping all thirteen items to the entries that prove them.
 - Wrote down why the ordering matters: the impact today is limited by a state gate, so the sender check should land before anyone finds that gate satisfiable.
+
+## 2026-11-05 - the state page contradicted itself
+
+- Found the page meant to be read first arguing with itself: one section said the home screen lays out, a later one still said the call was not demonstrated. The stale one was mine.
+- Fixed it in place, keeping the API mapping and stating that my mechanism was wrong, and added where engineering mode actually stands, the standard for the remaining gap, and the missing register rows.
+- Named the pattern: the checks catch broken links and numbering, not a page disagreeing with itself. Reading the page before adding to it does.

@@ -108,3 +108,33 @@ satisfied in the projection.
 The shim is now the cheapest route that keeps the vendor application and the vendor compositor intact:
 it substitutes the *transport*, which is exactly the class of substitution this projection already
 documents (backend, MICOM D-Bus, GL driver path).
+
+---
+
+## 9. Measured: the application uses both paths, and only one of them works here
+
+The application's own log during a normal boot settles the ambiguity between "D-Bus" and "raw CAN" - it uses **both**:
+
+```
+[ERR] CQCANController_CANTxRx::Initialize_raw_socket(int, int)   ] [TCAN] ...      a raw CAN socket
+[ERR] QCANControllerListener::run() ] ihu_iface->isValid()  true                   a valid D-Bus IHU interface
+[ERR] QCANControllerListener::run() ] IGN Status response :  1                     status ARRIVING over D-Bus
+[ERR] AppClimateModel::requestAskCANsignal() ] Request Ask CAN signal              CAN signals requested
+[FTL] Connected notifyDteOffDisp / NotifyLowbatteryToWidget                        widget signals connected
+```
+
+**Read together with the simulator's accepted-call log** (`docs/vm/46-sim-unimplemented-backlog.md`, 330 of 393 calls
+being `AskCANMMCANMicomReq`), the picture is precise:
+
+| path | state in the projection |
+|---|---|
+| **D-Bus MICOM interface** (`ihu_iface`, `com.lge.car.micom.*`) | **working** - `isValid()` true, `IGN Status response : 1` received from this project's stand-in |
+| **raw CAN socket** (`can0`) | **absent** - no interface exists (V-064's sibling finding), so the socket path yields nothing |
+
+**So the stand-in is not inert** - it answers the status questions the application relies on, and the application accepts
+them. What it cannot supply is the *frame* data, because that does not travel over the interface the stand-in implements;
+it travels over `can0`.
+
+That is a more useful statement than either of the earlier ones ("D-Bus is the path" and "D-Bus is not the path"): **the
+application has two data paths and this project substitutes one of them.** The widgets' values come from the one that is
+missing.

@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.14.5 - the application has two data paths, and we substitute exactly one of them
+
+Read the application's own log during a normal boot to settle a question this project has answered two different ways:
+
+```
+CQCANController_CANTxRx::Initialize_raw_socket(int, int)      a raw CAN socket
+QCANControllerListener::run() ] ihu_iface->isValid()  true     a valid D-Bus IHU interface
+QCANControllerListener::run() ] IGN Status response :  1       status ARRIVING over D-Bus
+AppClimateModel::requestAskCANsignal() ] Request Ask CAN signal
+Connected notifyDteOffDisp / NotifyLowbatteryToWidget
+```
+
+**It uses both.** And together with the simulator's accept log - **330 of 393 calls are `AskCANMMCANMicomReq`** - the picture is precise:
+
+| path | state here |
+|---|---|
+| D-Bus MICOM interface | **working** - `isValid()` true, `IGN Status response : 1` **received from our stand-in** |
+| raw CAN socket | **absent** - no `can0` exists |
+
+**So the stand-in is not inert.** It answers the status questions the application depends on, and the application accepts those answers. What it cannot supply is the **frame** data, because that does not travel over the interface the stand-in implements.
+
+That is better than both earlier statements ("D-Bus is the path" / "D-Bus is not the path"): **the application has two data paths and this project substitutes one of them.** The widget values come from the one that is missing.
+
+### Why it matters for what to build next
+
+It says the adaptor work is **half done and correctly scoped**: implement the remaining MICOM methods for state (the ten in the backlog), and accept that **values** need the CAN transport - which the vendor kernel's own configuration makes impossible to provide here (documented in `docs/vm/45-...`). Two different conclusions, both already supported, now stated in one place.
+
 ## 5.14.4 - the simulator now logs what it accepts, and the number changes what I can claim
 
 The simulator logged only **rejections**, so "no rejection appeared" was indistinguishable from "never called" - the same failure mode as counting a truncated log (rule 14), one layer down. Accepted calls are now logged.

@@ -5902,3 +5902,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Applied the same sweep to the unit files. Of one hundred and seven services, one has a user line and it belongs to systemd itself, no unit sets no-new-privileges, and none of the vendor's own units set a single hardening directive.
 - That names the cause behind a pattern this register recorded six times without explaining: a root-only bus is not a boundary between anything that matters when nearly every service is root.
 - Filed it with the fix ordered by leverage, all of it configuration only, and added it to the trust-anchors argument as the reason that argument is urgent rather than tidy.
+
+## 2026-11-05 - nine trust anchors point into the world-writable temp directory
+
+- Swept the configuration layer for the pattern found twice before and found nine instances: the account database, the mount table, the resolver configuration, the valid shell list, the compositor configuration and three images are all symlinks into the world-writable temporary directory.
+- Read the reason fairly: the root filesystem is read-only at runtime, so a generated file does need somewhere writable. The error is the destination, not the symlink, and root-only writable locations exist and are used elsewhere.
+- Ranked them by cost, with the resolver first because its consumers read continuously, and wrote the single change that fixes all nine: point them at a root-only directory. Added as a fix item with its cross reference.

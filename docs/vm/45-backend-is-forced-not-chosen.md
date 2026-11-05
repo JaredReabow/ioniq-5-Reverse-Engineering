@@ -381,3 +381,28 @@ and it comes from the vendor's own configuration rather than from a guess.
 **And the fallback if it does not work is named in the same result**: the bochs framebuffer map emits
 `ttm_bo_vm_open` warnings that are the **only kernel-side signal differing** between the working virtual-output case and the
 failing real-output case.
+
+## 14. My shell-UI hypothesis was tested and refuted — and it found a real, dormant vendor bug
+
+The §13 hypothesis (fix `ivi-shell-user-interface=` and the socket appears) was checked in one run by the worker, documented
+in `docs/kernel/07-ivi-shell-user-interface-path.md`:
+
+> **The `ivi-shell-user-interface` path is a real bug - but not the cause of the missing socket.**
+
+**The path is genuinely wrong** - the vendor ini names `/usr/lib/weston/weston-ivi-shell-user-interface`, which does not
+exist, while the binary sits at `/usr/libexec/`. Correcting it **does not make the socket appear**.
+
+**And the source says why it cannot**: the shell user interface is started by an **idle callback** on the compositor's event
+loop (`wl_event_loop_add_idle(loop, launch_hmi_client_process, ...)` in the hmi-controller), which only runs once weston
+enters `wl_display_run` - the same loop whose absence is proven by the missing epoll fd. **The client is never reached, and
+the wrong path is therefore dormant**: a real configuration defect, downstream of the actual failure.
+
+**So the record now holds two facts of different kinds:** a confirmed vendor defect that does nothing on this build, and a
+refuted hypothesis of mine that at least produced the first one.
+
+## 15. Where the real-output failure actually is
+
+With vblank refuted (doc 06) and the shell path refuted (doc 07), the failure is **in weston's own startup between the last
+module load and `wl_display_run`**, and the next instrument is named by the worker: **one userspace trace of the main
+thread** - not a kernel change, not DRM ioctl tracing. That is the right next step, and both of tonight's cheaper ideas are
+on record as having been tried first.

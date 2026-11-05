@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.17.5 - my shell-UI hypothesis was refuted, and it found a real but dormant vendor bug
+
+The §13 hypothesis was that the ivi-shell fails over a real output because the ini names a shell user-interface binary at a path where it does not exist. The worker tested it in one run and wrote it up as:
+
+> **The `ivi-shell-user-interface` path is a real bug - but not the cause of the missing socket.**
+
+**The path is genuinely wrong** - `/usr/lib/weston/weston-ivi-shell-user-interface` does not exist, the binary is at `/usr/libexec/` - and correcting it **does not produce the socket**.
+
+**And the source explains why it cannot**, which is the part I would not have found: the shell user interface is started by an **idle callback** on the event loop, so it only runs once weston enters `wl_display_run` - the very loop whose absence is proven by the missing epoll fd. **The client is never reached; the wrong path is dormant.**
+
+### So tonight's record now holds two kinds of fact side by side
+
+1. **A confirmed vendor defect** - a configuration path that names a nonexistent file - which does nothing on this build because the code that would use it is never reached.
+2. **A refuted hypothesis of mine** that at least produced the first one.
+
+That is the honest shape of a hypothesis that fails usefully, and it is better than the two earlier failures tonight (the nonexistent kernel symbol, the framebuffer detour) where nothing was learned beyond "not that".
+
+### Where the failure actually is
+
+With vblank refuted (doc 06) and the shell path refuted (doc 07), the failure sits **in weston's startup between the last module load and `wl_display_run`**. The worker names the next instrument: **one userspace trace of the main thread** - not a kernel change, not DRM ioctl tracing. That is the right next step, and both cheaper ideas are now on record as having been tried first.
+
 ## 5.17.4 - the control experiment refuted the hypothesis, and the failure moved downstream
 
 The worker's `06-fbdev-backend-result.md` is the most useful result in this stretch, and it settles the question my last two entries were circling:

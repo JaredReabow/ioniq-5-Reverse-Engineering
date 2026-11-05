@@ -211,3 +211,29 @@ it.**
 
 That is a very different position from the one this document opened with, and it was reached by a rebuilt kernel with
 `bochs-drm`, not by anything the vendor's own kernel could do.
+
+## 8. Correction to §6 - the error is absent because no client ever connected
+
+Section 6 read "*zero* `fatal error` / `invalid object` occurrences" as progress. **The delegated isolation run shows a
+different explanation, and it is the correct one:**
+
+```
+[apps-check] NO_WAYLAND_SOCKET after 240s
+weston_pid=690 alive=yes       the process is alive
+find-wayland=[]                no wayland-* socket anywhere in /run /tmp /var/run
+wchan=[hrtimer_nanosleep]      main thread asleep, not crashed
+```
+
+**`drm-backend.so` initialises the DRM device - and then weston stalls before it ever binds its listening socket.** With no
+socket, the application stack cannot connect at all, so:
+
+- the `invalid object N` comparison **cannot be made** on this backend;
+- the absence of that error is **"nothing connected"**, not "the problem is fixed".
+
+**This is the third time this session that an absence of errors was really an absence of activity** - after the log a fresh
+process truncated (rule 14) and the 30-second boot that could not reach userspace. The pattern is consistent enough to name:
+**before reading a zero, ask what would have produced a non-zero.**
+
+**Where that leaves the display ceiling:** the *device* half is done - `/dev/dri/card0` exists and the vendor's
+`drm-backend.so` accepts it. The *compositor* half is not: weston stalls before serving. The application question is
+therefore still open, and it is blocked on a stall rather than on hardware.

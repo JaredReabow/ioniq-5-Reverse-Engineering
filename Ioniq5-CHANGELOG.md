@@ -3,6 +3,39 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.16.8 - correction: the error was absent because no client ever connected
+
+The worker's `05-drm-backend-result.md` corrects the entry I wrote a turn ago, and it is right.
+
+I read "*zero `fatal error` / `invalid object` occurrences*" on the `drm-backend` capture as progress. The isolation run shows what actually happened:
+
+```
+[apps-check] NO_WAYLAND_SOCKET after 240s
+weston_pid=690 alive=yes        the process is alive
+find-wayland=[]                 no wayland-* socket anywhere in /run /tmp /var/run
+wchan=[hrtimer_nanosleep]       main thread asleep, not crashed
+```
+
+**`drm-backend.so` initialises the DRM device - and then weston stalls before binding its listening socket.** With no socket the application cannot connect at all, so the `invalid object N` comparison **cannot be made** on this backend, and the absence of that error is **"nothing connected"**, not "the problem is fixed".
+
+### The third instance of the same reading error, so it gets a name
+
+- **the truncated log**: zero errors in a file a fresh instance had just emptied (rule 14);
+- **the 30-second boot**: "no userspace, no root" from a timeout that could not have reached them;
+- **this one**: "no `invalid object`" from a compositor that never served a client.
+
+> **Before reading a zero, ask what would have produced a non-zero.**
+
+That is now written into `docs/vm/45-...` §8 and into the state page, and it is the most transferable thing this stretch has produced - more than the DRM device, because it applies to every measurement left.
+
+### Where the VM goal actually stands
+
+- **device half done**: `/dev/dri/card0` exists, the vendor's `drm-backend.so` accepts it, `Output Virtual-1`;
+- **compositor half blocked**: weston stalls before serving, so the application cannot start on this backend;
+- **the application question is open**, and blocked on a stall rather than on hardware - which is a different problem from the one this session spent hours on, and an easier one.
+
+The worker labelled its own explanation of the stall as a hypothesis. So do I.
+
 ## 5.16.7 - the rebuild's four documents, committed while the worker is still running
 
 The delegated worker produced four documents and is still iterating on the fifth, so its work is committed now rather than left in a working tree:

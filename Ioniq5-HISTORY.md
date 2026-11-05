@@ -6118,3 +6118,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Committed the delegated worker's four documents while it is still running the fifth experiment, so nothing sits uncommitted in a working tree.
 - Two of them are the kind of thing I would have wanted hours earlier: the four source level fixes needed to build this kernel on this host, and an honest account of the vendor symbols the reconciled config drops and the board support it does not restore.
 - Linked them from the index and confirmed none carries a host path, then left the running experiment alone.
+
+## 2026-11-05 - the error was absent because no client ever connected
+
+- The worker's result document corrected my last entry. The compositor initialises the new display device and then stalls before creating its socket, so the lack of a fatal error in that capture meant nothing had connected rather than that the problem was solved.
+- That is the third time in this stretch that an absence of errors was really an absence of activity, after a truncated log and a boot too short to reach userspace, so the rule got a name: before reading a zero, ask what would have produced a non-zero.
+- Restated where the goal stands: the device half is done and the compositor half is blocked on a stall, which is a different and easier problem than the one this session spent hours on.

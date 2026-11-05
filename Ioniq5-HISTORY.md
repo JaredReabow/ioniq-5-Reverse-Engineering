@@ -5812,3 +5812,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Put a wrapper in place of the application binary to get protocol tracing, and the application never started at all. Whether the launcher refuses non-binaries or checks integrity is unproven, and an integrity check would be a finding in itself.
 - Destroyed the vendor binary in the clone on the way, because I assumed a filesystem tool had a rename command it does not have. Recovered from the pristine extraction and recorded the two-step rule that avoids it.
 - Noted that every instrument added to this project so far has damaged the thing it was measuring, and moved the next attempt to the compositor side where the failing event is actually delivered.
+
+## 2026-11-05 - the protocol exchange, seen from the compositor
+
+- Turned on the compositor's own protocol trace, which required touching only our wrapper, and the failing exchange is four lines: the application binds the window manager interface, asks the controller to create a surface with its own object id, and the compositor reports an object it does not know.
+- Did the cheap static check first and it weakened my own theory: there is one wayland client library in the image and we did not inject it, and the application reaches wayland through the Qt platform plugin rather than directly. The protocol definition is not shipped at all.
+- Named the measurement that separates the two remaining readings, which needs no new instrument: read the running process's library map and see which wayland library it actually has.

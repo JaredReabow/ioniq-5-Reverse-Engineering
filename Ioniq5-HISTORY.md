@@ -6070,3 +6070,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Read the delegated boot logs rather than waiting for a report, and found both first attempts used the default research entry point and a thirty second timeout, which on this image cannot even reach userspace.
 - Sent the corrections and, more importantly, the instruction to boot the kernels that already exist before compiling anything at all.
 - Wrote it into the runbook as a rule: a boot verdict must state the init and timeout that produced it, because a thirty second run reporting no root filesystem is a statement about the timeout and not about the kernel. Third time a measurement that cannot distinguish success from failure has been read as a failure.
+
+## 2026-11-05 - the display ceiling was the kernel configuration
+
+- The delegated worker ran the authentic path on a kernel built with the display drivers enabled, and the log shows a drm driver binding, a framebuffer device registering, and the vehicle's own boot reaching multi-user.
+- That lifts a conclusion this project had treated as final: the headless backend was forced by the shipped kernel's configuration, not by the hardware, and two other backends become possible on a rebuilt kernel.
+- Recorded the correction in place with the honest state: nodes unverified, backend acceptance unverified, and the question that matters still open, namely whether a real display path stops the error that killed the application in every run.

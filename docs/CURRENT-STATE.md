@@ -102,6 +102,25 @@ dbus-send --session --print-reply --dest=com.lge.hyundai.avn.appmanager /Informa
 
 **Not yet demonstrated:** my own attempt ran into the harness it was sharing (the clone's own instrumentation completed the run before my probe fired), so the call has not been made and observed. The worker with the working harness has it. If the layout appears after that call, the last named gap in the VM closes; if it does not, the state it is waiting for is something else, and the manager's other `ask_acc_status` / `ask_ign_status` answers are the next thing to read.
 
+### Measured: power is already on, and `show_engineermode` is accepted (2026-11-05)
+
+Two D-Bus calls against the running manager on the authentic path, from inside the projection:
+
+```
+ask_power_status   ->  int32 1                      the manager already reports the vehicle as ON
+show_engineermode  ->  method return sender=:1.7 -> dest=:1.31 reply_serial=2      accepted, no error
+```
+
+**The power-state hypothesis is refuted.** The home layout is not waiting for vehicle power: the manager answers 1, which is the state the application asked about. Whatever keeps the widgets from
+laying out is something else, and the next candidates are the per-widget data it loads once it believes it is on - not the power state.
+
+**`show_engineermode` is the first D-Bus engineering entry this project has seen accepted.** It returned a normal method return rather than `UnknownMethod` or an error, which establishes that the
+manager implements it and honours the call at the interface level.
+
+**What is not established:** whether it actually starts `AppEngineerMode`. In that run the home screen had not yet started when the call was made (`home=` empty at the 105-second probe), and no
+`AppEngineerMode` process appeared in the following 80 seconds. So the entry is **accepted but unobserved in effect** - the call must be repeated **after** `AppHomeScreen` owns its bus name, which is
+a timing detail this project has already been bitten by more than once.
+
 ## 2. The one blocker for init fidelity
 
 `esinit` starts the compositor only when `/sys/module/micom/parameters/spi_validation` reads 1, and it touches

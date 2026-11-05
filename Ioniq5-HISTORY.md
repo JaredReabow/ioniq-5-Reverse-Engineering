@@ -5536,3 +5536,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Read the application's own API to find why the home layout never appears: it asks the application manager for power status, and has slots for power, ACC and ignition changes.
 - So the chain is the vehicle bus feeding the manager, and the manager feeding the app. Our stand-in answers the app's queries but never drives the manager's state, so the manager says off and the app shows standby branding.
 - The manager exposes an incoming setter for exactly this, so the candidate fix is one call. My own attempt collided with the harness again; handed it to the worker with the working one.
+
+## 2026-11-05 - power was already on, and a D-Bus entry is accepted
+
+- Asked the running manager two questions. It reports the vehicle as on, which refutes my power-state hypothesis for the missing home layout, and it accepts the show_engineermode call with a normal reply.
+- That is the first D-Bus engineering entry seen accepted here, and it is a stock-reachable path that involves no screen gesture at all.
+- Whether it starts the engineering application is unobserved: the home screen had not started when the call was made, so the test has to be repeated after it does.

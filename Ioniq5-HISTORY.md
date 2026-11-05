@@ -5860,3 +5860,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Went back to the security goal with a question the virtual machine work raised: why a replaced application binary refused to run. The answer is a hash and challenge-response mechanism in the launcher, tied to the micom and backed by OpenSSL, which is the first genuine anti-tamper control found in the shipped image.
 - It sits beside the earlier finding that the launch path runs any caller-named path as root rather than contradicting it: the platform has the parts for verification even where the launch path does not use them.
 - Hedged the finding properly. Enforcement is unproven, the observation that prompted it is equally consistent with an exec requirement, and the control is probably inert under emulation because the events it depends on never arrive.
+
+## 2026-11-05 - a second app refuses the wrapper too
+
+- Replaced a different application's binary with a wrapper, copying and verifying the original first as the rule requires, and it also failed to start while the untouched application kept running.
+- So the behaviour is general rather than per-application, which weakens the targeted-integrity suspicion and points at an exec or format requirement instead. Recorded that it weakens rather than kills the hypothesis.
+- The direct test of the hash mechanism did not run because I omitted the session bus address from that probe, and that is written down rather than quietly retried.

@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.12 - the interaction recipe existed only as scattered fragments
+
+The goal says "a VM that I can interact with", and the knowledge needed to do that was spread across four documents: the click channel in one, the power-on call in another, the capture traps in a third, the surface rule in a fourth. Someone reading any single one of them could not interact with the VM.
+
+**Wrote `docs/vm/interacting-with-the-vm.md`** - one recipe, seven steps, every line measured:
+
+1. boot with **`--smp 4`** (2 vCPUs means the app never registers), Multi-User ~97 s
+2. wait for three *separate* states, because people miss the third: compositor alive, app process present, **app powered on**
+3. **the power-on call** - and the explicit warning that `ask_power_status` reads `1` before and after, so it is not a probe; look at the frame
+4. click via `echo 'click X Y' > /tmp/weston-vm-input` (and `drag`), with the exact log sequence to expect in `/tmp/weston-real.log`
+5. capture **by surface, never by "newest"**, with the three reference sizes and the reminder that the screenshooter writes into the current directory
+6. **what is and is not established** about clicking
+7. the six traps that cost this project real runs
+
+**Section 6 is the honest part.** Clicking is *accepted and routed* - measured. On the standby frame the focus target was **`weston.real` itself**, not the application, which made "the click reached a real client" true and misleading at once. Whether a click now lands **on an application widget** after the layout appears is **not measured**, and that is the next interaction measurement - which is exactly why the Battery/Range values matter beyond the numbers: they give a widget something to visibly do.
+
 ## 5.9.11 - the host paths are out of the artefact, not just out of the commit
 
 Chasing the binary out of `HEAD` was losing to a concurrent worker that re-stages it every time. So I fixed the **cause** instead of the race.

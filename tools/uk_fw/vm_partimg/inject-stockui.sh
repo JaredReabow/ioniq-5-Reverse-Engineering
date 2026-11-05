@@ -66,4 +66,4 @@ for p in /eng-data-sim /weston-vm-input.so /weston-apps-check.sh /init-authentic
 done
 
 echo "=== sync partition 5 back into rootfs.img ==="
-python3.13 ../../../tools/uk_fw/vm_partimg/sync-partition.py work/vm/stockui 5
+python3.13 "$WS/../../../tools/uk_fw/vm_partimg/sync-partition.py" "$WS" 5   # $WS, not a hardcoded workspace

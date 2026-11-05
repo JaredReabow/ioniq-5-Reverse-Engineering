@@ -3,6 +3,34 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.3.4 - end to end from an empty base: the procedure works, after three of my own bugs
+
+The last outstanding claim - that the documented procedure rebuilds a working image - is now measured. From a workspace with **none** of the projection-only files:
+
+```
+inject-stockui.sh  -> 24 changed chunk(s), 25,165,824 bytes written to rootfs.img
+boot               -> Multi-User reached
+                      WAYLAND_SOCKET_UP after 2s
+                      APPLAUNCHER_PID=[2180] at +65s after socket
+                      MICOM_IS_ACTIVE=[active]
+```
+
+Getting there took four attempts and flushed out **three defects in a tool I wrote an hour earlier**, each of a different kind:
+
+1. **Silent success.** The script reported `MISSING` for every file and exited 0. Fixed with preconditions that exit 2 and name the fix.
+2. **Wrong image path.** After parameterising the stage directory, the write step still composed the image path relative to the *stage* directory, so debugfs was pointed elsewhere while the verify loop
+   dutifully reported missing.
+3. **A hardcoded workspace in the sync call.** `sync-partition.py work/vm/stockui 5` was never parameterised - so **every sync wrote to a different workspace** while reporting
+   `0 changed chunk(s)`, because that other workspace was already up to date. The injection looked successful, the target image was untouched, and the boot died with
+   `Kernel panic - not syncing: Requested init /init-authentic-hmi.sh failed (error -2)`.
+
+The third is the one worth remembering: **the tool was reporting another directory's idempotency as if it were the target's success.** A path that is right in one run and wrong in another produces
+exactly that, and only a boot that panics exposes it.
+
+Verified after the fixes, on the target image itself: `/init-authentic-hmi.sh`, `/eng-data-sim` and `/app/bin/AppLauncher.sh.vendor` are **in the disk image**, not just in the partition file.
+
+That completes the reproduction claim, and it is the sixth time tonight that the fault was in my instrumentation rather than the target.
+
 ## 5.3.3 - the reproduction script never injected the init it tells you to boot with
 
 Continuing the validation of the reproducibility claim, against a workspace that has the partitions but none of the projection-only files. The write path works - every staged file appears in

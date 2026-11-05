@@ -95,3 +95,42 @@ It defines the ceiling precisely, and honestly:
 
 That is the sentence this project should use from now on, in place of "the UI does not render", which implies a
 defect where there is a hardware absence.
+
+---
+
+## 3. Scope correction - the ceiling was the *vendor kernel's configuration*, and a rebuilt kernel removes it
+
+This document concludes that "the headless backend is the only one that can exist" because the vendor kernel's only DRM
+driver is `i915`, `CONFIG_DRM_BOCHS`/`QXL` are not set, and the framebuffer subsystem is compiled out. **All of that is true
+of `vendor.config` - and all of it stopped being true the moment a kernel was built with those options enabled.**
+
+A boot of the vendor rootfs on such a kernel, captured by the delegated worker (`work/vm/kbuild/boot4-authentic.log`):
+
+```
+[    0.519360] [drm] Initialized drm 1.1.0 20060810
+[    0.522973] [drm] Found bochs VGA, ID 0xb0c5.
+[    0.523278] [drm] Framebuffer size 16384 kB @ 0xfd000000, mmio @ 0xfebf0000.
+[    0.540897] bochs-drm 0000:00:01.0: fb0: bochsdrmfb frame buffer device
+Reached target Local File Systems
+Reached target Basic System
+Reached target Login Prompts
+Reached target Multi-User
+```
+
+**A DRM/KMS driver bound, a framebuffer device registered, and the vehicle's own boot path reached Multi-User.** So:
+
+| backend | before | with this kernel |
+|---|---|---|
+| `ias-backend.so` | impossible (no GPU) | still impossible |
+| `drm-backend.so` | **impossible** (no DRM device) | **possible** - bochs-drm is a KMS driver |
+| `fbdev-backend.so` | **impossible** (`# CONFIG_FB is not set`) | **possible** - `fb0: bochsdrmfb` |
+| `headless-backend.so` | the only option | still available |
+
+**So the honest correction is this:** the display ceiling was **the vendor kernel's configuration**, not the hardware. It
+was a real ceiling for anyone booting the shipped kernel, and it is not a ceiling for this project any more - **a rebuilt
+kernel with `CONFIG_DRM_BOCHS` gives both a DRM and a framebuffer device under QEMU**, which is a materially different
+situation from the one this document was written to describe.
+
+**Not yet established:** that `/dev/dri/card0` and `/dev/fb0` exist as nodes, that `drm-backend.so` (or `fbdev-backend.so`)
+accepts that device, and whether either removes the `wl_display@1: error 0: invalid object N` that killed the application.
+The next measurements are, in order: `ls /dev/dri /dev/fb*`, then a weston run with `drm-backend`, then the application.

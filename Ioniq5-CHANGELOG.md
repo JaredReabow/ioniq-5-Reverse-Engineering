@@ -3,6 +3,41 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.16.0 - the display ceiling was the kernel's configuration, and a rebuilt kernel removes it
+
+The delegated worker took the corrections, ran the authentic path, and its log changes a conclusion this project has been treating as final:
+
+```
+[    0.519360] [drm] Initialized drm 1.1.0 20060810
+[    0.522973] [drm] Found bochs VGA, ID 0xb0c5.
+[    0.523278] [drm] Framebuffer size 16384 kB @ 0xfd000000, mmio @ 0xfebf0000.
+[    0.540897] bochs-drm 0000:00:01.0: fb0: bochsdrmfb frame buffer device
+Reached target Local File Systems / Basic System / Login Prompts / Multi-User
+```
+
+**A DRM/KMS driver bound, a framebuffer device registered, and the vehicle's own boot path reached Multi-User.**
+
+### So `docs/vm/45-backend-is-forced-not-chosen.md` was right about the shipped kernel and wrong about the project
+
+| backend | shipped kernel | with this kernel |
+|---|---|---|
+| `ias-backend.so` | impossible | still impossible |
+| `drm-backend.so` | **impossible** | **possible** - bochs-drm is KMS |
+| `fbdev-backend.so` | **impossible** (`# CONFIG_FB is not set`) | **possible** - `bochsdrmfb` |
+| `headless-backend.so` | the only option | still available |
+
+**The ceiling was the vendor's configuration, not the hardware.** That is a materially different sentence from the one the document was written to make, and it is the first time in this stretch that a VM conclusion has been *lifted* rather than narrowed.
+
+### What is still unmeasured, and in what order
+
+1. `ls /dev/dri /dev/fb*` - the nodes, not the driver messages.
+2. A weston run with `drm-backend` - does the vendor compositor accept the device.
+3. The application - **does `wl_display@1: error 0: invalid object N` survive a real display path.**
+
+**Point 3 is the one that matters**: it is the error that killed the application in every run, and it now finally has a chance of not happening - which is what the whole `hmi-controller`, placement-tool and instrument investigation was actually chasing.
+
+I did not expect the delegated build to change a conclusion this fast. The three corrections that did it - authentic init, a timeout long enough to matter, and booting an existing image before compiling - were all about **the measurement, not the kernel**.
+
 ## 5.15.9 - the delegated boot was measuring the wrong thing for thirty seconds
 
 Read the worker's first two boot logs instead of waiting:

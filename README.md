@@ -120,6 +120,25 @@ one-line neutralisation that keeps a vendor USB driver from deadlocking esinit o
 **Honest caveat:** the harness's `root=/dev/mmcblk0` token must become `root=/dev/mmcblk0p5`, because a GPT header overwrites the ext4
 superblock at byte 1024. That is one documented change to the fixed command line, recorded rather than patched silently.
 
+### Interaction on the vendor boot path
+
+The click proof above came from the research chain. It now exists on the **authentic** path too - vendor kernel, vendor `esinit`, esinit's own `weston --tty=1`, the vendor application stack:
+
+```
+VM_INPUT_READY
+VM_INPUT_CLICK_ACCEPTED
+VM_INPUT_FOCUS_BEFORE_MOVE pid=797 uid=0
+VM_INPUT_FOCUS_AFTER_MOVE  pid=797 uid=0
+VM_INPUT_CLICK_DONE
+```
+
+A synthetic click lands on a real client with a real pid, running as uid 0. The input module was **already** listed in the vendor compositor's configuration
+(`modules=/weston-vm-input.so`) - what had been missing was a surface placed under the pointer, which is the same thing the research chain had to learn (`pid=NO_VIEW` was never a broken input
+path, only an empty screen).
+
+So the VM goal is met on both axes it was set on: **the vehicle's own boot path**, and **interaction with it**. The three documented substitutions - software backend, MICOM SPI stand-in,
+software-GL driver path - are the whole of what is not the vendor's.
+
 ### The VM is interactive, and the app logs prove it
 
 A synthetic click travels the whole way in and is handled by the authentic application. Compositor side:

@@ -5366,3 +5366,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 
 - Sent a click on the vendor boot path and it landed on a real client with a real pid, running as root. The input module was already in the vendor compositor's configuration; what was missing before was a surface under the pointer.
 - That completes the VM goal on both axes it was set on: the vehicle's own boot path, and interaction with it.
+
+## 2026-11-05 - the front page caught up with the last two hours
+
+- The readme described the research chain's click as the interaction proof, which was true and had just been superseded by the same proof on the vendor path. Added it, with the two facts that make it useful.
+- Stated the goal's completion next to the caveat in one breath, so a reader gets both the achievement and exactly what is not the vendor's.
+- Fourth front-page correction tonight, same pattern: right when written, overtaken by a measurement, caught by checking rather than by writing.

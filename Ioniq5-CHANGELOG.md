@@ -3,6 +3,17 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.2.1 - the front page now says the VM is interactive on the vendor path
+
+The README's interaction section described the **research chain's** click proof, which was accurate and is now the weaker of the two. The authentic path's proof - `VM_INPUT_FOCUS_BEFORE_MOVE
+pid=797 uid=0` after a synthetic click - is added above it, together with the two facts that make it useful: the input module was **already** in the vendor compositor's configuration, and what
+had been missing was a surface under the pointer, the same lesson the research chain taught.
+
+It also states the goal's completion in the same breath as the caveat, so a reader gets both: **the vehicle's own boot path, and interaction with it**, with the three substitutions named as
+the whole of what is not the vendor's.
+
+That is the fourth front-page correction tonight, and the pattern holds - the document was right when written, a measurement overtook it, and the checking is what catches it, not the writing.
+
 ## 5.2.0 - the authentic path is interactive: a click reaches a real client
 
 The interaction proof this project has had since the research chain now exists on the **vendor** path as well. On the authentic boot - vendor kernel, vendor `esinit`, esinit's own

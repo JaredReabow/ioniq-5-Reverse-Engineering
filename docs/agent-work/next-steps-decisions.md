@@ -94,3 +94,93 @@ a benign connection test *in the relevant security context* is required, not a D
 Reviews only. No payload, no signature bypass, no flash, no device. Both reviewers were told the
 constraints and both respected them; Daybreak Blue additionally noted that its recommended
 control-flow proof is a sentinel redirect, not an exploit.
+
+---
+
+# Fourth review: Opus 4.7 (completed after Opus 5.5 was blocked)
+
+`codex-router/claude-subscription/claude-opus-5-5` returned `502` ("Opus 4.8's safeguards flagged
+this message"). `claude-opus-4-7` on the same router completed normally and is recorded here as a
+full fourth review. No reworded retry was attempted against the blocked model.
+
+## Where Opus 4.7 joined the majority
+
+Its #1 and #2 are the same as Astra's: **resolve, statically, whether the install-side consumers open
+`/update/usb/...` directly or an on-unit copy.** Its reasoning is the sharpest statement of why:
+
+> "§1 is already the strongest verified structural weakness ("no verified descriptor crosses from
+> verify to use"); the two guards flagged under command-injection (§AMBIGUOUS #4) mean the §2 route
+> is conditional on taint that is currently untraced, whereas the §1 route needs only one answered
+> question; and it requires no runtime, so it is unaffected by the VM blockers and the gadget-stack
+> oops."
+
+Test prescribed: enumerate every `open`, `fopen`, `QFile::…`, and `dd`/`cat` argv around the
+`DecryptToPIPE` pipeline, resolve each path back to literal / `activeResourcePath` read / copy sink,
+and check for any `cp`/`rename`/`sendfile`/read-write loop between `checkHash` and the consumer.
+
+**Tally on the primary question: Astra and Opus both say update provenance; Daybreak Blue says iAP2
+corruption geometry. Two of three independently converge on provenance.**
+
+## Opus's one genuinely new route, and its self-limitation
+
+Opus reframed §5 rather than accepting it:
+
+> "The brief frames §5 as 'crack MD5', §6 as 'dropbear needs a key', and §4 as 'heap corruption as
+> UID 0'. The unexamined framing is `/tmp` as a shared, writable, early-boot namespace that gates
+> authentication, console, and a root-service socket. Concretely: what populates `/tmp/shadow` at
+> boot, when, and by whom? If any lower-privilege or pre-auth component writes it (or if any
+> unprivileged writer can win a boot race against whatever does), the MD5-crypt hash in §5 becomes
+> irrelevant — the row is attacker-authored."
+
+**Checked, and it is blocked by construction.** `esinit` mounts `/tmp` via
+`mount -t tmpfs tmpfs /tmp` (line 10), then at line 90 runs `ln -s /etc/shadow.Global /tmp/shadow`;
+`/tmp/passwd` is a root-owned copy at lines 493/495. tmpfs defaults to mode `01777`, so the sticky
+bit prevents a non-root principal from unlinking a root-owned entry — the symlink cannot be swapped
+for an attacker-authored shadow file. The route is not available as stated.
+
+## The insight that came out of checking it
+
+The same verification answers a larger question the brief never asked: **is there an unprivileged
+local principal at all?** Almost nothing on this device drops privilege — across
+`lib/systemd/system/`, the only `User=` directive is `User=%i` in `dropbear@.service`. Everything
+else runs as root by default.
+
+That matters strategically. It means:
+
+- local-privilege-escalation framings — including Daybreak Blue's "harden the iAP2 corruption into a
+  control-flow proof" — have **no attacker context to escalate from** unless one is first
+  manufactured (a USB media parser running as a non-root or differently-SMACK-labelled process);
+- the realistic entry must therefore arrive from **outside** the box (removable media, or the debug
+  network), which is exactly where Astra's and Opus's recommendation points;
+- and Astra's caution that "mode 0777 does not establish SMACK permission to connect" cuts the same
+  way — even the iAP2 socket presumes an attacker process that this image may not naturally produce.
+
+Daybreak Blue's geometry work remains worth doing because §4 is the only *measured* memory
+corruption, but it is now correctly ranked third rather than first: it is a primitive in search of an
+attacker.
+
+## Where Opus dissents
+
+It says **abandon re-deriving the `id3.so` APIC underflow**, against both other reviewers, who each
+proposed the media-parser route:
+
+> "a media-parser bug with no stated privilege, whereas §4 already gives a *measured* heap-corruption
+> primitive in a UID-0 service reachable over a 0777 Unix socket. Spending analyst time re-proving a
+> weaker, unprivileged bug while a stronger, privileged, runtime-confirmed one sits un-triaged is the
+> wrong allocation."
+
+That dissent is partly dissolved by the section above: if there is no unprivileged local principal,
+§4 is *not* actually reachable by an attacker, so the comparison Opus makes is not like-for-like. The
+media parser matters precisely because it is the one plausible way to *create* the non-root context
+that §4 needs. Recorded as a live disagreement, not resolved.
+
+## Revised VM requirement (Opus, and consistent with the other two)
+
+> X = "`AppUpgrade` can be launched headlessly in the VM under the `ld.so.preload` tracer proven in
+> §VM, so that the `open()` paths feeding §1's consumers and the fully-expanded `system()` argv at
+> §2's `sudo mount … %s %s` sinks are captured to disk."
+
+Minimum path: reuse the blocker-3 capability already measured; do **not** spend time on blockers 1,
+2 or 5 (UI/GL concerns — `AppUpgrade` is a non-GL path); blocker 4 only needs the subset `AppUpgrade`
+dlopens plus a stubbed D-Bus peer. Opus also restates the dump-first discipline: capture
+`open()`/`execve()` before any variant test so a no-op cannot be mistaken for a negative.

@@ -6262,3 +6262,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The launcher's own log answered it: the application registers its handle three milliseconds after a registration timeout, the launcher treats the late registration as a duplicate and terminates the app, and the pid changes read as crashes all night are that deregister and relaunch loop.
 - Both earlier hypotheses were refuted in the same log, and one of them was mine: no database failure text and no wayland error text at all.
 - So the remaining gap is a timing margin, and the cheapest attempt is a flag rather than a patch: more virtual cpus before touching a vendor binary. Added a pid stability check to precede any capture, and noted that for the third time the answer was in a log nobody had collected.
+
+## 2026-11-05 - more cpu does not buy the three milliseconds
+
+- Tested the cheap fix across three cpu counts with process stability as the check rather than pixels. More cpu makes the bus name owned sooner and does not move the margin, so it is not throughput.
+- Checked whether the deadline is configurable before another run went looking: it is not. There is no timeout key, the launcher's one configuration file does not exist on a running unit, and the deadline is internal.
+- Read what the timeout is actually waiting for, which reframes the gap: a preload complete signal, not application startup. Laid out three options in ascending order of interference, with the negative recorded either way.

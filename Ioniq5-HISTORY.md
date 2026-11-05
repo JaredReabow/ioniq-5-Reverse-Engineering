@@ -5908,3 +5908,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Swept the configuration layer for the pattern found twice before and found nine instances: the account database, the mount table, the resolver configuration, the valid shell list, the compositor configuration and three images are all symlinks into the world-writable temporary directory.
 - Read the reason fairly: the root filesystem is read-only at runtime, so a generated file does need somewhere writable. The error is the destination, not the symlink, and root-only writable locations exist and are used elsewhere.
 - Ranked them by cost, with the resolver first because its consumers read continuously, and wrote the single change that fixes all nine: point them at a root-only directory. Added as a fix item with its cross reference.
+
+## 2026-11-05 - the navigation payload is world-writable
+
+- Swept file permissions and found one hundred and twenty-eight world-writable files, two of which are the navigation binary and a startup shell script. Directory modes prevent creating files there, but the file modes permit modifying those two in place.
+- Normal boot leaves that partition read-only, but the application launcher itself remounts it read-write at runtime, so the window exists. The same launcher builds a navigation verification key in the temporary directory, which matches the earlier finding where a temporary key let a signed binary run as root.
+- Separated what is measured from what is not: the key may be read from the tree it verifies, and whether the check gates execution is unknown. Filed both with a fix that is two lines of image build plus shipping the key.

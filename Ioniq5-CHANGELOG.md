@@ -3,6 +3,38 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.12.9 - V-066: the navigation payload is world-writable, and its verification key is built in /tmp
+
+The permissions sweep found **128 world-writable files**, and two of them matter:
+
+```
+/navi/Bin/AppNavi         -rwxrwxrwx   143,718,392 bytes
+/navi/Bin/CANService.sh   -rwxrwxrwx             217 bytes
+```
+
+Directories are `0755`, so nothing unprivileged can **create** files there - but **existing world-writable files can be modified in place**, because the file mode governs that, not the directory.
+
+**The mitigating fact is measured**: normal boot leaves `/navi` read-only. **The opening fact is also measured**: `AppLauncher` itself carries `mount -o remount,rw /navi` and `remount,ro /navi` - **the launcher opens a read-write window at runtime.**
+
+### And the same binary materialises a verification key in /tmp
+
+```
+/tmp/navi_public.key
+:/navi_public.key
+LOCFILE:/update/activeNaviPath::DEFAULT:/navi/navi...
+RSA_verify
+```
+
+**No navi public key ships in the image** - so the launcher writes it at runtime and verifies against it. That is **exactly the V-048 shape**, where a `/tmp` key was trusted and a binary this project signed ran as `uid=0`.
+
+**What I did not establish:** whether the key is read from the very tree it verifies (making the check self-referential), whether it is written before an attacker could reach it, and whether the verification gates execution at all. Those three are named as the next measurements rather than assumed.
+
+### The fix is two lines of image build plus one of packaging
+
+`chmod -R go-w /navi`; mount `/navi` read-only unconditionally; and **ship the navi key** in a root-owned read-only location so nothing has to materialise it at runtime - which is also what V-048 needs.
+
+Filed as V-066 and fix item 17.
+
 ## 5.12.8 - V-065: nine /etc trust anchors point into /tmp, and the reason is fair even though the target is not
 
 The V-054/V-055 family had two members on record. It has **nine**:

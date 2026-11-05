@@ -342,6 +342,25 @@ boot script that writes them. Alternatively `PrivateTmp=yes` on every unit that 
 **Verify.** As a non-root process, attempt to append to `/tmp/passwd`; on this image `1777` permits it, and after the
 fix it must fail. V-054 already carries the root-consequence reproduction.
 
+### 17. The navigation payload: world-writable binary and a verification key in `/tmp`
+
+**Evidence.** `/navi/Bin/AppNavi` (143,718,392 bytes) and `/navi/Bin/CANService.sh` are **`-rwxrwxrwx`**, along with
+126 configuration files. `/navi` is read-only in normal boot, but `app/bin/AppLauncher` carries
+`mount -o remount,rw /navi` / `remount,ro /navi`, so a **read-write window** opens at runtime. The same binary contains
+`/tmp/navi_public.key`, `:/navi_public.key`, `LOCFILE:/update/activeNaviPath…` and `RSA_verify`, and **no navi public key
+ships in the image**, so the key is materialised in `/tmp` at runtime.
+
+**Exposes.** During the read-write window, any non-root process can modify the navigation binary or the startup shell
+script in place. If the key is read from the navi tree it verifies, the check is self-referential and the payload can be
+replaced with a matching key. V-048 already demonstrated the consequence of trusting a `/tmp` key: a binary this project
+signed ran as `uid=0`.
+
+**Fix.** `chmod -R go-w /navi` in the image build; mount `/navi` read-only unconditionally and direct writers at
+`/rw_data`; move the verification key to a root-owned read-only location and **ship it**, as fix item 9 also requires.
+
+**Verify.** During the launcher's window, open `/navi/Bin/AppNavi` for writing from a non-root process; compare the
+contents of `/tmp/navi_public.key` against any key present in the navi tree.
+
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
@@ -386,6 +405,7 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | 14 nine bus policies allow the default context | V-063 |
 | 15 106 of 107 services run as root with no systemd hardening | V-064 |
 | 16 nine /etc trust anchors point into /tmp | V-065 |
+| 17 world-writable navi binary and a navi key in /tmp | V-066 |
 
 ## What is not claimed
 

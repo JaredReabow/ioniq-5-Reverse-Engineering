@@ -69,6 +69,7 @@ matter** unless you know what you are looking for.
 | `docs/vehdata/13-two-instances-at-once.md` | Two `AppHomeScreen` instances run concurrently, which explains both the Wayland crash and the SQLite commit failures |
 | `docs/vehdata/14-duplicate-confirmed-as-the-cause.md` | Killing down to one instance drives both the Wayland errors and the commit failures to zero |
 | `docs/vehdata/15-retraction-duplicate-not-confirmed.md` | **Retraction**: the duplicate was not the cause; the zero counters came from a truncated log |
+| `docs/vehdata/16-chronology-of-the-failure.md` | The failure in order across half a second: the app survives the Wayland error with a dead connection |
 | `evidence/fde/` | The passphrase demonstration with its negative control. |
 | `docs/v059-command-substitution-filtering.md` | Whether the mount image path is filtered before it reaches a shell string - measured: it is not |
 | `docs/v059-producer-trace.md` | What feeds the substituted path: `QFileInfo::absoluteFilePath`, and `%1` in `cp -a %1 /app/bin/` is the payload's own binary |

@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.4 - retraction: the duplicate is not the cause, and I nearly shipped the opposite
+
+Last entry said "confirmed: the duplicate process caused both error families", on the strength of `wlerr=[0] commitfail=[0]`. **That was wrong**, and the tell was in the same line: **`initdone=[0]`** - not one `AppHome Init Done` in the log.
+
+The launcher redirects the application's stderr with `>`, so **every new instance truncates the log**. The zeroes came from a file created seconds earlier, not from a fixed application. **I counted an empty file and called it success.**
+
+**The counter-observation, from a run with one instance and a log that is demonstrably real:**
+
+```
+V2_PIDS=[2654]  LOGSZ=99902  LINES=745
+  wl_display@1: error 0: invalid object 19
+  [FTL] The Wayland connection experienced a fatal error (Invalid argument)
+  [ERR] AppHomeModel::SaveSetupLayoutDB ][ 6254 ] DB UPDATE COMMIT FAIL
+```
+
+**With one instance, both failures are still there.** The duplicate is not the cause. The earlier table compared a real log against an empty one.
+
+**What survives:** duplicate instances do occur (`2535 2465`, `2581 2500`, `2628 2561`) and are worth noting, but they are at most a contributing factor. The errors are real, occur at **~00:02:29** in every run, and persist with one instance.
+
+### The failure, stated plainly, and made a rule
+
+I compared counts from two files **without checking they were the same kind of thing**. Rule 14: whenever a count is evidence, record **the size and identity of the file it came from** in the same line. `wlerr=[0] logsz=[281]` would have caught it instantly. **A count of zero is the most suspicious number there is**, because emptiness and success are indistinguishable in it.
+
+**Next:** the failure is pinned to a moment - immediately after `AppHome Init Done`, ~00:02:29 - where the application both fails a commit and receives a Wayland `invalid object`. The next measurement is what it does **at that instant**, with the log's size and pid recorded alongside every count.
+
 ## 5.11.3 - the duplicate instance was the cause, and both error families go to zero
 
 Killed every instance except the oldest and compared the counters.

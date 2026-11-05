@@ -91,3 +91,12 @@ one per second, which eliminates the hypothesis instead of supporting it.
 
 **Rule.** When a quantity matters, compute it from the data (`grep -c`, a sum over the field you mean) rather than from a number that merely appears in a plausible position. Serial
 numbers, timestamps, offsets and PIDs all live where counts live.
+
+## 10. Verify the write, and verify that your verification ran
+
+**The case.** A scripted edit to the register printed that it had recorded a finding. The insertion had actually matched nothing, so the file was unchanged - and the verification step I ran afterwards printed `0`, which I read as "the phrase may be phrased differently" and moved past. Two commits later the register was still asserting the opposite of what the evidence sheet said. The check existed, ran, produced the answer, and was ignored.
+
+The earlier version of this rule, from §7, was "verify the marker, not the exit code". This one is one step further out: **the marker check has to be asserted, not printed.** A count of zero next to a phrase you expected is a failure signal, not a note.
+
+**Rule.** After a scripted edit, assert positively - `grep -q` the exact new phrase and exit non-zero if it is absent - rather than eyeballing a number. And when a verification produces an unexpected value, stop the commit; do not reword the search and carry on.
+

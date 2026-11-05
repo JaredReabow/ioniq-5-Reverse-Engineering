@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.3 - README brought up to date with the real state
+
+The README's status tables had drifted: two overlapping tables, both still describing navigation as the open problem and input as "not wired end to end". Rewritten to the measured state.
+
+**At the top**, what the project is and where both goals stand: the vehicle's own kernel, init, compositor and application, with the application **laying out its real home screen and accepting clicks**, and a table naming the **three substitutions** and why each exists - software renderer for the IAS GPU backend, MICOM stand-in for the SPI-attached MICOM, software-GL driver path for the vendor EGL stack the launcher strips.
+
+**The two open problems, stated precisely:** home widget values (placeholders, ordinary adaptor work, in progress) and engineering mode in the projection (the D-Bus method is accepted and inert; the signal route is forgeable per V-060 but its payload format is undecoded).
+
+**Goal 2 in one paragraph** - 60 entries, 12 fix-cost items, V-059's keyless downgrade as the strongest finding, V-060 as the new one, and the filename route recorded as **refuted rather than deleted**.
+
+**Two claims narrowed rather than left flattering.** The input row said clicks were "delivered to a real client (`pid=797`)", which is true and misleading: `797` was the **compositor's own client** on the black standby frame, not the application. It now says delivery to the app is **not yet measured** on the laid-out screen. And the stale row claiming input was "not wired end to end" is gone, because the click path demonstrably works - what was missing was something to click.
+
+Both tables corrected, checks green.
+
 ## 5.9.2 - the special-key signal has no sender check (V-060)
 
 The better route was the front-panel special key, and the receiving side turns out to be unfiltered.

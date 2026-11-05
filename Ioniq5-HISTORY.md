@@ -5586,3 +5586,8 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Read how the manager subscribes to the front-panel special key and found it passes empty service and empty path, which means any sender and any path. So nothing authenticates who delivers a key event to it.
 - Tried it in the projection with nine payloads and no engineering mode appeared. The service that normally emits was not running, so the payload semantics or a downstream gate is the remaining obstacle, not authentication.
 - Recorded as a new register entry with the disassembly and the measured negative both stated plainly.
+
+## 2026-11-05 - README brought up to date
+
+- The README had two overlapping status tables and both had drifted, still calling navigation the open problem and input unwired. Rewrote the status section to the measured state, with both goals, the three substitutions and their reasons, and the two real open problems.
+- Narrowed two claims rather than leave them flattering: a click target that was the compositor rather than the application, and an input row that said unwired when the path demonstrably works.

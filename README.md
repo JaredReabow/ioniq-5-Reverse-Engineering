@@ -38,25 +38,69 @@ requirements.
 
 ## Where the project is right now
 
-The VM boots the genuine vendor kernel and the genuine recovered userspace, and
-reaches the real Hyundai home screen. Navigation is the open problem.
+*Status as of 2026-11-05.* Two goals run in parallel: **(1)** run the infotainment system in a VM, as
+close to stock as is reasonable, with working interaction; **(2)** identify root access and keep what
+malicious actors could use in a separate, patchable register (`Ioniq5-VULNERABILITIES.md`).
+
+**Goal 1 is met in outline.** The vehicle's own kernel boots the vehicle's own `esinit`, which starts
+the vehicle's own compositor, which runs the vehicle's own `AppHomeScreen` — and that application now
+**lays out its real home screen and accepts synthetic clicks**. Three substitutions stand in for vendor
+components that need hardware we do not have, all documented:
+
+| Substitution | Stands in for | Why |
+| --- | --- | --- |
+| software renderer (`ias-backend-soft.so` / pixman) | the IAS GPU backend | no vendor GPU in QEMU |
+| MICOM stand-in (`eng-data-sim`) | `com.lge.car.micom` | no SPI-attached MICOM |
+| software-GL driver path | the vendor EGL/GL stack | vendor launcher strips `LIBGL_*` from children |
 
 | Area | State | Notes |
 | --- | --- | --- |
-| Vendor kernel boot | **Working** | Gen5W kernel boots under QEMU with a documented ABL boot-parameter adaptation. Anti-tamper is satisfied inside the VM. |
-| Recovered rootfs / userspace | **Working** | EU 2026-01-28 image decrypted offline and mounted read-only. |
-| Launcher: standby → profile confirm | **Working** | Authentic driver-selection and safety-notice screen. |
-| Launcher: Home screen | **Working** | Authentic `AppHomeScreen` with real tile grid. |
-| AppNavi (navigation) | **Partial** | Process starts, initialises, and renders genuine map pixels into its own surface. |
-| Home ↔ Navigation compositing | **Blocked** | AppNavi never becomes the foreground window; Home stays visible. See below. |
-| Audio | Not started | Needs C-TRACS/audio service contracts. |
-| CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed. |
-| Persistence, restart/suspend | Not started | Needs evidence-derived storage and power contracts. |
-| Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end. |
+| Vendor kernel → vendor `esinit` → systemd | **Working** | Multi-User at ~97 s on the authentic path; `docs/vm/authentic-hmi.md` |
+| Vendor compositor (`weston.real`) | **Working** | the vehicle's own binary and its own `weston_1920.ini` |
+| Managed `AppHomeScreen` | **Working** | paints, then **lays out the home screen** once the manager is told the vehicle is on |
+| Interaction (synthetic touch) | **Accepted; delivery to the app unmeasured** | `VM_INPUT_CLICK_ACCEPTED`, `VM_INPUT_FOCUS_BEFORE_MOVE pid=797 uid=0` - that pid was the compositor's client on the standby frame |
+| Home widget values (Battery, Range) | **Placeholder** | widgets are placed, values render `---`; the data path is being mapped |
+| Engineering mode inside the projection | **Not open** | D-Bus `show_engineermode` is accepted and *does nothing* (two runs); see below |
+| Reproduction from an empty base | **Working** | `tools/uk_fw/vm_partimg/inject-stockui.sh`, verified end-to-end |
+| Navigation (`AppNavi` foreground) | Open | renders real map pixels into its own surface, never becomes foreground |
+| Audio, persistence, suspend | Not started | need evidence-derived service contracts |
 
-Everything above is measured by snapshot runs — the disk image is never written
-to, and the base rootfs hash is rechecked after each experiment
-(`4953a005…6d036f`).
+### The two open problems, precisely
+
+1. **Home widget values.** The layout is correct and the values are `---` because no vehicle data
+   reaches the widgets. This is ordinary adaptor work — the same kind that produced every other
+   contract in this repository — and it is in progress.
+2. **Engineering mode inside the projection.** Two D-Bus routes exist on a stock unit. The method
+   route is **accepted and inert**: `com.lge.avn.appmanager.info.show_engineermode` returns a clean
+   `method return` and starts nothing, measured twice, the second time with the home screen running
+   (`docs/engineering-mode/show-engineermode-accepted-but-inert.md`). The signal route is **forgeable**
+   — see V-060 — but the payload format the manager expects is not yet decoded.
+
+**How the layout problem was solved**, because it is the shape of every remaining one: the app was not
+broken and nothing was mis-rendering. The standby frame *was* the application's powered-down face, and
+one call tells the manager to power on:
+
+```sh
+dbus-send --session --dest=com.lge.hyundai.avn.appmanager /Information \
+  com.lge.avn.appmanager.info.set_power_on_status int32:1 int32:0
+```
+
+Frame: `docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png`.
+
+### Goal 2 in one paragraph
+
+**60 entries** in `Ioniq5-VULNERABILITIES.md`, **12 items** in `docs/REMEDIATION-REPORT.md`, and the
+strongest finding is unchanged: **V-059**, a keyless downgrade — a genuine older package is encrypted
+with the unit's own key, so it installs while the version gate is satisfied against genuine current
+bytes, and anti-rollback does not bound it. **V-060** is new: the manager subscribes to the front-panel
+special-key signal with an empty service and empty path, so no sender check stands between a process on
+the system bus and a key event. One route was *refuted* this session — a crafted filename cannot reach
+the shell command that installs, because the staging copy renames every artefact to a fixed name — and
+the refutation is recorded rather than deleted.
+
+**The record itself is checked.** `tools/check_all.sh` verifies register consistency (no gaps, no
+duplicates, no dangling references), append-only history, tool syntax and every internal document link.
+All four stages are green at the commit this line describes.
 
 ### Where the VM work stands
 
@@ -65,12 +109,14 @@ to, and the base rootfs hash is rechecked after each experiment
 | Vendor kernel boot | Working | Gen5W kernel boots under QEMU with a documented ABL boot-parameter adaptation; anti-tamper satisfied inside the VM |
 | Recovered rootfs / userspace | Working | EU `260128` image decrypted offline; mounted read-only |
 | Launcher standby → profile confirm | Working | Authentic driver-selection and safety-notice screen |
-| Authentic Home screen | Working | Real `AppHomeScreen` tile grid |
+| Authentic Home screen | **Working** | the app *lays out* its real home screen, but only after `set_power_on_status`; without it the app shows its standby face |
+| Home widget values | Placeholder | Battery and Range are placed and read `---`; the vehicle-data path is being mapped |
 | AppNavi (navigation) | Partial | Process starts and renders genuine map pixels into surface 3000 |
-| Home ↔ Navigation compositing | Blocked | AppNavi never becomes the foreground window; Home stays composed |
+| Home ↔ Navigation compositing | Open | AppNavi renders but never becomes the foreground window |
 | Audio, persistence, restart/suspend | Not started | Need evidence-derived service contracts |
-| CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed |
-| Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end |
+| CAN / MICOM | Partial | Stand-in owns `com.lge.car.micom`; vehicle **values** are the missing part |
+| Input (touch/keys) | **Working, with a caveat** | clicks are accepted and delivered (`VM_INPUT_CLICK_ACCEPTED`, `VM_INPUT_FOCUS_BEFORE_MOVE pid=797 uid=0`) - but on the black standby frame the focus target was the **compositor's own client**, not the app. Whether a click now reaches an app widget on the laid-out screen is **not yet measured** |
+| Engineering mode in the projection | Not open | `show_engineermode` accepted and inert; the special-key signal is forgeable (V-060) but its payload format is undecoded |
 
 ### Fidelity: the vehicle's own boot path paints a frame
 

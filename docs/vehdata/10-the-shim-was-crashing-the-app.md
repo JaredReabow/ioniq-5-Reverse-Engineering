@@ -55,3 +55,44 @@ Wayland client expects.
    alone - it is the `close()` override that can disturb an unrelated file descriptor.
 2. With a stable application and no shim, re-run the power-on call and capture at +30/+60/+120 s. That
    isolates whether the standby face is a real state problem or was an artefact of the crash loop.
+
+---
+
+## 16. The shim was one cause; `ivi-wm` is another - and it is the tool I place with
+
+Removed `/etc/ld.so.preload` and re-ran the power-on test with captures at +30/+60/+120 s. The application
+**still churned**:
+
+```
+V1_APP_UP=0s pid=[2442]
+V1_pid30=2518      V1_pid60=2640      V1_pid120=2640 (then a new pid later)
+wayland_errs=3
+```
+
+But the difference from the run where the pid was **stable** (3015 -> 3015 -> 3015) is one thing: **that run
+made no `ivi-wm` calls**. This one calls `ivi-wm 2080` immediately before every capture, because the capture
+helper places the surface first.
+
+**So the placement tool is the second crash source.** `ivi-wm` drives `ivi_window_manager` against a live
+surface; the client then reports `wl_display@1: error 0: invalid object 19` and dies. That is consistent with
+a protocol operation on a surface whose object the client has already replaced or destroyed - the tool wins
+the race sometimes (earlier, placement did change the output) and kills the client other times.
+
+**Which explains the most confusing observation in this series**: every "placed" capture showed the
+**standby** face because placing the surface **restarted the application**, and what got photographed was a
+freshly started instance that had received no state at all.
+
+## 17. What this leaves
+
+- **Do not call `ivi-wm` against a live application surface** while diagnosing it. It is destructive often
+  enough to invalidate any conclusion drawn from a capture that follows it.
+- The projection **may not need placement at all**: `ivi-window-manager.so` places surfaces itself, and the
+  application is the main surface. The honest test is to **capture repeatedly with no `ivi-wm` calls at all**
+  and watch the pid and the frame.
+- If the app then stays alive and the frame is the standby face, the standby question is real and separable.
+  If the frame is the laid-out home screen, then the UI was working all along and this project was photographing
+  it with a tool that kept knocking it over.
+
+**Established:** two of this project's own instruments - the process-wide preload and the placement tool -
+each independently kill the application under test. **Not established:** what the projection shows when
+nothing of ours interferes.

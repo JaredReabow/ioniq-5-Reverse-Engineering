@@ -5686,3 +5686,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Captured the same surfaces at thirty, ninety and a hundred and fifty seconds and found the frame only stops changing at about ninety. Every reading before that, including my own, was a transitional state.
 - The settled frame turned out to be more informative than the CAN work: a title bar showing a translation key as literal text and a black region, which points at a resource model that never loaded rather than at missing vehicle data.
 - Added a rule after writing an elided path twice in one session, and then broke that rule inside its own text, which the link checker caught.
+
+## 2026-11-05 - the frame I called the home screen was the camera app
+
+- Checked where the string in the title bar actually comes from and found it in exactly one application, the camera one, in fifty-four files. The home screen's own strings are present in all of its translation files, so its translations were never missing.
+- The black region is a camera preview with nothing attached, not missing theme images. Corrected the claim in place rather than quietly.
+- Noted why the captures could not have told me: every surface returned the same size, so the ids identified nothing and the compositor log is what has to be read.

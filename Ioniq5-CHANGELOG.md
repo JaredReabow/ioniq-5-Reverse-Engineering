@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.6 - the frame I called the home screen was the camera app
+
+Last entry said the settled frame showed an "unloaded resource model". **It was `AppCamera`, and the correction came from the strings themselves.**
+
+`STR_CAMERA_ALERT2` exists in exactly one application:
+
+```
+app/share/AppCamera/system/StringInfo.qml
+app/share/AppCamera/localization/AppCamera_en_GB.qm   (+ 51 more locale files)
+```
+
+**54 files, all under `AppCamera`.** And the strings the home screen's widgets actually use - `STR_EV_BATTERY`, `STR_EV_RANGE` - are present in **all 26** of the home screen's own `.qm` files. So the home screen's translations were **available all along**, and the frame I analysed belonged to a different program.
+
+**The black region fits too**: `AppCamera` with no camera attached draws an unpainted preview. It was never missing theme images.
+
+**Why the captures could not tell me:** every surface id returned the **same 22,057 bytes**, so `weston-screenshooter` was compositing the same output whatever I placed in front. **The ids identified nothing.** Surface identity has to come from the compositor log - which is the next measurement, and it is cheap: pull `/tmp/weston-real.log` through the base64 channel.
+
+**Two lessons.** First, a string is an identifier: one grep would have told me whose window I was looking at before I built a theory on it. Second, this is rule 11 again one level down - I applied it to *reading the image* and not to *attributing it*. Corrected in `docs/vehdata/05-...md` §7 and in `docs/CURRENT-STATE.md` rather than quietly rewritten.
+
 ## 5.10.5 - the frame settles at ninety seconds, and what it settles into
 
 Tested the timing first, because it decided whether anything I had captured was a result at all:

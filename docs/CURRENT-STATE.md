@@ -224,6 +224,27 @@ manager implements it and honours the call at the interface level.
 `AppEngineerMode` process appeared in the following 80 seconds. So the entry is **accepted but unobserved in effect** - the call must be repeated **after** `AppHomeScreen` owns its bus name, which is
 a timing detail this project has already been bitten by more than once.
 
+### The display backend is forced, and that bounds the whole VM claim (measured 2026-11-05)
+
+The vendor ships five backends - `ias-backend.so` (the vehicle's), `drm-backend.so`, `fbdev-backend.so`,
+`headless-backend.so`, and `gl-renderer.so`. This projection runs the **least faithful** of them.
+
+And it cannot do better inside QEMU: the vendor kernel's **only** DRM driver is `CONFIG_DRM_I915=y`; `BOCHS` and
+`QXL` are not set, and `CONFIG_DRM_VIRTIO_GPU` is **not present in the configuration at all**. QEMU cannot present
+an i915 device, so `drm-backend.so` **ships and cannot be used**.
+
+**So `headless-backend` + `--use-pixman` + the solid-fill shim is not a preference - it is the only backend that
+runs**, and the vendor's IVI start-up sequence is therefore running against a display path it was not written for.
+
+Three ways out, with their real costs: rebuild a 4.1.27 kernel with virtio-gpu (this project has **no kernel
+tree**); patch the vendor's start-up path (against the standing rule, and fragile - see the wrapper experiment);
+or accept it and say so plainly, which is what this page now does.
+
+**The claim the evidence supports:** the projection runs the vendor's kernel, init, compositor modules and
+application, and **cannot give them the display hardware they were written for.** Everything downstream - the
+rejected surface creation, the splash/standby frames, the missing widget values - is downstream of that one
+substitution, which the vendor kernel's own configuration makes unavoidable.
+
 ## 1e. Engineering mode in the projection: three findings, none of them "it works"
 
 1. **The method route is inert.** `com.lge.avn.appmanager.info.show_engineermode` returns a clean

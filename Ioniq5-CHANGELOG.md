@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.15 - a second instrument of ours is killing the app, and it is the one I photograph with
+
+Removed the preload and re-ran with captures at +30/+60/+120 s. The application **still churned**: 2442 -> 2518 -> 2640, with the same `invalid object 19` in its log.
+
+The difference from the run where it was **stable** (3015 -> 3015 -> 3015) is exactly one thing: **that run made no `ivi-wm` calls.** This one calls `ivi-wm 2080` immediately before every capture, because the capture helper places the surface first.
+
+**So the placement tool is the second crash source.** It races a live client's surface through `ivi_window_manager`; the client then reports `wl_display@1: error 0: invalid object 19` and exits. It wins sometimes - placement did change the output earlier - and kills the client other times.
+
+**And that explains the most confusing thing in this whole series**: every "placed" capture showed the **standby** face because **placing the surface restarted the application**, and I was photographing a fresh instance that had received no state at all. I called that "the app is in standby" and then built three runs of hypotheses on it.
+
+### What this leaves
+
+**Do not call `ivi-wm` against a live application surface while diagnosing it.** It is destructive often enough to invalidate every conclusion drawn from a capture that follows.
+
+And the projection **may not need placement at all**: `ivi-window-manager.so` places surfaces itself. The honest test is to **capture repeatedly with no `ivi-wm` calls at all** and watch both the pid and the frame:
+- app alive and standby frame -> the standby question is real and separable
+- app alive and laid-out frame -> **the UI was working all along** and this project has been photographing it with a tool that kept knocking it over
+
+Both of this project's own instruments - the process-wide preload and the placement tool - independently kill the application under test. That is a bigger finding about the methodology than anything either was built to measure.
+
 ## 5.10.14 - the restart loop was my own shim, and the app's log proved it
 
 The console had been printing `AppHomeScreen ) >> /tmp/apphome-byhand.log 2>&1` for days. I finally read that file - 98,087 bytes - and its tail is unambiguous:

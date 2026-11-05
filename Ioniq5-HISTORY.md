@@ -5740,3 +5740,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Read the log file the console had been naming for days. The application initialises completely and then dies on a Wayland protocol error, so the restart loop was a client crash rather than a state problem.
 - Then tested the obvious suspect, my own preloaded library, and the application held one process id for the whole window with it removed and churned through several with it present. The shim was the cause.
 - Revised what the shim can be used for: not process-wide, and it must not override close. Recorded the lesson, that the log was named in output I was already reading and the instrument I trusted was what broke the system under test.
+
+## 2026-11-05 - the tool I photograph with is killing the app
+
+- Removed the preload and the application still restarted. The difference from the stable run was exactly one thing: that run made no placement calls, and this one places the surface before every capture.
+- So the placement tool races the client's surface and kills it, which explains why every placed capture showed a powered-off screen: I was photographing a freshly restarted instance and calling it the state of the system.
+- Wrote down both findings against our own instruments, and the honest test that follows: capture repeatedly with nothing of ours interfering and see what is actually on screen.

@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.16.9 - the README's VM story was missing the kernel it now runs on
+
+The README has said "vendor kernel" since the beginning. **That is no longer the whole truth**: the display work runs on a **rebuilt** 4.1.27 with `bochs-drm`, and a reader following the README would have built the shipped kernel and hit the dead end this project spent hours documenting.
+
+Two rows changed:
+
+| row | before | now |
+|---|---|---|
+| kernel | *"Vendor kernel → vendor `esinit` → systemd: Working"* | plus **"Rebuilt kernel with a DRM device: Working - `bochs-drm` binds the QEMU VGA adapter, `/dev/dri/card0` exists, `Output Virtual-1`, Multi-User reached. **`virtio-gpu` does not exist in 4.1.27**"** |
+| application | *"Runs stably; shows its splash"* | **"Runs stably on `headless`; shows its splash"** - with the `drm-backend` stall named and pointed at the worker's result document |
+
+**Why the second row matters more than it looks:** the app's good behaviour was measured **on the headless backend**, and saying so is the difference between "the application works" and "the application works where it can connect". On `drm-backend` it cannot connect at all, and the README now says that in the same cell.
+
+### The pattern this is part of
+
+Four entry documents have now needed correcting for the same reason - **they were accurate when written and were not revisited as the work moved**:
+
+1. the state page contradicting itself about the home layout;
+2. the README quoting 60 entries and 12 fixes;
+3. elided paths that broke the link checker;
+4. the fix list's tiers telling a platform team that config changes needed a release.
+
+**And this one is the cheapest of the five to prevent**: a row that names *which kernel* would have gone stale the moment the rebuild succeeded, and it did.
+
 ## 5.16.8 - correction: the error was absent because no client ever connected
 
 The worker's `05-drm-backend-result.md` corrects the entry I wrote a turn ago, and it is right.

@@ -6124,3 +6124,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The worker's result document corrected my last entry. The compositor initialises the new display device and then stalls before creating its socket, so the lack of a fatal error in that capture meant nothing had connected rather than that the problem was solved.
 - That is the third time in this stretch that an absence of errors was really an absence of activity, after a truncated log and a boot too short to reach userspace, so the rule got a name: before reading a zero, ask what would have produced a non-zero.
 - Restated where the goal stands: the device half is done and the compositor half is blocked on a stall, which is a different and easier problem than the one this session spent hours on.
+
+## 2026-11-05 - the readme's virtual machine story was missing the kernel it now runs on
+
+- The readme still described the vendor kernel as what the virtual machine runs, which stopped being the whole truth when the display work moved to a rebuilt kernel. A reader following it would have hit the dead end this project spent hours documenting.
+- Added the rebuilt kernel row with the device evidence, and narrowed the application row to say its good behaviour was measured on the headless backend, because on the display backend it cannot connect at all.
+- Counted five entry documents now corrected for the same reason: accurate when written, never revisited as the work moved.

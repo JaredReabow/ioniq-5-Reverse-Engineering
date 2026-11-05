@@ -5728,3 +5728,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Captured the same screen three times in one run: before placing the application surface, after placing it, and after killing the other applications. Placing it changed the output, so the placement mechanism works and the module investigation was unnecessary.
 - The other applications came back within seconds of being killed, so clearing them is not a strategy.
 - The frame is the application's powered-off face, and the likely reason is that my probe sends the power-on call at a fixed second rather than after the application owns its bus name. Recorded the corrected sequence.
+
+## 2026-11-05 - the app keeps dying, and the console said where the log was
+
+- Tried the corrected ordering and an explicit off-then-on edge. Neither produced the laid-out screen, but the process ids gave the reason: the application is being restarted repeatedly, with two instances alive at once and a third later, so any state event lands on an instance that is gone.
+- That makes the restart the obstacle and everything else downstream of it.
+- The console log contained the literal redirection telling me where the application's own stderr goes, and I had been reading the console without following it. That file is the next thing to read.

@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.13 - the corrected sequencing still shows standby, and the real finding is that the app keeps dying
+
+Two runs, two fixes, both negative - but they produced the finding that matters.
+
+**Poll for ownership, then power on:**
+
+```
+S1_OWNED_AFTER=0s  home=[2452] ...  S1_AFTER90 home=[2619]   S1_placed=114,783 (standby)
+```
+
+**Force an edge (off, then on) in case the event is edge-triggered:**
+
+```
+E1_OWNED=16s  home=[2581 2500]  E1_EDGE_SENT  t60=120,562  t105=120,562  E1_END home=[3225]
+```
+
+Neither produces the layout, and the pid columns say why: **`AppHomeScreen` is being restarted repeatedly** - **two instances alive at once** at one point, a third by the end, each new instance starting in standby so any event sent to the previous one is lost. That also explains the `AppHomeScreen was not p...` line I noticed and did not chase.
+
+**So the sequencing fix was necessary and not sufficient.** The obstacle is *why the application restarts*, and everything else - power state, CAN values, widget contents - is downstream of an application that stays alive.
+
+### The next measurement is sitting in a file I already know about
+
+The vendor launcher redirects the app's own stderr to a file; the console log contains the literal line `AppHomeScreen ) >> /tmp/apphome-byhand.log 2>&1`. **The crash reason is in `/tmp/apphome-byhand.log` inside the guest**, and this project now has a lossless channel to retrieve it. That is the next run: read why it dies, instead of guessing at the state model.
+
+I should have looked for that log three runs ago - the console was telling me where it was, and I was reading the console.
+
 ## 5.10.12 - placement works, and the standby face is my own sequencing bug
 
 Three captures in one run, shipped configuration:

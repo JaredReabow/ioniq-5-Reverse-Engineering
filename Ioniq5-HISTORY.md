@@ -6383,3 +6383,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Two of four checks were unmeasured because our own monitor runs unlabelled and was denied the labelled directory - the vendor's model working correctly against the measurement rather than the system. Recorded as not measured.
 - The remaining blocker is a duplicate registration; the one-line extraction that separates two live instances from an uncleared registry is written down, with the untested suspicion that our ApplicationManager stand-in never acks the handshake.
 - Qualified remediation item 1: it was measured while every app ran unlabelled, so the policy was never consulted for the subjects it constrains.
+
+## 2026-11-05 - one pid, twice, ten milliseconds apart
+
+- The duplicate registration was measured: a single pid registering twice ten milliseconds apart, with the next launch only after the kill. So it is a retry of an unacked call, not two instances, and the fix is to answer the registration method in our own stand-in.
+- Recorded the seventh instrument defect, which unlike the other six was the system refusing to be measured: our monitor ran unlabelled and the vendor's policy denied it the labelled directory. Recorded as not measured.
+- Consulted Opus 4.7 and Astra on the next step per the new standing instruction, and noted the new requirement to also push to the user's unsanitised repository, for which the remote is not yet known.

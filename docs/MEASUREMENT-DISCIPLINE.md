@@ -175,3 +175,17 @@ most suspicious number there is, because emptiness and success look identical in
 **Corollary.** A log whose first expected line is missing is not a log with no errors; it is a log that is not
 about the thing you are measuring. Check for the *presence* of a known-good line before counting the absence
 of bad ones.
+
+## 15. Never overwrite a vendor file in the same step as an assumption about the tool
+
+**The case.** To trace the application's Wayland traffic I needed the real binary under a new name and a wrapper
+in its place. I assumed `debugfs` has a `rename` command. It does not - it answered `Command not found` - and
+because my next command wrote the wrapper to `/app/bin/AppHomeScreen` regardless, **the vendor binary in the
+clone was destroyed** and only recovered because a pristine extraction of the same image exists.
+
+**Rule.** Copy to the **new** name first, verify it (size, magic, hash against the pristine source), and only
+then replace the original. Two steps, not one. If the tool lacks the primitive you wanted, the safe move is to
+stop, not to continue with the next command in the chain.
+
+**Corollary.** Keep a pristine, read-only extraction of every vendor artefact that gets modified. This project
+has one, which is the only reason a mistyped chain cost nothing.

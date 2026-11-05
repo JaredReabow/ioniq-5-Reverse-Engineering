@@ -6370,3 +6370,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Three of four planners asked for a claim anyone can re-derive without our hardware. Wrote tools/verify_findings.py: five structural claims read from image bytes, no VM.
 - Wiring it into the check suite immediately corrected a loosely carried number: 106 of 107 is the runtime count, while the static count is 129 unit files with one User=. Recorded both with their denominators.
 - The tool fails the suite when prose and bytes disagree, and it re-reads the surface table so a moved table breaks the projection patch loudly instead of silently.
+
+## 2026-11-05 - the blocker was a label we never applied
+
+- The worker's dmesg named the crash: SMACK denied app id 11 a file lock on the PHEV database, because every application in this projection has been running unlabelled.
+- The vendor's own rule grants that directory to App::home, and AppHomeScreen creates the database itself - so nothing was missing except the exec label, applied with chsmack exactly as the vendor applies it to the upgrade binaries.
+- Noted that this means the SMACK model has been inactive in every run so far rather than permissive, which qualifies a register finding, and that labeling correctly makes the /tmp trust inversion worse rather than better.

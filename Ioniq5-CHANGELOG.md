@@ -3,6 +3,41 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.27.0 - the crash was our own missing label, in the vendor's own vocabulary
+
+The worker corrected the surface id to `1010` (the camera's `2080` was my error, caught by Opus), reverted the deadline patch, and collected `dmesg`. **The SIGSEGV is a SMACK denial:**
+
+```
+audit: lsm=SMACK fn=smack_file_fcntl action=denied subject="_"
+       object="Data::commonphev" requested=l comm="AppHomeScreen"
+       path="/rw_data/app_data/common/AppPhev/PHEVDB"
+```
+
+**The projection has been running every vendor application unlabelled (`_`).** The vendor's rule `/etc/smack/accesses.d/home` grants `rwxatl` on `Data::commonphev` to **`App::home`** and to nothing else - and this projection never applied the **exec label**.
+
+### The application was never missing data
+
+`strings /app/bin/AppHomeScreen` carries `QSQLITE`, `CREATE TABLE IF NOT EXISTS`, `load PHEVDB DB`. **The PHEV database is the application's own artefact.** It fails because the directory is denied, not because a data source is absent.
+
+### The fix is three lines of the vendor's own commands
+
+The vendor labels executables with `chsmack -e`, exactly as `smack_setup.sh` does for the upgrade binaries:
+
+```
+/sbin/chsmack -e "App::home" /app/bin/AppHomeScreen     # in the image - read at execve
+mkdir -p /rw_data/app_data/common/AppPhev               # dir_labeling at smack_setup.sh:128
+```
+
+Checks in order, text first: `ps -o label=` prints `App::home`; the denial is **absent** from `dmesg`; a `PHEVDB` file exists that **the app created**; only then a frame.
+
+### Two consequences, in opposite directions
+
+**For the display goal:** this is the largest fidelity gap found tonight - the vendor's security model has been **inactive in every run so far**, not merely permissive.
+
+**For the register:** a finding that read "SMACK is permissive at 0" must be qualified, because the runs showing permissive behaviour had **no subject labels to enforce against**. The rule set itself is narrow where it counts - `App::home *` grants only `t` (traverse) - which is the one place tonight the vendor's model did what it promised.
+
+**And the vector that remains is unaffected:** nine `/etc` anchors still resolve through `/tmp`. Labeling correctly makes `V-065` **worse**, not better - a properly labelled `App::home` reading a `/tmp`-sourced `/etc` file is precisely the inversion `docs/trust-anchors-in-writable-runtime-paths.md` describes.
+
 ## 5.26.0 - the check the planners asked for, and the number it corrected
 
 Three of the four planners asked for the same thing: **a claim a stranger can re-derive without this project's hardware.** It exists now - `tools/verify_findings.py`, wired into `tools/check_all.sh` as a sixth stage.

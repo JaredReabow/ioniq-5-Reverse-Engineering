@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.8 - the controller announces nothing to a late client, and the screen shows the background
+
+Injected our own `ivi_place` into the clone and ran it 100 s after power-on, with `AppHomeScreen` (2599), `AppCamera` (2602) and `AppSetup` (3074) all up.
+
+```
+ivi_place: bound ivi_controller (registry name 17, version 1)
+ivi_place: announced by ivi_controller: 0 layers, 0 surfaces, 0 screens
+ivi_place:   global ivi_application / ivi_window_manager / ivi_hmi_requester / ivi_info_requester  all present
+```
+
+**Every global is there and the controller announced zero objects.** Each `--visibility` call then reported only the layer's own defaults and changed nothing.
+
+**And that explains the frame**: the composited output was **129,844 bytes - the early background** - with three applications alive. So the app surfaces are not on a visible layer in this projection, and the screenshot is honest about it. **Everything captured earlier came from surfaces that happened to be placed, not from placement this project controlled.**
+
+**Likely cause, and it is testable in one run:** weston 1.10's `ivi_controller` sends creation notifications to clients **bound when the objects are created**. A client binding at 100 s receives none and sees an empty world. So the next test is **ordering, not plumbing**: bind at boot, hold the connection, watch the creations. If ids appear, visibility control becomes available and a capture can finally be aimed at the home screen; if not, `ivi_controller` is the wrong lever here and `ivi_window_manager` - which the vendor's own module uses and our `ivi-wm` already speaks - is the right one.
+
+Two notes on method. The tool was **not in the image** and had to be injected; the failure message was `No such file or directory`, which is what a missing binary looks like when you assume your own tools are deployed. And each `ivi_place` invocation printed the *layer's* properties, not the surface's, because the surface id was unknown to it - output that looks like success and is not.
+
 ## 5.10.7 - screenshooter was never capturing a surface, so every capture was the same picture
 
 Pulled `/tmp/weston-real.log` off the guest through the base64 channel and read it. Three findings, one of which retires a method this project has used for days.

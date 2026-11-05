@@ -5698,3 +5698,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Pulled the compositor log off the guest and read it. It dates every surface and shows three applications running at once, which explains why a window I analysed belonged to the camera app.
 - It also shows the capture tool composites the entire output regardless of which surface was placed first, so a method used for days was never doing what its name suggested, and a rule about which surface to avoid was wrong in its premise.
 - Found the compositor respawning a keyboard binary that does not exist, which burns CPU and perturbs timing measurements.
+
+## 2026-11-05 - the controller announces nothing to a late client
+
+- Ran our own placement tool against the running compositor and found it sees no layers and no surfaces at all, while every protocol global is present and three applications are running.
+- The composited output in that run was the early background, so the applications are not on a visible layer, and every earlier capture came from surfaces that happened to be placed rather than from control we had.
+- Named the likely cause as ordering: the controller notifies clients that are bound when objects are created, so binding at boot is the next single test.

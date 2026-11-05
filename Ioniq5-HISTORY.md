@@ -6352,3 +6352,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Measured registration time across the launcher's own relaunches: the cold first launch takes forty eight and a half seconds and misses the deadline, while every warm relaunch registers in one to eight seconds and does not.
 - So the deadline miss was a cold start contention artefact, the projection's own warm up crossing a vendor limit, which is the honest explanation for a failure that looked like a vendor fault for a dozen entries.
 - And a second mechanism waits behind it: a warm, fast registering instance is still terminated about twenty four seconds later. Named the window that will identify it and the three readings it could give.
+
+## 2026-11-05 - four independent plans, and an error of mine they caught
+
+- Asked four planners the same question independently: Fable, Astra, Daybreak Blue and Opus. Fable was blocked on the first route by a usage limit and succeeded on the second, so all four plans exist.
+- The most valuable output was a correction. Opus noticed that the surface id patch assigns the home screen the id that the vendor's own table gives the camera, and that the surface list then contains that id twice. Verified against the binary, it is right, and the compositing claim is withdrawn.
+- Where the planners disagreed, the worker's newest measurement settled it: the second termination is a segmentation fault during the layout, not a relaunch loop. Merged the four into an ordered plan, with the stopping rule adopted from Fable.

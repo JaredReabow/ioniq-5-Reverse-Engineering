@@ -3,6 +3,47 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.24.0 - four independent plans, and the most valuable output was an error of mine they caught
+
+Asked four planners the same question independently - **Fable 5.1, Astra, Daybreak Blue and Opus 5.5** - with the same repository state and the same constraints: read only, no experiments, name the offset and the trade for any vendor patch.
+
+**Fable 5 was blocked on the first route** - a usage-limit error, not a safety block - and succeeded on the second provider (`codex-router/claude-subscription/claude-fable-5-1`). All four plans are in `docs/planning/`.
+
+### The headline is a correction, and it is mine
+
+**Opus 5.5 noticed that the surface-id patch assigns `11 -> 2080`, while the vendor's own table assigns `12 -> 2080` to `AppCamera`** - and that the patched run's surface list contained **2080 twice**. Verified against the binary here:
+
+```
+17 -> 1030    12 -> 2080    110 -> 2110   111 -> 2110
+112 -> 2160   113 -> 2170    73 -> 2200    30 -> 3000
+```
+
+**So "the compositing blocker is closed" is withdrawn.** The patch gave the home screen **the camera's surface id**, and the frame with the literal `STR_CAMERA_ALERT2` is very probably **the camera's window** - which is what this project concluded hours earlier and then contradicted.
+
+**The corrected patch uses an id absent from the table** (`1010`), checked by the launcher line naming it for `AppID : 11` **and** by that id appearing **once** in the surface list.
+
+### Where all four agree
+
+**The next action is a read, not a change.** Stop patching constants on a guess. Prefer projection-side fixes. Move remediation to configuration-first. **The register is already longer than its evidence.**
+
+### Where they disagreed, and the measurement settled it
+
+**Opus hypothesised the ~24 s kill was the launcher's relaunch loop SIGTERMing the incumbent** (0.5 s between kill and relaunch). Astra suspected one mechanism with two faces. **The worker's `docs/kernel/26-second-kill-is-sigsegv.md` settles it: exit code 11 = SIGSEGV** - the warm instance **crashes during the power-on layout**, immediately after `ClearTimeoutLoading : 11`. So the relaunch hypothesis is refuted and the crash is the real second mechanism.
+
+### The merged plan, in order
+
+1. **Re-run with a free surface id** (`1010`) and verify *textually* first: the launcher line for `AppID : 11` naming 1010, and 1010 appearing **once**.
+2. **Read the app's own stderr immediately before the SIGSEGV** - the last ~30 lines before `App has been Crashed`. Every blocker tonight was answered by a log nobody had collected.
+3. **Do not touch the 45 s deadline again** - its value is computed, two constants failed, and the warm path clears it anyway.
+4. **Security: five configuration items first**, in Daybreak Blue's order - `/tmp` anchors (V-065), fail-closed console/SSH (V-071), service containment (V-064 then V-072), update credentials off writable storage (V-068/069), single-stream update verification (V-059).
+5. **Demonstrate three, state the rest as configuration-level**, and publish bounded confidence.
+
+### And the stopping rule, adopted from Fable
+
+**Stop when** both remaining threads have been attributed to a named mechanism that is **not** one of this project's instruments, **and** the text evidence exists for both; **or** when a further run would only re-measure something measured twice.
+
+**Tonight both next steps are cheap reads or one configuration change. Neither is a guess - which is the only reason they are worth doing.**
+
 ## 5.23.9 - registration time is the variable, and a second killer is behind it
 
 The measurement that finally explains the deadline miss, and it came from the question about removing what makes the app slow rather than from any constant I read out of a binary:

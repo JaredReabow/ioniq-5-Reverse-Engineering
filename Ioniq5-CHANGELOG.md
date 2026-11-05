@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.5 - the special-key payload is decoded, and it was already correct
+
+The engineering-mode request through the forged key signal is a **two-byte payload**, and reading the manager's decode gives it exactly:
+
+```
+206308  movq 0x10(%rax),%rdx        QByteArray data pointer
+20630c  movsbl 0x1(%rax,%rdx),%ebp  ebp = payload[1]
+206311  movsbl (%rax,%rdx),%r13d    r13d = payload[0]
+2061d8  cmpl $0x1,%r13d  ; je      payload[0] must be 1
+2062a0  cmpl $0x1,%ebp   ; je      payload[1]==1  -> branch A
+2062a9  cmpl $0xa,%ebp   ; je      payload[1]==10 -> branch B
+2062b2  cmpl $0x5,%ebp   ; jne     payload[1]==5  -> THE ENGINEERING PATH
+2062bb  movl $0x12d,%esi           301 = AppEngineerMode
+2062c3  callq 0x18e7b0             ask(301); if TRUE, return and do nothing
+2062dd  callq 0x22da80             ask(71) must equal 1
+2062f8  callq 0x1f6160             the action that engages engineering mode
+```
+
+**`[0x01, 0x05]` is the engineering-mode request, and it reaches app id 301** - the route this project spent a session hunting as something only a root process could do, here triggered by two bytes on a CAN-side key event.
+
+**Which means my nine-payload sweep already contained the right payload** (`0x05` was in the list) and still produced nothing. So the payload was never the problem: **delivery is**. That is a cleaner obstacle and a different kind of question - the table now reads: payload refuted, no sender filtering measured, delivery open and leading (SMACK conjoins the bus, and V-056 records real denials for other services), and a possible `ask(71) == 1` precondition.
+
+**The next test watches delivery, not outcome**: a `dbus-monitor --system` alongside the emission, plus the audit log grepped for a denial naming our sender. Signal seen and no app → the precondition. Signal not seen → bus or label policy, which would be a fact about the projection rather than the vendor.
+
+V-060 carries the same update, so the register and the engineering-mode notes cannot drift apart.
+
 ## 5.9.4 - a standard for the last gap, taken from a real vehicle's logs
 
 The home widgets render `---`, and when something is finally injected there needs to be a standard to judge it against - otherwise "the number changed" passes for "the value is right". The repository already contained that standard: **545 `.dlt` files** in `evidence/upstream/Ioniq5_Gen5W_Log_Dump/`.

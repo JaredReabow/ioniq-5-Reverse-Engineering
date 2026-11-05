@@ -2682,3 +2682,20 @@ No `AppEngineerMode` process appeared for any of them. `micommanager_userspace` 
 Require the emitting connection to be the expected service. Pass `com.lge.car.micom` as the connect service (or verify `message().service()` in the slot) instead of relying on interface and member alone, and validate the payload length and key range before acting on it.
 
 ---
+
+### Update: the payload is decoded, and it was already correct when tested
+
+The engineering-mode request through this signal is a **two-byte payload**, decoded at `0x206308`-`0x2062f8`:
+
+```
+payload[0] == 0x01                      the special-key discriminant
+payload[1] == 0x05                      -> movl $0x12d (301 = AppEngineerMode), then ask(301),
+                                          then ask(71) == 1, then the action at 0x1f6160
+payload[1] == 0x01 / 0x0a               two other branches (0x206360 / 0x2063d8)
+```
+
+So **any process on the system bus can request engineering mode with `[0x01, 0x05]`**, and the nine
+payloads already tested **included `0x05`** - which means the failure was delivery, not format. The
+remaining obstacle is either bus/label policy (SMACK conjoins the bus, and V-056 records real denials
+for other services) or the `ask(71) == 1` precondition. See
+`docs/engineering-mode/special-key-payload-decoded.md`.

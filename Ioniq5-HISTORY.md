@@ -5597,3 +5597,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The home widgets still show dashes, and it occurred to me that when a value finally arrives I would have no way to say whether it was right. The repository already held the answer: 545 log files from a real vehicle, 321 value pairs from the application's own model.
 - Recorded the observed pairs and the relationship between battery and range, so an injected pair can be judged rather than merely observed.
 - The important detail is that zeros are the pre-data state, the same thing as a dash, so a run producing zero has demonstrated nothing.
+
+## 2026-11-05 - the special-key payload is decoded
+
+- Read the manager's decode of the forged key event. The engineering-mode request is two bytes, and the path runs through app id 301 with two state checks in front of it.
+- That means the sweep I ran earlier already contained the correct payload and still did nothing, so the failure was delivery rather than format. A cleaner obstacle, and a different question to ask.
+- Recorded the next test as one that watches whether the signal arrives at all, rather than whether the screen changes.

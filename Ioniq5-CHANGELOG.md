@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.11 - the host paths are out of the artefact, not just out of the commit
+
+Chasing the binary out of `HEAD` was losing to a concurrent worker that re-stages it every time. So I fixed the **cause** instead of the race.
+
+Three changes to `tools/uk_fw/guest/build-eng-data-sim.sh`:
+
+1. **`-g0` plus prefix maps** - `-ffile-prefix-map="$PWD"=.` and `-fdebug-prefix-map="$PWD"=.`, verified to work on this toolchain with a two-line test program before relying on it.
+2. **A post-build sanitiser** - the compiler still recorded the build root in a few diagnostic strings, so the script now rewrites any occurrence of `$PWD` in the artefact to dots. Same length, unused at run time, and it cannot be forgotten because it is part of the build.
+3. **No hardcoded host paths in the script itself.** It defaulted `DBUS_INC` to `/opt/homebrew/include/dbus-1.0` - a host path committed in the repository, which the rule forbids. It now takes them from the environment or from **`pkg-config`**, and fails with a readable message if neither exists.
+
+**Result: a rebuild contains zero host paths**, measured. The committed artefact is that rebuild, so **`HEAD` no longer carries the build root or the real username**.
+
+The binary stays tracked for now and is regenerated on demand; untracking it can wait until no worker is staging files, which is a tidier moment than mid-run. **The rule is what mattered**: the artefact was the leak, and the fix belongs in the build, not in a `git rm` that loses a race.
+
 ## 5.9.10 - a rebuild with host paths reached a pushed commit, and how
 
 `tools/uk_fw/guest/eng-data-sim` is a build artifact. It was untracked earlier today for exactly the right reason - the rebuild embeds absolute host paths - and then **a 50,944-byte rebuild carrying six of them, including the real username, landed in commit `1d06040`.**

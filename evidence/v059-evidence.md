@@ -61,7 +61,17 @@ mkfs.ext4 -E nodiscard -j /dev/mmcblk0p16
 
 A fresh invocation opens the payload again, separate from the `md5sum` site at `0x13a550`.
 
-**Where that second open points: naming says mount, the code found so far says otherwise.** FUMO's own log string is `mountPath is /update/usb/bin CloseApp called !` and it carries a generic `mount %1 %2`, so
+**Where that second open points is resolved by delegation.** FUMO does not mount the medium; it calls `UsbMount` on `com.lge.car.automount` during `[UPDATE_PREPARE]` and `UsbUnMount` afterwards,
+
+```
+[UPDATE_PREPARE]Could not connect to the automount service(UsbMount).
+mountPath is /update/usb/bin CloseApp called !
+```
+
+so the volume is mounted by another process at `/update/usb/bin`, a subdirectory of the `/update` ext4 partition. That is also why FUMO contains no mount call for the stick - its only
+`mount %1 %2` is a VR/rw_data helper. Residual: the daemon's mount point is configured, so the same runtime observation confirms it, with a narrower question.
+
+Earlier phrasing kept: naming says mount, the code found so far says otherwise. FUMO's own log string is `mountPath is /update/usb/bin CloseApp called !` and it carries a generic `mount %1 %2`, so
 `/update/usb/bin` is a **mount point** - the path counts that looked like staging were pointing at the mounted USB volume. The caveat is that `mount %1 %2` is generic and could mount a local
 loop image, so a runtime `lsof`/`inotify` is still the definitive check.
 

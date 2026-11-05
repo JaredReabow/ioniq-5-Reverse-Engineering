@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.18 - the missing mount call was delegation, not absence
+
+The withdrawn "resolved" comes back a third time, and this time with a mechanism instead of a log string.
+
+FUMO **does not mount the medium** - it asks another service to:
+
+```
+com.lge.car.automount  /com/lge/car/automount
+[UPDATE_PREPARE]Could not connect to the automount service(UsbMount).
+[UPDATE_PREPARE]Could not connect to the automount service(UsbUnMount).
+mountPath is /update/usb/bin CloseApp called !
+```
+
+The flow calls **`UsbMount`** during `[UPDATE_PREPARE]`, reads the manifest and payloads from the volume it gets back, and calls **`UsbUnMount`** afterwards. The mount point the application logs is
+`/update/usb/bin`, a subdirectory of the `/update` ext4 partition - which is exactly where a mounted USB volume can live.
+
+**That explains the dead end two entries ago.** The only `mount %1 %2` in FUMO is a VR/rw_data helper, and there is no second mount call for the stick **because another process does the mounting**.
+The naming evidence and the code are now consistent rather than opposed, and the reading is **in place** for a reason.
+
+**What remains is one observation, not a question:** `usb-automount`'s mount point is configured rather than literal, so confirming that it mounts this volume at `/update/usb/bin` is the same
+`lsof`/`inotify` check as before - now asking why the path is what it is, rather than whether the medium is read at all.
+
+Three attempts on this question - a false resolution on naming, a withdrawal when the mount call was not there, and now a mechanism that reconciles both. The middle step is the one that made the
+third possible, which is the argument for withdrawing a tidier claim even when it is probably right.
+
 ## 5.1.17 - "resolved" was one word too strong: the mount call is not there
 
 Two entries ago I recorded the source-path question as **resolved**: `/update/usb/bin` is a mount point, because FUMO's own log calls it a `mountPath`. Following the same method that has worked -

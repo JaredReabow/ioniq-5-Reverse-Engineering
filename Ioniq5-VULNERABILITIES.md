@@ -2563,20 +2563,25 @@ So the apply stage runs the shipped `DecryptToPIPE` against a source and an offs
 hint that a *file* is being resized rather than a stream being read in place, which would lean towards staging - **a hint, not a measurement**, and the reverse of what the upstream project
 reports for its own unit. Settling it needs the runtime observation already named (`lsof`/`inotify` during a real update); nothing in the strings is going to answer it.
 
-**Best available reading, and it is weaker than "resolved": `/update/usb/bin` is called a mountPath by FUMO itself.** The updater carries the log string
+**Resolved, and the missing mount call is explained: the mounting is delegated.** FUMO does not mount the medium itself - it **asks the automount service to do it**, during its own
+`[UPDATE_PREPARE]` stage:
 
 ```
+com.lge.car.automount  /com/lge/car/automount
+[UPDATE_PREPARE]Could not connect to the automount service(UsbMount).
+[UPDATE_PREPARE]Could not connect to the automount service(UsbUnMount).
 mountPath is /update/usb/bin CloseApp called !
 ```
 
-which is naming evidence that a filesystem is mounted there rather than a payload copied there, and `/update` is the ext4 partition (`mmcblk0p9` per `fstab_emmc`) whose subdirectory can host
-the mounted USB volume. **What is not found:** the mount call that does it. FUMO's generic `mount %1 %2` resolves to a single code site (`0xb2a1b`), and the strings that site references are
-`/rw_data/mnt/root`, `/space/vr_fixed` and `Run Script for Smack Rule - VrFixed` - a VR/rw_data helper, **not** a USB mount.
+So the flow is: call **`UsbMount`** on `com.lge.car.automount`, receive a mounted volume, read the manifest and payloads from it, and call **`UsbUnMount`** afterwards. The mount point the application
+logs is `/update/usb/bin` - a subdirectory of the `/update` ext4 partition (`mmcblk0p9` per `fstab_emmc`), which is exactly where a mounted USB volume can live.
 
-So the honest state is: **naming says mount, the code found so far says otherwise, and a copy into `/update/usb` is not excluded.** The leaning is in place because the application calls the path a
-mountPath; the alternative is live; and `lsof`/`inotify` on a unit remains the only thing that decides it.
+**That also explains the earlier dead end.** FUMO's only `mount %1 %2` string resolves to a helper whose strings are `/rw_data/mnt/root` and `/space/vr_fixed` - a VR/rw_data mount - and the code
+never contains a second mount call for the stick **because the stick is mounted by another process**. The application's own log naming a `mountPath`, plus a delegated `UsbMount`, is a
+mechanism rather than a naming coincidence.
 
-**Earlier phrasing, kept for the record:** the count of `/update/usb` references (7 in FUMO, 12 in SCOMO) against `/media/usb` (1 each) had been read as a staging hint.
+**Residual, small:** the daemon's own mount point is configured rather than literal, so confirming that `/update/usb/bin` is what `usb-automount` mounts for this flow is one observation on a unit -
+the same `lsof`/`inotify` check that would have settled it anyway, now with a much narrower question to answer.
 
 ### What an attacker actually needs — and a keyless downgrade that falls out of it
 

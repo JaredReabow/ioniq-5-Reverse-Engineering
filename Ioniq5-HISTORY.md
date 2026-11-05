@@ -6328,3 +6328,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Followed the last blocker into the binary: a timer set to ten thousand milliseconds whose timeout is connected to the slot named for application load timeouts. That is the deadline that deregisters the application.
 - It corrects a number this document has repeated for ten entries. The three milliseconds is the margin by which the application misses a ten second deadline, not the deadline itself, which explains why the failure is consistent and why more cpu changed nothing.
 - Specified the one immediate patch to thirty seconds, a value the same function already uses for a sibling timer, and restated that the first check is textual: the timeout line for the application must disappear from the launcher log.
+
+## 2026-11-05 - the deadline patch does not stop the timeout
+
+- Applied and verified the one immediate patch, and the timeout still fires. The launcher log timestamps correct three numbers I had repeated: the deadline fires about forty eight seconds after process start, the application registers thirty eight milliseconds late, and the patched timer is not the one that fires.
+- The application takes about forty eight and a half seconds to register under emulation and misses by thirty eight milliseconds, a far narrower miss than the previous figures suggested.
+- Recorded that my last two candidate constants were both wrong, the surface table right and the timer wrong, and that the remaining work is run time instrumentation rather than reading constants out of a binary.

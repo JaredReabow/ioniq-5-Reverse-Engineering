@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.23.3 - the surface-id patch works, and the frame it produces is standby
+
+The one-entry patch was applied and it is **read for the home screen**, proven textually for the first time in this session:
+
+```
+AppID : 11, Set to QT_WAYLAND_SET_SURFACE_ID=2080
+SURFACES=[30000|2080|1001|1002]   APP_SURFACE_ID=[2080]   IVI_WM_RC=0
+```
+
+Patch recorded as the **fourth substitution**: `/app/bin/AppLauncher` offset `0x475e8`, `71 00 00 00 7a 08 00 00` (113 → 2170) → `0b 00 00 00 20 08 00 00` (**11 → 2080**), sha256 `c8d6d56b…` → `24f054dc…`, and the consumed appId appears in no log on this image.
+
+**So the compositing blocker is closed.** The home screen gets a surface id, the surface exists, and it is placed.
+
+### But I opened the frame, and it is not the light home screen
+
+`painted-light-home.png`, **120,452 bytes**: **1920×720, a wide white left panel, the blue title bar with the literal `STR_CAMERA_ALERT2`, and the KIA logo on black.**
+
+**That is the standby face**, and its size - **120,452**, in the **120,5xx standby class** - agrees with the pixels. **The worker's document called it "light home, not standby"; the pixels say otherwise**, which is the second time tonight that the agent with eyes corrected a programmatic description that had drawn the more hopeful conclusion.
+
+The frame *did* change - the left panel is now wide where it was a strip, and the surface is genuinely composited - but the content is standby.
+
+### What that isolates, and it is worth the entry
+
+**Compositing was the blocker for painting at all. It was not the blocker for leaving standby.** Those were tangled before and are separate now: **the app can be composited on the vendor display path, and it still presents its powered-off face.**
+
+So doc 17's question returns, asked with a surface this time - and with a new textual precondition: `QT_WAYLAND_SET_SURFACE_ID=2080` appearing for `AppID : 11` **before** placement, with the pid surviving both the placement and the call.
+
 ## 5.23.2 - the missing row has a one-entry patch, and the loop is read rather than guessed
 
 I said last entry that a patch needs the table's count read properly before touching anything. Read:

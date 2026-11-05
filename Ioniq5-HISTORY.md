@@ -6310,3 +6310,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Read the lookup loop instead of guessing at the table layout: eight entries, a hard bound, a fixed stride and pairs of application and surface id, all confirmed from the code.
 - So the fix is one entry rather than an extension, because the next bytes are already another string and appending would corrupt data. Repurposing the entry of an application that never launches is the minimal change, and which one that is can be decided by one grep rather than by preference.
 - Recorded that the proof is textual before it is visual: the surface id appearing for the home screen in the launcher log. Noted that the last blocker is now a specific integer at a specific offset with a documented patch and a named trade.
+
+## 2026-11-05 - the surface id patch works and the frame is standby
+
+- Applied the one entry patch to the launcher's surface id table and it is now read for the home screen, proven textually by the launcher log line that never existed before, and the surface exists and is placed.
+- Opened the resulting frame rather than trusting the description: it is the standby face, a wide white left panel, the title bar with a literal string and the logo, and its size is in the standby class. The worker had called it the light home screen.
+- That isolates two things which had been tangled: compositing was the blocker for painting at all, and it was not the blocker for leaving standby. The power on question returns with a surface this time, and a textual precondition before placement.

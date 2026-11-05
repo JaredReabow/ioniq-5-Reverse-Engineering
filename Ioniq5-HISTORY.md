@@ -5542,3 +5542,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Asked the running manager two questions. It reports the vehicle as on, which refutes my power-state hypothesis for the missing home layout, and it accepts the show_engineermode call with a normal reply.
 - That is the first D-Bus engineering entry seen accepted here, and it is a stock-reachable path that involves no screen gesture at all.
 - Whether it starts the engineering application is unobserved: the home screen had not started when the call was made, so the test has to be repeated after it does.
+
+## 2026-11-05 - no filter on the path that reaches the shell
+
+- Traced the command builder that substitutes the package path into a shell string: the path arrives as an argument and goes straight into the string substitution with no validation between them.
+- Counted the whole payload for comparisons against shell metacharacters. Pipe and backtick are never compared against anywhere, and the two semicolon comparisons turned out to be integer range and enum tests read in context.
+- So the consumer side of the primitive is complete. What remains is the copy step that fills the staging directory, and whether it preserves a filename verbatim.

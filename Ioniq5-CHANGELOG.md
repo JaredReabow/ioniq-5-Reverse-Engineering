@@ -3,6 +3,36 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.12.4 - a systematic sweep found a third engineering route, and a gap in our own stand-in
+
+Instead of following another hypothesis, I swept **every embedded D-Bus interface in `app/bin/`** for write- or execute-shaped methods. Thirty-four interfaces came back, most already known. One was not.
+
+```
+app/bin/AppSetup:
+  com.lge.car.micom.eng
+    SetEnginnerModeEntryCheck()        no arguments, no return
+```
+
+**`AppSetup` - the application that owns the settings pages - asks the MICOM whether engineering mode may be entered.** That is a **third route**, distinct from the two already characterised:
+
+| route | state |
+|---|---|
+| `appmanager.info.show_engineermode` | accepted and **inert** (twice) |
+| `NotifyKeyFrontSpecialEvent` `[0x01,0x05]` | delivered, **declines on internal state** (V-060) |
+| **`micom.eng.SetEnginnerModeEntryCheck()`** | **not yet exercised** |
+
+### Why it matters twice
+
+**Security:** it sits on the **system bus** and takes **no arguments** - the simplest possible request to forge. Whether it *enters* engineering mode or merely *asks whether it may* is answerable statically: what AppSetup does after the call decides it. **Enforcement is MICOM-side either way**, so on a unit it may depend on vehicle state, and here it cannot be exercised at all.
+
+**VM fidelity:** the projection's `com.lge.car.micom` is answered by **our stand-in**, and the stand-in **does not implement `com.lge.car.micom.eng`** - so when the settings app asks whether it may enter engineering mode, **nothing answers.** That is one more concrete reason the engineering path is inert here, and a specific item to add to the stand-in rather than another theory.
+
+### The honest bounds
+
+**Not claimed:** that this route enters engineering mode, or that it is a vulnerability. **Established:** the method exists, is argument-free, is called by the settings application, and is unanswered in the projection.
+
+**The sweep itself is the reusable part** - thirty-four interfaces, enumerated in one command, is a better way to find surfaces than reading binaries one hypothesis at a time. The other thirty-three are in the changelog for whoever wants the next one.
+
 ## 5.12.3 - V-061: the integrity hash is an oracle, and it is the inverse of what a tamper check should give
 
 Filed the exposure the last two entries surfaced, as **V-061**, with the severity bounded honestly.

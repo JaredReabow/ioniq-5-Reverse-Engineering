@@ -6238,3 +6238,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The next commit also went in with the checks failing, three minutes after I wrote an entry about doing exactly that.
 - The failure was an elided path quoted inside the entry that explained the elided path, so the rule was broken inside its own lesson for the second time.
 - Fixed by describing the path in prose instead of writing it, and recorded that the mechanical slip is the lesser of the two failures: committing past a gate that printed its verdict in the same output I was reading is the one that matters.
+
+## 2026-11-05 - looking at the 1920x720 frame
+
+- The worker fixed the mode properly by patching the kernel, since the driver never reads the display data the emulator advertises, and worked around a mandatory-access label on the capture channel.
+- It described the frame programmatically and concluded it was a text screen. I opened the image: it is a blue title bar, the vendor logo, and a placeholder glyph, which is the application's own powered-off presentation and means the application is drawing.
+- That makes the display path behaviourally identical to the one that produced the laid-out frame hours ago, with one call separating them. Noted the division worth keeping: the agent with the run describes it programmatically, the agent with the eyes checks it visually.

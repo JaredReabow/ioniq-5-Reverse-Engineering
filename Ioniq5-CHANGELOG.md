@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.2.0 - the authentic path is interactive: a click reaches a real client
+
+The interaction proof this project has had since the research chain now exists on the **vendor** path as well. On the authentic boot - vendor kernel, vendor `esinit`, esinit's own
+`weston --tty=1`, the vendor application stack:
+
+```
+PROBE9_MODULE=2                    the input module is loaded
+PROBE9_SID=1004                    an IVI surface placed
+VM_INPUT_READY
+VM_INPUT_CLICK_ACCEPTED
+VM_INPUT_FOCUS_BEFORE_MOVE pid=797 uid=0
+VM_INPUT_FOCUS_AFTER_MOVE  pid=797 uid=0
+VM_INPUT_CLICK_DONE
+```
+
+**A synthetic click lands on a real client with a real pid, running as uid 0, on the stock boot path.** That is the second half of the VM goal: not just "the vendor software boots and
+paints", but "you can interact with it while it does".
+
+Two details worth keeping. The authentic compositor configuration **already loads `/weston-vm-input.so`** (`modules=` in `weston_1920.ini`) - the module was there all along; what was missing
+earlier was a surface placed under the pointer, which is the same lesson the research chain taught (`pid=NO_VIEW` was never a broken input path). And the focused client is `uid 0`, consistent
+with everything else on this image.
+
+With this, the VM goal is met on both axes it was set on: **the vehicle's own boot path**, and **interaction**.
+
 ## 5.1.7 - one sheet that holds every V-059 measurement and the commands behind them
 
 V-059 has been built across eight entries, each adding a measurement: the two-read structure, the signature scheme, the key inventory, the cache behaviour of the two updaters, the payload

@@ -5361,3 +5361,8 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 
 - Eight entries built this finding one measurement at a time. Put all of it on a single evidence page: the binary's hash, each string check, the two reference sites with offsets, the payload sizes, the checksum contents, and the method behind the scan.
 - Included what is not established - no reproduction, one open checksum scope, one attribution to upstream - because a single sheet is where overstatement would be hardest to catch later.
+
+## 2026-11-05 - the stock path takes input
+
+- Sent a click on the vendor boot path and it landed on a real client with a real pid, running as root. The input module was already in the vendor compositor's configuration; what was missing before was a surface under the pointer.
+- That completes the VM goal on both axes it was set on: the vehicle's own boot path, and interaction with it.

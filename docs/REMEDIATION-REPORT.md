@@ -269,6 +269,30 @@ genuinely required, make it a challenge-signed response rather than a stable dig
 **Verify.** Query the digest, change one byte in one application binary, query again: a changed value confirms the
 oracle, and an unchanged value is a finding about coverage.
 
+### 14. Nine bus policies allow the default context, including state-changing services
+
+**Evidence.** The system bus is deny-by-default (`/etc/dbus-1/system.conf`), but **9 of 18** per-service policy files
+add a `<policy context="default">` containing an `<allow>`. The vendor's own among them:
+
+| file | allowed to anyone | methods of note |
+|---|---|---|
+| `org.genivi.persistence.admin_svc.conf` | `send_destination=…admin_svc` | **`SetSessionState`**, `GetNodeState`, `GetApplicationMode` |
+| `org.genivi.NodeStateManager.conf` | `send_destination`, `send_interface=…LifeCycleConsumer` | node lifecycle registration |
+| `vcrm.conf` | `send_destination=com.lge.hkmc.tms.vcrmapp` | `setUsageData` |
+
+`vcrm.conf` also ships `<policy user="byungsu">` - a developer's account name, with no such account in `/etc/passwd`.
+
+**Exposes.** Any process on the system bus, **without root**, can ask the platform's node/session state service to
+change state and can register as a life-cycle consumer. Practical impact today is small because almost the whole
+application stack runs as `uid=0`, but it is a deviation from the platform's own deny-by-default pattern, and
+`pas-daemon` state should not be settable from anywhere.
+
+**Fix.** Remove every `context="default"` allow that is not an intentional public query interface; require an
+authorised caller for anything that changes state.
+
+**Verify.** From a non-root uid, call `org.genivi.persistence.admin_svc.SetSessionState` and observe whether it is
+accepted; `AccessDenied` means a narrower rule exists elsewhere.
+
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
@@ -310,6 +334,7 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | 11 the data encryption passphrase is `1234` | V-053 |
 | 12 engineering mode is requestable by any system-bus process | V-060 |
 | 13 the application-set hash is queryable on the session bus | V-061 |
+| 14 nine bus policies allow the default context | V-063 |
 
 ## What is not claimed
 

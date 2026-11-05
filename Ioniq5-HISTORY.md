@@ -5890,3 +5890,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Followed the sweep's most security-relevant hit: the modem daemon ships factory methods that set the subscriber identity and erase stored cell records, and its bus policy allows root while denying everyone else.
 - On this unit root is the ambient privilege level of the whole application stack rather than a privileged subset, so that policy separates applications from outsiders and not from each other.
 - Filed it at low fix cost with the honest bounds, and recorded the pattern it completes: three findings now rest on the same non-boundary, which strengthens the existing argument about controls placed where they do not separate anything.
+
+## 2026-11-05 - nine bus policies re-open services to everyone
+
+- Read the eighteen bus policy files, which is where the platform's boundary decisions actually live. The system bus is deny by default, but half the service files then add a default-context allow.
+- Three of those belong to the vendor and expose state-changing or data-writing methods to any process on the bus without root, including the platform's own node and session state service.
+- One file ships a developer's account name that does not exist in the password database, which dates the policy and explains the shape of it better than the misconfiguration alone. Added as a fix item with a one-command verification, and noted that the boundaries I had been hunting inside binaries were sitting in eighteen small text files I had never read.

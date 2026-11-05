@@ -3,6 +3,34 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.12.6 - V-063: nine bus policies re-open services to everyone, and one file still carries a developer's name
+
+Followed the sweep into the **bus policy** layer, which is where the platform's own boundaries actually live.
+
+**The system bus is correctly deny-by-default** - `/etc/dbus-1/system.conf` has `<deny own="*"/>` and `<deny send_type="method_call"/>`. But **9 of the 18 per-service files then add a `<policy context="default">` containing an `<allow>`**, re-opening the service to any process:
+
+| file | allowed to anyone | methods of note |
+|---|---|---|
+| `org.genivi.persistence.admin_svc.conf` | `send_destination` | **`SetSessionState`**, `GetNodeState`, `GetApplicationMode` |
+| `org.genivi.NodeStateManager.conf` | `send_destination`, `…LifeCycleConsumer` | lifecycle registration |
+| `vcrm.conf` | `com.lge.hkmc.tms.vcrmapp` | `setUsageData` |
+
+**So any process on the system bus, without root, can ask the platform's own node/session state service to change state.** Practical impact today is small - almost the whole stack runs as `uid=0` - but it is a **deviation from the platform's own deny-by-default pattern**, and `pas-daemon` state should not be settable from anywhere.
+
+### The provenance is in the files, and that is the more useful finding
+
+```
+vcrm.conf:  <policy user="byungsu">      a developer's account name, shipped in production
+```
+
+**No such account exists** in `/etc/passwd` or the shadow copy, so it is not an access path - it is an artefact that **dates the policy**. The file was written for someone's local testing, and the `context="default"` allow sits beside that name in the same file. That says something about *how* these policies were assembled, which is worth more than another isolated misconfiguration.
+
+### Added as fix item 14, with the mapping and a one-command verification
+
+From a **non-root** uid: call `SetSessionState` and observe. `AccessDenied` means a narrower rule exists elsewhere; acceptance confirms the exposure.
+
+**The lesson from this one is about where to look:** I had spent hours inside binaries and processes, and the platform's actual boundary decisions were **in eighteen small XML files I had never read**.
+
 ## 5.12.5 - V-062: the modem's factory interfaces are open to anything running as root
 
 The sweep's most security-relevant hit, followed to the end.

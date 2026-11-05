@@ -2641,6 +2641,72 @@ boot".
   repository has only the strings, which support either.
   **The observation that settles it is a `lsof`/`inotify`/`strace` on the unit during a real update**: which path does the `md5sum` open, and which does the `pv`/`dd` open.
 
+## V-063 - nine bus policies allow the default context, including state-changing services
+
+**Status:** the **policy text is measured** in the shipped image; the **effect** of the allowed calls is **not demonstrated** (no non-root test process was run, and this unit runs almost everything as root anyway). Class: policy misconfiguration / hardening.
+
+### The survey
+
+The system bus itself is correctly **deny-by-default** (`/etc/dbus-1/system.conf`:
+`<deny own="*"/>`, `<deny send_type="method_call"/>`). But **9 of the 18 per-service policy files then add a
+`<policy context="default">` block containing an `<allow>`**, which re-opens the service to *any* process on the bus:
+
+```
+connman.conf                       mof.conf
+org.freedesktop.locale1.conf       org.freedesktop.machine1.conf
+org.freedesktop.timedate1.conf     org.genivi.NodeStateManager.conf
+org.genivi.persistence.admin.conf  org.genivi.persistence.admin_svc.conf
+vcrm.conf
+```
+
+Some of those are the platform's own stock files (`locale1`, `timedate1`, `machine1`) and are legitimately readable.
+The interesting ones are the vendor's:
+
+| file | default-context allow | callable methods of note |
+|---|---|---|
+| `org.genivi.persistence.admin_svc.conf` | `send_destination=org.genivi.persistence.admin_svc` | **`SetSessionState`**, `GetSessionState`, `GetNodeState`, `GetApplicationMode` |
+| `org.genivi.NodeStateManager.conf` | `send_destination=org.genivi.NodeStateManager`, `send_interface=…LifeCycleConsumer` | node lifecycle registration |
+| `vcrm.conf` | `send_destination=com.lge.hkmc.tms.vcrmapp` | `setUsageData` |
+
+**So any process on the system bus - without root - can ask the platform's own node/session state service to change
+its state**, and can register as a life-cycle consumer.
+
+### Why that is a finding even when everything is root
+
+The practical impact today is small: this unit runs almost the whole application stack as `uid=0` (V-051 measured
+`AppHomeScreen` at `uid=0`), so a non-root caller is rare. But:
+
+1. **It is a deviation from the platform's own stated policy**, and deviations like this are how a single
+   non-root service becomes a pivot later. `pas-daemon` drives node and session state; being able to `SetSessionState`
+   from anywhere is a capability that should require authorisation.
+2. It **contradicts the pattern recorded in the trust-anchors document**: the vendor *did* use deny-by-default
+   elsewhere (micom, ofono), so the nine are not a deliberate uniform design - they are uneven.
+
+### The provenance is visible in the files
+
+```
+vcrm.conf:  <policy user="byungsu">      a developer's account name, shipped in production
+```
+
+**No such account exists** in `/etc/passwd` or the shadow copy, so this is not an access path - it is an **artefact
+that dates the policy**: this file was written for someone's local testing, and the `context="default"` allow sits
+next to it in the same file. That is evidence about *how* the policies were assembled, which is more useful than
+another single misconfiguration.
+
+### Fix
+
+Audit all 18 policy files and remove every `context="default"` allow that is not an intentional public query
+interface. `pas-daemon` and `NodeStateManager` should require an authorised caller for anything that changes state;
+`vcrmapp` should not accept `setUsageData` from arbitrary processes.
+
+### Verify
+
+From a **non-root** uid on a unit - `busctl`/`dbus-send` with the default context - call
+`org.genivi.persistence.admin_svc.SetSessionState` and observe whether it is accepted. An explicit `AccessDenied`
+means a narrower rule exists elsewhere; acceptance confirms the exposure.
+
+---
+
 ## V-062 - the modem's factory interfaces are open to any process running as root
 
 **Status:** the interfaces are **present in the shipped `ofonod`** (strings confirmed) and the bus policy **allows

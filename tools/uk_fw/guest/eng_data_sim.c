@@ -93,6 +93,36 @@ static void log_call(const char *bus, DBusMessage *msg)
     fflush(stdout);
 }
 
+/* PROJECTION-ONLY diagnostic: dump the first 'ay' argument as hex so the CAN
+ * registration payloads (SetCANMicomRecv / SetCANTPMicomRecv /
+ * SetCANFixedMicomRecv / AskCANMMCANMicomReq / AskCANICANMicomReq) can be read
+ * out of /tmp/eng-data-sim.log.  Not part of the shipped system. */
+static void log_ay_payload(DBusMessage *msg)
+{
+    DBusMessageIter iter, sub;
+    char hex[2048];
+    int n = 0;
+
+    if (!dbus_message_iter_init(msg, &iter))
+        return;
+    if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_ARRAY)
+        return;
+    dbus_message_iter_recurse(&iter, &sub);
+    while (dbus_message_iter_get_arg_type(&sub) == DBUS_TYPE_BYTE) {
+        unsigned char b = 0;
+        dbus_message_iter_get_basic(&sub, &b);
+        n += snprintf(hex + n, sizeof(hex) - n, "%02x", b);
+        if (n >= (int)sizeof(hex) - 4)
+            break;
+        if (!dbus_message_iter_next(&sub))
+            break;
+    }
+    printf("ENG_DATA_SIM_PAYLOAD %s (%d bytes): %s\n",
+           dbus_message_get_member(msg) ? dbus_message_get_member(msg) : "(null)",
+           n / 2, hex);
+    fflush(stdout);
+}
+
 static int send_message(DBusConnection *conn, DBusMessage *reply)
 {
     if (reply == NULL)
@@ -249,6 +279,8 @@ static const struct ack_call ack_calls[] = {
     { AUDIO_PATH, AUDIO_INTERFACE, "SetBeepPlay", "ay" },
     { AUDIO_PATH, AUDIO_INTERFACE, "SetCurrentModeVolume", "ay" },
     { AUDIO_PATH, AUDIO_INTERFACE, "SetAudioSpeakerCtrl", "ay" },
+    /* V-0xx: the settings application asks MICOM whether engineering mode may be entered. */
+    { ENG_PATH, ENG_INTERFACE, "SetEnginnerModeEntryCheck", "" },
 };
 
 static const unsigned char region_reply[8] = { 1, 0, 0, 0, 0, 0, 0, 0 };
@@ -459,6 +491,13 @@ static DBusHandlerResult on_system_message(DBusConnection *conn, DBusMessage *ms
     for (i = 0; i < sizeof ack_calls / sizeof ack_calls[0]; i++) {
         const struct ack_call *a = &ack_calls[i];
         if (exact_call(msg, a->path, a->iface, a->member, a->signature)) {
+            /* PROJECTION-ONLY: dump CAN registration payloads before ACKing. */
+            if (a->member && (strcmp(a->member, "SetCANMicomRecv") == 0 ||
+                              strcmp(a->member, "SetCANTPMicomRecv") == 0 ||
+                              strcmp(a->member, "SetCANFixedMicomRecv") == 0 ||
+                              strcmp(a->member, "AskCANMMCANMicomReq") == 0 ||
+                              strcmp(a->member, "AskCANICANMicomReq") == 0))
+                log_ay_payload(msg);
             reply_empty(conn, msg);
             return DBUS_HANDLER_RESULT_HANDLED;
         }

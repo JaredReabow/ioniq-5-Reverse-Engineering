@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.14.3 - the stand-in's backlog, measured: 60 unanswered calls across 10 methods
+
+Went back to the VM goal with the concrete gap I had identified, and it turned out my description of the gap was wrong as well as the fix being small.
+
+**Correction first:** I had written that the stand-in "does not implement `com.lge.car.micom.eng` at all". It **does** - `AskMPModeInfo` among others. What it did not implement is `SetEnginnerModeEntryCheck`, which is now **one added row** in its acknowledgement table, rebuilt with **zero host paths**.
+
+**Then the measurement**, using the simulator's own rejection log at 130 s of a boot:
+
+```
+60 calls  to  10 distinct methods  the running stack asked for and did not get
+  com.lge.car.micom.can  SetCANAMP_HU_P_01Request, SetLevelGearInitialRequest, SetUSMInitialRequest
+  com.lge.car.micom.ihu  AskEtcLcd2SensorNotSupportPwmControl, AskExternalSPDIFAMPVersion,
+                         AskInfoFaultCodeStatus, AskUSMSetting, AskVolumeTuneKeySwap,
+                         SetETCLanguageInfoSet, SetSettingValueStatusMsg
+```
+
+**That is the adaptor backlog ranked by evidence** - every entry has a caller that wanted it during a normal boot, so implementing them is fidelity work with a known consumer rather than speculative completeness. And it **bounds the unknown condition**: the stack tolerates ten unanswered methods and still reaches the launcher and the application, so these are not boot blockers - they are why some state the app reads is default.
+
+### And a limit of my own instrument, stated rather than glossed
+
+**The simulator only logs what it rejects.** So the absence of `SetEnginnerModeEntryCheck` after the fix is consistent with it working *and* consistent with the app never calling it during that boot. **A positive test needs the simulator to log accepted calls too** - which is the next change to it, not another hypothesis.
+
+Both the doc and the record now say that, so the next reader does not mistake a silent log for a verified fix.
+
 ## 5.14.2 - V-070 tested in the VM: starting the app with the marker does not run the script
 
 Left the register's "unproven" label alone for as long as it took to actually test it, and then tested it.

@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.11 - FUMO's apply step found, and it re-reads the payload; my previous identification was wrong again
+
+Mapping the strings referenced *around* the two `tar xf` sites showed `cp -a %1 %2`, `cp -a %1/. %2`, `.whatsnew.tar.gz`, `whatsnew_usb.json` and `copyWhatsNewFiles`. **So those sites are a
+copy/whatsnew helper, not the partition install** - which is what the previous entry called them, and that identification is withdrawn.
+
+The real apply step is elsewhere in FUMO and is unambiguous:
+
+```
+%1 -d %2 %3 0 | pv -q -L 8m | dd of=%4 bs=512
+%1 -d %2 %3 0 | dd of=%4 bs=512
+mount p3 original, p6 original, p5 mnt, p7 mnt
+mkfs.ext4 -E nodiscard -j /dev/mmcblk0p16
+```
+
+`%1` is the decryptor, `%2 %3` its arguments, and the stream goes through **`pv -q -L 8m`** into **`dd of=%4 bs=512`** - a partition device. **That is a fresh invocation opening the payload
+again**, separate from the `md5sum` check at `0x13a550`. The check-then-use shape this entry is about is now located in the updater the vehicle actually runs, rather than inherited.
+
+Two figures come with it, and both are useful for the hardware question:
+
+- **The install stream is rate-limited to 8 MB/s by its own command** (`pv -q -L 8m`), so 879 MB needs ~110 s of apply and 2.09 GB ~260 s. A gadget never has to outrun 8 MB/s to saturate that
+  stage.
+- The A/B mount juggling (`p3`/`p5`, `p6`/`p7`) and `mkfs.ext4 … /dev/mmcblk0p16` confirm which partitions the flow touches, independent of anything in the wrapper.
+
+That is two withdrawn identifications in two entries on the same question - "the two opens are in different code" was right the first time for the wrong addresses, wrong the second time for the
+right addresses, and is right now for a command that actually writes a partition. The lesson each time: **a string maps to a site, and a site maps to a function, and only the last step says what
+the code does.**
+
 ## 5.1.10 - the withdrawn claim comes back, measured properly: FUMO's check and extraction are different code
 
 After withdrawing the "two code sites" claim, I extracted both embedded updaters and ran the same scan **inside FUMO, keeping only sites that fall in its `.text`** (`0x24830..0x209a33`):

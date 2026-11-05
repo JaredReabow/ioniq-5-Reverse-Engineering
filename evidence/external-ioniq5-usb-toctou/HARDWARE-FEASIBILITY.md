@@ -17,6 +17,9 @@ No RSA key is needed at any point: the check runs on genuine bytes.
 
 ## Throughput, which is where the board choice actually lies
 
+FUMO's own apply stage is rate-limited to **8 MB/s** (`pv -q -L 8m`), so a gadget that delivers at least that fast never becomes the bottleneck; slower devices stretch the apply stage in
+proportion.
+
 | Board | USB device link | Realistic MSC rate | One full pass (~879 MB) | Two passes |
 | --- | --- | --- | --- | --- |
 | **ESP32-S3** | OTG **Full-Speed, 12 Mbit/s** | 0.5–1.2 MB/s | **12–29 min** | **25–60 min** |

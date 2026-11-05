@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.4 - a standard for the last gap, taken from a real vehicle's logs
+
+The home widgets render `---`, and when something is finally injected there needs to be a standard to judge it against - otherwise "the number changed" passes for "the value is right". The repository already contained that standard: **545 `.dlt` files** in `evidence/upstream/Ioniq5_Gen5W_Log_Dump/`.
+
+**321 value pairs**, emitted by the application's own `AppPHEVModel::setSharedValues()` - the same model the widgets read:
+
+```
+send NotifyPhevValueChange  DTE: 260  unitSpeed() 1  Battery level: 60
+```
+
+| battery | median DTE | samples |
+|---|---|---|
+| 60 % | 262 km | 48 |
+| 63 % | 275 km | 40 |
+| **65 %** | **287 km** | 65 |
+| 66 % | 286 km | 58 |
+
+Observed ranges: **DTE 0-292 km**, **battery 0-67 %** - and the zeros are start-up frames before values arrive, which is **exactly the state our projection is stuck in**.
+
+**Two things this gives that a mapping alone cannot.** The relationship is near-linear at **~4.4 km per percentage point**, so an injected pair that does not sit near that line is wrong even when both numbers look plausible. And **0 % / 0 km is not success** - it is the same thing as `---`, and a run producing it has demonstrated nothing. A faithful first target is a real observed pair: **65 % with 287 km**, or 60 % with 262 km.
+
+Deliberately scoped: this note stops at the values the application reports. The CAN identifiers and byte offsets are being read separately, and the ground truth here is the part that is the vehicle speaking rather than an interpretation of frames.
+
+`evidence/vehdata-ground-truth.md`.
+
 ## 5.9.3 - README brought up to date with the real state
 
 The README's status tables had drifted: two overlapping tables, both still describing navigation as the open problem and input as "not wired end to end". Rewritten to the measured state.

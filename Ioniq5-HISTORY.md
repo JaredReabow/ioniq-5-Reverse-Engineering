@@ -6358,3 +6358,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Asked four planners the same question independently: Fable, Astra, Daybreak Blue and Opus. Fable was blocked on the first route by a usage limit and succeeded on the second, so all four plans exist.
 - The most valuable output was a correction. Opus noticed that the surface id patch assigns the home screen the id that the vendor's own table gives the camera, and that the surface list then contains that id twice. Verified against the binary, it is right, and the compositing claim is withdrawn.
 - Where the planners disagreed, the worker's newest measurement settled it: the second termination is a segmentation fault during the layout, not a relaunch loop. Merged the four into an ordered plan, with the stopping rule adopted from Fable.
+
+## 2026-11-05 - the top remediation item, specified
+
+- The four-planner plan's first item, nine /etc anchors pointing into world-writable /tmp, became an enumerable change: four scripts, 23 references, one mkdir, nine symlinks retargeted.
+- Counted the references rather than describing them, which surfaced that one anchor has a symlink and no writer at all.
+- Wrote the trade and a five-step verification whose fourth step separates the file having moved from the weakness having closed. Not applied: it edits vendor boot scripts inside a working image.

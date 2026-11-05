@@ -6376,3 +6376,10 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The worker's dmesg named the crash: SMACK denied app id 11 a file lock on the PHEV database, because every application in this projection has been running unlabelled.
 - The vendor's own rule grants that directory to App::home, and AppHomeScreen creates the database itself - so nothing was missing except the exec label, applied with chsmack exactly as the vendor applies it to the upgrade binaries.
 - Noted that this means the SMACK model has been inactive in every run so far rather than permissive, which qualifies a register finding, and that labeling correctly makes the /tmp trust inversion worse rather than better.
+
+## 2026-11-05 - the label worked, and the instrument was denied
+
+- Applying the authentic App::home exec label removed the PHEV denial it targeted, verified in dmesg.
+- Two of four checks were unmeasured because our own monitor runs unlabelled and was denied the labelled directory - the vendor's model working correctly against the measurement rather than the system. Recorded as not measured.
+- The remaining blocker is a duplicate registration; the one-line extraction that separates two live instances from an uncleared registry is written down, with the untested suspicion that our ApplicationManager stand-in never acks the handshake.
+- Qualified remediation item 1: it was measured while every app ran unlabelled, so the policy was never consulted for the subjects it constrains.

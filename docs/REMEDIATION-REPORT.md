@@ -451,6 +451,8 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | item | register entry |
 |---|---|
 | 1 applications may not run under the policy written for them | V-056 |
+
+**Qualification (2026-11-06, boot50):** this was measured while **every application ran unlabelled**, so the policy was never consulted for the subjects it exists to constrain. Applying the authentic `App::home` exec label removed a real denial on the first attempt, and the ruleset's narrowness (`App::home *` grants only `t`; `Data::commonphev rwxatl` to four named subjects, no wildcard) is stronger evidence of intent than the "permissive at 0" reading. That reading now applies **only to unlabelled subjects, which the policy denies** - which is fail-closed. See `docs/vm/50-unlabelled-apps-were-the-blocker.md`.
 | 2 the account database lives in a world-writable tmpfs | V-054 |
 | 3 the compositor loads modules named in `/tmp` | V-055 |
 | 3b eleven services take their bus address from `/tmp` | V-058 |

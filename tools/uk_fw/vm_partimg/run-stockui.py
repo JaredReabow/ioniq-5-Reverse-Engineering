@@ -29,6 +29,9 @@ vb.INIT_CHOICES = ("/init", "/lib/systemd/esinit", "/lib/systemd/systemd",
 
 _orig_qemu_command = vb.qemu_command
 
+SMP = "2"
+AUDIT_OFF = False
+
 
 def qemu_command(*args, **kwargs):
     argv = _orig_qemu_command(*args, **kwargs)
@@ -36,6 +39,18 @@ def qemu_command(*args, **kwargs):
     # GPT image: root must be the active-root partition, not the whole device.
     argv[i + 1] = argv[i + 1].replace(
         "root=/dev/mmcblk0 ", f"root={ACTIVE_ROOT} ", 1)
+    # Research-only audit-volume test: the authentic path runs SMACK enforcing
+    # with the audit subsystem logging every grant (measured 599 records/boot on
+    # dlt-daemon alone).  audit=0 removes that per-decision overhead; see
+    # docs/vm/authentic-hmi-apps.md §7g.
+    if AUDIT_OFF:
+        argv[i + 1] += " audit=0"
+    # Research-only CPU headroom: the vendor kernel + TCG run the HMI app stack
+    # under software GL; more vCPUs let AppHomeScreen's main thread reach its
+    # event loop. Overridden here (not in vm_boot) so the shared harness keeps
+    # its -smp 2 default.
+    j = argv.index("-smp")
+    argv[j + 1] = SMP
     return argv
 
 
@@ -62,7 +77,13 @@ def main() -> int:
     ap.add_argument("--memory-mib", type=int, default=2048)
     ap.add_argument("--cmd", default=DIAG_CMD)
     ap.add_argument("--interactive", action="store_true")
+    ap.add_argument("--smp", default="2", help="vCPU count passed to qemu -smp")
+    ap.add_argument("--audit-off", action="store_true",
+                    help="append audit=0 to the kernel command line")
     args = ap.parse_args()
+    global SMP, AUDIT_OFF
+    SMP = str(args.smp)
+    AUDIT_OFF = bool(args.audit_off)
     return vb.run(WS, True, args.cmd, timeout=args.timeout,
                   interactive=args.interactive, memory_mib=args.memory_mib,
                   init=args.init)

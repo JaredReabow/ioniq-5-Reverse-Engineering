@@ -161,6 +161,25 @@ static int reply_boolean(DBusConnection *conn, DBusMessage *request, int value)
     return send_message(conn, reply);
 }
 
+/* org.freedesktop.DBus.Properties.GetAll -> empty a{sv} dictionary.
+ * The home screen introspects the stand-in; an empty property map is the
+ * correct well-formed reply (an error here is a wrong reply that the app may
+ * treat as a failure). */
+static int reply_empty_asv(DBusConnection *conn, DBusMessage *request)
+{
+    DBusMessage *reply = dbus_message_new_method_return(request);
+    DBusMessageIter root, arr;
+    if (reply == NULL)
+        return 0;
+    dbus_message_iter_init_append(reply, &root);
+    if (!dbus_message_iter_open_container(&root, DBUS_TYPE_ARRAY, "{sv}", &arr) ||
+        !dbus_message_iter_close_container(&root, &arr)) {
+        dbus_message_unref(reply);
+        return 0;
+    }
+    return send_message(conn, reply);
+}
+
 /* Interface equality: a call that omits the interface field is accepted when
  * path + member + signature agree (Qt QDBusInterface sometimes omits it). */
 static int iface_matches(const char *actual, const char *expected)
@@ -259,6 +278,19 @@ static DBusHandlerResult on_system_message(DBusConnection *conn, DBusMessage *ms
     if (iface != NULL && strcmp(iface, PEER_INTERFACE) == 0 &&
         strcmp(member, "Ping") == 0) {
         reply_empty(conn, msg);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    if (iface != NULL && strcmp(iface, "org.freedesktop.DBus.Properties") == 0 &&
+        strcmp(member, "GetAll") == 0) {
+        reply_empty_asv(conn, msg);
+        printf("ENG_DATA_SIM_ANSWER Properties.GetAll -> {} (empty a{sv})\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    if (iface != NULL && strcmp(iface, "org.freedesktop.DBus.Properties") == 0 &&
+        strcmp(member, "Get") == 0) {
+        reply_error(conn, msg, "org.freedesktop.DBus.Error.UnknownProperty",
+                    "property not provided by eng data research simulator");
         return DBUS_HANDLER_RESULT_HANDLED;
     }
 
@@ -469,6 +501,19 @@ static DBusHandlerResult on_session_message(DBusConnection *conn, DBusMessage *m
     if (iface != NULL && strcmp(iface, PEER_INTERFACE) == 0 &&
         strcmp(member, "Ping") == 0) {
         reply_empty(conn, msg);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    if (iface != NULL && strcmp(iface, "org.freedesktop.DBus.Properties") == 0 &&
+        strcmp(member, "GetAll") == 0) {
+        reply_empty_asv(conn, msg);
+        printf("ENG_DATA_SIM_ANSWER Properties.GetAll -> {} (empty a{sv})\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    if (iface != NULL && strcmp(iface, "org.freedesktop.DBus.Properties") == 0 &&
+        strcmp(member, "Get") == 0) {
+        reply_error(conn, msg, "org.freedesktop.DBus.Error.UnknownProperty",
+                    "property not provided by eng data research simulator");
         return DBUS_HANDLER_RESULT_HANDLED;
     }
     /* com.lge.avn.appvh.AmebaEnable.AmebaEnable -> out b (AppVH asks whether

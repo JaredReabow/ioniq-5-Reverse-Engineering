@@ -2641,6 +2641,25 @@ boot".
   repository has only the strings, which support either.
   **The observation that settles it is a `lsof`/`inotify`/`strace` on the unit during a real update**: which path does the `md5sum` open, and which does the `pv`/`dd` open.
 
+## Defence note - a MICOM-coupled hash and seed/key-check exists in the launcher
+
+Not a vulnerability: the counterpart to V-051, recorded so the register is not one-sided.
+
+`app/bin/AppLauncher` carries `com.lge.avn.applauncher.cipher.getIVDHash() -> ay`, a `SystemIVD` hash, an
+OpenSSL-backed cipher utility, and handlers for MICOM events named `NotifySystemHashDataEvent` and
+`NotifyAdvancedSecurityKeyEvent` with `Seed` and `KeyCheck` fields. That is the shape of a genuine anti-tamper
+control: a hash identity plus a challenge/response with the MICOM.
+
+**Enforcement is unproven.** A shell wrapper in place of `AppHomeScreen` produced no process and no log, which is
+*consistent* with a hash check and equally consistent with an `exec` that requires an ELF. The three tests that
+would separate them are in `docs/defences/micom-coupled-hash-and-keycheck.md`, including the important possibility
+that the control is **inert in the projection** because MICOM events never arrive here.
+
+V-051 stands unchanged: the launch path executes a caller-named path as root. The platform has the parts for
+verification even where the launch path does not use them, and both facts belong in the record.
+
+---
+
 ## V-060 — the engineering-mode special-key signal is forgeable by any process on the system bus
 
 **Status:** the **subscription is unfiltered — measured by disassembly**; the *effect* of a forged signal is **not demonstrated** in the projection (measured negative, 9 payload variants). Class: unreliable-input / defence-in-depth.

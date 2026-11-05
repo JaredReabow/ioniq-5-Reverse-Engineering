@@ -5854,3 +5854,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Checked the last remaining option, a plain framebuffer, and the vendor kernel has the whole framebuffer subsystem compiled out, so no display device of any kind can exist under emulation.
 - That turns the headless backend from the best available into the only one possible, and makes the ceiling a measured fact rather than a standing assumption.
 - Wrote the sentence the project should use from now on: everything the vendor ships is running except the display hardware, and failures that depend on the display path are attributable to that absence rather than to a defect.
+
+## 2026-11-05 - the first real defence in the image
+
+- Went back to the security goal with a question the virtual machine work raised: why a replaced application binary refused to run. The answer is a hash and challenge-response mechanism in the launcher, tied to the micom and backed by OpenSSL, which is the first genuine anti-tamper control found in the shipped image.
+- It sits beside the earlier finding that the launch path runs any caller-named path as root rather than contradicting it: the platform has the parts for verification even where the launch path does not use them.
+- Hedged the finding properly. Enforcement is unproven, the observation that prompted it is equally consistent with an exec requirement, and the control is probably inert under emulation because the events it depends on never arrive.

@@ -45,6 +45,7 @@ matter** unless you know what you are looking for.
 | **`root-access-paths.md`** | Every route to root, **ranked by what it costs to use** — the offensive view of the register: what you would try on a stock unit and what each attempt requires. |
 | `../Ioniq5-VULNERABILITIES.md` | The register: ten entries, each with status, evidence and what would falsify it. Corrections are kept in place, not edited away. |
 | `trust-anchors-in-writable-runtime-paths.md` | The argument behind six of the ten: a privileged decision resolved from writable state, and why that pattern matters more than any single instance. |
+| `docs/defences/micom-coupled-hash-and-keycheck.md` | A MICOM-coupled hash (`getIVDHash`) and seed/key-check in the launcher: a real defence shape, enforcement unproven and inert under emulation |
 | `advisory/stock-vector-triage.md` | Two outside models asked what is reachable on a stock unit, what they agreed on, and the two things they corrected here. |
 | `physical-and-wireless-vectors.md` | WiFi, USB Ethernet, UART, CAN: hardware present vs software enabled vs root path. |
 | `wifi-enable-procedure.md` | How the radio would be turned on using the image's own machinery, and why it cannot be tested in QEMU. |

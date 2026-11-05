@@ -2641,6 +2641,79 @@ boot".
   repository has only the strings, which support either.
   **The observation that settles it is a `lsof`/`inotify`/`strace` on the unit during a real update**: which path does the `md5sum` open, and which does the `pv`/`dd` open.
 
+## V-066 - the navigation payload's integrity story: world-writable binary, and a key materialised in `/tmp`
+
+**Status:** the file modes and the strings are **measured**; the *verification source* and the *exploitability* are **unproven**. Class: trust anchor in a writable path / permissions (V-048 family, second payload).
+
+### Part 1 - measured: 128 world-writable files, two of them executable
+
+```
+/navi/Bin/AppNavi           -rwxrwxrwx   143,718,392 bytes   the navigation binary
+/navi/Bin/CANService.sh     -rwxrwxrwx             217 bytes   a shell script
++ 126 configuration files under /navi/Bin/Config/
+```
+
+`/navi` and `/navi/Bin` are `drwxr-xr-x`, so **new** files cannot be created unprivileged - but **existing
+world-writable files can be modified in place by anyone who can open them for writing**, because the file mode, not
+the directory mode, governs that.
+
+**The mitigating fact, measured:** normal boot leaves `/navi` **read-only** (`esinit` carries both
+`remount,rw /navi` and `remount,ro /navi`; the read-only form is what a normal boot ends on). So the mode bits are
+**latent** - they only matter during a window when the partition is read-write.
+
+**And there is such a window:** `app/bin/AppLauncher` itself carries
+
+```
+mount -o remount,rw /navi
+mount -o remount,ro /navi
+```
+
+so the launcher opens a read-write window on `/navi` at runtime, and during it the world-writable `AppNavi` and
+`CANService.sh` are modifiable **by any process that is not root**.
+
+### Part 2 - measured strings, unproven effect: the key lives in `/tmp`
+
+The same launcher contains:
+
+```
+/tmp/navi_public.key
+:/navi_public.key
+LOCFILE:/update/activeNaviPath::DEFAULT:/navi/navi::CAND1:/navi/navi_1::CAND2:/navi/navi_2
+RSA_verify
+```
+
+**No navi public key ships anywhere in the image** (only `teruten5_pub.key` and keyboard licence keys exist). So the
+launcher **writes** `/tmp/navi_public.key` at runtime and verifies with `RSA_verify` against it.
+
+That is **exactly the V-048 shape** - a verification key trusted from a world-writable path - and V-048 was
+demonstrated there: a binary this project signed ran as `uid=0` because `/tmp/app_normal.key` was trusted.
+
+**What is not established:**
+- whether the key is **read from the navi payload tree itself** (`:<activeNaviPath>/navi_public.key`), which would make
+  the verification **self-referential** - an attacker who can write the payload can write the key that vouches for it;
+- whether the key is written **before** or **after** an attacker could reach it, and whether the verification result
+  gates execution at all.
+
+### Why this matters together
+
+If both parts hold, the chain is: modify `AppNavi` during the launcher's read-write window, and (if the key is read
+from the same tree) supply a matching key - and the payload executes as root. **That is not demonstrated**, and the two
+"if"s are precisely what the next measurements must settle.
+
+### Fix
+
+1. `chmod -R go-w /navi` at image build, and mount `/navi` **read-only unconditionally**; if a component needs to
+   write there, it should write to `/rw_data` and be pointed at it.
+2. Move the navi verification key out of `/tmp` to a root-owned, read-only location, and **ship it in the image** so
+   nothing has to materialise it at runtime - the same fix V-048 needs.
+
+### Verify
+
+On a unit: while the launcher's window is open, attempt to open `/navi/Bin/AppNavi` for writing from a non-root
+process; and read `/tmp/navi_public.key` to see whether its content matches a key present in the navi tree.
+
+---
+
 ## V-065 - nine `/etc` trust anchors point into world-writable `/tmp`, and the pattern is systemic
 
 **Status:** the symlinks are **counted** in the shipped image; the effect is **demonstrated** for one of them

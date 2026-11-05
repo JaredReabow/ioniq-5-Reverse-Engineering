@@ -3,6 +3,37 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.19.1 - the fix, written: the input module tolerates an empty seat and binds late
+
+The worker's doc 08 named the fix as "return 0 (a no-op module) or create a fake seat". **I implemented the better version of that**: the module now **defers** instead of giving up.
+
+**`tools/uk_fw/guest/weston_vm_input.c`:**
+
+```c
+static int bind_first_seat(struct weston_compositor *c)
+{
+    struct wl_list *head = (struct wl_list *)((char *)c + SEAT_LIST_OFFSET);
+    struct wl_list *link = head->next;
+    if (!link || link == head)
+        return 0;                       /* no seat yet - not an error */
+    vm_seat = (struct weston_seat *)((char *)link - SEAT_LINK_OFFSET);
+    weston_seat_init_touch(vm_seat);
+    log_literal("VM_INPUT_SEAT_BOUND\n", 21);
+    return 1;
+}
+```
+
+- **`module_init`** calls it, and on an empty list logs `VM_INPUT_NO_SEAT_DEFERRED` and **continues** - it no longer returns -1, so weston is not torn down.
+- **`timer_handler`** retries the binding before doing any work, so the moment a seat appears (a real input device, or a backend that creates one) **touch is attached without a restart**.
+
+**Why deferring beats the no-op:** returning 0 and doing nothing would let weston serve, but it would silently lose input forever on a backend that later gains a seat. The timer already runs every `POLL_MS` to read the command file, so retrying there costs nothing and keeps the module honest about its own purpose.
+
+**And a build script so it is reproducible** - `tools/uk_fw/guest/build-weston-vm-input.sh`, same discipline as the other builders: `-g0`, prefix maps, and any surviving build root in the artefact overwritten with dots. Verified: **13,008 bytes, zero host paths, both new markers present.**
+
+### What is now testable, and by whom
+
+Worker's doc 08 gave the order: **socket first, then AppLauncher/AppHomeScreen, then `invalid object N`.** The module is built and ready to inject; the boot belongs to the worker, which holds the drm clone and the reproducing command. **I am not running it** - two of my last three self-run experiments duplicated its work or taught nothing.
+
 ## 5.19.0 - ROOT CAUSE: our own input module was shutting the compositor down
 
 The worker's `strace` with `/tmp/dlt` pre-created answered the whole display thread, and the answer is **not** the display backend:

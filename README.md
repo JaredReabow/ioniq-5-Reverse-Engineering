@@ -89,17 +89,29 @@ Frame: `docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png`.
 
 ### Goal 2 in one paragraph
 
-**60 entries** in `Ioniq5-VULNERABILITIES.md`, **12 items** in `docs/REMEDIATION-REPORT.md`, and the
-strongest finding is unchanged: **V-059**, a keyless downgrade — a genuine older package is encrypted
-with the unit's own key, so it installs while the version gate is satisfied against genuine current
-bytes, and anti-rollback does not bound it. **V-060** is new: the manager subscribes to the front-panel
-special-key signal with an empty service and empty path, so no sender check stands between a process on
-the system bus and a key event. One route was *refuted* this session — a crafted filename cannot reach
-the shell command that installs, because the staging copy renames every artefact to a fixed name — and
-the refutation is recorded rather than deleted.
+**70 entries** in `Ioniq5-VULNERABILITIES.md` and **20 items** in `docs/REMEDIATION-REPORT.md`, cross-referenced in
+both directions. The finding that matters most is no longer the one that was hardest to reach:
 
-**The record itself is checked.** `tools/check_all.sh` verifies register consistency (no gaps, no
-duplicates, no dangling references), append-only history, tool syntax and every internal document link.
+- **V-064 - the reason every other finding is severe.** **106 of 107 services run as root** with no systemd hardening
+  at all; every hardened unit in the image is a stock systemd one. On this platform "the bus is root-only" is not a
+  boundary between applications, and a file write is the ambient condition rather than a high bar.
+- **V-069 - the cheapest path, and it needs no hardware.** The navigation update's root CA ships **group-writable on a
+  read-write partition**, and the updater's own code names that file as the trust root. One file write could let an
+  attacker sign a package the unit accepts, and the payload runs as root.
+- **V-067 - a static root SSH key ships in the image.** Blocked today only because the daemon binary is absent and its
+  gate is a file in `/tmp`.
+- **V-059 - still the strongest *demonstrated* mechanism**: a keyless downgrade, where a genuine older package is already
+  encrypted with the unit's own key.
+- **V-070 - persistence**: a shell-script path on a persistent partition, referenced by the manufacturing test app.
+
+Two routes were **refuted** this session and are recorded as refuted rather than deleted: a crafted USB filename cannot
+reach the shell that installs (the staging copy renames every artefact to a fixed name), and the About-screen tap
+gesture is absent from this build's code.
+
+**The single recommendation is unchanged and now better supported: never resolve a security decision from a writable
+path, and make every such check fail closed.** V-064 is why that sentence is about *everything* rather than about one
+lamp on one service.
+
 All four stages are green at the commit this line describes.
 
 ### Where the VM work stands

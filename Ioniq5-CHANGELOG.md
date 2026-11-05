@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.9 - CORRECTION: the updater's code is not in `AppUpgrade`, and my "two code sites" evidence was wrong
+
+Following V-059's last open question meant disassembling around the reference site I had reported. That produced nothing, and the reason is the correction:
+
+```
+objdump -h app/bin/AppUpgrade
+  .text    0x3f73      (16,243 bytes)
+  .rodata  0xa3faa8    (10,746,536 bytes)
+```
+
+**`AppUpgrade` is a 16 KB wrapper around 10.7 MB of data**, and inside that data sit **two complete ELF binaries**:
+
+| offset | bytes | identity | its own .text |
+| --- | --- | --- | --- |
+| `0x7c64` | 5,678,432 | **SCOMO** (764 `###[scomo]` lines) | 0x24cf83 |
+| `0x5721c8` | 5,066,264 | **FUMO / newota** (138 `###[newota]` lines) | 0x1e5203 |
+
+So the "two reference sites, ~1.2 MB apart, so the check and the install are constructed in different parts of the program" claim from §5.1.0 is **withdrawn**: both sites (`0x1877a8`, `0xbd744`)
+lie in **`.rodata`**. My displacement scan could not distinguish code from data, and on this binary almost everything is data.
+
+**What survives** is what was measured as strings and tags: both command strings exist, each names `%1`, and the check/install distinction is the upstream project's `[RE]` finding against the
+*embedded* images - which are now extracted, so the claim can be tested properly rather than borrowed.
+
+`tools/uk_fw/extract_embedded_elfs.py` does the extraction by ELF header and section-table extent, identifies each image by its log tag, and skips the outer header. Both the register and the
+evidence sheet carry the correction in place, including the sentence "the scan cannot distinguish code from data", because that limitation is what produced the error.
+
+This is the seventh instrument-or-inference fault of the night and the most instructive: the scan was *accurate* - it really did find displacements resolving to those strings - and the
+conclusion drawn from it was still wrong, because I never asked what section the sites were in. One `objdump -h` would have told me before I wrote it down.
+
 ## 5.3.4 - end to end from an empty base: the procedure works, after three of my own bugs
 
 The last outstanding claim - that the documented procedure rebuilds a working image - is now measured. From a workspace with **none** of the projection-only files:

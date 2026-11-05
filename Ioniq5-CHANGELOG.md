@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.12 - placement works, and the standby face is my own sequencing bug
+
+Three captures in one run, shipped configuration:
+
+```
+K1_BEFORE       home=2623 cam=2632 setup=3109 weston=797     129,844
+                ivi-wm 2080
+K1_placed                                                    114,782
+K1_AFTERKILL    cam=3277 setup=3300 (they came back)         129,844
+```
+
+**`ivi-wm 2080` changed the composited output**, so **placement through `ivi_window_manager` works** and the entire `hmi-controller` investigation was unnecessary - the module the vehicle does not load, that cannot load here either.
+
+The 114,782 frame shows a title bar reading `STR_CAMERA_ALERT2`, a left panel and the KIA logo: **the application's standby face**, the same face this project documented at 120,561 bytes days ago. So it *is* surface 2080, it *is* the application, and it is **not powered on**.
+
+**Killing the camera and setup apps cannot help:** both were back within eight seconds (2632 -> 3277, 3109 -> 3300). The manager supervises them; they are not strays.
+
+### The probable cause is my probe, not the vendor
+
+The script issues `set_power_on_status` at the **top**, when `AppHomeScreen` may not have registered its name yet. The manager accepts the call regardless and the state event reaches nobody. Every attempt in this series had that shape: **the call lands at a fixed second, not at a state.**
+
+So the correction is **sequencing**: poll for the app owning its name, *then* call, *then* wait for the frame to settle (~90 s), *then* place 2080, *then* capture.
+
+That also retro-explains the "day theme, no widgets" frame and the "unloaded resource model" theory: the application was simply never told the vehicle was on.
+
 ## 5.10.11 - both hmi-controller hypotheses are dead, and the whole line was a detour
 
 **Test 1 - is it SMACK?** Enabled the module, grepped the audit buffer:

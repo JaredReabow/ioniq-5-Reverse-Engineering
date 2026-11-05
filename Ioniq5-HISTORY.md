@@ -5722,3 +5722,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Tested the permission theory and the path theory in one run each. Neither is right: no denial appears in the audit buffer, and correcting the path to where the binary actually lives does not stop the init failure or the compositor dying.
 - Which forced the obvious point I had been missing: the vehicle's own configuration loads only two modules, and the placement protocol we already have a working tool for is a different one that has worked here before.
 - So the likelier explanation is stacking rather than placement, and the next test is to stop the applications that start later and see whether the home screen is underneath them. Reverted both experimental changes rather than leave them in the clone.
+
+## 2026-11-05 - placement works and the standby face is my own sequencing bug
+
+- Captured the same screen three times in one run: before placing the application surface, after placing it, and after killing the other applications. Placing it changed the output, so the placement mechanism works and the module investigation was unnecessary.
+- The other applications came back within seconds of being killed, so clearing them is not a strategy.
+- The frame is the application's powered-off face, and the likely reason is that my probe sends the power-on call at a fixed second rather than after the application owns its bus name. Recorded the corrected sequence.

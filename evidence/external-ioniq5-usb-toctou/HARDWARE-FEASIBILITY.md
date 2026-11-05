@@ -29,7 +29,9 @@ Technically the S3 is a good fit for *small*: USB OTG device mode with TinyUSB's
 
 ## The two constraints that are not about the microcontroller
 
-**1. Page cache.** `md5sum` reads through the page cache. If the file is still cached when the install pass runs, the second read never reaches the device and the swap does nothing — on *any* board. Our extraction of `app/bin/AppUpgrade` contains `umount` and `fsync` but **no `drop_caches`**, so whether the media is genuinely re-read depends on whether the flow unmounts or remounts the stick between check and install. **This is the first thing to instrument on a rig**: watch whether the second pass produces USB traffic at all. If it does not, the vector as described does not work on this build and no amount of gadget engineering changes that.
+**1. Page cache.** `md5sum` reads through the page cache, and **nothing in the FUMO path evicts it**: `AppUpgrade` contains `drop_caches` code, but every reference is `[scomo]`-tagged, and
+the `[newota]` (FUMO) strings - the updater this vehicle's launcher row selects - contain **zero** mentions of it. So the second read reaching the device depends on cache pressure, i.e. on
+the payload not fitting in RAM. If the file is still cached when the install pass runs, the second read never reaches the device and the swap does nothing — on *any* board. Our extraction of `app/bin/AppUpgrade` contains `umount` and `fsync` but **no `drop_caches`**, so whether the media is genuinely re-read depends on whether the flow unmounts or remounts the stick between check and install. **This is the first thing to instrument on a rig**: watch whether the second pass produces USB traffic at all. If it does not, the vector as described does not work on this build and no amount of gadget engineering changes that.
 
 **2. Update-path timing tolerance.** A 20–60 minute read is not a normal update. Any inactivity watchdog, progress timeout or user prompt in the flow will interrupt it. The upstream field journal is the place to look for how long the real flow tolerated; this repository does not know.
 

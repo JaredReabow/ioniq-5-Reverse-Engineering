@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.3 - the page-cache question answered by the binary, and the answer is "it depends on the payload size"
+
+The weakest point of V-059 has always been the page cache: `md5sum` reads through it, so if the file is still cached when the install re-opens it, the second read never reaches the device
+and nothing swaps on any hardware. The shipped binary answers it, and not comfortably.
+
+`AppUpgrade` contains cache-dropping code -
+
+```
+###[scomo] ... drop_caches
+echo 1 > /proc/sys/vm/drop_caches
+echo 3 > /proc/sys/vm/drop_caches
+```
+
+- but every reference is **SCOMO's**. Of the two embedded updaters' tags in the binary (`[scomo]` 765 strings, `[newota]` 138), **`[newota]` - FUMO - contains zero references to
+`drop_caches`**, and this vehicle's launcher row routes it to FUMO (`-un:0`), not SCOMO.
+
+So on the path the vehicle actually takes, **nothing explicitly evicts the checked file before the install re-reads it.** Whether the swap can happen becomes a function of cache pressure:
+a payload that fits in RAM may never be re-read from the device, and one that does not must be. That is consistent with the upstream demonstration succeeding on a ~879 MB image, and it
+makes the technique **size-dependent rather than guaranteed**.
+
+The cheapest check on a rig is now precisely stated: watch whether the install pass generates USB traffic at all. If it does not, the cache is winning and the payload or the pressure has
+to change.
+
+Nothing here weakens the finding. The verify-then-install structure and the two-read separation are measured in our own binary; the cache decides how easy the second read is to make
+different, which is a property of payload and RAM rather than of the flaw.
+
 ## 5.1.2 - the front page still said "no downgrade route", which is no longer true
 
 The README's downgrade section opened with **"not through engineering mode on a stock unit, and not with a modified package"** and listed *authentic older package* as **unknown, decided

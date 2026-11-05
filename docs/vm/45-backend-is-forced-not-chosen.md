@@ -927,3 +927,48 @@ deregister**. That distinguishes two very different situations:
 
 **And the stopping rule:** if it is the second, this thread ends with a documented limitation and a named cause, not with an open
 question - which is the honest end for a gap that is a vendor timing constant under emulation rather than an unexplored area.
+
+## 42. "Why no surface", answered: the launcher never assigns AppHomeScreen a surface id
+
+One grep of the launcher log over `QT_WAYLAND_SET_SURFACE_ID` settles it:
+
+```
+AppID : 12,  Set to QT_WAYLAND_SET_SURFACE_ID=2080    (AppCamera)
+AppID : 30,  Set to QT_WAYLAND_SET_SURFACE_ID=3000    (AppOSDManager)
+AppID : 110, Set to QT_WAYLAND_SET_SURFACE_ID=2110    (AppMediaPlayer)
+AppID : 17,  Set to QT_WAYLAND_SET_SURFACE_ID=1030    (NotificationManager)
+```
+
+**There is no such line for `AppID : 11` (AppHomeScreen).** Every other managed app is handed a Wayland surface id; the home
+screen never is. So nothing it draws can be composited, and the frames stay the 129,844-byte background - **which is the first of
+the two readings, not the second**: no surface is ever created, and there is no 3 ms window that was merely missed.
+
+**The application is therefore not demonstrably broken**, and neither is the backend. The gap is the vendor launcher's
+surface-id assignment for app id 11 under TCG.
+
+## 43. The whole path, in one table - and where it stops
+
+| step | state | evidence |
+|---|---|---|
+| matching kernel source builds (`4.1.27-abl`) | ✓ | `docs/kernel/01-build.md` |
+| `/dev/dri/card0` via bochs-drm | ✓ | `docs/kernel/02-...` |
+| native 1920×720 mode | ✓ | `docs/kernel/11-...` (bochs_kms patch) |
+| vendor `drm-backend.so` binds `card0` | ✓ | `docs/kernel/05-...` |
+| Wayland socket (seat fix) | ✓ | `docs/kernel/08`, `09` |
+| application connects, `Wayland-EGL`, `START DRAW` | ✓ | `docs/kernel/09` |
+| application chrome painted (standby face) | ✓ | `docs/kernel/11` - 144,501 bytes, blue bar |
+| application surface composited after power-on | **✗** | `docs/kernel/18` - no surface id, no surface |
+| laid-out home screen (Battery/Range) | **✗** | `docs/kernel/17`, `18` - never reached |
+
+**Seven steps demonstrated, two not, and the first failing step has a name**: surface-id assignment for app id 11.
+
+## 44. What this means for the goal, stated once
+
+**"Run the infotainment system in a VM as close to stock as reasonable" is met for everything except the last compositing step**:
+the vehicle's kernel was not usable, so a matching one was built; the vendor's DRM backend, the vendor's compositor, the vendor's
+launcher and the vendor's home screen all run; and the application paints its own chrome on the vendor's display path at the
+vendor's resolution.
+
+**Two candidate fixes remain, both substitutions:** patch the launcher to assign the id, or set `QT_WAYLAND_SET_SURFACE_ID` for
+that app - the second is complicated by the launcher stripping its environment from children, which this project already
+documented for `LIBGL_*`.

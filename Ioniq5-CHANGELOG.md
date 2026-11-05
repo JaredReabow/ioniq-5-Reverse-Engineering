@@ -3,6 +3,43 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.23.0 - the display thread closes with a named failing step: the launcher never assigns AppHomeScreen a surface id
+
+One grep settles the question three entries chased:
+
+```
+AppID : 12,  Set to QT_WAYLAND_SET_SURFACE_ID=2080    AppCamera
+AppID : 30,  Set to QT_WAYLAND_SET_SURFACE_ID=3000    AppOSDManager
+AppID : 110, Set to QT_WAYLAND_SET_SURFACE_ID=2110    AppMediaPlayer
+AppID : 17,  Set to QT_WAYLAND_SET_SURFACE_ID=1030    NotificationManager
+```
+
+**There is no such line for `AppID : 11` - AppHomeScreen.** Every other managed app is handed a Wayland surface id; the home screen never is. No surface id means nothing composited, which is why the frames stay the 129,844-byte background - and it is the **first** of the two readings, not the second: **no surface is ever created, and there is no 3 ms window that was merely missed.**
+
+### The whole path, in one table
+
+| step | state |
+|---|---|
+| matching kernel source builds (`4.1.27-abl`) | yes |
+| `/dev/dri/card0` via `bochs-drm` | yes |
+| native 1920×720 mode (`bochs_kms` patch) | yes |
+| vendor `drm-backend.so` binds `card0` | yes |
+| Wayland socket (the seat fix) | yes |
+| application connects, `Wayland-EGL`, `START DRAW` | yes |
+| **application chrome painted** - its own standby face, 144,501 bytes | yes |
+| application surface composited after power-on | **no** |
+| laid-out home screen (Battery/Range) | **no** |
+
+**Seven steps demonstrated, two not, and the first failing step has a name.** The application is not demonstrably broken, and neither is the backend.
+
+### What "as close to stock as reasonable" got, honestly
+
+The **vehicle's kernel was unusable** for a display path, so a **matching one was built** from source already in the repository; the **vendor's** DRM backend, compositor, launcher and home screen all run; and the application **paints its own chrome on the vendor's display path at the vendor's resolution.** Two candidate fixes remain, both substitutions: patch the launcher's assignment, or set the variable for that app - complicated by the launcher stripping its environment from children, already documented for `LIBGL_*`.
+
+### And the finding worth more than any of it
+
+**Five times tonight an instrument or a premise looked like a property of the vendor's system:** the process-wide `LD_PRELOAD`, the placement tool, a truncated log, `CONFIG_DRM_VIRTIO_GPU` (which does not exist in 4.1.27), and the input module's `return -1` on an empty seat. **Every one was found by reading a log, and every one cost runs when it wasn't.**
+
 ## 5.22.5 - the combined test: no surface on the stable instance, and the call kills it anyway
 
 ```

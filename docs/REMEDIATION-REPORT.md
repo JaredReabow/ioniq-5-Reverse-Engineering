@@ -355,8 +355,10 @@ script in place. If the key is read from the navi tree it verifies, the check is
 replaced with a matching key. V-048 already demonstrated the consequence of trusting a `/tmp` key: a binary this project
 signed ran as `uid=0`.
 
-**Fix.** `chmod -R go-w /navi` in the image build; mount `/navi` read-only unconditionally and direct writers at
-`/rw_data`; move the verification key to a root-owned read-only location and **ship it**, as fix item 9 also requires.
+**Fix.** `chmod go-w` on `/navi/Bin/AppNavi` and `/navi/Bin/CANService.sh` - **two paths, not a tree audit**: the image has
+**no world-writable directories at all**, so this is an anomaly in two files rather than a permissions model. Also
+mount `/navi` read-only unconditionally, direct writers at `/rw_data`, and move the verification key to a
+root-owned read-only location and **ship it**, as fix item 9 also requires.
 
 **Verify.** During the launcher's window, open `/navi/Bin/AppNavi` for writing from a non-root process; compare the
 contents of `/tmp/navi_public.key` against any key present in the navi tree.

@@ -2641,6 +2641,32 @@ boot".
   repository has only the strings, which support either.
   **The observation that settles it is a `lsof`/`inotify`/`strace` on the unit during a real update**: which path does the `md5sum` open, and which does the `pv`/`dd` open.
 
+## Scope note - what the image does *not* have, which narrows the fixes
+
+Two sweeps that came back empty, recorded because a register that only lists what is wrong cannot tell a platform team
+where the boundary of the problem is:
+
+```
+setuid / setgid files                                        0
+world-writable directories (outside /tmp, /run, /var/volatile)  0
+```
+
+**Consequences, and they are useful:**
+
+1. **The V-066 world-writable executables are anomalous, not systemic.** Nothing in the image is a world-writable
+   *directory*, so this is not a permissions model applied to a tree - it is two files that ended up `0777` while
+   every directory around them is `0755`. The fix is therefore a **targeted `chmod go-w` on two paths**, not a tree
+   audit, which is much cheaper than the finding first suggested.
+2. **There is no setuid surface.** No `sudo`-style helper, no `ping`-style capability trick - nothing in this image
+   grants privilege through the file mode bits. Every privilege escalation in this register goes through a **writable
+   runtime path** or a **service**, not through a setuid binary. That is consistent with the whole shape of the
+   findings and it is worth knowing before anyone spends time looking for setuid bugs.
+3. It also means **the root-level consequences in V-048, V-054, V-066 come from ordinary file access**, not from
+   exploiting privilege bits - which is precisely why the "never resolve a security decision from a writable path"
+   recommendation is the right one for this platform rather than a generic hardening chant.
+
+---
+
 ## Scope note - how complete the "keys from writable paths" set is
 
 Measured, so that V-048 and V-066 can be read as a **complete set** rather than as examples:

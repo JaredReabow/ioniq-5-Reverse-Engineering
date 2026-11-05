@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.13.1 - two sweeps came back empty, and that narrowed a fix
+
+```
+setuid / setgid files                                            0
+world-writable directories (outside /tmp, /run, /var/volatile)    0
+```
+
+**Recorded because a register that only lists what is wrong cannot tell a platform team where the boundary of the problem is.**
+
+### What the zeroes buy
+
+1. **The V-066 world-writable executables are anomalous, not systemic.** Nothing in the image is a world-writable *directory*, so this was never a permissions model applied to a tree - it is two files at `0777` with every directory around them at `0755`. **The fix is therefore a targeted `chmod go-w` on two paths, not a tree audit** - much cheaper than the finding first suggested. Item 17 has been rewritten to say so.
+2. **There is no setuid surface at all.** No privilege-bits helper, nothing that grants privilege through the file mode. **Every escalation in this register goes through a writable runtime path or a service** - which is consistent with the entire shape of the findings, and worth knowing before anyone spends time hunting setuid bugs.
+3. It confirms why this platform needs one specific recommendation rather than generic hardening: the root consequences in V-048, V-054 and V-066 come from **ordinary file access**, not from exploiting privilege bits. Hence *"never resolve a security decision from a writable path"* is the right instruction here, and not a chant to recite.
+
+### The pattern in how these entries are ending
+
+Three of the last four sweeps produced something **useful and smaller than feared**: the key family is enumerated (two), the navi permissions are two files, and the setuid surface is zero. That is what enumeration does - it converts alarming lists into bounded work.
+
 ## 5.13.0 - the /tmp-key family is enumerated, not sampled
 
 Asked how many verification keys the platform trusts from a writable path, and the answer is **two**, both already filed:

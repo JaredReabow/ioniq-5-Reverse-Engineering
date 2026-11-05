@@ -54,9 +54,14 @@ Running the real manager is not enough on its own. `docs/engineering-mode/appman
 
 ## 1c. The authentic HMI runs, paints, and takes clicks
 
-The managed `AppHomeScreen` - launched by the vehicle's own `esinit` -> systemd -> `ApplicationLauncher` -> `ApplicationManager` - renders the vendor interface on the vendor compositor:
-title bar, `STR_CAMERA_ALERT2`, left panel and **the vendor's own KIA logo** (`docs/vm/32-managed-home-screen-kia-logo-authentic-2026-11-05.png`, 120,561 bytes). A synthetic click reaches a
-real client at `pid=797 uid=0`.
+The managed `AppHomeScreen` - launched by the vehicle's own `esinit` -> systemd -> `ApplicationLauncher` -> `ApplicationManager` - renders on the vendor compositor: **a title bar reading
+`STR_CAMERA_ALERT2`, a left panel, and the vendor's own KIA logo** (`docs/vm/32-managed-home-screen-kia-logo-authentic-2026-11-05.png`, 120,561 bytes). A synthetic click reaches a real client at
+`pid=797 uid=0`.
+
+**What it does not render is the home screen's content** - no widgets, no icon row, nothing to navigate to. Two independent captures from different workers show the same frame
+(`docs/vm/33b-…png`), so this is the application's steady state in the projection and not a timing artefact. The most probable cause is the state the application believes it is in: the home layout
+is gated on MICOM power/ACC status, and our stand-in answers the D-Bus queries without driving the power state machine. That is the next thing to supply, and it is a data problem of the same kind as the
+six services answered earlier - not a rendering problem.
 
 Two things that mattered and are cheap to get wrong: **`--smp 4` is required** (at two vCPUs the managed app never registers its bus name), and **capture surfaces by identity, not recency** - the
 background's surface is created last, so "newest" always returns the splash. Reference sizes: **129,844** background, **120,561** painted application.

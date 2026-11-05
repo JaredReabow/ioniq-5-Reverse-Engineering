@@ -5524,3 +5524,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Read the leading finding end to end after ten rewrites. No contradictions: each correction sits above the sentence it replaces and the final resolution matches everything below it.
 - One bullet had been overtaken: it still called the container requirement merely plausible, when the apply stage was afterwards measured invoking the decryptor. Sharpened, with the genuinely open half kept open.
 - A long, much-edited entry is where a stale hedge survives unnoticed, because nothing contradicts it - it is only older than the evidence.
+
+## 2026-11-05 - the interface paints a title bar and a logo, not a home screen
+
+- Two independent captures from two workers show the same frame: title bar, left panel, vendor logo, and no home content at all. That is the steady state in the projection, not a timing artefact.
+- Which corrects what I had been saying: the application paints, the home screen does not. It also explains why clicks had nothing to navigate to.
+- The likely cause is state rather than rendering: the layout is gated on the vehicle power status, and our stand-in answers queries without driving that state machine. Supplying it is the next named step.

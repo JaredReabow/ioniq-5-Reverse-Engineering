@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.1 - the most consequential finding was missing from the document that schedules fixes
+
+V-059 was in the register and in the root-access ranking, but not in `docs/REMEDIATION-REPORT.md` - the one a platform team acts from. That is the second time tonight a new finding has been
+filed in only one of the two documents, and the second time it was caught by looking rather than by a checker.
+
+It is now **item 7**, in the code-change tier but stated with both halves, because they need different responses:
+
+- **install arbitrary content** needs the unit's TE2 content key, which does not ship - so that half is bounded by a secret;
+- **install a genuine older image** needs **nothing**, because it is encrypted with the key the unit holds, the install consumes it, and the version gate was satisfied against the genuine
+  current bytes. That is a downgrade that does not depend on anti-rollback.
+
+The fix is one sentence and one design change: **never verify a file and then re-open it** - hash during the install over the same handle that writes, or copy once into protected storage
+and verify and install from that copy - plus a boot-time rootfs integrity mechanism so that "installed unverified content" is not the same as "runs at next boot".
+
+`docs/root-access-paths.md` route 0 was sharpened to match: the cost is a programmable stick, and for a downgrade that is the *entire* cost - no key, no anti-rollback.
+
+The earlier items were renumbered so the list stays readable, and the report now says twelve.
+
 ## 5.1.0 - the TE2 key does not ship, and that turns V-059 into a keyless downgrade
 
 The upstream project keeps the TE2 content key out of its repository, so the obvious question was whether the key ships in the image. Following it produced this session's most

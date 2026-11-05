@@ -5320,3 +5320,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - That splits the requirement in two, and the second half is the finding: installing a genuine older image needs no key at all, because it is already encrypted with the key the unit holds, and the version gate was satisfied against the different bytes that the check pass read.
 - So the downgrade question this project has carried open since its first document has an answer, and it came from the gap between two reads rather than from the version selector or the signature chain.
 - Also cleaned up a duplicated paragraph caused by my own edit landing silently and a fallback appending a second copy.
+
+## 2026-11-05 - the biggest finding was not where people look for fixes
+
+- The update race was in the register and in the ranking but not in the document a platform team schedules from. Second time tonight that a finding lived in only one of the two, and second time it was caught by looking.
+- Added it with both halves kept separate, because they need different responses: arbitrary content is bounded by a key that does not ship, while a genuine older image needs nothing and sidesteps rollback protection entirely.
+- Sharpened the ranking to match: the cost is a programmable stick, and for a downgrade that is the whole cost.

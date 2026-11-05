@@ -142,7 +142,7 @@ than by existence checks in `/tmp`.
 
 ## Tier 2 — code changes, requiring a release
 
-### 7. The application manager executes a caller-named path as root, unverified
+### 8. The application manager executes a caller-named path as root, unverified
 
 **Evidence.** `request.launch(appid, appname, applocation)` takes the binary's path **from the caller**. A payload with no signature section, launched with the
 verification key deleted, ran as `uid=0`:
@@ -161,7 +161,7 @@ verification failure as fatal.
 
 **Verify.** A launch request naming an arbitrary path is refused, and a correctly signed binary in the trusted directory still starts.
 
-### 8. The signature check itself trusts a key in `/tmp`
+### 9. The signature check itself trusts a key in `/tmp`
 
 **Evidence.** The manager verifies with `RSA_verify(NID_sha256, …)` against a **PEM key read from `/tmp/app_normal.key`**. The authentic keys are pinned as Qt
 resources (`:/app_normal.key`) but are copied to `/tmp` once and the copy is trusted thereafter without comparison.
@@ -173,7 +173,7 @@ work was accepted and ran as uid 0.
 
 **Verify.** Replacing `/tmp/app_normal.key` has no effect on verification.
 
-### 9. The installed `debug-shell.service` is an unauthenticated root shell
+### 10. The installed `debug-shell.service` is an unauthenticated root shell
 
 **Evidence.** `DefaultDependencies=no`, `ConditionPathExists=/dev/tty9`, `ExecStart=/bin/sh`. Not enabled — and `SYSTEMD_WANTS` names units directly, ignoring
 enable links. Neighbours are the safe pattern: `console-shell.service` runs `sulogin`, `console-getty.service` runs `agetty`.
@@ -187,9 +187,30 @@ property-injection defect names exactly that property.
 
 ---
 
+### 7. The updater verifies a file and then installs it from a second read of the same file
+
+**Evidence.** `app/bin/AppUpgrade` builds two separate shell commands that each name the input file: the integrity check `ionice -c3 md5sum %1` plus a `PKCS#1 sig. verify`, and the install
+`pv -q %1 | tar -xvm -C %2` (with `nice -n 19 dd if=%1 bs=4k skip=%2` for other partitions). A displacement scan of the binary resolves each string to **one reference site, ~1.2 MB apart**
+(`0x1877a8` and `0xbd744`), so the decision and the install are constructed in different parts of the program. The file lives on removable media the user supplies.
+
+**Exposes.** A programmable USB device that serves the genuine image during the check and different bytes during the install installs content that was never verified. Two consequences
+worth stating separately:
+
+- **Arbitrary content needs the unit's TE2 content key** (`velix_aes.key`, read at run time from `/update/fota/`), which does not ship.
+- **A genuine older image needs nothing at all.** It is already encrypted with the key the unit holds, the install pass accepts it, and the version gate was satisfied against the
+  genuine current bytes. **This is a downgrade route that does not depend on anti-rollback.**
+
+**Fix.** Never verify a file and then re-open it. Hash **during** the install (a streaming hash over the same handle that writes), or copy once into protected local storage and verify and
+install from that copy. Separately, give the rootfs a boot-time integrity mechanism so "installed unverified content" is not the same as "runs at next boot".
+
+**Verify.** On a unit, confirm the install consumes the same bytes it verified - e.g. by hashing the source while writing and comparing against the check digest, or by making the install
+refuse a file whose contents changed since the check.
+
+---
+
 ## Tier 3 — data protection: currently weaker than it appears
 
-### 10. The data encryption passphrase is `1234`, and in the shipped flow it never runs
+### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
 opens them. Demonstrated, with a negative control:

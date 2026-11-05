@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.15.1 - the kernel tree was already in the repository
+
+I wrote an entry ago that a kernel rebuild "needs a 4.1.27 tree matching `vendor.config`, which **this project does not have**". **That was wrong**, and it was wrong in the repository's own `work/` directory: **`work/kbuild/linux-4.1.27.tar.xz` is present**, alongside earlier build outputs (`bzImage-gcc11`, `bzImage-noreloc`, `bzImage-4.1.27-abl-vdisp`) and their logs.
+
+So the highest-leverage action is not *acquire a tree* - it is **build from the tree we already have**.
+
+**Delegated** to a child thread (`d5d41ed2`, own workspace `work/vm/kbuild/`, its own CoW clone for booting) with the risks named up front rather than discovered:
+
+- reconciling `vendor.config` against vanilla 4.1.27 **drops the vendor-only symbols** (`CONFIG_LGE_*`, `micom`, `ias`) - and losing `micom` means losing the built-in driver that *would* have created `can0`, so the trade must be stated, not swallowed;
+- module **vermagic** must stay close to `4.1.27-abl` or the vendor modules stop loading;
+- the image's own **`esinit`** must remain the init path;
+- plus the disciplines that have cost this project runs: no git, no process-wide preload, no placement tool, verify by measurement, record the size of any file you count.
+
+**And the lesson is the same one as the log values and the bus policies:** I asserted a resource was missing without looking where the project keeps its resources. **That is the third time this session** - the pattern is mine, not the repository's.
+
+Worth naming once: the three instances were (1) 545 log files holding reply values I called unrecoverable, (2) 18 XML policy files holding the platform's boundaries, (3) the kernel tarball sitting in `work/kbuild/`. **In every case the answer was already inside the repo, and in every case I had looked only at the binaries.**
+
 ## 5.15.0 - mapping what the display ceiling blocks, so it stops being rediscovered
 
 The same conclusion has now been reached **three times from three directions**, at roughly one run each: several open items are blocked by **one absence**, not by their own difficulty. Written down once, in `docs/vm/47-what-the-display-ceiling-blocks.md`.

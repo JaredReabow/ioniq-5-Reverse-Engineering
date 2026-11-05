@@ -41,3 +41,22 @@ independently by hand.
 **The VM goal is at its ceiling, and the ceiling is a kernel configuration.** Everything above is written down so that
 the next person does not spend a run rediscovering it - which is what I did three times, at roughly one run per
 rediscovery.
+
+## Update - the kernel tree was already here
+
+I wrote above that the project "does not have" a matching kernel tree. **That was wrong, and it was wrong in the
+repository's own `work/` directory:** `work/kbuild/linux-4.1.27.tar.xz` is present, alongside previous build outputs
+(`bzImage-gcc11`, `bzImage-noreloc`, `bzImage-4.1.27-abl-vdisp`) and `work/kbuild/*.log`.
+
+So the highest-leverage action is not "acquire a tree" - it is **build from the tree we already have**. That work is
+delegated (child thread `d5d41ed2`, workspace `work/vm/kbuild/`), with the risks named in advance:
+
+- reconciling `vendor.config` against vanilla 4.1.27 **drops the vendor-only symbols** (`CONFIG_LGE_*`, `micom`, `ias`) -
+  and losing `micom` means losing the built-in driver that would have created `can0`, which is a trade to state rather
+  than discover;
+- module vermagic must stay close to `4.1.27-abl` or the vendor modules stop loading;
+- the image's own `esinit` must remain the init path.
+
+**The lesson is the same one as the log values and the bus policies:** I asserted a resource was missing without
+looking in the place the project keeps its resources. That is the third time this session - the pattern is mine, not
+the repository's.

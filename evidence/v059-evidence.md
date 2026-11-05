@@ -61,7 +61,7 @@ mkfs.ext4 -E nodiscard -j /dev/mmcblk0p16
 
 A fresh invocation opens the payload again, separate from the `md5sum` site at `0x13a550`.
 
-**Where that second open points is resolved in favour of the medium:** FUMO's own log string is `mountPath is /update/usb/bin CloseApp called !` and it carries a generic `mount %1 %2`, so
+**Where that second open points: naming says mount, the code found so far says otherwise.** FUMO's own log string is `mountPath is /update/usb/bin CloseApp called !` and it carries a generic `mount %1 %2`, so
 `/update/usb/bin` is a **mount point** - the path counts that looked like staging were pointing at the mounted USB volume. The caveat is that `mount %1 %2` is generic and could mount a local
 loop image, so a runtime `lsof`/`inotify` is still the definitive check.
 

@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.17 - "resolved" was one word too strong: the mount call is not there
+
+Two entries ago I recorded the source-path question as **resolved**: `/update/usb/bin` is a mount point, because FUMO's own log calls it a `mountPath`. Following the same method that has worked -
+resolve the string to a code site, then read the strings that site references - gives a weaker answer.
+
+FUMO's generic `mount %1 %2` resolves to **one** code site, `0xb2a1b`, and the strings around it are:
+
+```
+/rw_data/mnt/root
+/space/vr_fixed
+mount %1 %2
+[%s] Run Script for Smack Rule - VrFixed (%s) !!!
+checkFirmwareUpdater
+```
+
+That is a **VR and rw_data mount helper**, not a USB mount. So the evidence for "mounted, not copied" is **naming only**, and a copy into `/update/usb` remains possible.
+
+The entry and the evidence sheet now say exactly that: *naming says mount, the code found so far says otherwise, and a copy is not excluded.* The leaning stays in place, for the mountPath string,
+and `lsof`/`inotify` on a unit is still the only thing that decides it.
+
+**Recorded because "resolved" is the word that ends investigation**, and it was doing so here on a log message while the obvious next check contradicted it. That is the same failure as every other
+correction tonight, one step later: the confirmation step is the one most likely to be skipped once a satisfying answer has been written down.
+
 ## 5.5.0 - the state page caught up with five changes it had missed
 
 `docs/CURRENT-STATE.md` is the page a reader starts from, and tonight overtook three of its sections:

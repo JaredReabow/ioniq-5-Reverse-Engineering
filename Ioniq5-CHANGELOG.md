@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.29.0 - the duplicate registration is one pid, and the instrument was denied by the policy it measured
+
+**Doc 29 answers the two-instances question: it is a retry.** Same pid `2303`, twice, **10 ms apart**:
+
+```
+23:03:49.596  [REGISTERED] registeredFromNativeApp AppId[11][AppHomeScreen]
+23:03:49.606  [REGISTERED ERROR] Already registered AppId[11][AppHomeScreen]
+23:03:49.631  notifyAppTerminate [AppHomeScreen][15]
+23:03:49.920  m_AppProcess->start(/app/bin/AppHomeScreen)
+```
+
+One `start()` before the duplicate, and the next launch is **after** the kill. So this is the stand-in hypothesis, measured: the projection replaced the real `ApplicationManager` with a D-Bus override, `RequestRegister` is retried because nothing acks it the way the real manager would, and the launcher's duplicate guard terminates the app.
+
+**The fix is projection-side and small** - answer the registration method - and it is the last blocker between this projection and a laid-out frame.
+
+### The seventh instrument defect, and the most instructive
+
+`APP_LABEL=[]` and `PHEV_DIR=Permission denied` are now correctly recorded as **NOT MEASURED**. The monitor ran as `_`, so it (a) read a label from a dead pid and (b) could not list a `Data::commonphev` directory, because `App::home *` grants only `t`.
+
+**The vendor's security policy denied our instrument.** That is the opposite of the six earlier failures, where our instrument misled the measurement - here the system under test refused to be measured by an unlabelled process, which is exactly what it is supposed to do.
+
+### Two consultations, as instructed
+
+Opus 4.7 and Astra were both given the post-run state and asked for the next step: whether the handshake hypothesis is right, the cheapest check that could kill it, the exact minimal fix, and whether tonight's finding changes the security ranking.
+
 ## 5.28.0 - the label fix worked, the instrument got denied, and the register owes a qualification
 
 **The `App::home` exec label did exactly what it was meant to do.** Boot50: `COMMONPHEV_DENIALS=0`, the `object="Data::commonphev"` denial absent from `dmesg`, no `segfault at` for the process.

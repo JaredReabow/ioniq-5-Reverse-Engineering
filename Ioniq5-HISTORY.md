@@ -5548,3 +5548,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Traced the command builder that substitutes the package path into a shell string: the path arrives as an argument and goes straight into the string substitution with no validation between them.
 - Counted the whole payload for comparisons against shell metacharacters. Pipe and backtick are never compared against anywhere, and the two semicolon comparisons turned out to be integer range and enum tests read in context.
 - So the consumer side of the primitive is complete. What remains is the copy step that fills the staging directory, and whether it preserves a filename verbatim.
+
+## 2026-11-05 - the path comes from the filesystem and nothing filters it
+
+- Followed the substituted path back to what feeds it. Both extraction templates take their source from a filesystem entry's absolute path, which then goes straight into the string substitution.
+- One command that looked like an attacker-controlled copy into the executable directory turned out to copy the payload's own binary, so that lead is closed rather than open.
+- With no character-class test in either payload, and with FAT permitting semicolons and dollar signs in filenames, the remaining question is the staging copy, and nothing else.

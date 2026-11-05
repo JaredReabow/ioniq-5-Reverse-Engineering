@@ -6082,3 +6082,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Read the remediation report top to bottom for the first time since it doubled in size, and found a dozen configuration only fixes filed under code changes requiring a release, plus an item stranded out of order.
 - Rebuilt the tiers by cost, put the four leverage items at the head of the first tier, and removed two artefacts the rebuild introduced.
 - Recorded the pattern: a document that is only appended to will contradict itself, and this is the fourth time this session that the record rather than the work needed correcting. The checks catch links and numbering, not a structure that is internally consistent and wrong.
+
+## 2026-11-05 - the ceiling is lifted, and I nearly destroyed the state page proving it
+
+- The delegated boot lists the drm device node, a control node and a framebuffer on a kernel that reaches multi-user with the vehicle's own rootfs. That makes the forced-backend conclusion false for this project, though it was true of the shipped kernel.
+- Nearly lost the state page doing it: I sliced a section between two markers assuming their order, the slice came back empty, and replacing an empty string inserted the new text between every character, turning twenty-eight kilobytes into thirty-three megabytes.
+- What caught it was a count that should have been one and came back in the thousands. Restored from the last commit and redid the edit with three assertions, and wrote the rule: assert the region, check the size afterwards, and keep the file restorable.

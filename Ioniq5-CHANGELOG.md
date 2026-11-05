@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.16.2 - the ceiling is lifted, and I nearly destroyed the state page proving it
+
+**The measurement:** the delegated boot lists `/dev/dri` on the rebuilt kernel:
+
+```
+crw------- 1 0 root 226,  0  card0
+crw------- 1 0 root 226, 64  controlD64
+[    0.548997] [drm] Found bochs VGA, ID 0xb0c5.
+[    0.566980] bochs-drm 0000:00:01.0: fb0: bochsdrmfb frame buffer device
+[    0.567558] [drm] Initialized bochs-drm 1.0.0 for 0000:00:01.0 on minor 0
+Reached target Multi-User
+```
+
+**A KMS device node, a control node, a framebuffer, on a kernel that boots the vehicle's own rootfs to Multi-User.** So the sentence `docs/vm/45-...` was written to make - *"the headless backend is the only one that can exist"* - is **false for this project**, and was only ever true of the shipped kernel's configuration.
+
+`drm-backend.so` and `fbdev-backend.so` are now reachable. **The next measurement is the one the whole VM effort exists for:** does the application still receive `wl_display@1: error 0: invalid object N` on a real display path.
+
+### And the near-miss
+
+Editing the state page, I sliced the section by two markers **assuming their order**. They were the other way round, so the slice was **empty** - and `t.replace('', new)` inserts the replacement between **every character**. The file went from 28,140 bytes to **33 MB / 702,293 lines** in one call.
+
+**What caught it:** a `grep -c` that should return `1` returned **`28077`**. An absurd count is a signal, like the zero counts of rule 14 - both are numbers that cannot be true.
+
+**What fixed it:** `git checkout --` (uncommitted, so nothing was lost), then the same edit with three assertions - markers found, `end > start`, slice longer than 200 chars. The second attempt **asserted rather than corrupted**, the markers were located by walking the headings, and the file came out at 27,793 bytes.
+
+Rule 16 records it: assertions on the region, a size check afterwards, and the file restorable before you run it.
+
 ## 5.16.1 - the fix list's tiers had become false
 
 `docs/REMEDIATION-REPORT.md` is the document a platform team acts on, and mine is yours to read before you change it.** I had been appending items 13-23 to the end of a two-tier report without re-reading the top, and by item 23 the structure said something untrue: **a dozen configuration-only fixes sat under *"code changes, requiring a release"*** - bus policies, unit hardening, symlink targets, an inverted boot default, a missing `User=`, an unauthenticated listener - plus item 11 stranded after item 23.

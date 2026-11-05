@@ -2667,6 +2667,58 @@ world-writable directories (outside /tmp, /run, /var/volatile)  0
 
 ---
 
+## V-070 - a shell script path in a writable data partition, referenced by the manufacturing test application
+
+**Status:** the **path string and the process-execution APIs are measured**; the directory does not exist in the
+shipped image, and that the application executes *that file* is **unproven**. Class: persistence primitive.
+
+### Measured
+
+```
+app/bin/AppMPAutoTest contains:   /app/data/AppEngineeringMode/shell/eject.sh
+and links:                        QProcess::start, QProcess::startDetached,
+                                  setStandardOutputFile, setStandardErrorFile, waitForStarted, waitForFinished
+```
+
+`/app/data` is a symlink to **`/rw_data/app_data`** - a read-write partition that **persists across reboots**.
+`/rw_data/app_data/AppEngineeringMode/shell/` is **not present in the image**, so the script is not shipped; the path
+exists in the binary and the directory does not exist on disk.
+
+V-042 already records that this application's manufacturing mode is triggered by a **file in `/tmp`**
+(`/tmp/AppMPAutoTest/do_mpauto`). Combining the two gives the shape below.
+
+### The shape, if the path is executed
+
+1. Any process with root - which per V-064 is most of the stack, and which several findings here achieve - **creates
+   one directory and one file** on a persistent partition.
+2. The manufacturing trigger is set (a `/tmp` marker, V-042).
+3. The manufacturing test application runs the script **as root, unattended**, and it **survives reboot** because
+   `/rw_data` persists.
+
+That is a **persistence** primitive, not an escalation: it needs root, but it converts temporary root into
+**permanent, automatically re-executed** code through a path the platform itself nominates.
+
+### What is *not* established
+
+- **That `AppMPAutoTest` executes that specific file.** The binary links `QProcess` and contains the path; the string
+  could be a log line, a check, or an argument to something else. That measurement would make this a finding rather
+  than a shape.
+- Whether the script would be run with any verification (hash, owner, label) - nothing in the strings suggests one,
+  but absence of strings is not absence of a check.
+
+### Fix
+
+Do not execute scripts from a persistent writable partition. If field diagnostics need a script, ship it on a
+read-only partition and run **that** path; or verify a signature over it with a key that is not itself on a writable
+partition - the failure mode V-069 records.
+
+### Verify
+
+On a unit: create `/rw_data/app_data/AppEngineeringMode/shell/eject.sh` with a single marker command, trigger
+manufacturing mode, observe whether it runs. Five minutes, and the answer is what this entry is missing.
+
+---
+
 ## V-069 - the navigation update CA is a group-writable file on a read-write partition
 
 **Status:** the path, the file and its mode are **measured**; that the update verification actually trusts it is

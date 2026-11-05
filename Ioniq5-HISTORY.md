@@ -5944,3 +5944,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Answered part of the open question statically rather than with another boot. The updater's own code names that file as the TomTom root CA and copies one into place only when none is present.
 - Since the image ships the file, the trusted certificate is the shipped one, which means on a fresh unit trust never bootstraps from a package being verified. That narrows the finding to the writability of the file rather than the update protocol.
 - Recorded the half still unmeasured: whether the package signature specifically is checked against it, since the code path is the upgrade flow rather than an isolated verification routine.
+
+## 2026-11-05 - a script path on a persistent writable partition
+
+- Swept everything the binaries reference under the writable partitions and found the manufacturing test application pointing at a shell script in a directory that persists across reboots and does not ship.
+- Combined with the known trigger for that application, that would be unattended root execution surviving reboot: persistence rather than escalation, and precisely what an attacker who already has root wants next.
+- Recorded that the execution link itself is unproven, named the five-minute test that settles it, and gave the fix in one sentence: never execute scripts from a persistent writable partition.

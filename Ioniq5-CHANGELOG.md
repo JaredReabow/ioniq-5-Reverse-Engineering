@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.14.8 - a second vendor app fails identically, and that closes a different question than the one I asked
+
+Went to resolve V-069's open half by running SCOMO from a directory I controlled, so its **relative** trust paths (`./tool/public.crt`, `./tool/velix_aes.key`) would resolve to files I had planted.
+
+```
+error: XDG_RUNTIME_DIR not set
+ -> with the Wayland environment set:
+Using Wayland-EGL | libEGL warning: DRI2: failed to open swrast | failed to initialize EGL display
+wl_display@1: error 0: invalid object 20
+The Wayland connection experienced a fatal error (Invalid argument)
+```
+
+**SCOMO is a Qt/Wayland application and dies with the same fatal error as `AppHomeScreen`** - `invalid object` `N`, here 20 rather than 19. It never reaches the key loading.
+
+### What that corroborates
+
+**The `wl_display` failure is not specific to one application.** Two different vendor binaries, started in different ways - one by the launcher, one by hand from a shell - both end with the compositor reporting an object the client does not know. That is consistent with the conclusion two entries ago - **the vendor's client stack runs against a display path it was not written for** - and it removes *"this app is special"* as an explanation.
+
+### What it leaves open, with a named blocker
+
+Whether the update signature is verified against `./tool/public.crt` - **a relative path, which is exactly why it matters** - cannot be settled here, because SCOMO cannot start here. The static evidence stands: `VElix_GetPubKey` reads `./tool/public.crt`, the same family reads `./tool/velix_aes.key`, and `/update/fota/public.crt` is the absolute form used in the FOTA path.
+
+**So V-069's unproven half is now blocked by the same display ceiling that blocks the widget values** - two different goals waiting on one hardware absence. Better to write that down than to rediscover it in a week.
+
 ## 5.14.7 - four of the five assumed replies had evidence sitting in the repo
 
 Last entry said the reply values were assumed "because the encoding is not recovered". That was true of the **binary** and false of the **project**: the vehicle's own DLT dump records what the real MICOM returned.

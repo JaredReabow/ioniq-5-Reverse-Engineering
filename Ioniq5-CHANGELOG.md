@@ -3,6 +3,37 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.8 - the protocol exchange, from the compositor's side, and it needs no instrument of ours
+
+Added server-side `WAYLAND_DEBUG=1` to the **projection's own** compositor wrapper - our file, no vendor binary touched - and the failing exchange appeared in four lines:
+
+```
+wl_registry@2.bind(13, "ivi_window_manager", 1, new id [unknown]@3)
+wl_compositor@4.create_surface(new id wl_surface@17)
+ivi_controller@13.surface_create(0, new id ivi_controller_surface@19)
+wl_surface@17.commit()
+  -> wl_display@1.error(wl_display@1, 0, "invalid object 19")
+```
+
+**The application binds `ivi_window_manager` - not `ivi_application` - and asks `ivi_controller` to create a surface, allocating the object id itself. The compositor then reports an object it does not know.** That is the third message of surface creation, with one instance, no preload, no placement tool, and only vendor libraries.
+
+### The cheap static check, done before any more boots, and it weakened my own hypothesis
+
+```
+/usr/lib/libwayland-client.so.0.3.0     the vendor's, the only one in the image
+/opt/software-egl18/lib/                no wayland libraries
+AppHomeScreen DT_NEEDED                 libQt5Quick, libQt5Qml (no direct libwayland)
+qt5/plugins/platforms/                  libqwayland-egl.so, libqwayland-generic.so
+```
+
+**There is exactly one `libwayland-client` and we did not inject it.** The application speaks Wayland through **Qt's platform plugin**, which is the component that actually issues these requests. And `ivi-controller.xml` **is not shipped**, so the protocol cannot be read from the vendor's files at all.
+
+### What remains, without guessing
+
+Either the **Qt Wayland plugin is vendor-patched to act as an IVI controller** (which would explain an *application* binding `ivi_window_manager`), or **its protocol version differs from the compositor module's** - and this project already knows the vendor compositor differs from upstream by `0x18` bytes.
+
+**The measurement that distinguishes them needs no new instrument:** read `/proc/<pid>/maps` of the running application. If it maps something other than the vendor's `libwayland-client.so.0.3.0`, the version theory is live; if it maps the vendor's, the plugin's use of `ivi_controller` is what to examine.
+
 ## 5.11.7 - the wrapper stops the app launching, and a debugfs assumption nearly cost the clone
 
 Tried to get `WAYLAND_DEBUG` into the application by putting a `/bin/sh` wrapper at `/app/bin/AppHomeScreen` that exports the variable and execs the renamed real binary.

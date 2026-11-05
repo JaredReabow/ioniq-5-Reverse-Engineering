@@ -6046,3 +6046,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Swept the network layer for the first time: the image ships and enables an apple mdns responder that answers multicast on the local link, running as root with no unit level restriction at all.
 - Found a string in that binary that reads like a failed privilege drop, and checked it before filing: the account it names does exist in both shipped password databases, so the path does not trigger. Recorded the withdrawal alongside the finding.
 - Kept the bounds honest: no specific vulnerability is claimed, the code was not fuzzed, and reachability depends on an interface that is gated on one path and unmeasured on another.
+
+## 2026-11-05 - the build was failing on a space in the path
+
+- The delegated kernel build had failed four times and the fourth failure named the cause: the host tools do not quote paths, and this repository's path contains two spaces, so the build was looking for a file named after the middle of the directory name.
+- Told the worker to build in a space free directory and to try the kernel image that already exists before compiling anything at all.
+- Recorded the failure of my own brief: I had warned it about every instrument that has bitten me and not about the directory it would work in. When a task fails repeatedly and looks like toolchain trouble, check the environment the tool runs in.

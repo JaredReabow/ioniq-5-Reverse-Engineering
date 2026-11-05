@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.12 - what FUMO's apply stage is made of, and the one thing it still does not say
+
+Reading the strings that the apply site (`0x60f0b`) actually references names its components:
+
+```
+/app/share/AppUpgrade/DecryptToPIPE                       <- %1, the shipped decryptor
+[%s] getKeyFile() is fail.!!! (%d)                        <- the TE2 key is read at APPLY time
+%1 -d %2 %3 0 | pv -q -L 8m | dd of=%4 bs=512             <- the pipeline
+[%s] Signed file resize fail.!!!(%s)                      <- and something gets resized
+```
+
+Three things this establishes: the apply stage runs the **shipped** `DecryptToPIPE` rather than an inline routine; the key file is consulted **at apply time**, not once at start; and the write is a
+device write (`dd of=%4 bs=512`) fed through a rate-limited stream.
+
+**And the one thing it still does not decide**, which is the only open question left in this entry: what `%2` points at - the removable medium, or a local file the flow staged first. The
+`Signed file resize` message is the first indication that a *file* is being resized rather than a stream read in place, which leans towards staging. **That is a hint, not a measurement**, and it
+points the opposite way to what the upstream project reports for its own unit.
+
+The honest summary for this entry: the check-then-use structure is now measured in the updater the vehicle runs; the *source* of the second read is not, and the strings have stopped being able
+to answer it. `lsof`/`inotify` during a real update is what would, and that is written down in both the register and the evidence sheet rather than left as an implication.
+
 ## 5.1.11 - FUMO's apply step found, and it re-reads the payload; my previous identification was wrong again
 
 Mapping the strings referenced *around* the two `tar xf` sites showed `cp -a %1 %2`, `cp -a %1/. %2`, `.whatsnew.tar.gz`, `whatsnew_usb.json` and `copyWhatsNewFiles`. **So those sites are a

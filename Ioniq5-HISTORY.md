@@ -5356,3 +5356,8 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The open question was which files the checksum lists cover. They ship for two components only, both small firmware binaries delivered as individual files: 152 entries for the micom and two for the front keypad.
 - Neither large payload appears in any checksum file, so the interface payload is both too big to stay cached and not checksummed - which is the best case for the attack and the worst for the vendor.
 - My first instinct on this was the same conclusion, arrived at without evidence. It only stands now because the scope was measured; three entries ago it was a guess that happened to be right.
+
+## 2026-11-05 - the finding now fits on one sheet
+
+- Eight entries built this finding one measurement at a time. Put all of it on a single evidence page: the binary's hash, each string check, the two reference sites with offsets, the payload sizes, the checksum contents, and the method behind the scan.
+- Included what is not established - no reproduction, one open checksum scope, one attribution to upstream - because a single sheet is where overstatement would be hardest to catch later.

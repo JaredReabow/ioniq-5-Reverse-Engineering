@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.7 - one sheet that holds every V-059 measurement and the commands behind them
+
+V-059 has been built across eight entries, each adding a measurement: the two-read structure, the signature scheme, the key inventory, the cache behaviour of the two updaters, the payload
+sizes, and what is actually checksummed. That is a lot to reconstruct from a changelog.
+
+`evidence/v059-evidence.md` now carries all of it in one place, with the subject's hash and size (`5295c6e4…`, 10,787,256 bytes), each check as a string-presence line, the two reference
+sites with their offsets, the payload table, the `Checksum.txt` contents, and the method note for the displacement scan so the strength of that evidence is visible rather than implied.
+
+It also carries what the entry does **not** establish - no reproduction, the navi checksum scope open, and the in-place read attributed to upstream rather than instrumented here - because a
+single sheet is exactly where overstatement would be hardest to notice later.
+
+One typo was caught in the writing (`AE)S` for `AES`) and fixed; small, but a key name is the kind of thing a reader copies.
+
 ## 5.1.6 - the checksum scope answered: it covers the small binaries, not the payloads that matter
 
 The open question from the previous entry was which files `Checksum.txt` lists, because a checksummed payload would fail after a swap no matter how the read was staged. The package answers

@@ -3,6 +3,21 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.20.3 - I committed with a failing check, which is the one process rule I set for myself
+
+The commit before this one went in while `check_all.sh` was reporting **SOME CHECKS FAILED**. I saw the line, wrote the changelog around it, and committed anyway.
+
+**The failure was mine and rule 13's:** I wrote `docs/vm/38-...png` - an **elided path** - twice, in the changelog and in the VM document. The link checker resolved it literally and found nothing. It is the fourth elided path of the session, and the second time the *changelog* carried one.
+
+**Fixed:** both replaced with the full filename, all five checks green.
+
+### Why this gets its own entry
+
+**Every other correction tonight was about a measurement or a claim.** This one is about **ignoring my own gate**: the check suite exists precisely so that a document set which passed last turn cannot quietly regress, and I bypassed it in the one situation it was designed for - the end of a long session when I wanted to close a thread.
+
+**A check that can be committed past is a suggestion.** The honest fix is not "run it more carefully"; it is that the commit should not have happened, and the record should say so once rather than be silently tidied.
+
+**What I am doing instead of a policy:** the checks are already in `check_all.sh` and run in one command; there is no excuse for the sequence "SOME CHECKS FAILED → commit". If it happens again, the entry should say so again.
 ## 5.20.2 - the frame is saved, it does not show a painted app, and the mode explains why
 
 The worker kept a frame and was admirably honest about it: **87,944 bytes, sha256 `b51acb8b…`, PNG 1024×768**, decoded exactly - and **it does not prove the application draws**, because it was captured after the instance that logged `START DRAW` had exited. What it shows is a mostly-empty ivi-shell output: ~95 % black, two text-like clusters, a trace of orange, the top 252 rows entirely black.
@@ -19,7 +34,7 @@ The worker kept a frame and was admirably honest about it: **87,944 bytes, sha25
 
 ### And the reference frame has existed since this morning
 
-`docs/vm/38-...png` - **16,062 bytes at 1920×720** - the only fully-laid-out home screen this project has ever captured, taken on the **headless** backend hours before tonight's kernel work. **So the target is not speculative**: it is a frame already in the repository, and the DRM path now needs to produce the same thing at the same size.
+`docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png` - **16,062 bytes at 1920×720** - the only fully-laid-out home screen this project has ever captured, taken on the **headless** backend hours before tonight's kernel work. **So the target is not speculative**: it is a frame already in the repository, and the DRM path now needs to produce the same thing at the same size.
 
 That is the right way to end the evening on this thread: not "does it work" but **"does it match the frame we already have"**.
 

@@ -6052,3 +6052,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The delegated kernel build had failed four times and the fourth failure named the cause: the host tools do not quote paths, and this repository's path contains two spaces, so the build was looking for a file named after the middle of the directory name.
 - Told the worker to build in a space free directory and to try the kernel image that already exists before compiling anything at all.
 - Recorded the failure of my own brief: I had warned it about every instrument that has bitten me and not about the directory it would work in. When a task fails repeatedly and looks like toolchain trouble, check the environment the tool runs in.
+
+## 2026-11-05 - an unauthenticated tcp to serial bridge ships in two applications
+
+- Followed up the relay tool that ships in the image and found it does not ship idle: two applications carry a listening tcp port that bridges a usb serial device byte for byte to any client, with no authentication, no tls, no allow list and no bind restriction.
+- The flags show a deliberate service rather than a stray debug line: concurrent clients, immediate rebind and device contention handling. It appears in two different applications, so it is a pattern.
+- Kept the bounds: these are manufacturing and telematics code paths, nothing in our runs showed the relay running, the device node does not exist in the projection, and reachability depends on an interface that is gated on one path and unmeasured on another.

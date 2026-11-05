@@ -2701,6 +2701,69 @@ fixed by an existing item**, which is the useful outcome: the family is enumerat
 
 ---
 
+## V-073 - an unauthenticated TCP-to-serial bridge ships in two applications
+
+**Status:** the command strings are **measured verbatim** in the shipped binaries; the code paths that run them are **not
+exercised** here, and the prerequisite `/dev/ttyUSB0` is absent in the projection. Class: network exposure / missing
+authentication.
+
+### What is in the binaries
+
+```
+app/bin/AppMPAutoTest:
+  socat -d -d tcp-l:9997,reuseaddr,fork /dev/ttyUSB0,nonblock,rawer,waitlock=/var/run/ttyUSB0 &
+
+app/bin/TmsGuiApp:
+  socat tcp-l:9997,reuseaddr,fork file:/dev/ttyUSB0,nonblock,raw,echo=0,waitlock=/var/run/ttyUSB0.lock &
+```
+
+Read the flags, because each one matters:
+
+| flag | effect |
+|---|---|
+| `tcp-l:9997` | **listens on TCP 9997** - not loopback-restricted, so any reachable interface |
+| `reuseaddr` | rebinds immediately after a restart |
+| `fork` | **serves multiple clients concurrently** |
+| `/dev/ttyUSB0` or `file:...` | the other end is a **USB serial device**, bridged byte-for-byte, `raw`/`rawer`, no translation |
+| `waitlock=` | serialises access to the device across clients - which implies the authors expected several |
+
+**There is no authentication, no TLS, no allow-list and no bind address.** Anyone who can reach port 9997 gets a
+bidirectional byte pipe to whatever serial device is attached - and serial devices on this platform are the kind a
+telematics or manufacturing tool talks to.
+
+### Why this is more than a misconfiguration
+
+- **`fork` + `reuseaddr` + `waitlock`** is a deliberate **service** shape, not a one-off debug line: the authors expected
+  concurrent clients and device contention. That is a supported remote-access feature, shipped without access control.
+- **It is in two different applications** - the manufacturing test app and the telematics GUI - so it is a pattern, not an
+  accident in one place.
+- On a connected vehicle, "serial device attached to the head unit" plausibly includes **the modem or a diagnostics
+  channel**. A network peer talking to that, unauthenticated, is the kind of primitive that turns a WiFi association into
+  device access.
+
+### What is *not* established
+
+- **That either path runs on a normal boot.** These are manufacturing/TMS code paths; nothing in this project's runs
+  showed `socat` running, and `/dev/ttyUSB0` does not exist in the projection.
+- **What the attached device would be.** The command names the node, not the hardware.
+- That port 9997 is reachable: the WiFi path is gated three ways (V-050) and the USB/Ethernet path is unmeasured.
+
+### Fix
+
+1. **Bind to loopback** (`tcp-l:9997,bind=127.0.0.1`) if the bridge is for a local companion process.
+2. If it must be reachable, **put it behind authentication and TLS**, or require a per-session token written to a
+   root-only file.
+3. Remove it from production images entirely if it exists only for manufacturing, and keep it in the manufacturing
+   build - the same split the platform already makes for engineering mode.
+
+### Verify
+
+On a unit: `netstat -ltnp | grep 9997` (or `ss -ltnp`), then, if listening, `socat - TCP:127.0.0.1:9997` from another
+machine on the same network and see whether the serial device answers. **A connection that succeeds without credentials is
+this finding.**
+
+---
+
 ## V-072 - Apple's mDNSResponder runs as a root network daemon with no sandboxing
 
 **Status:** the binary, its provenance, the unit's lack of hardening and the absence of a user setting are **measured**; no

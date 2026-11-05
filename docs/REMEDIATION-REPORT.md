@@ -468,6 +468,24 @@ not optional. Reachability depends on an interface; the WiFi path is gated (V-05
 
 **Verify.** `ss -lunp | grep 5353` and `ps -o user= -p $(pidof mdnsd)`.
 
+### 23. An unauthenticated TCP-to-serial bridge ships in two applications
+
+**Evidence.** `app/bin/AppMPAutoTest` contains
+`socat -d -d tcp-l:9997,reuseaddr,fork /dev/ttyUSB0,nonblock,rawer,waitlock=/var/run/ttyUSB0 &` and
+`app/bin/TmsGuiApp` contains `socat tcp-l:9997,reuseaddr,fork file:/dev/ttyUSB0,nonblock,raw,echo=0,waitlock=...`.
+
+**Exposes.** A **listening TCP port 9997** bridging a **USB serial device** byte-for-byte to any client on a reachable
+interface, with `fork` (concurrent clients), `reuseaddr` (immediate rebind) and `waitlock` (device contention) - a
+deliberate service shape, **with no authentication, TLS, allow-list or bind restriction**. It appears in **two** different
+applications, so it is a pattern rather than one stray line. On a connected vehicle the attached device may be the modem or
+a diagnostics channel.
+
+**Fix.** Bind to loopback if local, else require authentication/TLS or a per-session token; remove from production images
+if it exists only for manufacturing, which is the split the platform already makes for engineering mode.
+
+**Verify.** `netstat -ltnp | grep 9997` on a unit, then attempt `socat - TCP:<unit>:9997` from another host: a connection
+that succeeds without credentials is this finding.
+
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
@@ -518,6 +536,7 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | 20 a script path on a persistent writable partition, run by the manufacturing app | V-070 |
 | 21 one tmp marker enables the root console and SSH, created every boot | V-071 |
 | 22 an enabled mDNS responder runs as root with no sandboxing | V-072 |
+| 23 an unauthenticated TCP-to-serial bridge on port 9997 | V-073 |
 
 ## What is not claimed
 

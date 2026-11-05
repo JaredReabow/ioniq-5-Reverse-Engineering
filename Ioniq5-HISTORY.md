@@ -5560,3 +5560,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Chased the last link in the injection question and found the answer already in the repository: the update logs show every staged and installed artefact carrying a fixed name.
 - So the copy renames, the path substituted into the shell is a constant, and a crafted filename on a stick cannot reach it. The route is closed rather than open.
 - That is a severity correction recorded in place. What survives is the part that never needed injection: the version and signature decisions and the keyless downgrade.
+
+## 2026-11-05 - the SOPVersion patch site was wrong
+
+- Read the instructions around the byte I had chosen to patch for the development menu, and found it stores into a stack slot inside QDebug logging and a string trim. That is a local flag, not the engine's SOP state.
+- So the patch was never established, and the runtime result I had recorded as an unobserved effect is better read as a wrong site.
+- Recorded the corrected route: the method is invokable, so its address lives in the metacall dispatch rather than beside its name.

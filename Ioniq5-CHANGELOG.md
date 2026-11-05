@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.8.0 - the SOPVersion patch site was wrong, and I can show why
+
+The one-byte patch meant to reveal the development menu targeted `0x73726e`, the immediate in `movl $0x1, 0x13c(%rbp)`. Reading the instructions around it:
+
+```
+737259  callq QDebug::~QDebug()
+73725e  leaq  0x228(%rbp), %rsi
+737268  movl  $0x1, 0x13c(%rbp)      <- the patched immediate
+737272  callq QString::trimmed()
+```
+
+It sits inside QDebug logging and a `QString::trimmed()` call and stores into a **stack slot**, which cannot be the engine's SOP state - that would be a member. So it is a local flag in unrelated code, and the claim that patching it selects the development list was **never established**.
+
+That also re-reads the only runtime datum I had: the patch was injected and the check afterwards returned `ENG=` empty. I recorded that as "effect unobserved"; **"wrong site" is the likelier reading**, and I should have said so.
+
+**The correct target** is the `qt_metacall` dispatch for `checkSOPVersion`: the name exists twice in the binary (a pretty name and a stringdata entry), the method is `Q_INVOKABLE`, and its address is therefore not stored beside its name - it lives in the `switch (_id)` case body of the metacall. Patching *that* return is defensible; patching an arbitrary `movl $1` is not.
+
+This does not move the VM's blocker - engineering mode is still unopened in the projection, which gates the question either way. It changes what will be claimed when it opens: **the production list will show unless the real decision is patched.**
+
 ## 5.7.2 - the staging copy renames, so the filename route into the shell is closed
 
 I said last round that the only remaining link was whether an attacker-chosen filename reaches the shell. It does not, and the evidence was already in the repository.

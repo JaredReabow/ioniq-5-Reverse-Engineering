@@ -5506,3 +5506,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Called the source-path question resolved on the strength of the updater calling the directory a mount path. Following the method that has worked all night, the only mount call resolves to a helper that mounts VR and rw_data content, not the stick.
 - So the evidence is naming only, and a copy into that directory is not excluded. Softened in both the register and the evidence sheet.
 - Recorded because resolved is the word that ends investigation, and here it was ending it on a log message while the obvious next check disagreed. The confirmation step is the one most likely to be skipped once a satisfying answer exists.
+
+## 2026-11-05 - the mount was delegated, which is why it was not there
+
+- Withdrew a resolution two entries ago because the updater's only mount call mounts VR content. The reason there was no mount call for the stick is that another process mounts it: the flow asks the automount service during its prepare stage and unmounts afterwards.
+- Naming and code are now consistent: the mount point the application logs is a subdirectory of the update partition, and the volume is mounted there by the daemon.
+- Three attempts on one question, and the middle one - withdrawing a claim that was probably right - is what made the third possible.

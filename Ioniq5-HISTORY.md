@@ -5932,3 +5932,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Sweeping for marker files in the temporary directory turned up one referenced by an ssh service template. Following it found a root public key shipped in the image, an ssh unit whose only gate is that marker, and root logins not disabled.
 - It cannot run today because the daemon binary is absent, and that is recorded first so the severity is not overstated. What remains is a static shared credential that would become a root login the moment the package is added for field debugging.
 - Filed with the four measured facts, the honest bounds, and a cheap fix: remove the key and the units, provision per-device credentials if remote access is needed, and treat the shipped key as compromised by distribution.
+
+## 2026-11-05 - embedded private keys and a certificate authority on a writable partition
+
+- Asked what other credential material ships and found two things. Four application binaries carry private keys, one of them alongside certificates, which makes at least one a complete client identity and all of them compromised by distribution.
+- The second is the more serious: the certificate authority used for navigation updates is a group-writable file on a writable partition, so a single file write could let an attacker sign a package the unit accepts, and that payload runs as root. Recorded as the cheapest persistent root path here, with the one measurement that would settle it named.
+- Deliberately did not reproduce any key material, and recorded that the consistency checker caught a forward reference I had written before the entry existed.

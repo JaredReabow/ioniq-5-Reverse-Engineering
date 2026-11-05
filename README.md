@@ -257,25 +257,24 @@ The uncomfortable conclusion, in the page's own words: the cheapest route has no
 
 ### Downgrade — can older firmware be installed?
 
-Short answer: **not through engineering mode on a stock unit, and not with a modified package.** Full reasoning,
-evidence and the one unresolved question are in **`docs/DOWNGRADE-POSSIBILITIES.md`**.
+Short answer: **not through any menu, and not with a modified package — but yes, by racing the updater with a genuine older one.** Full reasoning in
+**`docs/DOWNGRADE-POSSIBILITIES.md`**; the leading route is **V-059** in `Ioniq5-VULNERABILITIES.md`.
 
 | Route | Status |
 | --- | --- |
-| Engineering mode → **Force Update** | real facility — its own log line is `Force update !! Pass version compare.` — but gated by `[FORCE_UPDATE_FUCTION_ENABLE] DEV -> MP`, so **disabled on production builds** |
+| **USB update TOCTOU (V-059)** | **yes, and keyless**: the updater verifies one read of a file from removable media and installs a **second** read of the same file, so a genuine older package is installed after the version gate has been satisfied against the current bytes. No AES key, no RSA key, and anti-rollback does not apply to it |
+| Engineering mode → **Force Update** | real facility — its own log line is `Force update !! Pass version compare.` — but gated by `[FORCE_UPDATE_FUCTION_ENABLE] DEV -> MP`, so **off on production builds** |
 | Engineering mode → **Previous Version** | a *view* of prior versions, not an installer |
-| FUMO **equal-version local relaunch** (`/update/usb/bin`, `force_launch=run`) | evidenced to **skip both verifier-result contracts**, but requires root write access to `/update` and leaves later model/region, payload-binding, slot, boot and health checks unproven |
+| FUMO **equal-version local relaunch** (`/update/usb/bin`, `force_launch=run`) | evidenced to **skip both verifier-result contracts**, but needs root write access to `/update` first |
 | SCOMO path (`-un:1`) | its `MASS_PRODUCT`/`PENETRATION` startup **explicitly ignores** `/update/disableEncryptionUpdate` — worse, not better |
-| Modified/unsigned package | **rejected** by RSA `PKCS#1` verification of `.lge.upgrade.xml`; the anchor is only replaceable from a privileged write (**V-034**) |
-| **Authentic older package** | **unknown** — decided entirely by anti-rollback, which is unresolved here |
+| Modified/unsigned package | **rejected** by RSA `PKCS#1` verification of `.lge.upgrade.xml` |
+| **Authentic older package, ordinary path** | **unknown** — decided by anti-rollback, unresolved here. V-059 is the route that does not ask it |
 
-The updater's version gate is a **strict "must be newer" comparison** plus a second reference where equality is
-allowed, so a lower version fails at the first gate. The mechanisms that relax it are dev-build-gated or need a
-privileged write first, which is the same wall every other route meets.
+The version gate is a **strict "must be newer" comparison**, so a lower version fails at the first gate — which is exactly why the TOCTOU matters: the gate runs on the *checked* bytes while
+the install consumes *different* ones.
 
-**Measured against `NE_E.EUR.S5W_L.001.001.260128` (2026-01-28)** — later than late-2025, so these conclusions apply to a
-recent build. Nothing has been attempted on hardware; anti-rollback is the open question that decides whether an older
-*authentic* firmware would install.
+**Measured against `NE_E.EUR.S5W_L.001.001.260128` (2026-01-28)** — later than late-2025. Nothing has been attempted on hardware: V-059's remaining requirements are a programmable USB device
+and the page-cache question, both in `evidence/external-ioniq5-usb-toctou/HARDWARE-FEASIBILITY.md`.
 
 ### Checking the record itself
 

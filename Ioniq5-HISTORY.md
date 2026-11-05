@@ -5326,3 +5326,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The update race was in the register and in the ranking but not in the document a platform team schedules from. Second time tonight that a finding lived in only one of the two, and second time it was caught by looking.
 - Added it with both halves kept separate, because they need different responses: arbitrary content is bounded by a key that does not ship, while a genuine older image needs nothing and sidesteps rollback protection entirely.
 - Sharpened the ranking to match: the cost is a programmable stick, and for a downgrade that is the whole cost.
+
+## 2026-11-05 - the front page still said there was no way in
+
+- The readme's downgrade section opened by saying there was no route and that the answer depended on unresolved rollback protection. Both were true when written; the update race has made the second one moot.
+- Rewrote it to lead with the route that works and to keep the other rows honest about what still fails.
+- Third document tonight corrected because a later finding overtook it. The check suite watches numbering, the history invariant and links; nothing watches a front page for meaning.

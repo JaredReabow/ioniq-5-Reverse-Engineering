@@ -78,3 +78,24 @@ Two more things were sitting in `work/kbuild/` and neither was in the brief I ga
 Both are recorded here rather than only in a message, because the pattern in this document is now explicit: **three times
 the thing I called missing was in the repository, and once the thing I called a blocker was a compiler flag.** The cost of
 each was a run; the cost of writing it down is nothing.
+
+## Update 3 - the build "failure" is the path, not the kernel
+
+The delegated build failed four times, and the fourth failure names the cause plainly:
+
+```
+fixdep: error opening config file: engineering/ioniq: No such file or directory
+fixdep: mmap: Invalid argument
+```
+
+**`engineering/ioniq` is the middle of this repository's path** - `/Users/leo/Documents/ChatGPT/reverse engineering/ioniq research`
+contains two spaces. 4.1's kbuild host tools do not quote paths, so the build splits on the space and looks for a file
+called `engineering/ioniq`. It is a known limitation of old kernels, it is not a compiler problem, and it may be what the
+earlier `relocs` failures were too.
+
+**The fix is one line of setup:** build in a space-free directory (`/tmp/kb/linux-4.1.27`) and copy only the resulting
+`bzImage` back into the repository. Nothing else about the tree needs to live here - the deliverable is text.
+
+**And a note on delegation:** I gave the worker a brief that warned about instruments, git and stray QEMU, but not about
+the **directory path it would build in** - which turned out to be the blocker. The lesson generalises: when a task fails
+repeatedly and the failure looks like toolchain trouble, check the environment the tool is running in before the tool.

@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.15.6 - the build was failing on a space in the path
+
+The delegated kernel build failed four times and the fourth failure names the cause plainly:
+
+```
+fixdep: error opening config file: engineering/ioniq: No such file or directory
+fixdep: mmap: Invalid argument
+```
+
+**`engineering/ioniq` is the middle of this repository's path** - `/Users/leo/Documents/ChatGPT/reverse engineering/ioniq research` contains **two spaces**. 4.1's kbuild host tools do not quote paths, so the build splits on the space and looks for a file called `engineering/ioniq`.
+
+**It is not a compiler problem, and it may be what the earlier `relocs` failures were too.** The fix is one line of setup: build in a space-free directory (`/tmp/kb/linux-4.1.27`) and copy only the finished `bzImage` back. Sent to the worker with the instruction to **try the existing `bzImage-4.1.27-abl-vdisp` before compiling anything**.
+
+### The lesson about my own delegation
+
+I warned the worker about instruments, git, stray QEMU, log truncation and unverified counts - **everything I had been bitten by - and not about the directory it would build in**, which turned out to be the blocker.
+
+**When a task fails repeatedly and the failure looks like toolchain trouble, check the environment the tool runs in before the tool itself.** That is the same shape as the whole recent run of corrections: the instrument, not the target; the path, not the kernel; the truncated log, not the errors.
+
 ## 5.15.5 - V-072: an Apple mDNS responder runs as root, enabled, with no sandboxing
 
 Swept the layer I had not looked at - **what the image exposes on a network** - and found it in the enabled units:

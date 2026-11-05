@@ -40,6 +40,10 @@ Mesa tree of the same vintage; nothing else here is machine-specific.
 tools/uk_fw/vm_partimg/inject-stockui.sh <stage-dir> <workspace>
 ```
 
+It **refuses to run** if the partition image or any staged file is absent (`exit 2`, with the command that builds the image or a pointer to the table above), and it is **idempotent**: running it
+against a workspace that already has the injects reports `0 MISSING` and `0 changed chunk(s)`. Both behaviours were verified after a test that found the script reporting `MISSING` for every file
+and then exiting 0.
+
 It writes the files above into `p5.img`, places the image back into the 36 GiB disk at the offset recorded in `layout.json` (only changed chunks, via `sync-partition.py`), and refreshes
 `prepare.json`. `debugfs -R` splits its command string on whitespace, so the script feeds commands from a file and uses space-free relative names — the project has been bitten by that twice.
 

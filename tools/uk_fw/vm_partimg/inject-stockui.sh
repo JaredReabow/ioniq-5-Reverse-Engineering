@@ -6,13 +6,13 @@ set -e
 # Copies the projection-only files listed in docs/vm/reproducing-the-authentic-image.md
 # into p5 and places the partition back into the GPT image.
 set -e
-STAGE=${1:?stage directory}
-WS=${2:?workspace (contains partimg-build/p5.img and layout.json)}
+STAGE=$(cd "${1:?stage directory}" && pwd)      # absolute, because we cd to the workspace next
+WS=$(cd "${2:?workspace (contains partimg-build/p5.img and layout.json)}" && pwd)
 cd "$WS"
 
 DFS=${DEBUGFS:-$(command -v debugfs || echo /opt/homebrew/opt/e2fsprogs/sbin/debugfs)}
 ST=$STAGE
-IMG=partimg-build/p5.img
+IMG=$WS/partimg-build/p5.img          # absolute: the write step runs with cwd=$ST
 
 # debugfs -R splits its command string on whitespace, so feed commands from a
 # file with -f (one command per line); sources are space-free relative paths.
@@ -38,8 +38,19 @@ mkdir /etc/systemd/system/ApplicationLauncher.service.d
 write 50-vm-gl.conf /etc/systemd/system/ApplicationLauncher.service.d/50-vm-gl.conf
 EOF
 
+# --- preconditions: fail loudly rather than reporting MISSING and carrying on ---
+[ -f "$IMG" ] || { echo "ERROR: no partition image at $IMG" >&2
+                   echo "       build it first: python3.13 tools/uk_fw/vm_partimg/build-partitioned-image.py" >&2
+                   exit 2; }
+for f in applauncher-sh-new micom-override.service weston-apps-check.sh weston_1920.ini \
+         eng-data-sim weston-vm-input.so swrast_dri.so 50-vm-gl.conf; do
+  [ -f "$ST/$f" ] || { echo "ERROR: staged file missing: $ST/$f" >&2
+                       echo "       see docs/vm/reproducing-the-authentic-image.md for what each file is and where it comes from" >&2
+                       exit 2; }
+done
+
 echo "=== debugfs write ==="
-( cd "$ST" && "$DFS" -w -f /tmp/stockui-debugfs.cmds "$PWD/../../$IMG" )
+( cd "$ST" && "$DFS" -w -f /tmp/stockui-debugfs.cmds "$IMG" )
 
 echo "=== verify ==="
 for p in /eng-data-sim /weston-vm-input.so /weston-apps-check.sh /init-authentic-hmi.sh \

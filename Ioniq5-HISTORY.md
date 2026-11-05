@@ -5390,3 +5390,10 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The working image depended on an injection script and staged files that lived only in ignored directories. Moved the script into the tool tree, parameterised it, and wrote a page naming where every staged file comes from.
 - The honest part of that provenance table: five of the staged artefacts are host Mesa files, because the vendor image ships only a stub driver. That is the single machine-specific dependency and it is now stated rather than implied.
 - Also recorded the boot flag that matters and the measurement trap that cost five attempts, so a future rebuild can identify the application's surface by measurement instead of luck.
+
+## 2026-11-05 - testing my own reproducibility claim found a silent failure
+
+- Ran the newly documented injection script against a base that did not have the injects. It reported every file missing and then exited successfully - a failure that announces itself and proceeds anyway, which is the worst kind.
+- Two faults, both mine: the image path was composed against the wrong directory after my parameterisation, and my test base had never been through the partitioned build at all.
+- Added preconditions that exit with instructions, and verified both behaviours: a bad base now fails loudly before touching anything, and re-running on an already-injected workspace changes nothing.
+- A full from-scratch build is stated as outstanding rather than implied, because it writes a thirty-six gigabyte image and takes tens of minutes.

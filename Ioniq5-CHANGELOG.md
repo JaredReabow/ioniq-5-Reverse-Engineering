@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.17.2 - fbdev does work; my conclusion was too strong, and the resolution makes it a control not a target
+
+The worker got further than my two attempts: booting the research init with a manual compositor and an invocation that satisfies the launcher check, fbdev came up properly (`work/vm/kbuild/boot20-fbdev4.log`, 14.2 s, `userspace: true`):
+
+```
+initializing fbdev backend
+Creating fbdev output.
+Opening fbdev frame buffer.
+Mapping fbdev frame buffer.
+fbdev output 1024×768 px
+```
+
+**So `fbdev-backend` is usable, and my "not an alternative route" was too strong.** What it needed was the right invocation, not a different idea - the `weston-launch` refusal I hit is a launcher-detection problem, and the worker found an invocation that passes it.
+
+### But the size changes what it is for
+
+**`1024×768`.** The vendor UI is **1920×720** - the ini, the capture geometry, the `1926×753` surfaces. fbdev is bound to the kernel framebuffer's mode, so it **can prove a client connects and cannot present this UI at its own resolution.**
+
+| backend | device | output control | use |
+|---|---|---|---|
+| `drm-backend.so` | `/dev/dri/card0` | **can set 1920×720** | the fidelity target; stalls after `Output Virtual-1` |
+| `fbdev-backend.so` | `/dev/fb0` | **fixed 1024×768** | a **control**: does a client connect at all |
+
+**That is the real value of the worker's result**: a client connecting on fbdev would prove the application can run against a real output here, independent of the DRM stall - separating *"the app cannot connect"* from *"the DRM backend stalls"*.
+
+### And I stop here on this lane
+
+My two fbdev runs are **superseded**; they were partly duplicating the worker, which had already moved to `fbdev3`/`fbdev4` while I was setting up mine. `work/vm/fbdev` and `run-fbdev.py` stay as the record of what did not work. **The live line is the worker's**, and the lesson is the one this session keeps teaching: check whether the other agent has already started before building your own version of the experiment.
+
 ## 5.17.1 - my "cheaper experiment" cost two runs and answered nothing
 
 Two entries ago I told the worker that `fbdev-backend.so` was a faster route than tracing page flips, because it writes into a mapped framebuffer on a timer and has no vblank path for the hypothesised stall to occur in. **I ran it myself when the worker went quiet. Both runs were negative.**

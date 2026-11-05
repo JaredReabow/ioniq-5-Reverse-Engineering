@@ -302,3 +302,41 @@ hypothesis that had not yet been tested.
 Virtual-1`* - and the page-flip hypothesis is still the best one, unmeasured. My contribution to it is a negative: **fbdev
 is not an alternative route**, and anyone considering it should know it needs a launcher hop that, in this projection,
 produced silence.
+
+## 11. fbdev *does* work - in isolation, at 1024x768, which is the wrong size for this UI
+
+The delegated worker got further than my two attempts, by invoking weston in a way that satisfies the launcher check and
+booting the research init with a manual compositor (`work/vm/kbuild/boot20-fbdev4.log`, a 14.2-second run,
+`"init": "/init"`, `userspace: true`):
+
+```
+Loading module '/usr/lib/weston/fbdev-backend.so'
+initializing fbdev backend
+Creating fbdev output.
+Opening fbdev frame buffer.
+Mapping fbdev frame buffer.
+fbdev output 1024×768 px
+failed to create input device '/dev/input/event0'
+```
+
+**So `fbdev-backend` is usable** - my §10 conclusion was too strong. What it needed was the right invocation, not a
+different idea; the `weston-launch` refusal I hit is a launcher-detection problem, and the worker found an invocation that
+passes it.
+
+**But look at the output size: `1024×768`.** The vendor's UI is **1920×720** (`weston_1920.ini`, the capture geometry, the
+`1926×753` surfaces). fbdev is bound to whatever the kernel's framebuffer is, and bochs-drm's default mode is 1024×768 - so
+**fbdev can prove that a client connects, and cannot present this UI at its own resolution.**
+
+That makes the two backends complementary rather than competing:
+
+| backend | device | output control | use |
+|---|---|---|---|
+| `drm-backend.so` | `/dev/dri/card0` | **can set 1920×720** | the fidelity target - stalls after `Output Virtual-1` |
+| `fbdev-backend.so` | `/dev/fb0` | **fixed 1024×768** | a **control experiment**: does a client connect at all |
+
+**And that is the value of the worker's result**: a client connecting on fbdev would prove the application can run against a
+real output in this projection, independent of the DRM stall - which would separate *"the app cannot connect"* from *"the
+DRM backend stalls"*.
+
+**My own two fbdev runs are superseded**; `work/vm/fbdev` and `run-fbdev.py` stay as the record of what did not work, and
+the live line of work is the worker's.

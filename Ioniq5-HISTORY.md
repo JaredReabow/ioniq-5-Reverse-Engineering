@@ -6142,3 +6142,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Ran the framebuffer backend suggestion myself when the worker went quiet, and both attempts failed: the compositor refuses that backend unless it is launched through the launcher binary, and routing through the launcher produced a completely silent failure with no log, socket or process.
 - The display backend had already got further than this alternative ever did, so the suggestion was not cheaper but a detour around a hypothesis nobody had tested yet.
 - Kept the negative: the framebuffer is not an alternative route here, and the live question is still why the display backend stalls after finding an output.
+
+## 2026-11-05 - the framebuffer backend does work, and it is a control not a target
+
+- The worker got further than my attempts: with the right invocation the framebuffer backend initialises, creates an output and maps the framebuffer. My conclusion that it was not a route was too strong.
+- But its output is fixed at the kernel framebuffer size, which is not the resolution this interface uses, so it can prove a client connects and cannot present the interface itself.
+- That reframes the two backends as complementary: one for fidelity, one as a control that separates the application failing to connect from the display backend stalling. Stopped my own experiments there, since I had partly duplicated the worker.

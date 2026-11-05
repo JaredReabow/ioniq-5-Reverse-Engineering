@@ -65,6 +65,7 @@ matter** unless you know what you are looking for.
 | `docs/vehdata/09-placement-works-and-my-sequencing-bug.md` | Placement works on the shipped config; the app is in standby because the power-on call is issued before it owns its bus name |
 | `docs/vehdata/10-the-shim-was-crashing-the-app.md` | The app's own log shows a Wayland fatal error, and the A/B test says the CAN shim was causing the restart loop |
 | `docs/vehdata/11-what-the-projection-shows-with-no-instruments.md` | With no instruments the app is stable and shows its KIA splash, plus the `DB UPDATE COMMIT FAIL` lead |
+| `docs/vehdata/12-missing-layout-db-directory.md` | The layout database has no directory on the data partition, and creating it did not stop the restarts |
 | `evidence/fde/` | The passphrase demonstration with its negative control. |
 | `docs/v059-command-substitution-filtering.md` | Whether the mount image path is filtered before it reaches a shell string - measured: it is not |
 | `docs/v059-producer-trace.md` | What feeds the substituted path: `QFileInfo::absoluteFilePath`, and `%1` in `cp -a %1 /app/bin/` is the payload's own binary |

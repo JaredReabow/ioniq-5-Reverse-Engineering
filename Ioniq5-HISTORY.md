@@ -5656,3 +5656,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Opened a delegate's capture that had been treated as proof an injection worked. It was the application's powered-off face, so the run had never got far enough for the injection to show anything.
 - That also broke a shortcut used for days: one standby frame measured eleven kilobytes larger than the size we had been quoting as standby, a spread bigger than the difference between two states we treat as distinct.
 - Added a rule that a size tells you something new was captured but only the image tells you what, and noted the delegation lesson: a worker told to compare sizes will read a size mismatch as a state change.
+
+## 2026-11-05 - the last gap is a transport, not an adaptor
+
+- The mapping came back with a finding that changes the shape of the remaining work: the widgets read the application's own raw CAN listener, not the D-Bus interface every adaptor so far has been built against.
+- Verified the premises myself: no CAN interface exists in the projection, the micom driver is built into the kernel, and every CAN device driver in the config is disabled.
+- Recorded the two routes honestly, including that the shortcut needs a kernel tree this project does not have, and that the faithful route is the vendor's own micom link.

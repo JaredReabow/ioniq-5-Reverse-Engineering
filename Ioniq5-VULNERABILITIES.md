@@ -2563,6 +2563,20 @@ So the apply stage runs the shipped `DecryptToPIPE` against a source and an offs
 hint that a *file* is being resized rather than a stream being read in place, which would lean towards staging - **a hint, not a measurement**, and the reverse of what the upstream project
 reports for its own unit. Settling it needs the runtime observation already named (`lsof`/`inotify` during a real update); nothing in the strings is going to answer it.
 
+**Resolved since: `/update/usb/bin` is a mount point, not a staging copy.** FUMO carries a generic `mount %1 %2` and its own log string
+
+```
+mountPath is /update/usb/bin CloseApp called !
+```
+
+and `/update` is the ext4 partition (`mmcblk0p9` per `fstab_emmc`), whose subdirectory can host the mounted USB volume. So the directory the flow reads the manifest and payloads from **is** the
+removable medium, and the two observations that looked contradictory reconcile: seven references to `/update/usb` because that is where the medium is mounted, and no copy of the payload because
+there is nothing to copy. The second read opens the same media the first one did, which is what the upstream project reports.
+
+**Residual caveat:** `mount %1 %2` is generic and would equally mount a loop image from local storage, so nothing here proves what is mounted there at run time. The leaning is **in place**, for a
+reason rather than a preference; `lsof`/`inotify` on a unit still settles it beyond argument.
+
+
 Two useful figures fall out. The install stream is **rate-limited to 8 MB/s by the command itself**, so a 879 MB payload needs ~110 s of apply and a 2.09 GB one ~260 s - the device never has to
 deliver faster than 8 MB/s to saturate that stage. And the A/B mount juggling (`p3`/`p5`, `p6`/`p7`) plus `mkfs.ext4 … /dev/mmcblk0p16` confirms which partitions the flow touches.
 

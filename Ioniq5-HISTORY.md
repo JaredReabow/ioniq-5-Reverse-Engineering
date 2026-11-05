@@ -6196,3 +6196,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The trace answered the whole display thread: our own input module returns failure when there is no seat, and the compositor shuts down before serving. The vendor's display path was never the problem.
 - The source explains why one backend worked and the others did not: only the headless backend creates a seat unconditionally, and the others wait for an input device that the emulator does not provide. So the framing of real output versus virtual output was really has a seat versus does not.
 - Kept what survives: the display device work is real and is the prerequisite for presenting the interface at its own resolution. Noted that this is the fifth time an instrument of ours was the cause rather than the target, and that every one of them looked like a property of the vendor system.
+
+## 2026-11-05 - the input module fix written
+
+- Implemented the fix the root cause required, in the better of the two forms the analysis named: instead of returning success and doing nothing, the module now defers, binding the first seat when one appears on its existing timer.
+- Wrote a build script so it is reproducible, with the same no host paths discipline as the other builders, and verified the artefact carries none.
+- Left the boot to the worker, which holds the clone and the reproducing command, since two of my last three self-run experiments duplicated its work or taught nothing.

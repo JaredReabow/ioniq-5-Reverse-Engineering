@@ -5716,3 +5716,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Captured the log whole as the previous entry said was needed, and it changed the conclusion: the compositor was already gone at five seconds, so the earlier reading about the launcher chain was wrong.
 - Corrected my own claim that the shell user interface is missing: it exists, just in a different directory from the one the configuration names. Only the keyboard binary is genuinely absent.
 - Found a permission-denied failure string compiled into the module, and the audit log is live, so the next test is to look for a denial rather than to keep experimenting.
+
+## 2026-11-05 - both hmi-controller hypotheses are dead
+
+- Tested the permission theory and the path theory in one run each. Neither is right: no denial appears in the audit buffer, and correcting the path to where the binary actually lives does not stop the init failure or the compositor dying.
+- Which forced the obvious point I had been missing: the vehicle's own configuration loads only two modules, and the placement protocol we already have a working tool for is a different one that has worked here before.
+- So the likelier explanation is stacking rather than placement, and the next test is to stop the applications that start later and see whether the home screen is underneath them. Reverted both experimental changes rather than leave them in the clone.

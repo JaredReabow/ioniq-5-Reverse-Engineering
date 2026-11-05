@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.11 - both hmi-controller hypotheses are dead, and the whole line was a detour
+
+**Test 1 - is it SMACK?** Enabled the module, grepped the audit buffer:
+
+```
+HMI_FAIL=1                      init failure reproduced
+AUD_SZ=13186  DENIED=0  WESTON=0   no denials, and no audit line mentions weston at all
+```
+
+**No denial.** The module carries a `permission denied` string and the failure is not a permission failure. The audit hypothesis is dead; configuration stands.
+
+**Test 2 - is the user-interface path wrong?** Pointed `ivi-shell-user-interface=` at `/usr/libexec/weston-ivi-shell-user-interface`, where the binary actually is, module still enabled:
+
+```
+F1_WESTON=[]  HMI_FAIL=[1]  APPS home=[] mgr=[]     compositor gone, init still fails
+```
+
+**Both fixes fail.** `hmi-controller.so` cannot initialise here for a reason that is neither permission nor the path, and each attempt takes the compositor down at ~5 s - worse than not loading it.
+
+### What I should have concluded two runs ago
+
+The shipped configuration loads **only** `ivi-window-manager.so` and `ivi-controller.so` - **that is what the vehicle runs.** In weston 1.10 the `ivi-window-manager` module places surfaces, and our `/usr/bin/ivi-wm` speaks that protocol and **has worked**: it produced the laid-out home screen capture earlier in this project.
+
+So the recent failures are probably **not a placement problem but a stacking problem**: `AppHomeScreen`, `AppCamera` and `AppSetup` all run, and the camera - started later - is on top. The earlier success happened when the camera was not in the way.
+
+**Which makes the next test the one I should have tried first:** with the shipped configuration, place 2080 with `ivi-wm`, capture; then **stop the camera and setup processes** and capture again. If the home screen appears when they are gone, the entire `hmi-controller` investigation was a detour into a module the vehicle never loads.
+
+I reverted the ini to shipped and said so, because two failed experimental changes left in a clone become someone else's ghost.
+
 ## 5.10.10 - the unfiltered run answers it: hmi-controller kills the compositor at 5.3 seconds
 
 Captured the log whole this time, which is what the previous entry said was needed:

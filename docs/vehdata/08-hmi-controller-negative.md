@@ -104,3 +104,48 @@ hmi-controller failed: permission denied
 That is a **permission** failure path compiled into the module, and this image enforces SMACK (V-056) on a **permissive** policy (`smack_setup.sh` switches to permissive when `optUNECE=0`, and the measured value is 0). The audit log is live - the same boot logged `lsm=SMACK ... action=granted subject="_" object="Log::dlt"` for the DLT daemon.
 
 **So the next measurement is specific and cheap:** run once with `hmi-controller.so` enabled and grep the audit stream for `action=denied` entries naming `weston` or the compositor's comm. If a denial appears, the module's init failure is explained and the fix is a rule, not a code change. If none appears, the failure is a missing/bad configuration input and the `/usr/libexec` versus `/usr/lib/weston` discrepancy is the first thing to correct.
+
+---
+
+## 12. The audit test: no denial, so it is configuration - and the path fix does not help either
+
+**Test 1 - is it SMACK?** Enabled the module and grepped the audit buffer at +75 s:
+
+```
+HMI_FAIL=1                              the init failure reproduced
+AUD_SZ=13186  DENIED=0  WESTON=0        no denials, and no audit line mentions weston at all
+```
+
+**No denial. The compositor's failure is not a permission failure**, despite the module carrying a
+`permission denied` string. So the audit hypothesis is dead and the configuration hypothesis stands.
+
+**Test 2 - is it the wrong path for the shell user-interface?** Pointed
+`ivi-shell-user-interface=` at `/usr/libexec/weston-ivi-shell-user-interface`, where the binary really is,
+and kept the module enabled:
+
+```
+F1_WESTON=[]  HMI_FAIL=[1]  APPS home=[] mgr=[]     compositor still gone, init still fails
+```
+
+**Both fixes fail.** `hmi-controller.so` cannot initialise in this projection for a reason that is neither
+permission nor the user-interface path, and each attempt takes the compositor down at ~5 s, which is worse
+than not having the module.
+
+## 13. What I should have concluded two runs ago
+
+The shipped configuration loads **only** `ivi-window-manager.so` and `ivi-controller.so`. That is what the
+vehicle runs. So the layer assignment on a real unit comes from elsewhere - and in weston 1.10 the
+`ivi-window-manager` module is the one that places surfaces. Our `/usr/bin/ivi-wm` speaks that protocol and
+**has worked**: it produced the laid-out home screen capture earlier in this project.
+
+Which means the recent failures are probably **not a placement problem at all** but a **stacking** problem:
+`AppHomeScreen`, `AppCamera` and `AppSetup` are all running, and the camera - started later - is on top. The
+earlier successful capture happened when the camera was not in the way.
+
+**So the next test is the cheap one I should have tried first:** with the shipped configuration, place
+surface 2080 with `ivi-wm`, capture, and then **stop the camera and setup processes** and capture again. If
+the home screen appears when they are gone, the whole `hmi-controller` line of investigation was a detour
+into a module the vehicle does not load.
+
+**Established:** no denial, path fix ineffective, module cannot init, compositor dies with it.
+**Not established:** that placement is broken at all.

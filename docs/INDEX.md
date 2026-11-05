@@ -24,6 +24,7 @@ matter** unless you know what you are looking for.
 | `docs/vm/interacting-with-the-vm.md` | The interaction recipe: boot it, power it on so the layout appears, click, capture by surface, and how to tell each step worked |
 | `docs/vm/45-backend-is-forced-not-chosen.md` | The headless backend is forced: the vendor kernel's only DRM driver is i915, so no QEMU DRM device exists |
 | `docs/vm/46-sim-unimplemented-backlog.md` | The stand-in's measured backlog: 60 unanswered MICOM calls across 10 methods during one boot |
+| `docs/vm/47-what-the-display-ceiling-blocks.md` | Every open item blocked by the display ceiling, what would unblock each, and the one action with highest leverage |
 | `vm/authentic-hmi.md` | The authentic `esinit → weston` path rendering: multi-user at 97.3 s, compositor alive, a 129 KB capture. The three projection-only instruments are listed here. |
 | `vm/spi-gate.md` | The MICOM SPI gate: shut by default (`param=0`), opened by a stand-in that mounts `/sys` first. Three corrections, and the vendor's `> kmsg` typo that hid it. |
 | `vm/SCREENSHOT-LABELS.md` | Which screenshot is actually which surface. Exists because two were mislabelled as the engineering screen and were the home screen. |

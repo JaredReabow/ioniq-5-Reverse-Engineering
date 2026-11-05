@@ -6010,3 +6010,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Tried to settle the top-ranked finding's open question by running the updater from a directory I controlled, so its relative certificate path would point at a file I had planted. It never got that far.
 - The updater is a Qt application and dies with the same fatal display error as the home screen, an invalid object twenty rather than nineteen, which corroborates that the failure is not specific to one application but to the vendor's client stack meeting this display path.
 - Recorded that the open question is now blocked by the same hardware absence that blocks the widget values: two different goals waiting on one thing, stated plainly instead of rediscovered later.
+
+## 2026-11-05 - mapping what the display ceiling blocks
+
+- Wrote down once what had been discovered three times at the cost of a run each: five open items are blocked by a single absence, the display path, rather than by their own difficulty.
+- The leverage is now unambiguous. A kernel rebuild with the virtual gpu driver would unblock all five, and it needs a kernel tree this project does not have, which makes acquiring one the highest-leverage action available.
+- Listed what is not blocked and worth doing instead: adaptor completeness measured without a display, static security work, and the record itself.

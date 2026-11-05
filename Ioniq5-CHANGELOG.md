@@ -12422,4 +12422,18 @@ came out of it.
   and requiring `/bin/true` to fail, then asserts the trace file exists, carries a
   signal banner, a backtrace of at least three frames, and a maps section naming
   `crash_probe`. The script fails loudly rather than returning success with no
-  trace. Not yet executed in the guest; that is the next run.
+  trace. **Corrected 2026-11-05:** that first version could not have passed, because
+  `crash_probe` is static and a static binary never invokes the loader, so
+  `ld.so.preload` cannot reach it. The selftest was rewritten around a dynamically
+  linked subject.
+
+- **Blocker 3 step 1 is now measured working.** `/etc/ld.so.preload` is consulted in the
+  guest, proven by pointing it at a bogus path and capturing the loader's
+  `cannot be preloaded ... ignored` error. With `/crash-trace.so` installed and
+  `/app/bin/iAP2Service-2.0` as the subject, the `0x2eff` trigger produces a
+  symbolised SIGABRT trace with no debugger: `abort+0x16a` from glibc's malloc
+  consistency check, through `iAP2Service-2.0+0x2e015` (called from `+0x2cc2c`).
+  That independently confirms the static conclusion recorded earlier — the abort is
+  glibc rejecting corrupted heap metadata at the `free()` in the server thread, not a
+  fault in the parsing code. 115 log lines including the process map; artifact at
+  `evidence/artifacts/vm-crash-trace/iap2service-sigabrt-trace.txt`.

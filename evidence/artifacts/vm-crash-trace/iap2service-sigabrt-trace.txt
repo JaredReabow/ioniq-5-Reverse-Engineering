@@ -1,0 +1,39 @@
+> echo '=== CRASH TRACE ==='
+> if [ -f /tmp/crash-trace.log ]; then
+>   echo TRACE_PRESENT
+>   $BB wc -l /tmp/crash-trace.log
+>   $BB head -26 /tmp/crash-trace.log
+> else
+>   echo NO_TRACE
+> fi
+> echo DONE
+=== CRASH TRACE ===
+TRACE_PRESENT
+115 /tmp/crash-trace.log
+
+=== signal 6 (Aborted) pid 707 addr 0x2c3 ===
+--- backtrace (module+offset) ---
+/crash-trace.so(+0x1919)[0x7f91e31ca919]
+/lib/libc.so.6(+0x336b0)[0x7f91e27e96b0]
+/lib/libc.so.6(gsignal+0x104)[0x7f91e27e9644]
+/lib/libc.so.6(abort+0x16a)[0x7f91e27eaa7a]
+/lib/libc.so.6(+0x713bb)[0x7f91e28273bb]
+/lib/libc.so.6(+0x77796)[0x7f91e282d796]
+/lib/libc.so.6(+0x77f9e)[0x7f91e282df9e]
+/app/bin/iAP2Service-2.0(+0x2e015)[0xfe42ec2015]
+/app/bin/iAP2Service-2.0(+0x2cc2c)[0xfe42ec0c2c]
+/lib/libpthread.so.0(+0x7404)[0x7f91e228d404]
+/lib/libc.so.6(clone+0x3f)[0x7f91e289ebef]
+--- maps ---
+fe42e94000-fe42f2c000 r-xp 00000000 b3:00 14                             /app/bin/iAP2Service-2.0
+fe4312c000-fe4312e000 r--p 00098000 b3:00 14                             /app/bin/iAP2Service-2.0
+fe4312e000-fe4312f000 rw-p 0009a000 b3:00 14                             /app/bin/iAP2Service-2.0
+fe43cd2000-fe43d04000 rw-p 00000000 00:00 0                              [heap]
+7f91c8000000-7f91c8021000 rw-p 00000000 00:00 0 
+7f91c8021000-7f91cc000000 ---p 00000000 00:00 0 
+7f91d0000000-7f91d0039000 rw-p 00000000 00:00 0 
+7f91d0039000-7f91d4000000 ---p 00000000 00:00 0 
+7f91d4000000-7f91d4021000 rw-p 00000000 00:00 0 
+7f91d4021000-7f91d8000000 ---p 00000000 00:00 0 
+7f91d8000000-7f91d8021000 rw-p 00000000 00:00 0 
+DONE

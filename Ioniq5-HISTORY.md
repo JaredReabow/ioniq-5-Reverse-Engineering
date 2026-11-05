@@ -5633,3 +5633,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - A concurrent worker was rebuilding and staging the stand-in binary while I was staging its deletion, so my removal was undone and the commit captured a new binary carrying six host paths rather than a deletion.
 - Told the worker not to run git at all, since commits are mine and we collided tonight, and restated that the source is tracked while the compiled binary never is.
 - Left the remaining exposure on the record rather than smoothing it: the blob is still at head until staging stops, and also in history from an earlier commit, which needs a rewrite the user should decide on.
+
+## 2026-11-05 - the host paths are out of the artefact, not just the commit
+
+- Chasing the built binary out of the repository kept losing to a worker restaging it, so I fixed the build instead: no debug info, prefix maps, a post-build pass that overwrites any leftover build root, and the hardcoded host include paths replaced with environment or pkg-config lookup.
+- Verified the flags on a small test program first rather than assuming the toolchain honoured them, and measured zero host paths in a rebuild.
+- Recorded the point: the artefact was the leak and the fix belongs in the build, not in a command that loses a race.

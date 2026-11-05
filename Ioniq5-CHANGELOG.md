@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.15.9 - the delegated boot was measuring the wrong thing for thirty seconds
+
+Read the worker's first two boot logs instead of waiting:
+
+```
+"init": "/init"            the bare research entry, not the vendor one
+"userspace": false
+"root_mounted": false
+"elapsed_seconds": 30.24
+```
+
+**Two harness defaults, both false-failure generators:**
+
+1. **`/init` is not the authentic path** - `/init-authentic-hmi.sh` → `esinit` → systemd is.
+2. **Thirty seconds cannot reach userspace here** - Local File Systems ~14 s, Basic System ~18 s, **Multi-User 76-97 s**. `root_mounted: false` at 30 s is a statement about the timeout, not the kernel.
+
+Sent both corrections plus the display device flag and, most importantly, **"boot the two candidate images that already exist before compiling anything"**.
+
+### And written into the runbook, because it is the third time
+
+This is the same class as the truncated log and the 30-second capture: **a measurement that cannot distinguish success from failure, read as a failure.**
+
+> **Rule added to `docs/VM-RUNBOOK.md`: before reporting a boot result, state the `init` and `timeout` that produced it. A boot verdict without those two values is not a measurement.**
+
+Twice now on this task the answer was *"look at what the harness is actually doing"*, not *"look at the kernel"* - and the harness is mine to get right before anyone else's work can be judged.
+
 ## 5.15.8 - the network listener surface is two items, and now enumerated
 
 Same method as the `/tmp`-key and writable-path families: sweep for the whole surface so the register can say *"this is all of them"* rather than list what happened to turn up.

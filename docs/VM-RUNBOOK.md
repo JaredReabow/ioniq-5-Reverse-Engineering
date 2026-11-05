@@ -226,3 +226,16 @@ project measured in code — expected, not a failure.
 - Do not attempt anchor replacement (V-034) on a vehicle you need.
 - Do not assume the About gesture exists on your model because it exists on another — this project has only inferred it
   for the IONIQ 5.
+
+## 2026-11-05 - two harness defaults that produce false failures
+
+Both of these have now cost this project runs, including on a delegated task:
+
+1. **`init` defaults to `/init`, not the vendor path.** A boot that prints `"userspace": false, "root_mounted": false` may
+   simply not be running the authentic entry point. Use `--init /init-authentic-hmi.sh` for anything about the vehicle's
+   own boot.
+2. **`--timeout 30` cannot see userspace here.** Local File Systems at ~14 s, Basic System at ~18 s, **Multi-User at
+   76-97 s**. A 30-second run that reports `root_mounted: false` is a statement about the timeout, not about the kernel.
+
+**Rule:** before reporting a boot result, state the `init` and `timeout` that produced it. A boot verdict without those two
+values is not a measurement.

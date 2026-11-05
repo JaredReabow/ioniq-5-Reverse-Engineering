@@ -3,6 +3,36 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.0 - the record was behind the work, so I stopped and corrected it
+
+Eight turns have overturned the model this project was working from, and the two documents people read first still described the old one. Corrected rather than left to drift.
+
+### `docs/CURRENT-STATE.md`: a warning before anything else
+
+A new section at the top, because this is the one thing that would waste a reader's day:
+
+| instrument | damage | evidence |
+|---|---|---|
+| `can_shim.so` in `/etc/ld.so.preload` | the app dies with `wl_display@1: error 0: invalid object 19` | with: 2452 -> 2619 -> **2581+2500** -> 3225; without: **3015 -> 3015 -> 3015** |
+| `ivi-wm <surface>` | races a live client surface, same fatal error | stable run made **no** `ivi-wm` calls; churning run called it before **every** capture |
+
+**Method note:** establish the stable state with no instruments, then add **exactly one at a time**. Every capture taken while either is active is suspect - **including captures already committed in `docs/vm/`.**
+
+And the three frames, distinguishable only by looking: **splash** (130,457, logo, no chrome - the app waiting), **standby** (114,782-120,562, title bar + panel + logo), **layout** (16,062, seen **once**). Sizes are not identifiers: one standby frame measured **131,845**.
+
+### `README.md`: two rows that were no longer true
+
+Both narrowed to what is measured:
+
+- *"Managed AppHomeScreen - Working - paints, then lays out the home screen"* -> **"Runs stably; shows its splash"**, with the laid-out frame noted as seen **once** and **not reproduced since**.
+- *"Interaction - accepted; delivery unmeasured"* -> **"accepted; delivery unmeasured, and the placement tool crashes the app"**.
+
+### The one-hour list, rebuilt from what is actually open
+
+Two VM candidates both named by the application's **own log** (`DB UPDATE COMMIT FAIL` x23 with the file now created; `writeGPIO -> ENOENT` on kernel GPIO nodes), the two engineering-mode preconditions, and the on-unit MICOM question. Plus an explicit **closed - do not revisit** list: About tap, `SOPVersion` patch, crafted filename, `show_engineermode`, `hmi-controller.so`, and the camera attribution.
+
+**Why this matters more than another boot:** the last eight turns produced six corrections and two retracted conclusions. Left unmerged, the next reader would have started from the version where the app "paints the home screen" and the instruments are trustworthy - and would have repeated every mistake in one afternoon.
+
 ## 5.10.18 - the directory fix worked, the commits still fail, and the app wants GPIO nodes
 
 Ran the one thing the last entry named: pull the log with the directory present.

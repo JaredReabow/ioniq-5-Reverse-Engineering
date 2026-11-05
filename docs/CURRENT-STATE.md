@@ -5,6 +5,30 @@ either demonstrated in the projection, quoted from the image, or explicitly mark
 
 ---
 
+### READ THIS BEFORE RUNNING ANYTHING (2026-11-05)
+
+**Two of this project's own instruments kill the application under test**, and both did so silently enough that
+their damage was read as vendor behaviour for several runs:
+
+| instrument | damage | evidence |
+|---|---|---|
+| `can_shim.so` in `/etc/ld.so.preload` | process-wide; overrides `close()` and substitutes socketpairs for every `PF_CAN` socket. The app dies with `wl_display@1: error 0: invalid object 19`. | with it: pids 2452 -> 2619 -> 2581+2500 -> 3225; without: **3015 -> 3015 -> 3015** |
+| `ivi-wm <surface>` placement | races a live client surface; the client then reports the same Wayland fatal error and exits | stable run made **no** `ivi-wm` calls; the churning run called it before **every** capture |
+
+**Consequence for method:** establish the stable state with **no instruments**, then add **exactly one at a time**.
+Every capture this project takes while either is active is suspect, including captures already in `docs/vm/`.
+
+**Three frames, distinguishable only by looking:**
+
+| frame | size seen | what it shows | means |
+|---|---|---|---|
+| **splash** | 130,457 | KIA logo on black, thin blue bar, no chrome | startup - the app is **waiting** |
+| **standby** | 114,782 / 120,562 | title bar reading `STR_CAMERA_ALERT2`, left panel, logo | powered-off presentation |
+| **layout** | 16,062 (seen once) | Battery and Range widgets placed | the real home screen |
+
+Sizes are **not** reliable identifiers - one standby frame measured 131,845. Look at the frame.
+
+
 > **Before trusting anything below**, run `sh tools/check_all.sh`. It verifies the register's numbering and cross-references, that the history log has not been rewritten, and that
 > every document reference resolves. The suite exists because three defects survived careful reading.
 
@@ -296,24 +320,19 @@ Recorded because the corrections are part of the value:
 
 ## 6. If you have one hour
 
-Ranked by what it would settle, not by what is easiest.
+Ranked by what it would settle. **Add one instrument at a time** (see the warning at the top).
 
-1. **Read `docs/trust-anchors-in-writable-runtime-paths.md`** - it is the argument, not the inventory,
-   and it covers six of the thirteen fixes in one idea.
-2. **The last VM measurement: the widget values.** Inject a value and judge it against
-   `evidence/vehdata-ground-truth.md` - 65 % reads 287 km on a real car, ~4.4 km per percentage point,
-   and **0 % with 0 km is the pre-data state, not success**.
-3. **The last engineering-mode measurement: which precondition is false.** The payload is decoded
-   (`[0x01, 0x05]`) and delivery is proven, so trying more payloads is wasted effort. Instrument the two
-   calls - `ask(301)` at `0x2062c3` and `ask(71) == 1` at `0x2062dd` - and read which one declines.
-4. **On a unit:** whether the special-key route reaches engineering mode with a **real MICOM**, since our
-   stand-in never emits that signal. That is what bounds V-060's practical severity.
+1. **Read `docs/trust-anchors-in-writable-runtime-paths.md`** - six of the thirteen fixes are one idea.
+2. **The two open VM candidates, both named by the application's own log**, not by a frame:
+   - `DB UPDATE COMMIT FAIL` x23 - the file is created now (36,864 bytes) but commits fail and no error text is
+     printed; the next read is the SQLite error itself.
+   - `Home_Worker::writeGPIO` -> `Open kernel file failed!, errorNo: 2` - the app opens kernel GPIO nodes that do
+     not exist. The paths are computed, not literal; stubbing them is cheaper than a driver.
+3. **The last engineering-mode measurement:** which precondition is false - `ask(301)` at `0x2062c3` or
+   `ask(71) == 1` at `0x2062dd`. The payload is decoded and delivered, so more payloads are wasted effort.
+4. **On a unit:** whether the special-key route reaches engineering mode with a real MICOM, which bounds V-060.
 
-**What not to spend time on**, because each was checked and closed this session:
-
-| Don't | Why not |
-|---|---|
-| the About-screen tap gesture | **absent in this build's code** - three tap counters total, none near a version string, and the version screen's only `MouseArea` is a virtual knob |
-| the one-byte `SOPVersion` patch | **withdrawn** - the immediate patched was a stack local in unrelated code, not the SOP state |
-| a crafted USB filename reaching the shell | **refuted** - the staging copy renames every artefact to a fixed name |
-| `show_engineermode` as the way in | **inert** - accepted twice, starts nothing, including with the home screen running |
+**Closed this session - do not revisit:** the About-screen tap (absent in code), the one-byte `SOPVersion`
+patch (wrong site), a crafted USB filename reaching the shell (staging renames), `show_engineermode` (inert
+twice), `hmi-controller.so` (cannot init; compositor dies with it), the camera-app attribution (it was the app's
+own splash/standby).

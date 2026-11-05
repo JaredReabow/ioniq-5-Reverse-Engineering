@@ -5518,3 +5518,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Mapped the About page itself: three items, and one clickable region that is a virtual rotary-knob emulator which logs a line and sends a knob press. The version text has no handler at all.
 - Third independent confirmation of the same conclusion, and it explains what a person would see on a stock unit: nothing, however many times they tap it.
 - Told the worker to stop clicking and write up the captures it obtained, since further runs would only add to the same negative.
+
+## 2026-11-05 - reading the long entry back
+
+- Read the leading finding end to end after ten rewrites. No contradictions: each correction sits above the sentence it replaces and the final resolution matches everything below it.
+- One bullet had been overtaken: it still called the container requirement merely plausible, when the apply stage was afterwards measured invoking the decryptor. Sharpened, with the genuinely open half kept open.
+- A long, much-edited entry is where a stale hedge survives unnoticed, because nothing contradicts it - it is only older than the evidence.

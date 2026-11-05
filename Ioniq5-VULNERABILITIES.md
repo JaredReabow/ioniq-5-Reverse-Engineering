@@ -2625,7 +2625,7 @@ This is the first downgrade route found in this project that does not bottom out
 
 - **Not reproduced here.** The demonstration needs programmable USB mass-storage hardware; this project has no such device and did not attempt it.
 - The `md5WithRSAEncryption` observation is theirs from decompilation; this repository confirmed only that the string is present.
-- Whether the swapped payload must be a well-formed TE2 envelope depends on the install path's use of `DecryptToPIPE`; that is plausible and untested.
+- **The swapped payload almost certainly has to be a well-formed TE2 envelope**, because the apply stage was measured invoking the shipped `/app/share/AppUpgrade/DecryptToPIPE` (the strings its code site at `0x60f0b` references). What is untested is whether a *malformed* envelope is rejected before or during that call.
 - No attempt was made to install anything on any unit.
 
 ### Suggested patch direction

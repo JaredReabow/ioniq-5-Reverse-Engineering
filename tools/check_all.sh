@@ -17,6 +17,8 @@ echo
 echo "=== history is append-only ==="
 "$PY" tools/check_history_append_only.py || rc=1
 "$PY" tools/check_remediation_items.py || rc=1
+# last few commits only: a document that lost sections in this session is worth seeing now
+"$PY" tools/check_doc_shrinkage.py 5 || true
 echo
 echo "=== tooling parses ==="
 pyfail=0

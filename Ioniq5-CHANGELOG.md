@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.18.1 - a tool for the failure I caused, and it caught the act when I pointed it at history
+
+Today's six-item loss earns a tool. If one document silently shrank, the question is whether others did - so `tools/check_doc_shrinkage.py` asks the cheapest structural question of history: **did any document lose headings?**
+
+**My first version was wrong in the way that matters.** It compared each commit's file against the **current working tree**, so it reported **zero** problems - because the six items had since been restored. **A loss that was later repaired is invisible to a worktree comparison**, which is precisely how the loss survived two turns unnoticed.
+
+**Fixed to compare consecutive commits**, it immediately found the act:
+
+```
+e5ffcab  docs/REMEDIATION-REPORT.md: 33 headings -> 28   (delta -5)
+```
+
+That is the tier-rebuild commit - the one that dropped items 12, 13 and 17-20 while the cross-reference table kept listing them.
+
+**Now in `check_all.sh` with a five-commit window** (0.5 s), report-only: it does not fail the build, because a deliberate merge is a legitimate decrease. **The job is to make the question visible, not to answer it.**
+
+### Two lessons, and the second is the uncomfortable one
+
+1. **A structural check must compare the right pair of things.** Commit-to-worktree cannot see a repaired loss; commit-to-commit can. I built the wrong comparison first, on the exact failure it was meant to catch.
+2. **A tool that reports zero is not proof of health** - rule 14's lesson, in a third form this session. It found nothing, and it was wrong; the same shape as the truncated log, the 30-second boot and the compositor with no client.
+
+The difference this time: the zero was mine, on my own tool, and I did not believe it.
+
 ## 5.18.0 - the report had lost six items and the cross-reference table was pointing at nothing
 
 Found while tidying the report's closing sections, and it is the worst record failure of the session.

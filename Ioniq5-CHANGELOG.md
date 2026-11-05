@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.3.5 - the newest correction becomes a rule, because it is about the checks themselves
+
+Tonight's last fault was not a measurement or an inference but a **verification step that ran, produced the answer, and was ignored**: a scripted insertion matched nothing, printed success, and the
+counted check returned `0`, which I read as "different phrasing" and committed past. Two commits later the register still said the opposite of the evidence sheet.
+
+That is a distinct failure from rule 7 ("verify the marker, not the exit code"), so it gets its own entry in `docs/MEASUREMENT-DISCIPLINE.md`:
+
+> **10. Verify the write, and verify that your verification ran.** Assert positively - `grep -q` the exact new phrase and fail if it is absent - rather than eyeballing a number. When a verification
+> produces an unexpected value, stop the commit; do not reword the search and carry on.
+
+The document is now ten rules, every one paid for by a specific mistake in this repository rather than imagined in advance, and the newest of them is about the habit the other nine depend on:
+the checks have to be *believed* when they answer.
+
 ## 5.1.16 - the last open question resolves, and the two answers were never in conflict
 
 The question was whether FUMO's second read opens the removable medium or a staged local copy, and the path counts had leaned towards staging. Looking at *how* those paths are used resolves it:

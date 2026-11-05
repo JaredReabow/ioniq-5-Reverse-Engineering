@@ -5458,3 +5458,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - For three entries I treated a staged copy and a mounted medium as competing answers. The updater's own log calls the directory a mount path, and the filesystem is one whose subdirectory can host the mounted stick, so they were always the same answer.
 - That reconciles the seven references to the directory with the absence of any payload copy: there was never anything to copy.
 - The lesson worth more than the finding: read how a path is used, not just that it appears. The disagreement was mine, not the firmware's.
+
+## 2026-11-05 - a rule about believing the checks
+
+- The last fault of the night was a verification that ran, answered zero, and was ignored while I committed anyway. That belongs in the discipline document, not just the changelog.
+- Added as a tenth rule: assert the exact phrase and fail if absent, and when a check returns something unexpected, stop rather than rewording the search.
+- Every rule in that document is now paid for by a specific mistake here, and the newest is about the habit the other nine depend on.

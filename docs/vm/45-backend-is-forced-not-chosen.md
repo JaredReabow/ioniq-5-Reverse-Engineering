@@ -847,3 +847,46 @@ but only after this.
 **Caution, recorded before it is needed:** `PRELOAD_AFTER=1` is the **precondition**, not the result. The result is a frame of the
 `16,062`-byte class with a left panel and Battery/Range placed - or a statement that it did not appear, with the pid and preload
 value at the moment of capture.
+
+## 38. The reordering works mechanically and the frame is still the background - so the preload gate was not the blocker
+
+The run that polled for stability **before** the call (`docs/kernel/17-reordered-call-no-layout.md`):
+
+```
+NAME_OWNED=yes at +100s
+PID_CHANGED 2324 -> (none)      the doomed instance
+PID_CHANGED 2497 -> 2634
+PID_STABLE_GATE=yes pid=[2634]  same pid across two samples 15 s apart
+CALLING_AGAINST pid=[2634]
+SET_POWER_SENT
+AFTER_CALL pid=[2634] preload=[int32 1]
+SAME_INSTANCE=yes
+CAP_30s / CAP_60s / CAP_120s = 129,844   the early background
+```
+
+**Mechanically it is exactly right**: the call went to the instance that survived, that instance stayed up, and preload reads `1`.
+**And the frame is the background** - 1920×720, ~98 % black, grey text, **no blue title bar** - which is neither the app's standby
+face (144,501 with its chrome) nor the laid-out frame (16,062).
+
+**So the preload gate was a precondition, not the blocker.** The caution attached to §37 before the run was correct, and the run
+now proves it.
+
+## 39. The difference between this run and the one that captured the app's chrome
+
+**Doc 11's 144,501-byte standby capture was taken after `ivi-wm <surface-id>` placement; this run never placed.** A frame with no
+blue bar is a frame where the application is **not being composited at all** - which is a different statement from "it failed to
+lay out".
+
+**Which gives a test that has never been run: both halves at once.** Stability gate, then placement, then the call, then capture.
+Each half is proven separately:
+
+| half | evidence |
+|---|---|
+| app painted with its chrome | doc 11, 144,501 bytes, blue bar + logo |
+| stable, preload-complete instance | doc 17, pid 2634 through +120 s, preload `1` |
+| **both together** | **never attempted** |
+
+**And the risk is named in advance:** placement has killed this application by racing its surface earlier in this project. If the
+pid changes after placing, the run is **inconclusive rather than negative**, and if placement reliably kills it, that is itself a
+finding: **one of this project's instruments is incompatible with the layout it is trying to observe** - the fifth
+instrument-caused failure of the session, and a legitimate stopping point.

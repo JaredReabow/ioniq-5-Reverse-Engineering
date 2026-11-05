@@ -5476,3 +5476,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Checked the static half of the gesture question. The external triage said this image has no tap counter; it has one, on the N-mode lap timer rather than on About, and it is reachable by touch alone.
 - Every use of the flag it flips only changes the lap timer's own presentation. No path to anything privileged, so it is recorded as a real hidden toggle that is not a security finding.
 - That is more useful than the claim it replaces, and it narrows the standing question: if the About entry is on this build at all, it is somewhere else - which is what the dynamic navigation is testing.
+
+## 2026-11-05 - the gesture everybody described is not in this build
+
+- Enumerated every tap counter in the shipped QML instead of guessing at a screen: three exist, all accounted for, and none is anywhere near About or a version string.
+- So the stock entry vector as described on a sibling platform is absent here. That is stronger than a failed search because the tree was searched by pattern rather than sampled by hand.
+- What remains possible is a handler in compiled code, which one observation settles and no amount of reading will. Redirected the worker accordingly.

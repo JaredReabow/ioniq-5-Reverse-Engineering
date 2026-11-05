@@ -552,3 +552,26 @@ and nothing else. There is no path from this flag to a privileged action in the 
 
 **So: a real hidden toggle, and not a security finding.** It is recorded here because it is exactly the shape the external triage was looking for and had concluded was absent, and because
 "the gesture exists but does something cosmetic" is a more useful answer than "the gesture does not exist".
+
+## The About-screen gesture, checked exhaustively: it is not in this build's QML (2026-11-05)
+
+The external project describes engineering-mode entry by tapping the software version 5-10 times on **Settings -> General -> About**, on a sibling platform. This project carried that
+as an **inferred** stock entry vector all session. It is now checked against the whole shipped QML tree rather than a guessed path.
+
+**Every QML file in `/app/share` containing a tap or click counter:**
+
+```
+/app/share/AppEngineerMode/qml/AutoTest/AppEngineerMode_GhostTouchTest.qml
+/app/share/AppEngineerMode/qml/AutoTest/AppEngineerMode_TouchTest.qml
+/app/share/AppHomeScreen/qml_new2.0/NMode/PerformanceTimer/Q_NMode_PT_Lap_Main_Track.qml
+```
+
+Three, and all three are accounted for: the two engineering-mode files are its own touch-test screens, and the third is the lap-timer toggle documented above. **The only thresholds anywhere in
+that tree are `5` (the lap timer) and `0` (an initialiser).**
+
+**Conclusion: the About-screen tap counter does not exist in this build's QML.** Not "we could not find it" - the tree was enumerated by pattern across every shipped QML file.
+
+**What that does not rule out:** a handler implemented in C++ rather than QML. `AppHomeScreen` is a compiled binary and could bind a tap to a version label without any QML `MouseArea`. That is
+the one thing static analysis cannot exclude, and it is settled by a single observation on a unit or in the projection: tap the version string repeatedly and see whether anything reacts.
+
+So the stock vector narrows rather than closes: **the gesture as described on the sibling platform is absent**, and the remaining possibility is a C++-side equivalent elsewhere in the interface.

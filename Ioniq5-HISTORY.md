@@ -6094,3 +6094,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Swept what the platform writes to persistent storage, using the vehicle's own log dump. The identification number is logged by the voice handler, on a writable partition that survives reboot and gets exported off the unit.
 - The same function name and direction marker indicate it is also sent toward the speech backend, which is inferred rather than observed, and that distinction is written down.
 - Rejected most of the sweep: the password, network name, coordinate and phone number counts were noise or forum text captured inside the dump, and only the identification number survived sampling. That difference between a grep and a finding is the half worth keeping.
+
+## 2026-11-05 - the smack rules grant broad objects and narrow permissions
+
+- Read the mandatory access control rules themselves rather than only whether they load. Twenty-eight rules name a wildcard object, including the floor label, but not one rule grants write or execute anywhere.
+- Recorded both readings and chose the second: the wildcard covers label inheritance for new objects, while the permissions that matter to every finding in this register are simply not handed out.
+- Did not claim the policy is broken, because this project has never demonstrated a relabel, and named the ten minute test that would settle it.

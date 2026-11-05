@@ -3,6 +3,37 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.16.4 - V-056 sharpened: broad objects, narrow permissions
+
+Swept the one layer left unexamined in the SMACK story - **the rules themselves**, not just whether they load. Across the 636 loaded rules:
+
+```
+rules whose OBJECT is "*"                    28
+rules granting write (w) or execute (x)       0
+```
+
+All 28 wildcard rules are the same shape, **transmute only**:
+
+```
+App::bluetooth * ----t-
+App::camera * ----t-
+...
+_ * ----t-
+```
+
+**Two readings, and the honest one is the second:**
+
+1. *The policy looks defeated* - `_` is the floor label, V-056 records that applications carry it, and `_ * ----t-` would make every object transmutable.
+2. *What the rules show* - **not one rule grants `w` or `x` anywhere.** Write and execute are the permissions that matter for the findings in this register (a writable `/tmp/passwd`, an executable `/var`-side binary), and the policy does not hand them out. The wildcard is confined to `t`, which governs **label inheritance for new objects**, not access to existing ones.
+
+**This is the second time in this session that a wide-looking result narrowed on inspection** - the first was the mDNS `nobody` warning, which does not trigger because the account exists.
+
+### What I did not claim
+
+That `t` on `*` from the floor label has the practical effect of relabelling - because this project has **never demonstrated a relabel**; V-056's `_` exemption was withdrawn for exactly that reason. Naming the semantics as the open question is correct; asserting *"SMACK is broken"* or *"SMACK is fine"* from a rule listing is not.
+
+**And the measurement that would settle it is named:** as `_`, `chsmack` a file to a new label, then check `ls -Z` and whether a differently-labelled process is denied. **Ten minutes on a unit; never done here.**
+
 ## 5.16.3 - V-074: the VIN is persisted in logs and handed to the voice backend
 
 Swept the layer nobody had: **what the platform writes to persistent storage**. The vehicle's own DLT dump answers it for one identifier:

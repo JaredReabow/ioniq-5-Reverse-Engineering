@@ -6166,3 +6166,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The worker tested my hypothesis in one run: the configuration path really does name a file that does not exist, and correcting it does not produce the socket.
 - The source explains why it cannot: the shell client is started by an idle callback that only runs after the compositor enters its serving loop, which it never does, so the wrong path is dormant rather than causal.
 - Recorded two kinds of fact side by side: a confirmed vendor defect that does nothing on this build, and a failed hypothesis of mine that at least produced it, which is better than the two earlier failures tonight that taught only not that.
+
+## 2026-11-05 - the report had lost six items and its table pointed at nothing
+
+- Tidying the report's closing sections revealed that it contained twenty items while its cross-reference table listed twenty-six. Six findings had no sections at all, and the table went on mapping them to register entries that were correct.
+- The loss happened during my own mechanical rebuild two turns ago: I split the document on headings and reassembled it from a dictionary, and six items never made the journey. I committed it without counting the output.
+- Reconstructed the six from their register entries, and added a check that every table row has a section and every section has a row, running in the check suite so a silent loss is visible. The lesson is the sharpest of the session: a cross-reference makes a document look verified, and its accuracy is what stopped me looking.

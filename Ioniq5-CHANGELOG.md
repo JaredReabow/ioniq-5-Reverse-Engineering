@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.18.0 - the report had lost six items and the cross-reference table was pointing at nothing
+
+Found while tidying the report's closing sections, and it is the worst record failure of the session.
+
+**The committed report contains 20 items. Its cross-reference table lists 26.** Items **12, 13, 17, 18, 19 and 20** - engineering mode over the bus (V-060), the hash oracle (V-061), the navi payload (V-066), the static SSH key (V-067), embedded keys and the navi CA (V-068/V-069), and the persistent-partition script (V-070) - **had no sections at all.** The table went on mapping them to register entries that were themselves present and correct.
+
+**When it happened:** during the tier rebuild two turns ago. I split the document on `### ` headings and reassembled it from a dictionary, and six items never made it into the reassembly. **I committed it without counting the output.** The checks passed, because nothing verified that a *table row* had a *section*.
+
+### Three things were wrong, and they compound
+
+1. **A destructive rewrite** committed without a before/after item count - the same class as the 33 MB expansion, with a quieter failure.
+2. **A checker suite with a blind spot**: it verified register ids, links and history, but not the report's internal consistency.
+3. **A table that made the damage invisible** - `item 17 → V-066` looked perfectly healthy while pointing at nothing.
+
+### Fixed
+
+- The six items were **reconstructed from their register entries**, in the established Evidence/Exposes/Fix/Verify shape, and the body count is 26.
+- **A new check** (`tools/check_remediation_items.py`) asserts that every cross-reference row has a `### N.` section and every section has a row, and it now runs inside `check_all.sh`. It prints both counts, so a silent loss is visible even on success.
+
+### The lesson, and it is the sharpest of the session
+
+**A cross-reference makes a document look verified.** The table was accurate about the register and silent about the body, and its accuracy is exactly what stopped me looking. **Structural invariants have to be checked mechanically, because a document can be internally consistent in the parts you happen to read.**
+
+That is the same sentence as the truncated log, the 30-second boot and the compositor with no client - **the evidence was consistent and the conclusion was wrong** - applied to my own tooling.
+
 ## 5.17.5 - my shell-UI hypothesis was refuted, and it found a real but dormant vendor bug
 
 The §13 hypothesis was that the ivi-shell fails over a real output because the ini names a shell user-interface binary at a path where it does not exist. The worker tested it in one run and wrote it up as:

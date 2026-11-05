@@ -375,6 +375,72 @@ user data and vehicle logs are plaintext on the flash.
 
 ---
 
+### 12. Engineering mode can be requested by any process on the system bus
+
+**Evidence.** `ApplicationManager` subscribes to the front-panel special-key signal with an **empty service and an empty path**, so the match rule is interface plus member only (`0x214dc9`-`0x214e3e`). The handler takes a two-byte payload and the second byte selects the action (`0x206308`-`0x2062f8`); `payload[1] == 0x05` reaches `movl $0x12d` - app id **301**, the engineering application. Measured in the projection: the payload reaches the system bus (a monitor sees it) and the handler declines on internal state.
+
+**Exposes.** Any process that can write a signal to the system bus can request engineering mode with two bytes, without a physical key or PIN. Practical severity today is bounded by the state gate - which is why the sender check belongs **before** that gate is found to be satisfiable.
+
+**Fix.** Pass `com.lge.car.micom` as the connect service, or verify `message().service()` in the slot, and re-check payload length and byte range before dispatch.
+
+**Verify.** Emit `[0x01, 0x05]` from a client that is not the owning service and confirm nothing happens; then from the owner and confirm unchanged behaviour.
+
+
+### 13. The application-set hash is queryable by any session-bus client
+
+**Evidence.** `com.lge.avn.applauncher` implements `com.lge.avn.applauncher.cipher.getIVDHash() -> ay`. The launcher holds every application binary's path beside `SHA256_Init/Update/Final` and labels the digest `SystemIVD`; a call returned a 32-byte value.
+
+**Exposes.** The digest is a fingerprint of the installed application set, so for a process already running as root - most of the stack - it answers **"did my tampering change the platform's integrity view?"**, and an unchanged value discloses which changes are invisible to it. The bus is root-only, so no content leaks and no escalation is implied.
+
+**Fix.** Restrict the interface to the MICOM bridge or drop the method from the public object; if attestation is required, make it a challenge-signed response rather than a stable digest.
+
+**Verify.** Query the digest, change one byte in one application binary, query again: a changed value confirms the oracle, an unchanged value is a finding about coverage.
+
+
+### 17. The navigation payload: world-writable binary and a verification key in `/tmp`
+
+**Evidence.** `/navi/Bin/AppNavi` (143,718,392 bytes) and `/navi/Bin/CANService.sh` are `-rwxrwxrwx`, with 126 configuration files beside them. `/navi` is read-only in normal boot, but `app/bin/AppLauncher` carries `mount -o remount,rw /navi` / `remount,ro /navi`, so a **read-write window** opens at runtime. The same binary contains `/tmp/navi_public.key`, `:/navi_public.key` and `RSA_verify`, and **no navi public key ships in the image**.
+
+**Exposes.** During the window any non-root process can modify the navigation binary or the startup shell script in place; and if the key is read from the tree it verifies, the check is self-referential. V-048 already demonstrated the consequence of trusting a `/tmp` key: a binary this project signed ran as `uid=0`.
+
+**Fix.** `chmod go-w` on the two paths (the image has **no world-writable directories**, so this is two files, not a tree audit); mount `/navi` read-only unconditionally; move the key to a root-owned read-only location and **ship it**.
+
+**Verify.** During the launcher's window, open `/navi/Bin/AppNavi` for writing from a non-root process; compare `/tmp/navi_public.key` against any key in the navi tree.
+
+
+### 18. A static root SSH key ships in the image, behind a `/tmp` marker and a missing binary
+
+**Evidence.** `/etc/dropbear/authorized_keys` ships with one RSA key (`rsa-key-20181102`). `dropbear@.service` exists with `ConditionPathExists=/tmp/secure_console_disable` as its only gate and `ExecStart=-/usr/sbin/dropbear -i -s ...`. `/etc/default/dropbear` has `# DROPBEAR_EXTRA_ARGS="-w"` **commented out**, and `-w` is "disallow root logins". `dropbear_publickey_installer.sh` copies the shipped key into `/home/root/.ssh/authorized_keys`. **The daemon binaries are absent and the unit is not enabled**, so it cannot run on this image.
+
+**Exposes.** The credential is **static and shared**: every unit built from this image accepts the same private key, so one leak anywhere is root on all of them, with no per-device rotation. The gate is a file in a world-writable directory whose name reads like a hardening flag, and adding the `dropbear` package for field debugging completes the chain.
+
+**Fix.** Remove `authorized_keys`, `dropbear@.service` and `dropbearkey.service` from production images; provision per-device credentials if SSH is required and gate on MICOM state; treat `rsa-key-20181102` as compromised by distribution.
+
+**Verify.** `grep -c . /etc/dropbear/authorized_keys` on a unit: any non-zero result is this finding.
+
+
+### 19. Embedded private keys, and a navigation CA on a writable partition
+
+**Evidence.** Four application binaries carry PEM private-key blocks - `AppProjection` (2 keys + **3 certificates**), `AppUpgrade` (6), `AppScomoDM` (3), `AppDMClient` (3); one parsed block is **RSA 2048**, public-key SHA-256 beginning `af1e9a9a...`. Separately, `AppUpgrade` reads `/rw_data/navi_data/certificates/TomTom_Root_CA.crt`, which ships **1,588 bytes, mode `-rwxrwxr-x`, on the read-write partition**, and SCOMO's own code names that file as the TomTom root CA (copying one only when none exists).
+
+**Exposes.** Everything shipped is **compromised by distribution** - identical on every unit, no rotation, and a backend authenticating by certificate cannot distinguish units. The CA is worse in practice: **one file write** could let an attacker sign a navigation package the unit accepts, and the payload runs as root.
+
+**Fix.** Establish what the embedded keys authenticate and rotate them, reissuing per-device credentials; move key material to manufacture-time provisioning. Move the navi CA to read-only storage, or make it signed by a read-only-side key.
+
+**Verify.** `grep -c 'BEGIN .*PRIVATE KEY' /app/bin/*` gives four files; compare public-key fingerprints across two units. For the CA: replace it, sign a navi package, attempt an update.
+
+
+### 20. The manufacturing test application references a script on a persistent writable partition
+
+**Evidence.** `app/bin/AppMPAutoTest` contains `/app/data/AppEngineeringMode/shell/eject.sh` and links `QProcess::start`, `startDetached` and `waitForFinished`. `/app/data` symlinks to **`/rw_data/app_data`**, which persists across reboots; the shell directory **is not shipped**. Manufacturing mode is already known to be triggered by a `/tmp` marker (V-042).
+
+**Exposes.** *If* that path is executed, one directory plus one file on a persistent partition plus the known trigger would give **unattended root execution surviving reboot**. **Measured negative:** starting `AppMPAutoTest` as root with the script staged and the marker created did **not** run it, so the cheap reading is refuted; the trigger is some other event - the file is named `eject.sh`, so a media-eject path is the first place to look.
+
+**Fix.** Never execute scripts from a persistent writable partition: ship field-diagnostic scripts read-only and run that path, or verify a signature with a key that is not itself writable (V-069's failure mode).
+
+**Verify.** On a unit, stage the script with a marker command, trigger manufacturing mode, and observe whether it runs.
+
+
 ## Register cross-reference
 
 The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is the fix list. The mapping:

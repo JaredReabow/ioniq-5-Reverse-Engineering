@@ -5580,3 +5580,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The earlier attempt had been inconclusive because the app was not up yet; that caveat is now gone.
 - Noted the route that should have come first: the micom manager exposes test methods for the front-panel special key, which means any client on the session bus can forge a technician's key press.
 - The run's capture was the known background rather than the application, and that is stated rather than glossed, because the conclusion rests on the process check instead.
+
+## 2026-11-05 - the special-key signal has no sender check
+
+- Read how the manager subscribes to the front-panel special key and found it passes empty service and empty path, which means any sender and any path. So nothing authenticates who delivers a key event to it.
+- Tried it in the projection with nine payloads and no engineering mode appeared. The service that normally emits was not running, so the payload semantics or a downstream gate is the remaining obstacle, not authentication.
+- Recorded as a new register entry with the disassembly and the measured negative both stated plainly.

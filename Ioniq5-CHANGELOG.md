@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.2 - the special-key signal has no sender check (V-060)
+
+The better route was the front-panel special key, and the receiving side turns out to be unfiltered.
+
+**`ApplicationManager` connects to the system bus with an empty service and an empty path** for the special-key signal:
+
+```
+214dc9  leaq 0x30ca0d  len 0x1a   "NotifyKeyFrontSpecialEvent"
+214de3  leaq 0x2fce8c  len 0x15   "com.lge.car.micom.can"
+214df3  QArrayData::shared_null -> EMPTY string
+214dfa  QArrayData::shared_null -> EMPTY string
+214e13  callq QDBusConnection::systemBus()
+214e3e  leaq 0x30ca28  "1specialKeySlot(QByteArray)"
+```
+
+Empty means *any sender, any path* - the match rule is interface plus member only. **So any process that can write a signal to the system bus can deliver a front-panel key event to the manager**, with no check on who sent it. That is V-060, and it corroborates E2b from the receiving side rather than the sending side.
+
+**The measured negative, stated as one:** with the home screen running I emitted nine payloads (`array:byte:0x01,0x00` through `0x08`) from a normal session client and **no `AppEngineerMode` appeared**. `micommanager_userspace` was not running - the stand-in owns the name - so the sender was a plain client. Two readings stay open: **payload semantics** (`specialKeySlot`'s decode is unread; the `0x206308` decoder in `hidden-menus.md` is the *producer* side) and **a further gate** after the slot, which would fit the build-gate pattern seen everywhere else in engineering mode.
+
+**Not established:** that a forged signal opens engineering mode. **Established:** no authentication stands in the way - only the payload format and any downstream gate.
+
+### Fix
+
+Pass `com.lge.car.micom` as the connect service, or verify `message().service()` in the slot, and validate payload length and key range before acting.
+
 ## 5.9.1 - the D-Bus engineering entry is accepted and does nothing
 
 Twice now, and the second time properly. With the manager up and the home screen running (`home=2494` after `set_power_on_status`), `show_engineermode` returned a clean `method return` and **no `AppEngineerMode` process appeared in 84 seconds**.

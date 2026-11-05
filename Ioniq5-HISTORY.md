@@ -6389,3 +6389,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The duplicate registration was measured: a single pid registering twice ten milliseconds apart, with the next launch only after the kill. So it is a retry of an unacked call, not two instances, and the fix is to answer the registration method in our own stand-in.
 - Recorded the seventh instrument defect, which unlike the other six was the system refusing to be measured: our monitor ran unlabelled and the vendor's policy denied it the labelled directory. Recorded as not measured.
 - Consulted Opus 4.7 and Astra on the next step per the new standing instruction, and noted the new requirement to also push to the user's unsanitised repository, for which the remote is not yet known.
+
+## 2026-11-05 - no validated receipt, no result
+
+- Astra's advice on the measurement debt became a tool: a wrapper that emits MEASURED or NOT MEASURED and refuses to report when the target is dead, the instrument is blind, or the command failed.
+- Self-tested with six gates including a blind instrument that must refuse to report even on a healthy target, and wired into the check suite so the fail-closed behaviour is a standing check.
+- Wrote it as rule 17 of the measurement discipline: a number is not a measurement unless the instrument proves it measured the intended target.

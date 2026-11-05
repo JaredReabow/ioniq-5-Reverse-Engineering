@@ -5609,3 +5609,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Ran the test as designed, with a monitor on the interface before emitting so the question would be delivery rather than outcome. The monitor saw the signal and the application did not start.
 - That excludes transport by measurement instead of assumption and leaves three named preconditions from the decode to compare.
 - Also wrote down that a signal emission returns no reply, because the error text looks like a failure and is not one.
+
+## 2026-11-05 - the fix list now points at the evidence
+
+- Noticed the register and the remediation report had no link between them: not one fix item cited a register entry, and the newest finding was missing from the fix list altogether.
+- Added the engineering-mode item with its evidence, its one-function fix and a verify step, and a cross-reference table mapping all thirteen items to the entries that prove them.
+- Wrote down why the ordering matters: the impact today is limited by a state gate, so the sender check should land before anyone finds that gate satisfiable.

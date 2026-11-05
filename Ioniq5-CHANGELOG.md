@@ -3,6 +3,18 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.19 - reading V-059 end to end, and sharpening the one bullet that had been overtaken
+
+The entry is 166 lines after ten rewrites, so it was read through for internal contradictions. There are none - each correction block sits above the sentence it replaces, and the final resolution
+(apply pipeline at `0x60f0b`, mounting delegated to `UsbMount`) is consistent with everything below it.
+
+One bullet had been overtaken, though. "What is not established" still said the TE2 envelope requirement *depends on* the install path's use of `DecryptToPIPE`, phrased as plausible and
+untested. The apply stage was subsequently measured invoking the shipped `DecryptToPIPE` (the strings at `0x60f0b` reference it), so the requirement is close to certain; what is untested is
+whether a **malformed** envelope is rejected before or during that call.
+
+That is the only change: one sentence moved from "plausible" to "almost certainly, and here is the measurement", with the genuinely open part kept open. A 166-line entry that has been edited ten
+times is exactly where a stale "plausible" survives unnoticed, because nothing contradicts it - it is merely older than the evidence.
+
 ## 5.4.5 - the version screen mapped, and the only clickable thing on it is a knob emulator
 
 With the gesture question answered, the screen itself is worth recording - it is what anyone repeating this work will look at.

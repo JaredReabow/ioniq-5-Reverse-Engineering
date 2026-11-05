@@ -5806,3 +5806,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Tried to enable protocol tracing through a service drop-in and found the launcher does not pass its environment to the application, which matches how it strips the graphics variables.
 - The run was still useful because the compositor error did not occur in it: the log shows the application holding two database handles and one of them failing transactions with a statement error while the other commits.
 - That makes the commit failures a defect in the application rather than in the projection, and takes them off the list of candidate causes for the missing screen.
+
+## 2026-11-05 - the wrapper stops the app launching
+
+- Put a wrapper in place of the application binary to get protocol tracing, and the application never started at all. Whether the launcher refuses non-binaries or checks integrity is unproven, and an integrity check would be a finding in itself.
+- Destroyed the vendor binary in the clone on the way, because I assumed a filesystem tool had a rename command it does not have. Recovered from the pristine extraction and recorded the two-step rule that avoids it.
+- Noted that every instrument added to this project so far has damaged the thing it was measuring, and moved the next attempt to the compositor side where the failing event is actually delivered.

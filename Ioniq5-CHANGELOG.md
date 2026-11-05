@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.7 - the wrapper stops the app launching, and a debugfs assumption nearly cost the clone
+
+Tried to get `WAYLAND_DEBUG` into the application by putting a `/bin/sh` wrapper at `/app/bin/AppHomeScreen` that exports the variable and execs the renamed real binary.
+
+```
+X1_PIDS=[]     LOGSZ=     X1_CTX=0
+```
+
+**The application never started** - no process, no log, nothing. A shell script in place of the binary is refused or never executed somewhere between the launcher and the process. I did **not** establish whether that is an integrity check, an `exec` requiring an ELF, or a launcher path table - and **an integrity check on application binaries would be a finding in its own right**, so it is worth naming as unproven rather than burying.
+
+### The trap inside the attempt
+
+**`debugfs` in this build has no `rename`.** I assumed it did, my next command wrote the wrapper over the vendor binary anyway, and **the binary inside the clone was destroyed** - recovered only because a pristine extraction of the same image exists (15,636,960 bytes, verified `\x7fELF`). The clone is back to the shipped layout: one binary, no `.real`, no drop-in.
+
+Rule 15: **copy to the new name first, verify it, then replace the original** - two steps, not one. When the tool lacks the primitive you wanted, stop, don't continue down the chain.
+
+### Three for three on instruments
+
+The preload broke the app's Wayland connection; the placement tool raced its surface; now a wrapper stops it launching. **Every instrument this project has added has damaged the thing it was measuring.**
+
+### Where the trace has to come from instead
+
+**The compositor, not the application.** The failing event is *delivered by* the compositor, so the server side is the natural place to ask - and it keeps the change inside this project's own component rather than modifying a vendor binary. Next: compositor protocol debug, and if that cannot say it, a **small protocol proxy** between app and compositor that sees both directions without touching vendor files.
+
 ## 5.11.6 - the launcher strips the environment, and the database has two writers
 
 Tried `WAYLAND_DEBUG=1` through a systemd drop-in on `ApplicationLauncher.service`. **It did not reach the application**: a 90 KB log with **zero `wl_display` lines** (`INITDONE=0 WLD=[0]`). If the variable had been in the application's environment the log would be dominated by protocol traces. **So the launcher does not pass its environment to its children** - the same behaviour this project already found for `LIBGL_*`. A **wrapper around the binary** is the mechanism that will work, not a drop-in.

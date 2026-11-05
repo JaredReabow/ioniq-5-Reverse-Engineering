@@ -5639,3 +5639,8 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Chasing the built binary out of the repository kept losing to a worker restaging it, so I fixed the build instead: no debug info, prefix maps, a post-build pass that overwrites any leftover build root, and the hardcoded host include paths replaced with environment or pkg-config lookup.
 - Verified the flags on a small test program first rather than assuming the toolchain honoured them, and measured zero host paths in a rebuild.
 - Recorded the point: the artefact was the leak and the fix belongs in the build, not in a command that loses a race.
+
+## 2026-11-05 - the interaction recipe written down in one place
+
+- The knowledge needed to actually interact with the VM was spread across four documents, so no single one of them was enough. Wrote one recipe covering boot, the power-on call that makes the layout appear, clicking, capturing by surface, and what is not yet established.
+- Kept the honest part: clicks are accepted and routed, but on the standby frame the focus target was the compositor rather than the application, and whether a click lands on a widget after the layout appears is still unmeasured.

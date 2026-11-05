@@ -3,6 +3,37 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.23.1 - the surface-id table is in the binary, and the home screen is not in it
+
+Followed the missing id to its source instead of guessing at the launcher's logic, and it is a **static data table** at file offset `0x475c0` in `app/bin/AppLauncher`, read as `(appId, surfaceId)` int32 pairs:
+
+```
+ 17 → 1030    NotificationManager
+ 12 → 2080    AppCamera
+110 → 2110    AppMediaPlayer
+111 → 2110
+112 → 2160
+113 → 2170
+ 73 → 2200
+ 30 → 3000    AppOSDManager
+```
+
+**There is no pair for app id 11.** So the launcher never sets `QT_WAYLAND_SET_SURFACE_ID` for the home screen, the ivi-shell never composites it, and the projection shows the background.
+
+### What that settles
+
+**It is a missing row in a static table in a shipped vendor binary.** Not a timing race (docs 13-17), not a backend problem (05-11), not a database problem (my hypothesis, refuted), not a placement problem (18). **It is also the reason the failure is specific to the home screen**: every other managed app has an id, which is exactly what the launcher log showed.
+
+### And why I am not patching it tonight
+
+Two options exist. **Extending the table** needs to know how its **count** is expressed - the bytes before `0x475c0` are zeros and no length prefix is visible in the dump - and moving whatever follows. **A patch that guesses the count is worse than no patch**, so it waits until that is read properly.
+
+**Setting the variable without touching the launcher** is the other route, but the launcher strips its environment from children (documented for `LIBGL_*`), so that needs interposition of the same kind the compositor wrapper already uses.
+
+### The honest standing of the VM goal
+
+**Every layer is demonstrated, the application paints its own chrome, and the last step is blocked by one missing row in a vendor data table** - which is the most specific, most checkable blocker this thread has had all night, and the furthest thing from where it started ("the UI does not render").
+
 ## 5.23.0 - the display thread closes with a named failing step: the launcher never assigns AppHomeScreen a surface id
 
 One grep settles the question three entries chased:

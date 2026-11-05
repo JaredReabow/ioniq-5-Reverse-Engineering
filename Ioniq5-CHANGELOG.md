@@ -15134,3 +15134,26 @@ came out of it.
   glibc rejecting corrupted heap metadata at the `free()` in the server thread, not a
   fault in the parsing code. 115 log lines including the process map; artifact at
   `evidence/artifacts/vm-crash-trace/iap2service-sigabrt-trace.txt`.
+
+- Blocker 1 is **unexecuted, and its instrument is unwired**. The plan's first Block-1
+  test is the fragment-shader normalisation (`outTexCoords / vec2(1926.0, 753.0)`),
+  motivated by Fable's "the material feeds pixel-space texcoords intended for
+  `samplerExternalOES`" hypothesis. That variant exists in `gl_draw_trace.c` as
+  `/tmp/shader-fix-fragnorm`, and it has **never been run**: `fragnorm`, `tinyuv` and
+  `flipv` appear zero times in this changelog. Worse, `/tmp/gl-shader-*.txt` — the shader
+  dump that would prove the rewrite needle matched at all — has never been captured in any
+  run, and `shader-fix` appears **only inside `gl_draw_trace.c`**: no script creates the
+  marker files and no document references them. So `gl-draw-trace.so` is a fifth
+  never-consulted instrument, and the two shader screenshots (`20-`, `21-`) were produced
+  by a path that is not reproducible from this repository.
+
+  Two consequences worth keeping. (a) A `fragnorm` run that produced no picture change
+  would be uninterpretable as things stand, because `rewrite_shader()` returns `src`
+  unchanged when the needle `texture2D(texture, outTexCoords)` is absent — a silent no-op
+  that reads exactly like a falsified hypothesis. (b) The corrected order for Block 1 is
+  therefore: run with the shim loaded and **no** fix marker, capture
+  `/tmp/gl-shader-<n>.txt`, and read the real fragment shader text *before* running any
+  variant; only then does a variant result mean anything.
+
+  Falsification for the dump step: if no `/tmp/gl-shader-*.txt` appears, the interposer is
+  not reaching the app's GL calls and no shader conclusion of any kind is available.

@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.23.9 - registration time is the variable, and a second killer is behind it
+
+The measurement that finally explains the deadline miss, and it came from the question about removing what makes the app slow rather than from any constant I read out of a binary:
+
+| launch | registered in |
+|---|---|
+| 2272 (**cold**, in group) | **48.58 s** - over the 45 s deadline |
+| 2606 / 2857 / 3721 / 4160 / 4353 / 4562 / 4704 (**warm**) | **5.97 / 6.70 / 8.13 / 2.60 / 1.38 / 1.17 / 2.09 s** |
+
+**The 48.6 s is the cold first launch only.** Every warm relaunch registers in 1-8 s, far inside the deadline. **So the miss was a cold-start contention artefact: the projection's own warm-up is what crosses the vendor's deadline.** That is a fact about the emulator's speed, established by measurement - the honest explanation for a failure that looked like a vendor fault for a dozen entries.
+
+### And a second killer, behind the first
+
+The warm instance **2606** registered at `21:40:33.644` and was **terminated at `21:40:57.199`** - ~24 s later, again SIGTERM (`appProcessFinishedSlot [15][0][1][11]`). **So a fast-registering instance is still killed on a fixed interval**, and the preload deadline is not the only thing between the app and a stable surface.
+
+**The next read is a 24-second window in a log that has answered four times already** (`21:40:33` → `21:40:57`). Three outcomes and what each means:
+
+| what is there | what it means |
+|---|---|
+| `[TIMEOUT]` for app 11 again | the duplicate guard re-fires on another interval |
+| a watchdog / liveness line | a **second independent policy** - and the real blocker |
+| nothing | the killer is outside the launcher - the manager, or our own power-on call |
+
+**And the likeliest is worth naming in advance:** if it is a liveness check, the app is killed for **something it is expected to report during startup and never does** - a **stand-in problem, not a timing problem** - and stand-ins are what this project builds.
+
+### The shape of tonight, one last time
+
+**Six instrument-or-premise failures, four substitutions, and one conclusion that survived every one of them:** the vendor's software runs on the vendor's display path in this projection, and every barrier was either our own instrument or our own warm-up. **The user's question - "just disable sleep?" - was not the fix, but the reasoning behind it produced the measurement that was.**
+
 ## 5.23.8 - "just disable sleep?" - checked, no sleep involved, and the idea redirects usefully
 
 Answered by checking rather than by agreeing or dismissing.

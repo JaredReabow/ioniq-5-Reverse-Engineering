@@ -1280,3 +1280,34 @@ Three options, cheapest first:
 
 **That is a better idea than patching a computed constant**, and it came from the right question: not "how do I disable the thing
 that kills it" but "what is making it slow, and can I remove that instead".
+
+## 64. Registration time is the variable: cold 48.6 s, warm 1-8 s - and a second killer waits behind it
+
+| launch | registered in |
+|---|---|
+| 2272 (cold, in group) | **48.58 s** - over the 45 s deadline |
+| 2606 | 5.97 s |
+| 2857 | 6.70 s |
+| 3721 | 8.13 s |
+| 4160 | 2.60 s |
+| 4353 | 1.38 s |
+| 4562 | 1.17 s |
+| 4704 | 2.09 s |
+
+**The 48.6 s is the cold first launch only.** Every warm relaunch registers in **1-8 s**, far inside the deadline. So the miss was a **cold-start
+contention artefact** - the projection's own warm-up is what crosses the vendor's deadline, and that is a fact about the emulator's speed
+established by measurement, not a vendor fault.
+
+## 65. And behind it, a second termination mechanism
+
+The warm instance **2606** registered at `21:40:33.644` and was terminated at `21:40:57.199` - **~24 s later, again SIGTERM** - with
+`appProcessFinishedSlot [15][0][1][11]`. So a fast-registering instance is still killed on a fixed interval, and the 45 s preload
+deadline is **not** the only thing between the app and a stable surface.
+
+**The next read is a 24-second window in the launcher log** (`21:40:33` → `21:40:57`): a repeated `[TIMEOUT]` for app 11 means the
+duplicate guard re-fires; a watchdog or liveness line means a second independent policy; nothing at all means the killer is outside
+the launcher.
+
+**And the most likely of the three is worth naming in advance:** if it is a liveness check, the app is being killed for **something it is
+expected to report during startup and never does** - which would make this a **stand-in problem rather than a timing problem**, and
+stand-ins are what this project builds.

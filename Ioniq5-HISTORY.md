@@ -5603,3 +5603,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Read the manager's decode of the forged key event. The engineering-mode request is two bytes, and the path runs through app id 301 with two state checks in front of it.
 - That means the sweep I ran earlier already contained the correct payload and still did nothing, so the failure was delivery rather than format. A cleaner obstacle, and a different question to ask.
 - Recorded the next test as one that watches whether the signal arrives at all, rather than whether the screen changes.
+
+## 2026-11-05 - delivery works, so the gate is logical
+
+- Ran the test as designed, with a monitor on the interface before emitting so the question would be delivery rather than outcome. The monitor saw the signal and the application did not start.
+- That excludes transport by measurement instead of assumption and leaves three named preconditions from the decode to compare.
+- Also wrote down that a signal emission returns no reply, because the error text looks like a failure and is not one.

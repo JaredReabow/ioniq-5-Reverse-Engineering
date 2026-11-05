@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.6 - delivery works, so the gate is logical
+
+I said the next test would watch delivery rather than outcome. It did, and the answer is unambiguous.
+
+```
+DL_HOME=2487 2449                        the home screen is running
+dbus-monitor --system "type='signal',interface='com.lge.car.micom.can'" &
+dbus-send --system --type=signal /Can com.lge.car.micom.can.NotifyKeyFrontSpecialEvent array:byte:0x01,0x05
+DL_MON_LINES=6
+DL_MON_SEEN=[1]                          the monitor SAW the signal on the system bus
+DL_ENG_PID=        waited=60s             no engineering application
+```
+
+**The signal is emitted and observed on the bus, and the manager did not act.** So delivery is not blocked - not by bus policy, not by SMACK for this signal - and the obstacle is **logical, after the payload**, which the decode already narrows to three named candidates: `ask(301)` returning true (which makes the handler return immediately via `testb %al,%al; jne`), `ask(71) == 1` failing, or a slot that inspects the message's sender name despite the empty service filter.
+
+**This is a better result than opening engineering mode would have been, in one respect:** it converts an open question into a comparison of two function calls. Transport is excluded by measurement rather than assumed, and the security claim is untouched - **no sender authentication stands between a process on the system bus and this handler** - the handler simply declines on state.
+
+Also noted: `dbus-send --print-reply --type=signal` returns `NoReply`, which looks like a failure and is not. A signal has no reply; recording that here because it would otherwise be read as the emission failing.
+
 ## 5.9.5 - the special-key payload is decoded, and it was already correct
 
 The engineering-mode request through the forged key signal is a **two-byte payload**, and reading the manager's decode gives it exactly:

@@ -972,3 +972,39 @@ vendor's resolution.
 **Two candidate fixes remain, both substitutions:** patch the launcher to assign the id, or set `QT_WAYLAND_SET_SURFACE_ID` for
 that app - the second is complicated by the launcher stripping its environment from children, which this project already
 documented for `LIBGL_*`.
+
+## 45. The launcher's surface-id table, found in the binary - and the home screen is not in it
+
+The values the launcher hands to other apps are a **table of int32 pairs** in `app/bin/AppLauncher`, at file offset `0x475c0`.
+Read as `(appId, surfaceId)`:
+
+```
+0x475c0:   17  1030      NotificationManager
+0x475c8:   12  2080      AppCamera
+0x475d0:  110  2110      AppMediaPlayer
+0x475d8:  111  2110
+0x475e0:  112  2160
+0x475e8:  113  2170
+0x475f0:   73  2200
+0x475f8:   30  3000      AppOSDManager
+```
+
+**There is no pair for app id 11.** That is the defect, and it is in the vendor's own data: the table that gives every managed
+application its Wayland surface id simply does not contain the home screen, so
+`QT_WAYLAND_SET_SURFACE_ID` is never set for it, so the ivi-shell never composites it, so the projection shows the background.
+
+**This is why the failure is specific to the home screen** and why every other app in the launcher log has an id. It is not a
+timing race, not a backend problem, not a database problem: **a missing row in a static table.**
+
+## 46. What a substitution would have to change, and the care it needs
+
+Two options, and the second is more honest:
+
+1. **Extend the table** with `11 → 2080` - the id this project has observed for the home screen since the beginning. That requires
+   knowing how the table's **count** is expressed (the bytes immediately before `0x475c0` are zeros, and no length prefix is
+   visible in this dump), and moving whatever follows. A patch that guesses the count is worse than no patch.
+2. **Set `QT_WAYLAND_SET_SURFACE_ID=2080` for the app without touching the launcher** - but the launcher strips its environment
+   from children (documented for `LIBGL_*`), so this needs the same interposition the compositor wrapper already uses.
+
+**The finding is worth the entry either way**: *the vendor's surface-id table omits the home screen* is a specific, checkable
+defect in a shipped binary, and it explains the whole of §42 better than any of the timing hypotheses that preceded it.

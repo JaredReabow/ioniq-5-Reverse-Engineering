@@ -6298,3 +6298,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - One grep of the launcher log answered the question three entries chased: every managed application is handed a wayland surface id except the home screen, which never is. No surface id means nothing composited, so the frames stay the background and no brief window was missed.
 - Wrote the whole path as a table: seven steps demonstrated including the application painting its own chrome, two not, and the first failing step named.
 - Recorded what the goal actually got: the vehicle kernel was unusable for a display path so a matching one was built, and everything vendor side runs, with two substitution shaped fixes left. And the finding worth more than any of it: five times tonight an instrument looked like a property of the vendor system.
+
+## 2026-11-05 - the surface id table is in the binary and the home screen is not in it
+
+- Followed the missing surface id to its source instead of guessing: it is a static table of application and surface id pairs in the launcher binary, and the home screen has no entry.
+- That settles several earlier hypotheses at once. It is not a timing race, not a backend problem, not a database problem and not a placement problem, and it explains why the failure is specific to the home screen while every other managed application has an id.
+- Did not patch it: extending the table needs its count read properly, and a patch that guesses is worse than none. The alternative touches the launcher's environment handling instead. Recorded that the last step is now one missing row in a vendor data table.

@@ -259,3 +259,38 @@ vendor's `ias-backend` with a GPU; this projection runs the vendor's compositor 
 That is the honest state: **not "our code breaks it", not "the vendor code is broken", but "the vendor's start-up
 sequence is running against a display backend it was not written for",** which is the same class of substitution
 as the MICOM stand-in and the GL driver path.
+
+---
+
+## 14. A second vendor application fails the same way, started independently
+
+To resolve V-069's open question I tried to run the SCOMO updater directly, from a directory I controlled
+(`/tmp/probe/tool/{public.crt,velix_aes.key}`) so that its **relative** trust paths would resolve to files I had planted:
+
+```
+$ cd /tmp/probe && /scomo-test
+error: XDG_RUNTIME_DIR not set   ->  then, with the Wayland environment set:
+Using Wayland-EGL
+libEGL warning: DRI2: failed to open swrast
+failed to initialize EGL display
+wl_display@1: error 0: invalid object 20
+The Wayland connection experienced a fatal error (Invalid argument)
+```
+
+**SCOMO is a Qt/Wayland application, and it dies with the same fatal error as `AppHomeScreen`** - `invalid object`
+`N`, here 20 rather than 19. It never reaches the point of loading `./tool/public.crt`.
+
+## 15. What that corroborates, and what it leaves open
+
+**Corroborated:** the `wl_display` failure is **not specific to one application**. Two different vendor binaries,
+started in different ways (one by the launcher, one by hand from a shell), both end with the compositor reporting an
+object the client does not know. That is consistent with the conclusion in §12 - **the vendor's client stack is running
+against a display path it was not written for** - and it removes "this app is special" as an explanation.
+
+**Left open, with a named blocker:** whether the update signature is verified against `./tool/public.crt` (a **relative**
+path, which is why it matters) cannot be settled by running SCOMO in this projection, because SCOMO cannot start here.
+The static evidence stands as recorded: `VElix_GetPubKey` reads `./tool/public.crt`, `VElix_...` reads
+`./tool/velix_aes.key`, and `/update/fota/public.crt` is the absolute form used in the FOTA path.
+
+**So V-069's unproven half is now blocked by the same display ceiling that blocks the widgets** - two different goals
+waiting on one hardware absence, which is worth stating plainly rather than discovering again later.

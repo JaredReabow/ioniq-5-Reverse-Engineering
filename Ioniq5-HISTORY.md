@@ -6004,3 +6004,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Checked the vehicle's own log dump for the methods whose reply values I had called unrecoverable, and found four of them: an eight byte count for the spdif version, three reply fields with a manual value of two for the lcd sensor, and a value of two for the usm setting.
 - Corrected the stubs, rebuilt, booted: still zero rejections and the handlers were reached, so the corrected replies broke nothing.
 - Recorded the lesson, which is the same as the configuration sweeps: I called something unrecoverable while holding five hundred and forty-five log files of it. Honest state now four replies evidence-based, one known unreferenced, one placeholder, and none of it proof of correctness.
+
+## 2026-11-05 - a second vendor application fails the same way
+
+- Tried to settle the top-ranked finding's open question by running the updater from a directory I controlled, so its relative certificate path would point at a file I had planted. It never got that far.
+- The updater is a Qt application and dies with the same fatal display error as the home screen, an invalid object twenty rather than nineteen, which corroborates that the failure is not specific to one application but to the vendor's client stack meeting this display path.
+- Recorded that the open question is now blocked by the same hardware absence that blocks the widget values: two different goals waiting on one thing, stated plainly instead of rediscovered later.

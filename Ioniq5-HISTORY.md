@@ -5668,3 +5668,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Booted the authentic path and read the driver state instead of reasoning about it. The CAN stack and the micom driver are both loaded, but there is no SPI device and no platform device for the driver to bind to, so the probe that creates the network interfaces never runs.
 - That puts the faithful route behind a device-level change rather than a handshake, and turns up a fidelity gap: userspace reports the SPI check as fine while the kernel has no SPI device at all.
 - Named the cheaper third route: interpose on the application's CAN socket calls, the same substitution pattern as the backend, the micom service and the GL driver path.
+
+## 2026-11-05 - the CAN shim intercepts the application's own CAN setup
+
+- Built a shared object that stands in for the CAN transport and logs every interposed call. The application opened its CAN sockets, set the interface index and bound them, which confirms from its own syscalls what the disassembly only argued.
+- Did not get a picture: I streamed a 129 kilobyte capture as base64 over a console that cannot carry it, a trap already written down. Recorded that as my mistake rather than the shim's, with the fix being to write the file to a partition and read it from the host.
+- Also recorded the smaller mistake: looking for markers in the kernel log when the instrument writes to the serial console.

@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.3 - the CAN shim works at the syscall level, and my capture channel failed
+
+Built the third route: `tools/uk_fw/can_shim/can_shim.c`, a shared object that interposes `socket`, `bind`, `ioctl`, `setsockopt` and `close` **for `PF_CAN` sockets only**, hands back one end of an `AF_UNIX`/`SOCK_DGRAM` socketpair, and writes `struct can_frame` datagrams into the other end every 2 s - the SOC frame a real vehicle logged, `0x2fc` byte 7 = 119 -> 59.5 %. **No `read` interposition at all**, so the application's own `read()` gets a frame of exactly the size it expects.
+
+Injected as `/can_shim.so` with `/etc/ld.so.preload`, and it fired:
+
+```
+567  CAN_SHIM_SETSOCKOPT
+ 81  CAN_SHIM_SOCKET         socket(PF_CAN, ...)
+ 81  CAN_SHIM_IFINDEX        ioctl(SIOCGIFINDEX)
+ 51  CAN_SHIM_BIND
+```
+
+**That is the empirical confirmation the static work could not give**: the home screen really does open `PF_CAN` sockets and run the interface-index/bind sequence. The D-Bus path was never the widget path, and now the application's own syscalls say so.
+
+**The 81 sockets are the new question** - not one listener. Either the app retries when it does not like what it reads, or several components each open their own.
+
+### My own mistakes, both worth recording
+
+1. I grepped **`dmesg`** for markers the shim writes to **`ttyS2`** and read "no markers" from an empty result. The second run grepped nothing and simply counted the markers already in the channel: 790.
+2. The capture was streamed as base64 over the console - **174,117 characters for a 129 KB PNG**, far past the ~8 KB that channel survives, so it corrupted and I have **no visual result**. This is a documented trap I walked into anyway.
+
+**The fix for the next run:** write the PNG to a real partition (`/log_data`) and read it off that partition's file from the host. The serial console is a log channel, not a file transfer channel.
+
+So the status is precise: transport substitution **installed and interposed**, widget path **confirmed as raw CAN by the app's own syscalls**, widget value **still unmeasured** because my capture channel failed.
+
 ## 5.10.2 - why can0 never appears, measured from inside the guest
 
 Rather than infer it, I booted the authentic path and read the driver's own state:
@@ -24,7 +50,7 @@ And a fidelity gap worth naming: **userspace reports `micom SPI info is OK` whil
 
 **Third route, and the cheapest: a CAN shim.** `LD_PRELOAD` interposition on the application's CAN socket calls, delivering real frames from the stand-in. No kernel change, vendor application and compositor untouched - it substitutes the *transport*, which is exactly the class of substitution this projection already documents three times over (IAS backend, MICOM D-Bus, GL driver path).
 
-Recorded in `docs/vehdata/01-...md` §6 and the routes table in `docs/CURRENT-STATE.md`, with the shim named as the next attempt.
+Recorded in `docs/vehdata/01-battery-range-data-path.md` §6 and the routes table in `docs/CURRENT-STATE.md`, with the shim named as the next attempt.
 
 ## 5.10.1 - the last VM gap is a transport, not an adaptor
 

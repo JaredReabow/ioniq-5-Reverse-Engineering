@@ -250,6 +250,25 @@ and re-check the payload length and byte range before dispatch. Both are small c
 **Verify.** Emit `[0x01, 0x05]` from a client that is *not* `com.lge.car.micom` and confirm nothing
 happens; then emit it from the owning service and confirm the normal behaviour is unchanged.
 
+### 13. The application-set hash is queryable by any session-bus client
+
+**Evidence.** `com.lge.avn.applauncher` implements `com.lge.avn.applauncher.cipher.getIVDHash() -> ay` on the
+session bus. The launcher holds `/app/bin/AppHomeScreen`, `AppClimate`, `AppCamera`, `AppMediaPlayer` and the rest as
+strings beside `SHA256_Init/Update/Final`, and labels the result `SystemIVD`. A call in the projection returned a
+32-byte digest (`d4 d8 03 8c ... 6c df 98`).
+
+**Exposes.** The digest is a fingerprint of the installed application set. For a process already running as root -
+which on this unit is most of the application stack - it answers **"did my tampering change the platform's
+integrity view?"**, and an unchanged value after a modification tells an attacker which changes are invisible.
+That is the inverse of what an integrity mechanism should offer. The bus is root-only, so it is not an escalation
+and leaks no content.
+
+**Fix.** Restrict the interface to the MICOM bridge or drop the method from the public object; if attestation is
+genuinely required, make it a challenge-signed response rather than a stable digest.
+
+**Verify.** Query the digest, change one byte in one application binary, query again: a changed value confirms the
+oracle, and an unchanged value is a finding about coverage.
+
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
@@ -290,6 +309,7 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | 10 `debug-shell.service` is an unauthenticated root shell | V-014 |
 | 11 the data encryption passphrase is `1234` | V-053 |
 | 12 engineering mode is requestable by any system-bus process | V-060 |
+| 13 the application-set hash is queryable on the session bus | V-061 |
 
 ## What is not claimed
 

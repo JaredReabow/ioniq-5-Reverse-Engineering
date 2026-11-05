@@ -6346,3 +6346,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Checked the suggestion instead of agreeing or dismissing it: no sleep is involved. The sleep and standby hits in the launcher log are the name of an application, not a power transition.
 - The kill is a duplicate registration guard, and the margin is one hundred and sixty seven milliseconds, a figure I have now stated wrongly twice from the same two log lines.
 - But the instinct behind the question was right in a different shape: remove what makes it slow. The log names the group the application starts in, so starting it alone may be enough, which would be a fix in the projection rather than a byte in a vendor binary.
+
+## 2026-11-05 - registration time is the variable and a second killer waits behind it
+
+- Measured registration time across the launcher's own relaunches: the cold first launch takes forty eight and a half seconds and misses the deadline, while every warm relaunch registers in one to eight seconds and does not.
+- So the deadline miss was a cold start contention artefact, the projection's own warm up crossing a vendor limit, which is the honest explanation for a failure that looked like a vendor fault for a dozen entries.
+- And a second mechanism waits behind it: a warm, fast registering instance is still terminated about twenty four seconds later. Named the window that will identify it and the three readings it could give.

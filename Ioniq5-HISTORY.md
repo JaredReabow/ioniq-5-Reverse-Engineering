@@ -5644,3 +5644,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 
 - The knowledge needed to actually interact with the VM was spread across four documents, so no single one of them was enough. Wrote one recipe covering boot, the power-on call that makes the layout appear, clicking, capturing by surface, and what is not yet established.
 - Kept the honest part: clicks are accepted and routed, but on the standby frame the focus target was the compositor rather than the application, and whether a click lands on a widget after the layout appears is still unmeasured.
+
+## 2026-11-05 - the root-access ranking had engineering mode wrong
+
+- The ranked list still sent the reader toward an app-manager launch request, which requires root already and so cannot be a route to root. Replaced that row with the front-panel key signal: a system-bus write, no gesture and no PIN to request, reaching the engineering application which the manager runs as root.
+- Kept the status honest, that the signal is delivered and the handler declines on internal state, and noted that the separate method route is inert so nobody retries it.
+- The point worth keeping: a ranked list is read as an instruction, and that row was pointing the wrong way.

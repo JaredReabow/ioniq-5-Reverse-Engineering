@@ -13,7 +13,7 @@ Nothing here has been tried on a vehicle. Each row cites the evidence that exist
 | --- | --- | --- | --- | --- |
 | 0 | **USB update TOCTOU (V-059)** | a programmable USB stick. For a **downgrade: nothing else**; for arbitrary content also the unit's TE2 key | installing content that was never verified; **a genuine older image installs with no key and without anti-rollback applying** | **corroborated statically**; not reproduced here |
 | 1 | **Serial console (`ttyS2`)** | physical access to UART pads + the root password | a root login prompt | **prompt captured**, password uncracked |
-| 2 | **Engineering mode** | **not reachable by gesture on this build** - see below; only via an app-manager request for app id 301 (root, session bus) or a developer path | diagnostic menus | gesture **excluded by enumeration** in QML and in the binary |
+| 2 | **Engineering mode via the front-panel key signal (V-060)** | a system-bus write; **no gesture and no PIN needed to request it** | app id 301 = `AppEngineerMode`, which the manager runs as root | **signal decoded and delivered; the handler declines on internal state** - see below |
 | 3 | **A write to `/tmp`** | *any* code execution, any user | root, via three separate anchors | mechanisms demonstrated; **no non-root writer exists here** |
 | 4 | **`request.launch` from the bus** | root already (bus is root-only) | arbitrary binary as root, re-launched | **executed as uid 0** |
 | 5 | **Removable-media kernel drivers** | a USB stick | potential ring-0 parsing | **20 crafted images, no fault** |
@@ -50,6 +50,16 @@ developer-path container. Neither is a no-privilege route.
 
 **What is established.** The launcher will run `AppEngineerMode` as **root** (`appId 301` from `/tmp/app/bin`), the PIN gate runs (`getEnterPasswordCnt`), and the app's window
 is created — it just never attaches a buffer, because its main thread never enters the Qt event loop on this path (`vm/authentic-hmi-apps.md` §7c).
+
+**Update (2026-11-05): the route to 301 is known, and it is not a gesture.** The manager's
+front-panel special-key handler takes a **two-byte payload** (`0x206308`-`0x2062f8`): `payload[0] == 0x01`
+and `payload[1] == 0x05` reaches `movl $0x12d` - **app id 301** - after `ask(301)` and `ask(71) == 1`.
+Any process on the system bus can deliver it, because the connect passes an **empty service and an empty
+path** (V-060). Measured: the signal is **observed on the bus** and the handler **declines on state**, so
+the remaining obstacle is one of those two preconditions - not authentication, and not the payload.
+
+The method route is separate and inert: `com.lge.avn.appmanager.info.show_engineermode` returns a clean
+`method return` and starts nothing, measured twice including with the home screen running.
 
 **What is missing.** A shell-bearing menu item. `IpConfigShell` — the facility an external sibling-platform project describes as command execution — does **not** function on
 this build: its button lives only in the QML variant production does not load, and the binary's meta-object lacks the slot (`advisory/stock-vector-triage.md`). The production

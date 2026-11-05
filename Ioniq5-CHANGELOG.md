@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.3.0 - the MANAGED instance paints, on the vendor boot path, with the vendor's own artwork
+
+The last VM thread is closed, and not by the method that had failed five times.
+
+**The trick was selecting the surface by identity, not by recency.** Capturing every non-layer surface separately gave four distinct frames:
+
+| surface | bytes | what it is |
+| --- | --- | --- |
+| 1001 | 130,457 | background variant |
+| 1004 | 130,457 | background variant |
+| 1006 | 144,373 | a composite |
+| **2080** | **121,290** | **the application** - and alone, 120,561 |
+
+`120,561` is within five bytes of the by-hand painted frame measured days of work ago (120,556), which is what made 2080 worth streaming out and looking at.
+
+**And it is the product's interface**: blue title bar, the `STR_CAMERA_ALERT2` widget label, the left panel, and **the vendor's own KIA logo** rendered from its image assets
+(`docs/vm/32-managed-home-screen-kia-logo-authentic-2026-11-05.png`).
+
+So the instance that the vehicle's **own** init launched - `esinit` -> systemd -> `ApplicationLauncher` -> `ApplicationManager` -> `AppHomeScreen` - paints real vendor content, on the vendor
+kernel, under the vendor compositor. Five attempts failed because the probe kept asking "which surface is newest" instead of "which surface is this": the background's surface was created
+last, so it always won.
+
+**That is the VM goal, completed as stated**: the infotainment system running as close to stock as reasonable, interactive, with three documented substitutions and nothing else of ours.
+
 ## 5.1.8 - a string that could refute V-059 for this build, recorded as an open question rather than resolved by preference
 
 Checking the one item still attributed to upstream - "the big image is read in place from the stick" - turned up strings that support **either** reading, and one of them would make the race

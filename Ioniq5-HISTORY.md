@@ -5378,3 +5378,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The update race rests on the install reading the same removable medium the check read. Looking for that in the binary turned up a staging area and mount points, so the strings support either an in-place read or a staged local copy - and a staged copy would make the race impossible here.
 - Recorded it as open rather than inheriting the external claim, and named the cheap measurement that settles it: watch which path the check opens and which the install opens, during a real update.
 - Seven parts of this finding are measured here and one is still on someone else's word. Saying which is which is the difference between a register and a rumour.
+
+## 2026-11-05 - the product's own instance paints its own interface
+
+- The managed application now paints: capturing each surface by identity rather than taking the newest showed the background's surface is created last and had been winning every attempt. The application's own surface renders the title bar, a widget label, and the vendor's KIA logo.
+- So the chain from the vehicle's init through its launcher and manager to the home screen produces a real frame, on the vendor kernel, under the vendor compositor.
+- Five failures had one cause: asking which surface was newest instead of which surface it was.

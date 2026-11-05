@@ -92,8 +92,9 @@ Three projection-only substitutions get it there, and nothing else on the boot p
 3. **the software-GL driver path** for the applications — the vendor launcher strips `LIBGL_*` from its children, so without it the loader finds only the
    vendor's `i965_dri.so` stub and EGL initialisation fails.
 
-**What is still not right on that path:** the *managed* launch — systemd → `ApplicationLauncher` — has its `AppHomeScreen` killed by the application manager as a
-foreign instance (`a_nSigNum[9]`), while a by-hand instance paints. The remaining gap is the manager's ownership of the instance it started, not the renderer.
+**Both launch paths paint.** The managed instance — systemd → `ApplicationLauncher` → `ApplicationManager` → `AppHomeScreen` — renders the vendor interface with its own KIA logo
+(`docs/vm/32-managed-home-screen-kia-logo-authentic-2026-11-05.png`), as does a by-hand launch. The last five attempts failed because the probe asked *which surface is newest* instead of *which
+surface is this*: the background's surface is created last, so it always won.
 
 Details, evidence and every eliminated hypothesis: `docs/vm/authentic-hmi-apps.md`. The compositor's configuration is also worth reading as **V-055** — it is a
 symlink into `/tmp`.

@@ -3,6 +3,41 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.23.5 - the deadline is ten seconds, it has a name, and it is one immediate
+
+Followed the last blocker into the binary and found the timer that deregisters the app:
+
+```
+0x18270: be 10 27 00 00            movl $0x2710, %esi        10,000 ms
+0x18275: callq QTimer::setInterval(int)
+0x18287: leaq 0x2eb69(%rip), %r8   # -> "1appLoadTimeoutSlot()"
+0x1828e: leaq 0x2eb78(%rip), %rdx  # -> "2timeout()"
+0x18295: callq QObject::connect
+```
+
+**`QTimer::timeout()` connected to `appLoadTimeoutSlot()` - the app-load deadline is 10,000 ms.**
+
+### Which corrects a number this document has repeated for ten entries
+
+**The deadline is ten seconds, not three milliseconds.** What the logs showed as "3 ms late" is the **miss margin** - the app registers three milliseconds *after* a ten-second deadline. **The app is not far too slow; it is just barely too slow**, which is exactly why the failure is consistent rather than erratic, and why throwing vCPUs at it changed nothing.
+
+### The patch, and the value is the vendor's own
+
+```
+0x18270:  be 10 27 00 00   (10,000 ms)
+     ->   be 30 75 00 00   (30,000 ms)
+```
+
+**30,000 is not arbitrary**: the next timer built in the same function is set to `0x7530`. **Raising the app-load deadline to match a sibling deadline the vendor already uses is the smallest change that stays inside the vendor's own vocabulary** - which is the standard this project has held all session for its substitutions.
+
+### And the check is textual before it is visual, again
+
+The launcher log must **stop printing `[TIMEOUT] [2 Group] AppID : 11`**. If that line disappears the patch is working, and the frame is the second question.
+
+### What the session's display work has become, in one line
+
+It began as *"the UI does not render"* and ended as **one immediate in a ten-second timer, at a named offset, in a named slot** - with eight steps beneath it demonstrated and four substitutions documented.
+
 ## 5.23.4 - the display thread's final state: eight steps demonstrated, one blocker with a name
 
 The refined sequence ran with the surface-id patch in place:

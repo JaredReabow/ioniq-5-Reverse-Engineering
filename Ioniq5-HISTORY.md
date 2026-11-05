@@ -5680,3 +5680,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Two dead ends, one of them mine to have remembered: the console cannot carry a capture, and writing to a partition does not persist because the disk is a snapshot.
 - The working method is a second file-backed serial device carrying base64. Raw binary corrupted there because the serial rewrites newline into carriage-return plus newline, which showed up in the image magic rather than in the length.
 - The first real frames show the day theme active and no widgets, so the power-on call took effect but the layout did not settle. Recorded the two candidate explanations and the two cheap tests that separate them.
+
+## 2026-11-05 - the frame settles at ninety seconds
+
+- Captured the same surfaces at thirty, ninety and a hundred and fifty seconds and found the frame only stops changing at about ninety. Every reading before that, including my own, was a transitional state.
+- The settled frame turned out to be more informative than the CAN work: a title bar showing a translation key as literal text and a black region, which points at a resource model that never loaded rather than at missing vehicle data.
+- Added a rule after writing an elided path twice in one session, and then broke that rule inside its own text, which the link checker caught.

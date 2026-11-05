@@ -6268,3 +6268,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Tested the cheap fix across three cpu counts with process stability as the check rather than pixels. More cpu makes the bus name owned sooner and does not move the margin, so it is not throughput.
 - Checked whether the deadline is configurable before another run went looking: it is not. There is no timeout key, the launcher's one configuration file does not exist on a running unit, and the deadline is internal.
 - Read what the timeout is actually waiting for, which reframes the gap: a preload complete signal, not application startup. Laid out three options in ascending order of interference, with the negative recorded either way.
+
+## 2026-11-05 - the preload chain traced to the manager
+
+- Traced the preload signal statically rather than speculating: the launcher listens for one notification and emits another, while the application manager owns the fact and publishes it as a method and a signal, with a per component variant beside it.
+- That puts the authority in the manager, which means the launcher is not the thing to patch first. One bus call during the race window separates the two possible fixes, and each answer has a named response.
+- Recorded a caution before it was needed: the status method takes no application id, so it is a global flag and not obviously the one that gates the affected app. Named the interface and the call rather than asserting a cause, after two of my causes were refuted by logs tonight.

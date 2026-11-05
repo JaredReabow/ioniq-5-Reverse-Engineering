@@ -3,6 +3,34 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.22.2 - the preload chain traced: the manager owns the fact, the launcher only times out
+
+Option 3 ("emit the preload-complete signal ourselves") was speculative. It is now traced statically, and the answer moves the authority somewhere useful:
+
+| who | interface | name | kind |
+|---|---|---|---|
+| launcher | `com.lge.avn.applauncher.inform` | `preloadcomplete` | **signal it emits** |
+| launcher | - | `notifyPreloadcomplete` | signal it **listens for** - its log says *"Inform::listen signal [notifyPreloadcomplete] and send signal [preloadcomplete]"* |
+| **manager** | `com.lge.avn.appmanager.info` | `ask_preload_complete_status() -> i` | method |
+| **manager** | `com.lge.avn.appmanager.info` | `preload_complete_status(bool)` | **signal** |
+| manager | same | `preload_navi_complete_status(bool)` | per-component variant |
+| application | - | `slotPreload_Complete_Status(bool)` | beside *"Can not connect to signal preload_complete_status"* |
+
+**So the ApplicationManager owns the fact; the launcher's 3 ms deadline is downstream of it.** That matters because it means the launcher is not the thing to patch first.
+
+### And one D-Bus call separates the three options
+
+During the race window - after `NAME_OWNED=yes`, before the deregister - ask the manager for `ask_preload_complete_status`:
+
+- **non-zero** → the manager already believes preload is complete, and the launcher's timeout is separate bookkeeping → **patch the deadline or document the limitation**;
+- **0** → the manager never saw it, which is what the app's own *"Can not connect to signal preload_complete_status"* line hints at → **emit `preload_complete_status(true)`**, one signal, **no vendor binary touched, and named as a substitution**.
+
+### A caution on my own inference, written down before it is needed
+
+`ask_preload_complete_status` takes **no app-id argument**, so it is a **global** flag - and there is at least one per-component variant beside it. **It is not safe to assume the global flag is what gates app 11**, and I have been wrong twice tonight on exactly this kind of "the interface obviously means X" reasoning. The measurement has to say which one moves.
+
+That is the difference between the last two entries and this one: those asserted a cause and were refuted by a log; **this names an interface, a call and two possible answers, and lets the answer choose the fix.**
+
 ## 5.22.1 - vCPUs do not buy the three milliseconds, and the deadline is not a knob
 
 The cheap test was run and came back negative, with **pid stability** as the check rather than pixels:

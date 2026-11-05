@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.3.3 - the reproduction script never injected the init it tells you to boot with
+
+Continuing the validation of the reproducibility claim, against a workspace that has the partitions but none of the projection-only files. The write path works - every staged file appears in
+`p5.img` afterwards - and the precondition guard and idempotency both behave. But the run exposed a third fault, and this one would have wasted somebody's afternoon:
+
+**`inject-stockui.sh` did not write `/init-authentic-hmi.sh`.** The page that documents reproduction ends with
+
+```
+python3.13 tools/uk_fw/vm_partimg/run-byhand.py --init /init-authentic-hmi.sh --smp 4
+```
+
+and a fresh base has no such file, because no command in the injection list created it. It also never wrote `/app/bin/AppLauncher.sh.vendor`, so the script's own verify loop reported both as
+`MISSING` on every run - accurately, and then carried on.
+
+So the instructions were **internally inconsistent**: a boot command naming a file the injection does not produce. Fixed by adding both writes, with `set_inode_field … mode 0100755` for the
+init (it is executed by the kernel, so a wrong mode is a silent boot failure).
+
+Verified after the fix, on a workspace that had none of these files:
+
+```
+MISSING count            0
+/init-authentic-hmi.sh   1
+/app/bin/AppLauncher.sh.vendor   1
+/eng-data-sim, /weston-vm-input.so, /usr/lib/dri/swrast_dri.so, 50-vm-gl.conf   1 each
+```
+
+That is three defects found in a tool written an hour earlier, all by the same method this project keeps relearning: **run the thing and check that the artefact exists**, rather than reading
+the script and believing it.
+
 ## 5.3.2 - testing the reproducible claim found a silent failure in my own tool
 
 "The image is reproducible" is a claim like any other, so I tested it against a clone that did not have the injects. The script **reported `MISSING` for every file and then exited 0.**

@@ -37,3 +37,15 @@ echo "=== document cross-references ==="
 echo
 [ "$rc" = 0 ] && echo "ALL CHECKS PASSED" || echo "SOME CHECKS FAILED"
 exit "$rc"
+
+# Stage 6: the register's structural claims must still re-derive from image bytes. This is the check the
+# four planners asked for, and it runs here so a claim cannot quietly stop being true.
+if [ -d "work/decrypted-eu-260128/extracted-safe/mango-rootfs" ]; then
+  echo "== verify_findings: re-deriving register claims from bytes =="
+  if ! "${PYTHON:-python3}" tools/verify_findings.py > /tmp/verify-findings.out 2>&1; then
+    echo "  FAIL: a structural claim no longer matches the image (see /tmp/verify-findings.out)"
+    tail -20 /tmp/verify-findings.out
+    exit 1
+  fi
+  grep -E 'pass, .* fail' /tmp/verify-findings.out | sed 's/^/  /'
+fi

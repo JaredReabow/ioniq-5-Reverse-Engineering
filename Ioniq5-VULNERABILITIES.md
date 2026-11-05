@@ -1927,6 +1927,26 @@ That is consistent with the upstream demonstration succeeding - their system ima
 guaranteed, and it is the cheapest thing to check on a rig: watch whether the install pass generates USB traffic at all. If it does not, shrink the payload or grow the pressure until it
 does.
 
+### There *is* a heavy verification - for navigation, not for the system image
+
+The upstream argument is that the post-install "verify" is too short (46 ms) to re-hash a large partition. Our binary says where the verification effort actually goes, and it is not where a
+swap of the system image would be caught:
+
+```
+21  isNaviChecksumOK          14  naviChecksumFilePath        6  reqCheckNaviChecksum
+18  NaviChecksumThread        12  naviChecksumThread          4  teminateNaviChecksumThread
+```
+
+**Every checksum-related symbol in `AppUpgrade` is navigation's.** There is a long-running `NaviChecksumThread`, a `Checksum.txt` it reads (`getXMLChecksum`), cancellation and error paths - a
+real verification of extracted navigation content. Nothing equivalent exists for the system rootfs or the interface payload: those get the 46 ms step.
+
+**So the trade-off between payloads is finer than "pick the biggest".** Swapping navigation content walks into a checksum thread that will fail it. Swapping the **system image**
+(`mango-rootfs.tar.gz`, 879 MB) faces only the short verification - at the cost of being the payload most likely to be partially cached. Swapping the **interface payload**
+(`new_gui.tar.gz`, 2.09 GB) is cache-safe by size, but it is extracted into the same tree the GUI checksums cover, and whether that thread covers it is **not established**.
+
+That is the honest state: the cheap-looking route is the 879 MB system image; the cache-safe route is the 2.09 GB interface payload; and which one survives post-install verification depends
+on a checksum scope this repository has not mapped.
+
 **And the cache problem has a practical answer: target the largest payload.** `HU/images/new_gui.tar.gz` is **2,091,925,601 bytes (1.95 GiB)**, which exceeds any plausible head-unit RAM, so
 its install pass must return to the medium regardless of cache policy - unlike the 879,109,759-byte `mango-rootfs.tar.gz`, which is at the edge of what a unit might keep resident.
 

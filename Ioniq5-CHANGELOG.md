@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.5 - there is heavy verification after all, but it guards navigation rather than the system image
+
+Last entry said the post-install verification was the short one and that the largest payload was the natural target. Our own binary shows the verification effort is real - and pointed
+somewhere else:
+
+```
+21  isNaviChecksumOK          14  naviChecksumFilePath        6  reqCheckNaviChecksum
+18  NaviChecksumThread        12  naviChecksumThread          4  teminateNaviChecksumThread
+```
+
+**Every checksum symbol in `AppUpgrade` is navigation's**: a long-running thread, a `Checksum.txt` it parses, cancellation and error paths. Nothing equivalent guards the system rootfs or the
+interface payload - those get the 46 ms step the upstream project timed.
+
+So the payload trade-off is finer than "pick the biggest":
+
+- **navigation content** walks into a checksum thread and would fail;
+- **system image** (`mango-rootfs.tar.gz`, 879 MB) faces only the short verification, but is the payload most likely to be partly cached;
+- **interface payload** (`new_gui.tar.gz`, 2.09 GB) is cache-safe by size, but is extracted into the tree the checksum thread covers, and **whether that thread includes it is not established**.
+
+The honest state is now three-way rather than two-way, and the thing that would settle it is a scope question about `Checksum.txt` - which files it lists - rather than anything about USB
+hardware. That is written into V-059 instead of leaving "target the biggest" standing as advice it has not earned.
+
 ## 5.1.4 - the payloads are 879 MB and 2.09 GB, which answers the cache problem in practice
 
 Following the page-cache finding, the obvious next question was how large the payloads actually are. The manifest and the package answer it with real numbers:

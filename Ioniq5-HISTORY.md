@@ -5344,3 +5344,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Measured the payloads in our own package: the system image is 879 megabytes and the interface image is 2.09 gigabytes. The first confirms the external project's number exactly.
 - The second answers the cache worry: a two-gigabyte payload cannot stay resident in a head unit, so the install pass has to come back to the medium whatever the cache policy does. Choosing the big payload makes the swap deterministic rather than size-dependent.
 - It also settles the board choice in one line: forty-four minutes per pass on a cheap microcontroller against a minute and a half on a high-speed gadget.
+
+## 2026-11-05 - the verification was real and pointed elsewhere
+
+- Said last entry that post-install verification was too short to matter. The binary shows a long-running checksum thread with a checksum file, cancellation paths and error handling - all of it for navigation.
+- So the payload choice is not simply 'the biggest one': navigation is checked, the interface payload is cache-safe but may be inside the checksummed tree, and the system image is the cheap route with the cache risk.
+- The question that would settle it is what the checksum file lists, not anything about hardware. Written into the entry rather than leaving the easier advice standing.

@@ -72,6 +72,36 @@ The About-screen tap that the field describes is **absent**, checked by enumerat
 shipped binary - including `AppSetup`, which owns the settings screens - contains a gesture, signal or slot that starts engineering mode. Entering it needs an app-manager request for **app id 301**
 from a **root** process on the session bus, or a developer path.
 
+## Why the home layout does not appear, and the one call that should fix it (2026-11-05)
+
+The application window paints - title bar, left panel, KIA logo - but the home screen's **content** never lays out. The application's own API says why.
+
+**What the app asks:** `AppHomeEngine::askPowerStatus()`, and the answer comes not from MICOM but from the **application manager**:
+
+```
+com.lge.avn.appmanager.info
+    method  ask_power_status        ()        -> int status
+    method  ask_acc_status          ()        -> int status
+    method  ask_ign_status          ()        -> int status
+    method  set_power_on_status     (int on, int position)
+    signal  power_status            (int status)
+```
+
+And the app has slots for exactly those: `slotPowerStatus(int)`, `slotAccStatusChanged()`, `slotIGNStatusChanged()`, plus `onIGNStatusChanged()` and `send_IgnStatus_to_Widget()`.
+
+**So the chain is:** MICOM -> application manager -> `ask_power_status` -> the home layout. Our stand-in owns `com.lge.car.micom` and answers the app's own queries, but it never drives the **manager's** power state, so the manager reports the vehicle as off and the home screen presents its standby branding instead of its widgets.
+
+**The fix is one call, and the API accepts it:**
+
+```sh
+dbus-send --session --print-reply --dest=com.lge.hyundai.avn.appmanager /Information \
+  com.lge.avn.appmanager.info.set_power_on_status int32:1 int32:0
+```
+
+`set_power_on_status(on, position)` is an **incoming** method on the manager's own `info` interface - something in the vehicle is meant to call it, and nothing in our projection does.
+
+**Not yet demonstrated:** my own attempt ran into the harness it was sharing (the clone's own instrumentation completed the run before my probe fired), so the call has not been made and observed. The worker with the working harness has it. If the layout appears after that call, the last named gap in the VM closes; if it does not, the state it is waiting for is something else, and the manager's other `ask_acc_status` / `ask_ign_status` answers are the next thing to read.
+
 ## 2. The one blocker for init fidelity
 
 `esinit` starts the compositor only when `/sys/module/micom/parameters/spi_validation` reads 1, and it touches

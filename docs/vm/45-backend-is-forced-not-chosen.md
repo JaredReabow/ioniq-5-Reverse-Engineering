@@ -696,3 +696,44 @@ and pull the database again to see whether those tables gain rows when the call 
 **Do not read the crash as "the laid-out layout does not exist on this backend".** It exists - `docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png`,
 16,062 bytes, produced on **headless**. If DRM cannot reach it, the difference is something DRM-specific that has not been
 measured, and the launcher log is where it will be found.
+
+## 31. The layout "crash" is the vendor launcher deregistering the app 3 ms late
+
+The launcher's own stderr (149,673 bytes, `work/vm/kbuild/applauncher-stdio-crash.log`) answers it:
+
+```
+[TIMEOUT] [2 Group] AppID : 11, PID : 2305                            19:59:12.511
+[REGISTERED] registeredFromNativeApp AppId[11][AppHomeScreen] …      19:59:12.514   (3 ms later)
+… [Group 2] Launch complete                                          19:59:12.518
+[REGISTERED ERROR] Already registered AppId[11][AppHomeScreen]       19:59:12.592
+AppManagerInterface::requestAppDeregister appId[11][AppHomeScreen]   19:59:13.157   (terminated)
+```
+
+**The application is not crashing and not faulting.** It registers its native handle **~3 ms after** the launcher's per-app
+registration timeout; the launcher has moved on, logs `Already registered`, treats it as a duplicate and **deregisters it**
+(SIGTERM, exit 15). The pid changes this project has been reading as crashes - 2305 → 2481, 2328 → 2564, and the SIGTRAP
+instances in doc 09 - are that deregister-and-relaunch loop.
+
+**Both hypotheses are refuted by the same log**, which matters because one of them was mine:
+
+| hypothesis | grep over the whole 149,673-byte log |
+|---|---|
+| SQLite widget-settings failure | `COMMIT FAIL|BEGIN TRANSACTION|QSqlError|no such table|DELETE FAIL` → **empty** |
+| a second `invalid object` | `invalid object|wl_display@1|error 0` → **empty** |
+
+**So the power-on layout is neither a display fault nor a database fault.** It is a **3 ms timing margin**: DRM plus the
+bochs device plus pixman costs the guest a little more CPU than headless did, and the app's registration lands just past a
+fixed wall-clock deadline.
+
+## 32. The cheapest fix is a flag, not a patch
+
+**The timeout is wall-clock; the app is a few milliseconds slow.** So the first attempt should be **more vCPUs** - `--smp 6`,
+then `--smp 8` - before anything is patched:
+
+- **layout appears** → the finding stands and the fix is *"give the guest enough CPU that startup fits the vendor's window"*: a
+  projection fix with **no vendor binary touched**, which is what "as close to stock as reasonable" prefers;
+- **it does not** → the margin is larger than vCPU count can buy, and raising the launcher's timeout constant is justified - as a
+  **labelled substitution**, like the other three.
+
+**And a new check goes before the pixels: pid stability across two samples.** The deregister loop is visible as a pid change;
+stability means the race was won, and only then is a capture meaningful.

@@ -57,6 +57,13 @@ the timeout value/unit in the launcher config or binary), or reduce startup late
 `taskset`/nice the app's launch). Then the power-on call should reach a live instance and the laid-out
 frame can be captured.
 
+## The session's most reusable finding
+
+The app's own log was the answer for the third time: first `invalid object 19` (the seat), then the
+crash loop (this deregister+relaunch), now the 3 ms timeout. **Every time this project has been stuck,
+the answer was in a log nobody had collected.** The rule for the next person: before theorising about a
+backend, collect the application's own stderr and read the last lines before the pid changes.
+
 ## Files
 
 - `work/vm/kbuild/applauncher-stdio-crash.log` — the launcher log (149,673 bytes).

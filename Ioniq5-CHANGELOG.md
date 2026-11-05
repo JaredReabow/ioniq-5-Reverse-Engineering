@@ -3,6 +3,41 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.22.0 - the layout "crash" is the vendor launcher deregistering the app three milliseconds late
+
+The launcher's own stderr (149,673 bytes) answers the question the last two entries could not:
+
+```
+[TIMEOUT] [2 Group] AppID : 11, PID : 2305                           19:59:12.511
+[REGISTERED] registeredFromNativeApp AppId[11][AppHomeScreen] …      19:59:12.514   (3 ms later)
+[REGISTERED ERROR] Already registered AppId[11][AppHomeScreen]       19:59:12.592
+AppManagerInterface::requestAppDeregister appId[11][AppHomeScreen]   19:59:13.157  (terminated)
+```
+
+**The application is not crashing and not faulting.** It registers its handle **~3 ms after** the launcher's registration timeout; the launcher logs `Already registered`, treats it as a duplicate, and **deregisters it** - SIGTERM, exit 15. **The pid changes this project has been reading as crashes all night - 2305 → 2481, 2328 → 2564, the SIGTRAP instances - are that deregister-and-relaunch loop.**
+
+### Both hypotheses refuted in the same log, and one of them was mine
+
+| hypothesis | grep over the whole log |
+|---|---|
+| SQLite widget-settings failure (**mine**) | `COMMIT FAIL\|BEGIN TRANSACTION\|QSqlError\|no such table\|DELETE FAIL` → **empty** |
+| a second `invalid object` (**also mine**) | `invalid object\|wl_display@1\|error 0` → **empty** |
+
+So the power-on layout is **neither a display fault nor a database fault.** It is a **3 ms timing margin**: DRM + bochs + pixman costs a little more CPU than headless did, and registration lands just past a fixed wall-clock deadline.
+
+### And the fix might be a flag rather than a patch
+
+**The timeout is wall-clock; the app is milliseconds slow.** So first: **`--smp 6`, then `--smp 8`.**
+
+- if the layout appears, the fix is *"give the guest enough CPU that startup fits the vendor's window"* - **no vendor binary touched**, which is what "as close to stock as reasonable" prefers;
+- if not, the margin exceeds what vCPUs can buy and the timeout constant is worth raising - as a **labelled substitution**, not a fix.
+
+**And a new check precedes the pixels: pid stability across two samples.** The deregister loop shows as a pid change; stability means the race was won.
+
+### The reusable finding, now three for three
+
+**`invalid object 19` came from the app's log. The crash loop came from the app's log. This came from the launcher's log.** Every time this project has been stuck tonight, **the answer was in a log nobody had collected** - and each time the collection cost one run.
+
 ## 5.21.2 - a fourth outcome: the call lands and the application dies during the layout
 
 The run did everything the sequence asked (`docs/kernel/12-power-on-call-result.md`): socket at 2 s, **`NAME_OWNED=yes` at +100 s by polling** rather than sleeping, `ASK_POWER_BEFORE=int32 1` (not used as pass/fail), and **`SET_POWER=method return`** - the call landed.

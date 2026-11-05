@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.17.3 - V-075: nothing verifies the boot image, and the layer below the register is unassessed
+
+Went looking for a bricking vector in `esinit` and found a resilient design instead, plus a gap the register has never named.
+
+**What I got wrong first:** `esinit` formats the boot partition (`mke2fs -F /dev/mmcblk0p1`) when `fsck` fails badly. That looked like a denial-of-service primitive - corrupt the partition, watch the unit refuse to boot. **Reading the four lines after it kills that idea:** the format runs only in crash-recovery mode and is **immediately followed by `cp /tmp/plk2/iasImage /tmp/plk1/iasImage`** - restore from the other slot. It is an **A/B recovery design**, and a good one.
+
+**What the same lines do establish:**
+
+```
+fsck → mke2fs → mount both slots → cp /tmp/plk2/iasImage /tmp/plk1/iasImage
+```
+
+**`iasImage` is treated as a file.** Both slots are mounted read-write, the copy is a plain `cp`, and **no signature, hash or version is checked**. And there is **no `avb`/`vbmeta`/`dm-verity`/`verified boot` reference anywhere** in `esinit` or `/etc/*.sh`.
+
+**Since every process runs as root (V-064), any compromised component can write that file.** If the bootloader verifies it, that is a refused boot; **if it does not, it is persistence surviving a rootfs reinstall** - which would outrank V-069 as the cheapest persistent path.
+
+**And that answer is not in this image.** ABL is closed firmware. So V-075 **stops at the boundary and says so**, and its real contribution is to bound the register: **everything filed here is about the running userspace, and the layer below - what boots, and whether it is checked - is covered by nothing in the document.** A security review needs that sentence, and now it exists.
+
+**Not assessed, and flagged as destructive to test:** a modified `iasImage` in the inactive slot and a reboot. That belongs to someone with a recoverable unit.
+
 ## 5.17.2 - fbdev does work; my conclusion was too strong, and the resolution makes it a control not a target
 
 The worker got further than my two attempts: booting the research init with a manual compositor and an invocation that satisfies the launcher check, fbdev came up properly (`work/vm/kbuild/boot20-fbdev4.log`, 14.2 s, `userspace: true`):

@@ -2765,6 +2765,65 @@ listeners".
 
 ---
 
+## V-075 - the boot image is unprotected in userspace, and nothing verifies it here
+
+**Status:** the absence of verification **in the userspace image** is **measured**; whether the bootloader verifies the image
+is **outside what this project can see**, and is stated as unassessed. Class: boot integrity - open question, not a
+demonstrated vulnerability.
+
+### What is measured
+
+**No verified-boot machinery exists in the userspace image:**
+
+```
+grep -rhaoE 'avb|verified_?boot|boot\.img|vbmeta|dm-verity|verity'  esinit /etc/*.sh
+    ->  no matches
+```
+
+**`esinit` treats the boot partitions as ordinary filesystems.** In the crash-recovery path, when the bootloader has fallen
+back to the second slot, it does:
+
+```
+fsck.ext2 -fy /dev/mmcblk0p1
+FSCK_RET_VAL=$?
+if [ ret not in (0,1,2) ]; then
+    echo "Boot Mode PLK1 Partition Crashed and Recovery(mkfs)"
+    mke2fs -F -b 4096 /dev/mmcblk0p1
+fi
+mount /dev/mmcblk0p2 /tmp/plk2 ; mount /dev/mmcblk0p1 /tmp/plk1
+cp /tmp/plk2/iasImage /tmp/plk1/iasImage
+```
+
+**The `mke2fs` is not a defect** - it runs only in the crash-recovery boot mode and is immediately followed by restoring
+`iasImage` from the other slot. That is an **A/B recovery design**, and a resilient one. I had assumed it was a bricking
+vector before reading the four lines after it, and it is not.
+
+**What remains is that `iasImage` is a file**: both slots are mounted read-write, the copy is a plain `cp`, and **nothing in
+userspace checks a signature, hash or version** of what it copies.
+
+### Why that is filed rather than dismissed
+
+Every process on this unit runs as root (V-064), so any compromised component can write `iasImage` into either slot. **If the
+bootloader verifies it, that is a bricked unit or a refused boot; if it does not, it is persistence that survives every
+reinstall of the rootfs** - which would outrank V-069 as the cheapest persistent path.
+
+**The answer is in the bootloader, not in this image**, so this entry stops at the boundary and says so.
+
+### Not assessed, and how to assess it
+
+- **Whether ABL verifies `iasImage`** (signature, hash, rollback counter). It is closed firmware outside the extracted
+  image. The test is a unit, a modified `iasImage` in the inactive slot, and a reboot - **and it is destructive if there is
+  no verification**, so it belongs to someone with a recoverable unit.
+- **Whether the anti-rollback counter applies to the boot image** as it does to packages (V-059).
+
+### What this changes about the register
+
+Nothing already filed. It **bounds** the register's coverage: every finding here is about the running userspace, and the
+layer below it - what boots, and whether it is checked - is **not covered by anything in this document**. That gap is worth
+one line in a security review, and this is the line.
+
+---
+
 ## V-074 - the VIN is written to persistent logs and handed to the voice backend
 
 **Status:** the log line is **measured** in the vehicle's own DLT dump; the transmission is **inferred from the function

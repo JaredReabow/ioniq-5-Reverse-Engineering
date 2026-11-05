@@ -3,6 +3,18 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.13 - the root-access ranking had the engineering row wrong
+
+`docs/root-access-paths.md` ranks every route by cost, and its row 2 still said engineering mode was *"only via an app-manager launch request"* - which is both true and no longer the shortest answer.
+
+**Replaced** with what the last two days actually established: **the front-panel key signal (V-060)**. It costs *a system-bus write*, needs **no gesture and no PIN to request**, and reaches **app id 301 = `AppEngineerMode`, which the manager runs as root**. The status column is honest: **signal decoded and delivered; the handler declines on internal state.**
+
+**Added a paragraph to the section** recording the decode (`payload[0]==0x01`, `payload[1]==0x05` → `movl $0x12d`) and the three measured facts: any system-bus process can deliver it (empty service, empty path), the signal is **observed on the bus**, and the handler **declines on state** - so the remaining obstacle is `ask(301)` or `ask(71) == 1`, **not authentication and not the payload**.
+
+Also noted that the method route is separate and inert, measured twice, so nobody re-tries it thinking it is the same thing.
+
+**Why the row order matters more than the prose:** a ranked list is read as an instruction. Row 2 previously sent a reader toward a launch request that requires root already - the one thing a root-access document must never do.
+
 ## 5.9.12 - the interaction recipe existed only as scattered fragments
 
 The goal says "a VM that I can interact with", and the knowledge needed to do that was spread across four documents: the click channel in one, the power-on call in another, the capture traps in a third, the surface rule in a fourth. Someone reading any single one of them could not interact with the VM.

@@ -56,3 +56,51 @@ list at 300 characters and it cut off exactly there. That is a measurement defec
    surface" as a solvable problem here - the honest alternative is to accept the background-only output and
    document that the projection cannot present the vendor UI, which is a different claim from "the UI does
    not render".
+
+---
+
+## 9. The unfiltered run: init fails, and the compositor goes with it
+
+Rerun with the module added and the log captured **whole** (no truncation this time):
+
+```
+[00:00:05.057] Loading module '/usr/lib/weston/ivi-window-manager.so'
+[00:00:05.235] Loading module '/usr/lib/weston/ivi-controller.so'
+[00:00:05.320] ivi-controller: No ivi-input-module set
+[00:00:05.322] Loading module '/usr/lib/weston/hmi-controller.so'
+[00:00:05.334] Failed to initialize hmi-controller
+```
+
+And at +110 s:
+
+```
+home= cam= setup= launcher= mgr= weston=        ALL EMPTY
+```
+
+**`hmi-controller` fails to initialise and the compositor exits with it.** So the previous run's "the launcher chain did not start" was really "the compositor was already gone at 5.3 seconds". That is a cleaner finding than the one I recorded, and it is the kind of thing the unfiltered capture was meant to settle.
+
+## 10. Correction: the shell user-interface is present, just not where the ini says
+
+I wrote that `/usr/lib/weston/weston-ivi-shell-user-interface` is "missing from the image". It is missing **at that path**. The binary exists:
+
+```
+/usr/libexec/weston-ivi-shell-user-interface      PRESENT
+/usr/libexec/weston-screenshooter                 PRESENT
+/usr/libexec/weston-simple-im                     PRESENT
+/usr/libexec/weston-desktop-shell                 PRESENT
+/usr/libexec/weston-keyboard                      MISSING   (the respawn storm)
+```
+
+So the ini's `ivi-shell-user-interface=` points into `/usr/lib/weston/`, where it does not exist, while the real client lives in `/usr/libexec/`. Whether that mismatch is *why* init fails is unproven, but it is a concrete, checkable discrepancy in the vendor's own configuration.
+
+## 11. The lead that matters: "permission denied" is in the module's own strings
+
+`hmi-controller.so` contains the literal string:
+
+```
+hmi-controller failed: permission denied
+```
+
+That is a **permission** failure path compiled into the module, and this image enforces SMACK (V-056) on a **permissive** policy (`smack_setup.sh` switches to permissive when `optUNECE=0`, and the measured value is 0). The audit log is live - the same boot logged `lsm=SMACK ... action=granted subject="_" object="Log::dlt"` for the DLT daemon.
+
+**So the next measurement is specific and cheap:** run once with `hmi-controller.so` enabled and grep the audit stream for `action=denied` entries naming `weston` or the compositor's comm. If a denial appears, the module's init failure is explained and the fix is a rule, not a code change. If none appears, the failure is a missing/bad configuration input and the `/usr/libexec` versus `/usr/lib/weston` discrepancy is the first thing to correct.

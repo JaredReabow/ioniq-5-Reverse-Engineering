@@ -5710,3 +5710,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Found which file really decides the compositor configuration: the ini everyone names is a symlink, and the resolution-specific file underneath it is the one that matters. Its module list omits a module that ships in the image, and the shell user interface it names does not exist at all.
 - Added the module and booted: the application stack never started, which is a failure mode unlike the others, and my own capture truncated the module list exactly where it mattered, so the run cannot be judged.
 - Reverted the clone and wrote the honest alternative into the note: if the layer path is unavailable here, document that the projection cannot present the vendor interface rather than implying the interface is broken.
+
+## 2026-11-05 - hmi-controller kills the compositor in five seconds
+
+- Captured the log whole as the previous entry said was needed, and it changed the conclusion: the compositor was already gone at five seconds, so the earlier reading about the launcher chain was wrong.
+- Corrected my own claim that the shell user interface is missing: it exists, just in a different directory from the one the configuration names. Only the keyboard binary is genuinely absent.
+- Found a permission-denied failure string compiled into the module, and the audit log is live, so the next test is to look for a denial rather than to keep experimenting.

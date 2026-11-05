@@ -262,3 +262,43 @@ hypothesised stall mechanism **cannot occur on it**. That makes it a two-for-one
 
 **Status:** delegated as a suggestion with those three checks named; whether fbdev serves is the next measurement, and a
 negative is a result.
+
+## 10. My "cheaper experiment" failed twice - fbdev needs `weston-launch`, and that produced nothing
+
+Section 9 proposed `fbdev-backend.so` as a faster answer than tracing page flips, on the reasoning that it has no vblank
+path. **Two runs, both negative:**
+
+**Run 1 - the backend refuses on principle:**
+
+```
+Loading module '/usr/lib/weston/fbdev-backend.so'
+initializing fbdev backend
+fatal: fbdev backend should be run using weston-launch binary or as root
+fatal: failed to create compositor backend
+```
+
+`/dev/fb0` and `/dev/dri/card0` both exist, so the device half is fine - the *compositor* refuses to use fbdev unless it is
+launched through `weston-launch` (which ships at `/usr/bin/weston-launch`, 69,296 bytes, **not setuid**, so it only helps a
+root caller).
+
+**Run 2 - the `weston-launch` hop produced nothing at all:**
+
+```
+FB1_SOCKET=[]      no wayland socket
+FB1_WLOG=[]        /tmp/weston-real.log was never created
+```
+
+No log, no socket, no process. `weston-launch` execs `/usr/bin/weston` itself, so the wrapper was given a recursion guard
+(`WESTON_LAUNCHED=1`) - and with that in place the whole chain vanished without writing a line, which is a worse outcome
+than a failure with a message.
+
+## What this teaches, and it is at my expense
+
+**The "cheaper" experiment cost two runs and answered nothing.** `drm-backend` had already got further than fbdev ever
+did - it bound the device and found an output before stalling - so my suggestion was not cheaper, it was a detour around a
+hypothesis that had not yet been tested.
+
+**The honest position now:** the live question remains the worker's - *why does `drm-backend` stall after `Output
+Virtual-1`* - and the page-flip hypothesis is still the best one, unmeasured. My contribution to it is a negative: **fbdev
+is not an alternative route**, and anyone considering it should know it needs a launcher hop that, in this projection,
+produced silence.

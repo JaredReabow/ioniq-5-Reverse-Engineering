@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.14.6 - the stand-in now answers every call the stack makes
+
+Implemented all ten backlog methods - the five `Set*` as acknowledgements, the five `Ask*` with reply **types recovered from the calling binaries' introspection XML** and reply **values assumed zero** - rebuilt with no host paths, injected, and booted:
+
+```
+ENG_DATA_SIM_ACK      403      (was 393)
+ENG_DATA_SIM_UNKNOWN    0      (was 57)
+ENG_DATA_SIM_ANSWER   265
+  the five new Ask* handlers: 61 calls
+still-unknown members:  none
+```
+
+**Zero unanswered MICOM calls** - and the new handlers were genuinely reached (61 calls), so unlike the entry-check row this is not a silent no-op.
+
+### What that does and does not mean
+
+**Measured:** every method the stack calls receives a reply of the **correct type**, and the rejections stopped.
+**Not measured:** that the **values** are right - the five `Ask*` replies are a single zero byte because the encoding is not recovered. `AskInfoFaultCodeStatus` returning zero reads as "no fault", plausible and unverified; `AskExternalSPDIFAMPVersion` returning one zero byte is a placeholder for a version string.
+
+**So the honest description is:** the stand-in answers everything, with correct types, with values that are right where recovered (bootinfo, versions, part number, WIP ID, trace date, debug/ADM/UPM flags) and **assumed everywhere else**. That is the difference between *"the adaptor is complete"* and *"the adaptor is complete in shape"*.
+
+### Why this is progress rather than tidying
+
+**The reason a value could be wrong has changed** from "the method does not exist" to "the answer is zero because we assumed zero". **The interface is now complete enough to be wrong in specific ways instead of failing wholesale** - which is the precondition for anyone on real hardware comparing our replies against a real MICOM.
+
+That is the first time in a long while the VM goal has moved by construction rather than by measurement.
+
 ## 5.14.5 - the application has two data paths, and we substitute exactly one of them
 
 Read the application's own log during a normal boot to settle a question this project has answered two different ways:

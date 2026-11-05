@@ -5992,3 +5992,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Read the application's own log to settle a question answered two different ways earlier. It initialises a raw can socket and also holds a valid micom interface over the bus, and status values arrive over the bus from our stand-in.
 - So the stand-in is doing real work and is not inert; what it cannot supply is frame data, which travels over the socket path that does not exist in the emulator.
 - Recorded both conclusions together: the remaining adaptor work is the ten state methods in the backlog, and the values need a transport the vendor kernel's configuration makes impossible here.
+
+## 2026-11-05 - the stand-in answers every call the stack makes
+
+- Implemented all ten backlog methods, taking reply types from the calling binaries' own introspection and marking the reply values as assumptions. Rebuilt, injected, booted.
+- The simulator now records four hundred and three accepted calls and zero rejections, and the new handlers were reached sixty-one times, so this is not a silent no-op.
+- Recorded the distinction that keeps it honest: the adaptor is complete in shape, not complete in values, and the reason a value could be wrong has changed from a missing method to an assumed zero. That is the precondition for comparing against real hardware.

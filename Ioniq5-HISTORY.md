@@ -5372,3 +5372,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The readme described the research chain's click as the interaction proof, which was true and had just been superseded by the same proof on the vendor path. Added it, with the two facts that make it useful.
 - Stated the goal's completion next to the caveat in one breath, so a reader gets both the achievement and exactly what is not the vendor's.
 - Fourth front-page correction tonight, same pattern: right when written, overtaken by a measurement, caught by checking rather than by writing.
+
+## 2026-11-05 - the one part of the finding still on trust
+
+- The update race rests on the install reading the same removable medium the check read. Looking for that in the binary turned up a staging area and mount points, so the strings support either an in-place read or a staged local copy - and a staged copy would make the race impossible here.
+- Recorded it as open rather than inheriting the external claim, and named the cheap measurement that settles it: watch which path the check opens and which the install opens, during a real update.
+- Seven parts of this finding are measured here and one is still on someone else's word. Saying which is which is the difference between a register and a rumour.

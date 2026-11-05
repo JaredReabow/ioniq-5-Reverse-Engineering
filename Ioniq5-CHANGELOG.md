@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.8 - a string that could refute V-059 for this build, recorded as an open question rather than resolved by preference
+
+Checking the one item still attributed to upstream - "the big image is read in place from the stick" - turned up strings that support **either** reading, and one of them would make the race
+impossible on this flow.
+
+```
+/update/usb/bin      /update/usb/upgrade     /update/usb/micom        (a staging area)
+/update/fota/mnt/rootfs                      /update/fota/mnt/navi/system   (FUMO mount points)
+cp /update/usb/bin/.lge.upgrade.xml /tmp/                              (manifest only)
+cp -r %1 %2   cp -vf %1 %2   mv -vf %1 %2   tar xf %1 -C %2           (a family of staged operations)
+```
+
+**If the check and the install both read a staged local copy, the race as described does not exist here.** If they read a mount over the removable medium, it does. The upstream project
+reports the second and demonstrated it dynamically; this repository has only the strings, and the strings do not decide it.
+
+So the entry now says that instead of inheriting the claim. The observation that settles it is specific and cheap on a unit: **`lsof`/`inotify`/`strace` during a real update** - which path does
+the `md5sum` open, and which does the `pv`/`dd` open. Both the register and `evidence/v059-evidence.md` carry that.
+
+This is the correct handling of a finding that is strong in seven respects and rests on someone else's word in an eighth: say which is which, and name the measurement. It would be
+comfortable to leave the upstream attribution standing; it would also make the entry look more complete than it is.
+
 ## 5.2.1 - the front page now says the VM is interactive on the vendor path
 
 The README's interaction section described the **research chain's** click proof, which was accurate and is now the weaker of the two. The authentic path's proof - `VM_INPUT_FOCUS_BEFORE_MOVE

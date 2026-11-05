@@ -2588,3 +2588,10 @@ This is the first downgrade route found in this project that does not bottom out
 Do not verify a file and then re-read it: hash **during** the install, or copy to protected local storage once and install from the copy, then verify the copy. Better: mount removable
 media with the update path reading through a single handle. And give the rootfs a boot-time integrity mechanism, so "installed unsigned content" is not the same as "runs at next
 boot".
+
+- **Which path the two reads actually open is not settled here, and there are two candidates in the binary.** The strings show a staging area
+  (`/update/usb/bin`, `/update/usb/upgrade`, `/update/usb/micom`) *and* FUMO mount points (`/update/fota/mnt/rootfs`, `/update/fota/mnt/navi/system`), plus a manifest-only copy
+  (`cp /update/usb/bin/.lge.upgrade.xml /tmp/`) and a family of `cp`/`mv`/`tar` commands taking `%1`. If the check and the install both read a **staged local copy**, the race as described
+  does not exist on this flow; if they read a **mount over the removable medium**, it does. The upstream project reports the latter for this build and demonstrated it dynamically; this
+  repository has only the strings, which support either.
+  **The observation that settles it is a `lsof`/`inotify`/`strace` on the unit during a real update**: which path does the `md5sum` open, and which does the `pv`/`dd` open.

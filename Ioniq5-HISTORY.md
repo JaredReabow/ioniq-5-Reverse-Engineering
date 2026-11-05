@@ -6148,3 +6148,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The worker got further than my attempts: with the right invocation the framebuffer backend initialises, creates an output and maps the framebuffer. My conclusion that it was not a route was too strong.
 - But its output is fixed at the kernel framebuffer size, which is not the resolution this interface uses, so it can prove a client connects and cannot present the interface itself.
 - That reframes the two backends as complementary: one for fidelity, one as a control that separates the application failing to connect from the display backend stalling. Stopped my own experiments there, since I had partly duplicated the worker.
+
+## 2026-11-05 - nothing verifies the boot image
+
+- Went looking for a bricking vector in the init script and found a resilient design instead: the partition format I first read as destructive runs only in crash recovery and is immediately followed by restoring the good image from the other slot.
+- What the same code does establish is that the boot image is handled as a plain file, copied between two read write slots with no signature, hash or version check anywhere in userspace.
+- Filed it with its boundary stated: the answer lives in closed bootloader firmware this project cannot see, and the entry's real value is to mark that everything else in the register covers the running system and not the layer that boots it.

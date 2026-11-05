@@ -406,6 +406,7 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | 22 an enabled mDNS responder runs as root with no sandboxing | V-072 |
 | 23 an unauthenticated TCP-to-serial bridge on port 9997 | V-073 |
 | 24 the VIN is persisted in logs and handed to the voice backend | V-074 |
+| 25 nothing in userspace verifies the boot image; bootloader unassessed | V-075 |
 
 ## What is not claimed
 
@@ -437,6 +438,25 @@ prove transmission.
 
 **Sampling note.** A loose sweep produced thousands of password, SSID, coordinate and phone-number hits; **all were noise or
 imported forum text**, and only the VIN survived sampling. Recorded so nobody re-derives it.
+
+### 25. Nothing in userspace verifies the boot image it maintains
+
+**Evidence.** No `avb`/`vbmeta`/`dm-verity`/`verified boot` reference exists anywhere in `esinit` or `/etc/*.sh`. In the
+crash-recovery path `esinit` runs `fsck.ext2 -fy /dev/mmcblk0p1`, formats it with `mke2fs -F` if fsck fails badly, and then
+`cp /tmp/plk2/iasImage /tmp/plk1/iasImage` - a plain copy between two **read-write** partitions, with **no signature, hash
+or version check**.
+
+**Exposes.** Any process on this unit runs as root (V-064), so any compromised component can place a modified `iasImage`
+into either A/B slot. **If the bootloader verifies it**, that is a refused boot; **if it does not, it is persistence that
+survives a rootfs reinstall** - which would outrank V-069 as the cheapest persistent path. *(The `mke2fs` itself is a
+recovery step followed by a restore, and is not a defect - recorded because I assumed otherwise before reading on.)*
+
+**Fix.** Verify `iasImage` before it is copied (signature against a key on read-only storage), and confirm the bootloader
+enforces the same. Report the bootloader's verification status as part of the security posture rather than leaving it
+implicit.
+
+**Not assessed:** whether ABL verifies `iasImage` or applies the anti-rollback counter to it. Closed firmware outside the
+extracted image; the test is destructive if no verification exists and belongs to someone with a recoverable unit.
 
 ## Why the tiers were rebuilt (2026-11-05)
 

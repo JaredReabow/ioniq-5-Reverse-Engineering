@@ -70,3 +70,45 @@ capture the variable's own diagnostic.
 
 That the layout DB directory causes or cures the splash. One run with it present still restarts, and the
 frame it settles on is standby.
+
+---
+
+## 3. Run with the directory present: the file is created, the commits still fail
+
+```
+D1_DBDIR=[/rw_data/app_data/AppHomeScreen/CustomLayoutDB]   dbfile=[36864]
+D1_COUNTS commitfail=[23]  initdone=[1]  wlerr=[2]  pid=[3068]
+```
+
+**The database file now exists (36,864 bytes)** - so the missing directory was genuinely blocking creation, and
+that part of the chain is closed. **But 23 `DB UPDATE COMMIT FAIL` remain**, and the log prints no
+`lastError` text for them even though the binary carries the string for it, so the cause of the *commit*
+failure is still unread.
+
+## 4. A second, unrelated failure in the same tail
+
+The log ends with hardware access attempts that cannot succeed here:
+
+```
+[ERR] Home_Worker::writeGPIO(QString) ][ 202 ] B.NV:  "0"
+[ERR] Home_Worker::writeGPIO(QString) ][ 212 ] Open kernel file failed!, errorNo:  2
+[ERR] Home_Worker::writeGPIO(QString) ][ 202 ] B.NV:  "1"
+[ERR] Home_Worker::writeGPIO(QString) ][ 212 ] Open kernel file failed!, errorNo:  2
+[ERR] Home_Worker::slotSetStatusDrToKernel(QString) ][ 236 ] Open kernel file failed!, errorNo:  2
+```
+
+`errorNo: 2` is `ENOENT`: the application is opening **kernel GPIO nodes via sysfs** that do not exist in the
+projection. This is expected in a VM without the vendor's GPIO hardware, and it is the same class of gap as
+the missing CAN interface: **the application expects kernel-side hardware that QEMU does not provide.**
+
+It is also useful: these are **named sysfs paths we could provide as stub files**, which is cheaper than a
+kernel driver - the same substitution trick, one layer lower. The exact paths are the next thing to read
+from the binary's `writeGPIO` caller.
+
+## 5. Where this leaves the layout question
+
+- layout DB directory: **fixed in the clone, file created (measured)**
+- commit failure: **still present, cause unread**
+- the application also expects **sysfs GPIO nodes** that do not exist
+- so "why the splash never becomes a home screen" now has two named, unrelated candidates, both in the
+  application's own logging rather than in a hypothesis

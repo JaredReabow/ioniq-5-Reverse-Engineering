@@ -2364,6 +2364,42 @@ That is what makes V-054 and V-055 reachable in principle: an application proces
 Give applications a real domain label (the scheme already exists — `App::*` labels are defined) and add the rules that let them do their work, then verify from a
 unit that an application process **cannot** read a `Log::*` object. The remaining gap is configuration, not design: the label vocabulary is already there.
 
+### Rule-set analysis (2026-11-05) - broad objects, narrow permissions
+
+Counted across the 636 loaded rules:
+
+```
+rules whose OBJECT is "*"                    28
+rules granting write (w) or execute (x)       0
+```
+
+The 28 wildcard-object rules are all of one shape - **`t` (transmute) only**:
+
+```
+App::bluetooth * ----t-
+App::camera * ----t-
+...
+_ * ----t-
+```
+
+**Two readings, and the honest one is the second:**
+
+1. *This looks like the policy is defeated*: `_` is the SMACK floor label, and V-056 records that applications carry it, so
+   `_ * ----t-` would make every object transmutable on the platform.
+2. *What the rules actually show*: **not one rule grants `w` or `x` anywhere.** Write and execute are the permissions that
+   matter for the findings in this register - a writable `/tmp/passwd`, an executable `/navi/Bin/AppNavi` - and the policy
+   does not hand them out broadly. The wildcard is confined to `t`, which governs label inheritance for **new** objects
+   rather than access to existing ones.
+
+**What is not established:** whether `t` on `*` from the floor label has the practical effect of relabelling, because this
+project has never *demonstrated* a relabel (V-056's `_` exemption was withdrawn for exactly that reason - `chsmack` was
+never verified to have run). Naming the semantics as the open question is the correct position; asserting either
+"SMACK is broken" or "SMACK is fine" from a rule listing is not.
+
+**What the analysis does add:** the label *set* is narrow where it counts. The next measurement that would settle the
+question is a **single controlled relabel**: as `_`, `chsmack` a file to a new label, then check `ls -Z` and whether a
+differently-labelled process is now denied or allowed. Ten minutes on a unit; never done here.
+
 ## V-057 — closed-source third-party kernel filesystem drivers parse removable media that the unit auto-mounts
 
 **Status:** candidate. The attack surface is established from the image; **no specific defect in these drivers has been identified, and none is claimed**. This entry exists

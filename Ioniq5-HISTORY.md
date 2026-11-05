@@ -5307,3 +5307,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - With four cores and the compositor's real log, the managed home screen is running and an IVI surface exists on the authentic compositor. That is further than it got with two cores, where it never owned its name.
 - The capture failed because the screenshot tool writes into the current directory and I looked in a temporary one. Fourth instrument detail in a row on this one question, each caught by noticing silence.
 - Stopped there deliberately: the goal is demonstrated, this last step is about the managed instance, and the return on my own plumbing is now lower than the value of writing it down for the next attempt.
+
+## 2026-11-05 - two runs, two different surfaces, and the discipline to stop
+
+- Ran the managed-path capture twice with identical settings. One placed the application's surface and captured a frame fifteen kilobytes larger than the background; the other placed the background's own surface and captured the background.
+- So the result depends on which surface happens to be newest when the probe looks. The honest statement is that the managed instance has a surface and one capture differs from the background - not that it paints, because nobody has looked at the image.
+- Stopped after five attempts on one question, all five failing on my instrument choosing the wrong thing. The goal is demonstrated; this is polish, and writing down how to do it properly is worth more than a sixth attempt that might again capture the background.

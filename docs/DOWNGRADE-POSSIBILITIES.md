@@ -111,7 +111,12 @@ That does not make a downgrade *easy* - it needs hardware and it needs the TE2 c
 **version gate runs on the checked bytes, not the installed ones**, so the unresolved anti-rollback question no longer bounds what can be installed. Anti-rollback still decides whether a
 *signed older* image is accepted through the ordinary path; it does not decide this one.
 
-Corroborated statically in this image (the check and install command strings, `DecryptToPIPE`, and the absence of dm-verity); **not reproduced here**, and nothing was installed anywhere.
+**And it needs no key at all for a downgrade.** The TE2 content key (`velix_aes.key`) does **not** ship — it is read at run time from `/update/fota/velix_aes.key` — so crafting an
+*arbitrary* payload needs a secret from the unit. But a **genuine older package** is already encrypted with the key the unit holds, so the install pass accepts it while the version gate has
+already been satisfied against the *genuine current* bytes. That makes V-059 the first downgrade route in this project that does **not** bottom out in anti-rollback.
+
+Corroborated statically in this image (the check and install command strings, `DecryptToPIPE`, the key-handling strings, and the absence of dm-verity); **not reproduced here**, and nothing
+was installed anywhere.
 
 ## 6. Honesty statement
 

@@ -2463,6 +2463,37 @@ skipped**, which is not a bypass at all. Nothing was found that lets a *present*
 
 It stays recorded because the first version of this paragraph claimed otherwise, and because `file status` is the value to look at if anyone wants to settle it properly.
 
+### What an attacker actually needs — and a keyless downgrade that falls out of it
+
+The upstream project keeps the TE2 content key out of its repository, which raised the obvious question: **does the key ship in the image?** It does not.
+
+```
+AppUpgrade:  ./tool/velix_aes.key
+             /update/fota/velix_aes.key
+             VElix_GetAESKey KeySize : %d      getKeyFile() is fail.!!! (%d)
+```
+
+`velix_aes.key` appears in **no** shipped tarball and nowhere in the rootfs; it is read at run time from the update partition. What *does* ship is
+`/app/share/AppUpgrade/teruten5_pub.key` — a 294-byte DER `SubjectPublicKeyInfo`, a 2048-bit **public** key used to verify, which is not a secret and never was.
+
+So the requirement splits in two, and the split matters:
+
+| goal | needs |
+| --- | --- |
+| install **arbitrary** content (a custom rootfs) | the TE2 content key, which lives on the unit and not in the image |
+| install a **genuine older image** | **nothing beyond a legitimate package for this model** |
+
+The second row is the interesting one, and it is the answer to a question this project has carried open since the start. A genuine older package is already TE2-encrypted with the key the
+unit holds, so the install pass consumes it happily. The **version gate ran on the genuine current bytes**, because that is what the check pass read. Therefore:
+
+> **V-059 provides a downgrade path that needs no AES key, no RSA private key, and does not depend on anti-rollback**, because anti-rollback lives in the update logic that has already been
+> satisfied - against different bytes.
+
+The remaining unknowns are hardware, not cryptography: the dynamic-media gadget, and the page cache question in `HARDWARE-FEASIBILITY.md`. And the caveat stays: **not reproduced here**,
+on any unit or in the projection.
+
+This is the first downgrade route found in this project that does not bottom out in "anti-rollback is unresolved".
+
 ### Why it matters for the two standing questions
 
 - **Root access:** it is the first credible path to installing **unsigned content without the RSA private key** — the genuine signed image satisfies the check, and the swapped image is

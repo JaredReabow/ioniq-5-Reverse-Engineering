@@ -3,6 +3,42 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.0 - the TE2 key does not ship, and that turns V-059 into a keyless downgrade
+
+The upstream project keeps the TE2 content key out of its repository, so the obvious question was whether the key ships in the image. Following it produced this session's most
+consequential security result.
+
+**It does not ship.** `AppUpgrade` reads it at run time:
+
+```
+./tool/velix_aes.key
+/update/fota/velix_aes.key
+VElix_GetAESKey KeySize : %d      getKeyFile() is fail.!!! (%d)
+```
+
+and `velix_aes.key` appears in **no** shipped tarball and nowhere in the rootfs. What does ship is `/app/share/AppUpgrade/teruten5_pub.key` - a 294-byte DER `SubjectPublicKeyInfo`, a
+2048-bit **public** key used to verify, which is not a secret.
+
+**So the requirement splits, and the split is the finding:**
+
+| goal | needs |
+| --- | --- |
+| install **arbitrary** content (custom rootfs) | the TE2 content key, which lives on the unit |
+| install a **genuine older image** | **nothing beyond a legitimate package for this model** |
+
+A genuine older package is already encrypted with the key the unit holds, so the install pass consumes it happily - while the **version gate has already been satisfied against the
+genuine current bytes**, because those are what the check pass read. Anti-rollback lives in that same update logic, so it does not bound this route either.
+
+**That is the first downgrade path in this project that does not bottom out in "anti-rollback is unresolved"** - the question `docs/DOWNGRADE-POSSIBILITIES.md` has carried open since its
+first version. The document now says so, and the correction is the honest shape: the answer was in the *difference between two reads*, not in the selector, the version strings or the
+signature chain that earlier work spent its time on.
+
+Caveats unchanged and stated: not reproduced here, no unit touched, and the remaining unknowns are hardware - the dynamic-media gadget and the page-cache question in
+`HARDWARE-FEASIBILITY.md`.
+
+Housekeeping: my first edit to the downgrade document landed silently and the fallback appended a second copy of the paragraph; the duplicate was removed and one copy now sits in §5b
+where it belongs.
+
 ## 5.0.7 - the managed capture varies between runs, and one of them was not the background
 
 Two runs with identical settings, `--smp 4`, 210 s probe, `cd /tmp` before the screenshot:

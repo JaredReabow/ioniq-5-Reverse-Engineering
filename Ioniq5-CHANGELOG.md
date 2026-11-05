@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.21.1 - the last line is one call this project already knows works
+
+The DRM frame I looked at is the application's **standby** face - its own logo and chrome - because nothing has told it the vehicle is on. **That is the same state the headless backend was in before the call that fixed it**, and the call is already in the repository's history:
+
+```sh
+dbus-send --session --print-reply --dest=com.lge.hyundai.avn.appmanager /Information \
+  com.lge.avn.appmanager.info.set_power_on_status int32:1 int32:0
+```
+
+**The reference frame exists**: `docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png` - **16,062 bytes at 1920×720**, light day theme, left panel, Battery and Range widgets placed with `---` - captured on **headless** hours before any of the kernel work. **The DRM path needs to produce the same content at the same size**, and that is the whole target.
+
+### The sequence, with the mistake that cost three runs written into it
+
+1. boot authentic, `--smp 4`, timeout 360+, patched kernel, fixed module;
+2. wait for `WAYLAND_SOCKET_UP` **and** for `AppHomeScreen` to own its bus name - **poll `NameHasOwner`, never sleep a fixed interval** (the error I made three times earlier tonight, each time reading the resulting standby frame as a state problem);
+3. make the call;
+4. let it settle (~90 s on headless), capture **while that instance is alive**;
+5. return it with its byte count.
+
+### Two things excluded on purpose
+
+- **`ask_power_status` as a pass/fail** - it reads `1` before *and* after the call, because the setter pushes an event rather than changing the stored value. Using it as a probe is the mistake that produced my "the manager thinks the vehicle is off" hypothesis.
+- **The widget values** - they need the CAN transport, which the vendor kernel's own configuration makes unreachable. That is a separate problem with its own document, and mixing it into this run would make a clean result ambiguous.
+
+**The target is the laid-out frame and nothing more.**
 ## 5.21.0 - I looked at the 1920×720 frame, and it is the application painting its own standby face
 
 The worker's doc 11 is good work: **EDID did nothing** because bochs-drm 4.1.27 calls `drm_add_modes_noedid()` and never reads it, so it **patched the kernel source** to add a CVT 1920×720@60 mode and verified that `/sys/class/drm/card0-Virtual-1/modes` now lists it first; and `/dev/ttyS3` turned out to be **smack-relabelled `System::GPS`** in the authentic boot, so the capture had to go over `ttyS2`.

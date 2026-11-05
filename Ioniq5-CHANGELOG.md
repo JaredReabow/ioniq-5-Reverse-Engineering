@@ -3,6 +3,37 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.9 - the client I blamed is probably not the application
+
+Tried the runtime check I named - read the application's library map - and got nothing (`R1_MAPS_N=0`), which is more likely a **SMACK restriction** on reading another domain's `/proc/<pid>/maps` than a real absence. So I ran the static check instead, and it **contradicts my own attribution**:
+
+```
+libqwayland-generic.so   10,200 bytes   zero ivi_controller / ivi_window_manager / ivi_application strings
+libqwayland-egl.so       63,480 bytes   zero of the same
+```
+
+**Neither Qt Wayland plugin contains a single `ivi_` protocol string**, so neither can bind `ivi_window_manager` or call `ivi_controller.surface_create`.
+
+**So the client in the compositor trace is not the application.** Something else in the projection binds `ivi_window_manager` and creates surfaces through `ivi_controller` - and it produced the `invalid object 19` I have attributed to `AppHomeScreen` for three entries. The candidates are the shell-side clients: the vendor's `weston-ivi-shell-user-interface` (present, but named at a path the ini gets wrong), `weston-desktop-shell`, or the vendor's window-manager interaction. Weston 1.10's trace does not name clients, so the trace alone cannot say which.
+
+### What survives, and it is not nothing
+
+**Wayland protocol debug on the compositor works.** It produced a four-line diagnosis of *a* client, with no instrument of ours in the path - a capability this project did not have before tonight. The failure is real and reproducible.
+
+### What does not
+
+**It is not established that the failure belongs to the application.** The app's own log contains the same error string - `wl_display@1: error 0: invalid object 19` - which is exactly why I assumed it was the sender. It may be a *recipient*. Identical text, different roles.
+
+### The next measurement, and it is about ordering
+
+Record **when** the `ivi_window_manager` bind appears relative to the application's first log line:
+- **before** the app starts -> a shell-side client is the culprit and the application is a victim
+- **after** -> the app is the sender and my earlier reading stands
+
+That is decided by timestamps I already capture, and it costs one run.
+
+**Three entries' worth of attribution went into a client I never identified.** The trace was real; the label on it was mine.
+
 ## 5.11.8 - the protocol exchange, from the compositor's side, and it needs no instrument of ours
 
 Added server-side `WAYLAND_DEBUG=1` to the **projection's own** compositor wrapper - our file, no vendor binary touched - and the failing exchange appeared in four lines:

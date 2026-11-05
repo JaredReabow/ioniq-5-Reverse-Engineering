@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.4 - the payloads are 879 MB and 2.09 GB, which answers the cache problem in practice
+
+Following the page-cache finding, the obvious next question was how large the payloads actually are. The manifest and the package answer it with real numbers:
+
+| payload | bytes | Pi Zero HS | ESP32-S3 FS |
+| --- | --- | --- | --- |
+| `mango-rootfs.tar.gz` | 879,109,759 | 0.6 min/pass | 18 min/pass |
+| `new_gui.tar.gz` | **2,091,925,601** | 1.4 min/pass | **44 min/pass** |
+| `update.tar.gz` | 42,101,042 | seconds | 0.9 min |
+| `mango-rwdata.tar.gz` | 16,721,058 | seconds | 0.3 min |
+
+Two results worth keeping.
+
+**The upstream 879 MB figure is confirmed exactly** - `mango-rootfs.tar.gz` is 879,109,759 bytes - which is an independent check on their measurements rather than a coincidence to be assumed.
+
+**And the cache problem has a practical answer: target the big payload.** `new_gui.tar.gz` is 2.09 GB, which exceeds any plausible head-unit RAM (our projection boots comfortably in 2 GiB), so
+its install pass **must** return to the medium whatever the cache policy does. That makes it the version of this attack that does not depend on cache pressure at all - and it turns the
+"watch whether the install generates USB traffic" check into something that can be made deterministically true by choosing the payload.
+
+It also settles the board question in one line: 44 minutes per pass on an ESP32-S3 against 1.4 minutes on a High-Speed gadget, for the same file. The S3 is not disqualified, but nobody
+iterates on a two-hour loop.
+
+Recorded in `HARDWARE-FEASIBILITY.md` and in V-059, where the cache caveat had been left as an open risk.
+
 ## 5.1.3 - the page-cache question answered by the binary, and the answer is "it depends on the payload size"
 
 The weakest point of V-059 has always been the page cache: `md5sum` reads through it, so if the file is still cached when the install re-opens it, the second read never reaches the device

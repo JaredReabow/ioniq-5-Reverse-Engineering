@@ -5338,3 +5338,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The weakest point of the update race was the page cache: if the checked file stays cached, the install never touches the device and nothing swaps. The binary answers it - cache dropping exists, but only in the older updater, and this vehicle uses the newer one which never mentions it.
 - So on the path the vehicle takes, the swap depends on the payload not fitting in memory. That makes the technique size-dependent rather than guaranteed, and it names the cheapest check on a rig: does the install pass generate any traffic at all.
 - The flaw itself is unchanged - the two reads are separate in our own binary. What varies is how easily the second one can be made to differ.
+
+## 2026-11-05 - the payload is bigger than the memory, which is convenient
+
+- Measured the payloads in our own package: the system image is 879 megabytes and the interface image is 2.09 gigabytes. The first confirms the external project's number exactly.
+- The second answers the cache worry: a two-gigabyte payload cannot stay resident in a head unit, so the install pass has to come back to the medium whatever the cache policy does. Choosing the big payload makes the swap deterministic rather than size-dependent.
+- It also settles the board choice in one line: forty-four minutes per pass on a cheap microcontroller against a minute and a half on a high-speed gadget.

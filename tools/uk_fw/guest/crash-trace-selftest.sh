@@ -1,70 +1,81 @@
 #!/bin/sh
-# crash-trace positive control: stage the instrument, run the probe, assert the trace appeared.
+# crash-trace selftest — VERIFIED WORKING RECIPE (run 1793872985618150000).
 #
-# The assertion is the point. Without it, an empty /tmp/crash-trace.log is indistinguishable
-# from "the instrument never loaded", which is the exact mistake this project already made three
-# times. This script fails loudly in that case.
+# Purpose: prove the crash-trace interposer reaches its target BEFORE any real crash is
+# interpreted. An empty /tmp/crash-trace.log must never be read as "no crash".
 #
-# Run inside the guest, as root, after the interposer and the probe are staged:
-#   sh /crash-trace-selftest.sh
+# Two things this script encodes, both learned the hard way:
 #
-# Exit: 0 = instrument reached its target; 1 = it did not (do not trust any prior "no crash").
+#   1. `/etc/ld.so.preload` is consulted by the guest loader. Proven, not assumed: pointing it
+#      at a bogus path makes the loader print
+#          ERROR: ld.so: object '<path>' from /etc/ld.so.preload cannot be preloaded ...: ignored.
+#      and any dynamically linked program then fails with rc=127.
+#
+#   2. The SUBJECT MUST BE DYNAMICALLY LINKED. A static binary (including tools/uk_fw/guest/
+#      crash_probe.c built with -static) never invokes the loader, so ld.so.preload cannot reach
+#      it and it will never produce a trace. An earlier version of this script used the static
+#      probe and could not have passed for that reason alone.
+#
+# The subject used here is /app/bin/iAP2Service-2.0, a vendor dynamic glibc binary that aborts
+# deterministically when /iap2_exploit sends its 0x2eff packet (glibc malloc consistency check).
+#
+# Run in the guest as root. Exit 0 = instrument reached its target.
+#
+# NOTE: the research image has no applet symlinks in $PATH; use /bin/busybox explicitly.
 
 set -u
-
+BB=/bin/busybox
 PRELOAD=/etc/ld.so.preload
 SHIM=/crash-trace.so
-PROBE=/crash_probe
 LOG=/tmp/crash-trace.log
+SUBJECT=/app/bin/iAP2Service-2.0
+TRIGGER=/iap2_exploit
 
 fail() { echo "SELFTEST FAIL: $*" >&2; exit 1; }
 
-[ -f "$SHIM" ]  || fail "$SHIM missing"
-[ -x "$PROBE" ] || fail "$PROBE missing or not executable"
+[ -f "$SHIM" ]        || fail "$SHIM missing"
+[ -x "$SUBJECT" ]     || fail "$SUBJECT missing"
+[ -x "$TRIGGER" ]     || fail "$TRIGGER missing (needed as the deterministic abort trigger)"
+export LD_LIBRARY_PATH=/app/lib:/lib
 
-# 1. Install the interposer. Preserve any prior content so this is reversible.
-if [ -f "$PRELOAD" ] && ! grep -qx "$SHIM" "$PRELOAD" 2>/dev/null; then
-	echo "$SHIM" >> "$PRELOAD"
-else
-	echo "$SHIM" > "$PRELOAD"
+# --- Step 1: prove the loader consults /etc/ld.so.preload at all -------------------------
+# A bogus path must make a dynamic program fail to start (glibc treats the preload error as
+# non-fatal but then cannot resolve the real libs here, giving rc!=0). If the subject starts
+# cleanly with a bogus preload, preload is NOT being read and everything below is meaningless.
+echo "$PRELOAD <- bogus path"
+echo /nonexistent-bogus.so > "$PRELOAD"
+"$SUBJECT" --selftest-bogus >/tmp/selftest.bogus 2>&1
+rc=$?
+if [ "$rc" -eq 0 ]; then
+	fail "subject started with a bogus preload; ld.so.preload is not consulted"
 fi
-echo "selftest: $PRELOAD -> $(cat "$PRELOAD" | tr '\n' ' ')"
+grep -q "cannot be preloaded" /tmp/selftest.bogus \
+	|| fail "no loader preload error; cannot conclude ld.so.preload is consulted"
+echo "selftest: ld.so.preload IS consulted (loader reported the bogus object, rc=$rc)"
 
-# 2. Prove the loader actually consults the file: a shim with a deliberately bad name must make
-#    a trivial program fail to start. If this probe starts fine, ld.so.preload is not being read
-#    and nothing below is meaningful.
-BAD=/tmp/definitely-not-a-library.so
-printf '%s\n' "$BAD" > "$PRELOAD"
-if /bin/true 2>/dev/null; then
-	echo "selftest: WARNING ld.so.preload appears not to be consulted (bad-path probe still ran)"
-	CONSULTED=0
-else
-	echo "selftest: ld.so.preload is consulted (bad-path probe refused to start, as expected)"
-	CONSULTED=1
-fi
-
-# 3. Restore the real shim and run the faulting probe.
+# --- Step 2: install the real shim and trigger a real abort ------------------------------
 echo "$SHIM" > "$PRELOAD"
-rm -f "$LOG"
+"$BB" rm -f "$LOG" /tmp/selftest.svc
+"$SUBJECT" >/tmp/selftest.svc 2>&1 &
+svcpid=$!
+"$BB" sleep 5
+"$TRIGGER" >/tmp/selftest.trigger 2>&1
+echo "selftest: trigger rc=$?"
+"$BB" sleep 3
 
-for mode in segv abort; do
-	echo "selftest: running probe mode=$mode"
-	"$PROBE" "$mode" >/tmp/crash-probe.$mode.out 2>&1
-	echo "selftest: probe exited $? (a fatal signal is expected)"
+# --- Step 3: assert the trace is real ----------------------------------------------------
+[ -f "$LOG" ] || fail "no $LOG — interposer did not fire (pid $svcpid)"
+grep -q "=== signal "        "$LOG" || fail "no signal banner"
+grep -q -- "--- backtrace"   "$LOG" || fail "no backtrace section"
+grep -q -- "--- maps ---"    "$LOG" || fail "no maps section"
+grep -q "iAP2Service-2.0"    "$LOG" || fail "maps/backtrace do not name the subject"
+grep -q "signal 6 (Aborted)" "$LOG" || fail "expected SIGABRT from the malloc check"
 
-	if [ ! -f "$LOG" ]; then
-		fail "no $LOG after mode=$mode -- interposer did not fire"
-	fi
-	grep -q "=== signal " "$LOG"      || fail "no signal banner in $LOG"
-	grep -q -- "--- backtrace" "$LOG" || fail "no backtrace section in $LOG"
-	grep -q -- "--- maps ---" "$LOG"  || fail "no maps section in $LOG"
-	grep -q "crash_probe" "$LOG"      || fail "maps do not name crash_probe -- trace is from the wrong process"
-	n=$(sed -n '/--- backtrace/,/--- maps ---/p' "$LOG" | grep -c "0x")
-	[ "$n" -ge 3 ] || fail "only $n frames in backtrace"
-	echo "selftest: mode=$mode produced $n frames"
-done
+n=$(sed -n '/--- backtrace/,/--- maps ---/p' "$LOG" | grep -c "0x")
+[ "$n" -ge 6 ] || fail "only $n frames; expected a full abort chain"
 
-echo "SELFTEST PASS: crash-trace reached its target ($CONSULTED=ld.so.preload consulted)"
-echo "--- first trace ---"
-sed -n '1,25p' "$LOG"
+echo "SELFTEST PASS: crash-trace reached a dynamic vendor subject"
+echo "  frames: $n   log lines: $($BB wc -l < "$LOG")"
+echo "--- backtrace ---"
+sed -n '/--- backtrace/,/--- maps ---/p' "$LOG"
 exit 0

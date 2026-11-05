@@ -293,6 +293,35 @@ authorised caller for anything that changes state.
 **Verify.** From a non-root uid, call `org.genivi.persistence.admin_svc.SetSessionState` and observe whether it is
 accepted; `AccessDenied` means a narrower rule exists elsewhere.
 
+### 15. One hundred and six services run as root with no hardening - the leverage item
+
+**Evidence, counted from `/lib/systemd/system/*.service`:**
+
+```
+107 units total            User= in 1 (systemd's own user@.service)
+NoNewPrivileges 0          RestrictAddressFamilies 0        SystemCallFilter 0
+CapabilityBoundingSet 4    ReadOnlyPaths 0                  ProtectSystem/Home/PrivateTmp 3 each
+```
+
+**Every unit with any hardening is stock systemd** (`locale1`, `machine1`, `timedate1`, `bus-proxyd`, `localed`,
+`timedated`, `machined`). **Not one vendor service sets a single directive.**
+
+**Exposes.** Not a vulnerability in itself - it is why the others are as severe as they are. A compromise of the media
+browser, the DLT logger, the thumbnail extractor, the location manager, the radio, the Bluetooth HMI, the telematics
+stack or the update path is a compromise of everything: there is no privilege separation between components and no
+systemd containment. A service that needs only to write a log has the privileges of one that flashes firmware.
+
+**Fix, in order of value** - all configuration-only, no application code:
+1. `NoNewPrivileges=yes` on every unit where it does not break the component.
+2. `CapabilityBoundingSet=` reduced per service; most need none.
+3. `ProtectSystem=strict` with explicit `ReadWritePaths=`, and `PrivateTmp=yes` - which also neutralises several
+   `/tmp`-anchored findings at once.
+4. `User=` for components that do not need root (logger, thumbnail extractor, media browser).
+5. Later: `SystemCallFilter=`, `RestrictAddressFamilies=`.
+
+**Verify.** Count `NoNewPrivileges=` across `/lib/systemd/system/*.service` and require it non-zero before release;
+`systemd-analyze security` on a candidate unit gives the same assessment.
+
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
@@ -335,6 +364,7 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | 12 engineering mode is requestable by any system-bus process | V-060 |
 | 13 the application-set hash is queryable on the session bus | V-061 |
 | 14 nine bus policies allow the default context | V-063 |
+| 15 106 of 107 services run as root with no systemd hardening | V-064 |
 
 ## What is not claimed
 

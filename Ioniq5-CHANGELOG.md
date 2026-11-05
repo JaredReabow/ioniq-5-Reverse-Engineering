@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.12.7 - V-064: 106 of 107 services run as root with no hardening, and that is the cause behind the pattern
+
+Applied the XML lesson to the unit files, and the count is stark:
+
+```
+107 units            User= in 1 (systemd's own user@.service)
+NoNewPrivileges 0    RestrictAddressFamilies 0    SystemCallFilter 0
+CapabilityBoundingSet 4    ReadOnlyPaths 0        ProtectSystem/Home/PrivateTmp 3 each
+```
+
+**Every unit with any hardening is stock systemd** - `locale1`, `machine1`, `timedate1`, `bus-proxyd`, `localed`, `timedated`, `machined`. **Not one vendor service sets a single directive.**
+
+### Why this is the finding behind the findings
+
+It names the cause of something this register recorded six times without explaining: *"the bus is root-only"* appears in V-051, V-058, V-061 and V-062 as though it were a boundary. **It is not a boundary between anything that matters**, because 106 of 107 services are root.
+
+So a compromise of the **media browser, the DLT logger, the thumbnail extractor, the location manager, the radio, the Bluetooth HMI, the telematics stack or the update path** is a compromise of **everything**. A service that only needs to write a log file has the privileges of one that flashes firmware.
+
+### And it is the highest-leverage fix in the whole document
+
+`NoNewPrivileges=yes`, per-service `CapabilityBoundingSet=`, `ProtectSystem=strict` with explicit `ReadWritablePaths`, and `PrivateTmp=yes` - **all configuration-only, no application code** - contain a large fraction of this register's impact. `PrivateTmp=yes` alone neutralises several `/tmp`-anchored findings at once.
+
+**Filed as V-064**, as fix item 15, and added to the trust-anchors document as **the named cause** of its own pattern: the writable-path anchors do not merely weaken one check, they hand over a privilege level the design already grants too widely.
+
 ## 5.12.6 - V-063: nine bus policies re-open services to everyone, and one file still carries a developer's name
 
 Followed the sweep into the **bus policy** layer, which is where the platform's own boundaries actually live.

@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.15.4 - the worker was stuck, and the answer was two files away
+
+Checked on the kernel build and found it failing on `arch/x86/tools/relocs_*.o` - the known "old kernel, modern host toolchain" problem, three build attempts in. Two things in `work/kbuild/` that should have been in my brief:
+
+**1. A successful build with the right version already exists.** `bzImage-gcc11` (5,941,712 bytes) reports:
+
+```
+Linux kernel x86 boot executable bzImage, version 4.1.27-abl
+```
+
+A 4.1.27 tree was built with `EXTRAVERSION=-abl` - the vermagic the vendor modules need. And `bzImage-4.1.27-abl-vdisp` (5,934,912) exists too, where *vdisp* reads as "virtio display". **So the first experiment is not a build at all: boot those images with `-device virtio-gpu-pci` and look for `/dev/dri/card0`.**
+
+**2. A config detail I got wrong.** `vendor.config` contains `# CONFIG_VIRTIO_PCI is not set` and `# CONFIG_VIRTIO_MMIO is not set`. So `CONFIG_DRM_VIRTIO_GPU=y` on its own produces **nothing** - `VIRTIO`, `VIRTIO_PCI` and `VIRTIO_RING` must be enabled, and the result verified **in the built kernel's `.config`**, because `make olddefconfig` silently drops what it cannot satisfy. A "virtio-gpu build" shipping without virtio-gpu is precisely the failure this project keeps mis-labelling as "the vendor code does not work".
+
+Sent both to the worker with the three cheapest ways past `relocs`, and asked for one answer first: does any existing image give a DRM device under virtio-gpu?
+
+### The pattern, stated for the fourth time
+
+**Three times the thing I called missing was in the repository; once the thing I called a blocker was a compiler flag.** Each cost a run. Writing it into `docs/vm/47-...` costs nothing, and the document now says so at the end - because the next person will hit the same wall and only one of us has to.
+
 ## 5.15.3 - V-071 corrected: the marker grants eligibility, not access
 
 Went to establish V-071's field severity and instead found that one of its sentences was too strong.

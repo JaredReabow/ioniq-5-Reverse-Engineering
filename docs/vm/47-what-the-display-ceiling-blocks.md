@@ -60,3 +60,21 @@ delegated (child thread `d5d41ed2`, workspace `work/vm/kbuild/`), with the risks
 **The lesson is the same one as the log values and the bus policies:** I asserted a resource was missing without
 looking in the place the project keeps its resources. That is the third time this session - the pattern is mine, not
 the repository's.
+
+## Update 2 - a kernel that already claims the right version, and a config detail I omitted
+
+Two more things were sitting in `work/kbuild/` and neither was in the brief I gave the build worker:
+
+1. **`bzImage-gcc11` (5,941,712 bytes) reports `version 4.1.27-abl`** - a 4.1.27 tree was successfully built with
+   `EXTRAVERSION=-abl`, which is the vermagic the vendor's modules need. **`bzImage-4.1.27-abl-vdisp`** (5,934,912) also
+   exists, and its name suggests a virtio-display attempt. **The first thing to try is therefore not a build at all: it is
+   booting those images with `-device virtio-gpu-pci` and checking for `/dev/dri/card0`.**
+2. **`vendor.config` has `# CONFIG_VIRTIO_PCI is not set` and `# CONFIG_VIRTIO_MMIO is not set`.** So
+   `CONFIG_DRM_VIRTIO_GPU=y` alone produces nothing - `VIRTIO`, `VIRTIO_PCI` and `VIRTIO_RING` must be enabled too, and
+   the result must be verified **in the built kernel's `.config`**, because `make olddefconfig` silently drops symbols it
+   cannot satisfy. A "virtio-gpu build" that ships without virtio-gpu is exactly the failure mode this project keeps
+   mis-labelling as "the vendor code does not work".
+
+Both are recorded here rather than only in a message, because the pattern in this document is now explicit: **three times
+the thing I called missing was in the repository, and once the thing I called a blocker was a compiler flag.** The cost of
+each was a run; the cost of writing it down is nothing.

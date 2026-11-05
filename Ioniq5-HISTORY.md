@@ -5512,3 +5512,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Withdrew a resolution two entries ago because the updater's only mount call mounts VR content. The reason there was no mount call for the stick is that another process mounts it: the flow asks the automount service during its prepare stage and unmounts afterwards.
 - Naming and code are now consistent: the mount point the application logs is a subdirectory of the update partition, and the volume is mounted there by the daemon.
 - Three attempts on one question, and the middle one - withdrawing a claim that was probably right - is what made the third possible.
+
+## 2026-11-05 - what is actually on the version screen
+
+- Mapped the About page itself: three items, and one clickable region that is a virtual rotary-knob emulator which logs a line and sends a knob press. The version text has no handler at all.
+- Third independent confirmation of the same conclusion, and it explains what a person would see on a stock unit: nothing, however many times they tap it.
+- Told the worker to stop clicking and write up the captures it obtained, since further runs would only add to the same negative.

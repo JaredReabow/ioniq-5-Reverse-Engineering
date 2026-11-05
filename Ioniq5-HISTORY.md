@@ -6340,3 +6340,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Since the deadline fires at a time matching no constant in the binary, the next question is which timer is armed and when, which only observation of the running process can answer. Specified a logging-only shim for the launcher alone, and the three possible observations with the fix each implies.
 - Stated the stopping rule plainly: my last two candidate constants were both wrong, so eight steps are demonstrated, three causes are named, and the instrument that separates them exists. That is better than a fourth guess.
 - Summarised both goals as they now stand, and recorded that this is the first time the session wrote a stopping rule before the temptation to guess again.
+
+## 2026-11-05 - just disable sleep, checked
+
+- Checked the suggestion instead of agreeing or dismissing it: no sleep is involved. The sleep and standby hits in the launcher log are the name of an application, not a power transition.
+- The kill is a duplicate registration guard, and the margin is one hundred and sixty seven milliseconds, a figure I have now stated wrongly twice from the same two log lines.
+- But the instinct behind the question was right in a different shape: remove what makes it slow. The log names the group the application starts in, so starting it alone may be enough, which would be a fix in the projection rather than a byte in a vendor binary.

@@ -5464,3 +5464,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The last fault of the night was a verification that ran, answered zero, and was ignored while I committed anyway. That belongs in the discipline document, not just the changelog.
 - Added as a tenth rule: assert the exact phrase and fail if absent, and when a check returns something unexpected, stop rather than rewording the search.
 - Every rule in that document is now paid for by a specific mistake here, and the newest is about the habit the other nine depend on.
+
+## 2026-11-05 - the gesture is finally worth trying
+
+- Every note about engineering-mode entry carried the same caveat: the About-screen tap was inferred from a sibling platform because the interface it belongs to never rendered or took input here. Both of those stopped being true tonight.
+- Delegated the navigation with one instruction above the rest: look at each frame before choosing the next click. Guessing coordinates blind is how this project has wasted runs, and it looks identical to a gesture that does nothing.
+- A null result is a real result: it would turn an inherited assumption into a checked absence, which is worth more than another entry repeating the assumption.

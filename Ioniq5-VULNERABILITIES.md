@@ -1947,6 +1947,31 @@ real verification of extracted navigation content. Nothing equivalent exists for
 That is the honest state: the cheap-looking route is the 879 MB system image; the cache-safe route is the 2.09 GB interface payload; and which one survives post-install verification depends
 on a checksum scope this repository has not mapped.
 
+### The checksum scope, answered: it covers MICOM and frontkey binaries, not the payloads that matter
+
+The open question was which files `Checksum.txt` lists, since a checksummed payload would fail after a swap regardless of how the read was staged. The package answers it.
+
+`Checksum.txt` ships in **two** places, and both are CRC32 lists for **small firmware binaries**:
+
+```
+update/micom/Checksum.txt      152 entries, e.g.  HCR_PE.DV.260120.09.REVC.BIN   CRC32=0x31D8C50F
+update/frontkey/Checksum.txt     2 entries, e.g.  MKBD_2_1F_00_NX4.BIN           CRC32=0x0E969002
+```
+
+**There is no `Checksum.txt` for `mango-rootfs.tar.gz`, `new_gui.tar.gz` or the navigation payload** (`appnavi.tar` contains none either). So the CRC verification the binary implements applies to the
+MICOM and frontkey components - which are delivered as individual `.BIN` files - and the large payloads are left with the short "System Update Verify" step the upstream project timed at
+46 ms.
+
+**That resolves the three-way trade-off in favour of the interface payload.** `new_gui.tar.gz` at **2,091,925,601 bytes** is:
+
+- **cache-safe**: larger than any plausible head-unit RAM, so its install pass must return to the medium;
+- **not checksummed**: it appears in no `Checksum.txt` in the package.
+
+The **system image** (`mango-rootfs.tar.gz`, 879 MB) is also outside the checksum lists, but is the payload most likely to be partly resident - so it is the second choice, not the first.
+
+What remains genuinely open is the code-level `NaviChecksumThread`: it exists, it parses a checksum file, and the navigation payload in *this* package carries no such file - so either it is
+generated during installation or it covers content delivered elsewhere. That is a smaller question than the one it replaced, and it does not touch the interface or system payloads.
+
 **And the cache problem has a practical answer: target the largest payload.** `HU/images/new_gui.tar.gz` is **2,091,925,601 bytes (1.95 GiB)**, which exceeds any plausible head-unit RAM, so
 its install pass must return to the medium regardless of cache policy - unlike the 879,109,759-byte `mango-rootfs.tar.gz`, which is at the edge of what a unit might keep resident.
 

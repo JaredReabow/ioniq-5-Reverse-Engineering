@@ -1044,3 +1044,41 @@ entry 3 @0x475d8: 111 -> 2110     entry 7 @0x475f8:  30 -> 3000
 **The trade, stated rather than hidden:** whichever app is id 113 loses its surface id. `111`/`112`/`113` look like media-player variants and `73` is unidentified, so **the correct choice is whichever id never appears in the launcher log** - checked with one `grep` before patching. That makes it a substitution with **no observed victim**.
 
 **And the proof to look for is textual before it is visual:** `QT_WAYLAND_SET_SURFACE_ID=2080` appearing **for `AppID : 11`** in the launcher log would show the table being read for the home screen at all. If that line appears, the patch works; the frame is the second question.
+
+## 48. The surface-id patch works - and the composited frame is the standby face, not the layout
+
+The one-entry patch was applied and it is **read for the home screen**, proven textually for the first time:
+
+```
+AppID : 11, Set to QT_WAYLAND_SET_SURFACE_ID=2080
+SURFACES=[30000|2080|1001|1002]   APP_SURFACE_ID=[2080]   IVI_WM_RC=0
+```
+
+Patch, as the fourth substitution: `/app/bin/AppLauncher`, offset `0x475e8`,
+`71 00 00 00 7a 08 00 00` (113 → 2170) became `0b 00 00 00 20 08 00 00` (**11 → 2080**), sha256
+`c8d6d56b...` → `24f054dc...`. The consumed appId (113) appears in no log on this image.
+
+**So the compositing blocker is closed**: the home screen gets a surface id, the surface exists, and it is placed
+(`IVI_WM_RC=0`).
+
+## 49. The frame it produces, looked at rather than inferred
+
+`work/vm/kbuild/painted-light-home.png` (**120,452 bytes**, kept at
+`docs/vm/49-surface-id-patched-app-standby-composited-2026-11-06.png`), opened rather than described:
+
+> **1920×720, a wide white left panel, the blue title bar with the literal `STR_CAMERA_ALERT2`, and the KIA logo on black.**
+
+**That is the standby face.** Its size, **120,452**, is in the **120,5xx standby class** - not the ~16,000-byte laid-out class.
+The worker's document called it "light home, not standby"; **the pixels say otherwise**, and the size agrees with the pixels.
+
+**The frame did change** - the left panel is now wide where it used to be a strip, and the surface is genuinely composited - but
+the content is standby.
+
+## 50. What that isolates
+
+**Compositing was the blocker for painting at all. It was not the blocker for leaving standby.** Those are now separate facts, where
+before they were tangled: the app *can* be composited on the vendor display path, and it *still* presents its powered-off face.
+
+So the remaining step is doc 17's question, asked with a surface this time: the power-on state must reach **the instance that owns
+surface 2080**. The sequence now has a new textual precondition - `QT_WAYLAND_SET_SURFACE_ID=2080` appearing for `AppID : 11` -
+before placement, and the pid must survive placement and the call.

@@ -5920,3 +5920,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Asked how many verification keys the platform trusts from a writable path. Four binaries verify anything, and only one of them reads keys from the temporary directory, with exactly two keys involved, both already filed.
 - That turns the family from a sample into a complete set, and means the two fixes close it. An enumerated weakness is a different thing from a sampled one, and tells a platform team when to stop looking.
 - Recorded as a scope note rather than an entry, with the incidental build-host path found in the navigation updater and the small piece of evidence it gives against one open hypothesis.
+
+## 2026-11-05 - two sweeps came back empty
+
+- Looked for setuid binaries and for world-writable directories and found none of either outside the volatile areas.
+- That narrows an existing finding rather than adding one: the world-writable navigation binary is an anomaly in two files, not a permissions model applied to a tree, so the fix is two targeted permission changes instead of a tree audit. The fix item now says so.
+- Also recorded why the platform needs one specific recommendation rather than generic hardening, since every escalation in the register goes through ordinary file access or a service and none through privilege bits. Three of the last four sweeps have ended useful and smaller than feared, which is what enumeration does.

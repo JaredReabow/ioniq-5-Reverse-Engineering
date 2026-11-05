@@ -6130,3 +6130,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The readme still described the vendor kernel as what the virtual machine runs, which stopped being the whole truth when the display work moved to a rebuilt kernel. A reader following it would have hit the dead end this project spent hours documenting.
 - Added the rebuilt kernel row with the device evidence, and narrowed the application row to say its good behaviour was measured on the headless backend, because on the display backend it cannot connect at all.
 - Counted five entry documents now corrected for the same reason: accurate when written, never revisited as the work moved.
+
+## 2026-11-05 - a cheaper experiment than the one proposed
+
+- The worker's stall hypothesis is sound, but the image ships a second backend that writes into a mapped framebuffer on a timer and has no page-flip path at all, so the hypothesised mechanism cannot occur on it.
+- Sent that as the next experiment with the check order spelled out: socket first, then application registration, then the error, because an error verdict on a backend that never served a client is not a verdict.
+- Did not run it myself: the worker holds the clone, kernel and wrapper, and duplicating a multi-hour run to save a message would be the wrong trade.

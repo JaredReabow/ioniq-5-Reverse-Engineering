@@ -6058,3 +6058,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Followed up the relay tool that ships in the image and found it does not ship idle: two applications carry a listening tcp port that bridges a usb serial device byte for byte to any client, with no authentication, no tls, no allow list and no bind restriction.
 - The flags show a deliberate service rather than a stray debug line: concurrent clients, immediate rebind and device contention handling. It appears in two different applications, so it is a pattern.
 - Kept the bounds: these are manufacturing and telematics code paths, nothing in our runs showed the relay running, the device node does not exist in the projection, and reachability depends on an interface that is gated on one path and unmeasured on another.
+
+## 2026-11-05 - the network listener surface is two items
+
+- Swept every application binary for hardcoded ports and found only the serial bridge already filed and the mdns responder. That is a negative worth stating, because it tells a reviewer where to stop looking.
+- Bounded the claim in the same breath: the system directories were not swept, ports assembled at run time would not appear as strings, and unix sockets are the platform's normal ipc and out of scope.
+- Noted that three families are now enumerated rather than sampled, and that each enumeration made the work smaller and the claims safer, which is the opposite of how a vulnerability list usually grows.

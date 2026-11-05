@@ -2701,6 +2701,34 @@ fixed by an existing item**, which is the useful outcome: the family is enumerat
 
 ---
 
+## Scope note - the network listener surface, enumerated
+
+Same method as the `/tmp`-key and writable-path families: instead of filing what turns up, sweep for the whole surface so
+the register can say **"this is all of them"**.
+
+```
+app/bin/AppMPAutoTest   tcp-l:9997        V-073
+app/bin/TmsGuiApp       tcp-l:9997        V-073 (same bridge, second application)
+app/bin/mdnsd           port 5350         the mDNS responder, V-072 (UDP, multicast)
+```
+
+**No other listening port appears in any application binary.** That is a negative worth stating: the platform's
+application layer does not open sockets beyond one serial bridge and mDNS, so a future reviewer can stop looking in
+`app/bin` for listeners and start with the two entries above.
+
+**What this sweep does not cover**, stated so the completeness claim is not overread:
+
+- **`/usr/bin`, `/usr/sbin` and `/lib`** were not swept for the same patterns - `socat`, `wpa_supplicant`, `connmand` and
+  the `ofonod` family live there, and the last two are services that legitimately open sockets.
+- **Ports assembled at run time** (`QString` concatenation, config files under `/rw_data`, values from the MICOM) would not
+  appear as strings at all.
+- **Unix-domain sockets** are the platform's normal IPC (every D-Bus name in this register) and are out of scope here.
+
+So the honest claim is: **the TCP/UDP listener surface inside `app/bin` is two items, both filed.** Not "the device has two
+listeners".
+
+---
+
 ## V-073 - an unauthenticated TCP-to-serial bridge ships in two applications
 
 **Status:** the command strings are **measured verbatim** in the shipped binaries; the code paths that run them are **not

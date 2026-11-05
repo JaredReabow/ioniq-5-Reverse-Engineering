@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.15.8 - the network listener surface is two items, and now enumerated
+
+Same method as the `/tmp`-key and writable-path families: sweep for the whole surface so the register can say *"this is all of them"* rather than list what happened to turn up.
+
+```
+app/bin/AppMPAutoTest   tcp-l:9997      V-073
+app/bin/TmsGuiApp       tcp-l:9997      V-073 (same bridge, second app)
+app/bin/mdnsd           port 5350       mDNS, V-072 (UDP multicast)
+```
+
+**No other listening port appears in any application binary.** That negative is worth stating: a reviewer can stop looking in `app/bin` for listeners and start with those two entries.
+
+### And the completeness claim, bounded
+
+- **`/usr/bin`, `/usr/sbin`, `/lib` were not swept** - `socat`, `wpa_supplicant`, `connmand`, `ofonod` live there and two of them legitimately open sockets.
+- **Run-time-assembled ports** (QString concatenation, config under `/rw_data`, MICOM-provided values) would not appear as strings.
+- **Unix sockets** are the platform's normal IPC and out of scope.
+
+**So the honest claim is: the TCP/UDP listener surface inside `app/bin` is two items, both filed** - not "the device has two listeners". The distinction matters because the second sentence is the one a platform team would act on and be wrong about.
+
+### Why the negatives keep being worth the turn
+
+Three families are now enumerated rather than sampled: the `/tmp` keys (two), the writable-path anchors (five, three absent), and the `app/bin` listeners (two). **Each enumeration made the work smaller and the claims safer.** That is the opposite of what a vulnerability list usually does as it grows, and it is the most useful thing this register has learned to do.
+
 ## 5.15.7 - V-073: an unauthenticated TCP-to-serial bridge ships in two applications
 
 Followed up `socat` shipping in the image, and it is not shipped idle. Two applications carry the same service shape:

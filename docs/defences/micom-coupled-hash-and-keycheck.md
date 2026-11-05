@@ -101,3 +101,69 @@ every other D-Bus probe in this project uses.
 
 **What is established:** wrapping a second application fails identically. **Not established:** whether the
 launcher verifies binaries, and whether `getIVDHash` works in the projection at all.
+
+---
+
+## 6. The mechanism answers, and the answer is a SHA-256 over the application set
+
+Retested properly, with the session bus address set:
+
+```
+I1_OWNS=[boolean true]                              com.lge.avn.applauncher is on the session bus
+I1_INTROSPECT=... <interface name="com.lge.avn.applauncher.cipher"> ...
+I1_GETIVDHASH= method return
+               array of bytes [
+                 d4 d8 03 8c eb 1d 4a 77 20 93 f2 0b 47 58 72 3a
+                 ff 8c e3 20 93 8c 53 a9 55 a4 e9 e0 71 6c df 98 ]
+```
+
+**32 bytes - a SHA-256 digest - returned by the projection itself.** This corrects the hedge in §3: the mechanism is
+**not inert here**; the hash side works without any MICOM.
+
+What it covers is named in the binary's own strings:
+
+```
+/app/bin/AppHomeScreen   /app/bin/AppClimate   /app/bin/AppCamera   /app/bin/AppMediaPlayer  ...
+/app/bin/AppLauncher     (a list of application binaries)
+SHA256_Init / SHA256_Update / SHA256_Final
+AskCipherThread::SystemIVD=
+```
+
+**The launcher enumerates the application binaries and hashes them with SHA-256.** The returned digest is therefore
+a **fingerprint of the installed application set** - an integrity identity, exactly the shape of a tamper check.
+
+## 7. But the comparison is not in the launcher - it is in MICOM
+
+There is **no reference manifest** anywhere in the extracted image (no `*ivd*`, `*.hash`, `*manifest*`,
+`*integrity*` file) and the launcher names **no file** to compare against. What it does have is the MICOM event
+handlers:
+
+```
+AskCipherInterface::onNotifySystemHashDataEvent      MICOM -> launcher, carries hash data
+AskCipherInterface::onNotifyAdvancedSecurityKeyEvent KeyCheck / Seed
+```
+
+**So the launcher computes and offers the digest; the comparison happens in MICOM firmware.** That is a coherent
+design and it has a direct consequence for this project:
+
+- **In the projection, the integrity check cannot be enforced**, because there is no MICOM to hold the reference
+  and no MICOM link to deliver `NotifySystemHashDataEvent`. The hash is computable and the check is unenforceable.
+- **The wrapper refusal is therefore not explained by integrity.** Two different applications refused to run as
+  shell scripts, no reference exists locally, and the comparison path is absent. An `exec`/ELF requirement in the
+  launch path remains the simpler explanation - which is what §4 already leaned toward.
+
+## 8. What this means for the patch list
+
+**A real anti-tamper design exists and is the right shape**: hash the application set, compare with a reference held
+where the attacker cannot write, on a device with a trusted element. Two things bound its value as shipped:
+
+1. **The reference lives in MICOM firmware**, so its strength depends on firmware the platform vendor controls -
+   and this project cannot test it (no MICOM in the projection).
+2. **`getIVDHash` is exposed on the session bus to any process on it.** That bus is root-only (V-051), so it
+   discloses a fingerprint to processes already running as root - which on this unit is most of the application
+   stack. It is not a content leak, but it is an oracle for "did the application set change", useful to an
+   attacker with root who wants to know whether their tampering was noticed.
+
+**Recommendation for the patch list:** treat the MICOM reference as a real control and test it on hardware
+(change one byte in one application binary, observe whether the unit refuses to start it); and consider whether
+`getIVDHash` needs to be callable by every session-bus client.

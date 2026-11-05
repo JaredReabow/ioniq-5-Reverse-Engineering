@@ -5866,3 +5866,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Replaced a different application's binary with a wrapper, copying and verifying the original first as the rule requires, and it also failed to start while the untouched application kept running.
 - So the behaviour is general rather than per-application, which weakens the targeted-integrity suspicion and points at an exec or format requirement instead. Recorded that it weakens rather than kills the hypothesis.
 - The direct test of the hash mechanism did not run because I omitted the session bus address from that probe, and that is written down rather than quietly retried.
+
+## 2026-11-05 - the hash answers and the comparison lives in micom
+
+- Retested the cipher interface properly and it returned a thirty-two byte digest from the projection itself, which corrects the earlier hedge that it was probably inert without a micom.
+- The launcher's own strings name every application binary beside the SHA-256 calls, so the digest fingerprints the installed application set, which is the shape of a real tamper check.
+- Found no reference manifest anywhere and the comparison path runs through micom, so the control cannot be enforced in the projection and the wrapper refusal is not explained by integrity. Also noted that the hash is callable by any client on the root-only session bus, which makes it an oracle for whether tampering was noticed.

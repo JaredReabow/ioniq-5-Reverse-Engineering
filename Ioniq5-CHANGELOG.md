@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.14 - every display path is closed, so the ceiling is now a measured fact
+
+The framebuffer was the last hope: `fbdev-backend.so` needs no DRM, and QEMU's standard VGA could provide one. The vendor kernel closes it:
+
+```
+CONFIG_FB_CMDLINE=y
+# CONFIG_FB is not set        <- the entire framebuffer subsystem is compiled out
+```
+
+**Not a missing driver - the subsystem is disabled.** So in this kernel:
+
+| device class | availability |
+|---|---|
+| DRM | `i915` only, which QEMU cannot present |
+| framebuffer | **subsystem disabled** |
+| vendor IAS backend | needs the vendor's GPU interface |
+
+**Every display path is closed.** `headless-backend` is not the best available - it is the only one that can exist, and that is now a closed question rather than a standing assumption.
+
+### Which finally defines the ceiling precisely
+
+- **stock**: the vendor's kernel, `esinit`, compositor, modules, applications, service graph, D-Bus contracts, filesystem layout, boot chain - **all of which this projection runs**
+- **not stock, and cannot be**: the display hardware - built for a GPU the emulator cannot offer, with no fallback compiled in
+- **therefore**: anything depending on the display path - surface creation, painting, touch hit-testing - runs against a substitution, and the failures there are attributable to it
+
+**That is the sentence this project should use from now on, in place of "the UI does not render"** - which implies a defect where there is a hardware absence. It took three corrections and a closed question to earn that sentence, and the record now says it at the top of the state page.
+
 ## 5.11.13 - the headless backend is forced, and that bounds the whole VM claim
 
 Two static reads, no boot, and they change what this project can honestly claim.

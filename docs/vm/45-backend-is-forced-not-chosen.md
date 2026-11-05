@@ -58,3 +58,40 @@ rejects, the standby/splash frames, the missing widgets - is downstream of a sub
 own configuration makes unavoidable.
 
 That is a materially different claim from "the UI does not render", and it is the claim the evidence supports.
+
+---
+
+## 2. The framebuffer path is closed too, so there is no display device at all
+
+The remaining hope was `fbdev-backend.so` - a plain framebuffer needs no DRM and QEMU's standard VGA can provide
+one. The vendor kernel says no:
+
+```
+CONFIG_FB_CMDLINE=y
+# CONFIG_FB is not set          <- the entire framebuffer subsystem is disabled
+```
+
+**Not "the driver is missing" - the framebuffer subsystem is compiled out.** So in this kernel there is:
+
+| device class | availability |
+|---|---|
+| DRM | `i915` only, which QEMU cannot present |
+| framebuffer | **subsystem disabled** |
+| vendor IAS backend | needs the vendor's GPU interface, absent in QEMU |
+
+**Every display path is closed.** `headless-backend` is not merely the best available - it is the only one that
+can exist, and this is now a closed question rather than a standing assumption.
+
+## 3. What that does to the phrase "as close to stock as reasonable"
+
+It defines the ceiling precisely, and honestly:
+
+- **stock**: the vendor's kernel, `esinit`, compositor, modules, applications, service graph, D-Bus contracts,
+  filesystem layout, boot chain - all of which this projection runs
+- **not stock, and cannot be**: the display hardware. The vendor's compositor is built for a GPU the emulator
+  cannot offer, and the kernel has no fallback compiled in
+- **therefore**: anything that depends on the display path - surface creation, painting, touch hit-testing -
+  is running against a substitution, and the failures observed there are attributable to it
+
+That is the sentence this project should use from now on, in place of "the UI does not render", which implies a
+defect where there is a hardware absence.

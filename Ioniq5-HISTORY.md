@@ -5848,3 +5848,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Checked which display backends the vendor ships and which DRM drivers its kernel has. It ships a DRM backend and cannot use it, because the kernel's only DRM driver is the Intel one and the drivers that would work under emulation are not built, one not even present in the configuration.
 - So the least faithful backend is not a preference but the only one that runs, which confirms from the other direction that the vendor's start-up sequence is running against a display path it was not written for, and shows it cannot be fixed inside the emulator.
 - Wrote down the claim the evidence supports: the projection runs the vendor's kernel, init, compositor and application, and cannot give them the display hardware they were written for. Two of the three substitutions are forced by the kernel's configuration rather than chosen.
+
+## 2026-11-05 - every display path is closed
+
+- Checked the last remaining option, a plain framebuffer, and the vendor kernel has the whole framebuffer subsystem compiled out, so no display device of any kind can exist under emulation.
+- That turns the headless backend from the best available into the only one possible, and makes the ceiling a measured fact rather than a standing assumption.
+- Wrote the sentence the project should use from now on: everything the vendor ships is running except the display hardware, and failures that depend on the display path are attributable to that absence rather than to a defect.

@@ -460,3 +460,32 @@ wrote.
 
 **And the application question is finally reachable**: with a seat and a socket on `drm-backend`, a Qt client can connect,
 and `wl_display@1: error 0: invalid object N` becomes testable for the first time.
+
+## 17. The fix is built, and the boot that tests it is specified
+
+`tools/uk_fw/guest/weston_vm_input.c` now **defers** rather than failing:
+
+- `module_init` logs `VM_INPUT_NO_SEAT_DEFERRED` and continues - weston is no longer torn down;
+- `bind_first_seat()` attaches the first seat if one exists and is **called again from the existing `timer_handler`**, so touch attaches the moment a seat appears, without a restart;
+- a new marker, `VM_INPUT_SEAT_BOUND`, records that it happened.
+
+**Deferral was chosen over the "return 0 and do nothing" option** the analysis offered, because a no-op module would let weston serve while **silently losing input forever** on a backend that later gains a seat. The timer already runs every `POLL_MS`, so retrying costs nothing.
+
+Built artefact: **13,008 bytes, zero host paths, both markers present**; reproducible with `tools/uk_fw/guest/build-weston-vm-input.sh`.
+
+## 18. The one boot, and what each outcome means
+
+Order of checks - the order is the lesson of §8, §12 and §15, all of which were failures to check causality before reading an absence:
+
+1. `find /run /tmp /var/run -name 'wayland-*'`
+2. `pidof AppLauncher` / `AppHomeScreen`
+3. `/proc/<app>/fd` for a connected socket
+4. **only then** `invalid object` in the application log
+
+| outcome | means |
+|---|---|
+| socket + app running + no `invalid object` | **the Wayland fault was the seat all along**; the display thread is closed |
+| socket + app running + `invalid object` | the fault is real and backend-independent, and **measurable for the first time on a connected client** |
+| no socket | the deferral is wrong or insufficient - report `wchan`/fd and correct the module |
+
+**And the record requirement:** the document must state the payload that was booted and whether the socket appeared before the application was checked. An `invalid object` verdict from a client that never connected is the mistake I made twice tonight.

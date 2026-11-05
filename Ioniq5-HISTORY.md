@@ -6202,3 +6202,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Implemented the fix the root cause required, in the better of the two forms the analysis named: instead of returning success and doing nothing, the module now defers, binding the first seat when one appears on its existing timer.
 - Wrote a build script so it is reproducible, with the same no host paths discipline as the other builders, and verified the artefact carries none.
 - Left the boot to the worker, which holds the clone and the reproducing command, since two of my last three self-run experiments duplicated its work or taught nothing.
+
+## 2026-11-05 - the fix handed over with the boot specified
+
+- Passed the built module, the build script and the single boot to the worker, with the order of checks written out because three entries tonight failed by reading an absence before establishing causality.
+- Included a table of what each possible outcome means, so the result is read the same way by whoever finds it.
+- Recorded why deferral was chosen over the no-op the analysis offered, and required the document to state the payload booted and whether the socket appeared before the application was checked.

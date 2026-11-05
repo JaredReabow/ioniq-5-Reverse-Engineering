@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.19.2 - the fix handed over with the boot specified, and the order that makes any verdict valid
+
+The module is built; the boot is the worker's, because it holds the drm clone and the reproducing command. Sent it the artefact (`/tmp/vmi/weston-vm-input.so`, 13,008 bytes, zero host paths), the build script it can run itself, and **the one boot** - with the order of checks written out:
+
+1. `find /run /tmp /var/run -name 'wayland-*'`
+2. `pidof AppLauncher` / `AppHomeScreen`
+3. `/proc/<app>/fd` for a connected socket
+4. **only then** `invalid object` in the application log
+
+**That order is the lesson of three entries tonight** - the truncated log, the 30-second boot, and the compositor with no client - all of which were failures to establish causality before reading an absence.
+
+**And a table of what each outcome means**, so the result is interpreted the same way whoever reads it:
+
+| outcome | means |
+|---|---|
+| socket + app + no error | **the Wayland fault was the seat all along** |
+| socket + app + error | the fault is real and backend-independent, and **measurable for the first time on a connected client** |
+| no socket | my fix is wrong or insufficient - report `wchan`/fd |
+
+### Why I chose deferral over the option the analysis offered
+
+Doc 08 suggested "`return 0` (a no-op module) or create a fake seat". **A no-op would let weston serve while silently losing input forever** on a backend that later gains a seat - and this session has spent enough time on instruments that were quietly wrong. The timer already runs every `POLL_MS`, so retrying the bind there costs nothing and keeps the module honest about its purpose.
+
+**Also required in the document, either way:** the payload that was booted, and whether the socket appeared **before** the application was checked. **An `invalid object` verdict from a client that never connected is the mistake I made twice tonight**, and it is the one most likely to be repeated by whoever reads this next.
+
 ## 5.19.1 - the fix, written: the input module tolerates an empty seat and binds late
 
 The worker's doc 08 named the fix as "return 0 (a no-op module) or create a fake seat". **I implemented the better version of that**: the module now **defers** instead of giving up.

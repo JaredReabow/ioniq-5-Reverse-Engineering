@@ -122,3 +122,17 @@ Two frames of the *same* state can differ by more than two frames of *different*
 **Corollary for delegation.** A worker told "compare against these reference sizes" will treat a
 mismatched size as a state change. Give workers the **visual** test as well, in words, and require them
 to say which surface id a capture came from.
+
+## 12. A serial channel translates your bytes; only text survives it unchanged
+
+**The case.** A capture was sent raw over a file-backed serial device to get it off the guest losslessly.
+The PNG arrived mangled: magic `89504e47 0d0d0a 1a0d0a` instead of `89504e47 0d0a1a0a`. The line discipline
+rewrites `\n` (0x0A) to `\r\n`, so **every 0x0A byte in a binary payload gains a 0x0D**.
+
+**Rule.** Treat any serial channel as a **text** channel. Send binary as base64 with no newlines (base64
+never contains 0x0A), or explicitly switch the port to raw mode first. Verify by checking the first bytes
+of what arrives, not by comparing lengths - a length that grows by a few percent is the signature of this
+exact fault.
+
+**Corollary.** The same applies to the console: it is a log channel. Anything larger than a few KB, or
+anything that is not text, belongs on a dedicated file-backed device.

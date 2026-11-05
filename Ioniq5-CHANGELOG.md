@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.4 - frames now come off the guest losslessly, and the first real ones are informative
+
+Two dead ends first: the console corrupted a 129 KB capture at 174,117 base64 characters, and writing the PNG to `/log_data` failed for a reason I should have remembered - **guest writes never persist**, the disk is `snapshot=on`, so the file is gone when QEMU exits.
+
+**What works:** a second **file-backed serial device** (`-chardev file,...,index=3`, guest `/dev/ttyS3`) with the PNG sent as **base64 with no newlines**. Five frames decoded byte-exact from a 502,407-byte channel file.
+
+**And the trap that nearly fooled me:** sending the PNG **raw** over that channel produced magic `89504e47 0d0d0a 1a0d0a` instead of `89504e47 0d0a1a0a` - the line discipline rewrites `\n` to `\r\n`, so every 0x0A byte gains a 0x0D. **A serial channel is a text channel unless you turn the translation off**, and base64 sidesteps it because base64 contains no 0x0A. Now rule 12.
+
+**What the frames show** - and this is why the channel mattered:
+
+| surface | bytes | what it is |
+|---|---|---|
+| 2080, 1001, 1000 | 120,561 | standby (dark, KIA logo) |
+| **1004, 1003** | **7,510** | **light frame, one placeholder glyph, no widgets** |
+
+So **`set_power_on_status` took effect** - the theme switched to the day theme the laid-out screen uses - **but the layout did not complete.** Neither the old 16,062-byte layout nor the standby face.
+
+Two candidates, both cheap to separate: **timing** (captures at +32 s; capture again at +90 s) or **the shim** (81 `PF_CAN` sockets, each with a feeder thread - if the app blocks or retries, the layout may never settle). The second test is a run with no `/etc/ld.so.preload` and the same surfaces at the same timestamps.
+
+`docs/vehdata/04-capture-channel-and-light-frame.md`, `docs/vm/40-…png`, `docs/vm/41-…png`.
+
 ## 5.10.3 - the CAN shim works at the syscall level, and my capture channel failed
 
 Built the third route: `tools/uk_fw/can_shim/can_shim.c`, a shared object that interposes `socket`, `bind`, `ioctl`, `setsockopt` and `close` **for `PF_CAN` sockets only**, hands back one end of an `AF_UNIX`/`SOCK_DGRAM` socketpair, and writes `struct can_frame` datagrams into the other end every 2 s - the SOC frame a real vehicle logged, `0x2fc` byte 7 = 119 -> 59.5 %. **No `read` interposition at all**, so the application's own `read()` gets a frame of exactly the size it expects.

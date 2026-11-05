@@ -5674,3 +5674,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Built a shared object that stands in for the CAN transport and logs every interposed call. The application opened its CAN sockets, set the interface index and bound them, which confirms from its own syscalls what the disassembly only argued.
 - Did not get a picture: I streamed a 129 kilobyte capture as base64 over a console that cannot carry it, a trap already written down. Recorded that as my mistake rather than the shim's, with the fix being to write the file to a partition and read it from the host.
 - Also recorded the smaller mistake: looking for markers in the kernel log when the instrument writes to the serial console.
+
+## 2026-11-05 - frames come off the guest losslessly now
+
+- Two dead ends, one of them mine to have remembered: the console cannot carry a capture, and writing to a partition does not persist because the disk is a snapshot.
+- The working method is a second file-backed serial device carrying base64. Raw binary corrupted there because the serial rewrites newline into carriage-return plus newline, which showed up in the image magic rather than in the length.
+- The first real frames show the day theme active and no widgets, so the power-on call took effect but the layout did not settle. Recorded the two candidate explanations and the two cheap tests that separate them.

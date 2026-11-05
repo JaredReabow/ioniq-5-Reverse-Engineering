@@ -5878,3 +5878,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Filed the exposure as a register entry: the application-set digest is queryable by any client on the session bus, which makes it an oracle for whether tampering changed the platform's view, and an unchanged value would tell an attacker which of their changes are invisible.
 - Bounded it honestly to low severity, since the bus is root-only and no content leaks, and kept it separate from the integrity design itself, which is the right shape and cannot be tested here because the reference lives in micom firmware.
 - Added it to the fix list with a verify step a hardware owner can run in a minute, and noted that an unchanged digest would itself be a finding about coverage.
+
+## 2026-11-05 - a sweep found a third engineering route
+
+- Replaced hypothesis-driven reading with a systematic sweep of every embedded D-Bus interface for write or execute shaped methods. Thirty-four interfaces came back and one was new.
+- The settings application asks the micom, through an argument-free method, whether engineering mode may be entered. That is a third route to the same place, and enforcement sits on the micom side either way.
+- It also names a concrete gap in our own work: the stand-in that answers the micom interface in the projection does not implement the engineering interface at all, so that question currently goes unanswered. Recorded both without claiming the route works.

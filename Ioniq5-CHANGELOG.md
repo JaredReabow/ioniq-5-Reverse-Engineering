@@ -3,6 +3,21 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.6.0 - the interface paints a title bar and a logo, not a home screen
+
+A second worker's independent capture shows the same frame as the first: **title bar, left panel, KIA logo, and nothing else.** Two captures from two clones at the same size (120,561 and 120,565 bytes)
+make this the application's steady state in the projection rather than a timing artefact.
+
+**That corrects what I have been saying all evening.** "The interface paints" was true and misleading: what paints is the application's own window with its branding, **not the home screen's
+content** - no widgets, no icon row, nothing for a tap to land on. Which also explains why the gesture worker's clicks found nothing to navigate to, and why `NO_VIEW` appeared on the research chain
+before placement was fixed: the same "there is a window, there is nothing in it" shape, one layer up.
+
+**The most probable cause is state, not rendering.** The home layout is almost certainly gated on MICOM power/ACC status, and our stand-in answers the D-Bus queries the app makes without driving the
+power state machine - so the app sits in a standby presentation with its logo. That is a **data problem of exactly the kind** the six answered services were, and it is now the single named next step for
+the VM: supply power/ACC state, then the layout should lay out.
+
+Recorded in `docs/CURRENT-STATE.md` where the overstated sentence was, and the worker's capture kept beside the first for comparison.
+
 ## 5.1.19 - reading V-059 end to end, and sharpening the one bullet that had been overtaken
 
 The entry is 166 lines after ten rewrites, so it was read through for internal contradictions. There are none - each correction block sits above the sentence it replaces, and the final resolution

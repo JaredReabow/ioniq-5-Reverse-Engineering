@@ -2641,6 +2641,66 @@ boot".
   repository has only the strings, which support either.
   **The observation that settles it is a `lsof`/`inotify`/`strace` on the unit during a real update**: which path does the `md5sum` open, and which does the `pv`/`dd` open.
 
+## V-064 - one hundred and six services run as root with no systemd hardening at all
+
+**Status:** **counted** from the shipped unit files. No exploitation is implied - this is the reason the *other*
+findings are as severe as they are. Class: missing defence in depth.
+
+### The count
+
+```
+/lib/systemd/system/*.service                     107 units
+User=                                             1   (systemd's own user@.service)
+NoNewPrivileges                                   0
+CapabilityBoundingSet                             4
+ProtectSystem / ProtectHome / PrivateTmp          3 each
+ReadOnlyPaths                                     0
+RestrictAddressFamilies                           0
+SystemCallFilter                                  0
+```
+
+**Every unit that carries any hardening is a stock systemd one** - `locale1`, `machine1`, `timedate1`,
+`bus-proxyd`, `localed`, `timedated`, `machined`. **Not one vendor service sets a single hardening directive.**
+
+### Why this is the finding behind the other findings
+
+It explains a pattern that this register has recorded six times without naming the cause: *"the bus is root-only"*
+appears in V-051, V-058, V-061 and V-062 as though it were a boundary. It is not a boundary **between anything that
+matters**, because **106 of the 107 services are root**, and the one `User=` belongs to systemd itself.
+
+So a compromise of **any one** of the following is a compromise of everything: the media browser, the DLT logger, the
+thumbnail extractor (`org.lightmediascanner.Scanner1`), the location manager, the radio, the Bluetooth HMI, the
+telematics stack, the update path. There is **no privilege separation between components to contain it**, and no
+systemd-level containment either - a service that only needs to write a log file has exactly the privileges of one
+that flashes firmware.
+
+### What it does *not* claim
+
+That any specific service is vulnerable. It says that **when** one is, the platform offers no containment. Several
+findings in this register are only root-level **because** of this: the same weaknesses on a system where components
+ran as distinct users would be much narrower.
+
+### Fix - and it is the highest-leverage change in this document
+
+Apply systemd hardening to the vendor's ~100 units, in this order of value:
+
+1. **`NoNewPrivileges=yes`** everywhere it does not break the component (setuid helpers are the exception).
+2. **`CapabilityBoundingSet=`** reduced per service - most of these need none.
+3. **`ProtectSystem=strict`** with explicit `ReadWritePaths=` for the handful that must write, and
+   **`PrivateTmp=yes`** (which also neutralises several `/tmp`-anchored findings in one move).
+4. **`User=`** for the components that do not need root - the logger, the thumbnail extractor, the media browser.
+5. Later, `SystemCallFilter=` and `RestrictAddressFamilies=`.
+
+Items 1-3 are **configuration-only** changes to files the platform already owns, and they contain a large fraction of
+this register's impact without touching one line of application code.
+
+### Verify
+
+`systemd-analyze security` on a unit enumerates the same directives; or, statically, count `NoNewPrivileges=` across
+`/lib/systemd/system/*.service` and require it to be non-zero before release.
+
+---
+
 ## V-063 - nine bus policies allow the default context, including state-changing services
 
 **Status:** the **policy text is measured** in the shipped image; the **effect** of the allowed calls is **not demonstrated** (no non-root test process was run, and this unit runs almost everything as root anyway). Class: policy misconfiguration / hardening.

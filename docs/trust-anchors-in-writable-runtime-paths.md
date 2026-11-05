@@ -216,3 +216,18 @@ protect one root component from another, and on this system root components are 
 
 **The recommendation does not change, it generalises:** put the check where the privileged action happens, make it
 fail closed, and do not treat "the caller is root" as authorisation for a factory operation.
+
+---
+
+## The cause of the pattern, named
+
+Every finding above that ends in "the bus is root-only" is narrower than it looks, and V-064 now names why: **106 of the
+107 systemd services in the image run as root**, the single `User=` line belongs to systemd itself, and **no vendor unit
+sets `NoNewPrivileges`, a capability bound, `ProtectSystem` or a syscall filter**.
+
+So the platform's privilege model is not "a privileged core and contained components" - it is **"everything is root, and
+some things are more root than others"**. Every component listed in this document is a peer of every other, and a
+compromise of the least-important one is a compromise of the whole.
+
+**That is what makes this document's recommendation urgent rather than tidy**: the writable-path anchors do not merely
+weaken one check, they hand over a privilege level that the design already grants too widely.

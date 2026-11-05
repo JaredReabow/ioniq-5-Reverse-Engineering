@@ -5896,3 +5896,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Read the eighteen bus policy files, which is where the platform's boundary decisions actually live. The system bus is deny by default, but half the service files then add a default-context allow.
 - Three of those belong to the vendor and expose state-changing or data-writing methods to any process on the bus without root, including the platform's own node and session state service.
 - One file ships a developer's account name that does not exist in the password database, which dates the policy and explains the shape of it better than the misconfiguration alone. Added as a fix item with a one-command verification, and noted that the boundaries I had been hunting inside binaries were sitting in eighteen small text files I had never read.
+
+## 2026-11-05 - one hundred and six services run as root with no hardening
+
+- Applied the same sweep to the unit files. Of one hundred and seven services, one has a user line and it belongs to systemd itself, no unit sets no-new-privileges, and none of the vendor's own units set a single hardening directive.
+- That names the cause behind a pattern this register recorded six times without explaining: a root-only bus is not a boundary between anything that matters when nearly every service is root.
+- Filed it with the fix ordered by leverage, all of it configuration only, and added it to the trust-anchors argument as the reason that argument is urgent rather than tidy.

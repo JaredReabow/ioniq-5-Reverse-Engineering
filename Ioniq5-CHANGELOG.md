@@ -3,6 +3,41 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.13 - the headless backend is forced, and that bounds the whole VM claim
+
+Two static reads, no boot, and they change what this project can honestly claim.
+
+**The vendor ships five backends:**
+
+```
+ias-backend.so      644,064   the vehicle's own
+drm-backend.so      536,992
+fbdev-backend.so    348,776
+gl-renderer.so      202,016
+headless-backend.so  92,400   <- what this projection runs
+```
+
+The projection runs the **least faithful** of the five. So the obvious improvement is `drm-backend.so` on a QEMU DRM device - except:
+
+```
+CONFIG_DRM_I915=y                  the ONLY DRM driver this kernel has
+CONFIG_DRM_BOCHS is not set
+CONFIG_DRM_QXL is not set
+CONFIG_DRM_VIRTIO_GPU              not present in the configuration at all
+```
+
+**QEMU cannot present an i915 device, and the two drivers that would work are not built.** So `drm-backend.so` ships and cannot be used, and **`headless` + `--use-pixman` + the solid-fill shim is not a preference - it is the only backend that runs.**
+
+### What that does to the last two entries
+
+It confirms, from the other direction, the conclusion that the vendor's start-up sequence is running against a display path it was not written for - **and shows it cannot be fixed by switching backends inside QEMU.** The three ways out are: rebuild a 4.1.27 kernel with virtio-gpu (**this project has no kernel tree**), patch the vendor's start-up path (against the standing rule, and the wrapper experiment already showed how that goes), or **accept it and say so plainly.**
+
+### The claim the evidence supports
+
+**The projection runs the vendor's kernel, init, compositor modules and application, and cannot give them the display hardware they were written for.** Everything downstream - the rejected surface creation, the splash and standby frames, the missing widget values - follows from that one substitution, which the vendor kernel's own configuration makes unavoidable.
+
+That is a materially different claim from "the UI does not render", and it is the one the evidence supports. It also finally explains why three substitutions were needed rather than one: **two of them are forced by the kernel's configuration, not by my choices.**
+
 ## 5.11.12 - the startup client is the vendor's, and my speculation is refuted
 
 The launch line named `/usr/bin/early-background`, so the question was whose client that is. Answered statically, with no boot:

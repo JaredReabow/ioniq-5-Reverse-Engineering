@@ -5842,3 +5842,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Checked whose client the launch line names, statically and with no boot: it is a vendor binary shipped in the pristine image, launched by a vendor module that also carries the surface creation calls.
 - That refutes the speculation from the previous entry, that our own splash client might be the defect. Written down as a possibility before the check, and killed by the check.
 - Left the thread in an honest place: the application is not crashing, our instruments are not involved in this error, the database is not the cause, and the remaining difference from a vehicle is the display backend the vendor's start-up sequence is running against.
+
+## 2026-11-05 - the headless backend is forced
+
+- Checked which display backends the vendor ships and which DRM drivers its kernel has. It ships a DRM backend and cannot use it, because the kernel's only DRM driver is the Intel one and the drivers that would work under emulation are not built, one not even present in the configuration.
+- So the least faithful backend is not a preference but the only one that runs, which confirms from the other direction that the vendor's start-up sequence is running against a display path it was not written for, and shows it cannot be fixed inside the emulator.
+- Wrote down the claim the evidence supports: the projection runs the vendor's kernel, init, compositor and application, and cannot give them the display hardware they were written for. Two of the three substitutions are forced by the kernel's configuration rather than chosen.

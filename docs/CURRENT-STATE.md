@@ -245,9 +245,13 @@ Reached target Multi-User
 **`/dev/dri/card0` exists.** `drm-backend.so` (ships, 536 KB) and `fbdev-backend.so` (348 KB) are now reachable;
 `ias-backend.so` still is not, because the vendor GPU interface does not exist here.
 
-**The next measurement is the one the whole VM effort exists for:** run the vendor compositor on `drm-backend` and see
-whether the application still receives `wl_display@1: error 0: invalid object N` - the error that killed it in every
-headless run.
+**And it has now been tried.** On `drm-backend` the vendor compositor reports `Output Virtual-1`, reaches Multi-User, and
+shows **zero** `fatal error` / `invalid object` occurrences in the capture
+(`work/vm/kbuild/boot8-drm.log`) - where every headless run ended with exactly that error.
+
+**Not yet established:** that the application started, that input works (`failed to create input device '/dev/input/event0'`,
+*"no input devices"*), or what the screen shows - no capture was taken on the DRM path. Each is a separate measurement, and
+they are the next three rather than one.
 
 
 ## 1e. Engineering mode in the projection: three findings, none of them "it works"

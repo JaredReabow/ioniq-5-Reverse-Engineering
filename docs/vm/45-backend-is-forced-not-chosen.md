@@ -174,3 +174,40 @@ substitution too, just a smaller and better-understood one than the headless bac
 **The next measurement is the one this whole line of work exists for:** run the vendor compositor with `drm-backend` and
 see whether the application stops receiving `invalid object N`. Everything else in this document is now upstream of that
 answer.
+
+---
+
+## 6. The vendor compositor runs on `drm-backend`, and the Wayland fatal error is absent
+
+From the delegated run `work/vm/kbuild/boot8-drm.log`:
+
+```
+Loading module '/usr/lib/weston/drm-backend.so'
+Output Virtual-1
+Failed to initialize backlight
+failed to create input device '/dev/input/event0'
+warning: no input devices on entering Weston
+Reached target Multi-User          (twice)
+fatal error | invalid object        (0 occurrences)
+```
+
+**The vendor compositor loaded its own `drm-backend.so`, found a connected output, and reached Multi-User with no Wayland
+fatal errors in the capture** - where every headless run ended with `wl_display@1: error 0: invalid object N`.
+
+That is the first time in this project that the application stack has had a real display backend underneath it.
+
+## 7. What is *not* yet established - and each is a separate measurement
+
+- **Whether the application itself started.** The capture shows Multi-User and the backend, not `AppHomeScreen`; the worker's
+  `05-drm-backend-result.md` is where that will be settled.
+- **Input.** `failed to create input device '/dev/input/event0'` and *"no input devices"* - so even with a display there is
+  nothing to click with yet. The injection module (`/weston-vm-input.so`) is a separate path and was not exercised here.
+- **Backlight.** `Failed to initialize backlight` is expected on a virtual output and is not fatal.
+- **What the display shows.** No capture was taken on the DRM path in this log.
+
+**So the honest sentence is: the display ceiling is gone, the compositor accepts the device, and the Wayland failure that
+killed the application in every headless run is absent from this capture - but nobody has yet seen the application paint on
+it.**
+
+That is a very different position from the one this document opened with, and it was reached by a rebuilt kernel with
+`bochs-drm`, not by anything the vendor's own kernel could do.

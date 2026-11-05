@@ -5452,3 +5452,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Audited the documents for the phrasing of a claim withdrawn two entries earlier and found it in the remediation report, which is the page a platform team acts from, while the register and the evidence sheet had been fixed.
 - Replaced it with the measured commands and the extractor, and annotated the register's earlier list so the commands quoted there are marked as belonging to the other updater.
 - The check suite cannot see a superseded sentence surviving in the most-read document. This one was found by looking for it deliberately, which is a habit rather than a script.
+
+## 2026-11-05 - the two explanations were the same one
+
+- For three entries I treated a staged copy and a mounted medium as competing answers. The updater's own log calls the directory a mount path, and the filesystem is one whose subdirectory can host the mounted stick, so they were always the same answer.
+- That reconciles the seven references to the directory with the absence of any payload copy: there was never anything to copy.
+- The lesson worth more than the finding: read how a path is used, not just that it appears. The disagreement was mine, not the firmware's.

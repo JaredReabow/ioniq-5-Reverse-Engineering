@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.16 - the last open question resolves, and the two answers were never in conflict
+
+The question was whether FUMO's second read opens the removable medium or a staged local copy, and the path counts had leaned towards staging. Looking at *how* those paths are used resolves it:
+
+```
+mountPath is /update/usb/bin CloseApp called !
+mount %1 %2
+```
+
+**`/update/usb/bin` is a mount point.** FUMO says so itself, and `/update` is the ext4 partition (`mmcblk0p9` per `fstab_emmc`) whose subdirectory can host the mounted USB volume. So the
+directory the flow reads `.lge.upgrade.xml`, `micom/` and `upgrade/` from **is** the removable medium - the "staging path" and "the mount" are the same thing, and my last entry treated them as
+alternatives.
+
+That reconciles both observations: seven references to `/update/usb` because that is where the media is mounted, and no copy of the payload because there is nothing to copy. The second read opens
+the same media the first one did, which is what the upstream project reports.
+
+**Residual caveat, kept:** `mount %1 %2` is generic - the same command mounts a loop image from local storage - and nothing here shows what is mounted there at run time. So the leaning is
+**in place**, for a reason rather than by preference, and `lsof`/`inotify` on a unit still settles it beyond argument.
+
+Two lessons in one entry. The first is the ordinary one: read *how* a path is used, not just that it exists. The second is less comfortable - I had been treating "staged copy" and "mount" as
+opposed explanations for three entries, and the disagreement was mine rather than the firmware's.
+
 ## 5.1.15 - the withdrawn claim was still in the vendor-facing report
 
 A drift audit across the documents found the one place that mattered: **`docs/REMEDIATION-REPORT.md` item 7 still described the install as `pv -q %1 | tar -xvm -C %2` with "reference sites ~1.2 MB

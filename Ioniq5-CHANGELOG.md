@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.13.0 - the /tmp-key family is enumerated, not sampled
+
+Asked how many verification keys the platform trusts from a writable path, and the answer is **two**, both already filed:
+
+```
+binaries that verify anything:
+  AppLauncher     RSA_verify   /tmp/app_normal.key (V-048)   /tmp/navi_public.key (V-066)
+  AppSDS          EVP_Verify   no /tmp references
+  NaviUpdateApp   RSA_verify   no /tmp references - only CA bundles and one build-time path
+  openssl         the tool
+```
+
+**That makes V-048 and V-066 a complete set**, and it means the fixes in items 9 and 17 **close the family** rather than reducing it. Worth the sweep: an enumerated weakness is a different thing from a sampled one, and a register that cannot say "this is all of them" cannot tell a platform team when to stop looking.
+
+**Two smaller things from the same sweep:**
+
+- `NaviUpdateApp` carries a **build-host path** (`/usr/local/oecore-x86_64/openssl/cert.pem`) baked into the binary - harmless in effect, the path does not exist on the unit, and the same class of artefact as the developer account name in `vcrm.conf` (V-063).
+- **`NaviUpdateApp` does not read a key from the navi tree**, which is the only evidence so far bearing on V-066's open question about a self-referential check. It weakens that hypothesis without settling it, since the key in question is written by `AppLauncher`, not by the updater.
+
+Recorded as a **scope note** in the register rather than as a new entry - it is a statement about coverage, not a finding.
+
 ## 5.12.9 - V-066: the navigation payload is world-writable, and its verification key is built in /tmp
 
 The permissions sweep found **128 world-writable files**, and two of them matter:

@@ -5914,3 +5914,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Swept file permissions and found one hundred and twenty-eight world-writable files, two of which are the navigation binary and a startup shell script. Directory modes prevent creating files there, but the file modes permit modifying those two in place.
 - Normal boot leaves that partition read-only, but the application launcher itself remounts it read-write at runtime, so the window exists. The same launcher builds a navigation verification key in the temporary directory, which matches the earlier finding where a temporary key let a signed binary run as root.
 - Separated what is measured from what is not: the key may be read from the tree it verifies, and whether the check gates execution is unknown. Filed both with a fix that is two lines of image build plus shipping the key.
+
+## 2026-11-05 - the temporary-key family is enumerated
+
+- Asked how many verification keys the platform trusts from a writable path. Four binaries verify anything, and only one of them reads keys from the temporary directory, with exactly two keys involved, both already filed.
+- That turns the family from a sample into a complete set, and means the two fixes close it. An enumerated weakness is a different thing from a sampled one, and tells a platform team when to stop looking.
+- Recorded as a scope note rather than an entry, with the incidental build-host path found in the navigation updater and the small piece of evidence it gives against one open hypothesis.

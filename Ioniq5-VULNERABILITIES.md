@@ -2641,6 +2641,28 @@ boot".
   repository has only the strings, which support either.
   **The observation that settles it is a `lsof`/`inotify`/`strace` on the unit during a real update**: which path does the `md5sum` open, and which does the `pv`/`dd` open.
 
+## Scope note - how complete the "keys from writable paths" set is
+
+Measured, so that V-048 and V-066 can be read as a **complete set** rather than as examples:
+
+```
+binaries that verify anything:
+  AppLauncher      RSA_verify       reads  /tmp/app_normal.key   (V-048)   /tmp/navi_public.key (V-066)
+  AppSDS           EVP_Verify       no /tmp references
+  NaviUpdateApp    RSA_verify       no /tmp references; only CA bundles and one build-time path
+  openssl          the tool          n/a
+```
+
+**Exactly two verification keys are materialised in a world-writable path, both in `AppLauncher`, and both are filed.**
+The other verifying components do not read keys from `/tmp`, `/run`, `/rw_data` or `/app/data`. That makes the
+`/tmp`-key family **enumerated, not sampled** - and it means the fix in items 9 and 17 closes it.
+
+Incidental, recorded because it is the kind of thing that leaks: `NaviUpdateApp` carries a **build-host path**
+(`/usr/local/oecore-x86_64/openssl/cert.pem`) baked into the binary. Harmless in effect - the path does not exist on
+the unit - but it is the same class of artefact as the developer account name in `vcrm.conf` (V-063).
+
+---
+
 ## V-066 - the navigation payload's integrity story: world-writable binary, and a key materialised in `/tmp`
 
 **Status:** the file modes and the strings are **measured**; the *verification source* and the *exploitability* are **unproven**. Class: trust anchor in a writable path / permissions (V-048 family, second payload).

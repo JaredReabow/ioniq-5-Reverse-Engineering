@@ -3,6 +3,41 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.20.0 - the VM display thread is closed: socket, application, drawing, no Wayland error
+
+The boot that tested the seat fix (`docs/kernel/09-vm-input-fix-result.md`, run `1793901922927628000`) is the result this whole line of work existed for, and the payload is stated as required: kernel sha256 `893e1a6b…`, the rebuilt module **13,008 bytes** sha256 `514da5de…` with its new markers, `backend=drm-backend.so`, `ivi-shell-user-interface=/usr/libexec/…`, `[output] name=Virtual-1`, authentic init, `--smp 4`.
+
+**Checked in the order three failures tonight made mandatory:**
+
+```
+1  WAYLAND_SOCKET_UP after 2s                    socket BEFORE any application check
+2  APPLAUNCHER_PID=[1953] +45s → APPHOME_PID=[2205] → PIDS_FINAL 1953 / 2420 / 1995
+3  Using Wayland-EGL | SCREEN_STATE: START DRAW | constructMenuModel
+   prepareAdvancedDisplayList … numItemsPerPage: 12
+   injectWidgetItemToAdvancedPage … itemWidgetPlaceHolder FOUND!!!
+4  invalid object | wl_display@1: error        →  0 occurrences
+```
+
+**The vendor's own application runs against a real DRM output, connects as a live Wayland-EGL client, and reaches its drawing path.** The `invalid object` fault that consumed fifteen sections of `docs/vm/45-…` **was the empty seat all along** - our own module's `return -1`.
+
+### And the gap in my own result, stated rather than smoothed
+
+**The frames were measured but not preserved.** The log carries `BYHAND_CAPTURE1 bytes=87818` plus two more, and **87,8xx is a new size** - not the 129,844-byte background, not the 120,5xx standby face - so something different was genuinely on screen. **But no PNG was saved**: the run's image channel is 0 bytes, and the one inline PNG recoverable from the serial log decodes to **6,145 bytes at 1024×768**, which is a console framebuffer rather than the application.
+
+**By this project's own rule, a capture that was not kept is not evidence.** The log lines justify writing §19 as a result; **"the application draws" is not settled until someone saves the frame** - one run with the image channel enabled, and the first item for whoever picks this up.
+
+### What the VM goal now looks like
+
+| | |
+|---|---|
+| vendor kernel, **rebuilt** with `bochs-drm` | working |
+| `/dev/dri/card0` + vendor `drm-backend.so` | working, `Output Virtual-1` |
+| compositor serving a client | **working** - `WAYLAND_SOCKET_UP after 2s` |
+| vendor application | **running, connected, drawing** - one saved frame short of proven |
+| What remains | save a frame; then the widget values, which need the CAN transport the vendor kernel cannot provide |
+
+**Five instrument-caused failures, one root cause, one line of code.** That is the shape of this whole evening, and the record says so.
+
 ## 5.19.2 - the fix handed over with the boot specified, and the order that makes any verdict valid
 
 The module is built; the boot is the worker's, because it holds the drm clone and the reproducing command. Sent it the artefact (`/tmp/vmi/weston-vm-input.so`, 13,008 bytes, zero host paths), the build script it can run itself, and **the one boot** - with the order of checks written out:

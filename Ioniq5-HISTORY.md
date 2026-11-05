@@ -6208,3 +6208,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Passed the built module, the build script and the single boot to the worker, with the order of checks written out because three entries tonight failed by reading an absence before establishing causality.
 - Included a table of what each possible outcome means, so the result is read the same way by whoever finds it.
 - Recorded why deferral was chosen over the no-op the analysis offered, and required the document to state the payload booted and whether the socket appeared before the application was checked.
+
+## 2026-11-05 - the virtual machine display thread is closed
+
+- The boot that tested the seat fix produced the result the whole line of work existed for: the socket appeared before any application check, the launcher and home screen started, the application connected as a live client and reached its drawing path, and the wayland error that consumed fifteen sections was absent.
+- It was the empty seat all along: one return value in a module this project wrote.
+- Recorded the gap in my own result rather than smoothing it: the frames were measured by size and are a new size, which is real evidence, but no image was saved, and by this project's own rule a capture that was not kept is not evidence. Saving one frame is the next item.

@@ -2520,8 +2520,22 @@ proves the point: `objdump -h app/bin/AppUpgrade` reports `.text 0x3f73`.
 RIP-relative displacements that resolved exactly to each command string. Both sites it found (`0x1877a8`, `0xbd744`) lie in **`.rodata`** - they are pointers inside the embedded images' data, not
 code references. **The claim is withdrawn**: the scan cannot distinguish code from data, and on this binary nearly everything is data.
 
-What stands, and is enough as filed: both command strings are present and each names `%1`; the structural separation is the upstream project's `[RE]` finding against the embedded images.
-Analysing those two extracted ELFs is the next step, and it is now small - the tool and the offsets are recorded here.
+**And the separation is real in the updater this vehicle runs - measured in code, with the section checked.** Running the same displacement scan *inside the extracted FUMO image*, and keeping only
+sites that fall in its `.text` range (`0x24830..0x209a33`), gives:
+
+| command | string VA | code reference sites (in `.text`) |
+| --- | --- | --- |
+| `ionice -c3 md5sum %1` (the check) | `0x22c4e0` | **1 site: `0x13a550`** |
+| `tar xf %1 -C %2` (the extraction) | `0x20be5a` | **2 sites: `0x633e0`, `0x101d2f`** |
+| `tar -tvf %1` (a listing pass over the same file) | `0x20b358` | 1 site: `0x5ea1c` |
+| `pv -q` (streaming) | `0x210fc8` | 1 site: `0x70c75` |
+
+So in **FUMO** - the updater the launcher row selects - the integrity check is constructed at `0x13a550` and the extraction at `0x633e0`/`0x101d2f`: **different code, roughly 1.2 MB apart**, and
+this time the addresses are instructions rather than data. FUMO also carries a listing pass (`tar -tvf %1`) over the same file, which is a third read of the same input.
+
+Note what the vehicle does *not* run: `pv -q %1 | tar -xvm -C %2`, the install command that appears in the wrapper's data, belongs to **SCOMO**. The FUMO equivalents are the `tar xf` sites above.
+
+
 
 ### What an attacker actually needs — and a keyless downgrade that falls out of it
 

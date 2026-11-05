@@ -559,3 +559,36 @@ this project's observability: **the compositor's log is the one file most worth 
 **So the working configuration is the worker's, not mine**: backend selected by the **ini's `backend=` line**, with no CLI
 override. The remaining task - save one frame - is specified to it with that difference called out, and with the instruction to
 change one variable only.
+
+## 22. The frame is saved, it does not show a painted application, and the mode explains why
+
+The worker kept a frame (`docs/kernel/10-capture-saved-and-described.md`): **87,944 bytes, sha256 `b51acb8b...`, PNG 1024×768,
+RGBA**, decoded exactly from the file-backed channel.
+
+**What it shows, described rather than assumed:** ~95 % black; two text-like clusters (upper-right-centre and a thin band at
+the bottom); dominant greys plus a trace of orange; the top ~252 rows entirely black.
+
+**And it does not prove the application draws.** It was captured **after** the instance that logged `START DRAW` was gone, so it
+shows a mostly-empty ivi-shell output. The doc says so itself, which is the right call.
+
+## 23. Two causes, both concrete, and one of them is a resolution this project has had wrong all along
+
+**1. The output is 1024×768, not 1920×720.** The vendor ini carries `[output] name=HDMI1 / mode=1920x720`, the app lays out
+for `1926×753` surfaces, and the capture is **1024×768** - the bochs default. A 1920-wide layout drawn into a 1024-wide screen
+looks exactly like what was described: sparse text pushed to the edges, everything else black.
+
+`bochs-drm` takes its modes from **EDID**, and QEMU can advertise the right one:
+
+```
+-device VGA,edid=on,xres=1920,yres=720
+```
+
+then `/sys/class/drm/card0-Virtual-1/modes` should list `1920x720` and weston's log should report that mode on
+`Output Virtual-1`.
+
+**2. The capture must happen while an instance is alive**, not after the first one exits - the monitor already has the liveness
+signal.
+
+**Both are one run.** And the reference for what a correct frame looks like already exists: `docs/vm/38-...png`
+(**16,062 bytes at 1920×720**), the only fully-laid-out frame this project has captured, taken on the **headless** backend long
+before tonight's kernel work.

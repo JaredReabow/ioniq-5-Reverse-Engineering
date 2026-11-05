@@ -5872,3 +5872,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Retested the cipher interface properly and it returned a thirty-two byte digest from the projection itself, which corrects the earlier hedge that it was probably inert without a micom.
 - The launcher's own strings name every application binary beside the SHA-256 calls, so the digest fingerprints the installed application set, which is the shape of a real tamper check.
 - Found no reference manifest anywhere and the comparison path runs through micom, so the control cannot be enforced in the projection and the wrapper refusal is not explained by integrity. Also noted that the hash is callable by any client on the root-only session bus, which makes it an oracle for whether tampering was noticed.
+
+## 2026-11-05 - the integrity hash filed as an oracle
+
+- Filed the exposure as a register entry: the application-set digest is queryable by any client on the session bus, which makes it an oracle for whether tampering changed the platform's view, and an unchanged value would tell an attacker which of their changes are invisible.
+- Bounded it honestly to low severity, since the bus is root-only and no content leaks, and kept it separate from the integrity design itself, which is the right shape and cannot be tested here because the reference lives in micom firmware.
+- Added it to the fix list with a verify step a hardware owner can run in a minute, and noted that an unchanged digest would itself be a finding about coverage.

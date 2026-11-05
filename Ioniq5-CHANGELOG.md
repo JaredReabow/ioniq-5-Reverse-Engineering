@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.12.3 - V-061: the integrity hash is an oracle, and it is the inverse of what a tamper check should give
+
+Filed the exposure the last two entries surfaced, as **V-061**, with the severity bounded honestly.
+
+**What is exposed:** `com.lge.avn.applauncher` on the session bus implements `com.lge.avn.applauncher.cipher.getIVDHash() -> ay`. The launcher holds every application binary's path beside `SHA256_Init/Update/Final` and labels the digest `SystemIVD`. A call in the projection returned a 32-byte value.
+
+**Why it is a finding rather than a curiosity:** the digest is a **fingerprint of the installed application set**, and for a process already running as root - which on this unit is most of the application stack - it answers **"did my tampering change the platform's integrity view?"** An *unchanged* value after a modification tells an attacker **which of their changes are invisible to it**. That is the inverse of what an integrity mechanism should provide. It is also a stable device fingerprint across queries.
+
+**Bounded:** the session bus is root-only (V-051), so this is not an escalation and leaks no content. Low severity, stated as low.
+
+**Not claimed:** that the integrity *design* is wrong. Hash the application set, compare against a reference in MICOM firmware, on a device with a trusted element - that is the right shape, and this project cannot test the comparison because the projection has no MICOM. The finding is about **exposure of the digest**, not about the scheme.
+
+**Added to the fix list as item 13**, with the cross-reference table updated, and a verify step that a hardware owner can run in a minute: query, change one byte in one binary, query again. A changed value confirms the oracle; an **unchanged** value is itself a finding about coverage.
+
 ## 5.12.2 - the hash answers, it is a SHA-256 of the application set, and the comparison lives in MICOM
 
 Retested `getIVDHash` with the bus address set this time. It **works in the projection**:

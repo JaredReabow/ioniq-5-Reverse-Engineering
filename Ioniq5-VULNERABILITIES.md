@@ -2641,6 +2641,67 @@ boot".
   repository has only the strings, which support either.
   **The observation that settles it is a `lsof`/`inotify`/`strace` on the unit during a real update**: which path does the `md5sum` open, and which does the `pv`/`dd` open.
 
+## V-061 - the application-set hash is an integrity oracle any session-bus client can query
+
+**Status:** the call is **demonstrated** in this image (`getIVDHash` answered with a 32-byte digest); its usefulness to an attacker is **unproven** and modest by construction. Class: information exposure / defence-testing oracle.
+
+### What is exposed
+
+`com.lge.avn.applauncher` on the session bus implements:
+
+```
+interface  com.lge.avn.applauncher.cipher
+  method     getIVDHash() -> ay hash_data
+object     /com/lge/avn/applauncher/cipher
+```
+
+The launcher computes a **SHA-256 over the application binaries** (it holds `/app/bin/AppHomeScreen`,
+`AppClimate`, `AppCamera`, `AppMediaPlayer` and the rest as strings beside `SHA256_Init/Update/Final`, and labels
+the result `SystemIVD`). A call in the projection returned:
+
+```
+d4 d8 03 8c eb 1d 4a 77 20 93 f2 0b 47 58 72 3a ff 8c e3 20 93 8c 53 a9 55 a4 e9 e0 71 6c df 98
+```
+
+### Why that is a finding rather than a curiosity
+
+The hash is a **fingerprint of the installed application set**. Two consequences for an attacker who already has
+code execution as root - which, on this unit, is most of the application stack:
+
+1. **It answers "did my tampering get noticed?"** A modified binary changes the digest. Comparing the value before
+   and after a modification tells the attacker whether the platform's integrity view changed - and if the value
+   does **not** change, tells them which of their modifications are invisible to it. That is the opposite of what an
+   integrity mechanism should provide.
+2. **It is a stable device fingerprint.** The same digest identifies a given application build, across queries, to
+   anything that can call it.
+
+**Bounded by the bus.** The session bus is root-only (V-051: `EXTERNAL` auth, uid 65534 refused), so this is
+reachable by processes already running as root, not by an unprivileged one. That is why the severity is low: it is
+not an escalation and it leaks no content.
+
+### What is *not* claimed
+
+- **Not a vulnerability in the integrity design itself.** The design is sound in shape: hash the application set,
+  compare against a reference, on a device with a trusted element. The reference is in **MICOM firmware**, which this
+  project cannot inspect or test - the comparison path is `NotifySystemHashDataEvent` / `NotifyAdvancedSecurityKeyEvent`
+  with `Seed` and `KeyCheck`, and it is **unenforceable in the projection** because no MICOM is attached.
+- **Not demonstrated** that the oracle helps in a real attack chain. It helps a *post-compromise* actor understand
+  the detection surface; it does not grant anything.
+
+### Fix
+
+Do not expose `getIVDHash` to the general session bus: restrict the interface to the components that need it (the
+MICOM bridge), or drop the method from the public object and keep the digest internal to the launcher. If an
+attestation answer is genuinely needed, make it a **challenge-signed** response rather than a stable digest, so
+querying it cannot be used to learn what is and is not detected.
+
+### Verify
+
+As root on a unit: query `getIVDHash`, change one byte in one application binary, query again. A changed value
+confirms the oracle; an unchanged value is itself a finding about coverage.
+
+---
+
 ## Defence note - a MICOM-coupled hash and seed/key-check exists in the launcher
 
 Not a vulnerability: the counterpart to V-051, recorded so the register is not one-sided.

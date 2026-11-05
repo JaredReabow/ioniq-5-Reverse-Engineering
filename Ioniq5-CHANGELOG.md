@@ -3,6 +3,38 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.17.4 - the control experiment refuted the hypothesis, and the failure moved downstream
+
+The worker's `06-fbdev-backend-result.md` is the most useful result in this stretch, and it settles the question my last two entries were circling:
+
+> **fbdev-backend result: also no wayland socket - the stall is NOT vblank/page-flip.**
+
+**The evidence is better than mine was:**
+
+```
+find /run /tmp /var/run -name 'wayland-*'   -> empty at 8 s and 16 s
+/proc/<weston>/fd -> 0 /dev/null, 1 log, 2 log, 13 timerfd, 23 timerfd, 24 dltpipe
+                     NO unix socket, NO epoll fd
+alive at +8 s, gone by +16 s                -> a teardown, not a stalled server
+```
+
+**The absence of an epoll fd proves the compositor never entered its serving loop** - a stronger statement than "no socket found", and exactly the kind of evidence this project should prefer over an absence.
+
+**So both real-output backends fail identically after loading all the ivi modules, while headless succeeds.** The common factor is **ivi-shell startup over a real output**, not scanout.
+
+### Which points at one specific, checkable thing
+
+The vendor ini names the shell user interface, **and the path is wrong**:
+
+```
+weston_1920.ini:  ivi-shell-user-interface=/usr/lib/weston/weston-ivi-shell-user-interface   (MISSING)
+the binary:       /usr/libexec/weston-ivi-shell-user-interface   215,480 bytes, present
+```
+
+With a **virtual** output the ivi-shell may never spawn that client; with a **real** output it plausibly does - and a failed spawn during shell init is the shape of a compositor that loads every module and then exits. Sent as the next single-change test, flagged as a hypothesis **because I have already sent one confident, specific, wrong instruction this session** (`CONFIG_DRM_VIRTIO_GPU` does not exist in 4.1.27).
+
+**Fallback named in the same result:** the `ttm_bo_vm_open` warnings on the bochs framebuffer map are the **only kernel-side signal that differs** between the working virtual-output case and the failing real-output case.
+
 ## 5.17.3 - V-075: nothing verifies the boot image, and the layer below the register is unassessed
 
 Went looking for a bricking vector in `esinit` and found a resilient design instead, plus a gap the register has never named.

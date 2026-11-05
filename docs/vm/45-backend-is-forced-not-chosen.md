@@ -340,3 +340,44 @@ DRM backend stalls"*.
 
 **My own two fbdev runs are superseded**; `work/vm/fbdev` and `run-fbdev.py` stay as the record of what did not work, and
 the live line of work is the worker's.
+
+## 12. The worker's control experiment refutes the vblank hypothesis and moves the failure downstream
+
+My §9/§11 framing - that fbdev would be a cheap way around a page-flip stall - is **superseded by the measurement**. The
+delegated result (`docs/kernel/06-fbdev-backend-result.md`) is:
+
+> **fbdev-backend result: also no wayland socket - the stall is NOT vblank/page-flip.**
+
+**The decisive evidence, and it is better than mine:**
+
+```
+find /run /tmp /var/run -name 'wayland-*'      -> empty at 8 s and 16 s
+/proc/<weston>/fd  ->  0 /dev/null, 1 log, 2 log, 13 timerfd, 23 timerfd, 24 dltpipe
+                       NO unix socket, NO epoll fd
+weston alive at +8 s, gone by +16 s            -> a teardown, not a live-but-stalled server
+```
+
+**The absence of an epoll fd proves the compositor never entered its serving loop** - a stronger statement than "no socket
+found", and the kind of evidence this project should prefer.
+
+**So both real-output backends (`drm`, `fbdev`) fail identically after loading all the ivi modules, while the headless
+(virtual output) backend succeeds** (`WAYLAND_SOCKET_UP`, measured long ago). The common factor is **ivi-shell startup over a
+real output**, not how a backend scans out.
+
+## 13. The one thing that differs between virtual and real output: the shell user-interface binary
+
+The vendor ini names it, and **the name is wrong**:
+
+```
+weston_1920.ini:  ivi-shell-user-interface=/usr/lib/weston/weston-ivi-shell-user-interface
+that path:        MISSING
+the binary:       /usr/libexec/weston-ivi-shell-user-interface   215,480 bytes, present
+```
+
+**With a virtual output the ivi-shell may never spawn that client; with a real output it plausibly does** - and a failed spawn
+during shell init is the shape of a compositor that loads every module and then exits. That is the next single-change test,
+and it comes from the vendor's own configuration rather than from a guess.
+
+**And the fallback if it does not work is named in the same result**: the bochs framebuffer map emits
+`ttm_bo_vm_open` warnings that are the **only kernel-side signal differing** between the working virtual-output case and the
+failing real-output case.

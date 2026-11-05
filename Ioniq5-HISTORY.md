@@ -6154,3 +6154,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Went looking for a bricking vector in the init script and found a resilient design instead: the partition format I first read as destructive runs only in crash recovery and is immediately followed by restoring the good image from the other slot.
 - What the same code does establish is that the boot image is handled as a plain file, copied between two read write slots with no signature, hash or version check anywhere in userspace.
 - Filed it with its boundary stated: the answer lives in closed bootloader firmware this project cannot see, and the entry's real value is to mark that everything else in the register covers the running system and not the layer that boots it.
+
+## 2026-11-05 - the control experiment refuted the hypothesis
+
+- The worker's framebuffer result settles it: that backend also produces no socket, so the stall is not about page flips, and its absence is a teardown rather than a hung server.
+- The strongest single piece of evidence is that the process holds no epoll descriptor, which proves the compositor never entered its serving loop, a better statement than a missing socket.
+- That moves the failure to the shell's startup over a real output, and points at one concrete thing: the configuration names a shell user interface binary at a path where it does not exist, while the binary sits in another directory.

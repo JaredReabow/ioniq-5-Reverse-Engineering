@@ -5926,3 +5926,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Looked for setuid binaries and for world-writable directories and found none of either outside the volatile areas.
 - That narrows an existing finding rather than adding one: the world-writable navigation binary is an anomaly in two files, not a permissions model applied to a tree, so the fix is two targeted permission changes instead of a tree audit. The fix item now says so.
 - Also recorded why the platform needs one specific recommendation rather than generic hardening, since every escalation in the register goes through ordinary file access or a service and none through privilege bits. Three of the last four sweeps have ended useful and smaller than feared, which is what enumeration does.
+
+## 2026-11-05 - a static root ssh key ships in the image
+
+- Sweeping for marker files in the temporary directory turned up one referenced by an ssh service template. Following it found a root public key shipped in the image, an ssh unit whose only gate is that marker, and root logins not disabled.
+- It cannot run today because the daemon binary is absent, and that is recorded first so the severity is not overstated. What remains is a static shared credential that would become a root login the moment the package is added for field debugging.
+- Filed with the four measured facts, the honest bounds, and a cheap fix: remove the key and the units, provision per-device credentials if remote access is needed, and treat the shipped key as compromised by distribution.

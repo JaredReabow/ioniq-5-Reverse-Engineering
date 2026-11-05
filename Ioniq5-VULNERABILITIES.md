@@ -2667,6 +2667,82 @@ world-writable directories (outside /tmp, /run, /var/volatile)  0
 
 ---
 
+## V-067 - a static root SSH key ships in the image, behind a `/tmp` marker and a missing binary
+
+**Status:** every component is **measured in the shipped image**; the SSH service **cannot run today** because its
+binary is absent. Class: hardcoded credential material / latent remote access.
+
+### The four measured facts
+
+1. **A root SSH public key ships**:
+
+```
+/etc/dropbear/authorized_keys     397 bytes, 1 key
+  ssh-rsa AAAA...  rsa-key-20181102          (372-character modulus, generated 2018-11-02 by the name)
+```
+
+2. **The service that would use it is installed** - `lib/systemd/system/dropbear@.service`:
+
+```
+ConditionPathExists=/tmp/secure_console_disable        <- the ONLY gate
+ExecStartPre=-/etc/dropbear/dropbear_publickey_installer.sh
+ExecStart=-/usr/sbin/dropbear -i -s -r /var/dropbear/dropbear_rsa_host_key
+```
+
+3. **Root logins are not disabled** - `/etc/default/dropbear` contains `# DROPBEAR_EXTRA_ARGS="-w"` **commented out**,
+   and `-w` is dropbear's "disallow root logins" flag.
+
+4. **The binary is absent** - `/usr/sbin/dropbear`, `/usr/bin/dropbearkey`, `/usr/bin/dbclient` are all missing, and the
+   unit is not enabled. **So this cannot be reached on the shipped image today.**
+
+### What the installer adds
+
+`/etc/dropbear/dropbear_publickey_installer.sh` copies the shipped key into place as the root account's key:
+
+```
+if [ -f /home/root/.ssh/authorized_keys ]; then ... cp /etc/dropbear/authorized_keys /home/root/.ssh/authorized_keys
+else mkdir /home/root/.ssh/; cp /etc/dropbear/authorized_keys /home/root/.ssh/authorized_keys
+```
+
+So if the service ever starts, **the key in the firmware becomes an accepted root login**.
+
+### Why this matters despite the missing binary
+
+- **The credential is static and shared.** Every unit built from this image that ships the same `authorized_keys`
+  accepts the same private key. One leak of that private key - anywhere, at any time, by anyone who has ever had the
+  firmware - is a **root login on every such unit**, and nothing in the image gives the owner a way to tell.
+- **The gate is a file in a world-writable directory.**
+  `ConditionPathExists=/tmp/secure_console_disable` means the difference between "no listener" and "listener" is the
+  presence of a `/tmp` file. Per V-065 the writers of `/tmp` files are boot scripts and per V-064 any of 106 root
+  services can create one; the name even reads like a *safety* marker ("secure console disable"), which invites someone
+  to create it to harden the box and get the opposite.
+- **It is one missing file from being live.** `dropbear` is a package the platform vendor can add for field debugging -
+  and the unit's own service file is already there, unwittingly enabling it. A single `opkg install`/rootfs change turns
+  this from latent to reachable.
+
+### What is *not* claimed
+
+That the platform is currently remotely accessible: **it is not** - no binary, no enablement, and the projection never
+starts it either. That the matching private key is known to anyone: **unproven** - the point is that the risk is
+**shared and unrotatable per device**.
+
+### Fix
+
+1. **Remove `/etc/dropbear/authorized_keys` from production images**, along with `dropbear@.service` and
+   `dropbearkey.service`. Debug access should be a per-device, provisioned credential, not a baked one.
+2. If SSH must exist, gate it on something better than a `/tmp` file - a MICOM-held state or a signed provisioned flag
+   in `/rw_data` - and leave `-w` (disallow root login) **enabled**.
+3. Treat the key `rsa-key-20181102` as **compromised-by-distribution**: it is in a shipped image, so any fleet built
+   from it should consider the corresponding private key untrusted.
+
+### Verify
+
+`grep -c . /etc/dropbear/authorized_keys` on a unit - any non-zero result is this finding. Then attempt to log in with
+the matching private key (the vendor's own holder can confirm); a successful `root` login before the binary is
+installed is impossible, which is why the fix above is about the *credential*, not about the daemon.
+
+---
+
 ## Scope note - how complete the "keys from writable paths" set is
 
 Measured, so that V-048 and V-066 can be read as a **complete set** rather than as examples:

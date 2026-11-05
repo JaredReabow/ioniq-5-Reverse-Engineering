@@ -363,6 +363,26 @@ root-owned read-only location and **ship it**, as fix item 9 also requires.
 **Verify.** During the launcher's window, open `/navi/Bin/AppNavi` for writing from a non-root process; compare the
 contents of `/tmp/navi_public.key` against any key present in the navi tree.
 
+### 18. A static root SSH key ships in the image, behind a `/tmp` marker and a missing binary
+
+**Evidence.** `/etc/dropbear/authorized_keys` ships **397 bytes, one RSA key, `rsa-key-20181102`**.
+`lib/systemd/system/dropbear@.service` exists with **`ConditionPathExists=/tmp/secure_console_disable`** as its only
+gate and `ExecStart=-/usr/sbin/dropbear -i -s …`. `/etc/default/dropbear` has `# DROPBEAR_EXTRA_ARGS="-w"` **commented
+out** (`-w` disallows root logins). `/etc/dropbear/dropbear_publickey_installer.sh` copies the shipped key into
+`/home/root/.ssh/authorized_keys`. **The dropbear binaries are absent and the unit is not enabled**, so it cannot run
+on this image.
+
+**Exposes.** The credential is **static and shared**: every unit built from this image accepts the same private key, so
+one leak of it is root on all of them, with no per-device rotation. The daemon/credential boundary is a **file in a
+world-writable directory** - and its name ("secure console disable") reads like a hardening flag. The unit file is
+already installed, so adding the `dropbear` package for field debugging makes the whole chain live.
+
+**Fix.** Remove `authorized_keys`, `dropbear@.service` and `dropbearkey.service` from production images; if SSH must
+exist, provision a per-device credential and gate it on MICOM state or a signed flag in `/rw_data`, with `-w` enabled;
+and treat `rsa-key-20181102` as compromised-by-distribution for any fleet built from this image.
+
+**Verify.** `grep -c . /etc/dropbear/authorized_keys` on a unit: any non-zero result is this finding.
+
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
@@ -408,6 +428,7 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | 15 106 of 107 services run as root with no systemd hardening | V-064 |
 | 16 nine /etc trust anchors point into /tmp | V-065 |
 | 17 world-writable navi binary and a navi key in /tmp | V-066 |
+| 18 a static root SSH key ships in the image | V-067 |
 
 ## What is not claimed
 

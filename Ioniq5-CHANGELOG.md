@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.13.2 - V-067: a static root SSH key ships in the image
+
+The `/tmp` marker sweep turned up `/tmp/secure_console_disable`, referenced by `esinit` and by **`dropbear@.service`**. Following it produced the most structurally significant finding in this stretch.
+
+### Four measured facts
+
+1. **A root SSH public key ships**: `/etc/dropbear/authorized_keys`, 397 bytes, one `ssh-rsa` key, comment `rsa-key-20181102`.
+2. **The service that would use it is installed**: `ConditionPathExists=/tmp/secure_console_disable` as its **only** gate, `ExecStart=-/usr/sbin/dropbear -i -s -r …`.
+3. **Root logins are not disabled**: `/etc/default/dropbear` has `# DROPBEAR_EXTRA_ARGS="-w"` **commented out**, and `-w` is exactly "disallow root logins".
+4. **The binary is absent** - no `dropbear`, no `dropbearkey`, unit not enabled. **So it cannot run on this image today.**
+
+And the installer copies the shipped key into `/home/root/.ssh/authorized_keys`, so if the service ever starts, **the firmware's key becomes an accepted root login**.
+
+### Why it matters anyway
+
+- **The credential is static and shared.** Every unit from this image accepts the same private key; one leak anywhere is root on all of them, with **no per-device rotation** and no way for an owner to tell they are affected.
+- **The gate is a file in a world-writable directory** - and its name, *secure console disable*, reads like a hardening flag. Someone creating it to harden the box would get the opposite.
+- **It is one missing file from live.** The unit file is already installed, so adding the `dropbear` package for field debugging completes the chain with no further configuration.
+
+**What I did not claim:** that the platform is remotely accessible today (it is not - no binary, not enabled), or that the private key is known to anyone (unproven; the risk is that it is shared and unrotatable).
+
+### Fix, and it is cheap
+
+Remove `authorized_keys`, `dropbear@.service` and `dropbearkey.service` from production images; provision per-device credentials if SSH is needed; gate on MICOM state or a signed flag rather than `/tmp`; and **treat `rsa-key-20181102` as compromised-by-distribution** for any fleet built from this image.
+
+Filed as V-067 and fix item 18. The sweep that found it was looking for something else entirely.
+
 ## 5.13.1 - two sweeps came back empty, and that narrowed a fix
 
 ```

@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.15.0 - mapping what the display ceiling blocks, so it stops being rediscovered
+
+The same conclusion has now been reached **three times from three directions**, at roughly one run each: several open items are blocked by **one absence**, not by their own difficulty. Written down once, in `docs/vm/47-what-the-display-ceiling-blocks.md`.
+
+| open item | blocked by |
+|---|---|
+| Widget values | CAN transport (own absence) **and** display (to see the result) |
+| Engineering mode entry | AppSetup dies with the same Wayland error; `SetEnginnerModeEntryCheck` called **0 times** in a boot |
+| **V-069 end-to-end** | SCOMO is a Qt app and dies on `invalid object 20` before touching `./tool/` |
+| V-070 trigger | needs a real UI eject event; nothing can be clicked |
+| Interactive tapping | placement works, but places standby/splash and races the client |
+
+**And the leverage is now unambiguous:** a kernel rebuild with `CONFIG_DRM_VIRTIO_GPU` would unblock **all five**, because `drm-backend.so` ships and would finally have a device. That needs a 4.1.27 tree matching `vendor.config`, which **this project does not have**.
+
+**Acquiring that tree is the single highest-leverage action available.** Nothing else on the list can be finished without it or a physical unit.
+
+### What is *not* blocked, and is worth doing instead
+
+- **More adaptor completeness** - the stand-in answers 100% of what the stack asks, and extending it to the *replies the vehicle logged* is measurable without a display. That is how the last two entries made progress.
+- **Static security work** - every sweep that mattered was static.
+- **The record** - enumerating families, narrowing claims, refusing to let a guess age into a fact.
+
+### The honest sentence for the VM goal
+
+**It is at its ceiling, and the ceiling is a kernel configuration.** Everything above is written down so the next person does not pay a run to learn it - which is what I did three times.
+
 ## 5.14.8 - a second vendor app fails identically, and that closes a different question than the one I asked
 
 Went to resolve V-069's open half by running SCOMO from a directory I controlled, so its **relative** trust paths (`./tool/public.crt`, `./tool/velix_aes.key`) would resolve to files I had planted.

@@ -6250,3 +6250,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The frame on the display backend is the application's standby face, which is the same state the headless backend was in before one call fixed it, and that call is already recorded with the frame it produced.
 - Wrote the sequence with the mistake that cost three runs inside it: poll for the application owning its name rather than sleeping a fixed interval, and never use the power getter as a pass or fail because the setter pushes an event.
 - Excluded the widget values deliberately, since they need a transport the vendor kernel cannot provide, and mixing them into this run would make a clean result ambiguous.
+
+## 2026-11-05 - a fourth outcome, the call lands and the app dies during the layout
+
+- The run polling for the bus name and making the call did it all correctly, and the call landed. Every capture afterwards was the standby face and the process id changed mid-sequence, so the application crashes during the power-on layout and is restarted.
+- That is a fourth outcome the decision table did not anticipate, behind the seat, mode and socket problems that are now fixed.
+- Named where the answer is: the launcher's own log of the application's stderr, which this run did not collect, for the third time this session. Added a specific hypothesis from the database work, since the layout path is exactly the one that writes the two empty widget tables.

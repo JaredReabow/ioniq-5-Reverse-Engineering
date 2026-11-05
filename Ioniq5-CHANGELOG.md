@@ -3,6 +3,28 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.21.2 - a fourth outcome: the call lands and the application dies during the layout
+
+The run did everything the sequence asked (`docs/kernel/12-power-on-call-result.md`): socket at 2 s, **`NAME_OWNED=yes` at +100 s by polling** rather than sleeping, `ASK_POWER_BEFORE=int32 1` (not used as pass/fail), and **`SET_POWER=method return`** - the call landed.
+
+**And five captures at +5/+15/+30/+60/+90 s were all `129,844` bytes - the standby size - with the pid changing 2328 → 2564 between the +15 s and +30 s samples.**
+
+**So it is a fourth outcome the decision table did not anticipate**: not the laid-out frame, not "the call did not land", but **the application crashes during the power-on layout** and is restarted in standby. The seat, the mode and the socket are fixed; this is a new problem behind them.
+
+## Where the answer is - and it has been there every time
+
+The worker noted the bounding fact itself: **the launcher-started app's stderr goes to `/tmp/applauncher-stdio.log`, and this run did not dump it.** That is the same route that produced `wl_display@1: error 0: invalid object 19` originally. **Third time this session the answer sat in a log nobody collected** - the first was the app's own log after three runs of hypothesis, the second the app log that explained the crash loop.
+
+### And a specific hypothesis from this session's own database work
+
+During an earlier layout the app logged **`DB UPDATE COMMIT FAIL` 23 times**, `BEGIN TRANSACTION FAIL`, and `DELETE FAIL QSqlError(...)`; the pulled database had **`WidgetSettingFront` and `WidgetSettingAdvList` empty** while `CustomLayoutFront` held 25 rows. **The power-on layout is precisely the path that writes those two tables.**
+
+A SQLite failure in the widget-settings write would explain **all three observations at once**: crash on the call, no Wayland error text, and the earlier "commits fail but the layout commit succeeds". **The check needs no instrument** - grep the launcher log around the crash, and pull the database again to see whether those tables gain rows when the call lands.
+
+## The caution, again
+
+**Do not read the crash as "the laid-out layout does not exist on this backend".** It exists: `docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png`, 16,062 bytes, produced on **headless**. If DRM cannot reach it, the difference is DRM-specific and unmeasured - and the launcher log is where it will be found.
+
 ## 5.21.1 - the last line is one call this project already knows works
 
 The DRM frame I looked at is the application's **standby** face - its own logo and chrome - because nothing has told it the vehicle is on. **That is the same state the headless backend was in before the call that fixed it**, and the call is already in the repository's history:

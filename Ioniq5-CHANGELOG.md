@@ -3,6 +3,40 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.13.3 - V-068 and V-069: embedded private keys, and a CA on a writable partition
+
+Following V-067's question - what other credential material ships - produced two findings, and the second is the cheapest root path in this register.
+
+### V-068: private keys embedded in four binaries
+
+| binary | key blocks | certificates |
+|---|---|---|
+| `AppProjection` | **2** | **3** |
+| `AppUpgrade` | 6 | 0 |
+| `AppScomoDM` | 3 | 0 |
+| `AppDMClient` | 3 | 0 |
+
+One block parsed to metadata only: **RSA 2048**, public-key SHA-256 beginning `af1e9a9a…`. `AppProjection` carries certificates *and* keys, so at least one binary holds a complete **client identity**. **The key material itself is deliberately not reproduced.**
+
+**Why it is a finding regardless of purpose:** anything shipped is compromised by distribution - identical on every unit, no per-device rotation, and a backend authenticating by certificate cannot tell units apart. **Honest limits:** these may be test keys or a deliberate shared identity; that is for the owner to establish, and this entry says what to check.
+
+### V-069: the navi update CA is group-writable on a read-write partition
+
+```
+AppUpgrade contains:  /rw_data/navi_data/certificates/TomTom_Root_CA.crt   (+ links mbedtls)
+in the image:         1,588 bytes, mode -rwxrwxr-x, on partition p11 (read-write at runtime)
+```
+
+**A single file write** replaces the CA, and the unit then verifies a navigation package against the attacker's CA - and the navi payload runs as root. No USB hardware, no TOCTOU window, no `/tmp` race. **That would make it the cheapest persistent root path here**, cheaper than V-059 and V-054.
+
+**What I did not establish:** that `AppUpgrade` uses this file when verifying the navi package *specifically*. It contains the path and links an X.509 stack; the string could belong to another connection. That is the one measurement separating "a CA in a bad place" from "an update channel an attacker can sign" - and it is a five-minute test for anyone with a unit.
+
+### The checker earned its keep again
+
+My V-068 text referenced V-069 before V-069 existed, and `check_register_consistency.py` failed the build with a **dangling reference**. A register that can be walked both ways catches exactly that; a prose document would have shipped the broken pointer.
+
+Both filed, fix item 19, with the embedded keys recommended for rotation and the CA for read-only storage.
+
 ## 5.13.2 - V-067: a static root SSH key ships in the image
 
 The `/tmp` marker sweep turned up `/tmp/secure_console_disable`, referenced by `esinit` and by **`dropbear@.service`**. Following it produced the most structurally significant finding in this stretch.

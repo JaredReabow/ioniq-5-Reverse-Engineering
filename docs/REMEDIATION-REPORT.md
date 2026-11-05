@@ -383,6 +383,26 @@ and treat `rsa-key-20181102` as compromised-by-distribution for any fleet built 
 
 **Verify.** `grep -c . /etc/dropbear/authorized_keys` on a unit: any non-zero result is this finding.
 
+### 19. Private keys embedded in four shipped binaries, and a navi CA on a writable partition
+
+**Evidence.** Four application binaries carry PEM private-key blocks: `AppProjection` (2 keys + **3 certificates**),
+`AppUpgrade` (6), `AppScomoDM` (3), `AppDMClient` (3). One parsed block is **RSA 2048**, public-key SHA-256 beginning
+`af1e9a9a…`. Separately, `AppUpgrade` reads `/rw_data/navi_data/certificates/TomTom_Root_CA.crt`, which ships at
+**1,588 bytes, mode `-rwxrwxr-x`, on the read-write partition**; `AppUpgrade` links mbedtls.
+
+**Exposes.** Everything shipped is **compromised by distribution**: keys identical on every unit, no per-device
+rotation, and a backend that authenticates clients by certificate cannot tell units apart. The navi CA is worse in
+practice: **a single file write on a writable partition** could let an attacker sign a navigation package the unit
+accepts, and the payload runs as root - the cheapest persistent root path in this report, contingent on the
+verification actually using that file.
+
+**Fix.** Establish what the embedded keys authenticate and rotate them, reissuing per-device credentials; move key
+material to manufacture-time provisioning or a secure element. Move the navi CA to read-only storage (`0444`), or make
+it itself signed by a read-only-side key so replacement requires the vendor's signature.
+
+**Verify.** `grep -c 'BEGIN .*PRIVATE KEY' /app/bin/*` → four files; compare public-key fingerprints across two units
+for sameness. For the CA: replace it, sign a navi package, attempt an update.
+
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
@@ -429,6 +449,7 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | 16 nine /etc trust anchors point into /tmp | V-065 |
 | 17 world-writable navi binary and a navi key in /tmp | V-066 |
 | 18 a static root SSH key ships in the image | V-067 |
+| 19 embedded private keys, and a navi CA on a writable partition | V-068, V-069 |
 
 ## What is not claimed
 

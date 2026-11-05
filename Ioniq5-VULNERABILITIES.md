@@ -2667,6 +2667,113 @@ world-writable directories (outside /tmp, /run, /var/volatile)  0
 
 ---
 
+## V-069 - the navigation update CA is a group-writable file on a read-write partition
+
+**Status:** the path, the file and its mode are **measured**; that the update verification actually trusts it is
+**strongly indicated by strings but not demonstrated end-to-end**. Class: trust anchor in a writable path - the same
+family as V-048 and V-066, and the cheapest of the three to exploit.
+
+### What ships
+
+```
+AppUpgrade contains:      /rw_data/navi_data/certificates/TomTom_Root_CA.crt
+and links:                mbedtls (an X.509 verification stack)
+
+in the image:             /rw_data/navi_data/certificates/TomTom_Root_CA.crt
+                          1,588 bytes, mode -rwxrwxr-x
+/rw_data                  partition p11, mounted read-write at runtime (measured while creating V-065's tables)
+```
+
+**A root CA for navigation updates lives on a writable partition, is group-writable, and is read by the update
+application.** Nothing in this register is easier to reach: no USB hardware, no TOCTOU window, no `/tmp` race - a
+single file write.
+
+### The chain, if the strings mean what they say
+
+1. Any process able to write that directory - root, or any process in the file's group - replaces the CA with its own.
+2. The unit then verifies a **signed navigation package against the attacker's CA** and accepts it.
+3. The navigation payload runs as root (it lives under `/navi` and is executed by the launcher), so acceptance is
+   **code execution as root**, and it survives reboot because the CA stays replaced.
+
+That would make this **the cheapest persistent root path in the register** - cheaper than V-059, which needs
+programmable USB hardware, and cheaper than V-054, which needs a `/tmp` write plus a login.
+
+### What is *not* established
+
+- **That `AppUpgrade` uses this file when verifying the navi package specifically.** It contains the path and links an
+  X.509 stack; the string could belong to a different connection. This is the one measurement that separates "a CA in a
+  bad place" from "an update channel an attacker can sign".
+- Whether `navi_data` is writable by anything other than root in production - the mode is `-rwxrwxr-x`, so group write
+  is permitted, and the group membership is unmeasured.
+
+### Fix
+
+1. **Move the CA to read-only storage** - rootfs or the `/navi` partition (read-only in normal boot) - mode `0444`.
+2. Better, **do not ship a CA the unit reads from mutable storage**: verification should use a key compiled into, or
+   signed into, the read-only image.
+3. If field replacement must be possible, make the CA itself signed by a read-only-side key, so replacement requires
+   the vendor's signature rather than a file write.
+
+### Verify
+
+On a unit, replace the CA with a self-signed one, sign a navi package with it, and attempt an update. Acceptance moves
+this entry from "indicated" to "demonstrated" and takes five minutes for anyone holding a unit.
+
+---
+
+## V-068 - private key material is embedded in four shipped binaries
+
+**Status:** the **PEM blocks are measured** in the shipped binaries; their **purpose and counterpart trust are unproven**.
+Class: credential material compromised by distribution. **The key material itself is deliberately not reproduced here.**
+
+### What ships
+
+| binary | PEM private-key blocks | certificates |
+|---|---|---|
+| `app/bin/AppProjection` | **2** | **3** |
+| `app/bin/AppUpgrade` | 6 | 0 |
+| `app/bin/AppScomoDM` | 3 | 0 |
+| `app/bin/AppDMClient` | 3 | 0 |
+
+(`libgio`, `libQt5Network`, `librpmio` and `magic.mgc` also match a naive search - they carry the PEM *marker text* as
+strings, not keys. The four above are application binaries and their blocks parse as keys.)
+
+One block was parsed to metadata only: **`AppProjection`, first key, RSA 2048**, public-key SHA-256 beginning
+`af1e9a9a127165f5f7114d8ca8314c73`. `AppProjection` also carries three certificates, so at least one binary contains a
+complete **client identity** (certificate plus matching private key) rather than a bare key.
+
+`AppUpgrade` links **mbedtls** and references `/rw_data/navi_data/certificates/TomTom_Root_CA.crt` (see V-069), and
+`AppProjection` is the phone-projection stack.
+
+### Why embedded private keys are a finding regardless of purpose
+
+**Anything shipped is compromised by distribution.** A private key in firmware:
+- is **identical on every unit** built from that image, so a single extraction - by a researcher, a repair shop, a
+  scrap unit, or anyone who downloads an update package - is a key held by everyone;
+- **cannot be rotated per device**, and its owner has no way to distinguish a legitimate peer from an attacker using
+  the same key;
+- if it authenticates to a **backend service** (projection or device management), that service cannot tell units apart
+  by key, which removes the only thing client certificates are for.
+
+**The honest limits:** these may be **test keys**, a **shared device-identity** by design, or keys whose counterpart
+certificate is not trusted by any reachable server. None of that is established here. What is established is that
+**key material is in the shipped image**, and that is a fact a platform owner needs before deciding it is fine.
+
+### Fix
+
+1. Establish what each key authenticates to, and whether the matching certificate is trusted by a live service.
+2. **Rotate all of them**, per fleet, and reissue **per-device** credentials where the protocol allows (device
+   management and projection both normally do).
+3. Move key material out of the binary: a provisioning step at manufacture, stored on the unit's secure element or at
+   minimum in `/rw_data` with `0600` root ownership - never inside a distributed executable.
+
+### Verify
+
+Search the delivered image for `BEGIN .*PRIVATE KEY` in files under `/app/bin` - four matches - and compare the
+extracted public keys' fingerprints across two units: identical fingerprints mean a shared key.
+
+---
+
 ## V-067 - a static root SSH key ships in the image, behind a `/tmp` marker and a missing binary
 
 **Status:** every component is **measured in the shipped image**; the SSH service **cannot run today** because its

@@ -15,27 +15,32 @@ app/bin/AppUpgrade
 It wraps two updaters, distinguished by the `##[scomo]` and `##[newota]` log tags: **764** SCOMO strings and **138** FUMO (`newota`). The vehicle's launcher row supplies `-un:0`, which
 selects **FUMO** (`evidence/appupgrade-update-trust.md`).
 
-## 1. Two separate reads of the same file
-
-Both command strings are present, and a displacement scan of the binary resolves each to exactly **one** reference site:
-
-| string | file offset | reference site |
-| --- | --- | --- |
-| `ionice -c3 md5sum %1` (the check) | `0x2abb44` | **`0x1877a8`** |
-| `pv -q %1 \| tar -xvm -C %2` (the install) | `0x28c285` | **`0xbd744`** |
-
-**~1.2 MB apart in a 10.8 MB binary.** The integrity decision and the install are constructed in different parts of the program, and each names `%1`, so the file is opened twice with the
-decision made in between. Method: for every 32-bit RIP-relative displacement in the file, keep those that resolve exactly to the string's offset. No instruction decoding, so the limit is
-stated: a coincidental displacement to a specific offset would be needed for a false positive, and one site each is what a real compiled reference looks like.
+## 1. The two updaters are ELF images inside the wrapper's data, not code in the wrapper
 
 ```
-python3.13 - <<'EOF'
-import struct; from pathlib import Path
-d=Path('.../app/bin/AppUpgrade').read_bytes()
-t=d.find(b'ionice -c3 md5sum %1')
-print([hex(p) for p in range(len(d)-4) if p+4+struct.unpack_from('<i',d,p)[0]==t])
-EOF
+objdump -h app/bin/AppUpgrade
+  .text    00003f73   (16,243 bytes)
+  .rodata  00a3faa8   (10,746,536 bytes)
 ```
+
+Two complete ELF binaries are embedded in `.rodata`, extractable with `tools/uk_fw/extract_embedded_elfs.py`:
+
+| offset | bytes | identity | .text |
+| --- | --- | --- | --- |
+| `0x7c64` | 5,678,432 | SCOMO (764 `###[scomo]` lines) | 0x24cf83 |
+| `0x5721c8` | 5,066,264 | FUMO / newota (138 `###[newota]` lines) | 0x1e5203 |
+
+The two command strings that carry the mechanism are present and each names `%1`:
+
+```
+ionice -c3 md5sum %1                 present (2)
+pv -q %1 | tar -xvm -C %2            present (1)
+nice -n 19 dd if=%1 bs=4k skip=%2    present (4)
+```
+
+**Withdrawn claim.** An earlier version said the check and the install were "constructed in different parts of the program, ~1.2 MB apart" on the strength of a displacement scan. Both sites it
+found (`0x1877a8`, `0xbd744`) are in **`.rodata`** - data, not code. The scan cannot tell them apart, and on this binary nearly everything is data. Withdrawn; the separation is upstream's
+`[RE]` finding against the embedded images, which are now extracted and analysable.
 
 ## 2. The signature step is MD5-with-RSA over the checked content
 

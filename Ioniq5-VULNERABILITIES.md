@@ -2504,39 +2504,24 @@ and `/app/share/AppUpgrade/DecryptToPIPE` (559,192 bytes) exists and is referenc
 Because the check and the install are **separate shell invocations that each name `%1`**, the file is opened twice with the integrity decision in between. That is the whole
 vulnerability, and it is visible in our binary without running anything.
 
-### The two opens are in different parts of the binary, not merely different strings
+### The updater's code is not in `AppUpgrade` at all - it is two ELF images inside its data
 
-The claim depends on the check and the install being **separate** operations that each name `%1`. Strings alone show the commands exist; they do not show the separation. A scan of
-the binary settles that much: for each command string, every 32-bit RIP-relative displacement that resolves **exactly** to its file offset was collected.
+`AppUpgrade`'s own `.text` is **16,243 bytes**. Everything else - ~10.7 MB - is `.rodata`, and inside that data blob sit **two complete ELF binaries**:
 
-```
-ionice -c3 md5sum %1        offset 0x2abb44   referenced from 1 site: 0x1877a8     (the check)
-pv -q %1 | tar -xvm -C %2   offset 0x28c285   referenced from 1 site: 0xbd744      (the install)
-```
+| offset in `AppUpgrade` | bytes | identity |
+| --- | --- | --- |
+| `0x7c64` | 5,678,432 | **SCOMO** (764 `###[scomo]` lines) |
+| `0x5721c8` | 5,066,264 | **FUMO / newota** (138 `###[newota]` lines) |
 
-**One reference each, roughly 1.2 MB apart** in a 10.8 MB binary. So the integrity decision and the install are constructed at different places in the program, which is exactly the
-structure a verify-then-use flaw requires. It does not prove the caller of each site is sequenced as described - that is the upstream project's `[RE]` claim - but it does show the
-separation is real rather than an artefact of reading a string table.
+`tools/uk_fw/extract_embedded_elfs.py` extracts both by ELF header and section-table extent. **Any claim about the updater's structure must be made against those files**, and a one-command check
+proves the point: `objdump -h app/bin/AppUpgrade` reports `.text 0x3f73`.
 
-Method note, so the strength of this is not overstated: the scan does not decode instruction boundaries; it reports any 32-bit displacement that lands exactly on the string. A false
-positive would need a coincidental displacement to a specific offset, and each string resolved to one site, which is what a compiled reference looks like.
+**Correction, kept in place.** This section previously claimed the check and the install were *"constructed in different parts of the program, ~1.2 MB apart"*, on the strength of a scan for 32-bit
+RIP-relative displacements that resolved exactly to each command string. Both sites it found (`0x1877a8`, `0xbd744`) lie in **`.rodata`** - they are pointers inside the embedded images' data, not
+code references. **The claim is withdrawn**: the scan cannot distinguish code from data, and on this binary nearly everything is data.
 
-### The "verify skip" strings — checked, and duller than first reported
-
-I first recorded these as an uninvestigated lead that might bypass the post-install verification by state rather than by timing. Having looked, the honest reading is less exciting:
-
-```
-1  system update verify skip
-1  new gui update verify skip
-1  navi map update verify skip
-1  navi app update verify skip
-   each of the form:  [Info] :: %s file status = %d, <component> update verify skip
-```
-
-**All four components have one**, each keyed on that component's `file status`. The most plausible reading is the ordinary one: **a component that is not present in this package is
-skipped**, which is not a bypass at all. Nothing was found that lets a *present* component skip verification, and no claim to the contrary is made here.
-
-It stays recorded because the first version of this paragraph claimed otherwise, and because `file status` is the value to look at if anyone wants to settle it properly.
+What stands, and is enough as filed: both command strings are present and each names `%1`; the structural separation is the upstream project's `[RE]` finding against the embedded images.
+Analysing those two extracted ELFs is the next step, and it is now small - the tool and the offsets are recorded here.
 
 ### What an attacker actually needs — and a keyless downgrade that falls out of it
 

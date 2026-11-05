@@ -2548,6 +2548,21 @@ mkfs.ext4 -E nodiscard -j /dev/mmcblk0p16
 the payload is decrypted and written **from a fresh invocation that opens the source again**, exactly the check-then-use shape this entry is about, and visibly separate from the `md5sum` site at
 `0x13a550`.
 
+**What the apply stage is made of**, from the strings its code site (`0x60f0b`) references:
+
+```
+/app/share/AppUpgrade/DecryptToPIPE                                   <- %1, the decryptor
+[%s] getKeyFile() is fail.!!! (%d)                                    <- the key is read at APPLY time
+%1 -d %2 %3 0 | pv -q -L 8m | dd of=%4 bs=512                         <- the pipeline
+[%s] Signed file resize fail.!!!(%s)                                  <- and a file gets resized
+```
+
+So the apply stage runs the shipped `DecryptToPIPE` against a source and an offset and writes to a device, and it reads the TE2 key **then**, not once at the start.
+
+**The one thing this still does not decide** is what `%2` actually points at: the removable medium, or a local file the flow has already staged. The `Signed file resize` message is the first
+hint that a *file* is being resized rather than a stream being read in place, which would lean towards staging - **a hint, not a measurement**, and the reverse of what the upstream project
+reports for its own unit. Settling it needs the runtime observation already named (`lsof`/`inotify` during a real update); nothing in the strings is going to answer it.
+
 Two useful figures fall out. The install stream is **rate-limited to 8 MB/s by the command itself**, so a 879 MB payload needs ~110 s of apply and a 2.09 GB one ~260 s - the device never has to
 deliver faster than 8 MB/s to saturate that stage. And the A/B mount juggling (`p3`/`p5`, `p6`/`p7`) plus `mkfs.ext4 … /dev/mmcblk0p16` confirms which partitions the flow touches.
 

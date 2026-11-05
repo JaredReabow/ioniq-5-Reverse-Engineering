@@ -5428,3 +5428,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The real apply step is a pipeline that decrypts the payload and writes it to a partition device, opening the payload again - which is the check-then-use shape, now located in the right program.
 - Its stream is rate-limited to eight megabytes a second by the command itself, which gives the hardware question a real number for the first time.
 - Third attempt on the same question. A string maps to a site, a site maps to a function, and only the last one says what the code does.
+
+## 2026-11-05 - the last open question, and the strings running out
+
+- Named the components of the apply stage from the strings its code site references: the shipped decryptor, the key read at apply time, and a rate-limited write to a device.
+- The one thing it still does not decide is what the source argument points at - the removable medium or a local file staged first. One message hints a file is resized, which leans towards staging and against what the external project reports.
+- Recorded that as a hint rather than a measurement, and named the runtime observation that would settle it. Nothing in the strings will.

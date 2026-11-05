@@ -23,7 +23,7 @@ either demonstrated in the projection, quoted from the image, or explicitly mark
 | Vendor compositor started by `esinit`, and it renders | **works** | `docs/vm/authentic-hmi.md` — Multi-User at 97.3 s with `weston.real` alive, 129,844-byte PNG capture, `ivi_wm` placement |
 | Vendor HMI processes under the vendor init | **works** | `docs/vm/authentic-hmi-apps.md` — a `com.lge.car.micom` stand-in lets `ApplicationLauncher` start `ApplicationManager` and `AppHomeScreen`; a click reaches a real compositor client |
 | Touch on the **vendor** boot path | ✅ a click reaches a real client, `pid=797 uid=0` |
-| Applications present a frame | **yes, by hand** | with the software-GL **driver path** restored, `AppHomeScreen` registers, answers introspection and paints a 120,556-byte frame (`docs/vm/authentic-hmi-apps.md` §9). The *managed* launch is still killed by the manager as a foreign instance |
+| Applications present a frame | **yes — managed and by hand** | with the software-GL **driver path** restored, `AppHomeScreen` registers, answers introspection and paints a 120,556-byte frame (`docs/vm/authentic-hmi-apps.md` §9). The managed instance paints the vendor interface with its KIA logo (`docs/vm/32-managed-home-screen-kia-logo-authentic-2026-11-05.png`) |
 
 How to drive it: `python3.13 tools/uk_fw/vm_console.py`, then `sh /run-chain23.sh &` and `sh /run-live.sh`. Full instructions:
 `docs/VM-RUNBOOK.md`.

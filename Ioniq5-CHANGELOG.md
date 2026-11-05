@@ -3,6 +3,36 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.18 - the directory fix worked, the commits still fail, and the app wants GPIO nodes
+
+Ran the one thing the last entry named: pull the log with the directory present.
+
+```
+D1_DBDIR=[/rw_data/app_data/AppHomeScreen/CustomLayoutDB]   dbfile=[36864]
+D1_COUNTS commitfail=[23]  initdone=[1]  wlerr=[2]  pid=[3068]
+```
+
+**The database file now exists (36,864 bytes)** - so the missing directory was genuinely blocking creation, and that link is closed. **But 23 commit failures remain**, and the log prints no `lastError` text for them even though the binary carries the string, so the *commit* failure is still unread.
+
+**And the tail turned up something unrelated and useful:**
+
+```
+[ERR] Home_Worker::writeGPIO(QString) ][ 212 ] Open kernel file failed!, errorNo:  2
+[ERR] Home_Worker::slotSetStatusDrToKernel(QString) ][ 236 ] Open kernel file failed!, errorNo:  2
+```
+
+`errorNo: 2` is `ENOENT`: the application opens **kernel GPIO nodes through sysfs** that do not exist here. Expected without the vendor's GPIO hardware - and the same class of gap as the missing CAN interface: **the application expects kernel-side hardware QEMU does not provide.**
+
+The useful part: those are **named sysfs paths we could provide as stub files**, which is cheaper than a driver - the same substitution trick, one layer lower. The exact paths come from `writeGPIO`'s caller and are the next thing to read from the binary.
+
+### Where this leaves the layout question
+
+- layout DB directory: **fixed, file created** (measured)
+- commit failure: **still present, cause unread**
+- sysfs GPIO nodes: **also missing**, a second independent candidate
+
+So "why the splash never becomes a home screen" now has **two named, unrelated candidates, both in the application's own logging** rather than in my hypotheses about frames. That is progress even though the screen has not changed.
+
 ## 5.10.17 - the layout database had no directory, and fixing that was not enough
 
 The `DB UPDATE COMMIT FAIL` line in the application's log led somewhere real.

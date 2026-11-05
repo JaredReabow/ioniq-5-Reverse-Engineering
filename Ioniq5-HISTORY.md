@@ -5758,3 +5758,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Followed the database failure from the application's log to a real gap: its store lives on the data partition under a directory that does not exist, and a database cannot create its own parent directory.
 - Created the directory in the clone and marked it clearly as a change to the projection rather than the image.
 - The run afterwards still restarted the application, so the gap was real and not the whole cause, and I had failed to capture the log the change was meant to affect, which is the same mistake in a new place.
+
+## 2026-11-05 - the directory fix worked and the commits still fail
+
+- Pulled the log as planned. The database file now exists, so the missing directory really was blocking creation, but the commit failures continue and print no error detail.
+- The same tail shows the application opening kernel GPIO nodes that do not exist here, which is the same kind of gap as the missing CAN interface and also a thing we could stub with files.
+- So the question now has two named candidates from the application's own logging rather than from my reading of frames.

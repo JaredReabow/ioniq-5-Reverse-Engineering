@@ -56,3 +56,36 @@ the vendor.
 
 **Not established:** that engineering mode can be opened by this route in the projection. **Established:**
 what the payload is, that it was correct when tested, and that the obstacle lies after the payload.
+
+## Delivery measured: the signal reaches the bus and the manager does not act
+
+Test run on the authentic projection, with a monitor watching the exact interface before the emission:
+
+```
+DL_HOME=2487 2449                     the home screen is running
+dbus-monitor --system "type='signal',interface='com.lge.car.micom.can'" > /tmp/mon.txt &
+dbus-send --system --type=signal /Can com.lge.car.micom.can.NotifyKeyFrontSpecialEvent array:byte:0x01,0x05
+   -> Error org.freedesktop.DBus.Error.NoReply     (expected: --print-reply on a signal never replies)
+DL_MON_LINES=6
+DL_MON_SEEN=[1]                       the monitor SAW NotifyKeyFrontSpecialEvent on the system bus
+DL_ENG_PID=        waited=60s          no AppEngineerMode
+```
+
+**The signal is emitted and observed on the bus. Delivery is not blocked** - not by the bus policy and not
+by SMACK, at least not for the signal itself. And the manager still did not start the application in the
+following 60 seconds.
+
+So the obstacle is **logical, after the payload**, and the decode already names the candidates:
+
+1. `ask(301)` at `0x2062c3` returning **true** makes the handler return immediately (`testb %al,%al; jne`).
+   A "true" here plausibly means *the app is already considered requested/available*, and the handler
+   treats that as done.
+2. `ask(71) == 1` at `0x2062dd`/`0x2062e2` - a state flag the projection may not satisfy.
+3. The signal matched the interface but not the manager's expectations of **sender ownership**: the
+   connect passes an empty service, but Qt's `connect` with an empty service still records the *well-known
+   name of the sender* in the message; a slot that inspects `message().service()` would see our client's
+   unique name.
+
+**Established:** payload correct, no sender filter, signal delivered, manager silent. **Not established:**
+which of the three gates above is responsible - and that is now a question about one of two function
+calls rather than about transport.

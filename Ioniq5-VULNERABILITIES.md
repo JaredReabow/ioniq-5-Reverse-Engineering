@@ -2696,6 +2696,8 @@ payload[1] == 0x01 / 0x0a               two other branches (0x206360 / 0x2063d8)
 
 So **any process on the system bus can request engineering mode with `[0x01, 0x05]`**, and the nine
 payloads already tested **included `0x05`** - which means the failure was delivery, not format. The
-remaining obstacle is either bus/label policy (SMACK conjoins the bus, and V-056 records real denials
-for other services) or the `ask(71) == 1` precondition. See
+remaining obstacle is **not** delivery: a monitor alongside the emission confirmed the signal on the
+system bus (`DL_MON_SEEN=[1]`) while no engineering application started, so the gate is logical - the
+`ask(301)` early-return or the `ask(71) == 1` condition. The security claim is unaffected: **no sender
+authentication stands between a process on the system bus and this handler.** See
 `docs/engineering-mode/special-key-payload-decoded.md`.

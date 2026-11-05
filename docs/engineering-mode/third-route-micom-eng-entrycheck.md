@@ -42,10 +42,14 @@ engineering screen directly on the reply, then the MICOM's answer is the only co
 **Enforcement is MICOM-side either way**, which means on a real unit it may require vehicle state, and in this
 projection it cannot be exercised at all.
 
-**For the VM goal.** `com.lge.car.micom` in the projection is answered by this project's stand-in, and the stand-in
-does **not** implement `com.lge.car.micom.eng`. So when the settings application asks whether it may enter engineering
-mode, **nothing answers** - one more reason the projection's engineering path is inert, and a concrete item to add to
-the stand-in rather than another hypothesis.
+**For the VM goal.** `com.lge.car.micom` in the projection is answered by this project's stand-in. **Correction:**
+the stand-in *does* implement the engineering interface - `AskMPModeInfo` among others - so "nothing answers" was wrong.
+What it did **not** implement is `SetEnginnerModeEntryCheck`, which is now one added row in its acknowledgement table
+(`tools/uk_fw/guest/eng_data_sim.c`), rebuilt with no host paths.
+
+**Measured afterwards:** the stand-in logs only what it *rejects*, and after the change no rejection for that method
+appears - which is consistent with the fix and equally consistent with the application not calling it during that boot.
+A positive test needs the simulator to log accepted calls too; that is the next change to it, not another hypothesis.
 
 ## Next, cheap and static first
 

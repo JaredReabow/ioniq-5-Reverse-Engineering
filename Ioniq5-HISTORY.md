@@ -5974,3 +5974,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Stopped calling the manufacturing script entry unproven and tested it: staged the payload, created the trigger marker, and started the binary as root. It ran for a full minute and never executed the script.
 - So the cheapest reading of that finding is refuted, and the entry now says so. What remains is a possibility whose trigger is something else, most likely a media eject given the file name, which is where the next reader should look.
 - Noted that two of the last three entries have been narrowed by measurement rather than widened by inference, and that a register becoming smaller in its claims as it grows in entries is the right direction.
+
+## 2026-11-05 - the stand-in's backlog measured, and a correction to my own description of it
+
+- Returned to the virtual machine goal with the gap I had named. Corrected the description first: the stand-in does implement the engineering interface, just not the one method in question, and that is now one added row in its acknowledgement table.
+- Measured the backlog from the simulator's own rejection log: sixty calls across ten distinct methods during one boot, each with a caller that wanted it. That makes the remaining adaptor work a ranked list with known consumers rather than a guess.
+- Recorded a limit of my own instrument immediately: it logs only rejections, so the absence of the method after the fix is consistent with success and with never being called. The next change is to log accepted calls.

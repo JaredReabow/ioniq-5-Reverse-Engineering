@@ -3,6 +3,23 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.4.1 - the hidden five-tap toggle exists, on the lap timer rather than on About
+
+Checking the static half while the gesture experiment runs: the external triage claimed this image contains no About-screen tap counter. That is right about **About** and wrong about the image.
+
+`Q_NMode_PT_Lap_Main_Track.qml` has a five-tap counter that toggles `AppNModeModel.isNaviTestingMode` - **touch alone, no PIN, no credential**:
+
+```qml
+onClicked: { _clickCount++; if(_clickCount >= 5) AppNModeModel.isNaviTestingMode = !AppNModeModel.isNaviTestingMode }
+```
+
+**And it does something cosmetic.** Every use of the flag in that directory changes the lap-timer's own presentation - a checkbox image and a translucent overlay - and there is no path from it to a
+privileged action.
+
+Recorded in `docs/engineering-mode/dev-mode.md` as a **real hidden toggle that is not a security finding**, because "the gesture exists but is cosmetic" is a more useful answer than "the gesture does
+not exist", and because it corrects a claim rather than repeating it. It also sharpens the standing question: the About-tap entry, if it exists on this build, is somewhere else entirely - which is
+what the worker's dynamic navigation is currently testing.
+
 ## 5.4.0 - the stock gesture is now worth trying, because the interface behind it finally renders and takes clicks
 
 Every entry about engineering mode until now has carried the same caveat: the About-screen tap gesture was **inferred from a sibling platform**, never observed on this build, and the interface it

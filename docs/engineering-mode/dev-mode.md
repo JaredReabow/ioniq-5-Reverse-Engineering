@@ -520,3 +520,35 @@ runtime confirmation exists — the cheapest being the path-switch test in §5 r
   the Enable/Disable inversion in `AppEngineerMode_Encryption_Update.qml`; whether
   `AppDMClient`'s `VarUpgrade` copy lands on `/tmp/app/bin/AppEngineerMode`; and how a party
   would inject `EVT_MP_*` events.
+
+## A hidden 5-tap toggle that does exist, and what it actually does (2026-11-05)
+
+The external triage recorded that "the exact `260128` image does not contain the claimed About-screen tap counter". That is right about **About**, and wrong about the image: there is a
+five-tap counter in the shipped QML, just on a different screen.
+
+`app/share/AppHomeScreen/qml_new2.0/NMode/PerformanceTimer/Q_NMode_PT_Lap_Main_Track.qml`:
+
+```qml
+MouseArea {
+    anchors.fill: parent
+    onClicked: {
+        _clickCount++
+        if(_clickCount >= 5)
+            AppNModeModel.isNaviTestingMode = !AppNModeModel.isNaviTestingMode
+    }
+}
+```
+
+Five taps on the **N-mode lap-timer track** area toggle `AppNModeModel.isNaviTestingMode`. Reachable with touch alone, no PIN, no credential.
+
+**What it does, measured from every use in that directory:** it changes the lap-timer's own presentation -
+
+```qml
+source:  AppNModeModel.isNaviTestingMode ? defineModel.co_btn_check_on_n : …   // a checkbox image
+opacity: AppNModeModel.isNaviTestingMode ? 0.5 : 0                             // a translucent overlay
+```
+
+and nothing else. There is no path from this flag to a privileged action in the QML, and the flag lives in the application's own model.
+
+**So: a real hidden toggle, and not a security finding.** It is recorded here because it is exactly the shape the external triage was looking for and had concluded was absent, and because
+"the gesture exists but does something cosmetic" is a more useful answer than "the gesture does not exist".

@@ -5470,3 +5470,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Every note about engineering-mode entry carried the same caveat: the About-screen tap was inferred from a sibling platform because the interface it belongs to never rendered or took input here. Both of those stopped being true tonight.
 - Delegated the navigation with one instruction above the rest: look at each frame before choosing the next click. Guessing coordinates blind is how this project has wasted runs, and it looks identical to a gesture that does nothing.
 - A null result is a real result: it would turn an inherited assumption into a checked absence, which is worth more than another entry repeating the assumption.
+
+## 2026-11-05 - there is a hidden five-tap toggle, and it is cosmetic
+
+- Checked the static half of the gesture question. The external triage said this image has no tap counter; it has one, on the N-mode lap timer rather than on About, and it is reachable by touch alone.
+- Every use of the flag it flips only changes the lap timer's own presentation. No path to anything privileged, so it is recorded as a real hidden toggle that is not a security finding.
+- That is more useful than the claim it replaces, and it narrows the standing question: if the About entry is on this build at all, it is somewhere else - which is what the dynamic navigation is testing.

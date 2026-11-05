@@ -212,6 +212,44 @@ rootfs a boot-time integrity mechanism so "installed unverified content" is not 
 **Verify.** On a unit, confirm the install consumes the bytes it verified - hash the source while writing and compare against the check digest, or refuse a file whose contents changed since the
 check.
 
+### 12. Engineering mode can be requested by any process on the system bus
+
+**Evidence.** `ApplicationManager` subscribes to the front-panel special-key signal with an **empty service
+and an empty path**, so the match rule is interface plus member only:
+
+```
+214dc9   leaq 0x30ca0d, len 0x1a   "NotifyKeyFrontSpecialEvent"
+214de3   leaq 0x2fce8c, len 0x15   "com.lge.car.micom.can"
+214df3   QArrayData::shared_null    EMPTY service
+214dfa   QArrayData::shared_null    EMPTY path
+214e13   callq QDBusConnection::systemBus()
+214e3e   leaq 0x30ca28             "1specialKeySlot(QByteArray)"
+```
+
+The handler takes a **two-byte payload**, and the second byte selects the action (`0x206308`-`0x2062f8`):
+
+```
+payload[0] == 0x01                 the special-key discriminant
+payload[1] == 0x05                 -> movl $0x12d (301 = AppEngineerMode) -> ask(301) -> ask(71) == 1 -> action
+payload[1] == 0x01 / 0x0a          two other branches
+```
+
+Measured in the projection: the payload `[0x01, 0x05]` **reaches the system bus** (a monitor on the
+interface sees it) and the handler **declines on internal state** - so the transport is open and what
+stops it today is a state condition, not authentication.
+
+**Exposes.** Any process that can write a signal to the system bus can request engineering mode with two
+bytes, and can drive the other two branches the same way. On a vehicle that means a compromised
+non-privileged component - or anything that gets code into one - can reach a maintenance surface without
+a physical key or a PIN. The practical severity today is bounded by the state gate, which is exactly why
+the sender check should be added **before** that gate is found to be satisfiable.
+
+**Fix.** Pass `com.lge.car.micom` as the connect service (or verify `message().service()` inside the slot),
+and re-check the payload length and byte range before dispatch. Both are small changes in one function.
+
+**Verify.** Emit `[0x01, 0x05]` from a client that is *not* `com.lge.car.micom` and confirm nothing
+happens; then emit it from the owning service and confirm the normal behaviour is unchanged.
+
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
@@ -232,6 +270,26 @@ user data and vehicle logs are plaintext on the flash.
 **Verify.** Dump the storage of a unit: it must not be readable without a per-unit secret.
 
 ---
+
+## Register cross-reference
+
+The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is the fix list. The mapping:
+
+| item | register entry |
+|---|---|
+| 1 applications may not run under the policy written for them | V-056 |
+| 2 the account database lives in a world-writable tmpfs | V-054 |
+| 3 the compositor loads modules named in `/tmp` | V-055 |
+| 3b eleven services take their bus address from `/tmp` | V-058 |
+| 4 a tampered data partition turns mandatory access control off | V-052 |
+| 5 the serial console is enabled by default | V-049 |
+| 6 privileged behaviours keyed on a file in `/tmp` | V-042 |
+| 7 the updater verifies then installs from a second read | V-059 |
+| 8 the manager executes a caller-named path as root | V-051 |
+| 9 the signature check trusts a key in `/tmp` | V-048 |
+| 10 `debug-shell.service` is an unauthenticated root shell | V-014 |
+| 11 the data encryption passphrase is `1234` | V-053 |
+| 12 engineering mode is requestable by any system-bus process | V-060 |
 
 ## What is not claimed
 

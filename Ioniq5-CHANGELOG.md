@@ -3,6 +3,18 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.9.7 - the fix list now points at the evidence, and includes the newest finding
+
+The register is the evidence base and the remediation report is the fix list, but nothing joined them: **no item cited a register id, and the newest finding was missing entirely.**
+
+**Added item 12** - engineering mode is requestable by any process on the system bus. It carries the connect arguments (empty service, empty path), the two-byte payload decode, and the measured state: the payload **reaches the bus** and the handler **declines on internal state**. The fix is one function - pass `com.lge.car.micom` as the connect service or verify `message().service()` in the slot, and re-check the payload before dispatch - with a verify step that emits from a non-owner and confirms nothing happens.
+
+The severity framing matters here: the practical impact **today** is bounded by that state gate, which is exactly why the sender check belongs **before** anyone finds the gate satisfiable.
+
+**Added a register cross-reference table**, so all thirteen fix items map to the entry that proves them: item 1 → V-056, 2 → V-054, 3 → V-055, 3b → V-058, 4 → V-052, 5 → V-049, 6 → V-042, 7 → V-059, 8 → V-051, 9 → V-048, 10 → V-014, 11 → V-053, 12 → V-060.
+
+That was a real gap in the deliverable the user asked for: a vulnerability document "used to patch" is only usable if the patch list and the evidence can be walked in both directions.
+
 ## 5.9.6 - delivery works, so the gate is logical
 
 I said the next test would watch delivery rather than outcome. It did, and the answer is unambiguous.

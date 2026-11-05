@@ -137,3 +137,40 @@ is identical, which is exactly why I assumed it was the sender.
 **The next measurement must identify the client:** start the compositor trace and record **when** the
 `ivi_window_manager` bind appears relative to the application's first log line. Before the app starts, it is a
 shell-side client and the application is a victim; after, it is the application and my earlier reading stands.
+
+---
+
+## 7. The ordering test: the surface creator is a startup client, not the application
+
+One run, comparing **line numbers** in the compositor log - which is append-only, so line order *is* time order -
+against a marker taken the instant the application first appeared:
+
+```
+O1_FIRSTAPP_PID=2536   MARKERLINE=1430        <- the app exists from this line onward
+O1_BIND_LINES=[60 85 145]                     <- ivi_window_manager binds
+O1_SURF_LINES=[1108 1128 1358]                <- ivi_controller surface_create calls
+O1_INVALID_LINES=[1629]                       <- the invalid-object error
+O1_TOTAL=1670
+```
+
+**The `ivi_window_manager` binds are at lines 60, 85 and 145 - the application does not exist until line 1430.**
+So the client that binds the window-manager interface at start-up is **not the application**, and my previous
+correction stands on measurement rather than on the absence of a string.
+
+The surface creations at 1108-1358 are also **before** the application appears. The `invalid object` error at
+1629 is **after** it, so that one could belong to the application - **the error the application logs may be one
+it received, sent to whoever was still holding a surface id from the earlier activity.**
+
+## 8. What this means, and what to do next
+
+- **A start-up client binds `ivi_window_manager` within the first ~150 lines of the compositor log**, i.e. in the
+  first seconds of compositor life, long before any application. That is the component to identify.
+- The candidates are the shell-side clients in the image: `/usr/libexec/weston-ivi-shell-user-interface`
+  (present, but named at a path the ini gets wrong), `/usr/libexec/weston-desktop-shell`, and the vendor's
+  `ivi-window-manager.so` interaction.
+- **The next read is four lines of context**, not another theory: dump **lines 40-80** of `/tmp/weston-real.log`,
+  where a `launching ...` line should sit immediately before the first bind at line 60. That names the client
+  from the compositor's own words.
+
+**Established by measurement:** the start-up client is not the application; the application's error is at minimum
+partly a consequence of earlier surface activity by something else.

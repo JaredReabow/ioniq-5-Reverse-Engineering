@@ -122,3 +122,27 @@ that already exist before compiling anything.**
 **Why this belongs in the document and not just in a message:** it is the same class of error as the truncated log and the
 30-second capture - **a measurement that cannot distinguish success from failure, read as a failure.** Twice now the
 answer was "look at what the harness is actually doing", not "look at the kernel".
+
+## Update 5 - my "highest-leverage action" named a kernel symbol that does not exist
+
+Twice in this document I wrote that the way forward was a kernel rebuild with **`CONFIG_DRM_VIRTIO_GPU`**. Verified
+against the tarball the project actually has:
+
+```
+tar -tf linux-4.1.27.tar.xz | grep -c drivers/gpu/drm/virtio/     ->  0
+grep -c VIRTIO_GPU linux-4.1.27/drivers/gpu/drm/Kconfig            ->  0
+tar -tf linux-4.1.27.tar.xz | grep -c drivers/gpu/drm/bochs/       ->  9
+```
+
+**`virtio-gpu` was added to Linux after 4.1** - there is no such driver and no such Kconfig symbol in 4.1.27. So the
+instruction I gave the build worker twice could not have been followed, and its repeated failures on that path were my
+error, not its own.
+
+**What actually provides the device is `bochs-drm`**, which the kernel already has (9 files) and which binds the Bochs VGA
+device the harness was already presenting - hence `[drm] Found bochs VGA, ID 0xb0c5` and `/dev/dri/card0` without any
+runner change at all. The delegated worker found that, not me.
+
+**The lesson is not "check the symbol exists"** - it is that I gave a *confident, specific, wrong* instruction twice, and
+the worker's compliance cost it two failing builds. **When directing someone else's work, the instruction carries the
+same burden of verification as a measurement.** That is the fifth record correction of this session and the first that was
+paid for by someone else's time.

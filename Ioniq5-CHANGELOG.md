@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.16.5 - I told the worker to enable a kernel symbol that does not exist
+
+The delegated worker's first document corrects my premise, and it is right. I had written twice, confidently, that the way forward was a rebuild with **`CONFIG_DRM_VIRTIO_GPU`**. Verified against the tarball the project actually holds:
+
+```
+tar -tf linux-4.1.27.tar.xz | grep -c drivers/gpu/drm/virtio/   ->  0
+grep -c VIRTIO_GPU linux-4.1.27/drivers/gpu/drm/Kconfig          ->  0
+tar -tf linux-4.1.27.tar.xz | grep -c drivers/gpu/drm/bochs/     ->  9
+```
+
+**`virtio-gpu` landed in Linux after 4.1.** There is no such driver and no such symbol in 4.1.27, so the instruction I gave the worker twice **could not be followed** - and its repeated failures on that path were my error, not its own.
+
+**What actually provides the device is `bochs-drm`** - already in this kernel (9 files) - which binds the Bochs VGA adapter the harness was *already presenting*. Hence `[drm] Found bochs VGA, ID 0xb0c5` and `/dev/dri/card0` with **no runner change at all**. The worker found that.
+
+### The lesson, and it is a new one for this session
+
+Not "check that the symbol exists". It is that **I gave a specific, confident, wrong instruction twice, and someone else's compliance paid for it in two failing builds.**
+
+> **When directing another agent's work, the instruction carries the same burden of verification as a measurement.**
+
+Every correction in this session until now cost only my own time. **This one cost the worker's**, and the difference matters more than the technical fact - which is itself now recorded in `docs/vm/47-...`.
+
+The worker's `docs/kernel/01-build.md` and `02-virtio-gpu-does-not-exist-in-4.1.27.md` are in place, and it references a `05-drm-backend-result.md` that is still being written.
+
 ## 5.16.4 - V-056 sharpened: broad objects, narrow permissions
 
 Swept the one layer left unexamined in the SMACK story - **the rules themselves**, not just whether they load. Across the 636 loaded rules:

@@ -6100,3 +6100,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Read the mandatory access control rules themselves rather than only whether they load. Twenty-eight rules name a wildcard object, including the floor label, but not one rule grants write or execute anywhere.
 - Recorded both readings and chose the second: the wildcard covers label inheritance for new objects, while the permissions that matter to every finding in this register are simply not handed out.
 - Did not claim the policy is broken, because this project has never demonstrated a relabel, and named the ten minute test that would settle it.
+
+## 2026-11-05 - I told the worker to enable a kernel symbol that does not exist
+
+- The delegated worker's first document corrected my premise: the virtual gpu driver I twice told it to enable was added to Linux after 4.1, so the instruction could not be followed at all. Verified against the tarball rather than taking either claim on trust.
+- What provides the device is the bochs driver already in the kernel, which binds the VGA adapter the harness was already presenting, so no runner change was needed at all.
+- Recorded the lesson that is new to this session: an instruction to another agent carries the same burden of verification as a measurement, and this correction is the first one paid for by someone else's time rather than my own.

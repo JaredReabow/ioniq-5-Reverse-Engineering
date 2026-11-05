@@ -2770,6 +2770,34 @@ else follows:
 - and the marker lives in a **world-writable directory** (V-065), so on a unit where `secure_console` is `1`, removing
   the *effect* requires only recreating the file after boot - a race that costs an attacker nothing.
 
+### Correction - the marker grants *eligibility*, not access
+
+The entry above says "the password may not be the binding constraint". **Reading the console starter settles it, and it
+does not support that sentence:**
+
+```
+/etc/esinit_agetty.sh:
+  #autologin root
+  #setsid /sbin/agetty -a root -8 -L ttyS2 115200 xterm       <- COMMENTED OUT
+  setsid /sbin/agetty  -8 -L ttyS2 115200 xterm               <- active: a normal login prompt
+```
+
+**The autologin line is commented out**, so the console that the marker starts is an ordinary `agetty` requiring the root
+password - which is exactly the prompt V-049 captured and whose hash resisted 45,000 candidates.
+
+A second potential console is also disabled: `/etc/iap2_mod.sh` contains
+`#setsid /sbin/agetty -8 -L ttyGS0 115200 xterm &` under the comment *"getty login for TEST"* - **commented out**, so the
+USB-gadget serial console does **not** start.
+
+**So the corrected severity of V-071 is this:** the marker makes the console, the shell-bearing account database and SSH
+**possible**; it does not grant access by itself. What stands between an attacker and a root shell is still
+**V-049's password** (uncracked) or **V-067's private key** (not held). Removing the marker would close a door that is
+currently only latched - but it is latched, and I should not have implied otherwise.
+
+**What still makes this worth filing:** the design is **fail-open** - the safe behaviour depends on one MICOM value being
+`1`, the marker lives in a world-writable directory, and three other mechanisms inherit its state. A single wrong or
+unset MICOM value converts "latched" into "open" with no second check anywhere.
+
 ### What is *not* claimed
 
 - That `secure_console` is 0 in the field. **Measured here as 0** in our projection, where the MICOM link is absent - so

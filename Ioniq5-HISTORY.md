@@ -6028,3 +6028,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Read the init script properly, having only read fragments of it before, and found the mechanism behind two earlier entries: it creates a marker file on every boot whose name reads like a hardening flag, and the code that would remove it is commented out.
 - That one file switches four things: a valid login shell, the shell-bearing password database instead of the nologin one, the serial root console, and the eligibility of the ssh service. The only thing that turns it off is a single value from the micom, which measures zero here.
 - Recorded it as the strongest root-access statement in the register, and kept the honest bound: the field value of that parameter is unmeasured, and the console password may not even be the binding constraint.
+
+## 2026-11-05 - the marker grants eligibility not access
+
+- Looked for field evidence of the micom console parameter in the vehicle logs and found none, because the init script writes to the serial port rather than to those logs.
+- Then read the script that starts the console and found that the autologin line is commented out, and so is a second console on the usb gadget serial port. That made one sentence of the finding too strong, and it is corrected in place.
+- What remains is a fail open design: safe behaviour depends on a single value from the micom, the marker lives where anyone can write it, and three mechanisms inherit its state. Noted that three turns running, looking for the bound has found the bound is real.

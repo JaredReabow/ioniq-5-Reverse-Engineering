@@ -407,23 +407,47 @@ static DBusHandlerResult on_system_message(DBusConnection *conn, DBusMessage *ms
      * Every one of them is answered rather than rejected, so the caller stops being told the
      * method does not exist; whether the value is meaningful is a separate, unmeasured question.
      * ------------------------------------------------------------------ */
-    {
-        static const unsigned char zero_one[1] = { 0x00 };
-        static const struct { const char *member; const char *sig; } asks[] = {
-            { "AskEtcLcd2SensorNotSupportPwmControl", "ay" },
-            { "AskExternalSPDIFAMPVersion",           ""   },
-            { "AskUSMSetting",                        "ay" },
-            { "AskVolumeTuneKeySwap",                 ""   },
-        };
-        for (i = 0; i < (int)(sizeof asks / sizeof asks[0]); i++) {
-            if (exact_call(msg, IHU_PATH, IHU_INTERFACE, asks[i].member, asks[i].sig)) {
-                reply_ay(conn, msg, zero_one, sizeof zero_one);
-                printf("ENG_DATA_SIM_ANSWER %s -> 1 zero byte (value assumed)\n", asks[i].member);
-                fflush(stdout);
-                return DBUS_HANDLER_RESULT_HANDLED;
-            }
-        }
+    /* ------------------------------------------------------------------ */
+    /* Backlog Ask* methods, with the reply SHAPES and VALUES now taken from the vehicle's own
+     * DLT logs (evidence/upstream/Ioniq5_Gen5W_Log_Dump) rather than assumed:
+     *
+     *   AskExternalSPDIFAMPVersion   "Response LgeDBus_AskAMPVersion() Data Count :: 8"  -> 8 bytes
+     *   AskEtcLcd2SensorNotSupportPwmControl
+     *                                the consumer logs three fields from the reply
+     *                                (isAutoBrightnessSensorMode, ...Value-Auto, ...Value-Manual)
+     *                                and "Value-Manual: 2" -> 3 bytes, manual mode = 2
+     *   AskUSMSetting                "slotUSMSetting ... ] 2"                            -> 1 byte, value 2
+     *   AskVolumeTuneKeySwap         no occurrence in the logs                            -> 1 byte, 0 (ASSUMED)
+     * ------------------------------------------------------------------ */
+    if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskExternalSPDIFAMPVersion", "")) {
+        static const unsigned char spdif[8] = { 0 };
+        reply_ay(conn, msg, spdif, sizeof spdif);
+        printf("ENG_DATA_SIM_ANSWER AskExternalSPDIFAMPVersion -> 8 bytes (count from vehicle log)\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
     }
+    if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskEtcLcd2SensorNotSupportPwmControl", "ay")) {
+        static const unsigned char lcd2[3] = { 0x00, 0x00, 0x02 };
+        reply_ay(conn, msg, lcd2, sizeof lcd2);
+        printf("ENG_DATA_SIM_ANSWER AskEtcLcd2SensorNotSupportPwmControl -> 3 bytes, manual=2 (vehicle log)\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskUSMSetting", "ay")) {
+        static const unsigned char usm[1] = { 0x02 };
+        reply_ay(conn, msg, usm, sizeof usm);
+        printf("ENG_DATA_SIM_ANSWER AskUSMSetting -> 2 (vehicle log)\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+    if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskVolumeTuneKeySwap", "")) {
+        static const unsigned char swap[1] = { 0x00 };
+        reply_ay(conn, msg, swap, sizeof swap);
+        printf("ENG_DATA_SIM_ANSWER AskVolumeTuneKeySwap -> 0 (ASSUMED, absent from logs)\n");
+        fflush(stdout);
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+
     if (exact_call(msg, IHU_PATH, IHU_INTERFACE, "AskInfoFaultCodeStatus", "ay")) {
         static const unsigned char no_fault[1] = { 0x00 };
         reply_ay(conn, msg, no_fault, sizeof no_fault);

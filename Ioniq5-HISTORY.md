@@ -5998,3 +5998,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Implemented all ten backlog methods, taking reply types from the calling binaries' own introspection and marking the reply values as assumptions. Rebuilt, injected, booted.
 - The simulator now records four hundred and three accepted calls and zero rejections, and the new handlers were reached sixty-one times, so this is not a silent no-op.
 - Recorded the distinction that keeps it honest: the adaptor is complete in shape, not complete in values, and the reason a value could be wrong has changed from a missing method to an assumed zero. That is the precondition for comparing against real hardware.
+
+## 2026-11-05 - four of the assumed replies had evidence in the repository
+
+- Checked the vehicle's own log dump for the methods whose reply values I had called unrecoverable, and found four of them: an eight byte count for the spdif version, three reply fields with a manual value of two for the lcd sensor, and a value of two for the usm setting.
+- Corrected the stubs, rebuilt, booted: still zero rejections and the handlers were reached, so the corrected replies broke nothing.
+- Recorded the lesson, which is the same as the configuration sweeps: I called something unrecoverable while holding five hundred and forty-five log files of it. Honest state now four replies evidence-based, one known unreferenced, one placeholder, and none of it proof of correctness.

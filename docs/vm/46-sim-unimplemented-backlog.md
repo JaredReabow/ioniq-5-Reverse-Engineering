@@ -132,3 +132,40 @@ it used to be "the method does not exist" and is now "the answer is zero because
 That is progress of the kind that matters for the goal - **the interface is now complete enough to be wrong in specific
 ways instead of failing wholesale** - and it is the precondition for anyone on real hardware comparing replies with the
 real MICOM.
+
+---
+
+## 7. Four of the five "assumed" replies now have evidence from the vehicle's own logs
+
+The assumption in §5 was "the encoding is not recovered". That was true of the *binary*, and false of the project - the
+vehicle's own DLT dump (`evidence/upstream/Ioniq5_Gen5W_Log_Dump`, 545 files) records what the real MICOM returned:
+
+| method | what the vehicle's log shows | stub now |
+|---|---|---|
+| `AskExternalSPDIFAMPVersion` | `Response LgeDBus_AskAMPVersion() Data Count :: 8` | **8 bytes** (was 1, wrongly) |
+| `AskEtcLcd2SensorNotSupportPwmControl` | the consumer logs three reply fields - `isAutoBightnessSensorMode`, `...Value-Auto`, `...Value-Manual` - and `Value-Manual: 2` | **3 bytes**, manual = 2 |
+| `AskUSMSetting` | `slotUSMSetting ... ] 2`, repeatedly | **1 byte, value 2** (was 0) |
+| `AskVolumeTuneKeySwap` | **no occurrence** in the dump | 1 byte 0 - **still assumed**, and now known to be unreferenced on the vehicle |
+| `AskInfoFaultCodeStatus` | `returnValue: "0a1501..."` - a hex string whose full encoding is not reconstructed | 1 byte 0 - **still assumed** |
+
+Rebuilt, injected, booted:
+
+```
+ENG_DATA_SIM_ACK      403
+ENG_DATA_SIM_UNKNOWN    0
+ENG_DATA_SIM_ANSWER   206,  of which the new handlers: 53 calls
+```
+
+**The corrected replies did not break anything** - no rejections, no crash, and the handlers are still reached. Whether
+the *application* now behaves better is not measurable in this projection (see `docs/vm/45-backend-is-forced-not-chosen.md`).
+
+## 8. The honest summary of the stand-in's state
+
+- **every method the stack calls is answered, with the right type** (measured, twice)
+- **four of the ten replies now carry values recovered from the vehicle's own logs**; one is known-unreferenced; one
+  remains a placeholder
+- **nothing here proves the replies are *correct*** - it proves they are *shaped right* and, where the logs spoke,
+  *sourced from the vehicle rather than invented*
+
+That is the difference between an adaptor that fails and an adaptor that can be wrong in a specific, checkable way - and
+it is the state in which a comparison against real hardware becomes worth doing.

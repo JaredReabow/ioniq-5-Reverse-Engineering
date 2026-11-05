@@ -777,3 +777,35 @@ That yields three options, in ascending order of interference:
    substitution and must be named as one.
 
 **The negative is recorded either way**: 4, 6 and 8 vCPUs all lose the same race with the same 129,844-byte capture.
+
+## 35. The preload chain, traced statically - the authority is the manager, not the launcher
+
+| who | interface | name | kind |
+|---|---|---|---|
+| launcher | `com.lge.avn.applauncher.inform` | `preloadcomplete` | **signal it emits** |
+| launcher | - | `notifyPreloadcomplete` | signal it **listens for** (its own log: *"Inform::listen signal [notifyPreloadcomplete] and send signal [preloadcomplete]"*) |
+| **manager** | `com.lge.avn.appmanager.info` | `ask_preload_complete_status() -> i` | method |
+| **manager** | `com.lge.avn.appmanager.info` | `preload_complete_status(bool)` | **signal** |
+| manager | `com.lge.avn.appmanager.info` | `preload_navi_complete_status(bool)` | per-component variant |
+| application | - | `slotPreload_Complete_Status(bool)` | its slot, beside the log line *"Can not connect to signal preload_complete_status"* |
+
+**So the authority is the ApplicationManager.** The launcher's 3 ms deadline is downstream of a preload-complete fact that the
+manager owns and publishes.
+
+## 36. The measurement that separates the three options
+
+During the race window - after `NAME_OWNED=yes`, before the deregister - ask the manager:
+
+```sh
+dbus-send --session --print-reply --dest=com.lge.hyundai.avn.appmanager /Information \
+  com.lge.avn.appmanager.info.ask_preload_complete_status
+```
+
+| answer | meaning | honest fix |
+|---|---|---|
+| **non-zero** | the manager already considers preload complete | the launcher's timeout is separate bookkeeping - **option 2 (patch) or 1 (document)** |
+| **0** | the manager never saw the app's preload, which the app's own *"Can not connect to signal preload_complete_status"* line hints at | **emit `preload_complete_status(true)`** - one signal, no vendor binary touched, **named as a substitution** |
+
+**And a caution on my own inference:** `ask_preload_complete_status` takes **no app-id argument**, so it is a *global* flag, and
+there is at least one per-component variant (`preload_navi_complete_status`). It is not safe to assume the global flag is what
+gates app 11 - the measurement has to say which one moves.

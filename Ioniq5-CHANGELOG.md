@@ -3,6 +3,24 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.9 - hmi-controller: a negative, a truncated measurement, and the file that really decides the config
+
+**The useful discovery first.** The compositor does not read `/etc/xdg/weston/weston.ini` - that is a symlink to `/tmp/weston.ini`, created at line 73 of `/etc/install_westonPngLogo.sh`:
+
+```
+ln -sf /etc/xdg/weston/weston_${LCD_TYPE}.ini /tmp/weston.ini
+```
+
+So **`/etc/xdg/weston/weston_1920.ini` is the file that decides the shell's behaviour**, and its module list was `ivi-window-manager.so,ivi-controller.so`. **`hmi-controller.so` ships (183,720 bytes) and was never loaded** - the module that in weston 1.10 creates the HMI layers application surfaces are placed on. The ini also names a shell user-interface that **does not exist in the image at all**: `/usr/lib/weston/weston-ivi-shell-user-interface`.
+
+**So I added the module and booted it. The application stack never came up.** At +105 s, `pidof` returned empty for `AppHomeScreen`, `AppCamera` and `AppSetup`, and the run logged **no mention of `ApplicationLauncher`** at all. The compositor did load its modules, so this is **not "the compositor died" - it is "the launcher chain did not start"**, a failure mode unlike every other compositor experiment here.
+
+**And I cannot say whether `hmi-controller.so` loaded**, because my own capture truncated the module list at 300 characters and cut off exactly there. That is a defect in my instrument, not a result, and it is the second time tonight that a truncation I chose decided what I could conclude.
+
+**The clone is reverted** to the known-good module line so it stays usable.
+
+**Next, properly:** capture the whole module list and the compositor's own errors unfiltered in one run; check what `hmi-controller.so` expects from the missing user-interface binary; and if the HMI layer path is simply unavailable in this projection, **say so plainly** - the honest alternative is to document that the projection cannot present the vendor UI, which is a different claim from "the UI does not render", and one this project should be willing to make.
+
 ## 5.10.8 - the controller announces nothing to a late client, and the screen shows the background
 
 Injected our own `ivi_place` into the clone and ran it 100 s after power-on, with `AppHomeScreen` (2599), `AppCamera` (2602) and `AppSetup` (3074) all up.

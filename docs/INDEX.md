@@ -61,6 +61,7 @@ matter** unless you know what you are looking for.
 | `docs/vehdata/05-day-shell-untranslated-and-black-region.md` | The settled frame: untranslated `STR_` keys and a black region, i.e. an unloaded resource model rather than missing CAN data |
 | `docs/vehdata/06-surface-identity-and-why-captures-looked-identical.md` | Surface identity from the compositor log: why every capture had the same size, and what that retires |
 | `docs/vehdata/07-ivi-controller-announces-nothing.md` | A late `ivi_controller` client sees zero layers and surfaces, and the composited output is the background even with three apps running |
+| `docs/vehdata/08-hmi-controller-negative.md` | Adding `hmi-controller.so` to the ivi-module list: the launcher chain never starts, and which file really decides the config |
 | `evidence/fde/` | The passphrase demonstration with its negative control. |
 | `docs/v059-command-substitution-filtering.md` | Whether the mount image path is filtered before it reaches a shell string - measured: it is not |
 | `docs/v059-producer-trace.md` | What feeds the substituted path: `QFileInfo::absoluteFilePath`, and `%1` in `cp -a %1 /app/bin/` is the payload's own binary |

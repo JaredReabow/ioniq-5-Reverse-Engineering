@@ -5704,3 +5704,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Ran our own placement tool against the running compositor and found it sees no layers and no surfaces at all, while every protocol global is present and three applications are running.
 - The composited output in that run was the early background, so the applications are not on a visible layer, and every earlier capture came from surfaces that happened to be placed rather than from control we had.
 - Named the likely cause as ordering: the controller notifies clients that are bound when objects are created, so binding at boot is the next single test.
+
+## 2026-11-05 - hmi-controller, a negative and a truncated measurement
+
+- Found which file really decides the compositor configuration: the ini everyone names is a symlink, and the resolution-specific file underneath it is the one that matters. Its module list omits a module that ships in the image, and the shell user interface it names does not exist at all.
+- Added the module and booted: the application stack never started, which is a failure mode unlike the others, and my own capture truncated the module list exactly where it mattered, so the run cannot be judged.
+- Reverted the clone and wrote the honest alternative into the note: if the layer path is unavailable here, document that the projection cannot present the vendor interface rather than implying the interface is broken.

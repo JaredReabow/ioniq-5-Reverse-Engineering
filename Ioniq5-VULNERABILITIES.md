@@ -2706,6 +2706,29 @@ programmable USB hardware, and cheaper than V-054, which needs a `/tmp` write pl
 - Whether `navi_data` is writable by anything other than root in production - the mode is `-rwxrwxr-x`, so group write
   is permitted, and the group membership is unmeasured.
 
+### Update - SCOMO's own logic manages that file, which strengthens the premise
+
+The string is not incidental. Inside the SCOMO payload embedded in `AppUpgrade`, adjacent to the path:
+
+```
+###[scomo][changePath] ...
+/rw_data/navi_data/certificates/TomTom_Root_CA.crt
+[%s] TomTom Root CA copy : %s to %s
+[%s] TomTom Root CA is exist already.
+```
+
+**The updater copies a TomTom root CA to that writable path and, if one is already there, does not copy at all.** So on a
+unit built from this image - which ships the file - **the shipped, group-writable file is the one the update stack
+treats as the TomTom root CA**, and the refresh path only matters when it is missing.
+
+That moves this entry from "`AppUpgrade` contains a path string" to "**the update component's own logic names and manages
+this file as a trust root**", which is the stronger half of what was previously unproven. What remains unproven is the
+narrower question: whether the *navi package* signature is checked against it, or only some other connection - the path
+appears in SCOMO's upgrade flow, not in a separated verification routine that could be read in isolation.
+
+The **source** of the copy is passed as a runtime argument (`%s to %s`), so it cannot be resolved statically; and because
+of the "is exist already" branch, a shipped unit never exercises that copy at all.
+
 ### Fix
 
 1. **Move the CA to read-only storage** - rootfs or the `/navi` partition (read-only in normal boot) - mode `0444`.

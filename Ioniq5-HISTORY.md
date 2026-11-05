@@ -5938,3 +5938,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Asked what other credential material ships and found two things. Four application binaries carry private keys, one of them alongside certificates, which makes at least one a complete client identity and all of them compromised by distribution.
 - The second is the more serious: the certificate authority used for navigation updates is a group-writable file on a writable partition, so a single file write could let an attacker sign a package the unit accepts, and that payload runs as root. Recorded as the cheapest persistent root path here, with the one measurement that would settle it named.
 - Deliberately did not reproduce any key material, and recorded that the consistency checker caught a forward reference I had written before the entry existed.
+
+## 2026-11-05 - the navigation certificate is managed by the updater itself
+
+- Answered part of the open question statically rather than with another boot. The updater's own code names that file as the TomTom root CA and copies one into place only when none is present.
+- Since the image ships the file, the trusted certificate is the shipped one, which means on a fresh unit trust never bootstraps from a package being verified. That narrows the finding to the writability of the file rather than the update protocol.
+- Recorded the half still unmeasured: whether the package signature specifically is checked against it, since the code path is the upgrade flow rather than an isolated verification routine.

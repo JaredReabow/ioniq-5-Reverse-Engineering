@@ -220,3 +220,42 @@ short run.
 If `early-background` is the owner, the honest conclusion for the VM goal is that **this projection's own splash
 client is creating an ivi surface that later breaks the application's connection** - which would be a defect in
 the projection, not the vendor, and the fix would be in the splash replacement this project wrote.
+
+---
+
+## 12. The startup client is the vendor's, and my speculation is refuted
+
+The compositor's launch line named `/usr/bin/early-background`, so the question was whether that client is the
+vendor's or this project's. Answered statically, with no boot:
+
+```
+pristine image:  /usr/bin/early-background            34,864 bytes, present in the shipped rootfs
+launcher:        /app/lib/weston/ivi-window-manager.so  contains "early-background"
+                                                        contains ivi_controller, ivi_window_manager, surface_create
+both module copies identical: /usr/lib/weston/ and /app/lib/weston/ are 129,144 bytes each, same strings
+```
+
+**So `early-background` is a vendor binary, launched by a vendor module, and the IVI surface creation at six
+seconds is the vendor's own start-up path.** It is not something this projection introduced.
+
+**Which refutes the speculation in the previous section** - that our splash client might be the defect. The splash
+is the vendor's, and the module that launches it is the vendor's. That speculation was written down as a
+possibility before the check, and the check killed it.
+
+## 13. Where the diagnosis actually stands after this thread
+
+| question | answer | how |
+|---|---|---|
+| Is the application crashing? | **No** - it survives with a dead `wl_display` | its own log, 27 s of further output |
+| Is our placement tool or preload involved? | **No** for this error - single instance, no preload, no placement calls | controlled runs |
+| Is the database the cause? | **No** - a layout commit succeeds in the same window | pulled database + log |
+| Who creates IVI surfaces at start-up? | **the vendor's own module and its `early-background` client** | strings + pristine image |
+| Why does the application get `invalid object 19`? | **unresolved**, and now a question about the vendor's start-up path meeting a headless/pixman compositor | - |
+
+**The remaining difference between this projection and a vehicle is the display backend**: the vehicle runs the
+vendor's `ias-backend` with a GPU; this projection runs the vendor's compositor on the **headless backend with
+`--use-pixman`**, plus a solid-fill shim. Every other component in the failing sequence is the vendor's own.
+
+That is the honest state: **not "our code breaks it", not "the vendor code is broken", but "the vendor's start-up
+sequence is running against a display backend it was not written for",** which is the same class of substitution
+as the MICOM stand-in and the GL driver path.

@@ -3,6 +3,22 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.2 - the front page still said "no downgrade route", which is no longer true
+
+The README's downgrade section opened with **"not through engineering mode on a stock unit, and not with a modified package"** and listed *authentic older package* as **unknown, decided
+entirely by anti-rollback**. Both statements were correct when written and are now wrong in consequence: V-059 installs a genuine older package after the version gate has been satisfied
+against different bytes, so anti-rollback never gets asked.
+
+Rewritten to lead with the route that works and to keep the table's other rows honest about what still does not:
+
+- **V-059** at the top - *yes, and keyless*: no AES key, no RSA key, and anti-rollback does not apply;
+- the engineering-mode rows unchanged, including the `DEV -> MP` gate that keeps **Force Update** off on production;
+- **authentic older package on the ordinary path** still *unknown*, with V-059 named as the route that does not ask the question.
+
+This is the third document tonight that had to be corrected because a later finding overtook it (`FINDINGS-SUMMARY.md`, `DOWNGRADE-POSSIBILITIES.md`, and now the README), and the pattern is
+the same in all three: the document was right, then a measurement made it wrong, and nothing was watching the *front page* for consequences. The check suite watches numbering, the history
+invariant and links; it cannot watch meaning.
+
 ## 5.1.1 - the most consequential finding was missing from the document that schedules fixes
 
 V-059 was in the register and in the root-access ranking, but not in `docs/REMEDIATION-REPORT.md` - the one a platform team acts from. That is the second time tonight a new finding has been

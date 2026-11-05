@@ -6064,3 +6064,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Swept every application binary for hardcoded ports and found only the serial bridge already filed and the mdns responder. That is a negative worth stating, because it tells a reviewer where to stop looking.
 - Bounded the claim in the same breath: the system directories were not swept, ports assembled at run time would not appear as strings, and unix sockets are the platform's normal ipc and out of scope.
 - Noted that three families are now enumerated rather than sampled, and that each enumeration made the work smaller and the claims safer, which is the opposite of how a vulnerability list usually grows.
+
+## 2026-11-05 - the delegated boot was measuring the wrong thing
+
+- Read the delegated boot logs rather than waiting for a report, and found both first attempts used the default research entry point and a thirty second timeout, which on this image cannot even reach userspace.
+- Sent the corrections and, more importantly, the instruction to boot the kernels that already exist before compiling anything at all.
+- Wrote it into the runbook as a rule: a boot verdict must state the init and timeout that produced it, because a thirty second run reporting no root filesystem is a statement about the timeout and not about the kernel. Third time a measurement that cannot distinguish success from failure has been read as a failure.

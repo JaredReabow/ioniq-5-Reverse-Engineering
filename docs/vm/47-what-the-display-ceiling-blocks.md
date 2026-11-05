@@ -99,3 +99,26 @@ earlier `relocs` failures were too.
 **And a note on delegation:** I gave the worker a brief that warned about instruments, git and stray QEMU, but not about
 the **directory path it would build in** - which turned out to be the blocker. The lesson generalises: when a task fails
 repeatedly and the failure looks like toolchain trouble, check the environment the tool is running in before the tool.
+
+## Update 4 - the delegated boot was measuring the wrong thing for 30 seconds
+
+The worker's first two boot attempts used the harness defaults:
+
+```
+"init": "/init"            the bare research entry, not the vendor one
+"userspace": false
+"root_mounted": false
+"elapsed_seconds": 30.24
+```
+
+**`/init` is not the authentic path**, and **30 seconds cannot reach userspace on this image** - `docs/VM-RUNBOOK.md`
+records Local File Systems at ~14 s, Basic System at ~18 s, and **Multi-User at 76-97 s**. A 30-second verdict cannot
+distinguish a working kernel from a broken one, and `root_mounted: false` at that point means nothing at all.
+
+The three corrections sent: `--init /init-authentic-hmi.sh`, `--timeout 300+`, the vendor rootfs, plus
+`-device virtio-gpu-pci` in the copied runner argv. And the instruction that matters most: **boot the two candidate images
+that already exist before compiling anything.**
+
+**Why this belongs in the document and not just in a message:** it is the same class of error as the truncated log and the
+30-second capture - **a measurement that cannot distinguish success from failure, read as a failure.** Twice now the
+answer was "look at what the harness is actually doing", not "look at the kernel".

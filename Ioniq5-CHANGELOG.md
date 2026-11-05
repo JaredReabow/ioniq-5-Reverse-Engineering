@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.6 - the launcher strips the environment, and the database has two writers
+
+Tried `WAYLAND_DEBUG=1` through a systemd drop-in on `ApplicationLauncher.service`. **It did not reach the application**: a 90 KB log with **zero `wl_display` lines** (`INITDONE=0 WLD=[0]`). If the variable had been in the application's environment the log would be dominated by protocol traces. **So the launcher does not pass its environment to its children** - the same behaviour this project already found for `LIBGL_*`. A **wrapper around the binary** is the mechanism that will work, not a drop-in.
+
+**But the run gave something better, because the Wayland error did not happen in it.** The captured window is ordinary operation and names the database problem exactly:
+
+```
+[6029] openVariantDB()  ] VARIANT DB ALREADY OPENED!!!
+[6299] SaveVariantDB()  ] BEGIN TRANSACTION FAIL
+[6301] SaveVariantDB()  ] DELETE FAIL  QSqlError("1", "Unable to execute statement", ...)
+[6225] SaveSetupLayoutDB ] DB DELETE COMMIT OK
+```
+
+**The application holds at least two database handles and one blocks the other.** `BEGIN TRANSACTION FAIL` with `Unable to execute statement` is SQLite writer contention, in the `journal_mode=delete` measured earlier.
+
+**This is a defect in the application, not in the projection**, and it explains the earlier table of row counts precisely: the **layout** writer wins (`CustomLayoutFront` 25 rows) and the **settings/variant** writer loses and retries in a tight loop that logs `DB UPDATE COMMIT FAIL` dozens of times.
+
+### What it changes
+
+The commit failures were treated as a possible cause of the missing UI. **They are not** - the layout commits successfully in the same window, and the tables that fail are the settings ones. The remaining candidate for the screen is still the Wayland `invalid object`, which happens in **some** runs and not others: this run had none, and the application in it was alive and working.
+
+**Next:** a wrapper around `/app/bin/AppHomeScreen` exporting `WAYLAND_DEBUG=1` (rename the real binary, script in its place, documented and reversible) so object 19 becomes a named request. And record whether the Wayland error correlates with duplicate instances across runs - with log size and `INITDONE` printed beside every count this time.
+
 ## 5.11.5 - the failure in order, from a log I can vouch for this time
 
 One instance, log **107,171 bytes / 796 lines**, `AppHome Init Done` present, and the 71 lines after it captured whole. The chronology fits in **half a second**:

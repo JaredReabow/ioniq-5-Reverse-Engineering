@@ -5800,3 +5800,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Captured the sixty seconds around the error from a log whose size and instance were verified first, and the whole failure fits in half a second.
 - It shows the application surviving: it logs on for another twenty-seven seconds with a dead compositor connection, and a database commit succeeds after the failures, so neither the crash nor the commit is a wall.
 - That reframes the problem as an application running without a surface rather than one that is stuck, and names the next measurement as reading which request on the dead object the server was answering.
+
+## 2026-11-05 - the launcher strips the environment and the database has two writers
+
+- Tried to enable protocol tracing through a service drop-in and found the launcher does not pass its environment to the application, which matches how it strips the graphics variables.
+- The run was still useful because the compositor error did not occur in it: the log shows the application holding two database handles and one of them failing transactions with a statement error while the other commits.
+- That makes the commit failures a defect in the application rather than in the projection, and takes them off the list of candidate causes for the missing screen.

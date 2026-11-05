@@ -6160,3 +6160,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The worker's framebuffer result settles it: that backend also produces no socket, so the stall is not about page flips, and its absence is a teardown rather than a hung server.
 - The strongest single piece of evidence is that the process holds no epoll descriptor, which proves the compositor never entered its serving loop, a better statement than a missing socket.
 - That moves the failure to the shell's startup over a real output, and points at one concrete thing: the configuration names a shell user interface binary at a path where it does not exist, while the binary sits in another directory.
+
+## 2026-11-05 - my shell interface hypothesis was refuted and found a dormant vendor bug
+
+- The worker tested my hypothesis in one run: the configuration path really does name a file that does not exist, and correcting it does not produce the socket.
+- The source explains why it cannot: the shell client is started by an idle callback that only runs after the compositor enters its serving loop, which it never does, so the wrong path is dormant rather than causal.
+- Recorded two kinds of fact side by side: a confirmed vendor defect that does nothing on this build, and a failed hypothesis of mine that at least produced it, which is better than the two earlier failures tonight that taught only not that.

@@ -49,3 +49,39 @@ and they are currently getting keys and black. That is the nearer and more cheap
 
 **Not established:** which load fails. **Established:** the settled frame carries untranslated keys and a
 black region, and both are the signature of an unloaded resource model rather than of missing CAN data.
+
+---
+
+## 7. Correction: that frame is `AppCamera`, not the home screen
+
+**I attributed the 22,057-byte frame to the home screen. It is almost certainly `AppCamera`.**
+
+The string in its title bar, `STR_CAMERA_ALERT2`, does **not** exist anywhere in the home screen's
+translations. A full-image search for that key finds it in exactly one application:
+
+```
+app/share/AppCamera/system/StringInfo.qml
+app/share/AppCamera/localization/AppCamera_en_GB.qm   (+ 50 more locale files)
+```
+
+**54 files, all under `AppCamera`.** Meanwhile `STR_EV_BATTERY` and `STR_EV_RANGE` - the strings the home
+screen's widgets use - are present in **all 26** of the home screen's own `.qm` files. So the home screen
+had its translations available, and the frame I looked at was displaying a string that belongs to a
+different application.
+
+The **black region fits the same conclusion**: `AppCamera` with no camera attached draws an unpainted
+preview area. It was never the home screen's missing theme images.
+
+**What this means for the previous section:** the "unloaded resource model" reading was **too broad**. The
+evidence supports a narrower and different statement - *the topmost window in that run was the camera
+application, and its title string is untranslated* - and says nothing about the home screen's translations,
+which demonstrably exist.
+
+**Why the captures could not tell me this:** every surface id returned the **same byte size (22,057)**,
+which means `weston-screenshooter` was compositing the same output regardless of which surface was placed
+in front. So the surface ids did not identify anything in that run, and surface **identity has to come from
+the compositor log**, not from the id I asked to be placed.
+
+**The next measurement, and it is cheap:** pull `/tmp/weston-real.log` off the guest through the base64
+channel and read which client owned which surface at each capture. Until that is done, no capture in this
+series can be attributed with confidence.

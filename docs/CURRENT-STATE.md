@@ -42,9 +42,12 @@ even though the fix worked.
 **What the settled frame shows** (`docs/vm/42-day-shell-untranslated-string-black-region-2026-11-05.png`, 22,057 bytes): the day theme, a title bar containing
 the literal text **`STR_CAMERA_ALERT2`**, a light left panel, and a **black region over the right third**.
 
-A `STR_` key rendered as text means **the translations model is not resolving**, and missing theme images
-draw black - two symptoms of **one unloaded resource model**, not of missing CAN data. So before widget
-*values* can be judged, the widgets need *text and images*, and that load is the nearer question.
+**CORRECTED within the hour, and the correction is the useful part:** that frame is almost certainly
+`AppCamera`, not the home screen. `STR_CAMERA_ALERT2` exists **only** in `AppCamera`'s translations (54
+files), while `STR_EV_BATTERY` and `STR_EV_RANGE` are in **all 26** of the home screen's own `.qm` files, so
+the home screen's translations were available. The black region is a camera preview with no camera. Every
+surface id returned the same 22,057 bytes, so the ids identified nothing - **surface identity must come
+from the compositor log**, which is the next measurement.
 
 ### The remaining gap is a transport, not an adaptor (measured 2026-11-05)
 

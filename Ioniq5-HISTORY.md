@@ -5830,3 +5830,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Compared line numbers in the compositor log against a marker taken the instant the application appeared, since that log only ever appends.
 - The window-manager binds happen in the first hundred and fifty lines, and the application does not exist until line fourteen hundred and thirty, so a startup client owns them and the application is at most a recipient of the later error.
 - Named the next read as four lines of context from the compositor log, where its own launch message should name the startup client directly.
+
+## 2026-11-05 - the startup client connects at six seconds
+
+- Used the compositor's own uptime clock to place the suspect bind in time: a client connects at about six seconds and enumerates the globals, minutes before any application exists.
+- The compositor's launch lines in that window name only the failing keyboard and the splash client, so the suspect is one of those.
+- Noted what that would imply if confirmed: the splash client this project wrote would be breaking the application's connection, which is a defect in the projection rather than in the vendor software, and a materially different claim.

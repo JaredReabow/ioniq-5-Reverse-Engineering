@@ -189,26 +189,28 @@ property-injection defect names exactly that property.
 
 ### 7. The updater verifies a file and then installs it from a second read of the same file
 
-**Evidence.** `app/bin/AppUpgrade` builds two separate shell commands that each name the input file: the integrity check `ionice -c3 md5sum %1` plus a `PKCS#1 sig. verify`, and the install
-`pv -q %1 | tar -xvm -C %2` (with `nice -n 19 dd if=%1 bs=4k skip=%2` for other partitions). A displacement scan of the binary resolves each string to **one reference site, ~1.2 MB apart**
-(`0x1877a8` and `0xbd744`), so the decision and the install are constructed in different parts of the program. The file lives on removable media the user supplies.
+**Evidence.** `app/bin/AppUpgrade` is a 16 KB wrapper whose data contains the two real updaters as complete ELF images: **SCOMO** (5,678,432 bytes at `0x7c64`) and **FUMO** (5,066,264 bytes at
+`0x5721c8`). This vehicle's launcher row selects FUMO. In **FUMO's own code** the check and the apply are separate invocations that each name the same input file:
 
-**Exposes.** A programmable USB device that serves the genuine image during the check and different bytes during the install installs content that was never verified. Two consequences
-worth stating separately:
+```
+0x13a550   ionice -c3 md5sum %1 | awk '{print $1}'                                     the check
+0x60f0b    DecryptToPIPE -d <src> <off> 0 | pv -q -L 8m | dd of=<partition> bs=512      the apply
+```
 
-- **Arbitrary content needs the unit's TE2 content key** (`velix_aes.key`, read at run time from `/update/fota/`), which does not ship.
-- **A genuine older image needs nothing at all.** It is already encrypted with the key the unit holds, the install pass accepts it, and the version gate was satisfied against the
-  genuine current bytes. **This is a downgrade route that does not depend on anti-rollback.**
+The apply pipeline opens the payload again, decrypts it and writes it to a **partition device**, and the stream is **rate-limited to 8 MB/s by its own command**. The payload sits on removable
+media the user supplies. Extract both updaters with `tools/uk_fw/extract_embedded_elfs.py`; the full measurements are in `evidence/v059-evidence.md`.
 
-**Fix.** Never verify a file and then re-open it. Hash **during** the install (a streaming hash over the same handle that writes), or copy once into protected local storage and verify and
-install from that copy. Separately, give the rootfs a boot-time integrity mechanism so "installed unverified content" is not the same as "runs at next boot".
+**Exposes.** A programmable USB device that serves the genuine image during the check and different bytes during the apply installs content that was never verified. Two consequences, which need
+different responses:
 
-**Verify.** On a unit, confirm the install consumes the same bytes it verified - e.g. by hashing the source while writing and comparing against the check digest, or by making the install
-refuse a file whose contents changed since the check.
+- **arbitrary content** needs the unit's TE2 content key (`velix_aes.key`), which does **not** ship in the package;
+- **a genuine older image** needs **nothing** - it is already encrypted with the key the unit holds, and the version gate and anti-rollback were satisfied against the genuine current bytes.
 
----
+**Fix.** Never verify a file and then re-open it: hash during the install over the same handle that writes, or copy once into protected storage and verify *and* install from that copy. Give the
+rootfs a boot-time integrity mechanism so "installed unverified content" is not the same as "runs at next boot".
 
-## Tier 3 — data protection: currently weaker than it appears
+**Verify.** On a unit, confirm the install consumes the bytes it verified - hash the source while writing and compare against the check digest, or refuse a file whose contents changed since the
+check.
 
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 

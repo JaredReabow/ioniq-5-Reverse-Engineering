@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.15 - the withdrawn claim was still in the vendor-facing report
+
+A drift audit across the documents found the one place that mattered: **`docs/REMEDIATION-REPORT.md` item 7 still described the install as `pv -q %1 | tar -xvm -C %2` with "reference sites ~1.2 MB
+apart"** - the claim withdrawn two entries ago, sitting in the document a platform team would act from, while the register and the evidence sheet had been corrected.
+
+Replaced with the measured version: the wrapper's two embedded ELF images (SCOMO at `0x7c64`, FUMO at `0x5721c8`), FUMO being what this vehicle runs, the check at `0x13a550` and the apply
+pipeline at `0x60f0b` with its 8 MB/s limit, and a pointer to `tools/uk_fw/extract_embedded_elfs.py` and `evidence/v059-evidence.md`. The register's earlier evidence list was annotated too - the
+`pv|tar` and `dd` lines are now marked as SCOMO's commands rather than presented as the install.
+
+**This is why the audit was worth running.** The check suite verifies numbering, the history invariant, tool syntax and 1,300+ links; it cannot see that a *superseded sentence* survived in the
+one document with the most readers. Five front-page catch-ups tonight were voluntary; this one was found by looking for the withdrawn phrasing specifically, which is a habit worth keeping rather
+than a script.
+
 ## 5.1.14 - I went looking for the decisive path and found the opposite one seven times
 
 The open question is whether FUMO's second read opens the removable medium or a staged local copy. Looking for the mount path in FUMO's strings, expecting it to be decisive, gave:

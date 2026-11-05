@@ -6034,3 +6034,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Looked for field evidence of the micom console parameter in the vehicle logs and found none, because the init script writes to the serial port rather than to those logs.
 - Then read the script that starts the console and found that the autologin line is commented out, and so is a second console on the usb gadget serial port. That made one sentence of the finding too strong, and it is corrected in place.
 - What remains is a fail open design: safe behaviour depends on a single value from the micom, the marker lives where anyone can write it, and three mechanisms inherit its state. Noted that three turns running, looking for the bound has found the bound is real.
+
+## 2026-11-05 - the worker was stuck and the answer was two files away
+
+- Looked in on the kernel build and found it failing on a host tool, the classic old kernel with a modern toolchain problem, three attempts in.
+- Two things in the working directory should have been in the brief: an earlier successful build that already reports the vendor's version string, and a name that reads as a virtio display attempt. So the first experiment is not a build at all but booting what already exists.
+- Also got a config detail wrong myself: the virtual pci option is disabled in the vendor config, so enabling only the gpu driver would produce nothing. Sent all three to the worker in one message instead of letting it rediscover them.

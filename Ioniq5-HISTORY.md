@@ -6226,3 +6226,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The worker kept a frame and refused to let it prove more than it does: it was captured after the instance that reported drawing had exited, so it shows a mostly empty compositor output rather than an application.
 - Two causes, both concrete. The output is at the small default resolution rather than the one the interface and its own configuration use, which alone explains a mostly black frame with text pushed to the edges; and the capture timing was after the app's life rather than during it.
 - Noted that the reference frame already exists in the repository from this morning, so the question for the next run is not whether it works but whether it matches the frame we already have.
+
+## 2026-11-05 - I committed with a failing check
+
+- The previous commit went in while the check suite was reporting a failure. I saw the line and committed anyway.
+- The failure was an elided path of mine, the fourth of the session and the second in the changelog, and the checker had caught it correctly.
+- Recorded it on its own because every other correction tonight was about a measurement or a claim, while this one is about ignoring my own gate at the end of a long session, which is exactly when it exists to be used.

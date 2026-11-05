@@ -589,6 +589,6 @@ then `/sys/class/drm/card0-Virtual-1/modes` should list `1920x720` and weston's 
 **2. The capture must happen while an instance is alive**, not after the first one exits - the monitor already has the liveness
 signal.
 
-**Both are one run.** And the reference for what a correct frame looks like already exists: `docs/vm/38-...png`
+**Both are one run.** And the reference for what a correct frame looks like already exists: `docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png`
 (**16,062 bytes at 1920×720**), the only fully-laid-out frame this project has captured, taken on the **headless** backend long
 before tonight's kernel work.

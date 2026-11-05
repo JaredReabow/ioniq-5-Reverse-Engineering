@@ -1311,3 +1311,32 @@ the launcher.
 **And the most likely of the three is worth naming in advance:** if it is a liveness check, the app is being killed for **something it is
 expected to report during startup and never does** - which would make this a **stand-in problem rather than a timing problem**, and
 stand-ins are what this project builds.
+
+## 66. CORRECTION (from an independent reviewer): the surface-id patch assigns AppCamera's id, and the frame is probably the camera
+
+Opus 5.5, one of three planners asked to review the state independently (`docs/planning/`), found a contradiction and the arithmetic
+confirms it:
+
+```
+vendor table (appId -> surfaceId), read from 0x475c0:
+   17 -> 1030     12 -> 2080     110 -> 2110     111 -> 2110
+  112 -> 2160    113 -> 2170      73 -> 2200      30 -> 3000
+```
+
+**`12 -> 2080` is `AppCamera`.** The patch in §48 replaced `113 -> 2170` with **`11 -> 2080`** - giving the home screen **the camera's
+surface id**. And the patched run's surface list was `[30000|2080|1001|1002|2080|1004]`: **2080 appears twice**, which is exactly the
+collision that assignment predicts.
+
+**So §48-§49 are withdrawn:** the claim that "the compositing blocker is closed" is **unsound**, and the frame with the literal
+`STR_CAMERA_ALERT2` and the KIA logo is very probably **`AppCamera`'s window** - which is also what `docs/CURRENT-STATE.md` §0 concluded
+hours earlier, before I contradicted it.
+
+**What was actually demonstrated:** the launcher *can* be made to emit `QT_WAYLAND_SET_SURFACE_ID` for app id 11, because the line
+appeared. **What was not demonstrated, and is now doubtful:** that the resulting surface belongs to the home screen.
+
+**The correct patch** uses an id **absent from the table** (for example `1010`, or `2210`), and the check is two-fold: the launcher line
+for `AppID : 11` with the **new** id, and a surface list containing that id **once** - not a second 2080.
+
+**And the honest note:** this is the first error of mine that an outside reader caught rather than a measurement, and it is the same
+error the project had already corrected once - attributing a camera frame to the home screen. **A second look by a model that had not
+paid for the work is worth more than another run.**

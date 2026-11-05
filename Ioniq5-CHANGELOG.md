@@ -3,6 +3,27 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.16.1 - the fix list's tiers had become false
+
+`docs/REMEDIATION-REPORT.md` is the document a platform team acts on, and mine is yours to read before you change it.** I had been appending items 13-23 to the end of a two-tier report without re-reading the top, and by item 23 the structure said something untrue: **a dozen configuration-only fixes sat under *"code changes, requiring a release"*** - bus policies, unit hardening, symlink targets, an inverted boot default, a missing `User=`, an unauthenticated listener - plus item 11 stranded after item 23.
+
+**The tier is the reader's only signal for cost.** Every one of those twelve is an afternoon's work, and the report said they needed a release.
+
+Rebuilt:
+
+| tier | items | what they are |
+|---|---|---|
+| **1 - configuration and image changes** | 13 | policy files, unit directives, symlink targets, permissions, boot-script defaults |
+| **2 - code changes, requiring a release** | 11 | a verification routine, an execution path, or a build that stops embedding credentials |
+
+with the **four leverage items named at the head of Tier 1** instead of being findable only by reading all of it. Two artefacts of the rebuild - a stray duplicate heading and a duplicated closing block - were caught and removed.
+
+### The lesson
+
+**A document that is only ever appended to will eventually contradict itself**, and the fix is to read it before adding, not to trust that the last edit was the whole document.
+
+**This is the fourth time in this session that the record, not the work, was the thing that needed correcting** - the state page contradicting itself, the README quoting 60 entries, the elided paths, and now the fix list's tiers. The checks catch links and numbering; **they cannot catch a document that is internally consistent and structurally wrong.**
+
 ## 5.16.0 - the display ceiling was the kernel's configuration, and a rebuilt kernel removes it
 
 The delegated worker took the corrections, ran the authentic path, and its log changes a conclusion this project has been treating as final:

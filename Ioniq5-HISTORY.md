@@ -6076,3 +6076,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The delegated worker ran the authentic path on a kernel built with the display drivers enabled, and the log shows a drm driver binding, a framebuffer device registering, and the vehicle's own boot reaching multi-user.
 - That lifts a conclusion this project had treated as final: the headless backend was forced by the shipped kernel's configuration, not by the hardware, and two other backends become possible on a rebuilt kernel.
 - Recorded the correction in place with the honest state: nodes unverified, backend acceptance unverified, and the question that matters still open, namely whether a real display path stops the error that killed the application in every run.
+
+## 2026-11-05 - the fix list's tiers had become false
+
+- Read the remediation report top to bottom for the first time since it doubled in size, and found a dozen configuration only fixes filed under code changes requiring a release, plus an item stranded out of order.
+- Rebuilt the tiers by cost, put the four leverage items at the head of the first tier, and removed two artefacts the rebuild introduced.
+- Recorded the pattern: a document that is only appended to will contradict itself, and this is the fourth time this session that the record rather than the work needed correcting. The checks catch links and numbering, not a structure that is internally consistent and wrong.

@@ -245,9 +245,14 @@ Reached target Multi-User
 **`/dev/dri/card0` exists.** `drm-backend.so` (ships, 536 KB) and `fbdev-backend.so` (348 KB) are now reachable;
 `ias-backend.so` still is not, because the vendor GPU interface does not exist here.
 
-**And it has now been tried.** On `drm-backend` the vendor compositor reports `Output Virtual-1`, reaches Multi-User, and
-shows **zero** `fatal error` / `invalid object` occurrences in the capture
-(`work/vm/kbuild/boot8-drm.log`) - where every headless run ended with exactly that error.
+**And it has now been tried - with a result that corrects the obvious reading.** On `drm-backend` the vendor compositor
+initialises `/dev/dri/card0` and reports `Output Virtual-1`, **and then stalls before creating its Wayland socket**
+(`NO_WAYLAND_SOCKET after 240s`, `wchan=[hrtimer_nanosleep]`, no `wayland-*` socket anywhere).
+
+So the log's lack of `invalid object N` is **"no client ever connected"**, not "the error is fixed". The comparison the VM
+goal needs **cannot be made on this backend until weston serves a client**.
+
+**Where that leaves it:** the *device* half is done; the *compositor* half is blocked on a stall, not on hardware.
 
 **Not yet established:** that the application started, that input works (`failed to create input device '/dev/input/event0'`,
 *"no input devices"*), or what the screen shows - no capture was taken on the DRM path. Each is a separate measurement, and

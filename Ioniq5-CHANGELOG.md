@@ -3,6 +3,26 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.20.2 - the frame is saved, it does not show a painted app, and the mode explains why
+
+The worker kept a frame and was admirably honest about it: **87,944 bytes, sha256 `b51acb8b…`, PNG 1024×768**, decoded exactly - and **it does not prove the application draws**, because it was captured after the instance that logged `START DRAW` had exited. What it shows is a mostly-empty ivi-shell output: ~95 % black, two text-like clusters, a trace of orange, the top 252 rows entirely black.
+
+### Two causes, and the first is a resolution this project had wrong all along
+
+**1. The output is 1024×768.** The vendor ini says `[output] name=HDMI1 / mode=1920x720`; the app lays out for `1926×753`; the capture is **1024×768**, the bochs default. **A 1920-wide layout drawn into a 1024-wide screen looks exactly like what was described** - sparse text pushed to the edges, everything else black.
+
+`bochs-drm` takes modes from **EDID**, and QEMU can advertise the right one: `-device VGA,edid=on,xres=1920,yres=720`, then `/sys/class/drm/card0-Virtual-1/modes` should list it.
+
+**2. The capture must happen while an instance is alive** - the monitor already has the liveness signal.
+
+**Both are one run**, sent to the worker with the EDID fragment, the check to confirm the mode, and the instruction to say *which* change was made if the frame is still black.
+
+### And the reference frame has existed since this morning
+
+`docs/vm/38-...png` - **16,062 bytes at 1920×720** - the only fully-laid-out home screen this project has ever captured, taken on the **headless** backend hours before tonight's kernel work. **So the target is not speculative**: it is a frame already in the repository, and the DRM path now needs to produce the same thing at the same size.
+
+That is the right way to end the evening on this thread: not "does it work" but **"does it match the frame we already have"**.
+
 ## 5.20.1 - my own run did not reproduce, and the observability gap is why I cannot say why
 
 Tried to close §20's gap myself - a saved frame - in my own clone with the rebuilt kernel and the fixed module. It did not reproduce:

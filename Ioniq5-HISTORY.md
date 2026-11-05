@@ -6220,3 +6220,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Tried to close the one gap from the result by saving a frame myself, in my own clone, with the rebuilt kernel and the fixed module. It did not reproduce: no socket, no seat markers, not even the module's deferral message, which means the compositor never reached module loading.
 - The likely cause is my own wrapper overriding the backend on the command line with options that backend does not take, but I cannot confirm it because the compositor's log dies with the snapshot. That is worth stating on its own: the one log most worth keeping is the one never saved.
 - Handed the single remaining run to the worker with my failure passed along, and recorded plainly that two of my last four self-run experiments failed to reproduce its configuration.
+
+## 2026-11-05 - the frame is saved and it does not show a painted application
+
+- The worker kept a frame and refused to let it prove more than it does: it was captured after the instance that reported drawing had exited, so it shows a mostly empty compositor output rather than an application.
+- Two causes, both concrete. The output is at the small default resolution rather than the one the interface and its own configuration use, which alone explains a mostly black frame with text pushed to the edges; and the capture timing was after the app's life rather than during it.
+- Noted that the reference frame already exists in the repository from this morning, so the question for the next run is not whether it works but whether it matches the frame we already have.

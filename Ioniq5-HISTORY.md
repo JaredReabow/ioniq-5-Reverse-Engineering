@@ -5794,3 +5794,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Withdrew yesterday's conclusion that the duplicate process caused the Wayland crash and the database commit failures. The zero counters it rested on came from a log file that each new instance truncates, and the tell was in the same line I quoted.
 - A run with one instance and a real ninety-nine kilobyte log still contains both failures, so the duplicate is at most a contributing factor.
 - Made it a rule that a count is not evidence unless the size and identity of the file it came from are recorded beside it, because zero is indistinguishable from an empty file.
+
+## 2026-11-05 - the failure in order
+
+- Captured the sixty seconds around the error from a log whose size and instance were verified first, and the whole failure fits in half a second.
+- It shows the application surviving: it logs on for another twenty-seven seconds with a dead compositor connection, and a database commit succeeds after the failures, so neither the crash nor the commit is a wall.
+- That reframes the problem as an application running without a surface rather than one that is stuck, and names the next measurement as reading which request on the dead object the server was answering.

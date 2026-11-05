@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.11.5 - the failure in order, from a log I can vouch for this time
+
+One instance, log **107,171 bytes / 796 lines**, `AppHome Init Done` present, and the 71 lines after it captured whole. The chronology fits in **half a second**:
+
+```
+00:02:30.329  AppHome Init Done
+00:02:30.333  DB UPDATE COMMIT FAIL            <- first commit failure
+              wl_display@1: error 0: invalid object 19
+00:02:30.367  [FTL] The Wayland connection experienced a fatal error
+00:02:30.370  DB UPDATE COMMIT FAIL            <- and it keeps going
+00:02:30.795  SaveSetupLayoutDB ] return true  <- a commit SUCCEEDS later
+00:02:57.396  PersistentManager::value ] SUCCESS: "APP_SETTING_VCU_READY"
+```
+
+**Three things this establishes, and one of them reframes the problem:**
+
+1. **The application does not die at the Wayland error.** It keeps logging for 0.6 s in the same burst and is still logging **27 seconds later**. The instance is alive with a **dead `wl_display` connection**.
+2. **The commit failures are noise, not a wall** - `SaveSetupLayoutDB` **returns true** later in the same burst. That is the third time a candidate cause has dissolved on closer reading.
+3. **The Wayland error arrives mid-burst on the same thread** that is doing the commits, which no earlier entry could see because I was counting instead of reading.
+
+**So "not painting" is not "stuck" or "crashed".** The application is running with a **destroyed Wayland connection** - no surface to paint into - which is exactly what a compositor showing the background means.
+
+**`invalid object 19`** is a server event addressed to a client object that has already been destroyed, typically a surface released while a request was in flight. **The next measurement is narrow:** run the app with `WAYLAND_DEBUG=1` and read which request on object 19 is being answered. That turns an opaque error into a named request - the first thing in this line of work that points at a fix rather than a symptom.
+
+**And a caution from this session's own history:** the variable has to reach the launcher's children, and `LD_PRELOAD` has already caused two failures here. **Prefer a systemd drop-in or `/etc/environment`, and change one thing only.**
+
 ## 5.11.4 - retraction: the duplicate is not the cause, and I nearly shipped the opposite
 
 Last entry said "confirmed: the duplicate process caused both error families", on the strength of `wlerr=[0] commitfail=[0]`. **That was wrong**, and the tell was in the same line: **`initdone=[0]`** - not one `AppHome Init Done` in the log.

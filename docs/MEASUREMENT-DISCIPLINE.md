@@ -149,3 +149,29 @@ having been corrected for the first.
 
 **Tell.** If a fix for a broken reference is to edit a checker allowlist, the path was wrong. The allowlist
 exists for references to things **outside this repository**, not for paths I was too lazy to type.
+
+## 14. A count is not evidence unless you know which file you counted
+
+**The case.** Two runs were compared to test whether duplicate application instances caused the Wayland fatal
+error and the database commit failures:
+
+| run | counters |
+|---|---|
+| with two instances | `wlerr=2` `commitfail=23` |
+| with one instance | `wlerr=0` `commitfail=0` |
+
+That looked like a clean confirmation, and it was written up as one. But the second run also printed
+**`initdone=[0]`** - not a single `AppHome Init Done` line - and that should have stopped everything. The
+application's launcher redirects its stderr with `>`, so **each new instance truncates the log**. The zeroes
+measured an almost-empty file created seconds earlier, not a fixed application.
+
+A later run with **one** instance and a **99,902-byte, 745-line** log still contained the Wayland fatal error
+and the `DB UPDATE COMMIT FAIL`.
+
+**Rule.** Whenever a counter is used as evidence, record **the size and identity of the file it came from** in
+the same line as the count - `wlerr=[0] logsz=[281]` would have caught this instantly. A count of zero is the
+most suspicious number there is, because emptiness and success look identical in it.
+
+**Corollary.** A log whose first expected line is missing is not a log with no errors; it is a log that is not
+about the thing you are measuring. Check for the *presence* of a known-good line before counting the absence
+of bad ones.

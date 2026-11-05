@@ -5788,3 +5788,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Killed down to one instance and the two error families went to zero: no Wayland fatal errors and no database commit failures, where two instances had produced both.
 - That makes the last two entries symptoms of two processes competing rather than causes of anything, which is recorded rather than quietly dropped.
 - Also recorded that plain kill did not remove the process: I announced the same process id killed six times while it was still running, the same class of mistake as trusting a capture without looking at it.
+
+## 2026-11-05 - retraction: the duplicate is not the cause
+
+- Withdrew yesterday's conclusion that the duplicate process caused the Wayland crash and the database commit failures. The zero counters it rested on came from a log file that each new instance truncates, and the tell was in the same line I quoted.
+- A run with one instance and a real ninety-nine kilobyte log still contains both failures, so the duplicate is at most a contributing factor.
+- Made it a rule that a count is not evidence unless the size and identity of the file it came from are recorded beside it, because zero is indistinguishable from an empty file.

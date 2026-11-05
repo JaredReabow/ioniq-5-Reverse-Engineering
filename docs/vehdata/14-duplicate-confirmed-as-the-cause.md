@@ -1,5 +1,11 @@
 # The duplicate instance was the cause of both error families
 
+> **WITHDRAWN 2026-11-05.** The conclusion below is wrong. The zero counters came from a **freshly
+> truncated log** belonging to a new instance (`initdone=[0]` was the tell), not from the errors being fixed.
+> A later run with **one** instance and a real 99,902-byte log still shows the Wayland fatal error and the
+> `DB UPDATE COMMIT FAIL`. See `15-retraction-duplicate-not-confirmed.md`.
+
+
 Date: 2026-11-05. Test: wait for the application, then keep killing every instance except the oldest, and
 compare the two error counters.
 

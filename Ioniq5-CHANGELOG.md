@@ -3,6 +3,30 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.30.0 - Astra's structural fix, built and self-tested: the measurement receipt
+
+Consulted **Opus 4.7 and Astra** on the next best step after boot50, as the standing instruction now requires. Astra's answer to the measurement-instrument debt was the one thing that could be built without a boot, and it is now in the tree: **no validated receipt, no result.**
+
+### `tools/uk_fw/guest/measure.sh`
+
+Emits exactly one of `MEASURED <claim> <value>` or `NOT MEASURED <claim> <reason>`, and refuses the first when:
+
+1. **the target is not alive now, or is a zombie** - the dead-pid defect from boot50;
+2. **a positive control fails** - the instrument must first read a value it already knows, through the same mechanism, or it cannot speak about the target. This is the difference between *the answer is empty* and *the instrument is blind*;
+3. **the command exits non-zero** - a failure through a healthy instrument is `NOT MEASURED`, never a value.
+
+**An empty result from a validated instrument is reported as `MEASURED ... <empty>`**, so absence is never read as a negative finding - the mistake behind three wrong conclusions earlier tonight.
+
+### It is self-tested, because an untested instrument is the trap the rule exists to close
+
+`tools/uk_fw/guest/test_measure.sh` - **six gates, all passing**: a live target measures; a dead pid is refused; a zombie is refused; a command failure is not a value; a usage error is refused; **and a blind instrument refuses to report even when the target is healthy**. It runs anywhere, including macOS, by pointing `MEASURE_PROC` at a fake proc tree - which is why the wrapper's path is overridable in the first place.
+
+Wired into `tools/check_all.sh` as a seventh stage, so the instrument's fail-closed behaviour is now a standing check rather than a good intention.
+
+### `docs/MEASUREMENT-DISCIPLINE.md` rule 17
+
+**A number is not a measurement unless the instrument proves it measured the intended target.** Seven failures in one session, and the seventh was the system refusing to be measured rather than the instrument misleading us.
+
 ## 5.29.0 - the duplicate registration is one pid, and the instrument was denied by the policy it measured
 
 **Doc 29 answers the two-instances question: it is a retry.** Same pid `2303`, twice, **10 ms apart**:

@@ -208,3 +208,23 @@ assuming their order.
 **Rule.** Any programmatic rewrite of a whole document gets: (1) assertions that the region is what you think, (2) a
 size check afterwards against the expected change, and (3) **the file must be committed or restorable** before you run
 it. And when a count that should be 1 comes back in the thousands, stop and look at the file, not at the query.
+
+## Rule 17. A number is not a measurement unless the instrument proves it measured the intended target
+
+Adopted 2026-11-06, after the seventh instrument failure in one session and the first one where the *system* refused to be
+measured rather than the instrument misleading it: the monitor ran unlabelled, so it read a label from a dead pid and was denied
+the very directory it was checking, and both results looked like findings.
+
+**Every measurement now goes through `tools/uk_fw/guest/measure.sh`**, which emits exactly one of
+`MEASURED <claim> <value>` or `NOT MEASURED <claim> <reason>` and refuses the first when:
+
+1. **The target is not alive now**, or is a zombie - the dead-pid defect;
+2. **A positive control fails** - the instrument must first read a value it already knows, through the same mechanism, or it
+   cannot say anything about the target. This is the distinction between *the answer is empty* and *the instrument is blind*;
+3. **The command fails** - a non-zero exit through a healthy instrument is `NOT MEASURED`, never a value.
+
+**An empty result from a validated instrument is reported as `MEASURED ... <empty>`**, so that absence is never read as a negative
+finding - the mistake that produced three wrong conclusions earlier in this project.
+
+The wrapper is self-tested (`tools/uk_fw/guest/test_measure.sh`, six gates, runs anywhere including macOS by pointing
+`MEASURE_PROC` at a fake proc tree), because **an untested instrument is the trap this rule exists to close**.

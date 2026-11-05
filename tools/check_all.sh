@@ -49,3 +49,15 @@ if [ -d "work/decrypted-eu-260128/extracted-safe/mango-rootfs" ]; then
   fi
   grep -E 'pass, .* fail' /tmp/verify-findings.out | sed 's/^/  /'
 fi
+
+# Stage 7: the measuring instrument itself must fail closed. An instrument that reports a value when
+# it is blind is worse than no instrument, and this project has paid for that lesson seven times.
+if [ -f tools/uk_fw/guest/test_measure.sh ]; then
+  echo "== measure.sh self-test: the instrument must fail closed =="
+  if ! sh tools/uk_fw/guest/test_measure.sh > /tmp/measure-selftest.out 2>&1; then
+    echo "  FAIL: the measurement wrapper did not fail closed (see /tmp/measure-selftest.out)"
+    tail -12 /tmp/measure-selftest.out
+    exit 1
+  fi
+  tail -1 /tmp/measure-selftest.out | sed 's/^/  /'
+fi

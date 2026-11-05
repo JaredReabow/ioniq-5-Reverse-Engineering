@@ -125,6 +125,13 @@ Seven relevant entries. **Two are demonstrated**, one is captured, three are con
 a writable runtime path — and `docs/vm/` shows `/tmp` is `1777`. That is the document to put in front of a vendor, together with the single
 recommendation: **never resolve a security decision from a writable path, and make every such check fail closed.**
 
+## 4b. The leading security finding, in one paragraph
+
+**V-059**: the updater the vehicle runs (FUMO, embedded in `app/bin/AppUpgrade` as a 5.1 MB ELF inside its data) checks the payload with `ionice -c3 md5sum %1` at a site of its own, then
+applies it from a **different invocation** - `/app/share/AppUpgrade/DecryptToPIPE -d <src> <offset> 0 | pv -q -L 8m | dd of=<partition> bs=512` - which **opens the payload again**. The TE2 key is
+read at apply time; a genuine older package is already encrypted with it, so the version gate and anti-rollback are satisfied against *different bytes* than the ones written. Full measurements:
+`evidence/v059-evidence.md`. The one open question is whether that second open hits the removable medium or a staged local copy, and only a runtime observation on a unit settles it.
+
 ## 5. Things that were claimed and corrected
 
 Recorded because the corrections are part of the value:

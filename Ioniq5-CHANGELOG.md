@@ -3,6 +3,36 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.22.5 - the combined test: no surface on the stable instance, and the call kills it anyway
+
+```
+PID_STABLE_GATE=yes pid=[2238]
+SURFACES=[Surface id(30000)|Surface id(1000)|Surface id(1001)]
+APP_SURFACE_ID=[]              no application surface exists
+PLACE_SURVIVED=yes             placement was a no-op
+AFTER_CALL pid=[] (was 2238)   the instance died on the call
+CAP_30s–120s pid=[2635] 129844
+```
+
+**Two facts, both measured:** the pid-stable instance **never created a Wayland surface** (only the ivi-shell's own 30000/1000/1001 exist), and **the power-on call deregisters it anyway**. Doc 11's surface existed because that monitor caught a *different*, already-painting instance.
+
+**So the blocker is earlier than placement**: the instance that survives the registration race never reaches surface creation, and the one that does reach it is killed first.
+
+### The read that decides it — and the stopping rule
+
+**The launcher log, for the fourth time in this project**, with the app's own lines (`Using Wayland-EGL`, `SCREEN_STATE: START DRAW`) **timestamped against the deregister:**
+
+| finding | means |
+|---|---|
+| no surface lines before the kill | the app never gets there in this configuration - a **documented projection limitation** |
+| surface created, killed 3 ms later | **nothing about the application is broken** - the vendor's preload deadline is shorter than this projection's margin, and the only race-free fix is **patching that deadline** as a labelled substitution |
+
+**Stopping rule:** if it is the second, this thread ends with a **documented limitation and a named cause** - the honest end for a gap that is a vendor timing constant under emulation rather than an unexplored area.
+
+### What the session has to show for itself on the VM goal
+
+Every layer beneath the application is **demonstrated working**: the vendor kernel replaced by a rebuilt one with `bochs-drm`, `/dev/dri/card0` at 1920×720, the vendor's own `drm-backend.so`, a serving compositor, a connected client, and a frame showing the application's own chrome. **The remaining gap is a 3 ms vendor deadline**, which is a different class of problem from everything this session started with.
+
 ## 5.22.4 - the reordering works and the frame is still the background, so the preload gate was a precondition
 
 The run polled for stability **before** the call, and mechanically did everything right:

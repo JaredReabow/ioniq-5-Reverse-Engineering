@@ -155,3 +155,9 @@ update/frontkey/Checksum.txt     2 entries    MKBD_2_1F_00_NX4.BIN          CRC3
 
 **Never verify a file and then re-open it.** Hash during the install over the handle that writes, or copy once into protected storage and verify *and* install from that copy. Plus a boot-time
 rootfs integrity mechanism, so "installed unverified content" is not the same as "runs at next boot".
+
+## Addendum - the substitution is unfiltered (measured 2026-11-05)
+
+`docs/v059-command-substitution-filtering.md` traces the shell-string builder at `0x13a510`: the path arrives as the function's third argument and is passed straight to `QString::arg` with **no validation call between them**. The payload's whole `.text` (472,147 disassembly lines) contains **zero** comparisons against `|` or backtick, and the two against `;` are integer range/enum tests on scalars, not character tests.
+
+So the consumer side of the primitive is complete and unfiltered. Whether an attacker-controlled character can reach it depends on the copy step that populates `/update/usb/bin`, which is unread.

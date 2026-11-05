@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.7.0 - the shell-string builder applies no filter, and the payload has none
+
+The question standing between the V-059 primitive and a real USB-to-root injection was whether the package path is filtered before it is substituted into a shell command. It is not, on either side.
+
+**The builder, at `0x13a510`:**
+
+```
+13a511  movl $0x27, %esi              length 39 - exactly the format string's length
+13a54d  leaq 0xf1f8c(%rip), %rdi      # 0x22c4e0  "ionice -c3 md5sum %1 | awk '{print $1}'"
+13a561  movq %r15, %rdx               the caller's third argument: the path
+13a56e  callq QString::arg
+```
+
+The path goes from the function's argument straight into `QString::arg` with **no validation call between them**.
+
+**The payload, counted across all 472,147 lines of its disassembly:** comparisons against `|` = **0**, backtick = **0**, `;` = 2, `$` = 2, `"` = 1. A shell-metacharacter sanitiser would test most of these in one loop. I read both `;` sites in context: one is a **range bound** (`leal -0x8(%eax),%edx; cmpl $0x3b,%edx; jbe`) and the other a **dispatch on an integer code** next to `cmpl $0xf` and `cmpl $0xb`. Neither is a character test.
+
+**So the consumer side of the primitive is complete and unfiltered**: whatever reaches that argument reaches the shell. What is still unread is the **producer** - the copy step that populates `/update/usb/bin` - and whether it preserves a name verbatim. `;`, `$`, quotes and newline are all legal on FAT/exFAT, so that is now the whole question, and it is the same shape as the SCSI-serial finding: complete on one side, blocked on the other.
+
+Two method notes worth keeping: `objdump` here is llvm-objdump and prints **no file offsets**, but this payload is a PIE whose `vma == file offset`, verified by finding the `0x22c4e0` reference at the expected address; and the offset I was given (`0x253225`) resolves to `.rodata` in FUMO and to `QMapNode<QString,int>::copy` in `ApplicationManager`, not to a mount-image path - so I anchored the trace on the string and its consumer instead.
+
+**On the boot failure reported alongside:** QEMU dying at `sbi_apl_commit` when `lge_usb_adapter` loads is the known deadlock, already neutralised in the working clones - the module oopses holding the platform-bus lock and stalls `modprobe fan`. The fix is one line in the image: `install lge_usb_adapter /bin/true`. That is the difference between the clone that boots and one that does not.
+
+`docs/v059-command-substitution-filtering.md`, addendum appended to `evidence/v059-evidence.md`.
+
 ## 5.6.2 - power is already on, and a D-Bus engineering entry is accepted
 
 Two calls against the running manager on the authentic path settled one hypothesis and opened a better one.

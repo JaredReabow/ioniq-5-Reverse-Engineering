@@ -5313,3 +5313,10 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Ran the managed-path capture twice with identical settings. One placed the application's surface and captured a frame fifteen kilobytes larger than the background; the other placed the background's own surface and captured the background.
 - So the result depends on which surface happens to be newest when the probe looks. The honest statement is that the managed instance has a surface and one capture differs from the background - not that it paints, because nobody has looked at the image.
 - Stopped after five attempts on one question, all five failing on my instrument choosing the wrong thing. The goal is demonstrated; this is polish, and writing down how to do it properly is worth more than a sixth attempt that might again capture the background.
+
+## 2026-11-05 - the key was not needed after all
+
+- Asked whether the encryption key for the update container ships in the image. It does not - it is read at run time from the update partition - while the public verification key does ship, as public keys do.
+- That splits the requirement in two, and the second half is the finding: installing a genuine older image needs no key at all, because it is already encrypted with the key the unit holds, and the version gate was satisfied against the different bytes that the check pass read.
+- So the downgrade question this project has carried open since its first document has an answer, and it came from the gap between two reads rather than from the version selector or the signature chain.
+- Also cleaned up a duplicated paragraph caused by my own edit landing silently and a fallback appending a second copy.

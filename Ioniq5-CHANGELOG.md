@@ -3,6 +3,47 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.15.2 - V-071: the root console and SSH hang on one file that the init script creates every boot
+
+Reading `esinit` properly - the most privileged component in the image, which I had only read in fragments - produced the mechanism behind two existing entries.
+
+### What the init script actually does
+
+```
+#secure_console : use console login
+touch /tmp/secure_console_disable
+
+#check console=ttyS2 and earlycon=uart8250 for No Secure console Booting
+#grep 'console=ttyS2' /proc/cmdline | grep 'earlycon=uart8250'
+#if [ $? = 0 ]; then
+#    /bin/rm /tmp/secure_console_disable
+#    /bin/rm /dev/ttyS2
+#fi
+```
+
+**It creates the marker unconditionally on every boot**, with the comment *"use console login"*, and **the block that would remove it is commented out.** Nothing in the image removes it.
+
+### And that one file switches four things
+
+1. writes `/bin/sh` into `/tmp/shells`
+2. installs **`/etc/passwd.legacy`** - `root ... /bin/sh` - instead of `/etc/passwd.secure`'s **`/usr/sbin/nologin`**
+3. starts `/etc/esinit_agetty.sh`, **the ttyS2 root console**
+4. is the `ConditionPathExists` of `dropbear@.service` (**V-067's** SSH service)
+
+**The only code that turns it off is a MICOM parameter**: `secure_console == 1` → remove the marker and `/dev/ttyS2`. That parameter **measures 0 in this image**.
+
+### Why this is the strongest root-access statement in the register
+
+Not "a gate that reads 0" (V-049 as filed) and not "a stray marker" (V-067 as filed): **one deliberate switch, created at every boot, whose only off-position is a value delivered by the MICOM.** Everything follows from it - the console, root's shell, and SSH eligibility. And the marker lives in a **world-writable directory** (V-065), so even with `secure_console = 1` an attacker can recreate it after boot.
+
+**Inverted default:** the safe design creates a debug marker when MICOM says yes; this one removes it when MICOM says no. Every failure of that single value is fail-open.
+
+### What I did not claim
+
+That `secure_console` is 0 in the field - **measured 0 here**, where the MICOM link is absent, so the real unit's value is unmeasured and this entry's severity depends on it more than on anything else. And **the password may not be the binding constraint**: V-049's hash resisted 45,000 candidates, but the shell-bearing passwd and the SSH eligibility are what this marker hands out.
+
+Filed V-071, fix item 21, with a ten-second verification: `cat` the parameter, `ls` the marker, `getent passwd root`.
+
 ## 5.15.1 - the kernel tree was already in the repository
 
 I wrote an entry ago that a kernel rebuild "needs a 4.1.27 tree matching `vendor.config`, which **this project does not have**". **That was wrong**, and it was wrong in the repository's own `work/` directory: **`work/kbuild/linux-4.1.27.tar.xz` is present**, alongside earlier build outputs (`bzImage-gcc11`, `bzImage-noreloc`, `bzImage-4.1.27-abl-vdisp`) and their logs.

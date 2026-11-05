@@ -6022,3 +6022,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Corrected an entry from a turn ago: I said the project had no matching kernel tree. It has one, sitting in the working directory alongside earlier build outputs and logs.
 - So the highest-leverage action changed from acquiring a tree to building from the one in hand, and that is now delegated with the trade-offs written down in advance rather than discovered: the vendor-only symbols fall out of the config, which costs the built-in driver that would have created the can interface.
 - Named the pattern, because it is the third time this session: the reply values, the bus policies and now the kernel tree were all already in the repository while I looked only at the binaries.
+
+## 2026-11-05 - the root console and ssh hang on one file the init script creates every boot
+
+- Read the init script properly, having only read fragments of it before, and found the mechanism behind two earlier entries: it creates a marker file on every boot whose name reads like a hardening flag, and the code that would remove it is commented out.
+- That one file switches four things: a valid login shell, the shell-bearing password database instead of the nologin one, the serial root console, and the eligibility of the ssh service. The only thing that turns it off is a single value from the micom, which measures zero here.
+- Recorded it as the strongest root-access statement in the register, and kept the honest bound: the field value of that parameter is unmeasured, and the console password may not even be the binding constraint.

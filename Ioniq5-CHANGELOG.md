@@ -3,6 +3,31 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.26.0 - the check the planners asked for, and the number it corrected
+
+Three of the four planners asked for the same thing: **a claim a stranger can re-derive without this project's hardware.** It exists now - `tools/verify_findings.py`, wired into `tools/check_all.sh` as a sixth stage.
+
+It reads image bytes only. **No VM, no QEMU, no root.** Five structural claims:
+
+| claim | what it re-reads |
+|---|---|
+| V-065 | nine `/etc` symlinks and where each resolves |
+| V-064 | count of `.service` units against units setting `User=`, `NoNewPrivileges`, or any sandboxing directive |
+| the projection patch | the eight `(appId, surfaceId)` pairs at `0x475c0`, so a moved table breaks the patch loudly |
+| V-052 | that `cryptsetup` carries `isLuks`, the source of `optUNECE` |
+| V-049 | that a `secure_console` gate exists in the boot path - and that its **runtime default is a VM measurement, not a static one** |
+
+**All five pass.** And running it corrected a number this report had been carrying loosely:
+
+```
+129 .service unit files on disk        1 sets User=        0 set NoNewPrivileges
+107 services observed RUNNING in the VM        ~106 of them as root
+```
+
+**"106 of 107" is the runtime figure; the static count is 129 with one `User=`.** Both are true and they measure different things. **The denominator belongs in the sentence**, which is rule 14 - and this is the third time a bare number has meant two different things to two different readers.
+
+Every count now prints beside its denominator, and the tool's exit status fails the check suite if prose and bytes ever disagree.
+
 ## 5.25.0 - the top remediation item specified as a change, not a wish
 
 The four-planner plan put **V-065 / item 16** first - nine `/etc` trust anchors pointing into world-writable `/tmp`. It is now a **specified change** rather than a recommendation: `docs/remediation/V-065-nine-anchors-implementation.md`.

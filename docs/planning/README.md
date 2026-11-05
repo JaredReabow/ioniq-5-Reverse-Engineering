@@ -21,3 +21,15 @@ anything. Where they disagree, the disagreement is the useful part.
 
 **The standard each was held to**, from `docs/MEASUREMENT-DISCIPLINE.md`: every claim traceable to a file, a textual check
 before a visual one, and a stopping rule written down before the next guess.
+
+## The check the planners asked for
+
+Three of the four asked for a claim a stranger can re-derive without our hardware. It exists:
+
+```
+/opt/homebrew/bin/python3.13 tools/verify_findings.py
+```
+
+It prints PASS / FAIL / SKIP per claim, with the bytes that decided each one, and **every count prints beside its
+denominator** - which is how the report discovered that "106 of 107 services" is a *runtime* figure while the *static*
+count is 129 unit files with one `User=`.

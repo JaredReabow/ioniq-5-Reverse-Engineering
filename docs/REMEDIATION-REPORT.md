@@ -549,3 +549,20 @@ and the four leverage items are named at the head of Tier 1 rather than being fi
 **The lesson is the same one as the state page and the README:** a document that is only ever appended to will
 eventually contradict itself, and the fix is to read it before adding - not to trust that the last edit was the whole
 document. **This is the fourth time in this session that the record, not the work, was the thing that needed correcting.**
+
+## Denominators, stated (after the four-planner review)
+
+The planners asked for checks a stranger can run. `tools/verify_findings.py` re-derives five structural claims from image
+bytes alone - no VM, no QEMU - and running it corrected a number the report had been carrying loosely.
+
+**Item 15 / V-064, measured three ways on 2026-11-06:**
+
+```
+129 .service unit files on disk       1 sets User=        0 set NoNewPrivileges
+                                      7 set any of ProtectSystem/ProtectHome/PrivateTmp/CapabilityBoundingSet
+107 services observed RUNNING in the VM          ~106 of them as root
+```
+
+The "106 of 107" in the row above is the **runtime** observation. The **static** count is **129 unit files with one `User=`**. Both
+are true and they measure different things - **the denominator belongs in the sentence**, which is measurement-discipline rule 14,
+and this is the third time in this project that a bare number has meant two different things to two different readers.

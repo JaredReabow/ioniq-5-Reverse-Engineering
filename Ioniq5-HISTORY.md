@@ -6364,3 +6364,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The four-planner plan's first item, nine /etc anchors pointing into world-writable /tmp, became an enumerable change: four scripts, 23 references, one mkdir, nine symlinks retargeted.
 - Counted the references rather than describing them, which surfaced that one anchor has a symlink and no writer at all.
 - Wrote the trade and a five-step verification whose fourth step separates the file having moved from the weakness having closed. Not applied: it edits vendor boot scripts inside a working image.
+
+## 2026-11-05 - the stranger-runnable check
+
+- Three of four planners asked for a claim anyone can re-derive without our hardware. Wrote tools/verify_findings.py: five structural claims read from image bytes, no VM.
+- Wiring it into the check suite immediately corrected a loosely carried number: 106 of 107 is the runtime count, while the static count is 129 unit files with one User=. Recorded both with their denominators.
+- The tool fails the suite when prose and bytes disagree, and it re-reads the surface table so a moved table breaks the projection patch loudly instead of silently.

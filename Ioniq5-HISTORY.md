@@ -5397,3 +5397,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Two faults, both mine: the image path was composed against the wrong directory after my parameterisation, and my test base had never been through the partitioned build at all.
 - Added preconditions that exit with instructions, and verified both behaviours: a bad base now fails loudly before touching anything, and re-running on an already-injected workspace changes nothing.
 - A full from-scratch build is stated as outstanding rather than implied, because it writes a thirty-six gigabyte image and takes tens of minutes.
+
+## 2026-11-05 - the instructions named a file the script did not make
+
+- Validated the reproduction script against a workspace with none of the projection files. The writes work, the guard works, the re-run is idempotent - and the script never injected the init file that the documented boot command names.
+- It also never wrote the preserved vendor script, so its own verify loop reported both missing on every run and carried on. The instructions were internally inconsistent.
+- Fixed and re-verified on the empty base: zero missing, and every expected file present including the init with its execute bit. Third defect in a tool written an hour earlier, all found by running it.

@@ -19,6 +19,10 @@ IMG=$WS/partimg-build/p5.img          # absolute: the write step runs with cwd=$
 cat > /tmp/stockui-debugfs.cmds <<'EOF'
 rm /app/bin/AppLauncher.sh
 write applauncher-sh-new /app/bin/AppLauncher.sh
+write applauncher-sh-vendor /app/bin/AppLauncher.sh.vendor
+rm /init-authentic-hmi.sh
+write init-authentic-hmi.sh /init-authentic-hmi.sh
+set_inode_field /init-authentic-hmi.sh mode 0100755
 rm /etc/systemd/system/dbus-com.lge.car.micom.service
 write micom-override.service /etc/systemd/system/dbus-com.lge.car.micom.service
 rm /weston-apps-check.sh

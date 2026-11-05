@@ -5770,3 +5770,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Stopped and corrected the two documents people read first, because eight turns had overturned the model they described.
 - Added a warning at the top naming both of our instruments that kill the application, with the numbers from both runs, and the instruction to add one instrument at a time. Every capture taken with either active is now marked suspect, including ones already committed.
 - Narrowed two README rows that were no longer true, and rebuilt the one-hour list from what is actually open plus an explicit list of things closed today so nobody revisits them.
+
+## 2026-11-05 - the layout database is not the blocker
+
+- Pulled the database out of the guest and inspected it. The schema exists, the layout table holds twenty-five entries, and only the two widget settings tables are empty, so the failing commits are the widget inserts and not the layout.
+- That withdraws my suggestion that the missing directory might explain the splash: the layout is on disk and the screen is still splash. The second plausible cause this session to survive one check and die on the next.
+- Noted the untried half of the same interface: the application listens for a power status signal and this project has only ever called the method.

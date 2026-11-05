@@ -422,6 +422,32 @@ mode).
 
 **Verify.** On a unit, create the script with a marker command, trigger manufacturing mode, and see whether it runs.
 
+### 21. One `/tmp` marker enables the root console and SSH, and the init script creates it every boot
+
+**Evidence.** `lib/systemd/esinit` contains, verbatim:
+
+```
+#secure_console : use console login
+touch /tmp/secure_console_disable
+#check console=ttyS2 and earlycon=uart8250 for No Secure console Booting
+#if [ $? = 0 ]; then  /bin/rm /tmp/secure_console_disable ; /bin/rm /dev/ttyS2 ; fi     <- commented out
+```
+
+The marker is then tested for **four** capabilities: it writes `/bin/sh` into `/tmp/shells`, installs
+`/etc/passwd.legacy` (**root shell `/bin/sh`** rather than `/etc/passwd.secure`'s `nologin`), starts
+`/etc/esinit_agetty.sh` (the `ttyS2` root console), and is the `ConditionPathExists` of `dropbear@.service` (V-067).
+The **only** code that removes it is a MICOM parameter check: `secure_console == 1` -> `rm` the marker and `/dev/ttyS2`.
+
+**Exposes.** The console, the shell-bearing account database and SSH eligibility all follow from **one file, created on
+every boot, whose only off-switch is a MICOM value** - measured as `0` in this image (V-049). The marker also lives in a
+world-writable directory (V-065), so even with `secure_console = 1` an attacker can recreate it after boot.
+
+**Fix.** Invert the default: create the marker only when MICOM reports a debug state. Move it out of `/tmp` to a
+root-owned path. Drop `/etc/passwd.legacy` from production images and keep root `nologin` unconditionally.
+
+**Verify.** On a unit, three commands: `cat /sys/module/micom/parameters/secure_console`,
+`ls /tmp/secure_console_disable`, `getent passwd root`.
+
 ### 11. The data encryption passphrase is `1234`, and in the shipped flow it never runs
 
 **Evidence.** `/etc/fde_test_v2.sh` formats `/rw_data` and `/log_data` with `echo "1234" | cryptsetup -c aes-cbc-essiv:sha256 luksFormat`, and the same literal
@@ -470,6 +496,7 @@ The register (`Ioniq5-VULNERABILITIES.md`) is the evidence base; this report is 
 | 18 a static root SSH key ships in the image | V-067 |
 | 19 embedded private keys, and a navi CA on a writable partition | V-068, V-069 |
 | 20 a script path on a persistent writable partition, run by the manufacturing app | V-070 |
+| 21 one tmp marker enables the root console and SSH, created every boot | V-071 |
 
 ## What is not claimed
 

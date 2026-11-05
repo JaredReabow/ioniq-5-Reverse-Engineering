@@ -2701,6 +2701,98 @@ fixed by an existing item**, which is the useful outcome: the family is enumerat
 
 ---
 
+## V-071 - one `/tmp` marker enables the root console and SSH, and `esinit` creates it every boot
+
+**Status:** the **init logic is measured verbatim** in `lib/systemd/esinit`; the console prompt it produces is
+**captured** (V-049); the SSH half is **latent** because the daemon binary is absent (V-067). Class: the actual gating
+mechanism behind V-049 and V-067, and it is a single file.
+
+### What `esinit` does, in its own words
+
+```
+#secure_console : use console login
+touch /tmp/secure_console_disable
+#check console=ttyS2 and earlycon=uart8250 for No Secure console Booting
+#grep 'console=ttyS2' /proc/cmdline | grep 'earlycon=uart8250'
+#if [ $? = 0 ]; then
+#    /bin/rm /tmp/secure_console_disable
+#    /bin/rm /dev/ttyS2
+#fi
+```
+
+**`esinit` creates the marker unconditionally on every boot**, with the comment *"use console login"*. The block that
+would remove it under a serial-console boot is **commented out**, so nothing in the image removes it.
+
+And the marker is then consulted three times, for three separate capabilities:
+
+```
+if [ -f /tmp/secure_console_disable ]; then echo "/bin/sh" > /tmp/shells        # 1. a valid login shell
+if [ -f /tmp/secure_console_disable ]; then cp /etc/passwd.legacy /tmp/passwd   # 2. root gets /bin/sh, not nologin
+if [ -f /tmp/secure_console_disable ]; then /etc/esinit_agetty.sh &             # 3. the ttyS2 root console starts
+```
+
+and once more, in a different unit (V-067):
+
+```
+dropbear@.service:   ConditionPathExists=/tmp/secure_console_disable            # 4. the SSH service is eligible
+```
+
+The two passwd variants differ exactly where it matters:
+
+```
+/etc/passwd.legacy   root:x:0:0:root:/home/root:/bin/sh
+/etc/passwd.secure   root:x:0:0:root:/home/root:/usr/sbin/nologin
+```
+
+### The only thing that turns it off
+
+```
+secure_console_mode="$(cat /sys/module/micom/parameters/secure_console)"
+if [ "$secure_console_mode" = "1" ]; then
+    /bin/rm /tmp/secure_console_disable
+    /bin/rm /dev/ttyS2
+fi
+```
+
+**One MICOM parameter is the entire control.** If it reads `1`, the marker is removed and `/dev/ttyS2` is deleted. If it
+reads anything else - including **the measured value of `0` in this image** (V-049) - the console, the shell-bearing
+account database and the SSH eligibility all remain.
+
+### Why this is the strongest statement about root access in this register
+
+It is not "a gate that happens to read 0" (V-049 as originally filed) and not "a stray marker" (V-067 as filed). **It is
+one deliberate switch, created at every boot, whose only off-position is a value delivered by the MICOM.** Everything
+else follows:
+
+- the **serial root console** exists because the marker exists (V-049's captured prompt);
+- **root's shell is `/bin/sh`, not `nologin`**, for the same reason;
+- **dropbear becomes eligible** for the same reason - blocked today only by a missing binary (V-067);
+- and the marker lives in a **world-writable directory** (V-065), so on a unit where `secure_console` is `1`, removing
+  the *effect* requires only recreating the file after boot - a race that costs an attacker nothing.
+
+### What is *not* claimed
+
+- That `secure_console` is 0 in the field. **Measured here as 0** in our projection, where the MICOM link is absent - so
+  the real unit's value is **unmeasured**, and this entry's severity depends on it more than on anything else.
+- That the console password can be obtained. V-049's hash resisted 45,000 candidates; **the point of this entry is that
+  the password may not be the binding constraint** - the shell-bearing passwd and the SSH eligibility are.
+
+### Fix
+
+1. **Invert the default**: create the marker only when a MICOM-provided debug state says so, rather than removing it
+   when MICOM says not to.
+2. **Move the marker out of `/tmp`** to a root-owned path, so recreating it requires the privilege the gate is supposed
+   to check.
+3. **Drop `/etc/passwd.legacy` from production images** and keep root `nologin` unconditionally; a debug console that
+   needs a shell-bearing root account should be a separate, deliberate provisioning step.
+
+### Verify
+
+On a unit: `cat /sys/module/micom/parameters/secure_console`, then `ls /tmp/secure_console_disable`, then
+`getent passwd root` - the three answers together are this finding, and they take ten seconds to read.
+
+---
+
 ## V-070 - a shell script path in a writable data partition, referenced by the manufacturing test application
 
 **Status:** the **path string and the process-execution APIs are measured**; the directory does not exist in the

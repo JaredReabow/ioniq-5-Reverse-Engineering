@@ -3,6 +3,34 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.12.2 - the hash answers, it is a SHA-256 of the application set, and the comparison lives in MICOM
+
+Retested `getIVDHash` with the bus address set this time. It **works in the projection**:
+
+```
+I1_OWNS=[boolean true]
+I1_GETIVDHASH= method return
+               array of bytes [ d4 d8 03 8c eb 1d 4a 77 20 93 f2 0b 47 58 72 3a
+                                ff 8c e3 20 93 8c 53 a9 55 a4 e9 e0 71 6c df 98 ]
+```
+
+**32 bytes - a SHA-256 digest - from the projection itself.** That **corrects the hedge two entries ago**: the mechanism is not inert here; the hash side works with no MICOM at all.
+
+**And the binary names what it covers:** explicit paths to `/app/bin/AppHomeScreen`, `AppClimate`, `AppCamera`, `AppMediaPlayer`, `AppLauncher` and more, alongside `SHA256_Init/Update/Final` and `SystemIVD`. **The launcher hashes the application set** - so the digest is a **fingerprint of the installed applications**, the exact shape of a tamper check.
+
+### The part that decides whether it enforces anything
+
+**There is no reference manifest anywhere in the extracted image** - no `*ivd*`, `*.hash`, `*manifest*`, `*integrity*` - and the launcher names no file to compare against. What it does have is the MICOM handlers: `onNotifySystemHashDataEvent` and `onNotifyAdvancedSecurityKeyEvent` with `Seed`/`KeyCheck`.
+
+**So the launcher computes and offers the digest, and MICOM holds the reference.** Two consequences:
+
+- **In the projection the check cannot be enforced** - no MICOM, no reference, no delivery path. The hash is computable and the check is unenforceable.
+- **The wrapper refusal is therefore not explained by integrity.** Two applications refused to run as shell scripts, no local reference exists, and the comparison path is absent; an `exec`/ELF requirement remains the simpler explanation.
+
+### For the patch list
+
+**This is a real anti-tamper design of the right shape** - hash the application set, compare against a reference the attacker cannot write, on a device with a trusted element. Two things bound it as shipped: the reference lives in **MICOM firmware this project cannot test**, and `getIVDHash` is callable by **any session-bus client** - which discloses a fingerprint to root processes, and is an oracle for "did the application set change" for an attacker who already has root and wants to know whether their tampering was noticed.
+
 ## 5.12.1 - a second app refuses the wrapper too, so it is general and not per-app
 
 Ran test 1 from the previous entry: replaced `/app/bin/AppSetup` with a wrapper that execs the real binary - **copying to `.real` first and verifying the ELF magic before replacing the original**, which is rule 15 applied properly this time.

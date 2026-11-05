@@ -3,6 +3,48 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.16 - with nothing of ours in the way, the app is stable and shows a splash
+
+No preload, no `ivi-wm`, no `ivi_place`. Only the power-on call and captures:
+
+```
+Z1_a_pre=129,844  pid=2416    before the call
+power on
+Z1_b_30=130,457   pid=2605    one restart, then settled
+Z1_c_75=130,457   pid=2605
+Z1_d_135=130,457  pid=2605
+```
+
+**The application held one pid for 105 seconds.** Both crash sources were ours.
+
+**And what is on screen is a third thing** (`docs/vm/44-stable-app-kia-splash-no-instruments-2026-11-05.png`): the **KIA logo on black with a thin blue bottom bar** - no title bar, no left panel, no widgets. That is **neither** the standby face this project has been chasing (title bar + left panel + logo) **nor** the laid-out home screen. It is the application's own **splash**, shown stably.
+
+So the three frames are finally distinguishable by content, not by size:
+
+| frame | what it looks like | meaning |
+|---|---|---|
+| **splash** 130,457 | logo, no chrome | startup, waiting |
+| **standby** 114,782-120,562 | title bar + left panel + logo | powered off presentation |
+| **layout** 16,062 (seen once) | widgets placed | the real home screen |
+
+**The app is not crashing. It is waiting.**
+
+### The lead is in the log I already pulled
+
+The application's log contains, repeatedly:
+
+```
+[ERR] AppHomeModel::SaveSetupLayoutDB(QList<QObject*>) ][ 6254 ] DB UPDATE COMMIT FAIL
+```
+
+**It fails to persist its own layout database.** A freshly started instance that cannot commit its layout is a plausible reason the splash never becomes a home screen, and unlike every hypothesis of the last two hours this one is **in our own capture rather than invented from a frame**.
+
+### The methodological finding
+
+**Two of our instruments independently killed the application under test** - the process-wide preload and the placement tool. Between them they produced: a restart loop misread as a power-state problem, three runs of "standby" hypotheses, and a frame misattributed to `AppCamera`. Future work on this projection should start with **no instruments**, establish the stable state, then add exactly one.
+
+That is the most useful thing learned in this stretch, and it cost a lot to learn.
+
 ## 5.10.15 - a second instrument of ours is killing the app, and it is the one I photograph with
 
 Removed the preload and re-ran with captures at +30/+60/+120 s. The application **still churned**: 2442 -> 2518 -> 2640, with the same `invalid object 19` in its log.

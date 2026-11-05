@@ -6136,3 +6136,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The worker's stall hypothesis is sound, but the image ships a second backend that writes into a mapped framebuffer on a timer and has no page-flip path at all, so the hypothesised mechanism cannot occur on it.
 - Sent that as the next experiment with the check order spelled out: socket first, then application registration, then the error, because an error verdict on a backend that never served a client is not a verdict.
 - Did not run it myself: the worker holds the clone, kernel and wrapper, and duplicating a multi-hour run to save a message would be the wrong trade.
+
+## 2026-11-05 - the cheaper experiment cost two runs and answered nothing
+
+- Ran the framebuffer backend suggestion myself when the worker went quiet, and both attempts failed: the compositor refuses that backend unless it is launched through the launcher binary, and routing through the launcher produced a completely silent failure with no log, socket or process.
+- The display backend had already got further than this alternative ever did, so the suggestion was not cheaper but a detour around a hypothesis nobody had tested yet.
+- Kept the negative: the framebuffer is not an alternative route here, and the live question is still why the display backend stalls after finding an output.

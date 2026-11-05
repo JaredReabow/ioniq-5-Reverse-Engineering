@@ -3,6 +3,38 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.17.1 - my "cheaper experiment" cost two runs and answered nothing
+
+Two entries ago I told the worker that `fbdev-backend.so` was a faster route than tracing page flips, because it writes into a mapped framebuffer on a timer and has no vblank path for the hypothesised stall to occur in. **I ran it myself when the worker went quiet. Both runs were negative.**
+
+**Run 1 - the backend refuses on principle:**
+
+```
+Loading module '/usr/lib/weston/fbdev-backend.so'
+initializing fbdev backend
+fatal: fbdev backend should be run using weston-launch binary or as root
+fatal: failed to create compositor backend
+```
+
+`/dev/fb0` and `/dev/dri/card0` both exist - the device half is fine. The *compositor* refuses fbdev unless launched through `weston-launch`, which ships (69,296 bytes) and is **not setuid**, so it only helps a root caller.
+
+**Run 2 - the `weston-launch` hop produced silence:**
+
+```
+FB1_SOCKET=[]     no wayland socket
+FB1_WLOG=[]       /tmp/weston-real.log was never created
+```
+
+No log, no socket, no process. `weston-launch` execs `/usr/bin/weston` itself, so I added a recursion guard (`WESTON_LAUNCHED=1`) - and with that in place the whole chain vanished without writing a line, **which is a worse outcome than a failure with a message.**
+
+### What it teaches, at my expense
+
+`drm-backend` had already gone **further** than fbdev ever did - it bound the device and reported `Output Virtual-1` before stalling. **My suggestion was not cheaper, it was a detour around a hypothesis nobody had tested yet.**
+
+**The live question is still the worker's**: why does `drm-backend` stall after `Output Virtual-1`, and is it the vblank/page-flip wait. My contribution is a negative worth keeping: **fbdev is not an alternative route here**, and anyone tempted by it should know it needs a launcher hop that produced silence.
+
+Recorded in `docs/vm/45-...` §10 rather than left in a run directory.
+
 ## 5.17.0 - a cheaper experiment than the one the worker proposed
 
 The worker's stall hypothesis - `drm-backend` waiting for a vblank or page-flip that bochs KMS under TCG never delivers - is the right first suspect, and it is properly labelled a hypothesis.

@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.18.2 - the next instrument, specified rather than hinted
+
+The worker is idle after doc 07, so the trace it named had not been run. Instead of sending another idea, I sent a **specification**: which tool exists (I checked - `strace` ships at `/usr/bin/strace`, `gdb` does not), which configuration reproduces the failure fastest (its own manual run, ~13 s, rather than a full authentic boot), the exact trace expression, and how to send the log back.
+
+**And the reading rules, which matter more than the command:**
+
+| what the trace shows | what it means |
+|---|---|
+| `poll`/`epoll_wait`/`select` returns, then `nanosleep` | weston is in a **retry timer** - the interval plus the failed call names the subsystem |
+| `openat`/`ioctl` right before the sleep | the last thing it tried **is** the thing that failed |
+| `connect` to anything | a **D-Bus or socket dependency** - a completely different failure from a display one |
+| `nanosleep` repeatedly with nothing before it | a timer loop, and the **first** entry into it is the answer |
+
+### And I attached my own two mistakes as cautions
+
+I told the worker, in the same message, that I had sent it a kernel symbol that does not exist in 4.1.27 and cost it two builds, and that it should **treat this instruction as a hypothesis with a cheap test too**. I also restated the night's recurring trap: **before reading any "no error" result, ask what would have produced one** - three times a zero has meant "nothing ran".
+
+**Why send a specification instead of running it:** the worker has the clone, the built kernel, the wrapper and the reproducing command; duplicating that setup would cost an hour to save a message, and this session has already shown what happens when two agents touch one experiment.
+
 ## 5.18.1 - a tool for the failure I caused, and it caught the act when I pointed it at history
 
 Today's six-item loss earns a tool. If one document silently shrank, the question is whether others did - so `tools/check_doc_shrinkage.py` asks the cheapest structural question of history: **did any document lose headings?**

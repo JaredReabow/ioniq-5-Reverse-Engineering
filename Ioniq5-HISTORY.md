@@ -6178,3 +6178,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Wrote a check that asks whether any document lost headings between commits, so a silent loss of the kind I committed today would be visible rather than remembered.
 - The first version compared commits against the working tree and reported nothing, because the lost sections had since been restored: a repaired loss is invisible to that comparison, which is exactly how it survived two turns.
 - Fixed to compare consecutive commits, it immediately found the act, the very commit that dropped the six items. Added to the check suite as report only, because a deliberate merge is a legitimate decrease. The uncomfortable lesson is that the zero was mine, on my own tool, and I did not believe it.
+
+## 2026-11-05 - the next instrument, specified rather than hinted
+
+- The worker was idle with the trace it had named still unrun, so I checked which tools the image actually has and sent a specification instead of an idea: the tool, the fastest reproducing configuration, the exact trace expression and how to return the log.
+- Attached the reading rules, because the interesting part is what happens immediately before the first sleep and that determines which subsystem is at fault.
+- Sent my own two mistakes back to it as cautions, including the kernel symbol that does not exist and cost it two builds, and told it to treat this instruction as a hypothesis with a cheap test as well.

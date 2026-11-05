@@ -2641,6 +2641,68 @@ boot".
   repository has only the strings, which support either.
   **The observation that settles it is a `lsof`/`inotify`/`strace` on the unit during a real update**: which path does the `md5sum` open, and which does the `pv`/`dd` open.
 
+## V-062 - the modem's factory interfaces are open to any process running as root
+
+**Status:** the interfaces are **present in the shipped `ofonod`** (strings confirmed) and the bus policy **allows
+root and denies everyone else**; the effect on a live modem is **not demonstrated** in this project (no QMI modem in
+the projection). Class: post-compromise capability / hardening.
+
+### What is exposed
+
+`/etc/dbus-1/system.d/ofono.conf`:
+
+```
+<policy user="root">          <allow own="org.ofono"/>  <allow send_destination="org.ofono"/>  ...
+<policy at_console="true">    <allow send_destination="org.ofono"/>
+<policy context="default">    <deny  send_destination="org.ofono"/>
+```
+
+`/usr/sbin/ofonod` contains, among others:
+
+```
+SetFactoryImei        (org.ofono.qmi.NTC)
+DeleteStoredCell      (org.ofono.qmi.NTC)
+SetLteBandPriority    (org.ofono.qmi.NAS)
+SetRegMgrConfig, SetVoipConfig, SetQipcallConfig   (org.ofono.qmi.IMSS)
+```
+
+and the QMI transport ships as a kernel module, `/lib/modules/4.1.27-abl/extra/lgivi_qmi.ko`.
+
+### Who can call it
+
+**Any process running as root.** On this unit that is not a privileged subset - it is the normal privilege level for
+the whole application stack: `AppHomeScreen` was measured running as `uid=0` (V-051, and the touch path logged
+`uid=0`). The bus policy therefore provides no separation **between applications**, only between applications and
+everything else.
+
+### Why that is a finding
+
+On a connected vehicle, `SetFactoryImei` and `DeleteStoredCell` are **anti-forensics and impersonation primitives**:
+change the identity the modem presents to the network, erase the record of which cells it associated with. They are
+manufacturing interfaces, and their presence in a production image behind nothing but "you are root" means **any
+application compromise inherits them**.
+
+### What is *not* claimed
+
+- **Not an escalation**: root is required, and this project has already documented several ways to reach root
+  (V-059, V-054, V-049). The value here is what an attacker gets *after* that.
+- **Not demonstrated on hardware**: the projection has no QMI modem, so the calls cannot be exercised. The methods
+  and the policy are static facts; the modem's response is not.
+- **The policy may be deliberate** for a manufacturing path that the platform vendor considers acceptable.
+
+### Fix
+
+Install a **production** ofono policy that denies the `org.ofono.qmi.*` factory interfaces to everything except the
+manufacturing component, and delete the factory methods from the production `ofonod` build if the platform supports
+it. Both are configuration-level changes, which is why this is filed at a low cost-to-fix.
+
+### Verify
+
+On a unit: call `SetFactoryImei` from a root process that is *not* the manufacturing component and observe whether it
+answers. A refusal means a narrower policy exists elsewhere; an answer confirms the exposure.
+
+---
+
 ## V-061 - the application-set hash is an integrity oracle any session-bus client can query
 
 **Status:** the call is **demonstrated** in this image (`getIVDHash` answered with a 32-byte digest); its usefulness to an attacker is **unproven** and modest by construction. Class: information exposure / defence-testing oracle.

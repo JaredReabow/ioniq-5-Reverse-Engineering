@@ -192,3 +192,27 @@ it sits outside the rule set. The policy is real, loaded, and does not cover the
 
 That is the accurate basis for V-054 and V-055 being reachable from an application: uid 0, wildcard subject label, and a measured `1777` `/tmp` holding every
 anchor in this document.
+
+---
+
+## The same gate keeps appearing, and it is not a gate
+
+Three findings in this project now rest on the same sentence: *the bus is root-only, so only root can call it.*
+
+| finding | the gate |
+|---|---|
+| V-051 the manager executes a caller-named path | session bus is `EXTERNAL`-authenticated; uid 65534 refused |
+| V-061 the application-set hash is queryable | session bus, root-only |
+| V-062 the modem's factory interfaces | ofono policy: `allow user=root`, `deny context=default` |
+
+**On this unit, root is not a privilege boundary - it is the ambient privilege level of the application stack.**
+`AppHomeScreen` was measured running as `uid=0`; the touch-input path logs `uid=0`; the eleven services in V-058 all
+connect to the same bus. So "only root can do this" means "**any application that is compromised can do this, and any
+of the others can do it too**".
+
+That is the same argument as the rest of this document, one layer up: the controls in this platform are placed on
+boundaries that do not separate the things that need separating. A bus policy that only excludes non-root does not
+protect one root component from another, and on this system root components are the majority.
+
+**The recommendation does not change, it generalises:** put the check where the privileged action happens, make it
+fail closed, and do not treat "the caller is root" as authorisation for a factory operation.

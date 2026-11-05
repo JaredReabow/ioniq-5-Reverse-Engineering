@@ -5884,3 +5884,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Replaced hypothesis-driven reading with a systematic sweep of every embedded D-Bus interface for write or execute shaped methods. Thirty-four interfaces came back and one was new.
 - The settings application asks the micom, through an argument-free method, whether engineering mode may be entered. That is a third route to the same place, and enforcement sits on the micom side either way.
 - It also names a concrete gap in our own work: the stand-in that answers the micom interface in the projection does not implement the engineering interface at all, so that question currently goes unanswered. Recorded both without claiming the route works.
+
+## 2026-11-05 - the modem's factory interfaces are open to anything running as root
+
+- Followed the sweep's most security-relevant hit: the modem daemon ships factory methods that set the subscriber identity and erase stored cell records, and its bus policy allows root while denying everyone else.
+- On this unit root is the ambient privilege level of the whole application stack rather than a privileged subset, so that policy separates applications from outsiders and not from each other.
+- Filed it at low fix cost with the honest bounds, and recorded the pattern it completes: three findings now rest on the same non-boundary, which strengthens the existing argument about controls placed where they do not separate anything.

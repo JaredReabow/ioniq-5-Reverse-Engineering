@@ -3,6 +3,29 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.12.5 - V-062: the modem's factory interfaces are open to anything running as root
+
+The sweep's most security-relevant hit, followed to the end.
+
+`/usr/sbin/ofonod` contains `SetFactoryImei`, `DeleteStoredCell` and `SetLteBandPriority`, the QMI transport ships as `lgivi_qmi.ko`, and the bus policy is:
+
+```
+<policy user="root">        <allow send_destination="org.ofono"/>
+<policy context="default">  <deny  send_destination="org.ofono"/>
+```
+
+**So any process running as root can call the modem's factory interfaces.** And on this unit root is **not a privileged subset - it is the ambient privilege level of the application stack**: `AppHomeScreen` runs as `uid=0`, the touch path logs `uid=0`, and all eleven services in V-058 share that bus.
+
+**Why it is a finding:** on a connected vehicle, `SetFactoryImei` and `DeleteStoredCell` are **anti-forensics and impersonation primitives** - change the identity presented to the network, erase the record of which cells it associated with. They are manufacturing interfaces, present in a production image behind nothing but "you are root", so **any application compromise inherits them**.
+
+**Hedged properly:** not an escalation (root required, and we have documented ways to get there); not demonstrated on hardware (no QMI modem in the projection); and the policy may be a deliberate manufacturing path.
+
+**Fix is configuration-level** - a production ofono policy denying the `org.ofono.qmi.*` factory interfaces, or deleting them from the production build.
+
+### And a pattern worth stating once
+
+**This is the third finding gated only by "the bus is root-only"** (V-051, V-061, V-062). On this system that is not a boundary between applications at all, so the gate excludes non-root and nothing else. Added to the trust-anchors argument: **the controls are placed on boundaries that do not separate the things that need separating**, and "the caller is root" must not be treated as authorisation for a factory operation.
+
 ## 5.12.4 - a systematic sweep found a third engineering route, and a gap in our own stand-in
 
 Instead of following another hypothesis, I swept **every embedded D-Bus interface in `app/bin/`** for write- or execute-shaped methods. Thirty-four interfaces came back, most already known. One was not.

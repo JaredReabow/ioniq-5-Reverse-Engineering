@@ -5662,3 +5662,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The mapping came back with a finding that changes the shape of the remaining work: the widgets read the application's own raw CAN listener, not the D-Bus interface every adaptor so far has been built against.
 - Verified the premises myself: no CAN interface exists in the projection, the micom driver is built into the kernel, and every CAN device driver in the config is disabled.
 - Recorded the two routes honestly, including that the shortcut needs a kernel tree this project does not have, and that the faithful route is the vendor's own micom link.
+
+## 2026-11-05 - why can0 never appears
+
+- Booted the authentic path and read the driver state instead of reasoning about it. The CAN stack and the micom driver are both loaded, but there is no SPI device and no platform device for the driver to bind to, so the probe that creates the network interfaces never runs.
+- That puts the faithful route behind a device-level change rather than a handshake, and turns up a fidelity gap: userspace reports the SPI check as fine while the kernel has no SPI device at all.
+- Named the cheaper third route: interpose on the application's CAN socket calls, the same substitution pattern as the backend, the micom service and the GL driver path.

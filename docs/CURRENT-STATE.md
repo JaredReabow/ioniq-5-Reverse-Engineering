@@ -52,7 +52,8 @@ Two routes, both honest about cost:
 | route | what it needs | stock fidelity |
 |---|---|---|
 | **vcan** | a 4.1.27 tree matched to `vendor.config` (we have neither the tree nor a shipped `vcan.ko`), then `ip link add can0 type vcan` and a frame sender (a few lines of C; `cansend` is absent) | lower - a virtual bus the vendor kernel never had |
-| **bring the micom link up** | make the built-in micom driver believe its link is alive so it creates the real `can0` | **higher** - the vendor's own path |
+| **bring the micom link up** | make the built-in micom driver believe its link is alive so it creates the real `can0` - **measured to be blocked earlier than that**: no SPI device and no micom platform device exist, so the probe never runs | **higher**, but needs a board/device change |
+| **CAN shim (`LD_PRELOAD`)** | interpose the application's CAN socket calls and deliver real frames from the stand-in - the same substitution pattern as the backend, MICOM D-Bus and GL path | **sufficient**, and needs no kernel change |
 
 The SOC frame is pinned from the real vehicle's logs: **`0x2fc`, byte 7 = 119 → 59.5 %**.
 

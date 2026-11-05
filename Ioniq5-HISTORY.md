@@ -5415,3 +5415,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Tried to disassemble the updater's install path and found almost no code: the binary is sixteen kilobytes of code around ten megabytes of data, with two complete updater programs embedded inside it.
 - That means my earlier claim - that the check and the install sit in different parts of the program - was wrong, because the two places I found them are in data, not in code. Withdrawn, with the reason.
 - The scan was accurate and the conclusion was still wrong, because I never asked which section the addresses were in. One command would have said so before it was written down.
+
+## 2026-11-05 - the same scan, one filter more, a right answer
+
+- Extracted both embedded updaters and reran the reference scan inside the one the vehicle actually runs, keeping only sites in its code section. The check and the extraction are different instructions about a megabyte apart.
+- Two things came out of doing it properly: the install command quoted all evening belongs to the other updater, and the one in use performs an extra listing pass over the same file, so the pattern is slightly wider than filed.
+- The correction of an hour ago is now demonstrated rather than asserted: identical method, one extra filter, wrong claim becomes right one and a third read appears.

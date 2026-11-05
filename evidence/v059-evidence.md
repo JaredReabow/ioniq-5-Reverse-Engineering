@@ -38,6 +38,17 @@ pv -q %1 | tar -xvm -C %2            present (1)
 nice -n 19 dd if=%1 bs=4k skip=%2    present (4)
 ```
 
+**Measured in FUMO's code** (the updater this vehicle selects), filtering the same scan to its `.text` range `0x24830..0x209a33`:
+
+```
+ionice -c3 md5sum %1     string 0x22c4e0   code sites: 0x13a550
+tar xf %1 -C %2          string 0x20be5a   code sites: 0x633e0, 0x101d2f
+tar -tvf %1              string 0x20b358   code sites: 0x5ea1c        <- a third read of the same file
+pv -q                    string 0x210fc8   code sites: 0x70c75
+```
+
+Note that `pv -q %1 | tar -xvm -C %2` belongs to **SCOMO**; FUMO's extraction is `tar xf %1 -C %2`.
+
 **Withdrawn claim.** An earlier version said the check and the install were "constructed in different parts of the program, ~1.2 MB apart" on the strength of a displacement scan. Both sites it
 found (`0x1877a8`, `0xbd744`) are in **`.rodata`** - data, not code. The scan cannot tell them apart, and on this binary nearly everything is data. Withdrawn; the separation is upstream's
 `[RE]` finding against the embedded images, which are now extracted and analysable.

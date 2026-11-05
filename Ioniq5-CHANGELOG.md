@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.1.10 - the withdrawn claim comes back, measured properly: FUMO's check and extraction are different code
+
+After withdrawing the "two code sites" claim, I extracted both embedded updaters and ran the same scan **inside FUMO, keeping only sites that fall in its `.text`** (`0x24830..0x209a33`):
+
+| command | string VA | code sites |
+| --- | --- | --- |
+| `ionice -c3 md5sum %1` (check) | `0x22c4e0` | **1: `0x13a550`** |
+| `tar xf %1 -C %2` (extraction) | `0x20be5a` | **2: `0x633e0`, `0x101d2f`** |
+| `tar -tvf %1` (listing pass) | `0x20b358` | 1: `0x5ea1c` |
+| `pv -q` (streaming) | `0x210fc8` | 1: `0x70c75` |
+
+**In FUMO - the updater this vehicle's launcher row selects - the integrity check is constructed at `0x13a550` and the extraction at `0x633e0` / `0x101d2f`.** Different code, roughly 1.2 MB apart, and
+this time the addresses are instructions rather than data, because the filter that was missing before is now applied.
+
+Two things fell out of doing it properly:
+
+- **`pv -q %1 | tar -xvm -C %2` - the command the earlier entries quoted as "the install" - belongs to SCOMO, not FUMO.** The vehicle runs FUMO, whose extraction is `tar xf %1 -C %2`. The finding is
+  unaffected, but the *example* was wrong, and on a register that distinctions matter.
+- **FUMO also does a listing pass over the same file** (`tar -tvf %1` at `0x5ea1c`). That is a third read of the same input, which makes the check-then-use shape *wider* than filed rather than
+  narrower.
+
+So the correct sequence for this build is: check with `md5sum %1`, list with `tar -tvf %1`, extract with `tar xf %1 -C %2` - three separate invocations, each naming the same file, on
+attacker-controlled media, with `pv -q` available for streaming from the source.
+
+The lesson from §5.1.9 is now demonstrated rather than stated: the identical scan, with one extra filter, turns a wrong claim into a right one and turns up a third read that nobody had noticed.
+
 ## 5.1.9 - CORRECTION: the updater's code is not in `AppUpgrade`, and my "two code sites" evidence was wrong
 
 Following V-059's last open question meant disassembling around the reference site I had reported. That produced nothing, and the reason is the correction:

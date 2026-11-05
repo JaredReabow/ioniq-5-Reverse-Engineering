@@ -3,6 +3,39 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.10.14 - the restart loop was my own shim, and the app's log proved it
+
+The console had been printing `AppHomeScreen ) >> /tmp/apphome-byhand.log 2>&1` for days. I finally read that file - 98,087 bytes - and its tail is unambiguous:
+
+```
+[ERR] AppHomeEngine::applicationStart() ] AppHome Init Done
+[FTL] wl_display@1: error 0: invalid object 19
+[FTL] [QtMsg] The Wayland connection experienced a fatal error (Invalid argument)
+```
+
+**The application initialises completely and then dies on a Wayland protocol error.** So the restart loop I spent three runs attributing to power state was a **client crash**, and every state event sent during it went to an instance that was already gone.
+
+**Then the A/B test, and it indicts my own instrument:**
+
+| configuration | pids over ~90 s | verdict |
+|---|---|---|
+| **with** `can_shim.so` in `/etc/ld.so.preload` | 2452 -> 2619; then 2581 **and** 2500 together; then 3225 | restart loop |
+| **without** the preload | **3015 -> 3015 -> 3015** (`same_pid=yes` twice) | **stable** |
+
+**My CAN shim was crashing the application.** It interposes `close()` process-wide and hands out `AF_UNIX` socketpairs in place of every `PF_CAN` socket the app asks for - 81 of them. That is exactly the kind of library that can disturb a Wayland client's file descriptors, and the log's `invalid object` is what that looks like from the client side.
+
+### What this corrects
+
+- "The app keeps restarting, so no state fix survives" was **right observed, wrong attributed**: my instrument caused it, not the vendor and not the power model.
+- **The shim is not usable as written.** It must be scoped to the application (not process-wide preload) and must not override `close()` globally.
+- The standby frame at 114,782 bytes is a **separable** question now, because the application can be made to stay alive.
+
+### Next
+
+Scope the shim to `AppHomeScreen` and drop the global `close()` override; then, with a stable app and no shim, re-run the power-on call and capture at +30/+60/+120 s. That isolates whether the standby face is real state or was an artefact of the crash loop.
+
+The lesson worth the three runs: **the log was named in the output I was reading**, and the instrument I trusted was the thing breaking the system under test.
+
 ## 5.10.13 - the corrected sequencing still shows standby, and the real finding is that the app keeps dying
 
 Two runs, two fixes, both negative - but they produced the finding that matters.

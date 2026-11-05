@@ -5734,3 +5734,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Tried the corrected ordering and an explicit off-then-on edge. Neither produced the laid-out screen, but the process ids gave the reason: the application is being restarted repeatedly, with two instances alive at once and a third later, so any state event lands on an instance that is gone.
 - That makes the restart the obstacle and everything else downstream of it.
 - The console log contained the literal redirection telling me where the application's own stderr goes, and I had been reading the console without following it. That file is the next thing to read.
+
+## 2026-11-05 - the restart loop was my own shim
+
+- Read the log file the console had been naming for days. The application initialises completely and then dies on a Wayland protocol error, so the restart loop was a client crash rather than a state problem.
+- Then tested the obvious suspect, my own preloaded library, and the application held one process id for the whole window with it removed and churned through several with it present. The shim was the cause.
+- Revised what the shim can be used for: not process-wide, and it must not override close. Recorded the lesson, that the log was named in output I was already reading and the instrument I trusted was what broke the system under test.

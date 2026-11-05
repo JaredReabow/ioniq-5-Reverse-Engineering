@@ -65,3 +65,36 @@ Two consequences, in opposite directions:
 is unchanged: nine `/etc` anchors still resolve through world-writable `/tmp`, so a file placed there is read as configuration by
 the labelled process. **Labeling the app makes that worse, not better** - a correctly labelled `App::home` reading a `/tmp`-sourced
 `/etc` file is exactly the trust inversion `docs/trust-anchors-in-writable-runtime-paths.md` describes.
+
+## Outcome, measured (boot50)
+
+The label was applied in `/app/bin/AppLauncher.sh` before the launcher starts, with the directory created:
+
+```
+/sbin/chsmack -e "App::home" /app/bin/AppHomeScreen
+mkdir -p /rw_data/app_data/common/AppPhev
+```
+
+**The denial is gone** - `COMMONPHEV_DENIALS=0`, `object="Data::commonphev"` absent from `dmesg`, no `segfault at` for the process.
+The specific fix did what it was meant to do.
+
+**Two of the four checks were not measured, and the reason is itself a finding.** `APP_LABEL=[]` because the label was read after
+the app had been deregistered, and `ls /rw_data/app_data/common/AppPhev` returned **Permission denied** to the *monitor* - which
+runs as `_`, and `App::home *` grants only `t`. **The vendor's model denied our instrument**, correctly. Both checks must be taken
+under a label that can see the directory, and until then they are **NOT MEASURED**, not failed.
+
+**And the third blocker is now alone:** the launcher log shows `[REGISTERED ERROR] Already registered` followed by
+`notifyAppTerminate [...][15]` - a **duplicate registration** - and other apps log `[ERR CODE:1] App has been Crashed`. So the PHEV
+denial was one contributor; the duplicate-registration loop is what remains.
+
+**The cheapest thing that would settle it:** extract every registration line with pid and timestamp from one run and ask whether
+"Already registered" arrives while an earlier instance of app 11 is **still alive** (two live instances - a second launch request)
+or **after it died** (the launcher's registry is not cleared - a bookkeeping fault). The two have different fixes and the same
+one-line extraction distinguishes them.
+
+## Correction owed to the register
+
+`V-056` and remediation item 1 were measured in runs where **every application ran unlabelled**, so the policy was never consulted
+for the subjects it exists to constrain. The narrowness of the ruleset - `App::home *` granting only `t`, and `rwxatl` on
+`Data::commonphev` granted to four named subjects and no wildcard - is **stronger evidence of intent than the earlier "permissive at
+0" reading**, and that reading now applies only to unlabelled subjects, which the policy denies.

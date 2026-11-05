@@ -3,6 +3,20 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.28.0 - the label fix worked, the instrument got denied, and the register owes a qualification
+
+**The `App::home` exec label did exactly what it was meant to do.** Boot50: `COMMONPHEV_DENIALS=0`, the `object="Data::commonphev"` denial absent from `dmesg`, no `segfault at` for the process.
+
+**Two of the four checks came back unmeasured, and that is itself a finding.** `APP_LABEL=[]` because the label was read after deregistration; `ls /rw_data/app_data/common/AppPhev` returned **Permission denied to our own monitor** - which runs as `_`, and `App::home *` grants only `t`. **The vendor's model denied our instrument, correctly.** Both are recorded as NOT MEASURED, not failed, because this project's worst hours came from reading a non-measurement as a negative.
+
+**The third blocker is now alone:** `[REGISTERED ERROR] Already registered` → `notifyAppTerminate [15]`. The one-line extraction that separates its two causes: does "Already registered" arrive while an earlier instance is **alive** (two live instances - a second launch request) or **after it died** (the launcher's registry is not cleared)? Different fixes, same extraction.
+
+Leading suspicion, untested: the real `ApplicationManager` consumes the registration handshake and this projection **replaced it with a D-Bus override**. A call that gets no ack and is retried produces exactly one `REGISTERED` then `REGISTERED ERROR` **from the same pid** - so the same-pid question decides whether this is our stand-in or the launcher.
+
+### The register owes a qualification
+
+**Remediation item 1 / V-056 was measured while every application ran unlabelled**, so the policy was never consulted for the subjects it exists to constrain. The ruleset's narrowness - `App::home *` granting only `t`, `Data::commonphev rwxatl` to four named subjects with **no wildcard** - is **stronger evidence of intent than the "permissive at 0" reading**, and that reading now applies only to unlabelled subjects, which the policy denies. Fail-closed. Item 1 is annotated in place.
+
 ## 5.27.0 - the crash was our own missing label, in the vendor's own vocabulary
 
 The worker corrected the surface id to `1010` (the camera's `2080` was my error, caught by Opus), reverted the deadline patch, and collected `dmesg`. **The SIGSEGV is a SMACK denial:**

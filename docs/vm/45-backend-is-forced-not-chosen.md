@@ -134,3 +134,43 @@ situation from the one this document was written to describe.
 **Not yet established:** that `/dev/dri/card0` and `/dev/fb0` exist as nodes, that `drm-backend.so` (or `fbdev-backend.so`)
 accepts that device, and whether either removes the `wl_display@1: error 0: invalid object N` that killed the application.
 The next measurements are, in order: `ls /dev/dri /dev/fb*`, then a weston run with `drm-backend`, then the application.
+
+---
+
+## 4. The device node exists - `drm-backend` now has something to bind to
+
+The previous section said the nodes were unverified. They are verified now, from the delegated boot
+(`work/vm/kbuild/boot5-parts.log`, listing `/dev/dri`):
+
+```
+crw------- 1 0 root 226,  0  card0
+crw------- 1 0 root 226, 64  controlD64
+```
+
+and the kernel side of the same boot:
+
+```
+[    0.548997] [drm] Found bochs VGA, ID 0xb0c5.
+[    0.566980] bochs-drm 0000:00:01.0: fb0: bochsdrmfb frame buffer device
+[    0.567558] [drm] Initialized bochs-drm 1.0.0 20130925 for 0000:00:01.0 on minor 0
+```
+
+**A KMS device node at `/dev/dri/card0` (major 226, minor 0), a control node, and a framebuffer, on a kernel that boots
+the vehicle's own rootfs to Multi-User.**
+
+So the statement this document was written to make - *"the headless backend is the only one that can exist"* - is now
+**false for this project**, and it was only ever true of the shipped kernel's configuration.
+
+## 5. What this does and does not change
+
+**Changes:** `drm-backend.so` and `fbdev-backend.so` are reachable. The vendor compositor can be given a real output. The
+substitution that this document blamed for the application's `wl_display@1: error 0: invalid object N` no longer has to be
+the headless backend - and that error has a chance of not occurring, which it never did before.
+
+**Does not change:** the vendor's `ias-backend.so` still cannot run (no vendor GPU interface); the firmware, init,
+compositor modules and application are still the vendor's own; and nothing here is *stock* - a rebuilt kernel is a
+substitution too, just a smaller and better-understood one than the headless backend.
+
+**The next measurement is the one this whole line of work exists for:** run the vendor compositor with `drm-backend` and
+see whether the application stops receiving `invalid object N`. Everything else in this document is now upstream of that
+answer.

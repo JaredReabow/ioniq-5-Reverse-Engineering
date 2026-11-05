@@ -189,3 +189,22 @@ stop, not to continue with the next command in the chain.
 
 **Corollary.** Keep a pristine, read-only extraction of every vendor artefact that gets modified. This project
 has one, which is the only reason a mistyped chain cost nothing.
+
+## 16. A whole-file rewrite can destroy a document silently; check its size afterwards
+
+**The case.** Replacing one section of `docs/CURRENT-STATE.md` with a script, I computed the slice to replace as
+`t[t.index(start_marker):t.index(end_marker)]`. The two markers were **not in the order I assumed**, so the slice was the
+**empty string** - and `t.replace('', new)` inserts the replacement **between every character**. The file went from
+28,140 bytes to **33 MB / 702,293 lines** in one call.
+
+**What caught it:** a `grep -c` that should have returned `1` returned **`28077`**. An absurd count is a signal, exactly
+like the zero counts of rule 14 - both are numbers that cannot be true.
+
+**What fixed it:** `git checkout -- <file>` (the file was uncommitted), then the same edit with **three assertions** -
+markers found, `end > start`, and the slice longer than 200 characters. On the second attempt the assertion fired for
+the same reason, the file was untouched, and the markers were then located by living with the headings instead of
+assuming their order.
+
+**Rule.** Any programmatic rewrite of a whole document gets: (1) assertions that the region is what you think, (2) a
+size check afterwards against the expected change, and (3) **the file must be committed or restorable** before you run
+it. And when a count that should be 1 comes back in the thousands, stop and look at the file, not at the query.

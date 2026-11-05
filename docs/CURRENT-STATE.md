@@ -224,26 +224,31 @@ manager implements it and honours the call at the interface level.
 `AppEngineerMode` process appeared in the following 80 seconds. So the entry is **accepted but unobserved in effect** - the call must be repeated **after** `AppHomeScreen` owns its bus name, which is
 a timing detail this project has already been bitten by more than once.
 
-### The display backend is forced, and that bounds the whole VM claim (measured 2026-11-05)
+### The display backend ceiling has been LIFTED, by rebuilding the kernel (2026-11-05)
 
-The vendor ships five backends - `ias-backend.so` (the vehicle's), `drm-backend.so`, `fbdev-backend.so`,
-`headless-backend.so`, and `gl-renderer.so`. This projection runs the **least faithful** of them.
+This section previously said `headless` was forced, because the vendor kernel's only DRM driver is `i915`, `BOCHS`/`QXL`
+are not set and `# CONFIG_FB is not set`. **All true of `vendor.config` - and all irrelevant once a kernel was built with
+those options enabled.**
 
-And it cannot do better inside QEMU: the vendor kernel's **only** DRM driver is `CONFIG_DRM_I915=y`; `BOCHS` and
-`QXL` are not set, and `CONFIG_DRM_VIRTIO_GPU` is **not present in the configuration at all**. QEMU cannot present
-an i915 device, so `drm-backend.so` **ships and cannot be used**.
+Measured on the rebuilt kernel, booting the vehicle's own rootfs:
 
-**So `headless-backend` + `--use-pixman` + the solid-fill shim is not a preference - it is the only backend that
-runs**, and the vendor's IVI start-up sequence is therefore running against a display path it was not written for.
+```
+[drm] Found bochs VGA, ID 0xb0c5.
+bochs-drm 0000:00:01.0: fb0: bochsdrmfb frame buffer device
+[drm] Initialized bochs-drm 1.0.0 for 0000:00:01.0 on minor 0
+Reached target Multi-User
 
-Three ways out, with their real costs: rebuild a 4.1.27 kernel with virtio-gpu (this project has **no kernel
-tree**); patch the vendor's start-up path (against the standing rule, and fragile - see the wrapper experiment);
-or accept it and say so plainly, which is what this page now does.
+/dev/dri:  crw------- 1 root root 226, 0 card0
+           crw------- 1 root root 226, 64 controlD64
+```
 
-**The claim the evidence supports:** the projection runs the vendor's kernel, init, compositor modules and
-application, and **cannot give them the display hardware they were written for.** Everything downstream - the
-rejected surface creation, the splash/standby frames, the missing widget values - is downstream of that one
-substitution, which the vendor kernel's own configuration makes unavoidable.
+**`/dev/dri/card0` exists.** `drm-backend.so` (ships, 536 KB) and `fbdev-backend.so` (348 KB) are now reachable;
+`ias-backend.so` still is not, because the vendor GPU interface does not exist here.
+
+**The next measurement is the one the whole VM effort exists for:** run the vendor compositor on `drm-backend` and see
+whether the application still receives `wl_display@1: error 0: invalid object N` - the error that killed it in every
+headless run.
+
 
 ## 1e. Engineering mode in the projection: three findings, none of them "it works"
 

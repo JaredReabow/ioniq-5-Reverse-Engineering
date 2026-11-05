@@ -1082,3 +1082,51 @@ before they were tangled: the app *can* be composited on the vendor display path
 So the remaining step is doc 17's question, asked with a surface this time: the power-on state must reach **the instance that owns
 surface 2080**. The sequence now has a new textual precondition - `QT_WAYLAND_SET_SURFACE_ID=2080` appearing for `AppID : 11` -
 before placement, and the pid must survive placement and the call.
+
+## 51. Final state of the display thread: eight steps demonstrated, one blocker, and it has a name
+
+The refined sequence was run with the surface-id patch in place:
+
+```
+PID_STABLE_GATE=yes pid=[3021]      (2316 → 2475 → 2696 → 2803 → 3021)
+SURFACES=[30000|2080|1001|1002|2080|1004]      surface 2080 present
+APP_SURFACE_ID=[2080]   IVI_WM_RC=0
+SET_POWER_SENT
+AFTER_CALL pid=[3021] (was 3021) preload=[int32 1]    the call landed on the right instance
+CAP_30s pid=[4584]  CAP_60s pid=[5198]  CAP_90s pid=[]   ...and it is deregistered again
+bytes=120,460  -  the standby class
+```
+
+**So the call landed on a pid-stable, preload-complete instance that owned surface 2080, and the application was
+deregistered ~25 s later by the same preload-deadline race.** The power-on state dies with the instance, and the relaunched
+ones start in standby.
+
+## 52. What is closed, and what is not
+
+| step | state |
+|---|---|
+| matching kernel source builds | ✓ |
+| `/dev/dri/card0` via bochs-drm | ✓ |
+| native 1920x720 mode | ✓ |
+| vendor `drm-backend.so` binds it | ✓ |
+| Wayland socket (seat fix) | ✓ |
+| application connects, `Wayland-EGL`, `START DRAW` | ✓ |
+| **surface id assigned to app id 11** (fourth substitution) | ✓ |
+| **surface created, placed, chrome composited** | ✓ |
+| leaving standby for the laid-out home screen | **✗** |
+
+**Eight steps demonstrated. The ninth is blocked by one thing: the launcher's preload-complete deadline**, which deregisters
+every instance that responds to the power-on call. That is *not* a third reordering problem - two reorderings have now been
+tried and documented.
+
+## 53. The two remaining options, both substitutions, both recorded
+
+1. **Patch the deadline** in `AppLauncher` - the value and its units must be read from the binary first, and it is the same class
+   of change as the surface-id table: one constant, documented, with the offset recorded.
+2. **Emit the preload-complete signal** on `com.lge.avn.appmanager.info` (`preload_complete_status(bool)`) so the launcher never
+   reaches its deadline. No vendor binary touched, and the interface is already mapped.
+
+**And the standing of the goal, stated once**: everything the vehicle runs, runs - the kernel was replaced because the shipped
+one could not provide a display path, and after that the vendor's DRM backend, compositor, launcher and home screen all work. **The
+application composites on the vendor display path at the vendor resolution and shows its own standby chrome; it does not leave
+standby, and the reason is a 3 ms deadline in the vendor's launcher under TCG.**

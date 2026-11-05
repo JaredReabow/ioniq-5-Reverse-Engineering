@@ -237,7 +237,9 @@ a timing detail this project has already been bitten by more than once.
 | Wayland socket (the seat fix) | yes |
 | application connects, `Wayland-EGL`, `START DRAW` | yes |
 | **application chrome painted** - its own standby face, 144,501 bytes | yes |
-| application surface composited after power-on | **no** |
+| surface id assigned to app id 11 (fourth substitution) | yes |
+| **surface created, placed, chrome composited** | **yes** - 120,452 bytes, blue bar + logo |
+| leaving standby for the laid-out home screen | **no** - the launcher deregisters every instance that responds to power-on |
 | laid-out home screen (Battery/Range) | **no** |
 
 **The failing step is named, and it is not the application.** The launcher hands a `QT_WAYLAND_SET_SURFACE_ID` to every managed

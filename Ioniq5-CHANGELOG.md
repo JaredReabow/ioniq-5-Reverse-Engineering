@@ -3,6 +3,34 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.33.0 - three numbers in the same units, and they say warm wins by 31 seconds
+
+Boot51 refuted "ApplicationManager is not running" - it runs as **launcher app id 2**, group 0, pid 2009 - and recorded the bus-name check as NOT MEASURED when `busctl` failed on credentials rather than reporting "no owner". Both correct under rule 17.
+
+Then three separately-measured facts were put in the same units for the first time:
+
+| measurement | value |
+|---|---|
+| launcher app-load timeout: `start` -> `[TIMEOUT] [2 Group]` | **39.8 s** |
+| the app's **cold** announce | **48.58 s** |
+| the app's **warm** announce (every warm relaunch measured) | **1.17 - 8.13 s** |
+
+**Cold loses by 8.8 seconds. Warm wins by at least 31.7.**
+
+### What the arithmetic explains
+
+When the app announces late, the launcher's load timeout fires first and **registers on its behalf** - `[TIMEOUT]` then `[REGISTERED]` 30 ms apart - and the application's own announce then collides, producing `[REGISTERED ERROR] Already registered` and the duplicate guard's SIGTERM. **The kill loop is a race, and this project has only ever entered it cold.**
+
+It is self-reinforcing: the kill destroys the warm state, so the next start is cold and loses again. **Nothing in the vendor's system is broken - a ~48 s cold start does not fit inside a ~40 s timeout.**
+
+### And warm has never had a fair test
+
+Every warm measurement was taken **before the SMACK label fix**, and those instances died of the PHEV denial instead. That fault is gone. **Warm + labelled is untested.**
+
+### The experiment, one variable
+
+Pre-warm with the expendable cold instance, relaunch through the launcher's own `request.launch` immediately after the kill, keep the label and every constant frozen, and measure five things in order - registered-before-timeout, duplicate-error, PHEV denial, alive-at-60 s, frame. **Every outcome names its own next step**, which is why this is the cheapest decisive experiment available.
+
 ## 5.32.0 - the registration hypothesis was built on a Bluetooth string
 
 Static analysis of two binaries, done to avoid spending a boot on a guess. It found a red herring and the real interface.

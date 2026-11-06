@@ -6485,3 +6485,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The full compositor log named every surface and showed the home screen absent while seven other apps register, and that the surface id was never in the creation path at all.
 - Found the HMI controller binary whose job is to create the home layout and signal home-ready, absent from every run, and noted that its path defect had been recorded as dormant before the kernel rebuild removed the condition that made it dormant.
 - Reverted the id patch on Opus's advice rather than substituting another value, and added the controller's own output to the captures, since its absence had been the fault while only other logs were collected.
+
+## 2026-11-05 - our patch suppressed the surface
+
+- Reverting the surface id patch let the home screen register a real ivi surface for the first time, showing that the patch had been suppressing creation rather than enabling it.
+- The config key thought dead turned out to be read by the HMI controller module, which our configuration never loaded; the omission was one line up in the modules list.
+- Recorded the repeating shape: a missing component sends the search to its configuration value rather than to whether it is loaded at all.

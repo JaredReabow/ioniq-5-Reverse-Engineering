@@ -3,6 +3,48 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.46.0 - our own patch was suppressing the surface, and the dead key belongs to an unloaded module
+
+Boot58 made two changes and returned the best single result of the thread.
+
+### Result 1: reverting the id patch gave AppHomeScreen a real surface
+
+```
+ivi_hmi_receiver@19.receive_id(1006)
+ivi_application@17.surface_create(1006, wl_surface@15, new id ivi_surface@20)
+create_hmi_client(1, 1006, "AppHomeScreen")
+```
+
+**`QT_WAYLAND_SET_SURFACE_ID` was suppressing surface creation, not enabling it.** The patch that three boots were spent refining was the obstacle. Removing it, per Opus 4.7's "revert, do not substitute", gave `identity` for the first time.
+
+### Result 2: the config key was not dead - the module that reads it was never loaded
+
+Doc 37 checked every **loaded** module for `ivi-shell-user-interface` and found none, concluding the key was dead. The missing piece is one line up:
+
+```
+/usr/lib/weston/hmi-controller.so    <- exists; contains "launch_hmi_client_process"
+                                        and "ivi-shell-user-interface"
+
+our config:
+  modules=/weston-vm-input.so                    <- hmi-controller.so ABSENT
+  ivi-module=ivi-window-manager.so,ivi-controller.so
+  ivi-shell-user-interface=/usr/libexec/weston-ivi-shell-user-interface
+```
+
+**The HMI controller is a weston module, and our configuration never loads it.** The key is read by a module that is not present, which is why nothing acted on it - and it also explains the `ivi-shell-user-interface=/bin/true` in this project's older probe scripts: someone set it to a no-op because nothing read it, while the real omission was `modules=`.
+
+### The change is one line
+
+```
+modules=/weston-vm-input.so,/usr/lib/weston/hmi-controller.so
+```
+
+with everything else frozen at boot58's configuration - vendor bytes at `0x475e8`, no `QT_WAYLAND_SET_SURFACE_ID` - because that configuration already produced the surface.
+
+### And the general lesson, which has now repeated four times
+
+**A component was missing and the search went to its configuration value rather than its module list.** The same shape appeared with the dormant `weston.ini` path defect, the unretained launcher log, and the unloaded controller. **Check what is loaded before checking what is configured.**
+
 ## 5.45.0 - the missing client was the HMI controller, and the id was never in the path
 
 Boot57 changed one variable - id `1010` -> `2170` - and returned something better than a result: **a closed branch of work.**

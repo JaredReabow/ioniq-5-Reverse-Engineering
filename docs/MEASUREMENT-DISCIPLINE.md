@@ -250,3 +250,19 @@ probe.
 
 **And the second-order lesson:** this rule now has a sibling. Rules 17 and 18 are both about instruments, and the project has found more
 instrument faults than vendor faults in the last twenty-four hours. **The instrument deserves the same scepticism as the vendor.**
+
+## Rule 19. A finding derived from a string your own probe assembled is not evidence
+
+Adopted 2026-11-06. `WARM_DUPLICATE=1` was reported from a `WARM_REG=[…]` value that **the probe itself built by grepping the launcher log in
+place**. A gap in the pattern, an unescaped bracket, a log line that wrapped - any of them produces a confident number that describes the probe.
+
+**Read the raw artefact.** Retain the log, then read the lines. If a probe must summarise, it must also **retain the source** it summarised from,
+in the same run, in a place the host can read.
+
+**This is the third instrument lesson in one hour, and all three looked like vendor faults:**
+- rule 17 - the target was dead and the instrument reported an empty value;
+- rule 18 - the query asked about an interface and could only answer `false`;
+- rule 19 - the value was assembled by the probe from the thing it was describing.
+
+**The pattern to check for, in one line:** *could this number have been produced without the system behaving as reported?* If yes, it is not
+yet a measurement.

@@ -3914,3 +3914,69 @@ system bus (`DL_MON_SEEN=[1]`) while no engineering application started, so the 
 `ask(301)` early-return or the `ask(71) == 1` condition. The security claim is unaffected: **no sender
 authentication stands between a process on the system bus and this handler.** See
 `docs/engineering-mode/special-key-payload-decoded.md`.
+
+## V-076 - app lifecycle and power state are unauthenticated on the session bus, and `launch` accepts a caller-named path
+
+**Status:** the unauthenticated reachability of the lifecycle and power interfaces is **measured statically**. Whether a
+caller-supplied `applocation` is *executed* is **NOT DEMONSTRATED** - the launcher checks existence, and the code path that
+consumes the third argument has not been traced. Class: control-plane authorization. Found while writing the endgame runbook
+(`docs/vm/56-endgame-runbook.md`), which needed the power-on contract and found no gate on it.
+
+### What is measured
+
+**1. The interfaces live on the session bus, and nothing mediates them.**
+
+```
+com.lge.hyundai.avn.appmanager  /Information   com.lge.avn.appmanager.info
+    set_power_on_status(int on, int position)      -> signal power_status(int status)
+com.lge.hyundai.avn.appmanager  /registration  com.lge.avn.appmanager.registration
+    registration(appid i, appname s, servicename s, objectpath s, plane i) -> result i
+    deregistration(appid i, appname s) -> result i
+com.lge.avn.applauncher  /com/lge/avn/applauncher  com.lge.avn.applauncher.request
+    launch(appid i, appname s, applocation s), terminate(appid i), appkill(appname s)
+```
+
+**2. There is no policy for any of it.** Every `*.conf` under `/etc/dbus-1/` is in **`system.d`** - the system bus. The appmanager
+runs with `dbus-daemon --session`, whose default configuration allows any client to own and call any name. **No SMACK rule names
+`dbus`** (`grep -r dbus /etc/smack/accesses.d/` returns nothing), so the mandatory-access-control layer does not mediate D-Bus
+messages at all.
+
+**3. The address is world-readable.** `App/bin/Dbuslaunch.sh` writes `/tmp/session_appmgr` and `/tmp/session_appmgr.env` with **no mode
+set**, in a `1777` directory (see `V-058` and `docs/trust-anchors-in-writable-runtime-paths.md`), so any local process can find the bus.
+
+**Consequence, measured by construction:** a process with code execution as **any** user can terminate applications and set the head
+unit's power state. No credential, no label, no policy is consulted. On a stock unit that is the difference between "an app is
+compromised" and "the head unit's application lifecycle is controlled".
+
+### What is NOT demonstrated, and must not be claimed
+
+`launch()` takes a caller-named `applocation` **path**, and the launcher's only stated check is an existence test
+(`[FAILURE] %1 Exec file does not exists!`). **An existence check is not an authorization check**, but this entry does **not** claim
+arbitrary execution: the handler may consume only its own app table, and the third argument may be used solely for logging or for a
+known-app path. **Demonstrating it requires a run, and it should be attempted only on our own unit** with a throwaway binary at a
+throwaway path.
+
+**If it is confirmed**, this becomes an unauthenticated local privilege boundary crossing that outranks most of the register, because the
+launcher is a long-lived process started early and the call needs no more than bus access. **If it is refuted**, the entry stands on the
+power and lifecycle reachability alone, which is already a finding worth fixing.
+
+### Why it matters more than the count suggests
+
+`V-064` records that 106 of 107 services run as root with no hardening. This entry is the **user-facing edge** of that: the control plane
+that starts, stops and powers the HMI is reachable by anything that can reach a `1777`-adjacent socket path, and the whole authorization
+model for it is absent rather than weak.
+
+### The fix
+
+- **Add a D-Bus policy** on the session bus restricting `com.lge.hyundai.avn.appmanager` and `com.lge.avn.applauncher` to the
+  systems that are meant to call them, and drop the default `allow everything`.
+- **Or mediate it in the manager**: check the caller's credentials (`org.freedesktop.DBus.GetConnectionCredentials`) and SMACK label
+  before honouring `registration`, `set_power_on_status`, `terminate`, `appkill`.
+- **Never execute a caller-named path.** Accept an `appid` and resolve it through the manager's own table; treat `applocation` as a
+  log field only, and reject any launch whose resolved path is not in the table.
+- **Give the bus address a mode** (see `V-058`): `install -m 600`, root-owned, validated by every consumer.
+
+### Cross-references
+
+`V-058` (bus address from `/tmp`), `V-064` (root services, no hardening), `V-065` (the same writable-path pattern for `/etc` anchors),
+`docs/vm/56-endgame-runbook.md` (the contract), `docs/trust-anchors-in-writable-runtime-paths.md`.

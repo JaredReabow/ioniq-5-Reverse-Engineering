@@ -568,3 +568,16 @@ bytes alone - no VM, no QEMU - and running it corrected a number the report had 
 The "106 of 107" in the row above is the **runtime** observation. The **static** count is **129 unit files with one `User=`**. Both
 are true and they measure different things - **the denominator belongs in the sentence**, which is measurement-discipline rule 14,
 and this is the third time in this project that a bare number has meant two different things to two different readers.
+| 26 the control plane accepts lifecycle and power calls from any session-bus client | V-076 |
+
+### 26. Nothing authorizes the HMI control plane, and `launch` takes a caller-named path
+
+**Measured:** the appmanager and launcher interfaces are on the **session** bus, every D-Bus policy in the image is under `system.d`,
+**no SMACK rule names `dbus`**, and the bus address is written to `/tmp` with no mode. So any process with code execution — as any user —
+can `terminate`, `appkill`, `registration`, and `set_power_on_status`.
+
+**Not demonstrated:** whether `launch`'s caller-supplied `applocation` is executed. The only check found is an existence test. Do not
+claim execution until it is measured on our own unit.
+
+**Fix:** a session-bus policy (or credential and label checks in the manager), resolve appids through the manager's own table instead of
+accepting a path, and give the bus files a mode. See `V-076`.

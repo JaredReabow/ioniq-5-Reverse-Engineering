@@ -3,6 +3,40 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.43.0 - V-076: the control plane has no authorization, and it is on the session bus
+
+Writing the endgame runbook required the power-on contract. Finding it raised a question the register had not asked, and the answer is a **new entry**.
+
+### Measured
+
+**1. The lifecycle and power interfaces are on the session bus:**
+```
+com.lge.hyundai.avn.appmanager  /Information   com.lge.avn.appmanager.info
+    set_power_on_status(int on, int position) -> signal power_status(int status)
+com.lge.hyundai.avn.appmanager  /registration  com.lge.avn.appmanager.registration
+    registration(...) / deregistration(appid, appname)
+com.lge.avn.applauncher         com.lge.avn.applauncher.request
+    launch(appid, appname, applocation), terminate(appid), appkill(appname)
+```
+
+**2. Nothing mediates them.** Every `*.conf` under `/etc/dbus-1/` is in **`system.d`** - the system bus. The appmanager runs with `dbus-daemon --session`, whose default configuration lets **any client own and call any name**. And **no SMACK rule names `dbus`**, so the mandatory-access-control layer does not mediate D-Bus messages at all.
+
+**3. The address is world-readable.** `Dbuslaunch.sh` writes `/tmp/session_appmgr` with **no mode**, in a `1777` directory.
+
+**Consequence: a process with code execution as any user can terminate applications and set the head unit's power state.** No credential, no label, no policy consulted.
+
+### Not demonstrated, and deliberately not claimed
+
+`launch()` takes a caller-named `applocation` **path**, and the launcher's only found check is an existence test (`[FAILURE] %1 Exec file does not exists!`). **An existence check is not an authorization check** - but the handler may consume only its own app table, so **this entry does not claim arbitrary execution.** Confirming it needs a run with a throwaway binary at a throwaway path, on our own unit.
+
+**If confirmed**, it outranks most of the register: the launcher is long-lived, started early, and the call needs no more than bus access. **If refuted**, the entry still stands on power and lifecycle reachability, which is worth fixing on its own.
+
+### Why it matters beyond its number
+
+`V-064` records 106 of 107 services running as root with no hardening. **This is the user-facing edge of that**: the plane that starts, stops and powers the HMI is reachable by anything that can reach a socket path next to a `1777` directory - and its authorization model is **absent rather than weak**.
+
+Remediation item 26 added: a session-bus policy or credential-and-label checks, appid resolution through the manager's own table instead of a caller path, and a mode on the bus files. **Register now 76 entries, 27 items, checks coherent.**
+
 ## 5.42.0 - the endgame is two decisions, and one contract we never wrote down
 
 Astra and Opus 4.7 were given the milestone independently. **They converged on the same next fault - the capture, not the lifecycle** - and Astra supplied something this project had been missing.

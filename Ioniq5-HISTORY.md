@@ -6467,3 +6467,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Astra found the receiving contract for power-on including a signal that proves consumption, which the project had never monitored; every previous run sent the method and treated delivery as receipt.
 - Opus ranked the unreconciled surface id as the most likely remaining fault and both agreed the capture, not the lifecycle, is what is left.
 - Wrote the machine predicate for a home frame with identity first, since identity is the term the project has failed twice, and required the closing run to state which gate it tests and what a null looks like.
+
+## 2026-11-05 - the control plane has no authorization
+
+- Writing the endgame runbook required the power-on contract, and finding it showed the lifecycle and power interfaces sit on the session bus with no policy, no SMACK mediation and a world-readable address.
+- Recorded V-076 with the measured reachability separated from the undemonstrated possibility that launch executes a caller-named path, since an existence check is not an authorization check but neither is it proof of execution.
+- Added remediation item 26 and noted this is the user-facing edge of the finding that nearly every service runs as root without hardening.

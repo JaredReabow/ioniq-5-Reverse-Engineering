@@ -3,6 +3,40 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.42.0 - the endgame is two decisions, and one contract we never wrote down
+
+Astra and Opus 4.7 were given the milestone independently. **They converged on the same next fault - the capture, not the lifecycle** - and Astra supplied something this project had been missing.
+
+### Gate 2: the power-on has an observable, and we never watched it
+
+```
+destination  com.lge.hyundai.avn.appmanager
+path         /Information
+interface    com.lge.avn.appmanager.info
+method       set_power_on_status(int on, int position)
+signal       power_status(int status)        <- the observable
+```
+
+**A method returning proves the message was delivered. A signal following proves a state machine moved.** Every previous run sent the method and never watched for the signal - which is precisely why *power-on sent* and *power-on consumed* have been indistinguishable for dozens of runs. That is the fourth time this project has measured a send and called it a receipt.
+
+### Gate 5: the predicate, so it stops being a judgement call
+
+```
+HOME_FRAME = identity && home_tree && geometry && presentation && persistence
+```
+
+identity (app 11's pid matched to the launcher record, **not** the newest surface) · home_tree (live Home layout subtree, not its construction messages) · geometry (intended surface geometry, not the PNG's size) · presentation (a **new** buffer after power-on) · persistence (same identity 10 s later).
+
+**`identity` is the term this project has failed twice** - once as `AppCamera` on a colliding surface id, once as standby chrome called progress.
+
+### Opus ranks the surface mismatch as the most likely remaining fault
+
+`1010` requested, `APP_SURFACE_ID=[1005]` reported, and unreconciled. It is not an argument to settle but a **listing**: the launcher's record, the compositor's `pid -> wl_surface -> ivi_surface` map, and a capture taken **by pid**. If app 11's pid has compositor id 1005, the re-map is benign and the capture must follow the pid. If it has **no** surface at all, the app is drawing where nothing reads - a different fault, and one that would explain standby-only frames with no new mechanism.
+
+### Gate 2 before gate 5, and a pre-commitment
+
+Without consumption a laid-out frame cannot exist, so anything that looks like one is mislabelled. **The run that closes this must state in its own header which gate it tests and what a null looks like** - three false negatives in one hour came from runs whose null was undefined in advance.
+
 ## 5.41.0 - registration and label both closed, measured on raw lines
 
 Boot55 was a **read, not a fix**, with the raw launcher log retained (167,815 B). It closed the two open items.

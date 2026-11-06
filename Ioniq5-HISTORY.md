@@ -6425,3 +6425,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Following the unowned registration bus name found the script that creates the session bus address, which sets no file mode and is trusted unvalidated by at least four consumers.
 - A component reading it before it is written connects elsewhere silently, which is both why this project lost boots tonight and how a local process could become the HMI control plane.
 - Recorded the producer, the four absent controls and the small fix against V-058 and item 3b, with the same shape as the /tmp trust-anchor item.
+
+## 2026-11-05 - a probe that measured nothing
+
+- The close test checked bus addresses at ten seconds, before either process had started, and captured no launcher log, so its failure is not measured rather than explained. Two probes in a row produced a number that looked like an answer.
+- Static work in the same hour found the registration interface signature inside the manager, which reframes the fault as failing to claim a name it knows, not lacking the code.
+- Referred the stand-in decision to Astra and Opus rather than taking it, and noted that Opus needed a second provider route after a usage-limit error, the second such case in the session.

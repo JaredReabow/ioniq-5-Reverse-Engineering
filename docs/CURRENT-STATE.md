@@ -1,3 +1,22 @@
+## REGISTRATION AND LABEL ARE BOTH CLOSED (2026-11-06, boot55)
+
+Measured on **raw retained launcher lines**, not on a probe summary:
+
+```
+[warm] LABEL=[App::home]   PS_LABEL=[App::home]          <- the SMACK exec-label fix, verified end to end
+01:26:44.021  [REGISTERED] registeredFromNativeApp AppId[11]
+01:26:44.021  ClearTimeoutLoading : 11, PID : 2516        <- no preceding [TIMEOUT]: it registered IN TIME
+```
+
+- **The label fix is real**: the process runs as `App::home`, which is what the vendor's own rules grant `Data::commonphev rwxatl` to.
+- **The registration blocker is closed**: a warm instance beats the 39.8 s app-load timeout and the launcher clears its deadline against
+  that pid. The cold instance (2331) still fails exactly as understood, and that is expected.
+- **The duplicate `[REGISTERED ERROR] Already registered` is survivable vendor behaviour** - two of fifteen apps produce it in a stock-ish
+  chain and none of them are terminated (`docs/vm/55`).
+
+**What remains is the frame**: whether the power-on that was sent to the warm instance is consumed into a laid-out home screen. Six of Astra's
+seven gates are now behind this project; gate 2 (power-on *consumed*) and gate 5 (a non-visual "this is the layout" criterion) are next.
+
 # Current state — what works, what is blocked, what to do next
 
 Written after a long working session so the next person (or the next turn) starts from measured facts rather than a story. Everything below is

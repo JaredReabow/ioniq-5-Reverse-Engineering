@@ -3,6 +3,35 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.41.0 - registration and label both closed, measured on raw lines
+
+Boot55 was a **read, not a fix**, with the raw launcher log retained (167,815 B). It closed the two open items.
+
+```
+[read] LABEL=[App::home]   PS_LABEL=[App::home]
+```
+
+**The SMACK exec-label fix is verified end to end.** The process runs as `App::home` - the subject the vendor's own rules grant `Data::commonphev rwxatl` to - and not as `_`. The check that boot50 could only mark NOT MEASURED is now measured, while the app was alive.
+
+```
+01:26:38.462  [TIMEOUT] [2 Group] AppID : 11, PID : 2331        <- cold: the known failure
+01:26:38.509  [REGISTERED] AppId[11]
+01:26:38.509  ClearTimeoutLoading : 11, PID : 0                 <- cleared against pid 0
+01:26:38.544  [REGISTERED ERROR] Already registered             <- survivable, as documented
+01:26:44.021  [REGISTERED] AppId[11]                            <- warm instance
+01:26:44.021  ClearTimeoutLoading : 11, PID : 2516              <- NO preceding [TIMEOUT]
+```
+
+**The warm instance beat the 39.8 s app-load timeout and the launcher cleared its deadline against that pid.** That is the healthy pattern the raw chain showed for `AppCamera` and `AppNavi`, and the registration blocker is closed.
+
+### What that means for the seven gates
+
+Six are behind this project. **Gate 2 (power-on consumed, not merely sent)** and **gate 5 (a non-visual criterion for "this is the layout")** are what remain - and gate 5 matters more than usual because a frame has twice been mislabelled, once as the home screen when it was probably `AppCamera`.
+
+### Consultations
+
+Astra and Opus 4.7 were dispatched on the milestone with the endgame questions: the gate-2 observable, the gate-5 criterion, the remaining honesty risk after three instrument-induced false negatives, and what the changelog should say when this thread closes. **Opus 4.7's first route hit the usage limit for the third time tonight** and was retried on the second provider.
+
 ## 5.40.0 - the duplicate is not the killer, and the raw log was on disk all along
 
 A **211,792-byte raw launcher log** was sitting in this project's own workspace from an earlier chain. Reading it instead of a probe's summary overturns the duplicate narrative.

@@ -6479,3 +6479,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - A signal captured after the power-on call proved the state machine moved, which no previous run had shown because only the send was ever measured.
 - Gate five returned its pre-committed null: the app is alive, labelled, warm and powered on, and creates no compositor surface at all.
 - Recorded the contrast that a different surface id produced a surface earlier, so the next experiment changes only the id value, with each result pre-committed and one line required to distinguish no surface created from surface not laid out.
+
+## 2026-11-05 - the missing client was the HMI controller
+
+- The full compositor log named every surface and showed the home screen absent while seven other apps register, and that the surface id was never in the creation path at all.
+- Found the HMI controller binary whose job is to create the home layout and signal home-ready, absent from every run, and noted that its path defect had been recorded as dormant before the kernel rebuild removed the condition that made it dormant.
+- Reverted the id patch on Opus's advice rather than substituting another value, and added the controller's own output to the captures, since its absence had been the fault while only other logs were collected.

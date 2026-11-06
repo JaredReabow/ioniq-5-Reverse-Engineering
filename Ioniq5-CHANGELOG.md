@@ -3,6 +3,39 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.45.0 - the missing client was the HMI controller, and the id was never in the path
+
+Boot57 changed one variable - id `1010` -> `2170` - and returned something better than a result: **a closed branch of work.**
+
+### The run settled two things permanently
+
+The full weston log (217,977 B) names every surface, and **`AppHomeScreen` appears zero times**, while seven other apps register normally (`AppDMClient`, `AppOSDManager`, `AppStandbyClock`, `BluetoothHMI`, `AppEURadio`, `NotificationManager`, `AppCamera`).
+
+1. **The surface-id patch was never in the creation path.** `2080` -> `1010` -> `2170` changed nothing because the app never calls `ivi_application.surface_create`. **Three patch revisions and three boots went into a variable that does not exist.**
+2. **`2080` is `AppCamera`'s**, proven by the compositor's own log rather than inferred from the launcher table. **The frame that started the id chase was the camera's.**
+
+### The missing component, named
+
+`/usr/libexec/weston-ivi-shell-user-interface` (215,480 B) is the **HMI controller**:
+
+```
+ivi_hmi_controller_home   ivi_hmi_controller_UI_ready   ivi_hmi_controller_layout_mode
+```
+
+It creates the home layout and signals clients that home is ready. **It is absent from every run**, and the reason was already in this project: `weston.ini` names a path where the binary is not. That defect was recorded as **"real but dormant"** - dormant because the compositor never reached `wl_display_run` with a working backend. **The drm rebuild changed exactly that condition, so it is dormant no longer**, and it is the only named candidate that explains the measurement: the app waits for home-ready from a controller that never starts.
+
+### The consultations' rulings, applied
+
+**Opus 4.7: revert the id patch, do not substitute.** It was authored before `surface_id_offset` was known, it patches a vendor mechanism we did not understand, and doc 36 proves it is not in the path. Vendor bytes restored at `0x475e8` (`71 00 00 00 7a 08 00 00`, 113 -> 2170).
+
+**Astra: `surface_id_offset` is a stride for the shell UI's own per-screen widgets**, not a universal app-id remapper.
+
+### And a cost worth recording
+
+**Three boots went to an id that was never in the path, while the component that was missing had already been documented as broken and marked dormant.** The lesson is not "look harder": it is that **a defect recorded as dormant must be re-examined whenever the condition that made it dormant changes** - and the kernel rebuild changed precisely that.
+
+**This run also captures the controller's own stdout**, because in every previous run this project captured the app's log and the launcher's log but not the log of the component whose absence was the fault.
+
 ## 5.44.0 - gate 2 closed: power-on is consumed, for the first time
 
 ```

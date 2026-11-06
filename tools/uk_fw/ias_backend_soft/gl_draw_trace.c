@@ -551,19 +551,35 @@ __attribute__((constructor)) static void gl_draw_trace_online(void)
 
 static void note_shader_call(GLuint shader, GLsizei count, const char *s0)
 {
-	char line[256];
+	char line[512];
 	int fd, n;
 	int has_frag_needle, has_vtx_needle;
 
 	has_frag_needle = (s0 != NULL && strstr(s0, "texture2D(texture, outTexCoords)") != NULL);
 	has_vtx_needle  = (s0 != NULL && strstr(s0, "outTexCoords = texCoords.xy;") != NULL);
+
+	/*
+	 * The two needles above are DEAD. A static sweep of the shipped rootfs on 2026-11-06 found
+	 * "outTexCoords" and "texCoords" in no vendor binary at all: not in /usr/lib, /app/lib or
+	 * /app/bin. libQt5Quick.so.5.4.1 uses qt_Vertex / qt_MultiTexCoord0 / qt_VertexTexCoord /
+	 * tCoord / vTex for attributes and qt_TexCoord0 / qt_TexCoord / sampleCoord for varyings, and
+	 * samples as texture2D(qt_Texture, qt_TexCoord) or texture2D(imageTexture, textureCoords).
+	 * So every shader-fix-* variant searched for text the vendor never produces and could never
+	 * fire. They are kept below only so an old run's log is still readable; the real_* fields are
+	 * what a current run should be judged on.
+	 */
 	n = snprintf(line, sizeof line,
-		     "pid=%d shader=%u count=%d len=%ld frag_needle=%s vtx_needle=%s fix_mode=%d\n",
+		     "pid=%d shader=%u count=%d len=%ld dead_frag=%s dead_vtx=%s fix_mode=%d"
+		     " real_qt_tex=%s real_samplecoord=%s real_multitex0=%s real_imagetc=%s\n",
 		     (int)getpid(), shader, (int)count,
 		     (long)(s0 ? strlen(s0) : -1),
 		     has_frag_needle ? "yes" : "no",
 		     has_vtx_needle ? "yes" : "no",
-		     shader_fix_mode());
+		     shader_fix_mode(),
+		     (s0 && strstr(s0, "qt_TexCoord")) ? "yes" : "no",
+		     (s0 && strstr(s0, "sampleCoord")) ? "yes" : "no",
+		     (s0 && strstr(s0, "qt_MultiTexCoord0")) ? "yes" : "no",
+		     (s0 && strstr(s0, "imageTexture")) ? "yes" : "no");
 	fd = open(CALLS_PATH, O_WRONLY | O_CREAT | O_APPEND, 0644);
 	if (fd >= 0) {
 		(void)!write(fd, line, (size_t)n);

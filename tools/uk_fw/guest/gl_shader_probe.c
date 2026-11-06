@@ -74,6 +74,17 @@ static const char *SRC_DECOY =
 	"void main() { gl_FragColor = texture2D( texture , outTexCoords ); }\n"
 	"// outTexCoords = texCoords.xy  (commented out, deliberately not the needle)\n";
 
+/* Verbatim shapes from libQt5Quick.so.5.4.1 attribute/varying corpus. */
+static const char *SRC_QT_REAL =
+	"attribute highp vec4 qt_Vertex;\n"
+	"attribute highp vec2 qt_MultiTexCoord0;\n"
+	"varying highp vec2 qt_TexCoord0;\n"
+	"void main() { gl_Position = qt_Vertex; qt_TexCoord0 = qt_MultiTexCoord0; }\n"
+	"---fragment---\n"
+	"varying highp vec2 qt_TexCoord0;\n"
+	"uniform sampler2D qt_Texture;\n"
+	"void main() { gl_FragColor = texture2D(qt_Texture, qt_TexCoord0); }\n";
+
 static void show(const char *path)
 {
 	char buf[2048];
@@ -131,6 +142,15 @@ int main(int argc, char **argv)
 	one[0] = SRC_DECOY;
 	len = (int)strlen(SRC_DECOY);
 	ss(4u, 1, one, &len);
+
+	/*
+	 * The REAL vendor shader shape, taken from libQt5Quick.so.5.4.1. The dead needles must both
+	 * report "no" and the real_* fields must report "yes" -- that is the case which proves the
+	 * repointed instrument works against identifiers the vendor actually emits.
+	 */
+	one[0] = SRC_QT_REAL;
+	len = (int)strlen(SRC_QT_REAL);
+	ss(5u, 1, one, &len);
 
 	printf("four glShaderSource calls made\n");
 	show("/tmp/gl-draw-trace.active");

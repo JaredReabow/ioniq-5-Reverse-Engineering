@@ -3,6 +3,38 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.44.0 - gate 2 closed: power-on is consumed, for the first time
+
+```
+signal sender=:1.39 ... path=/Information; interface=com.lge.avn.appmanager.info; member=power_status int32 1
+```
+
+**The `power_status` signal follows `set_power_on_status`.** For dozens of runs this project measured a send and called it a receipt; Astra's contract from the binaries made the difference observable, and the state machine moved.
+
+## Gate 5 hit its own null, exactly as pre-committed
+
+pid 2561 alive, labelled `App::home`, warm, powered on - and **`ivi_place` reports 0 layers / 0 surfaces / 0 screens**. Only ivi-shell's own `30000, 1000, 1001`. Capture: the 129,844-byte background.
+
+**The whole lifecycle is now closed**: kernel, DRM device, 1920x720 mode, seat, Wayland socket, registration, SMACK label, power-on consumption. **One fault remains: the warm app creates no compositor surface.**
+
+## And a contrast that points at the cause
+
+An earlier run, with a **different id patch**, did show a surface:
+
+```
+SURFACES=[30000|2080|1001|1002|2080|1004]   APP_SURFACE_ID=[2080]   frame 120,452 B
+```
+
+That patch gave app 11 the id **2080** - the vendor table's id for **AppCamera**. It was changed to **1010** because that frame was probably the camera's - and now **nothing appears, and `1010` appears in no list**.
+
+**So the difference between a surface existing and not existing is the id value we patched.** The likely mechanism is that the ivi shell rejects an id it does not know, and `weston-ivi-shell-user-interface` does carry a `surface_id_offset` string, so ids are transformed rather than used verbatim.
+
+## The next experiment, one variable
+
+Id `1010` -> **`2170`** (app 113's vendor id, unused in our runs, no collision), everything else frozen. **A surface at 2170 means the id was the whole fault**; **no surface means the app is not creating one in this configuration**, and the 2080 surface was likely the camera's, which would make cold-versus-warm the real variable.
+
+**Pre-committed readings, so the result cannot be argued afterwards.** And one line worth capturing regardless: whether the compositor log shows app 11 creating a `wl_surface` at all - that distinguishes "no surface created" from "surface created but not laid out".
+
 ## 5.43.0 - V-076: the control plane has no authorization, and it is on the session bus
 
 Writing the endgame runbook required the power-on contract. Finding it raised a question the register had not asked, and the answer is a **new entry**.

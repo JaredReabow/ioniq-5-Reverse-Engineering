@@ -1,3 +1,30 @@
+## GATE 2 CLOSED, GATE 5 HIT ITS NULL (2026-11-06, boot56)
+
+**Power-on is proven CONSUMED**, not merely delivered - for the first time in this thread:
+
+```
+signal sender=:1.39 ... path=/Information; interface=com.lge.avn.appmanager.info; member=power_status int32 1
+```
+
+The `power_status` signal follows `set_power_on_status`. The state machine moved.
+
+**Gate 5, with its null pre-committed, came back null:** app 11's pid (2561) is alive, labelled `App::home`, warm, and powered on - and the
+compositor has **no surface for it**. `ivi_place` reports **0 layers / 0 surfaces / 0 screens**; the only surfaces are ivi-shell's own
+`30000, 1000, 1001`. The capture is the 129,844-byte background.
+
+**The whole lifecycle is now closed**: kernel, DRM device, 1920x720 mode, seat, Wayland socket, registration, SMACK label, power-on
+consumption. **The single remaining fault is that the warm app creates no compositor surface.**
+
+**And one contrast that points at the cause:** an earlier run, with a *different* id patch, DID show a surface -
+`SURFACES=[30000|2080|1001|1002|2080|1004]`, `APP_SURFACE_ID=[2080]`, frame 120,452 B. That patch gave app 11 the id `2080`, which the vendor
+table assigns to `AppCamera`; the id was then changed to `1010`, and now nothing appears. The ivi shell binary carries a `surface_id_offset`
+string, so ids are transformed rather than used verbatim.
+
+**So the open question is narrow and testable**: whether `1010` is a rejected id or whether the app creates no surface at all in this
+configuration. One variable, one boot.
+
+---
+
 ## REGISTRATION AND LABEL ARE BOTH CLOSED (2026-11-06, boot55)
 
 Measured on **raw retained launcher lines**, not on a probe summary:

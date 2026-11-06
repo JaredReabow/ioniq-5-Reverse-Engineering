@@ -3,6 +3,42 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.40.0 - the duplicate is not the killer, and the raw log was on disk all along
+
+A **211,792-byte raw launcher log** was sitting in this project's own workspace from an earlier chain. Reading it instead of a probe's summary overturns the duplicate narrative.
+
+```
+appId  name                 REGISTERED  DUP_ERR  TERMINATED
+   11  AppHomeScreen                 1        0           0    <- registered cleanly, never terminated
+   12  AppCamera                     1        1           0    <- duplicate, SURVIVED
+   30  AppNavi                       1        1           0    <- duplicate, SURVIVED
+   ... twelve more, all clean ...
+```
+
+**Fifteen apps registered. Two produced `[REGISTERED ERROR] Already registered`. Zero were terminated.**
+
+### Three things follow
+
+1. **The duplicate is vendor behaviour, not our artefact** - it happened to `AppCamera` and `AppNavi` in a chain with no surface-id patch and no label fix.
+2. **`Already registered` does not cause the kill.** "The duplicate guard terminates the app" was a **correlation inside a probe summary**, not a causality on raw lines.
+3. **`WARM_DUPLICATE=1` came from a probe-assembled string** (rule 19), so it may not have happened at all in the run that reported it.
+
+### What the healthy chain looks like
+
+```
+[REGISTERED] AppId[12][AppCamera]   | time 00:00:35.842
+ClearTimeoutLoading : 12, PID : 785 | time 00:00:35.842    <- cleared because the app was IN TIME
+[REGISTERED ERROR] Already registered | time 00:00:35.895  <- 53 ms later, ignored
+```
+
+Our failing runs begin with `[TIMEOUT] [2 Group] AppID : 11` - the launcher registering **its own fallback**. **The difference is not the duplicate; it is whether app 11 beat the timeout.** That is the 39.8 s / 48.58 s / 1.17-8.13 s arithmetic and nothing else.
+
+### So `ALIVE_60S=yes` may already have been the success case
+
+That instance was warm and survived 60 s. The next run is **a read, not a fix**: retain the raw log on a host volume, warm start, send power-on, and check whether `ClearTimeoutLoading` follows `[REGISTERED]` directly for app 11. **If it does, the registration blocker was already closed** and the thread is at gate 2, not gate 1.
+
+**And the honest note:** three documents were built on a duplicate that is not fatal, occurs in stock-like chains, and may not have occurred in the run that reported it. **The raw log was in this workspace the whole time.** That is rule 19's cost, paid in full.
+
 ## 5.39.0 - three false negatives in one hour, and a correction to our own duplicate evidence
 
 Astra and Opus 4.7 answered the corrected state independently and produced **complementary** work - one procedural, one a correction of our evidence.

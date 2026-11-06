@@ -6449,3 +6449,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Opus found the duplicate evidence was derived from a string the probe assembled, so it is not yet measured; that is the third instrument lesson in an hour, all three of which looked like vendor faults.
 - Astra made evidence retention a launch prerequisite with a host-retained volume and a verified export, and specified content-based correlation across two clocks.
 - Recorded four candidate duplicate sources separable by one retained monitor log plus one retained launcher log, and Astra's seven gates to an interactive screen, with interaction rather than pixels as the gate that answers the goal.
+
+## 2026-11-05 - the duplicate was never the killer
+
+- A raw launcher log from an earlier chain, already in the workspace, showed fifteen apps registering, two producing the duplicate error, and none being terminated - so the duplicate is vendor behaviour and is survivable.
+- The reading that the duplicate guard kills the app came from a correlation inside a probe summary rather than raw lines, which is the third cost of deriving findings from probe-built strings.
+- The healthy order shows the loading timeout cleared immediately on registration, so the real variable remains whether app 11 beats the timeout, and the next run is a read of raw lines rather than a fix.

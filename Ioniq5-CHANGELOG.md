@@ -3,6 +3,53 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.47.0 - the vendor's own template was the answer, and it explains every symptom
+
+Doc 38 found the root cause at the config level, and the vendor's own `weston_1920.ini` (923 B, shipped in the image) explains every symptom this project has measured.
+
+### What the vendor template shows, and our hand-written config omitted
+
+| key | vendor value | our config |
+|---|---|---|
+| `ivi-module=` | `ivi-window-manager.so,ivi-controller.so` | + `hmi-controller.so` (wrong) |
+| `base-layer-id` | 1000 | **absent** |
+| `workspace-background-layer-id` | 2000 | **absent** |
+| `workspace-layer-id` | 3000 | **absent** |
+| `application-layer-id` | 4000 | **absent** |
+| `shell UI path` | `/usr/lib/weston/...` (absent in this image) | our path at `libexec` |
+
+**Three things this settles:**
+
+1. **`ivi-module=` on stock is exactly two modules** - no `hmi-controller.so`. The home layout is not built by that module on a stock unit. **Drop it.**
+2. **The four layer ids were absent from our config**, which is why `ivi_place` has reported **0 layers / 0 surfaces / 0 screens in every single run**. A layout with no layers has nowhere to put a surface - the exact "surface exists but nothing presented" state we measured.
+3. **The ids we saw are the shell's own widgets**: 1001 background, 1002 panel, 1003 tiling, 1004 sidebyside, 1005 fullscreen, 1006 random, 1007 home. So `APP_SURFACE_ID=[1005]` was the **fullscreen button**, and app 11's surface at 1006 landed on `random-id`. This also confirms Astra's reading.
+
+### The change: adopt the vendor file verbatim, with four substitutions
+
+Remove our hand-written config. Use the vendor's `weston_1920.ini` with:
+- `backend=ias-backend.so` -> remove (we use bochs-drm)
+- `ivi-shell-user-interface` -> `/usr/libexec/weston-ivi-shell-user-interface` (the libexec path exists; `/usr/lib/weston/...` does not)
+- `modules=/weston-vm-input.so` under `[core]` for the seat
+- `[output] name=HDMI1` -> our connector `Virtual-1`, mode 1920x720
+
+Everything else exactly as the vendor wrote it, including the ids.
+
+### Checks, in order, and pre-committed
+
+1. **`ivi_place` reports layers non-zero** - this is the number that has been 0 in every run, and it is the whole point.
+2. layer ids match the vendor's (1000/2000/3000/4000 family).
+3. `create_hmi_client ... "AppHomeScreen"` still present, and its surface is in a layer.
+4. then a frame.
+
+Pre-committed readings:
+- **layers non-zero, surface in a layer** -> capture gate.
+- **layers non-zero, nothing presented** -> placement is next, geometry names it.
+- **layers still zero** -> the ivi-layout is not receiving the output; narrower fault.
+
+### And two vendor packaging defects, recorded rather than fixed
+
+The vendor template has `mode=mode=1280x720` (a typo), and points the shell UI at a path that does not exist in this image. **Stock has at least two real packaging defects here**, and neither is the one blocking us.
+
 ## 5.46.0 - our own patch was suppressing the surface, and the dead key belongs to an unloaded module
 
 Boot58 made two changes and returned the best single result of the thread.

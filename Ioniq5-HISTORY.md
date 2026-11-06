@@ -6491,3 +6491,10 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Reverting the surface id patch let the home screen register a real ivi surface for the first time, showing that the patch had been suppressing creation rather than enabling it.
 - The config key thought dead turned out to be read by the HMI controller module, which our configuration never loaded; the omission was one line up in the modules list.
 - Recorded the repeating shape: a missing component sends the search to its configuration value rather than to whether it is loaded at all.
+
+## 2026-11-05 - the vendor template explains everything
+
+- The vendor's own weston_1920.ini (923 B, shipped in the image) explains every symptom: the four missing layer ids are why ivi_place reported 0 layers in every run, and the HMI controller module is not loaded on stock.
+- Three things settled: ivi-module on stock is two modules (no hmi-controller), the missing layer ids are the whole reason for 0 layers, and the ids we chased are the shell's own widgets.
+- Adopt the vendor file verbatim with four substitutions (backend, shell UI path, modules, output). Pre-committed readings: layers non-zero is the whole point.
+- Noted two vendor packaging defects in the template itself (a typo and a missing binary path), neither of which is our blocker.

@@ -16134,3 +16134,35 @@ came out of it.
   name-ownership and Introspect/Ping/UnknownMethod behaviour remain unverified.** Settling it needs a
   workspace that can host a bus — the vendor systemd userspace, where `dbus-daemon` runs as a normal
   service — rather than the minimal busybox image. Recording it that way rather than as "works".
+
+- **Blocker 4 / persistence: the adaptor now owns the bus name — verified in the guest.** The previous
+  entry stopped at "cannot connect to system bus". Two environment defects were removed, and the
+  reason the adaptor had never worked is now clear:
+
+  1. `libnss_files.so.2` **does** ship in the vendor image (`/lib/libnss_files-2.25.so`); my minimal
+     workspace simply lacked it. `nsswitch.conf` on the unit is `passwd: compat`, so a workspace
+     without the NSS modules cannot resolve its own UID and `dbus-daemon` refuses to start. Staged
+     `libnss_files.so.2` + `libnss_compat.so.2` and a `files`-based `nsswitch.conf`.
+  2. `dbus-daemon` also needs `/etc/dbus-1/session.d` to exist; it was absent and that alone stops the
+     bus with `Failed to read directory`.
+
+  With both fixed, a private bus comes up (`unix:abstract=/tmp/dbus-…`), and the adaptor reaches its
+  intended state:
+
+  ```
+  persadmin-svc: resolved all 18 required libdbus symbols
+  persadmin-svc: request_name org.genivi.persistence.admin -> 1 (attempt 1)
+  persadmin-svc: serving /org/genivi/persistence/admin org.genivi.persistence.admin + org.genivi.persistence.adminconsumer
+  ```
+
+  `request_name -> 1` is `DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER`, i.e. **it owns the name**, and it
+  registers the object with both interfaces from the shipped XML. So the plan's first Blocker-4
+  deliverable — "stub owning the name" — is met and measured, not assumed.
+
+  **Still unverified: the request/response round-trip.** The run timed out at the `dbus-send` step, so
+  `Introspect`, `Ping` and the `UnknownMethod` fallback have not been observed. Recorded as pending
+  rather than done. Next attempt should run `dbus-send` with an explicit timeout and capture its exit
+  status, since a blocking `dbus-send` is the likely cause of the timeout rather than a service fault.
+
+  This also corrects the previous entry's speculation: `libnss_files` is *not* absent from the unit, so
+  there is no finding about degraded name resolution on the real device.

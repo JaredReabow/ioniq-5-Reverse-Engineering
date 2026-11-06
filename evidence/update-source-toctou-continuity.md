@@ -160,3 +160,53 @@ experiment in this thread.
   are ours.
 - Nothing here is a root vector yet. Whether the swap is effective depends entirely on
   whether §6.1 shows the consumer reads the medium or a copy.
+
+---
+
+## 8. Update (still static): a staging tree exists, which leans toward REFUTED
+
+A follow-up pass enumerated the shell templates in the `0x7c64` stage. The decisive new finding is
+that the unit **creates its own staging tree and populates it before installing**:
+
+```
+0x282ee0  rm -rf /update/HU /update/HU.tar* /update/micom /update/gps /update/S5W_*.tar;
+0x282f30  mkdir -p /update/HU/firmware /update/HU/images;
+0x283dcd  du --max-depth=0 /update/HU
+```
+
+with the copy/extract primitives alongside them:
+
+```
+0x27dc83  cp -r %1 %2
+0x2839d6  cp -ar %1 %2
+0x283d99  cp -vf %1 %2
+0x27e9e2  cp -a %1 /app/bin/
+0x27dba4   | tar -xzvm -C %1
+0x27dc20  pv -q %1 | tar -xzvm -C %2
+0x283e76  unzip -o %1 -d %2
+0x27c500  %1 -d %2 %3 0
+0x27c50e   | dd of=%1 bs=512
+```
+
+`/update/HU` is wiped and recreated on every update and is where the HU payload is assembled, so the
+install almost certainly consumes `/update/HU/...` rather than the removable medium. That is the
+`REFUTED-COPY-THEN-VERIFY` shape.
+
+**But it is not yet proof**, and the distinction matters:
+
+- we have not shown *which* path the `[%s] Check Signature for %s ...` log is called with, i.e.
+  whether verification runs on the `/update/HU` copy or on the `/update/usb/...` original;
+- if verification ran on the **USB original** and installation on the `/update/HU` copy, the swap
+  would still work — the swap would only have to happen before the copy, not before the install;
+- so the remaining question is narrower and different from §6.1: **is the copy made before or after
+  verification?** Copy-then-verify refutes the technique; verify-then-copy does not.
+
+Honest verdict therefore stays **AMBIGUOUS**, but it now leans hard toward refuted, and the remaining
+work is one ordering question rather than an open-ended hunt.
+
+### Note on a worker answer
+
+A delegated static-analysis run returned `REFUTED-COPY-THEN-VERIFY` confidently, but cited
+`0x2b520` as `extract_prepareFiles` — that address is simply the start of `.text` — and gave no
+reproducible commands. It was not adopted. The conclusion above rests on the quoted rodata strings,
+which are checkable: `strings -a -t x <stage> | grep -E 'cp |mkdir|rm -rf /update/HU'`.

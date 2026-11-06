@@ -6455,3 +6455,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - A raw launcher log from an earlier chain, already in the workspace, showed fifteen apps registering, two producing the duplicate error, and none being terminated - so the duplicate is vendor behaviour and is survivable.
 - The reading that the duplicate guard kills the app came from a correlation inside a probe summary rather than raw lines, which is the third cost of deriving findings from probe-built strings.
 - The healthy order shows the loading timeout cleared immediately on registration, so the real variable remains whether app 11 beats the timeout, and the next run is a read of raw lines rather than a fix.
+
+## 2026-11-05 - registration and label closed
+
+- The label check that could only be marked not measured was finally taken while the app was alive: the process runs as App::home, verifying the SMACK exec-label fix end to end.
+- The warm instance registered with no preceding timeout and the launcher cleared its deadline against its own pid, closing the registration blocker on raw retained lines rather than a probe summary.
+- Recorded that six of the seven gates are behind the project and that what remains is proving power-on consumption and finding a non-visual criterion for the layout, the latter mattering because a frame was twice mislabelled.

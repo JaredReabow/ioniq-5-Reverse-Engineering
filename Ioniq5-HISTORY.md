@@ -6413,3 +6413,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - ApplicationManager was confirmed running as launcher app id 2, refuting half the registration hypothesis, and the bus-name check was honestly recorded as not measured when the instrument failed.
 - Put the launcher's app-load timeout, the cold announce and the warm announce in the same units: 39.8 s against 48.58 s cold and 1.17 to 8.13 s warm. The kill loop is a race the project has only ever entered cold.
 - Noted that every warm measurement predates the SMACK label fix and those instances died of the PHEV denial instead, so warm plus labelled is untested, and wrote the one-variable pre-warm experiment with a reading for each outcome.
+
+## 2026-11-05 - an instance survived
+
+- The warm labelled relaunch survived its kill window with no PHEV denial, closing the SIGSEGV that had ended every previous instance.
+- The registration bus name was measured unowned, which names the duplicate's root cause, and the likely reason is ordering: ApplicationManager launches first and may connect before the launcher's bus address file exists.
+- Wrote the next run as four ordered measurements, with the power-on call included this time so a laid-out screen cannot be confused with a surviving standby one.

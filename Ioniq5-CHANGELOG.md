@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.34.0 - an instance survived: the SIGSEGV is closed, and one unowned name is left
+
+The warmth experiment ran. **Three things are settled and one is left.**
+
+```
+[warm] AM_BUS_OWNER=[boolean false]        <- the registration name is unowned
+[warm] ALIVE_60S=yes   PHEV_DENIAL=0       <- warm + App::home survives
+[warm] WARM_DUPLICATE=1                    <- the duplicate persists, cause now named
+[warm] FRAME bytes=129844                  <- standby, because power-on was skipped
+```
+
+**The SIGSEGV is closed.** For the first time in this thread an instance outlived its kill window: warm plus the authentic `App::home` label, `ALIVE_60S=yes`, no PHEV denial. The label fix was necessary and sufficient for the crash.
+
+**The remaining blocker has one name: `com.lge.avn.appmanager.registration` is unowned.** ApplicationManager runs - it was confirmed as launcher app id 2 in doc 30 - but it does not hold the name, so the application's announce reaches nobody and the launcher's load-timeout registration collides with it.
+
+### The likely reason, and it is an ordering fault we introduced
+
+ApplicationManager is **launched first, in group 0**. The launcher and applications take their bus address from **`/tmp/session_appmgr.env`** - the same writable-runtime-path pattern recorded as `V-058`. If the manager started **before** that file existed, it connected to a different bus instance and is running healthily on a bus nobody else is on.
+
+**That would make this the sixth projection defect of the session and the first one that is purely an ordering mistake** rather than an instrument or a guess. The check is two `DBUS_SESSION_BUS_ADDRESS` values from `/proc/<pid>/environ`; the fix is ordering, not code.
+
+### What the next run measures, in order, and why order matters
+
+`NameHasOwner` -> **true** first, because if the name is unowned nothing downstream can be read; then a warm relaunch with every constant frozen, expecting **no `Already registered`**; then `ALIVE_60S` and `PHEV_DENIAL` again; and **this time with `set_power_on_status` sent** - doc 31's frame is standby *because the probe deliberately skipped power-on*, and without it a laid-out home screen cannot be distinguished from a surviving standby one.
+
+**And `dbus-monitor` on that interface is captured in the same run regardless**, because it is the only evidence that separates "nobody heard the announce" from "somebody said no" - two faults with different fixes.
+
 ## 5.33.0 - three numbers in the same units, and they say warm wins by 31 seconds
 
 Boot51 refuted "ApplicationManager is not running" - it runs as **launcher app id 2**, group 0, pid 2009 - and recorded the bus-name check as NOT MEASURED when `busctl` failed on credentials rather than reporting "no owner". Both correct under rule 17.

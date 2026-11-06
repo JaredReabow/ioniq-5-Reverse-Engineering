@@ -38,6 +38,7 @@
 #include <unistd.h>
 
 typedef void (*shader_source_fn)(unsigned int, int, const char *const *, const int *);
+typedef void (*teximage_fn)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void *);
 
 static const char *SRC_BOTH =
 	"#version 100\n"
@@ -170,7 +171,36 @@ int main(int argc, char **argv)
 	len = (int)strlen(SRC_GS_REAL);
 	ss(6u, 1, one, &len);
 
-	printf("four glShaderSource calls made\n");
+	printf("glShaderSource calls made\n");
+
+	/*
+	 * Self-validation check for the texture dump. A uniform upload must be logged as
+	 * NO-UNIFORM and a varied one as yes; if the uniform case reported "yes", the
+	 * has_content detector would be useless and a black dump could again be read as a
+	 * clean texture.
+	 */
+	{
+		teximage_fn ti = (teximage_fn)dlsym(h, "glTexImage2D");
+		static unsigned char flat[512 * 256 * 4];
+		static unsigned char grad[512 * 256 * 4];
+		int y, x;
+
+		if (ti != NULL) {
+			memset(flat, 0, sizeof flat);
+			ti(0x0DE1u, 0, 0x1908, 512, 256, 0, 0x1908, 0x1401, flat);
+
+			for (y = 0; y < 256; y++)
+				for (x = 0; x < 512; x++) {
+					unsigned char *px = &grad[(y * 512 + x) * 4];
+					px[0] = (unsigned char)(x & 0xff);
+					px[1] = (unsigned char)(y & 0xff);
+					px[2] = (unsigned char)((x ^ y) & 0xff);
+					px[3] = 0xff;
+				}
+			ti(0x0DE1u, 0, 0x1908, 512, 256, 0, 0x1908, 0x1401, grad);
+			printf("two glTexImage2D calls made\n");
+		}
+	}
 	show("/tmp/gl-draw-trace.active");
 	show("/tmp/gl-draw-trace.calls");
 	return 0;

@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.37.0 - two independent readings of the same negative, and they converged
+
+Astra and Opus 4.7 were both given the boot53 negative. **They agreed, which is worth more than either answer**, and their agreement is recorded in `docs/vm/53-the-qualified-run.md`.
+
+### Both said: do not build the stand-in yet
+
+**Opus 4.7 ranks the wrong session bus first** - `Dbuslaunch.sh` writes `/tmp/session_appmgr` with no mode, consumers read it unvalidated, and a component that starts before the file is written connects elsewhere **silently**. It rules a stand-in **inadmissible** until that and wrong-owner are excluded, and then only as a declared, scoped, logged crutch running alongside the real binary.
+
+That is the **security finding and the display blocker being the same defect**, for the first time in this project: `V-058` says eleven services take their bus address from `/tmp`; the projection is blocked because one of them did. **The projection fix and the remediation are identical** - set a mode, validate the path, start consumers after the writer, fail closed.
+
+### Astra said: the collector must exist before the system does
+
+Boot53 attached at +10 s and found two empty pids. So the next run **collects first and attaches never**, in three captures:
+
+- **Capture 0** qualifies the instrument *before the stack starts*; if it fails, the run stops - a null must still answer something.
+- **Capture 1** reads `DBUS_SESSION_BUS_ADDRESS` from `/proc/<pid>/environ` for the manager, launcher and app **by pid, at the moment app id 2 appears**, and does **not** start the manager by hand - a manual start measures a different configuration and is one reason boot53's `NAME_OWNED=false` is not evidence.
+- **Capture 2** runs `dbus-monitor` on the registration interface **from before the first launch**, because a monitor started afterwards produces a confident zero, and this project has mistaken that for a finding three times.
+
+### The merged stopping rule
+
+Close only when the vendor owner is identified **on the app's actual bus**, the warm app registers with **no preceding `[TIMEOUT]`**, and it is alive at 60 s. Continue **once** if the run names a new testable mechanism. **Stop and document** if the monitor saw no call at all - then the honest statement is that this projection cannot complete the vendor's registration handshake, and the thread closes as a documented limitation with two named mechanisms.
+
+### And one procedural correction the run itself demanded
+
+Boot53 retained **no launcher log**. Capture 3 now requires the log to be **kept in the run directory**, not only grepped in place - because a negative without its evidence is indistinguishable from an instrument that never ran.
+
 ## 5.36.0 - a probe that measured nothing, and the interface it was chasing
 
 Boot53 was an honest negative with two causes, both of them ours:
@@ -15697,3 +15723,35 @@ came out of it.
   coordinates in-shader (`texture2D(u_texture, p + vec2(0.5))`, `vec2(radius*cos(angle), ...)`), so
   a coordinate-class defect here would be *procedural*, not a UV-normalisation of a varying. The
   UV hypothesis therefore needs restating before it is tested again.
+
+- **Blocker 1 answered from existing artefacts, at zero guest cost.** The question put by Opus 4.7 was
+  whether the striping is content-dependent (shader-coordinate class) or a fixed pixel cadence
+  (buffer pitch/stride/tiling, where no shader fix applies). Reading the captures:
+
+  - `19-stripes-without-splash-or-astc-2026-10-31.png` is the one real striped frame. The stripes run
+    **diagonally at roughly 45°, carry content colours (a blue smear is clearly image content), and
+    are confined to the effect region** — while the title bar, the `STR_CAMERA_ALERT2` text and both
+    side panels render perfectly. Diagonal, content-carrying striping with crisp chrome is the
+    signature of an image being addressed with the wrong row stride, not a fixed axis-aligned pitch.
+    So: content-dependent, and in the stride/coordinate class rather than the hardware-tiling class.
+
+  - **Two earlier conclusions do not survive.** `21-flipu-removes-shear-2026-10-31.png` is a **blank
+    frame** — title bar, cursor, nothing else. "flipu removes shear" is therefore unsupported by the
+    image; the shear is absent only because nothing is drawn. And it is independently impossible:
+    the `flipu` rewrite needs the needle `outTexCoords = texCoords.xy;`, which exists in no vendor
+    binary. Likewise `22-uploaded-texture-is-clean-2026-10-31.png` is **all black**, so it never
+    showed a clean texture — it showed no content, most likely because the dump ran before the app
+    painted.
+
+- **Made the texture dump self-validating** so that mistake cannot recur. It now measures whether the
+  upload has any variation at all and says so in `/tmp/gl-draw.log`. Verified with a uniform 512x256
+  upload and a gradient:
+
+  ```
+  texture dumped 512x256 has_content=NO-UNIFORM luma_min=0 luma_max=0
+  texture dumped 512x256 has_content=yes luma_min=0 luma_max=170
+  ```
+
+  A black dump is now labelled `NO-UNIFORM` and can no longer be read as evidence that the texture
+  was clean. That is the third instrument in this workstream whose silence had been mistaken for a
+  result.

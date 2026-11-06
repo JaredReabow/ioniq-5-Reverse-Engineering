@@ -16166,3 +16166,28 @@ came out of it.
 
   This also corrects the previous entry's speculation: `libnss_files` is *not* absent from the unit, so
   there is no finding about degraded name resolution on the real device.
+
+- **Persistence round-trip now answers; interface listing still unconfirmed.** Giving `dbus-send` a
+  `timeout` fixed the earlier hang, and the service replies:
+
+  ```
+  === Introspect (timeout 5) ===
+  method return sender=:1.0 -> dest=:1.1 reply_serial=2
+     string "<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+  "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+  <node>
+  </node>
+  ```
+
+  So the request/response path works — `sender=:1.0` is the adaptor answering a call addressed to
+  `org.genivi.persistence.admin`. That is the missing half from the previous entry.
+
+  **But the interface list is not yet confirmed, and the capture is at fault, not the service.** The
+  output was piped through `head -6`, which cut the document immediately after `<node>`; the
+  `<interface>` elements, if present, are beyond the cut and were never displayed. The empty-looking
+  `<node>` must **not** be read as "serves no interfaces" — that would be the same
+  truncated-instrument mistake this workstream has now made five times. `Ping` also did not print
+  before the run ended.
+
+  Next attempt: capture the whole reply with no `head`, and record the `Ping` and `UnknownMethod`
+  results too. Only then can the adaptor's interface coverage be stated.

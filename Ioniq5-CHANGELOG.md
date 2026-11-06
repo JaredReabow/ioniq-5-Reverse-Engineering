@@ -3,6 +3,40 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.36.0 - a probe that measured nothing, and the interface it was chasing
+
+Boot53 was an honest negative with two causes, both of them ours:
+
+```
+[close] AM_PID=[] LA_PID=[] at +10 s   <- the ordering check ran before either process started
+[close] ADDR_DIFFER=no                 <- cannot compare two empty addresses
+[close] NAME_OWNED=[boolean false]     <- still false after starting the vendor binary by hand
+[close] ALIVE_60S=yes PHEV_DENIAL=0    <- warm + label progress still holds
+[close] FRAME bytes=129844             <- standby even after set_power_on_status
+```
+
+**The ordering check was taken at +10 s, when neither `ApplicationManager` nor `AppLauncher` had started** - so `ADDR_DIFFER=no` is a non-measurement. And the run captured **no launcher log and no manager output**, so the manual restart's failure is **NOT MEASURED** rather than explained. Two probes in a row have now produced a number that looked like an answer and was not.
+
+### What static work added, which is more than the run did
+
+`ApplicationManager` carries the interface and its full signature:
+
+```
+<interface name="com.lge.avn.appmanager.registration">
+  <method name="registration">   appid i, appname s, servicename s, objectpath s, plane i -> result i
+  <method name="deregistration"> appid i, appname s -> result i
+```
+
+plus `appbase`, `audiotransition`, `broadcast`, `info`, `screentransition` - so it is a multi-interface manager, not a single-purpose daemon. **It knows the interface, the launcher starts it as app id 2, and the name is still unowned**: the failure is in *claiming*, not in *having the code*.
+
+### The stand-in question, stated before it is answered
+
+Implementing `registration`/`deregistration` and returning plausible `result` values would very likely unblock the display. **It would also be the fifth substitution, and the first that fakes a control-plane answer rather than an absent device.** That decision was referred to Astra and Opus 4.7 rather than taken, because this project has already paid for a stand-in that hid real behaviour.
+
+### Two consultations, as the standing instruction requires
+
+Astra and Opus 4.7 were both given the negative, the interface signature, and the bus-address weakness. Opus 4.7's first route returned a **usage-limit error**, not a safety block, so it was retried on the second provider - the same pattern as Fable earlier in the session, and now the second time a plan needed a second route to arrive.
+
 ## 5.35.0 - the security hole behind tonight's boot problem
 
 Chasing the unowned registration bus name led to `app/bin/Dbuslaunch.sh`, the producer of the session bus address. **It is the same root cause as `V-065`, and the consequence is sharper.**

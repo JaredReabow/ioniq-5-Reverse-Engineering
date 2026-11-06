@@ -231,3 +231,50 @@ compromise of the least-important one is a compromise of the whole.
 
 **That is what makes this document's recommendation urgent rather than tidy**: the writable-path anchors do not merely
 weaken one check, they hand over a privilege level that the design already grants too widely.
+
+## The session bus address file, in full: `App/bin/Dbuslaunch.sh`
+
+Found by chasing a projection defect (an unowned registration bus name, `docs/vm/52`), and it is the same root cause as `V-065` with a
+sharper consequence:
+
+```bash
+SESSION_BUS_FILE="/tmp/session_appmgr"
+SESSION_ENV_FILE="/tmp/session_appmgr.env"
+rm $SESSION_BUS_FILE
+rm $SESSION_ENV_FILE
+dbus-daemon --session --print-address --fork > $SESSION_BUS_FILE
+session_addr=`cat $SESSION_BUS_FILE`
+echo "DBUS_SESSION_BUS_ADDRESS=$session_addr" > $SESSION_ENV_FILE
+```
+
+**Four things are absent, and each is a control:**
+
+1. **No mode is ever set.** Neither file gets `chmod`/`chown`/`umask`, so their permissions are whatever the caller's umask produces inside
+   a `1777` directory.
+2. **No ownership or type check by any consumer.** They read it as
+   `DBUS_SESSION_BUS_ADDRESS=`cat /tmp/session_appmgr`` and connect wherever it points. At least four binaries and scripts do this.
+3. **`rm` then `>` is a window, not an operation.** Between line 8 and line 10 the path does not exist, so a local process can create it as a
+   **symlink** and the redirect on line 10 will follow it. This is the same class as `V-054` (the `/etc/passwd` symlink demonstration) with
+   a different target, and the `rm` reduces the window without closing it.
+4. **The daemon is not pinned.** `dbus-daemon` is resolved through `PATH`, and the address it prints is trusted verbatim.
+
+### What goes wrong if the file is not honoured
+
+**A component that reads it before it is written, or gets a stale value, connects to a different bus - silently.** It is running, it is
+healthy, and it is unreachable. That is exactly what was measured in `docs/kernel/31`: `ApplicationManager` runs as launcher app id 2 and
+`com.lge.avn.appmanager.registration` is **unowned**, so every application's registration announce reaches nobody and the launcher's
+load-timeout registration collides with it.
+
+**So the same defect is both a projection inconvenience and a security hole:** a boot-ordering dependency on a world-writable path decides
+which bus the HMI control plane uses. For this project it costs boots; for an attacker it is a way to be the bus.
+
+### The fix, which is small
+
+- create both files with `install -m 600` (or `umask 077` at the top of the script), owned by the user that runs the daemon;
+- have every consumer refuse a path that is not a **regular file owned by root with mode 0600**, and fail closed if it is not - the rule
+  already written at the top of this document;
+- start the components that need the bus **after** the file exists, and have them retry rather than fall back to a default address;
+- pin the daemon with an absolute path.
+
+**A cross-check worth keeping:** `V-058`'s eleven readers and this document's four consumers are the same population, and the remediation is
+the same shape as `V-065` - *stop resolving a security decision from a writable runtime path, and make every check fail closed*.

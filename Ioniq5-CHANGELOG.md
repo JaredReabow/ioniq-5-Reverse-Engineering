@@ -3,6 +3,33 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.35.0 - the security hole behind tonight's boot problem
+
+Chasing the unowned registration bus name led to `app/bin/Dbuslaunch.sh`, the producer of the session bus address. **It is the same root cause as `V-065`, and the consequence is sharper.**
+
+```bash
+SESSION_BUS_FILE="/tmp/session_appmgr"
+SESSION_ENV_FILE="/tmp/session_appmgr.env"
+rm $SESSION_BUS_FILE
+rm $SESSION_ENV_FILE
+dbus-daemon --session --print-address --fork > $SESSION_BUS_FILE
+session_addr=`cat $SESSION_BUS_FILE`
+echo "DBUS_SESSION_BUS_ADDRESS=$session_addr" > $SESSION_ENV_FILE
+```
+
+**Four absent controls, each one a decision left on attacker-reachable state:**
+
+1. **No mode is ever set** - no `chmod`, `chown`, or `umask`, so both files get whatever the caller's umask produces inside a `1777` directory.
+2. **No consumer validates anything** - at least four binaries read `` `cat /tmp/session_appmgr` `` and connect wherever it points.
+3. **`rm` then `>` is a window, not an operation** - between the two, the path does not exist, so it can be created as a **symlink** and the redirect follows it. Same class as `V-054`, different target; the `rm` narrows the window without closing it.
+4. **The daemon is not pinned** - `dbus-daemon` resolves through `PATH`, and its printed address is trusted verbatim.
+
+**The finding and tonight's boot problem are the same defect.** A component that reads the file before it is written connects somewhere else **silently**: running, healthy, unreachable. That is the measured `ApplicationManager` case - it runs as launcher app id 2 and `com.lge.avn.appmanager.registration` is unowned.
+
+**For this project it costs boots. For an attacker it is a way to be the bus** - to answer every app's registration, and to receive the traffic of a control plane that decides what launches and what is terminated.
+
+`V-058` and remediation item 3b now carry the producer, the measured consequence, and the fix: `install -m 600`, refuse anything that is not a root-owned regular file with mode 0600, start consumers after the file exists and **retry rather than fall back**, and pin the daemon by absolute path.
+
 ## 5.34.0 - an instance survived: the SIGSEGV is closed, and one unowned name is left
 
 The warmth experiment ran. **Three things are settled and one is left.**

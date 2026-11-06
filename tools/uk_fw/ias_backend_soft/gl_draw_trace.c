@@ -667,6 +667,17 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 			int hn = snprintf(hdr, sizeof hdr, "P6\n%d %d\n255\n",
 					  (int)width, (int)height);
 			const unsigned char *src = pixels;
+			/*
+			 * Self-validation. A texture dump that is uniformly black is NOT evidence that the
+			 * uploaded texture is clean: it is equally consistent with the dump running before
+			 * the app painted anything. The earlier "22-uploaded-texture-is-clean" capture is
+			 * exactly that case -- an all-black frame -- and was read as a clean texture. So
+			 * measure whether there is content at all and say so in the log, rather than
+			 * leaving a reader to guess from the picture.
+			 */
+			int has_content = 0;
+			unsigned char lo = 255, hi = 0;
+			unsigned char first_b = src[2], first_g = src[1], first_r = src[0];
 			(void)!write(fd, hdr, (size_t)hn);
 			for (y = 0; y < height; y++) {
 				const unsigned char *row = src + (size_t)y * (size_t)width * 4;
@@ -674,18 +685,31 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 					unsigned char bgr[3] = { row[x * 4 + 2],
 								 row[x * 4 + 1],
 								 row[x * 4 + 0] };
+					unsigned char luma = (unsigned char)(((int)bgr[0] +
+									   (int)bgr[1] +
+									   (int)bgr[2]) / 3);
+					if (bgr[0] != first_b || bgr[1] != first_g ||
+					    bgr[2] != first_r)
+						has_content = 1;
+					if (luma < lo) lo = luma;
+					if (luma > hi) hi = luma;
 					(void)!write(fd, bgr, 3);
 				}
 			}
 			close(fd);
 
 			{
-				char line[96];
+				char line[192];
 				char *q = line;
 				put(&q, "texture dumped ");
 				putn(&q, (long long)width);
 				put(&q, "x");
 				putn(&q, (long long)height);
+				put(&q, has_content ? " has_content=yes" : " has_content=NO-UNIFORM");
+				put(&q, " luma_min=");
+				putn(&q, (long long)lo);
+				put(&q, " luma_max=");
+				putn(&q, (long long)hi);
 				put(&q, "\n");
 				emit_line(line, q);
 			}

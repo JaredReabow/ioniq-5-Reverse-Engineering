@@ -15788,3 +15788,39 @@ came out of it.
   A black dump is now labelled `NO-UNIFORM` and can no longer be read as evidence that the texture
   was clean. That is the third instrument in this workstream whose silence had been mistaken for a
   result.
+
+- **The texture dump was reconstructing rows with the very stride it was meant to test.** Astra caught
+  this: the dumper computed `src + y * width * 4`, hardcoding `GL_UNPACK_ROW_LENGTH = width`. If the
+  producer uploaded with a different row length — the exact hypothesis under test — the dump would
+  render a sheared upload as correctly arranged, and the instrument would confirm its own assumption.
+  Now `glPixelStorei` is intercepted, the real unpack row length and alignment are used, and the log
+  states them. Verified in the guest with three uploads:
+
+  ```
+  texture dumped 512x256 has_content=NO-UNIFORM luma_min=0 luma_max=0   row_length=0   alignment=4
+  texture dumped 512x256 has_content=yes       luma_min=0 luma_max=170 row_length=0   alignment=4
+  texture dumped 512x256 has_content=yes       luma_min=21 luma_max=191 row_length=768 alignment=4 STRIDE-MISMATCH
+  ```
+
+  A stride mismatch is now named rather than silently smoothed over. (The probe also needed a
+  `768*256*4` buffer for the third case — with the old `512*256*4` buffer the dump over-read and the
+  probe died, which is why the first attempt produced two lines instead of three.)
+
+- **Two corrections to the brief I wrote, both from Opus 4.7.** I wrote the sampling built-in as
+  `text2D`; it is `texture2D`. And I listed `attribute vec2 a_texCoord` as established from the
+  shipped `.glsl` files — it is not: the kcei files are effectively fragment-only and the vertex side
+  comes from `libglstudio_ES20_release.a`. The attribute name is an inference about the linked vertex
+  stage, not something the shipped sources prove.
+
+- **Downgraded "diagonal stripes prove stride".** Astra is right that diagonal, content-carrying
+  corruption supports a *coordinate-addressing class* but does not single out stride: wrong
+  `GL_UNPACK_ROW_LENGTH`, a `resolution` uniform that disagrees with the real texture size, and
+  in-shader coordinate arithmetic (§A) all fit equally. Stride stays a testable hypothesis, not a
+  diagnosis.
+
+- **Adopted as a standing rule**, from Opus 4.7: *an instrument whose positive output is
+  indistinguishable from its silent-failure output is inadmissible.* Every instrument in this
+  workstream that has produced a misleading result — `gl_draw_trace` never loading, its needles never
+  matching, its dump being uniformly black, its dump rebuilding rows with the assumed stride — failed
+  exactly that test. New instruments must carry a known-good control before their silence or their
+  agreement is cited.

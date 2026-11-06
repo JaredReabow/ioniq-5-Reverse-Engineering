@@ -39,6 +39,7 @@
 
 typedef void (*shader_source_fn)(unsigned int, int, const char *const *, const int *);
 typedef void (*teximage_fn)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void *);
+typedef void (*pixelstore_fn)(unsigned int, int);
 
 static const char *SRC_BOTH =
 	"#version 100\n"
@@ -183,6 +184,9 @@ int main(int argc, char **argv)
 		teximage_fn ti = (teximage_fn)dlsym(h, "glTexImage2D");
 		static unsigned char flat[512 * 256 * 4];
 		static unsigned char grad[512 * 256 * 4];
+		/* Must be big enough for GL_UNPACK_ROW_LENGTH=768, i.e. 768*256*4, or the
+		 * dump that honours the real stride reads past the buffer and the probe dies. */
+		static unsigned char strided[768 * 256 * 4];
 		int y, x;
 
 		if (ti != NULL) {
@@ -199,6 +203,33 @@ int main(int argc, char **argv)
 				}
 			ti(0x0DE1u, 0, 0x1908, 512, 256, 0, 0x1908, 0x1401, grad);
 			printf("two glTexImage2D calls made\n");
+
+			/*
+			 * Stride-mismatch case: row length 768 for a 512-wide texture. The dump must
+			 * honour it and flag STRIDE-MISMATCH, rather than silently rendering with
+			 * 512 as the row stride and hiding the mismatch.
+			 */
+			{
+				pixelstore_fn ps = (pixelstore_fn)dlsym(h, "glPixelStorei");
+				if (ps != NULL) {
+					ps(0x0CF2u, 768);
+					memset(strided, 0, sizeof strided);
+					{
+						int yy, xx;
+						for (yy = 0; yy < 256; yy++)
+							for (xx = 0; xx < 768; xx++) {
+								unsigned char *q = &strided[(yy * 768 + xx) * 4];
+								q[0] = (unsigned char)(xx & 0xff);
+								q[1] = (unsigned char)(yy & 0xff);
+								q[2] = 0x40;
+								q[3] = 0xff;
+							}
+					}
+					ti(0x0DE1u, 0, 0x1908, 512, 256, 0, 0x1908, 0x1401, strided);
+					ps(0x0CF2u, 0);
+					printf("stride-mismatch upload made\n");
+				}
+			}
 		}
 	}
 	show("/tmp/gl-draw-trace.active");

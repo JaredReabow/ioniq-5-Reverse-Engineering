@@ -647,6 +647,39 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string,
  */
 static int texdumps;
 
+/*
+ * Pixel-store state at upload time.
+ * -------------------------------
+ * The dump below reconstructs rows as `src + y * width * 4`. That hardcodes the very assumption
+ * under investigation: if the producer uploaded with a different GL_UNPACK_ROW_LENGTH, the dump
+ * renders the image using the WRONG stride and would make a sheared upload look correctly
+ * arranged. Astra caught this -- "the dump must not reconstruct pixels with the same suspected
+ * stride assumption".
+ *
+ * So track glPixelStorei and use the real row length, and report what was assumed so a reader can
+ * never mistake the dump's layout for measured truth.
+ */
+#define GL_UNPACK_ROW_LENGTH 0x0CF2
+#define GL_UNPACK_ALIGNMENT  0x0CF5
+
+static int unpack_row_length;   /* 0 = unset, means width */
+static int unpack_alignment = 4; /* GL default */
+
+void glPixelStorei(GLenum pname, GLint param)
+{
+	static void (*real)(GLenum, GLint);
+
+	if (pname == GL_UNPACK_ROW_LENGTH)
+		unpack_row_length = (int)param;
+	else if (pname == GL_UNPACK_ALIGNMENT)
+		unpack_alignment = (int)param;
+
+	if (!real)
+		real = dlsym(RTLD_NEXT, "glPixelStorei");
+	if (real)
+		real(pname, param);
+}
+
 void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 		  GLsizei height, GLint border, GLenum format, GLenum type,
 		  const void *pixels)
@@ -679,8 +712,10 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 			unsigned char lo = 255, hi = 0;
 			unsigned char first_b = src[2], first_g = src[1], first_r = src[0];
 			(void)!write(fd, hdr, (size_t)hn);
+			{ /* real stride, not the suspected one */
+			int row_w = (unpack_row_length > 0) ? unpack_row_length : (int)width;
 			for (y = 0; y < height; y++) {
-				const unsigned char *row = src + (size_t)y * (size_t)width * 4;
+				const unsigned char *row = src + (size_t)y * (size_t)row_w * 4;
 				for (x = 0; x < width; x++) {
 					unsigned char bgr[3] = { row[x * 4 + 2],
 								 row[x * 4 + 1],
@@ -696,6 +731,7 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 					(void)!write(fd, bgr, 3);
 				}
 			}
+			}
 			close(fd);
 
 			{
@@ -710,7 +746,12 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 				putn(&q, (long long)lo);
 				put(&q, " luma_max=");
 				putn(&q, (long long)hi);
-				put(&q, "\n");
+				put(&q, " row_length=");
+				putn(&q, (long long)unpack_row_length);
+				put(&q, " alignment=");
+				putn(&q, (long long)unpack_alignment);
+				put(&q, (unpack_row_length > 0 && unpack_row_length != (int)width)
+					     ? " STRIDE-MISMATCH\n" : "\n");
 				emit_line(line, q);
 			}
 		}

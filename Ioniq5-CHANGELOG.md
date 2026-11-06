@@ -15925,3 +15925,21 @@ came out of it.
   matching, its dump being uniformly black, its dump rebuilding rows with the assumed stride — failed
   exactly that test. New instruments must carry a known-good control before their silence or their
   agreement is cited.
+
+- **Draw-to-texture correlation is in and proven**, which is the hook pass both reviewers asked for.
+  Knowing a texture was uploaded says nothing about which draw consumed it, yet the open question is
+  exactly whether the sheared texture *is* the effect's input or the effect samples a clean texture
+  sheared. The shim now tracks the active texture unit, the texture bound per unit, and the current
+  program, and stamps all three onto the upload record and the draw record:
+
+  ```
+  texture dumped 512x256 texid=7 fmt=6408 type=5121 has_content=yes luma_min=0 luma_max=252 row_length=0 alignment=4
+  drawE mode=4 count=6 type=5125 elem_buf=0 array_buf=0 indices=0 prog=42 tex0=7 tex1=0
+  ```
+
+  So one texture id can be followed from upload to the draw that used it. Validation gate, as agreed:
+  a draw line showing `tex0=0` for a textured draw means the tracking did not reach the target and no
+  correlation may be claimed.
+
+  This, plus the measured `row_length`/`alignment` from the previous entry, closes the instrument gap.
+  What remains is not more instrumentation but one authentic-HMI frame through it.

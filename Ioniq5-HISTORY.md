@@ -6407,3 +6407,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Static analysis found that RegisterRequest in the home screen binary belongs to the Bluetooth HMI interface, so the stand-in-ack hypothesis was built on a red herring.
 - The real lifecycle interface is com.lge.avn.appmanager.registration, owned by the vendor's ApplicationManager, which the launcher also drives - so a simpler explanation for the duplicate is that the manager is not running at all.
 - No run has recorded whether it runs; the next run answers that with three measure.sh checks rather than a guess, and if the bus name is unowned the fix is to start the vendor's component rather than write another stand-in.
+
+## 2026-11-05 - cold loses by nine seconds, warm wins by thirty
+
+- ApplicationManager was confirmed running as launcher app id 2, refuting half the registration hypothesis, and the bus-name check was honestly recorded as not measured when the instrument failed.
+- Put the launcher's app-load timeout, the cold announce and the warm announce in the same units: 39.8 s against 48.58 s cold and 1.17 to 8.13 s warm. The kill loop is a race the project has only ever entered cold.
+- Noted that every warm measurement predates the SMACK label fix and those instances died of the PHEV denial instead, so warm plus labelled is untested, and wrote the one-variable pre-warm experiment with a reading for each outcome.

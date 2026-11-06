@@ -16069,3 +16069,35 @@ came out of it.
   a conclusion (including the three "no conclusion possible" cases) are in
   `docs/vm/shader-hook-handoff.md`. The instrument is small enough that handoff is cheap: an
   `ld.so.preload` shim, three trace paths, and that table.
+
+- **Blocker 4 / persistence: found why the adaptor was never verified, and where the verification stops.**
+  The plan's order puts persistence first, and `persistence_admin_stub.c` exists, but no run had ever
+  exercised it. Two concrete reasons surfaced:
+
+  (1) **The shipped binary could not run in the guest at all.** `persistence-admin-service` requested
+  `/lib64/ld-linux-x86-64.so.2`; the guest only has `/lib/ld-linux-x86-64.so.2`, so it would have died
+  with `not found` before `main()`. This is the same interpreter defect that previously cost a run on
+  `gl-shader-probe`. Rebuilt with `-Wl,--dynamic-linker=/lib/ld-linux-x86-64.so.2`.
+
+  (2) With that fixed and a real bus available, the adaptor gets further than ever before and the
+  **client side is proven**: it reaches `main()`, `dlopen`s `libdbus-1.so.3`, and resolves **all 18
+  required libdbus symbols**. It then reports `cannot connect to system bus` when no bus is running —
+  which is correct behaviour, not a defect.
+
+  What blocks the round-trip here is the research image, not the adaptor. Starting a bus inside the
+  minimal bootable workspace fails twice, each with a precise cause:
+
+  ```
+  Failed to start message bus: Failed to open "/etc/dbus-1/session.conf": No such file or directory
+  ...after staging the vendor session.conf...
+  Could not get password database information for UID of current process: User "???" unknown
+  ```
+
+  The second is NSS: `dbus-daemon` resolves its own UID through glibc's password database, and this
+  glibc needs `libnss_files.so.2` to read `/etc/passwd`. Staging a minimal `/etc/passwd` was not
+  sufficient, which points at the missing NSS module rather than the file.
+
+  So the honest position: **the persistence adaptor is reachable and symbol-complete, but its
+  name-ownership and Introspect/Ping/UnknownMethod behaviour remain unverified.** Settling it needs a
+  workspace that can host a bus — the vendor systemd userspace, where `dbus-daemon` runs as a normal
+  service — rather than the minimal busybox image. Recording it that way rather than as "works".

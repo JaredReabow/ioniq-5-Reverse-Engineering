@@ -6443,3 +6443,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Three documents concluded the registration bus name was unowned; the string being queried was an interface, so the check could only return false. The bus name is com.lge.hyundai.avn.appmanager.
 - The correctly-started monitor showed the handshake flowing and both processes on the same bus address, refuting the wrong-bus hypothesis the security work had made attractive.
 - Added rule 18: when a probe returns a negative, ask what it would have printed had the system been healthy. Two instrument rules in two hours, and more instrument faults than vendor faults in a day.
+
+## 2026-11-05 - three false negatives in one hour
+
+- Opus found the duplicate evidence was derived from a string the probe assembled, so it is not yet measured; that is the third instrument lesson in an hour, all three of which looked like vendor faults.
+- Astra made evidence retention a launch prerequisite with a host-retained volume and a verified export, and specified content-based correlation across two clocks.
+- Recorded four candidate duplicate sources separable by one retained monitor log plus one retained launcher log, and Astra's seven gates to an interactive screen, with interaction rather than pixels as the gate that answers the goal.

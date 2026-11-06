@@ -3,6 +3,42 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.39.0 - three false negatives in one hour, and a correction to our own duplicate evidence
+
+Astra and Opus 4.7 answered the corrected state independently and produced **complementary** work - one procedural, one a correction of our evidence.
+
+### Opus withdrew part of the duplicate evidence
+
+**`WARM_DUPLICATE=1` in `docs/kernel/31` was derived from a `WARM_REG=[…]` string the probe itself assembled by grepping the launcher log in place.** If the pattern is wrong, the probe reported its own conclusion. Until the log is retained raw and read directly, **the duplicate is NOT MEASURED in the strict sense this project now uses.**
+
+**That is the third instrument lesson in one hour, and all three looked like vendor faults:**
+
+| rule | the failure |
+|---|---|
+| **17** | the target was dead and the instrument reported an empty value |
+| **18** | the query asked about an interface and could only ever answer `false` |
+| **19** | the value was assembled by the probe from the thing it was describing |
+
+**The check, in one line:** *could this number have been produced without the system behaving as reported?* If yes, it is not yet a measurement.
+
+### Astra made retention a launch prerequisite
+
+A **host-chosen run ID** before boot, a **host-retained evidence volume** - never the guest's `/tmp`, which took the full monitor log last run and kept 500 characters on the console - and a **verified export** before the run counts as started.
+
+### And the correlation, given two clocks
+
+Markers into both streams at one instant, then **compare content, not timestamps**: the monitor's `registration` call carries `appid`, `appname`, `servicename`, `objectpath`, `plane`; the launcher's line carries `AppId` and `AppName`. Match on the pair; the wall-clock gap becomes corroboration instead of proof.
+
+### The four duplicate sources, and one capture that separates them
+
+Manager fan-out (one call, two signals) / two launcher subscribers (one signal, two log lines in one process) / the timeout path registering first (`[TIMEOUT]` immediately before the first `[REGISTERED]`) / the app announcing twice (two calls from one sender). **One unfiltered monitor log plus one retained launcher log discriminates all four** - no further probes.
+
+### The seven gates to an interactive screen
+
+Lifecycle closure -> power-on **consumed** -> survive the layout -> **unique, non-colliding surface** (the `2080`-twice mistake earns its own gate) -> content and geometry -> **interaction, not just pixels** -> repeat from a clean documented start.
+
+**Gate 6 is the one that answers the actual goal.** A composited frame is not an interactive system; a declared action with a predicted result, observed, is.
+
 ## 5.38.0 - the "unowned name" was our query, three times over
 
 The qualified run corrected the record and **refuted the hypothesis everyone had been working on**.

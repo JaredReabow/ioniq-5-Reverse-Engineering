@@ -138,12 +138,55 @@ void glBindBuffer(GLenum target, GLuint buffer)
 		real(target, buffer);
 }
 
+/*
+ * Draw-to-texture correlation.
+ * ----------------------------
+ * Knowing that a texture was uploaded is useless without knowing which draw consumed it. The
+ * earlier captures could not answer "is the sheared texture the effect's input, or is the effect
+ * sampling a clean texture sheared". So track the active texture unit, the texture bound to each
+ * unit, and the current program, and stamp all three onto both the upload record and the draw
+ * record. A reader can then follow one texture id from upload to the draw that used it.
+ *
+ * Validated by: a draw line must carry tex<unit>=0 only when nothing is bound. If every draw shows
+ * tex0=0, the tracking did not reach the target and no correlation may be claimed.
+ */
+static GLuint cur_unit;
+static GLuint unit_tex[8];
+static GLuint cur_program;
+
+void glActiveTexture(GLenum texture)
+{
+	static void (*real)(GLenum);
+
+	if (texture >= 0x84C0u && texture < 0x84C0u + 8u)
+		cur_unit = texture - 0x84C0u;
+
+	if (!real)
+		real = dlsym(RTLD_NEXT, "glActiveTexture");
+	if (real)
+		real(texture);
+}
+
+void glUseProgram(GLuint program)
+{
+	static void (*real)(GLuint);
+
+	cur_program = program;
+
+	if (!real)
+		real = dlsym(RTLD_NEXT, "glUseProgram");
+	if (real)
+		real(program);
+}
+
 void glBindTexture(GLenum target, GLuint texture)
 {
 	static void (*real)(GLenum, GLuint);
 
 	if (texture < MAX_TEX)
 		bound_textures[texture] = texture;
+	if (cur_unit < 8)
+		unit_tex[cur_unit] = texture;
 
 	if (!real)
 		real = dlsym(RTLD_NEXT, "glBindTexture");
@@ -178,6 +221,12 @@ trace_draw_base_vertex(GLenum mode, GLsizei count, GLenum type,
 		putn(&p, (long long)bound_array_buffer);
 		put(&p, " indices=");
 		putn(&p, (long long)(intptr_t)indices);
+		put(&p, " prog=");
+		putn(&p, (long long)cur_program);
+		put(&p, " tex0=");
+		putn(&p, (long long)unit_tex[0]);
+		put(&p, " tex1=");
+		putn(&p, (long long)unit_tex[1]);
 		put(&p, "\n");
 		emit_line(line, p);
 
@@ -258,6 +307,12 @@ void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices
 		putn(&p, (long long)bound_array_buffer);
 		put(&p, " indices=");
 		putn(&p, (long long)(intptr_t)indices);
+		put(&p, " prog=");
+		putn(&p, (long long)cur_program);
+		put(&p, " tex0=");
+		putn(&p, (long long)unit_tex[0]);
+		put(&p, " tex1=");
+		putn(&p, (long long)unit_tex[1]);
 		put(&p, "\n");
 		emit_line(line, p);
 		for (int i = 0; i < MAX_ATTRS; i++) {
@@ -741,6 +796,12 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 				putn(&q, (long long)width);
 				put(&q, "x");
 				putn(&q, (long long)height);
+				put(&q, " texid=");
+				putn(&q, (long long)(cur_unit < 8 ? unit_tex[cur_unit] : 0));
+				put(&q, " fmt=");
+				putn(&q, (long long)format);
+				put(&q, " type=");
+				putn(&q, (long long)type);
 				put(&q, has_content ? " has_content=yes" : " has_content=NO-UNIFORM");
 				put(&q, " luma_min=");
 				putn(&q, (long long)lo);

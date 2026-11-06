@@ -40,6 +40,10 @@
 typedef void (*shader_source_fn)(unsigned int, int, const char *const *, const int *);
 typedef void (*teximage_fn)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void *);
 typedef void (*pixelstore_fn)(unsigned int, int);
+typedef void (*bindtex_fn)(unsigned int, unsigned int);
+typedef void (*useprog_fn)(unsigned int);
+typedef void (*activetex_fn)(unsigned int);
+typedef void (*drawelems_fn)(unsigned int, int, unsigned int, const void *);
 
 static const char *SRC_BOTH =
 	"#version 100\n"
@@ -172,7 +176,35 @@ int main(int argc, char **argv)
 	len = (int)strlen(SRC_GS_REAL);
 	ss(6u, 1, one, &len);
 
-	printf("glShaderSource calls made\n");
+	printf("hook correlation check\n");
+	{
+		/* Chain: useProgram(42) -> activeTexture0 -> bindTexture(7) -> upload -> draw.
+		 * The upload record must say texid=7 and the draw must say prog=42 tex0=7. */
+		useprog_fn up = (useprog_fn)dlsym(h, "glUseProgram");
+		activetex_fn at = (activetex_fn)dlsym(h, "glActiveTexture");
+		bindtex_fn bt = (bindtex_fn)dlsym(h, "glBindTexture");
+		teximage_fn ti2 = (teximage_fn)dlsym(h, "glTexImage2D");
+		drawelems_fn de = (drawelems_fn)dlsym(h, "glDrawElements");
+		static unsigned char corr[512 * 256 * 4];
+		int yy, xx;
+
+		if (up && at && bt && ti2 && de) {
+			up(42);
+			at(0x84C0u);
+			bt(0x0DE1u, 7);
+			for (yy = 0; yy < 256; yy++)
+				for (xx = 0; xx < 512; xx++) {
+					unsigned char *q = &corr[(yy * 512 + xx) * 4];
+					q[0] = (unsigned char)((xx * 3) & 0xff);
+					q[1] = (unsigned char)((yy * 5) & 0xff);
+					q[2] = (unsigned char)((xx + yy) & 0xff);
+					q[3] = 0xff;
+				}
+			ti2(0x0DE1u, 0, 0x1908, 512, 256, 0, 0x1908, 0x1401, corr);
+			de(4u, 6, 0x1405u, (const void *)0);
+			printf("correlation chain exercised\n");
+		}
+	}
 
 	/*
 	 * Self-validation check for the texture dump. A uniform upload must be logged as

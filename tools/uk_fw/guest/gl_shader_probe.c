@@ -21,7 +21,7 @@
  *
  * Expected, when the instrument works:
  *   /tmp/gl-draw-trace.active   contains "loaded pid=<probe pid>"
- *   /tmp/gl-draw-trace.calls    three lines: needle yes/yes, yes/no, no/no
+ *   /tmp/gl-draw-trace.calls    four lines: needle yes/yes, no/yes, no/no, and no/no for the decoy
  *
  * Falsification: no .active => the shim did not load. .active but no .calls => glShaderSource was
  * never reached and no shader conclusion is available. .calls with unexpected needle flags => the
@@ -59,6 +59,20 @@ static const char *SRC_VTX_ONLY =
 static const char *SRC_NEITHER =
 	"#version 100\n"
 	"void main() { gl_Position = vec4(0.0); }\n";
+
+/*
+ * Decoy: needle-adjacent but not the needle. Opus 4.7 pointed out that the three original cases
+ * prove detection when the needle is present, but do not bound false positives -- so a "yes" from
+ * the real vendor shader could be a substring artefact of the shim's search rather than a genuine
+ * match. This case must report frag_needle=no and vtx_needle=no; if it reports yes, the
+ * discriminator is unreliable and no vendor result may be trusted either.
+ */
+static const char *SRC_DECOY =
+	"#version 100\n"
+	"varying vec2 outTexCoords;\n"
+	"uniform sampler2D texture;\n"
+	"void main() { gl_FragColor = texture2D( texture , outTexCoords ); }\n"
+	"// outTexCoords = texCoords.xy  (commented out, deliberately not the needle)\n";
 
 static void show(const char *path)
 {
@@ -113,7 +127,12 @@ int main(int argc, char **argv)
 	len = (int)strlen(SRC_NEITHER);
 	ss(3u, 1, one, &len);
 
-	printf("three glShaderSource calls made\n");
+	/* Must report no/no. A yes here invalidates the discriminator. */
+	one[0] = SRC_DECOY;
+	len = (int)strlen(SRC_DECOY);
+	ss(4u, 1, one, &len);
+
+	printf("four glShaderSource calls made\n");
 	show("/tmp/gl-draw-trace.active");
 	show("/tmp/gl-draw-trace.calls");
 	return 0;

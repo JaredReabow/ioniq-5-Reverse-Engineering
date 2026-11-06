@@ -15582,3 +15582,30 @@ came out of it.
   The UV-normalisation hypothesis is therefore **not refuted** — only the rewrite that was built to
   test it. A corrected test must target a shader that actually exists, and the next authentic run
   should read the `real_*` fields to learn which of the vendor's real shaders the app uses.
+
+- **The real shader corpus is found, and it is not Qt's.** Both reviewers pushed back on my
+  "could never fire" as overreaching, because I had swept binaries while the app is QML and
+  `ShaderEffect` sources can be inline strings or `.qsb` blobs. The objection was right and the
+  answer is better than expected: the app ships **`app/bin/kcei/*.glsl`** — `amoeba`, `galaxy`,
+  `galaxy_haze`, `blur`, `eco`, `genesis` plus `_alternate` variants, 1,128 lines — built on
+  **DiSTI GL Studio** (`libglstudio_ES20_release.a`, `disti::DisplayObject::SetTexCoords`). So the
+  home-screen effect shaders are a real, readable corpus, not Qt internals.
+
+  Their naming is **`attribute vec2 a_texCoord`, `varying vec2 v_texCoord`,
+  `uniform sampler2D u_texture`**, sampling as `texture2D(u_texture, v_texCoord)`. That is a third
+  naming scheme, distinct from both the dead needles and Qt's `qt_TexCoord`/`qt_Texture`.
+
+  Positive control for the sweep, since a silent grep is worthless here: `ShaderEffect` ×163,
+  `fragmentShader` ×4, `vertexShader` ×4 in `libQt5Quick.so.5.4.1`. The app tree contains **no**
+  `ShaderEffect`/`fragmentShader` strings — confirming the kcei shaders are loaded by the GL Studio
+  runtime, not by QML.
+
+  Repointed `/tmp/gl-draw-trace.calls` to `gs_v_texcoord`, `gs_a_texcoord`, `gs_u_texture`,
+  `qt_texcoord`. Verified in the guest in both directions: the GL Studio shape reports
+  `gs_v_texcoord=yes gs_a_texcoord=yes gs_u_texture=yes qt_texcoord=no`, and the Qt shape reports the
+  converse. Second consecutive instrument check that caught a wrong assumption.
+
+  Also worth recording from the same corpus: `blur.glsl` and the galaxy effects compute sampling
+  coordinates in-shader (`texture2D(u_texture, p + vec2(0.5))`, `vec2(radius*cos(angle), ...)`), so
+  a coordinate-class defect here would be *procedural*, not a UV-normalisation of a varying. The
+  UV hypothesis therefore needs restating before it is tested again.

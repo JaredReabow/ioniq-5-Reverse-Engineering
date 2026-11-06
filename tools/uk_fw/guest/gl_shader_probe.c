@@ -85,6 +85,18 @@ static const char *SRC_QT_REAL =
 	"uniform sampler2D qt_Texture;\n"
 	"void main() { gl_FragColor = texture2D(qt_Texture, qt_TexCoord0); }\n";
 
+/* Verbatim GL Studio shape from app/bin/kcei/*.glsl (v_texCoord, u_texture) and
+ * libglstudio_ES20_release.a (a_texCoord). */
+static const char *SRC_GS_REAL =
+	"attribute vec2 a_texCoord;\n"
+	"varying vec2 v_texCoord;\n"
+	"void main() { gl_Position = vec4(0.0); v_texCoord = a_texCoord; }\n"
+	"---fragment---\n"
+	"precision mediump float;\n"
+	"varying vec2 v_texCoord;\n"
+	"uniform sampler2D u_texture;\n"
+	"void main() { gl_FragColor = texture2D(u_texture, v_texCoord); }\n";
+
 static void show(const char *path)
 {
 	char buf[2048];
@@ -151,6 +163,12 @@ int main(int argc, char **argv)
 	one[0] = SRC_QT_REAL;
 	len = (int)strlen(SRC_QT_REAL);
 	ss(5u, 1, one, &len);
+
+	/* The actual home-screen effect shape: GL Studio naming, verbatim from app/bin/kcei/*.glsl
+	 * and libglstudio_ES20_release.a. gs_* must all report yes. */
+	one[0] = SRC_GS_REAL;
+	len = (int)strlen(SRC_GS_REAL);
+	ss(6u, 1, one, &len);
 
 	printf("four glShaderSource calls made\n");
 	show("/tmp/gl-draw-trace.active");

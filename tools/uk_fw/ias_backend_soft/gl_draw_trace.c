@@ -570,16 +570,16 @@ static void note_shader_call(GLuint shader, GLsizei count, const char *s0)
 	 */
 	n = snprintf(line, sizeof line,
 		     "pid=%d shader=%u count=%d len=%ld dead_frag=%s dead_vtx=%s fix_mode=%d"
-		     " real_qt_tex=%s real_samplecoord=%s real_multitex0=%s real_imagetc=%s\n",
+		     " gs_v_texcoord=%s gs_a_texcoord=%s gs_u_texture=%s qt_texcoord=%s\n",
 		     (int)getpid(), shader, (int)count,
 		     (long)(s0 ? strlen(s0) : -1),
 		     has_frag_needle ? "yes" : "no",
 		     has_vtx_needle ? "yes" : "no",
 		     shader_fix_mode(),
-		     (s0 && strstr(s0, "qt_TexCoord")) ? "yes" : "no",
-		     (s0 && strstr(s0, "sampleCoord")) ? "yes" : "no",
-		     (s0 && strstr(s0, "qt_MultiTexCoord0")) ? "yes" : "no",
-		     (s0 && strstr(s0, "imageTexture")) ? "yes" : "no");
+		     (s0 && strstr(s0, "v_texCoord")) ? "yes" : "no",
+		     (s0 && strstr(s0, "a_texCoord")) ? "yes" : "no",
+			     (s0 && strstr(s0, "u_texture")) ? "yes" : "no",
+			     (s0 && strstr(s0, "qt_TexCoord")) ? "yes" : "no");
 	fd = open(CALLS_PATH, O_WRONLY | O_CREAT | O_APPEND, 0644);
 	if (fd >= 0) {
 		(void)!write(fd, line, (size_t)n);

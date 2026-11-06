@@ -15400,3 +15400,31 @@ came out of it.
 
   Falsification for the dump step: if no `/tmp/gl-shader-*.txt` appears, the interposer is
   not reaching the app's GL calls and no shader conclusion of any kind is available.
+
+- **Blocker 1's instrument now proves it reaches its target, and did not before.** `gl_draw_trace.c`
+  had no liveness signal at all: it never wrote anything on load, so "shim never loaded" and "shim
+  loaded but `glShaderSource` never called" both produced zero `/tmp/gl-shader-*.txt` files and were
+  indistinguishable. A variant run that changed nothing would have been read as a falsified
+  hypothesis when nothing had been measured. Added a constructor writing
+  `/tmp/gl-draw-trace.active`, and a per-call record to `/tmp/gl-draw-trace.calls` carrying
+  `frag_needle`/`vtx_needle`/`fix_mode`, so the three failure modes are now separable.
+
+  Verified in the guest (`runs/…47979267…`) without weston, GL, or a GPU, by loading the shim and
+  driving `glShaderSource` directly from `tools/uk_fw/guest/gl_shader_probe.c`:
+
+  ```
+  loaded pid=708
+  pid=708 shader=1 count=1 len=319 frag_needle=yes vtx_needle=yes fix_mode=0
+  pid=708 shader=2 count=1 len=85  frag_needle=no  vtx_needle=yes fix_mode=0
+  pid=708 shader=3 count=1 len=54  frag_needle=no  vtx_needle=no  fix_mode=0
+  ```
+
+  Three shader dumps were written. The needle discriminator is the part that mattered: it reports
+  `no` correctly for a source lacking the fragment needle, so a future `no` from the *real* vendor
+  shader will mean "this rewrite cannot fire", not "no change observed". Build note for anyone
+  re-running this: the probe must request `/lib/ld-linux-x86-64.so.2`, not zig's default
+  `/lib64/...`, or the guest reports `not found`.
+
+  Still unproven: that the vendor app's *actual* fragment shader contains the needle. That needs one
+  authentic-HMI run with no fix marker, reading `/tmp/gl-draw-trace.calls` — which is now the whole
+  point of having the call log.

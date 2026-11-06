@@ -15525,3 +15525,32 @@ came out of it.
 
   So a future `yes` from the authentic HMI shader is evidence, not a substring accident. Blocker-1's
   instrument is now sound in both directions; the only thing left is to point it at the real app.
+
+- **Blocker 1: all six `shader-fix-*` variants are dead, and this was checkable statically.**
+  A sweep of the shipped rootfs found `outTexCoords` in **no vendor binary at all** — not
+  `/usr/lib`, `/app/lib`, or `/app/bin`. `libQt5Quick.so.5.4.1` uses `qt_Vertex`,
+  `qt_MultiTexCoord0`, `qt_VertexTexCoord`, `tCoord`, `vTex` for attributes and `qt_TexCoord0`,
+  `qt_TexCoord`, `sampleCoord`, `sCoordDown/Left` for varyings, sampling as
+  `texture2D(qt_Texture, qt_TexCoord)` or `texture2D(imageTexture, textureCoords)`. The needle
+  `outTexCoords = texCoords.xy;` and the fragment needle `texture2D(texture, outTexCoords)` occur
+  nowhere. So `swap`, `flipu`, `tinyuv`, `fragnorm`, `norm` and `flipv` each searched for text the
+  vendor never emits and **could never fire** — which is consistent with the shader dump never
+  having been produced, and means no earlier shader result should be read as evidence either way.
+
+  **A false negative nearly hid this.** The first sweep ran against `extracted-safe` and returned
+  zero for `outTexCoords` *and* for `qt_Vertex`/`qt_MultiTexCoord0`. `qt_Vertex` is a Qt built-in, so
+  its absence proved the search had not reached the libraries: `extracted-safe` does not contain
+  `libQt5Quick`. Re-running against `extracted-partial-bsdtar` gave `qt_Vertex` ×15 and the real
+  corpus. Checking the instrument before trusting its silence is exactly what caught it.
+
+  Repointed the instrument at the real identifiers. `/tmp/gl-draw-trace.calls` now reports the dead
+  flags for log continuity plus `real_qt_tex`, `real_samplecoord`, `real_multitex0`, `real_imagetc`.
+  Verified in the guest against a verbatim Qt-shaped shader:
+
+  ```
+  shader=5 dead_frag=no dead_vtx=no real_qt_tex=yes real_samplecoord=no real_multitex0=yes real_imagetc=no
+  ```
+
+  The UV-normalisation hypothesis is therefore **not refuted** — only the rewrite that was built to
+  test it. A corrected test must target a shader that actually exists, and the next authentic run
+  should read the `real_*` fields to learn which of the vendor's real shaders the app uses.

@@ -3,6 +3,39 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.38.0 - the "unowned name" was our query, three times over
+
+The qualified run corrected the record and **refuted the hypothesis everyone had been working on**.
+
+### What was wrong
+
+`com.lge.avn.appmanager.registration` is an **interface**. The bus **name** is `com.lge.hyundai.avn.appmanager`. Three consecutive documents - 30, 31, 32 - concluded "the registration bus name is unowned" from:
+
+```
+dbus-send ... NameHasOwner string:com.lge.avn.appmanager.registration   ->  boolean false
+```
+
+**No process owns an interface as a name, so that query could only ever return `false`.** A guaranteed negative, read as a finding, three times. Verified statically afterwards: the bus name appears in `ApplicationManager` (5x), `AppHomeScreen`, and `AppLauncher`.
+
+### What the correctly-started monitor showed instead
+
+```
+member=deregistration  dest=com.lge.hyundai.avn.appmanager  path=/registration
+interface=com.lge.avn.appmanager.registration   int32 12 string "AppCamera"
+```
+
+**The handshake flows.** And the two bus addresses are **identical** (`unix:abstract=/tmp/dbus-Gt0Yb61Ggf`), so **the wrong-bus hypothesis is refuted too** - the ordering fault that looked so convincing, and that the security register documents for other services, is not what blocks this projection.
+
+### Rule 18
+
+**A D-Bus interface is not a bus name, and `NameHasOwner` answers about names.** The general form is the useful part: when a probe returns a negative, the first question is not *what is broken* but **what would this probe have printed if the system were healthy?** If the answer is "the same thing", the probe measured the probe.
+
+That is now **two instrument rules in two hours** - 17 and 18 - and the project has found more instrument faults than vendor faults in the last day. **The instrument deserves the same scepticism as the vendor.**
+
+### What is left
+
+The duplicate is now an unexplained *positive*: the handshake works, the app registers, and the launcher still logs `[REGISTERED]` then `[REGISTERED ERROR] Already registered` 266 ms later. Astra and Opus 4.7 were given the reframe and asked which notification arrives second, how to correlate a guest-monotonic monitor log against a wall-clock launcher log, and whether the duplicate might be stock behaviour rather than an artefact.
+
 ## 5.37.0 - two independent readings of the same negative, and they converged
 
 Astra and Opus 4.7 were both given the boot53 negative. **They agreed, which is worth more than either answer**, and their agreement is recorded in `docs/vm/53-the-qualified-run.md`.

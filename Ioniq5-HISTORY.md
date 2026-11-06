@@ -6437,3 +6437,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Astra and Opus independently put the remaining registration failure on the wrong session bus, which is the same defect the security register already documents, so the projection fix and the remediation are one piece of work.
 - Both rejected a stand-in until the wrong-bus and wrong-owner explanations are excluded, and Astra specified three ordered captures with the collector started before the system it observes.
 - Added a procedural correction the negative demanded: keep the launcher log in the run directory, because a negative without its evidence cannot be distinguished from an instrument that never ran.
+
+## 2026-11-05 - the unowned name was our query
+
+- Three documents concluded the registration bus name was unowned; the string being queried was an interface, so the check could only return false. The bus name is com.lge.hyundai.avn.appmanager.
+- The correctly-started monitor showed the handshake flowing and both processes on the same bus address, refuting the wrong-bus hypothesis the security work had made attractive.
+- Added rule 18: when a probe returns a negative, ask what it would have printed had the system been healthy. Two instrument rules in two hours, and more instrument faults than vendor faults in a day.

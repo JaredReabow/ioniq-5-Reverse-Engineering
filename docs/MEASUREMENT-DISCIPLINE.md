@@ -228,3 +228,25 @@ finding - the mistake that produced three wrong conclusions earlier in this proj
 
 The wrapper is self-tested (`tools/uk_fw/guest/test_measure.sh`, six gates, runs anywhere including macOS by pointing
 `MEASURE_PROC` at a fake proc tree), because **an untested instrument is the trap this rule exists to close**.
+
+## Rule 18. A D-Bus *interface* is not a bus *name*, and `NameHasOwner` answers about names
+
+Adopted 2026-11-06, after three consecutive documents concluded "the registration bus name is unowned" from
+
+```
+dbus-send ... NameHasOwner string:com.lge.avn.appmanager.registration    -> boolean false
+```
+
+`com.lge.avn.appmanager.registration` is an **interface**. The bus name is `com.lge.hyundai.avn.appmanager`. No process owns an
+interface as a name, so the query could only ever return `false` - **a guaranteed negative read as a finding, three times.**
+
+It took a `dbus-monitor` capture started before the launch to show the truth: the calls are flowing to `com.lge.hyundai.avn.appmanager`,
+on that interface, at that path. The wrong-bus hypothesis that had been built on the false negative also died in the same capture: the
+manager's and the launcher's `DBUS_SESSION_BUS_ADDRESS` values are identical.
+
+**The general form:** when a probe returns a negative, the first question is not "what is broken" but **"what would this probe have printed if
+the system were healthy?"** If the answer is "the same thing", the probe is not a measurement of the system - it is a measurement of the
+probe.
+
+**And the second-order lesson:** this rule now has a sibling. Rules 17 and 18 are both about instruments, and the project has found more
+instrument faults than vendor faults in the last twenty-four hours. **The instrument deserves the same scepticism as the vendor.**

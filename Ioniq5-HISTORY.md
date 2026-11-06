@@ -6431,3 +6431,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The close test checked bus addresses at ten seconds, before either process had started, and captured no launcher log, so its failure is not measured rather than explained. Two probes in a row produced a number that looked like an answer.
 - Static work in the same hour found the registration interface signature inside the manager, which reframes the fault as failing to claim a name it knows, not lacking the code.
 - Referred the stand-in decision to Astra and Opus rather than taking it, and noted that Opus needed a second provider route after a usage-limit error, the second such case in the session.
+
+## 2026-11-05 - two readings converged on the wrong bus
+
+- Astra and Opus independently put the remaining registration failure on the wrong session bus, which is the same defect the security register already documents, so the projection fix and the remediation are one piece of work.
+- Both rejected a stand-in until the wrong-bus and wrong-owner explanations are excluded, and Astra specified three ordered captures with the collector started before the system it observes.
+- Added a procedural correction the negative demanded: keep the launcher log in the run directory, because a negative without its evidence cannot be distinguished from an instrument that never ran.

@@ -3,6 +3,32 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.31.0 - the unsanitised companion, on its own branch, with a manifest that finishes
+
+Standing instruction added: commit to the sanitised repo **and** the unsanitised one. The unsanitised destination is `JaredReabow/Ioniq-5` (remote `ioniq`); `JaredReabow/ioniq-5-Reverse-Engineering` (remote `old`) stays sanitised.
+
+**Key material never goes on `main`.** A `main` commit is pushed to both remotes, so keys on `main` would reach the sanitised history by construction. The material therefore lives on a separate **`unsanitised` branch**, pushed to `ioniq` only, and `.gitignore` keeps `/unsanitised/` off `main` so it cannot be added by accident.
+
+```
+ioniq main        5118ae06        ioniq unsanitised  ca96bb4e
+old   main        5118ae06        old   unsanitised  absent (correct)
+```
+
+### The manifest, and why it looks the way it does
+
+`work/decrypted-eu-260128` holds **463,964 files**; the VM working tree is **1.7 TB**. A per-file manifest at that scale is unreadable and unhashable inside a boot, so there are two levels and the file states which is which:
+
+| file | what it proves |
+|---|---|
+| `keys.tsv` | per-file **sha256** of the small set that must not be published but must be identifiable |
+| `sets.tsv` | per set: file count, total bytes, and a **structural digest** over the sorted listing |
+
+**A structural digest is weaker than a content hash**, and the note column says `structural-only-not-content` rather than letting the reader assume otherwise. A manifest that overstates its own strength is worse than none.
+
+### Two timeouts shaped it, and both are recorded in the tool
+
+The first version looped `wc -c` per file and **timed out twice at 900 s** - it spawned ~470,000 processes. Batching through `stat` does the same work in **7.3 s**. And the partial manifest written by the timed-out run was **removed from the branch**: it listed part of the firmware set while looking complete, and a truncated manifest is worse than none because it looks authoritative.
+
 ## 5.30.0 - Astra's structural fix, built and self-tested: the measurement receipt
 
 Consulted **Opus 4.7 and Astra** on the next best step after boot50, as the standing instruction now requires. Astra's answer to the measurement-instrument debt was the one thing that could be built without a boot, and it is now in the tree: **no validated receipt, no result.**

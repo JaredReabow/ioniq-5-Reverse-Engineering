@@ -6395,3 +6395,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Astra's advice on the measurement debt became a tool: a wrapper that emits MEASURED or NOT MEASURED and refuses to report when the target is dead, the instrument is blind, or the command failed.
 - Self-tested with six gates including a blind instrument that must refuse to report even on a healthy target, and wired into the check suite so the fail-closed behaviour is a standing check.
 - Wrote it as rule 17 of the measurement discipline: a number is not a measurement unless the instrument proves it measured the intended target.
+
+## 2026-11-05 - the unsanitised companion
+
+- The unsanitised destination is the Ioniq-5 repository, and the key material lives on a separate branch pushed there only, because main is pushed to both remotes and would carry keys into the sanitised history by construction.
+- Built the excluded-set manifest in two levels, per-file hashes for the small key set and structural digests for the 463,964-file firmware tree, with the weaker level labelled as such.
+- Two timeouts at 900 seconds came from spawning a process per file; batching fixed it to seven seconds, and the truncated manifest the timed-out run had left behind was removed because it looked complete while listing only part of the set.

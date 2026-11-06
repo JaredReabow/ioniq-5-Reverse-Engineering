@@ -518,12 +518,67 @@ static const char *rewrite_shader(const char *src)
 
 static int shaderdumps;
 
+/*
+ * Liveness signal for the shader instrument.
+ * ------------------------------------------
+ * Without this, two very different failures look identical: the shim never being loaded, and the
+ * shim being loaded but glShaderSource never being called. Both leave zero /tmp/gl-shader-*.txt
+ * files, and an empty result then gets read as "the hypothesis was falsified" when in fact nothing
+ * was ever measured. That is the trap this file already documents for other instruments.
+ *
+ * So the shim now announces itself twice:
+ *   /tmp/gl-draw-trace.active  written from the constructor  -> the library WAS loaded
+ *   /tmp/gl-draw-trace.calls   one line per glShaderSource   -> GL was reached, with needle status
+ *
+ * A caller can therefore distinguish: no .active (not loaded) / .active but no .calls (loaded, GL
+ * never entered) / .calls with needle=no (reached, but no rewrite variant could ever fire).
+ */
+#define LIVE_PATH "/tmp/gl-draw-trace.active"
+#define CALLS_PATH "/tmp/gl-draw-trace.calls"
+
+__attribute__((constructor)) static void gl_draw_trace_online(void)
+{
+	char line[128];
+	int fd, n;
+
+	n = snprintf(line, sizeof line, "loaded pid=%d\n", (int)getpid());
+	fd = open(LIVE_PATH, O_WRONLY | O_CREAT | O_APPEND, 0644);
+	if (fd >= 0) {
+		(void)!write(fd, line, (size_t)n);
+		close(fd);
+	}
+}
+
+static void note_shader_call(GLuint shader, GLsizei count, const char *s0)
+{
+	char line[256];
+	int fd, n;
+	int has_frag_needle, has_vtx_needle;
+
+	has_frag_needle = (s0 != NULL && strstr(s0, "texture2D(texture, outTexCoords)") != NULL);
+	has_vtx_needle  = (s0 != NULL && strstr(s0, "outTexCoords = texCoords.xy;") != NULL);
+	n = snprintf(line, sizeof line,
+		     "pid=%d shader=%u count=%d len=%ld frag_needle=%s vtx_needle=%s fix_mode=%d\n",
+		     (int)getpid(), shader, (int)count,
+		     (long)(s0 ? strlen(s0) : -1),
+		     has_frag_needle ? "yes" : "no",
+		     has_vtx_needle ? "yes" : "no",
+		     shader_fix_mode());
+	fd = open(CALLS_PATH, O_WRONLY | O_CREAT | O_APPEND, 0644);
+	if (fd >= 0) {
+		(void)!write(fd, line, (size_t)n);
+		close(fd);
+	}
+}
+
 void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string,
 		    const GLint *length)
 {
 	static void (*real)(GLuint, GLsizei, const GLchar *const *, const GLint *);
 	char path[64];
 	int fd, i;
+
+	note_shader_call(shader, count, (count > 0 && string != NULL) ? string[0] : NULL);
 
 	if (count > 0 && string != NULL) {
 		const char *rw = rewrite_shader(string[0]);

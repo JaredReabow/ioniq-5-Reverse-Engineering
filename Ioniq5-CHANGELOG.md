@@ -3,6 +3,40 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.32.0 - the registration hypothesis was built on a Bluetooth string
+
+Static analysis of two binaries, done to avoid spending a boot on a guess. It found a red herring and the real interface.
+
+### The red herring
+
+`AppHomeScreen` contains `RegisterRequest` **six times**, which reads exactly like the registration call and is not:
+
+```
+<interface name="com.lge.hkmc.avn.BluetoothHMI.interface">
+  <method name="RegisterRequest">
+    <arg direction="in" type="a(ii)" name="btrequestinfo"/>
+```
+
+**That is Bluetooth.** The stand-in-ack hypothesis we had been working from was built on it. A string is not a call site.
+
+### The interface that actually owns lifecycle state
+
+```
+com.lge.avn.applauncher.request      launch / terminate / appkill
+com.lge.avn.applauncher.inform       launched                       <- the app announcing itself
+com.lge.avn.appmanager.registration  launched / deregistration / launch / appkill
+```
+
+The launcher holds a client for the third (`ComLgeAvnAppmanagerRegistrationInterface`, `AppManagerInterface::requestAppDeregister`), and the vendor's `ApplicationManager` (3,956,056 B) carries the same strings. **The application announces itself to `ApplicationManager`.**
+
+**So there is a simpler explanation for the 10 ms duplicate** than an unacked call to a stub: if `ApplicationManager` is not running, the announcement reaches nobody, the launcher's own load-timeout path registers the app on its behalf, the app retries, and the duplicate guard fires - one pid, twice, exactly as doc 29 measured.
+
+### And no run has tested it
+
+Boot50's log contains **no mention of `ApplicationManager`** - not its absence, only silence, which under rule 17 is **NOT MEASURED**. The next run answers three questions through `measure.sh` so a blind instrument reports nothing: is it running, who owns `com.lge.avn.appmanager.registration`, and what calls arrive on that interface.
+
+**If the name has no owner, the fix is to start the vendor's own `ApplicationManager`** - which would make this the first substitution replaced *upward* by the vendor's real component rather than patched around.
+
 ## 5.31.0 - the unsanitised companion, on its own branch, with a manifest that finishes
 
 Standing instruction added: commit to the sanitised repo **and** the unsanitised one. The unsanitised destination is `JaredReabow/Ioniq-5` (remote `ioniq`); `JaredReabow/ioniq-5-Reverse-Engineering` (remote `old`) stays sanitised.

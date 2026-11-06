@@ -6401,3 +6401,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The unsanitised destination is the Ioniq-5 repository, and the key material lives on a separate branch pushed there only, because main is pushed to both remotes and would carry keys into the sanitised history by construction.
 - Built the excluded-set manifest in two levels, per-file hashes for the small key set and structural digests for the 463,964-file firmware tree, with the weaker level labelled as such.
 - Two timeouts at 900 seconds came from spawning a process per file; batching fixed it to seven seconds, and the truncated manifest the timed-out run had left behind was removed because it looked complete while listing only part of the set.
+
+## 2026-11-05 - the hypothesis was a Bluetooth string
+
+- Static analysis found that RegisterRequest in the home screen binary belongs to the Bluetooth HMI interface, so the stand-in-ack hypothesis was built on a red herring.
+- The real lifecycle interface is com.lge.avn.appmanager.registration, owned by the vendor's ApplicationManager, which the launcher also drives - so a simpler explanation for the duplicate is that the manager is not running at all.
+- No run has recorded whether it runs; the next run answers that with three measure.sh checks rather than a guess, and if the bus name is unowned the fix is to start the vendor's component rather than write another stand-in.

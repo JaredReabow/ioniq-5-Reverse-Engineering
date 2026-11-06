@@ -6461,3 +6461,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The label check that could only be marked not measured was finally taken while the app was alive: the process runs as App::home, verifying the SMACK exec-label fix end to end.
 - The warm instance registered with no preceding timeout and the launcher cleared its deadline against its own pid, closing the registration blocker on raw retained lines rather than a probe summary.
 - Recorded that six of the seven gates are behind the project and that what remains is proving power-on consumption and finding a non-visual criterion for the layout, the latter mattering because a frame was twice mislabelled.
+
+## 2026-11-05 - power-on has an observable we never watched
+
+- Astra found the receiving contract for power-on including a signal that proves consumption, which the project had never monitored; every previous run sent the method and treated delivery as receipt.
+- Opus ranked the unreconciled surface id as the most likely remaining fault and both agreed the capture, not the lifecycle, is what is left.
+- Wrote the machine predicate for a home frame with identity first, since identity is the term the project has failed twice, and required the closing run to state which gate it tests and what a null looks like.

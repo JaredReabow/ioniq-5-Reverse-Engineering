@@ -15428,3 +15428,24 @@ came out of it.
   Still unproven: that the vendor app's *actual* fragment shader contains the needle. That needs one
   authentic-HMI run with no fix marker, reading `/tmp/gl-draw-trace.calls` — which is now the whole
   point of having the call log.
+
+- **Two corrections to claims made earlier in this pass, both raised independently by reviewers.**
+
+  (1) The Blocker-1 entry above says the instrument "reaches its target". That is true only in the
+  qualified sense that it fires and discriminates under a *synthetic* driver. It does **not** yet
+  show interception of the vendor HMI's real shader, and it does not bound false positives against
+  real shader text. The unqualified phrasing overstated it; the qualification is the load-bearing
+  part.
+
+  (2) An earlier revision of `evidence/update-source-toctou-continuity.md` said the USB-swap verdict
+  "leans hard toward refuted" on the strength of the `/update/HU` staging commands. That was wrong:
+  staging proves a tree exists, not the ordering of copy against verification, and not that the bytes
+  verified are the bytes consumed. Reverted to AMBIGUOUS with no lean.
+
+- **A claim about privilege I had overstated.** I wrote that "no unprivileged local principal" exists
+  on this device because the only `User=` directive in `lib/systemd/system/` is `dropbear@`'s. Astra
+  caught the flaw: `User=` is one mechanism among several (`DynamicUser=`, `AmbientCapabilities=`,
+  setuid binaries, D-Bus-activated helpers), and — more importantly — **SMACK distinguishes processes
+  that share UID 0**, so "everything runs as root" does not mean "no security boundary". The
+  supported claim is only "no attacker principal identified". The `iAP2` socket work in particular
+  must not assume a UID-0 caller is equivalent to root-for-SMACK-purposes.

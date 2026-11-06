@@ -201,8 +201,17 @@ install almost certainly consumes `/update/HU/...` rather than the removable med
 - so the remaining question is narrower and different from §6.1: **is the copy made before or after
   verification?** Copy-then-verify refutes the technique; verify-then-copy does not.
 
-Honest verdict therefore stays **AMBIGUOUS**, but it now leans hard toward refuted, and the remaining
-work is one ordering question rather than an open-ended hunt.
+**Corrected 2026-11-06:** an earlier revision of this section said the verdict "leans hard toward
+refuted". That was premature and both independent reviewers rejected it. `rm -rf` + `mkdir -p` on
+`/update/HU` establishes that a staging tree exists; it establishes neither the *ordering* of copy
+against verification, nor that the bytes authenticated and the bytes consumed are the same artifact.
+The honest verdict is **AMBIGUOUS**, with no lean.
+
+The sharper formulation, which is Astra's, is that the decisive property is not "copy vs verify" as a
+sequence but **continuity of authenticated bytes through use**. The question to answer is: are the
+bytes the verifier authenticated the same bytes the installer consumes, and is anything able to
+change them in between. Copy-then-verify and verify-then-copy are useful shorthand for two ways that
+continuity can hold or fail, not the property itself.
 
 ### Note on a worker answer
 

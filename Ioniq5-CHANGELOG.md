@@ -15943,3 +15943,29 @@ came out of it.
 
   This, plus the measured `row_length`/`alignment` from the previous entry, closes the instrument gap.
   What remains is not more instrumentation but one authentic-HMI frame through it.
+
+- **Qualified the correlation result, on Opus 4.7's objection.** The entry above says the correlation
+  is "proven". It is proven for the **synthetic single-texture, unit-0, no-FBO case only**. GL Studio
+  may use framebuffer objects with multiple colour attachments, texture units above 0, or rebind
+  between upload and draw, any of which would undercount. The validation gate stands: a textured draw
+  showing `tex0=0` means the tracking did not reach the target and no correlation may be claimed.
+
+  Related caveat, also Opus's: the `gs_a_texcoord` key rests on the inference that the linked vertex
+  stage uses `a_texCoord`. The shipped kcei `.glsl` files are effectively fragment-only, so if that
+  inference is wrong then "reached, needle absent" will mis-fire as "never loaded".
+
+- **Also softened "not specifically stride"** — slightly overstated. Stride via `GL_UNPACK_ROW_LENGTH`
+  remains live for any effect that performs its own upload, so it stays in the decision matrix as one
+  of three measured branches rather than in the abandoned pile.
+
+- **Adopted a standing rule from the two void results**: before trusting any pre-existing capture in
+  this repository, require a non-blank, non-black frame check. The earlier corpus is provisional until
+  then. Two "positive" results in this workstream turned out to be frames with no content.
+
+- **Handed the hook off rather than duplicating HMI bring-up.** Both reviewers independently
+  recommended this over taking the chain on here, since the authentic-HMI bring-up is another thread's
+  active responsibility and a competing version would burn calendar and risk the shared VM. The run
+  contract, the minimum chain for a single frame, and a decision matrix that maps each hook output to
+  a conclusion (including the three "no conclusion possible" cases) are in
+  `docs/vm/shader-hook-handoff.md`. The instrument is small enough that handoff is cheap: an
+  `ld.so.preload` shim, three trace paths, and that table.

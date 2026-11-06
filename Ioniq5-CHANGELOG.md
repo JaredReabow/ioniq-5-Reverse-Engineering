@@ -15449,3 +15449,19 @@ came out of it.
   that share UID 0**, so "everything runs as root" does not mean "no security boundary". The
   supported claim is only "no attacker principal identified". The `iAP2` socket work in particular
   must not assume a UID-0 caller is equivalent to root-for-SMACK-purposes.
+
+- **Bounded the shader needle discriminator against false positives** (Opus 4.7's point). The original
+  three probe cases proved detection when the needle *is* present, but said nothing about whether the
+  search could match needle-adjacent text — so a `frag_needle=yes` from the vendor shader could have
+  been an artefact. Added a decoy case: `texture2D( texture , outTexCoords )` with spaces, plus a
+  commented-out `outTexCoords = texCoords.xy`. It must report `no`/`no`. Measured in the guest:
+
+  ```
+  pid=707 shader=1 frag_needle=yes vtx_needle=yes
+  pid=707 shader=2 frag_needle=no  vtx_needle=yes
+  pid=707 shader=3 frag_needle=no  vtx_needle=no
+  pid=707 shader=4 frag_needle=no  vtx_needle=no   <- decoy, correct
+  ```
+
+  So a future `yes` from the authentic HMI shader is evidence, not a substring accident. Blocker-1's
+  instrument is now sound in both directions; the only thing left is to point it at the real app.

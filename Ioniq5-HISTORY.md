@@ -6419,3 +6419,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - The warm labelled relaunch survived its kill window with no PHEV denial, closing the SIGSEGV that had ended every previous instance.
 - The registration bus name was measured unowned, which names the duplicate's root cause, and the likely reason is ordering: ApplicationManager launches first and may connect before the launcher's bus address file exists.
 - Wrote the next run as four ordered measurements, with the power-on call included this time so a laid-out screen cannot be confused with a surviving standby one.
+
+## 2026-11-05 - the boot problem and the security hole are one defect
+
+- Following the unowned registration bus name found the script that creates the session bus address, which sets no file mode and is trusted unvalidated by at least four consumers.
+- A component reading it before it is written connects elsewhere silently, which is both why this project lost boots tonight and how a local process could become the HMI control plane.
+- Recorded the producer, the four absent controls and the small fix against V-058 and item 3b, with the same shape as the /tmp trust-anchor item.

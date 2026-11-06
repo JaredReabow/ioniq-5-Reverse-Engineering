@@ -6473,3 +6473,9 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Writing the endgame runbook required the power-on contract, and finding it showed the lifecycle and power interfaces sit on the session bus with no policy, no SMACK mediation and a world-readable address.
 - Recorded V-076 with the measured reachability separated from the undemonstrated possibility that launch executes a caller-named path, since an existence check is not an authorization check but neither is it proof of execution.
 - Added remediation item 26 and noted this is the user-facing edge of the finding that nearly every service runs as root without hardening.
+
+## 2026-11-05 - power-on is consumed
+
+- A signal captured after the power-on call proved the state machine moved, which no previous run had shown because only the send was ever measured.
+- Gate five returned its pre-committed null: the app is alive, labelled, warm and powered on, and creates no compositor surface at all.
+- Recorded the contrast that a different surface id produced a surface earlier, so the next experiment changes only the id value, with each result pre-committed and one line required to distinguish no surface created from surface not laid out.

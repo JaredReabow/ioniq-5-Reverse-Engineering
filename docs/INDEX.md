@@ -26,7 +26,7 @@ matter** unless you know what you are looking for.
 | `docs/vm/46-sim-unimplemented-backlog.md` | The stand-in's measured backlog: 60 unanswered MICOM calls across 10 methods during one boot |
 | `docs/vm/47-what-the-display-ceiling-blocks.md` | Every open item blocked by the display ceiling, what would unblock each, and the one action with highest leverage |
 | `docs/planning/` | Four independent plans (Fable 5.1, Astra, Daybreak Blue, Opus 5.5) and the agreed next steps after them |
-| `docs/kernel/` | The rebuilt kernel: config delta, why virtio-gpu does not exist in 4.1.27, cross-build workarounds, MICOM/board stand-ins |
+| `docs/kernel/` | The rebuilt kernel and retained compositor evidence; docs 39/40 correct the boot65 `ivi_place` zero-count interpretation and distinguish server events from client requests |
 | `vm/authentic-hmi.md` | The authentic `esinit → weston` path rendering: multi-user at 97.3 s, compositor alive, a 129 KB capture. The three projection-only instruments are listed here. |
 | `vm/spi-gate.md` | The MICOM SPI gate: shut by default (`param=0`), opened by a stand-in that mounts `/sys` first. Three corrections, and the vendor's `> kmsg` typo that hid it. |
 | `vm/SCREENSHOT-LABELS.md` | Which screenshot is actually which surface. Exists because two were mislabelled as the engineering screen and were the home screen. |
@@ -85,6 +85,7 @@ matter** unless you know what you are looking for.
 | `docs/v059-producer-trace.md` | What feeds the substituted path: `QFileInfo::absoluteFilePath`, and `%1` in `cp -a %1 /app/bin/` is the payload's own binary |
 | `evidence/vm-bringup/` | The touch proof: `QWaylandInputDevice::Touch::touch_down` in the application's own log. |
 | `evidence/engineering-mode-appmanager-micom-methods-*.txt` | The exact MICOM methods the manager asked for and the stand-in did not answer. |
+| `external-community-claims-2026-11.md` | Community reports from the supplied November transcript, with local validation boundaries, variant caveats, and private source-archive provenance. |
 | `../Ioniq5-CHANGELOG.md` | Newest first, every change, including every correction and why it was needed. |
 | `../Ioniq5-HISTORY.md` | Append-only, one human paragraph per session event. |
 

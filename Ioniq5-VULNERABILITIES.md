@@ -4063,3 +4063,57 @@ On a unit: create one marker as a non-root user (e.g. `: > /tmp/weston.crash`), 
 `journalctl -u weston-crash.service` for the handler run and observe whether the MICOM is asked to reset. **A handler run
 triggered by a non-root write is this finding.** For the MICOM-side question, capture the bus traffic rather than inferring
 from the head unit's behaviour.
+
+---
+
+## V-078 — the UNECE/wireless decision is read from a variant argument but recorded in world-writable `/tmp`, so the market gate can be overridden locally
+
+**Status:** measured, and deliberately **small**: the marker, the unit gate and the error string were *already* recorded in
+V-050. This entry adds only where the decision comes from, and what that means for the trust boundary.
+Class: local override of a market/regulatory configuration gate. Latent, not demonstrated.
+
+### What is measured
+
+`app/bin/AppLauncher` carries the vehicle-project variant argument table as literal strings, including:
+
+```
+ECO ARG, Buyer ARG, GUI Type ARG, SWRC CUSTOM ARG, Variation Code ARG, KEYBOARD_TOUCH ARG,
+Day/Night ARG, N-Mode Type ARG, Phone Projection Split Screen ARG, Kia emblem ARG, N-Mode ARG,
+Parent Vehicle Code, OTA Support ARG, OTA Region Arg, UNECE Support ARG, RADIO KEY ARG, ISR Support
+```
+
+with the corresponding short options `-et -by -gui -sc -vc -kt -dn -nm -p2s2 -ke -pf -pvv -os -osr -un -er -si`.
+
+So **`UNECE Support` is a variant parameter (`-un`)** — a market/regulatory decision supplied by the vehicle project
+configuration — and `AppLauncher` writes `/tmp/no_unece` from it, which `supplicantmanager.path` watches.
+
+### Why that matters, stated narrowly
+
+V-050 already establishes that this marker brings the wireless daemon up, and that WiFi is disabled three ways (modprobe
+blacklist, GPIO power gate, MICOM state gate). This entry adds only this: **the decision is configuration-derived but its
+record is a file in a world-writable directory.** Any local writer that creates `/tmp/no_unece` therefore asserts
+"this unit is not UNECE" without reference to the configured value, and the wireless daemon's `ExecStartPre` runs
+`/sbin/modprobe cfg80211` as root.
+
+### What this does *not* establish
+
+- **Not full WiFi enablement.** V-050's other two gates (GPIO power and MICOM state) are untouched by the marker; creating
+  it does not evidence that the radio powers up or that the MICOM permits the state.
+- **Not an escalation by itself.** As with V-077 and V-055, no lesser-privileged writer to `/tmp` has been demonstrated on a
+  production unit; every vendor process observed in this project runs as uid 0.
+- **Not a claim that the variant argument is attacker-reachable.** How the variant configuration is provisioned and whether
+  it is itself writable were not examined here.
+
+### Fix
+
+Same family fix as V-077: move the marker out of `/tmp` into a root-only directory. Additionally, since the value is a
+market/regulatory decision, it should not be inferable from a writable path at all — the daemon should read the
+configuration directly, or the marker should be created into a root-owned directory alongside an immutable copy of the
+variant argument it was derived from.
+
+### Verify
+
+On a unit with UNECE support configured: as a non-root user, `: > /tmp/no_unece`, then confirm
+`systemctl status supplicantmanager` shows the unit started and that `cfg80211` was loaded. **A wireless daemon started on a
+marker written by a non-root user, on a unit configured as UNECE, is this finding.** Whether the radio then powers up is a
+separate check governed by V-050's remaining gates.

@@ -3,6 +3,14 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.49.0 - validate the libebml version claim and correct a prior false negative
+
+### Transcript CVE lead checked against the target image and NVD
+
+The transcript's claim for CVE-2021-3405 prompted a re-check of V-047. The EU `260128` image's `libebml.pc` reports version 1.3.4; both the shipped Matroska scanner plugin and `libmatroska.so.6` depend on `libebml.so.4`. The `.so.4` suffix is an ABI SONAME, not release 4.0.0. NVD describes CVE-2021-3405 as a heap overflow in libebml before 1.4.2, so the version is a genuine candidate-level match. NVD states availability impact (CVSS 6.5); the community's potential-RCE claim is not proven by that record. We have not audited vendor backports or established that USB indexing reaches the affected methods; V-047 remains a candidate.
+
+**Correction:** the earlier V-047 and `docs/FINDINGS-SUMMARY.md` statements that libebml 1.3.4 was absent because `libebml.so.4` looked newer were wrong. The package metadata and dynamic dependencies now replace that inference. No crafted file was tested.
+
 ## 5.48.0 - reconcile the compositor protocol and preserve community source repositories
 
 ### Corrections from the retained boot65 stream

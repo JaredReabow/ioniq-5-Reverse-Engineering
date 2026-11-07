@@ -98,14 +98,10 @@ execution with no user interaction beyond insertion**:
 /usr/share/dbus-1/services/org.lightmediascanner.service   D-Bus activatable
 /app/bin/lightmediascannerctl           present
 lms_asf.so                              NOT present — **but the plugin is `asf.so`, which ships** (correction, see §6)
-libebml.so.4                            present (major 4, newer than their 1.3.4)
+libebml.pc                              Version 1.3.4; libebml.so.4 is the ABI SONAME, not a release number
 ```
 
-So the **GStreamer 1.8.3 ASF demuxer** and a **D-Bus-activated lightmediascanner 0.5.1** are both here, while
-their specific `lms_asf.so` plugin and libebml 1.3.4 are not — **but this image ships `asf.so`, the plugin's actual filename, so the indexer does have an ASF parser**
-(correction, 2026-11-05). The media-parser class is therefore **live but not
-identical**: the same product family, different components and versions. That is a concrete research lead rather
-than a copyable exploit.
+So the **GStreamer 1.8.3 ASF demuxer** and a **D-Bus-activatable lightmediascanner 0.5.1** are present. The external report's `lms_asf.so` filename is absent, but this image ships an `asf.so` parser; it also ships `matroska.so` with a `libebml.so.4` dependency, and `/usr/lib/pkgconfig/libebml.pc` identifies the upstream release as **1.3.4**. NVD lists CVE-2021-3405 as affecting libebml before 1.4.2, so the version is a genuine candidate-level match (corrected 2026-11-07). This does **not** prove the vendor binary lacks a backport, the automatic path reaches the affected methods, or that the issue grants code execution. V-047 remains a candidate; no crafted media was run.
 
 ## 7. What was imported, and what was deliberately not
 

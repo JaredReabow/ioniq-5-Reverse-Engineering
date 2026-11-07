@@ -1542,13 +1542,19 @@ For each new issue record: stable ID, affected artifact/build and digest, source
     (build path string in the binary confirms the version).
   - `/usr/lib/liblightmediascanner.so.0.5.1`, `/usr/share/dbus-1/services/org.lightmediascanner.service`
     (**D-Bus activatable**), `/app/bin/lightmediascannerctl`.
-  - `libebml.so.4` present.
-  - **Absent:** the `lms_asf.so` plugin and `libebml 1.3.4` referenced by the external report, so their specific
-    exploits do not transfer unchanged.
-- **What the external report describes** (`coopermarino/2022-cerato-au-jailbreak`, imported verbatim into
-  `evidence/external-cerato-au-jailbreak/`): a GStreamer ASF demuxer stream-array overflow giving an out-of-bounds
-  write in the media engine which **runs as root**, reachable from a crafted `.wma` on an inserted USB volume with
-  no user interaction; plus heap over-read/underflow bugs in their `lms_asf.so`, and `libebml 1.3.4` for `.mkv`.
+  - `/usr/lib/pkgconfig/libebml.pc` reports **Version 1.3.4**; `libebml.so.4.0.0`/`libebml.so.4` is its ABI SONAME, not an upstream release number. `matroska.so` and `libmatroska.so.6` both declare `NEEDED libebml.so.4`.
+  - **Absent:** the external report's `lms_asf.so` filename; this image ships `asf.so` instead. The Matroska plugin and the claimed libebml release are present, correcting the earlier version-mismatch conclusion.
+- **What the external report claims** (`coopermarino/2022-cerato-au-jailbreak`, imported into
+  `evidence/external-cerato-au-jailbreak/`): a GStreamer ASF demuxer stream-array overwrite, separate `lms_asf.so`
+  defects, and a libebml 1.3.4 heap overflow for `.mkv`. These are external assertions; the family-level report
+  does not establish exploitability or impact on this EU image.
+- **Validated version-level lead (2026-11-07):** upstream NVD CVE-2021-3405 describes a heap overflow in
+  `EbmlString::ReadData` / `EbmlUnicodeString::ReadData` before libebml 1.4.2. Our `.pc` metadata says 1.3.4,
+  and the Matroska plugin's dynamic dependencies include `libmatroska.so.6` and `libebml.so.4`. This puts the
+  shipped component in the published upstream version range. It does **not** prove the affected code is
+  unpatched in the vendor build, that the USB/indexer path reaches it, or that it yields code execution. NVD
+  scores the issue 6.5 (availability impact); the community's “potential RCE” wording is not supported by
+  that CVE record alone.
 - **Why it matters:** the media indexer runs as root and is **D-Bus activated on media insertion**, so the attack
   surface is "plug in a volume", not "get a shell first" — the only vector found so far that does not require
   prior privilege.

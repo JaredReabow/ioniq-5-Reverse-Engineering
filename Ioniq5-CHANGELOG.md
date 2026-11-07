@@ -21,6 +21,45 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
+## 5.58.0 - guest script revision 2 closes all six of Astra's blockers, and the pair is proven end-to-end
+
+Rewrote `tools/uk_fw/guest/interval-capture.sh` against `docs/planning/astra-c9.md`.
+
+| Astra blocker | Fix |
+|---|---|
+| A1 closed snapshot was several reads of a mutable pathname | Source read **once** into a private snapshot; size, digest, timestamps and export all derive from that copy. Short copy is fatal. Concurrent growth measured before/after and recorded as `SOURCE_BOUNDARY … grew_during_copy=` |
+| A2 `--generation N` was a `pidof` enumeration slot | Enumeration **removed**; a generation is an exact `(pid, starttime)` pair from the launcher, and mandatory |
+| A3 binding optional and never re-checked | Both arguments required; verified at start **and** immediately before the snapshot; any change aborts |
+| A4 self-hash did not retain the driving harness | Frozen run manifest naming `DRIVER` and `HELPER` with SHA-256 is **required**; self digest checked against the manifest, driver bytes re-verified |
+| A5 failed export could emit `SNAPSHOT_CLOSED` and exit 0 | Payload staged, decoded and size-checked, then appended with status checked; `emit()` fails on write error instead of falling back to stdout |
+| A6 clock/sleep failures were silent | Malformed or unreadable uptime aborts; failed `sleep` aborts; one clock sample per marker feeds both fields |
+
+### Integration gap that would have silently failed
+
+The first draft of revision 2 emitted `BINDING_REQUESTED` and no `SELF` line, which the host verifier reads as `HARNESS_MISMATCH`. The script now emits `SELF` and `TARGET` in the verifier's vocabulary, plus `HARNESS` carrying manifest and driver identity.
+
+### Four defects found by testing, not by review
+
+1. A helper `die()` referenced an undefined exit code and was never called — removed.
+2. `emit`/`exit` inside a command substitution only exits the subshell, so a clock failure would have been swallowed and the caller would have continued with an empty timestamp. The clock function now returns non-zero and each caller decides.
+3. The `path=` extraction truncated at the first space; because this project's repository path contains spaces, the truncated string resolved to an existing **directory**, passed the readability test, and hashed to nothing. Extraction now spans `path=` to ` sha256=`, and an empty digest is a hard failure rather than a mismatch.
+4. A test hardcoded the host's absolute Python interpreter path, which the sanitisation rule forbids. Replaced with `sys.executable` before commit, and the same literal was removed from the status document where it had been written while describing the fix.
+
+### End-to-end proof on the retained captures
+
+The two files are now exercised **together** on real data, not just synthetic fixtures:
+
+| Run | Pipeline result |
+|---|---|
+| boot58 (`1793931162561454000`) | guest script → receipt → decode → verifier → `REGISTRATION_PRESENT`, exit 0 |
+| boot65 (`1793944643111075000`) | guest script → receipt → decode → verifier → `CAPTURE_TRUNCATED` naming the 22,031 ms shortfall, exit 11 |
+
+Both are permanent tests. This pairing is what caught revision 1's false negative on boot58's only positive.
+
+47 tests pass; `tools/check_all.sh` passes. **The harness remains unqualified** because Astra has not re-reviewed revision 2, and the boot78 task stays paused.
+
+See `docs/vm/58-interval-capture-harness.md`.
+
 ## 5.57.0 - both reviewers rejected the capture harness; the verifier is rewritten, the guest script is not
 
 Sent the harness to Astra (guest script) and Opus 4.7 (verifier) with deliberately non-overlapping scopes so the verdicts would be independent. **Both returned REJECT**, on different files. Recorded in `docs/planning/astra-c9.md` and `docs/planning/opus-4-7-c8.md`.
@@ -4164,7 +4203,7 @@ Three changes to `tools/uk_fw/guest/build-eng-data-sim.sh`:
 
 1. **`-g0` plus prefix maps** - `-ffile-prefix-map="$PWD"=.` and `-fdebug-prefix-map="$PWD"=.`, verified to work on this toolchain with a two-line test program before relying on it.
 2. **A post-build sanitiser** - the compiler still recorded the build root in a few diagnostic strings, so the script now rewrites any occurrence of `$PWD` in the artefact to dots. Same length, unused at run time, and it cannot be forgotten because it is part of the build.
-3. **No hardcoded host paths in the script itself.** It defaulted `DBUS_INC` to `/opt/homebrew/include/dbus-1.0` - a host path committed in the repository, which the rule forbids. It now takes them from the environment or from **`pkg-config`**, and fails with a readable message if neither exists.
+3. **No hardcoded host paths in the script itself.** It defaulted `DBUS_INC` to a Homebrew `dbus-1.0` include path - a host path committed in the repository, which the rule forbids. It now takes them from the environment or from **`pkg-config`**, and fails with a readable message if neither exists.
 
 **Result: a rebuild contains zero host paths**, measured. The committed artefact is that rebuild, so **`HEAD` no longer carries the build root or the real username**.
 
@@ -15142,7 +15181,7 @@ came out of it.
   located. Recorded so the next attempt starts from that point.
 - Recorded an environment fault: Homebrew Python 3.14 became unusable mid-session
   (`posix_spawn` error) and `python3` now resolves to it; all tools still run
-  under `/opt/homebrew/bin/python3.13`.
+  under the Homebrew Python 3.13 binary.
 - No exploit, key, decryption or device action is included.
 
 ## 0.36.0 - 2026-10-19

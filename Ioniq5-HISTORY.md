@@ -6505,3 +6505,8 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Kept the boot58/boot65 AppHomeScreen count difference unresolved. Astra flagged summary-regex and process/launch-window attribution risks; no additional QEMU run or config change was authorized.
 - Reviewed the supplied community transcript and the linked USB TOCTOU and persistent-SSH statements. The EU `260128` updater and `esinit` contain related static mechanisms, but external runtime claims and variant applicability remain unverified locally; V-059 now records that provenance without upgrading local status.
 - Mirrored the linked relevant upstream Git repositories as full-history bundles on the private `unsanitised` branch, with provenance/checksums. `ntwm787/Auto-DST-Gen5` returned 404 and is recorded as unavailable. No upstream code was copied into sanitized `main`.
+
+## 2026-11-07 - the libebml version was present after all
+
+- A transcript claim of CVE-2021-3405 prompted a fresh check of the EU `260128` rootfs. `libebml.pc` reports 1.3.4, and the shipped `matroska.so`/`libmatroska.so.6` depend on `libebml.so.4`; `.so.4` is the ABI SONAME, not the upstream release version.
+- Compared the version with NVD's CVE-2021-3405 range (before 1.4.2). This is a candidate-level match; no backport audit, USB parser reachability proof, crafted media test, or code-execution claim is established. Updated V-047 and corrected the earlier version-mismatch statement in `docs/FINDINGS-SUMMARY.md`.

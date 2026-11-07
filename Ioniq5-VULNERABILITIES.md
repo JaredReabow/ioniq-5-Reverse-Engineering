@@ -4141,3 +4141,49 @@ for overrides.
 **Next step, precisely:** disassemble the `OptionVariant` consumer in `AppLauncher` and follow the data into whatever it
 reads, or — on a controlled run — trace `open`/`read` from `AppLauncher` and diff against a known UNECE-configured variant.
 The second needs a VM and a variant to compare against; the first needs no run and is the cheaper next attempt.
+
+### Disassembly of the `OptionVariant` consumer — located, characterised, source still not resolved
+
+The cheaper next step named above was carried out. Result: the consumer is **precisely located**, its data shape is
+characterised, and the source is still not resolved. Recorded so the next attempt resumes here rather than re-discovering it.
+
+**Locations.** The format string `OptionVariant[%1] = %2` sits at file offset and virtual address **`0x52741`** (identity
+mapped in `.rodata`, which spans `0x466a0`–`0x55fa0`). It is referenced from exactly one place in the whole binary:
+
+```
+388cf:  leaq 0x19e6b(%rip), %rdi      # 0x52741     -> the format string
+388d9:  movl $0x16, %esi                            -> 22 = its length, passed to QString::fromAscii_helper
+388e3:  callq QString::fromAscii_helper
+```
+
+**The data shape.** Immediately before the format load, the code walks a container:
+
+```
+388ac:  movq -0x178(%rbp), %rax        ; some object, a parameter or member
+388ba:  movq 0x28(%rax), %rdx          ; rdx = pointer to a container header
+388be:  movslq 0x8(%rdx), %rax         ; header+8  = current offset
+388c2:  movl 0xc(%rdx), %ecx           ; header+0xc = size
+388c5:  subl %eax, %ecx                ; remaining = size - offset
+388c7:  cmpl %esi, %ecx
+388c9:  jle ...                        ; bounds check against index+1
+388de:  leaq 0x10(%rdx,%rax,8), %r13   ; element = header + 0x10 + offset*8
+```
+
+So the values come from a **Qt-style container of 8-byte elements** whose header carries an offset and a size — consistent
+with a `QStringList`/`QVariantList`, i.e. **already-resolved in-memory data**, not something read at this point.
+
+**What that rules out.** The function does **not** open a file, a settings store, a database, a JSON/XML/INI document, or a
+D-Bus interface: a window of ±0x400 bytes around the call site contains **no** `QFile`, `QSettings`, `QDBus`, `QJson`, `QXml`,
+`QTextStream`, `QSqlQuery` or `QProcess` references. The container is **passed in**.
+
+**What blocks name-based resolution.** `app/bin/AppLauncher` is **stripped** — `llvm-nm --defined-only` returns zero symbols —
+so the enclosing function cannot be named, and its callers must be found by pattern rather than by symbol.
+
+**Precise resume point for the next attempt.** Either:
+
+1. locate call sites of the function containing `0x388cf` and walk backwards to where the container is populated — no run
+   needed, but a larger static effort on a stripped binary; or
+2. on a controlled run, trace `open`/`read` from `AppLauncher` and diff against a known UNECE-configured variant — needs a
+   VM and a variant to compare against.
+
+Option 1 remains the cheaper one and now starts from a known address instead of a string search.

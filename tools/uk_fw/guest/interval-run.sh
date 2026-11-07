@@ -40,6 +40,12 @@ HELPER=/interval-capture.sh
 PERSIST_S=120
 SAMPLE_S=5
 SETTLE_S=20
+# Run 2 (docs/vm/61): the export is separated from the persistence interval. Run 1 placed the export
+# after PERSIST_S+SETTLE_S, ~140 s after first sight, while the process died at ~66 s, so a marker was
+# arithmetically impossible. EXPORT_AT_S is inside the observed lifetime and is fixed before launch.
+EXPORT_AT_S=30
+DISPLAY_AT="10 60 110"
+SHOOTER=/usr/libexec/weston-screenshooter
 SOCKET=${IC_SOCKET:-/run/user/root/wayland-0}
 UPTIME_FILE=${IC_UPTIME:-/proc/uptime}
 PROC_ROOT=${IC_PROC:-/proc}
@@ -54,6 +60,10 @@ if [ "$PROC_ROOT" != "/proc" ]; then
   PERSIST_S=${IC_PERSIST_S:-$PERSIST_S}
   SAMPLE_S=${IC_SAMPLE_S:-$SAMPLE_S}
   SETTLE_S=${IC_SETTLE_S:-$SETTLE_S}
+  # Sandbox only, for the same reason as the others: a real boot must not be able to move the export
+  # offset, which is fixed before launch.
+  EXPORT_AT_S=${IC_EXPORT_AT_S:-$EXPORT_AT_S}
+  DISPLAY_AT=${IC_DISPLAY_AT:-$DISPLAY_AT}
 fi
 
 while [ $# -gt 0 ]; do
@@ -198,58 +208,99 @@ if [ "$GEN_N" -eq 0 ]; then
   exit 4
 fi
 
-# --- persistence interval, fixed before launch ------------------------------
-# This is the runtime channel. It answers "did the generation stay alive for PERSIST_S", which the
-# capture harness cannot answer at all.
-log "PHASE persistence persist_s=$PERSIST_S"
-_samples=0
-_alive=0
-_elapsed=0
-while [ "$_elapsed" -lt "$PERSIST_S" ]; do
-  sleep "$SAMPLE_S" || { log "OUTCOME CLOCK_UNAVAILABLE reason=sleep_failed"; exit 3; }
-  _elapsed=$((_elapsed + SAMPLE_S))
-  _samples=$((_samples + 1))
-  _t=$(now_cs) || _t="?"
-  if [ -n "$LAST_PID" ] && [ -r "$PROC_ROOT/$LAST_PID/stat" ]; then
-    _now_st=$(starttime_of "$LAST_PID" 2>/dev/null || echo "")
-    if [ "$_now_st" = "$LAST_ST" ]; then
-      _alive=$((_alive + 1))
-      log "SAMPLE n=$_samples at_cs=$_t pid=$LAST_PID starttime=$_now_st alive=yes same_generation=yes"
-    else
-      log "SAMPLE n=$_samples at_cs=$_t pid=$LAST_PID starttime=${_now_st:-none} alive=yes same_generation=no"
+# --- display capture -------------------------------------------------------
+# The missing channel from run 1, which is why "rendered" was unresolved. The shooter is a wayland
+# client and needs the runtime dir and display name; earlier staged drivers exported both.
+capture_display() {
+  _off=$1
+  _png=/tmp/wayland-screenshot.png
+  rm -f "$_png" 2>/dev/null
+  XDG_RUNTIME_DIR=/run/user/root WAYLAND_DISPLAY=wayland-0 \
+    /bin/busybox timeout 25 "$SHOOTER" >/dev/null 2>&1
+  if [ -f "$_png" ]; then
+    _dsz=$(wc -c < "$_png" 2>/dev/null | tr -d ' ')
+    log "DISPLAY off_s=$_off result=file bytes=${_dsz:-unknown}"
+    if [ -n "${_dsz:-}" ] && [ "$_dsz" -gt 0 ] 2>/dev/null; then
+      printf 'BEGIN display %s %s\n' "$_off" "$_dsz" >> "$OUT" || {
+        log "DISPLAY off_s=$_off result=frame_write_failed"; return 1; }
+      /bin/busybox base64 "$_png" 2>/dev/null | tr -d '\n' >> "$OUT" || {
+        log "DISPLAY off_s=$_off result=encode_failed"; return 1; }
+      printf '\nENDdisplay\n' >> "$OUT" || {
+        log "DISPLAY off_s=$_off result=frame_close_failed"; return 1; }
+      log "DISPLAY off_s=$_off result=framed bytes=$_dsz"
     fi
   else
-    log "SAMPLE n=$_samples at_cs=$_t pid=$LAST_PID starttime=none alive=no same_generation=no"
+    log "DISPLAY off_s=$_off result=no_file"
+  fi
+  return 0
+}
+
+is_display_tick() {
+  for _d in $DISPLAY_AT; do
+    [ "$_d" = "$1" ] && return 0
+  done
+  return 1
+}
+
+# --- persistence interval with the export scheduled inside it ---------------
+# One 1-second tick loop drives sampling, the three display captures and the single export. The export
+# is attempted ONCE at EXPORT_AT_S and is never retried: the specification says one invocation.
+log "PHASE persistence persist_s=$PERSIST_S export_at_s=$EXPORT_AT_S display_at=[$DISPLAY_AT]"
+_samples=0
+_alive=0
+_tick=0
+_export_done=no
+_export_rc=""
+while [ "$_tick" -lt "$PERSIST_S" ]; do
+  sleep 1 || { log "OUTCOME CLOCK_UNAVAILABLE reason=sleep_failed"; exit 3; }
+  _tick=$((_tick + 1))
+
+  if [ $((_tick % SAMPLE_S)) -eq 0 ]; then
+    _samples=$((_samples + 1))
+    _t=$(now_cs) || _t="?"
+    if [ -n "$LAST_PID" ] && [ -r "$PROC_ROOT/$LAST_PID/stat" ]; then
+      _now_st=$(starttime_of "$LAST_PID" 2>/dev/null || echo "")
+      if [ "$_now_st" = "$LAST_ST" ]; then
+        _alive=$((_alive + 1))
+        log "SAMPLE n=$_samples tick=$_tick at_cs=$_t pid=$LAST_PID starttime=$_now_st alive=yes same_generation=yes"
+      else
+        log "SAMPLE n=$_samples tick=$_tick at_cs=$_t pid=$LAST_PID starttime=${_now_st:-none} alive=yes same_generation=no"
+      fi
+    else
+      log "SAMPLE n=$_samples tick=$_tick at_cs=$_t pid=$LAST_PID starttime=none alive=no same_generation=no"
+    fi
+  fi
+
+  if is_display_tick "$_tick"; then
+    capture_display "$_tick"
+  fi
+
+  if [ "$_tick" -eq "$EXPORT_AT_S" ] && [ "$_export_done" = no ]; then
+    log "PHASE export at_s=$_tick helper=$HELPER expect_pid=$LAST_PID expect_starttime=$LAST_ST"
+    "$HELPER" --manifest "$MANIFEST" --log "$LOG" --out "$EXPORT_OUT" \
+        --settle 0 --app "$APP" \
+        --expect-pid "$LAST_PID" --expect-starttime "$LAST_ST"
+    _export_rc=$?
+    _export_done=yes
+    if [ "$_export_rc" -ne 0 ]; then
+      log "EXPORT_CALL_FAILED at_s=$_tick rc=$_export_rc"
+    else
+      log "EXPORT_CALL_OK at_s=$_tick rc=0"
+    fi
   fi
 done
 log "PERSISTENCE_RESULT samples=$_samples alive=$_alive of=$_samples interval_s=$PERSIST_S"
 
-# --- export channel ---------------------------------------------------------
-# One snapshot, bound to the generation recorded above. If the generation changed during the
-# persistence interval this still proceeds, because the helper's own checks will refuse a pair that
-# no longer matches and we need that refusal recorded rather than hidden.
-log "PHASE settle settle_s=$SETTLE_S"
-_n=0
-while [ "$_n" -lt "$SETTLE_S" ]; do
-  sleep 1 || { log "OUTCOME CLOCK_UNAVAILABLE reason=sleep_failed"; exit 3; }
-  _n=$((_n + 1))
-done
-
-log "PHASE export helper=$HELPER expect_pid=$LAST_PID expect_starttime=$LAST_ST"
-# Capture the helper's own exit status. `if ! cmd; then _rc=$?; fi` would report the status of the
-# NEGATION (always 0) instead of the helper's code, which is the kind of silently-wrong observation
-# this project keeps having to unlearn.
-"$HELPER" --manifest "$MANIFEST" --log "$LOG" --out "$EXPORT_OUT" \
-      --settle 0 --app "$APP" \
-      --expect-pid "$LAST_PID" --expect-starttime "$LAST_ST"
-_hrc=$?
-if [ "$_hrc" -ne 0 ]; then
-  log "EXPORT_CALL_FAILED rc=$_hrc"
+# The export already ran inside the tick loop at EXPORT_AT_S. Report the schedule outcome rather than
+# re-running it: a second invocation would make the channel carry two transactions and the verifier
+# would (correctly) see more than one terminal outcome.
+if [ "$_export_done" = yes ]; then
+  log "EXPORT_SCHEDULE attempted=1 at_s=$EXPORT_AT_S rc=$_export_rc"
 else
-  log "EXPORT_CALL_OK rc=0"
+  log "EXPORT_SCHEDULE attempted=0 reason=interval_ended_before_offset offset=$EXPORT_AT_S persist_s=$PERSIST_S"
 fi
 
 _final=$(now_cs) || _final="?"
 log "DRIVER_DONE generations=$GEN_N final_generation_pid=$LAST_PID starttime=$LAST_ST final_cs=$_final"
-log "OUTCOME COMPLETED generations=$GEN_N persistence_samples=$_samples persistence_alive=$_alive"
+log "OUTCOME COMPLETED generations=$GEN_N persistence_samples=$_samples persistence_alive=$_alive export_rc=${_export_rc:-none}"
 exit 0

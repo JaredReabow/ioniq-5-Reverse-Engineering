@@ -109,6 +109,46 @@ self-test.
 
 ## Status
 
-The harness is **specified and verified on the host, not yet exercised against the guest**. It does
-not by itself authorise a run: Astra and Opus 4.7 should review it first, per the standing rule that
-a new instrument is qualified before it is trusted with a measurement.
+**REJECTED by both reviewers. Not qualified. Do not use this harness to authorise or interpret a
+run.**
+
+Astra reviewed the guest script (`docs/planning/astra-c9.md`) and Opus 4.7 reviewed the verifier
+(`docs/planning/opus-4-7-c8.md`). Both returned REJECT, on different files, independently.
+
+What survives: the tests pass, the closed-snapshot arithmetic bounds the payload, the `stat` field
+arithmetic is correct, and the boot58/boot65 reproduction works. What does not survive is the claim
+that the harness establishes what the preconditions require.
+
+| Reviewer | Blocking finding |
+|---|---|
+| Astra | "Closed snapshot" is five independent reads of a mutable pathname, so rotation or in-place overwrite defeats it |
+| Astra | `--generation N` is a `pidof` enumeration slot, not a launch generation, and it shifts when a process exits |
+| Astra | The generation binding is optional and never re-checked at capture time, so precondition 4 is not mandatory |
+| Astra | **Hashing this helper does not retain the harness that drove the run** — an unretained driver could invoke it and still leave the experiment unrecoverable, repeating boot58 |
+| Astra | A failed export can still emit `SNAPSHOT_CLOSED` and exit 0, because verification runs on the in-memory copy |
+| Astra | The clock substitutes `0` on failure and samples twice per marker; `sleep` failure silently shortens the window |
+| Opus 4.7 | **`TS_RE` is defined and never used**, so the verifier trusts guest-supplied window bounds — the boot65 defect is reproduced inside the verifier |
+| Opus 4.7 | The milestone offset is a prior-run constant imposed on a differently-paced run |
+| Opus 4.7 | Bare substring matching is unsafe grammar (`AppHomeScreenController`, `/app/bin/AppHomeScreen`, `killed AppHomeScreen`) |
+| Opus 4.7 | `target_binding` string equality is self-attestation, not evidence |
+| Opus 4.7 | No cross-binding between `--log` and `--receipt` |
+
+Both reviewers independently concluded that `REGISTRATION_ABSENT` cannot be safely reported on an
+absolute offset at all, and both required an **in-stream precursor** instead. That precursor has been
+measured and is stable: see `docs/kernel/43`.
+
+### Honest statement of what this session got wrong
+
+Precondition 1 was specified as "probe script frozen and hashed into `result.json`". The
+implementation weakened that to "this helper hashes itself", which retains nothing about the driver
+that launches, sleeps, kills and relaunches. That is the single most consequential gap, because it
+leaves boot58's actual failure mode reachable. The self-hash is necessary but nowhere near
+sufficient.
+
+Precondition 5 was specified as a per-cause null. The implementation added a regex for re-deriving
+timestamps and then never called it, so the null still depended on the instrument telling the truth
+about its own window.
+
+The rewrite required is specified in the two review documents. Until it is done and re-reviewed,
+this harness is a passing test suite attached to an unproven instrument — which is precisely the
+configuration this project has been burned by before.

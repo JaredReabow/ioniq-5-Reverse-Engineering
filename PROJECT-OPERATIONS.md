@@ -38,6 +38,20 @@ the mixed VM graphics stack, not stock-device exploitability.
 
 Preserve pre-existing dirty/untracked work. Do not auto-commit, push, flash, install packages globally, or change model/router configuration. Keep VM disks, temporaries and evidence project-local. No physical-device access, host-root operations or external VM networking is assumed.
 
+## Worker routing policy (owner instruction, 2026-11-07)
+
+Model selection is by task weight, not by convenience:
+
+| Role | Route | Use |
+|---|---|---|
+| Grunt / dumb workers | **free OpenRouter models** — `codex-router/kilo-free/nvidia/nemotron-3-ultra-550b-a55b:free`, `codex-router/kilo-free/nvidia/nemotron-3.5-super-vl:free`, `codex-router/openrouter/openrouter/free` | Mechanical, verifiable, read-mostly work: log parsing, grep censuses, table building, diff inventories, doc-link audits. |
+| Smart model / decisions | **Astra** (`codex-router/gpt-6-astra`), **Fable** (`anthropic/claude-fable-5-1`) | Root-cause ranking, protocol/ABI reasoning, run authorization, trade-off calls, review of worker output. |
+| Blocked work | **shannon** family (`codex-router/shannon/...`), **daybreak blue** (`codex-router/gpt-daybreak-blue-latest`) | Only when an authorized task hits a security/approval block. Report the block; do not silently reroute. |
+
+**Supervision is mandatory for free workers.** A free model's output is a *lead*, never evidence. Every free-worker claim must be re-derived by me or by Astra/Fable against the raw file before it enters the changelog, history, or vulnerability register. Free workers must never be given: write access to `Ioniq5-HISTORY.md` or `Ioniq5-VULNERABILITIES.md`, git commit/push authority, VM or QEMU execution, or any task whose failure mode is a fabricated measurement. Constrain each dispatch to one bounded, checkable question with a stated output format, and verify its answer mechanically afterwards.
+
+Known failure modes to watch for in free-tier output: invented line numbers, summarised-instead-of-quoted log lines, confident claims from a truncated read, invented vendor behaviour, and silently substituting a nearby plausible value. Treat all four as expected until disproved.
+
 ## Orchestration and thread policy
 
 Keep the **same chat/session** for scheduled continuation. Do not create new chat threads, child threads, or recursive agents. The latest repeated instruction specifies **up to 20 DeepSeek workers**, superseding the earlier 30-worker ceiling for now. The prior request assigned **Astra and Fable** planning, decisions, guidance and review; verified routes remain required. This is a ceiling, not a requirement to start 20 workers. Assign independent, nonduplicated questions, reuse retained evidence, and batch reviews. Shared-workspace writes must remain serialized unless separate workspaces and ownership are verified.

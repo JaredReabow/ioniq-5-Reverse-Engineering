@@ -6517,3 +6517,44 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Confirmed both runs load identical IVI modules, output mode (Virtual-1 1920x720), and server-side screen/layer/surface topology. The discriminator is not the compositor, surface ID, missing `hmi-controller.so`, or `ivi_place` zero counts. It is registration timing: cold launch loses to the launcher timeout (~48.58s vs ~39.8–45s); warm registration takes 1–8s and survived in boot58.
 - Boot58 previously registered AppStandbyClock at 1006 (line 3082) before AppHomeScreen took it (line 4414); boot65 never reaches the second registration at 1006.
 - Stop condition holds: do not load `hmi-controller.so`, patch the launcher, change surface IDs, or extend timeouts. The next authorized run (boot78) tests one gate only — does AppHomeScreen register surface 1006 before the launcher timeout under boot58-identical conditions?
+
+## 2026-11-08 - RETROSPECTIVE BACKFILL AUDIT of this file and the changelog
+
+This section is explicitly retrospective. It records the results of a mechanical
+coverage audit run on 2026-11-08 against the two durable records; it does not
+claim to date the underlying work to that day.
+
+- **Gap 1 - the 2026-11-06 measurement day has no dated section here.** A literal
+  search for `2026-11-06` in this file returns zero hits, while 40 documents in
+  `docs/kernel/` carry `Date: 2026-11-06` headers (docs 01-40, i.e. the whole
+  kernel/DRM/boot47-boot65 campaign). That work was backfilled into this file
+  under `2026-11-07` and `2026-11-08` headings, so the file's date axis does not
+  line up with `docs/kernel/`. The changelog also carries only one mention of
+  the date. This is a backfill defect, not a lost measurement: the underlying
+  docs and raw run artefacts survive.
+- **Gap 2 - three evidence documents appear in neither record.**
+  `evidence/eu-root-sideload-applicability.md`,
+  `evidence/ipu4-querycap-provenance.md`, and
+  `evidence/telemetry-applicability.md`. The first is a superseded-scope
+  assessment that carries its own recovery update; the second closes a public
+  advisory's USB-descriptor V4L route; the third records a decision not to add
+  telemetry. None is a live experimental result, which is plausibly why none was
+  backfilled, but that reason was never written down until now.
+- **Gap 3 - 31 of 154 evidence documents are cited in the changelog but never in
+  this file.** Measured by basename or leading-topic-word search. The largest
+  cluster is `appfumo-*` (15 files). This file records milestone events rather
+  than every artefact, so the gap is either acceptable by design or a coverage
+  hole; the design rule has not previously been stated, and is left unresolved
+  rather than silently declared fine.
+- **Method and its limit.** Counting was done by literal `grep -F` of each
+  `evidence/*.md` basename, then by leading topic token of length greater than
+  four, against both records. This method under-reports: a document discussed
+  under different wording than its filename scores as absent. The three listed
+  absences were hand-read to confirm they are real and not phrasing artefacts.
+  Treat the 31-figure as an upper bound on true non-coverage.
+- **Correction to this session's own process.** A speculative free-tier worker
+  was dispatched to produce this census and did not produce a usable result: it
+  split an unquoted path containing spaces, then recovered into a recursive
+  `find` over the whole parent tree instead of reporting failure. The figures
+  above come from locally re-derived commands, not from that worker. Recorded
+  because the project's rule is that a worker summary is a lead, never evidence.

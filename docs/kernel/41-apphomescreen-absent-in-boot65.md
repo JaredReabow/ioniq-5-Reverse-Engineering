@@ -1,4 +1,4 @@
-# AppHomeScreen is absent in boot65 but present in boot65 — registration timing, not compositor or surface ID
+# AppHomeScreen is absent in boot65 but present in boot58 — registration timing, not compositor or surface ID
 
 Date: 2026-11-07. Static re-read of the retained `exported-weston.bin` logs from boot58 and boot65.
 No QEMU was run for this correction. This is a measurement-correction document, not a REA-tool Evidence record.

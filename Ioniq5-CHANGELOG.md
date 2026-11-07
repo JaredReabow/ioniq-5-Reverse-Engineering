@@ -21,6 +21,33 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
+## 5.54.0 - decisive: boot65's stream ended 22.7 s before the milestone boot58 recorded
+
+The byte-count asymmetry in 5.52.0 was a crude proxy, because the exports differ in size for reasons unrelated to protocol coverage. The protocol stream carries its own monotonic millisecond timestamps, and both runs' streams come from the same logger, so **durations compare directly despite different boot clock origins**.
+
+| Run | First event | Last event | Duration |
+|---|---:|---:|---:|
+| boot58 | 637,916 | 824,425 | **186,509 ms** |
+| boot65 | 1,233,868 | 1,397,571 | **163,703 ms** |
+
+boot58's `create_hmi_client(1, 1006, "AppHomeScreen")` is at 824,313 — **186,397 ms** into its stream and only **112 ms** before that stream's final event.
+
+boot65's entire retained stream is 163,703 ms, so it **ends 22,694 ms (22.7 s) before the offset at which boot58 registered Home**. Had it run for boot58's duration it would have reached 1,420,265; it stopped at 1,397,571.
+
+### What this settles
+
+boot65's retained window is **structurally too short to have contained the milestone even if registration had succeeded**. Its silence is not a negative observation. The 5.53.0 verdict of "not attributable" was the weaker of two true statements: the comparison is uninformative about *presence*, not merely about cause. Any statement of the form "boot65 did not register Home" is withdrawn unless qualified as "boot65's truncated capture did not reach the point where Home registers".
+
+### A second finding about the positive itself
+
+boot58's only AppHomeScreen observation arrived **112 ms before its own capture ended**. The project's single positive rests on a 112 ms margin; a marginally slower run would have lost it. This is precisely why precondition 3 of 5.53.0 requires a closed snapshot rather than racing the clock.
+
+### Search space closed
+
+All 65 run directories swept: only 3 retain an `exported-weston.bin`, and only boot58's contains `AppHomeScreen`. Only boot58's `serial.log` carries `[hmi]` markers (18). The two `[hmi2]` runs — boot59 (`1793931975183356000`) and boot61 (`1793932712081972000`) — both ended `timeout=true` having reached only `SOCKET_UP after 240s`, so neither arrived at the app stage. The sole run with the positive is the sole run whose driver is unretained; the only runs with a retained driver never reached the milestone.
+
+See `docs/kernel/42-boot58-harness-not-retained.md`.
+
 ## 5.53.0 - the boot58/boot65 comparison cannot yield a cause: boot58's probe script was never retained
 
 Ran the offline launch-generation and export-cutoff audit that Astra C8 required. It ended at Astra's stated stop condition, and the stop is the result.

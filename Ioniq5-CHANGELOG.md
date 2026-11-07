@@ -21,6 +21,38 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
+## 5.50.0 - AppHomeScreen confirmed absent in boot65 and present in boot58; registration timing is the blocker
+
+A raw re-read of the retained `exported-weston.bin` logs confirms the decisive AppHomeScreen difference. `create_hmi_client(1, 1006, "AppHomeScreen", new id ivi_hmi_client@21)` appears once in boot58 at timestamp 824313.371; **zero** occurrences exist in boot65, which instead assigns surface 1006 to `AppStandbyClock`. Both runs share identical IVI modules, output topology, and screen/layer/surface events; the discriminator is registration timing (cold launch loses to the launcher timeout; warm registration survives).
+
+### Boot58 vs boot65 comparison
+
+| Item | boot58 | boot65 |
+|---|---|---|
+| IVI modules | identical | identical |
+| Output | Virtual-1 1920x720 | Virtual-1 1920x720 |
+| `screen(7)` events | present | present |
+| `layer(…)` IDs | identical set | identical set |
+| `surface_create(30000)` | 2 | 2 |
+| **AppHomeScreen** | **present** | **absent** |
+
+### Refuted hypotheses
+
+1. Not a compositor fault — both runs have identical compositor topology.
+2. Not a surface-ID patch — boot58 proved the revert restored normal surface creation.
+3. Not the missing `hmi-controller.so` module — boot58 created AppHomeScreen without it.
+4. Not `ivi_place` zero counts — the zero list is observer-specific (doc 40).
+
+### Confirmed cause
+
+Registration timing (cold launch vs warm registration, launcher timeout).
+
+### Stop condition
+
+No `hmi-controller.so`, no launcher patch, no surface-ID change, no timeout extension. The next authorized run (boot78) tests one gate: does AppHomeScreen register surface 1006 before the launcher timeout under boot58-identical conditions? Pre-committed null: AppHomeScreen absent → registration timing is the confirmed blocker. Pre-committed success: `create_hmi_client(1, 1006, "AppHomeScreen")` appears in the raw weston log.
+
+See `docs/kernel/41-apphomescreen-absent-in-boot65.md`.
+
 ## 5.47.0 - the vendor's own template was the answer, and it explains every symptom
 
 **Historical preliminary conclusion, superseded by 5.48.0:** the `ivi_place` zero counts were observer output, not proof of zero system screens/layers. The claims below that the layer IDs did not create layers, or that this explained all prior zero listings, are withdrawn. The broad mapping of IDs 1001–1007 to shell widgets is also not established: boot58 records AppHomeScreen using 1006, while W65 assigns 1006 to AppStandbyClock; do not infer ownership or collision from a numeric ID alone. See `docs/kernel/39-drm-boots-ivi-has-zero-screens.md` and `docs/kernel/40-ivi-screen-create-client.md`.

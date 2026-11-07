@@ -152,3 +152,52 @@ about its own window.
 The rewrite required is specified in the two review documents. Until it is done and re-reviewed,
 this harness is a passing test suite attached to an unproven instrument — which is precisely the
 configuration this project has been burned by before.
+
+## Progress since the rejection
+
+### Verifier (Opus 4.7's findings) — revision 2, all eight addressed
+
+| Opus finding | Fix |
+|---|---|
+| `TS_RE` defined and never used | Bounds are re-derived from the log via `TS_RE`; monotonicity asserted; disagreement with the receipt is `HARNESS_MISMATCH` |
+| No `--log`/`--receipt` binding | New **gate 0**: the log is re-digested and must equal the receipt's declared `CAPTURE digest` and byte count, else `LOG_RECEIPT_MISMATCH` |
+| Bare substring matching | Structured pattern `create_hmi_client\([^)]*"NAME"` by default; tests prove `killed AppHomeScreen`, `/app/bin/AppHomeScreen` and `AppHomeScreenController` do **not** match |
+| Absolute offset as the criterion | Replaced by an in-stream **precursor** plus `--milestone-after-precursor-ms`; the absolute offset now has no decision role at all |
+| `target_binding` self-attestation | Not fixed. Still string equality on a self-reported field. Requires the guest to emit the pid/starttime evidence block first |
+| `errors="replace"` on a binary log | The log is read as bytes and matched with byte patterns |
+| Negative `window_ms` | Non-monotonic stamps return `HARNESS_MISMATCH` |
+| `_ts_to_ms` fractional truncation | Whole part is milliseconds by definition; documented and cross-checked in `docs/kernel/43` |
+
+Two defects were caught by the tests during the rewrite rather than by review:
+
+1. **The first structured pattern produced a false negative on the only real positive.** Requiring
+   `"AppHomeScreen"` immediately before `)` never matches the actual form
+   `create_hmi_client(1, 1006, "AppHomeScreen", new id ivi_hmi_client@21)`, which has trailing
+   arguments. Against boot58's real log the verifier reported `REGISTRATION_ABSENT` when the truth was
+   `REGISTRATION_PRESENT`. Found by running it on the retained log, not on synthetic fixtures.
+2. **The absolute offset could still decide the outcome.** A first attempt kept the absolute offset as a fallback when no
+   precursor-relative reference was supplied, so an operator could restore the rejected criterion by
+   passing one flag. It now has no decision role: without
+   `--milestone-after-precursor-ms` the answer is "cannot decide".
+
+Verified end-to-end against both retained logs: boot58 → `REGISTRATION_PRESENT` (exit 0); boot65 →
+`CAPTURE_TRUNCATED`, naming the 22,031 ms shortfall (exit 11). 40 tests pass in the full suite.
+
+### Guest script (Astra's findings) — **still rejected**
+
+Only the `centi()` clock defect is fixed (commit `81a1201`, six regression tests). Astra's six
+blocking findings remain open:
+
+- the closed snapshot is still several reads of a mutable pathname;
+- `--generation N` is still a `pidof` enumeration slot;
+- the generation binding is still optional and never re-checked at capture time;
+- **hashing this helper still does not retain the driving harness**, so boot58's actual failure mode
+  is still reachable;
+- a failed export can still emit `SNAPSHOT_CLOSED` and exit 0;
+- a failed `sleep` still shortens the window silently, and the clock still substitutes `0`.
+
+The first of those is the one Astra calls most important: acquire one immutable, producer-bounded
+artifact and derive every field from those exact bytes.
+
+**Therefore the harness remains unqualified.** A correct verifier cannot rescue a guest that may
+report a window it did not measure.

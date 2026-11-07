@@ -147,6 +147,21 @@ The same measurement also shows how fragile boot58's positive is: it arrived 112
 ended. A slightly slower run would have lost it. That is the margin on which this project's only
 AppHomeScreen observation rests.
 
+### The `dbg-out.txt` loophole is closed
+
+`dbg-out.txt` is larger than the decoded export in both runs (543,371 B and 479,860 B), so it is fair to
+ask whether the export truncated a longer captured stream that still sits undecoded in `dbg-out.txt`.
+It does not:
+
+| Run | Base64 span in `dbg-out.txt` | Expected for declared decoded size | Decoded export |
+|---|---:|---:|---:|
+| boot58 | 369,793 B | 277,341 B → 369,788 B base64 | 277,341 B |
+| boot65 | 306,225 B | 229,663 B → 306,220 B base64 | 229,663 B |
+
+In both cases the base64 block encodes the whole decoded export and nothing further. The extra size of
+`dbg-out.txt` is the launcher log and screenshot channel, not withheld protocol stream. **So boot65's
+weston capture genuinely ends at protocol timestamp 1,397,571 and there is no unread remainder.**
+
 ## Conclusion — not attributable, and that is the result
 
 Three independent confounds separate the two observations:

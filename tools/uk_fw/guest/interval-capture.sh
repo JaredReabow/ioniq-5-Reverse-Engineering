@@ -70,12 +70,27 @@ mono() {
   echo "$up"
 }
 
-# Convert "1234.56" to integer centiseconds so arithmetic is exact and portable.
+# Convert "1234.56" to integer centiseconds.
+#
+# A previous naive version (strip the dot, then strip leading zeros) was wrong on two inputs that a
+# stub or a different kernel can genuinely produce: "1000.5" became 10005 instead of 100050 (10x low)
+# and an integer uptime "1234" became 1234 instead of 123400 (100x low). /proc/uptime normally emits
+# exactly two decimals so it did not bite in practice, but a receipt carrying a wrong driver offset is
+# the kind of number a later reader trusts. This version normalises the fraction width first.
 centi() {
-  case "$1" in
-    *.*) echo "$(printf '%s' "$1" | tr -d '.' | sed 's/^0*\([0-9]\)/\1/')" ;;
-    *)   echo "$1" ;;
-  esac
+  _v=$1
+  _whole=${_v%%.*}
+  if [ "$_whole" = "$_v" ]; then
+    _frac=00
+  else
+    _frac=${_v#*.}
+  fi
+  while [ ${#_frac} -lt 2 ]; do _frac="${_frac}0"; done
+  _frac=$(printf '%s' "$_frac" | cut -c1-2)
+  _raw="$_whole$_frac"
+  _out=$(printf '%s' "$_raw" | sed 's/^0*//')
+  [ -z "$_out" ] && _out=0
+  printf '%s\n' "$_out"
 }
 
 T0_C=$(centi "$(mono)")

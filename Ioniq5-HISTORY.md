@@ -6558,3 +6558,49 @@ claim to date the underlying work to that day.
   `find` over the whole parent tree instead of reporting failure. The figures
   above come from locally re-derived commands, not from that worker. Recorded
   because the project's rule is that a worker summary is a lead, never evidence.
+
+## 2026-11-08 - PRECISION NOTE on the preceding backfill audit: the audit contaminated its own corpus
+
+This section is retrospective and corrects the section above it. It does not
+erase that section.
+
+- **The published figures were re-derived and hold.** Re-running the census
+  against the pre-append snapshot `git show ba77045:Ioniq5-{CHANGELOG,HISTORY}.md`
+  reproduces the original numbers exactly: 154 evidence documents, 120 present
+  in both records, 31 in the changelog only, **0 in the history only**, and 3 in
+  neither. So the audit's findings were true at the moment of measurement.
+- **But a naive re-run now returns a different answer, and the audit itself is
+  the cause.** The correction section above lists the three previously-absent
+  filenames. Those names are therefore now present in both documents, and a
+  `grep` for them succeeds. A careless re-check would conclude the gap had
+  never existed. It existed; the audit's own write created the match.
+- **Consequence for the meaning of "backfilled".** Naming a document as missing
+  is not the same as recording what it found. The three documents
+  (`eu-root-sideload-applicability`, `ipu4-querycap-provenance`,
+  `telemetry-applicability`) now have their filenames in both records but still
+  have **none of their findings** summarised in either. By the stricter
+  definition — findings recorded, not filenames mentioned — the gap is
+  unchanged.
+- **Method rule added to the project's discipline set.** Any audit that writes
+  its own results into the corpus it measured must preserve a pre-write snapshot
+  and re-measure against that snapshot, never against the live file. Two
+  independent implementations of the count are also required, because a single
+  pipeline plus a single re-read can agree with each other and still both be
+  measuring a contaminated corpus. This is the same class of error as the
+  earlier truncated-instrument and invalid-observer faults recorded in this
+  file, reached by a different route.
+- **What was actually checked, and what was not.** The three absences were
+  confirmed by two independent pipelines (an `awk` reduction over a per-file
+  table, and a direct per-term `grep -c` pair) against the frozen snapshot.
+  Whether 31 changelog-only citations represent a genuine coverage hole or an
+  intentional design choice remains unresolved, as stated above.
+
+## 2026-11-08 - Astra stops the boot78 run: the boot58 positive lay outside the window the script believed it had measured
+
+- Asked Astra (C8) to revisit its own c7 "no run" conclusion, since c7's missing-screen premise had shifted. Astra's answer was again **no run**, but for a new reason, and it paused a scheduled QEMU run before it executed.
+- **The decisive measurement.** The two `exported-weston.bin` files are not atomic snapshots — `final-run.sh` measures the log and then streams a still-growing file. Re-derived locally: boot58 declared 234,468 B but retained 277,341 B (growth 42,873 B) and `AppHomeScreen` sits at byte offset **253,974**, which is 19,494 B *beyond* boot58's own declared length. boot65 declared 227,371 B and retained 229,663 B (growth 2,292 B). The observation window that would have had to contain boot65's registration was therefore roughly **19x shorter** than boot58's.
+- **Consequence.** "AppHomeScreen absent from the boot65 export" and "AppHomeScreen never registered in boot65" are now distinct claims, and only the first is measured. This history file's immediately preceding entry, and `docs/kernel/41` as first drafted, stated the cause as "registration timing". That was an inference and it is now withdrawn as a conclusion; capture truncation, a different launch generation (capture PID 2667 vs 2677) and a launcher-environment difference remain live rivals that the two logs do not discriminate.
+- **Second defect in the same claim.** The ~48.58 s vs ~39.8–45 s figures are imported from `docs/kernel/22`, measured on a *different* run, and `docs/kernel/23` already refuted a fixed ~48 s timer in favour of a re-armed group-level deadline. Explaining boot65's absence that way would have stacked two inferences, one over an abandoned model. The figures are no longer used for that purpose.
+- **Run control applied.** Scheduled task `567ef556` (the boot78 QEMU run) was **paused**, not merely re-scoped, because its pre-committed null would have converted a possible capture artefact into a confident negative. Astra's replacement step is an offline launch-generation and export-cutoff timeline reconstruction across `boot58-hmi.log`, `boot65-final.log`, `serial.log`, `dbg-out.txt` and the decoded streams, marking unalignable items as unalignable rather than forcing a correlation from connection-local object numbers.
+- **Review-route block recorded, not worked around.** The parallel Fable review of `docs/kernel/41` failed at the provider with a usage/billing rejection on `anthropic/claude-fable-5-1` ("Third-party apps now draw from your extra usage, not your plan limits"). No substitute reviewer was silently used; Astra's review covers the same overclaim questions and is recorded in `docs/planning/astra-c8.md`.
+- Also this session: a free-tier OpenRouter worker was used for the backfill census under the new routing policy. It recovered from an unquoted-path error into a recursive `find`, then failed on the host's broken `python3` and on bash 3.2 lacking `declare -A`. Its table was not used; all published figures were re-derived locally against a frozen snapshot.

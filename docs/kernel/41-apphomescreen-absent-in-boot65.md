@@ -31,15 +31,62 @@ Boot58 also registers AppStandbyClock at 1006 *before* AppHomeScreen takes it (l
 3. **Not the missing `hmi-controller.so` module.** Boot58 created AppHomeScreen without it; boot65 has screen/layer announcements without it. The module is not the gate.
 4. **Not `ivi_place` zero counts.** The `ivi_place` zero listing is observer-specific (doc 40 correction); the raw stream shows screens and layers in both runs. The zero count is not the AppHomeScreen difference.
 
-## What this confirms
+## What this does NOT confirm — the original conclusion in this document was too strong
 
-The difference is **registration timing** — the cold-launch registration loses to the launcher timeout (48.58 s vs. ~39.8–45 s measured in doc 22), while warm registration takes 1–8 s. Boot58's AppHomeScreen registered before the timeout; boot65's did not. The `qtimer_trace` shim (doc 23) already refuted the "~48 s fixed timer" hypothesis and showed the deadline is a re-armed group-level timer, not a single interval.
+**CORRECTION (2026-11-08, after Astra review).** An earlier revision of this document concluded that
+"the difference is registration timing". That conclusion is **not** established by the two logs. It was
+an inference, and it had a live rival explanation that had not been checked. The rival is now measured.
 
-The remaining question is whether a fresh run under boot58-identical conditions reproduces the AppHomeScreen registration. Boot58 already proved it can; boot65 shows it can fail. The run is the only instrument that can settle whether the failure is deterministic or a one-off.
+### The capture boundary differs materially between the two runs
 
-## Stop condition
+The two `exported-weston.bin` files are not atomic snapshots. `final-run.sh` measures the log, then
+streams a still-growing file. Re-derived directly from the retained artefacts:
 
-Do not load `hmi-controller.so`, do not patch the launcher, do not change surface IDs, and do not extend timeouts. The next authorized run (boot78) tests one gate only: **does AppHomeScreen register surface 1006 before the launcher timeout, under conditions identical to boot58?** Pre-committed null: AppHomeScreen absent → the registration-timing path is the confirmed blocker and no compositor fix applies. Pre-committed success: `create_hmi_client(1, 1006, "AppHomeScreen")` appears in the raw weston log.
+| Property | boot58 | boot65 |
+|---|---:|---:|
+| Declared `BEGIN weston` length | 234,468 B | 227,371 B |
+| Actual decoded length | 277,341 B | 229,663 B |
+| Growth during export | **42,873 B** | **2,292 B** |
+| Byte offset of `AppHomeScreen` | **253,974** | absent |
+
+`grep -abo 'AppHomeScreen'` places boot58's registration **19,494 bytes beyond boot58's own declared
+length**, and 23,367 bytes before that export's end. In other words the observation window that recorded
+the positive was not the window the script thought it had measured.
+
+boot65's export grew only 2,292 bytes past its declared length. **The observation window that would have
+had to contain the AppHomeScreen registration was roughly 19× shorter in boot65 than in boot58.**
+
+### Consequence
+
+"AppHomeScreen absent from the boot65 export" and "AppHomeScreen never registered in boot65" are now
+two different claims, and only the first is measured. The absence is equally consistent with:
+
+1. a genuine registration failure (the original inference);
+2. the export ending before the registration occurred (capture truncation);
+3. a different launch generation being observed (the warm/capture PIDs differ: boot58 reports 2667 at
+   capture, boot65 reports 2677);
+4. a launcher child-environment or app-identity difference.
+
+Nothing in the two logs discriminates between these. This document therefore establishes only the
+**presence/absence difference itself**, not its cause.
+
+### What the timing numbers may and may not be used for
+
+The ~48.58 s vs ~39.8–45 s figures come from `docs/kernel/22`, measured on a **different run**, not from
+these two logs. `docs/kernel/23` further refutes a fixed ~48 s timer and shows a re-armed group-level
+deadline. Importing those numbers to explain boot65's absence would stack two inferences, one of them
+over a model the project already abandoned. Do not do it.
+
+## Stop condition (revised)
+
+Do not load `hmi-controller.so`, do not patch the launcher, do not change surface IDs, and do not extend
+timeouts. **Do not run boot78 as originally specified** — its pre-committed null ("AppHomeScreen absent
+⇒ registration timing confirmed") asserts a cause the evidence cannot carry, and would have converted a
+capture artefact into a confident negative. The run task has been paused.
+
+The next step is offline: reconstruct and compare the launch-generation and export-cutoff timelines for
+both runs from `boot58-hmi.log`, `boot65-final.log`, `serial.log`, `dbg-out.txt` and the decoded streams,
+per Astra's consultation. Only a discriminating result from that audit justifies one bounded run.
 
 ## Files
 

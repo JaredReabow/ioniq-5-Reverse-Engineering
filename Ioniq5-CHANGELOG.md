@@ -21,6 +21,37 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
+## 5.52.0 - Astra stops the boot78 run: the boot58 positive lay outside the measurement window
+
+A scheduled boot78 QEMU run was **paused before executing**, after Astra's C8 consultation found that a claim in 5.50.0 and `docs/kernel/41` outran its evidence.
+
+### The measurement
+
+`exported-weston.bin` is not an atomic snapshot: `final-run.sh` measures the log and then streams a still-growing file. Re-derived locally:
+
+| Property | boot58 | boot65 |
+|---|---:|---:|
+| Declared `BEGIN weston` length | 234,468 B | 227,371 B |
+| Actual decoded length | 277,341 B | 229,663 B |
+| Growth during export | 42,873 B | 2,292 B |
+| `AppHomeScreen` byte offset | 253,974 | absent |
+
+boot58's registration sits **19,494 bytes beyond boot58's own declared length**. The window that would have had to contain boot65's registration was therefore roughly **19x shorter** than boot58's.
+
+### What is withdrawn
+
+"The difference is registration timing" is withdrawn as a conclusion. Only the presence/absence difference is measured; its cause is not. Capture truncation, a different launch generation (capture PID 2667 vs 2677), and a launcher child-environment difference are live rivals the two logs do not distinguish.
+
+Separately, the ~48.58 s / ~39.8–45 s deadline figures are imported from `docs/kernel/22` (a different run) and rest on a fixed-timer model that `docs/kernel/23` already refuted. They may no longer be used to explain boot65's absence.
+
+### Why the run was paused rather than re-scoped
+
+The pre-committed null ("AppHomeScreen absent => registration timing confirmed") would have converted a possible capture artefact into a confident negative. A run is worthless whenever the export boundary is not proven to post-date the milestone under test. Replacement step: offline reconstruction of the launch-generation and export-cutoff timelines for both runs, marking unalignable items as unalignable instead of forcing correlation from connection-local object numbers.
+
+### Review-route block
+
+The parallel Fable review of `docs/kernel/41` failed at the provider with a usage/billing rejection on `anthropic/claude-fable-5-1`. Recorded, not silently substituted; Astra's review covers the same overclaim questions and is held in `docs/planning/astra-c8.md`.
+
 ## 5.51.0 - backfill audit of the two durable records, and a worker-routing policy
 
 ### Retrospective backfill audit
@@ -32,6 +63,8 @@ A mechanical coverage audit was run against `Ioniq5-CHANGELOG.md` and `Ioniq5-HI
 3. **31 of 154 `evidence/*.md` files are cited in the changelog but never in the history** (largest cluster `appfumo-*`, 15 files). The history records milestone events rather than every artefact; whether that is by design or a coverage hole is left open rather than declared fine.
 
 Method limit stated in the same section: basename plus leading-topic-token `grep -F` under-reports documents discussed under different wording, so the 31-figure is an upper bound. The three absences were hand-read to confirm they are real.
+
+**Self-contamination found and corrected.** Writing the audit's own findings into the corpus it measured invalidated a naive re-check: the three "absent" filenames are now *named* in both records, so grepping for them succeeds and a careless re-run would conclude the gap never existed. Re-measuring against the frozen pre-append snapshot `ba77045` reproduces the published figures exactly (154 / 120 / 31 / 0 / 3), so the findings were true when taken. By the stricter definition — findings recorded, not filenames mentioned — those three documents are still unbackfilled. The project rule is now: an audit that writes into its own corpus must preserve a pre-write snapshot and re-measure against that snapshot, with two independent pipelines, never against the live file. This is the same error class as the earlier truncated-instrument and invalid-observer faults, reached by a new route.
 
 ### Worker routing policy
 

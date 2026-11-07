@@ -1,0 +1,1 @@
+REGISTRATION_PRESENT marker matched 'create_hmi_client\\([^)]*"AppHomeScreen"' inside a closed, identified capture (precursor at 93845 ms)

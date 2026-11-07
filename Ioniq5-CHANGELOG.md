@@ -21,6 +21,47 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
+## 5.63.0 - run 3: the narrow claim is satisfied, and the display channel shows the boot splash
+
+**Run `1794057967702206000`** on a fresh clone, driver committed at `90e2e3e` (sha256 `c11c5e4e…`). Record: `docs/vm/62-controlled-run-3-result.md`. Artifacts: `evidence/controlled-run-3-2026-11-08/`.
+
+### The export succeeded — first completed transaction in the project
+
+The receipt records `SNAPSHOT_CLOSED bytes=157860 decoded=157860 match=yes`, `EXPORT_WRITTEN bytes=210480`, and `driver_sha256=c11c5e4e…` matching the committed driver. The frozen verifier returns:
+
+```
+REGISTRATION_PRESENT marker matched 'create_hmi_client\([^)]*"AppHomeScreen"' inside a closed,
+identified capture (precursor at 93845 ms)
+```
+
+That licenses exactly the narrow claim of Astra C11 — marker present, byte count and digest matching, **named driver file** matched, process identity checked around copying — and nothing else.
+
+### The display channel worked, and it does not show Home
+
+Three captures at +10 s, +60 s and +110 s: all valid 1920×720 PNGs, all 129,844 bytes, **byte-identical** (`sha256 2746aad2…`). The image is a **KIA wordmark centred on black** — the boot splash. It is the same still frame while the app process was alive and after it was dead.
+
+**The most useful thing this run establishes:** an `AppHomeScreen` registration marker can be present in the compositor's protocol stream while the visible output is still the boot splash. The two facts are compatible; only the second answers "is the authentic Home screen up".
+
+| Claim | Status |
+|---|---|
+| Marker in a closed, identified capture | **YES** |
+| Home **persisted** | **NO** — process alive 6 of 24 samples |
+| Home **rendered** | **NO** — visible frame is the KIA boot splash throughout |
+| **Interactive** | **UNRESOLVED** — not attempted |
+| Why the process exits | **not established** |
+
+### A run-2 defect found and fixed
+
+Run 2's display captures all returned `no_file`, including while the process was alive. Cause: the working directory. The driver runs from `/` because an init script starts it, and the shooter writes `wayland-screenshot.png` relative to `$PWD`. Run 3 runs it from `/tmp`, checks both candidate paths, and records the shooter's own exit status — `shooter_rc=0 path=/tmp/wayland-screenshot.png` at all three points.
+
+### Cross-run observation, recorded without explanation
+
+Process lifetime after first sight varied: ~66 s (run 1), ~20 s (run 2), ~30 s (run 3). Not stable. No cause is claimed; the launcher-timeout hypothesis remains a candidate.
+
+### The question is now sharp
+
+Why does a registered app's surface not reach the visible output? Candidates: layer/screen placement in the IVI shell, the splash layer remaining above the app surface, the app exiting before committing a frame. Choosing between them needs a protocol-side observation synchronised with a frame — not more captures of the same splash.
+
 ## 5.62.0 - controlled run 1: the export failed closed, and the runtime channel measured a process lifetime
 
 The controlled run happened. Run `1794056221676329000` on the CoW clone `work/vm/kbuild/ws-run61`, with the driver committed at `70ad2bc` (sha256 `b8e762c2…`) and the manifest generated from the tracked bytes before launch. Artifacts retained in `evidence/controlled-run-1-2026-11-08/`. Full record: `docs/vm/60-controlled-run-1-result.md`.

@@ -98,6 +98,7 @@ class IntervalRunSandbox(unittest.TestCase):
             # sandbox interval still exercises it. Real boots cannot move it (sandbox-gated).
             "IC_EXPORT_AT_S": str(export_at if export_at is not None else 2),
             "IC_DISPLAY_AT": "3",
+            "IC_IVI_AT": "3",
             "IC_SNAP": str(self.tmp / "s.bin"),
             "IC_B64": str(self.tmp / "p.b64"),
             "IC_RAW": str(self.tmp / "raw"),
@@ -194,6 +195,19 @@ class IntervalRunSandbox(unittest.TestCase):
         runtime = self._text()
         self.assertIn("DISPLAY off_s=3", runtime)
         self.assertIn("result=no_file", runtime)
+
+    def test_ivi_probe_is_taken_on_the_same_tick_as_the_frame(self) -> None:
+        # The point of run 4: a protocol observation synchronised with a frame. On the host ivi-place
+        # does not exist, so the honest result is rc!=0 with an empty body - which must still be
+        # framed and retained rather than dropped.
+        proc = self._run(persist=6, sample=2)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        runtime = self._text()
+        self.assertIn("IVI off_s=3 rc=", runtime)
+        self.assertIn("BEGIN ivi 3", runtime)
+        self.assertIn("ENDivi", runtime)
+        # Same tick as the display capture, so the two can be read as one instant.
+        self.assertLess(runtime.index("DISPLAY off_s=3"), runtime.index("BEGIN ivi 3"))
 
     def test_export_is_reported_as_not_attempted_if_the_interval_is_short(self) -> None:
         # A persistence interval shorter than EXPORT_AT_S must say so rather than pretend.

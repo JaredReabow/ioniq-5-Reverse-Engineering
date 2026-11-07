@@ -20,6 +20,8 @@ nothing.)
 Usage:
     make_run_manifest.py --run-id <id> --driver PATH --helper PATH --output PATH
     make_run_manifest.py --run-id <id> --driver PATH --helper PATH          # print to stdout
+    make_run_manifest.py --run-id <id> --driver PATH --helper PATH \
+        --driver-guest-path /interval-run.sh --helper-guest-path /interval-capture.sh
 
 Exit status: 0 written, 2 usage, 3 a named file is missing or unreadable.
 """
@@ -40,15 +42,29 @@ def sha256_of(path: Path) -> str:
     return digest.hexdigest()
 
 
-def build_manifest(run_id: str, driver: Path, helper: Path) -> str:
-    """Return the manifest text. Raises FileNotFoundError if a named file is absent."""
+def build_manifest(
+    run_id: str,
+    driver: Path,
+    helper: Path,
+    driver_guest_path: str | None = None,
+    helper_guest_path: str | None = None,
+) -> str:
+    """Return the manifest text. Raises FileNotFoundError if a named file is absent.
+
+    The digest is always computed from the host file. The `path=` field may name a DIFFERENT path,
+    which is required in practice: inside the guest the staged files live at paths like
+    `/interval-run.sh`, and the helper checks that the manifest's driver path is readable and matches
+    there. Recording the host path would make every in-guest check fail for the wrong reason.
+    """
     for label, path in (("driver", driver), ("helper", helper)):
         if not path.is_file():
             raise FileNotFoundError(f"{label} is not a regular file: {path}")
+    driver_field = driver_guest_path or str(driver)
+    helper_field = helper_guest_path or str(helper)
     return (
         f"RUN id={run_id}\n"
-        f"DRIVER path={driver} sha256={sha256_of(driver)}\n"
-        f"HELPER path={helper} sha256={sha256_of(helper)}\n"
+        f"DRIVER path={driver_field} sha256={sha256_of(driver)}\n"
+        f"HELPER path={helper_field} sha256={sha256_of(helper)}\n"
     )
 
 
@@ -57,6 +73,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--run-id", required=True, help="identifier for this run")
     ap.add_argument("--driver", required=True, type=Path, help="the retained driver script")
     ap.add_argument("--helper", required=True, type=Path, help="the frozen capture helper")
+    ap.add_argument("--driver-guest-path", default=None,
+                    help="path recorded in the manifest for the driver, if different from the host path")
+    ap.add_argument("--helper-guest-path", default=None,
+                    help="path recorded in the manifest for the helper, if different from the host path")
     ap.add_argument("--output", type=Path, default=None, help="write here instead of stdout")
     args = ap.parse_args(argv)
 
@@ -65,7 +85,10 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     try:
-        text = build_manifest(args.run_id, args.driver, args.helper)
+        text = build_manifest(
+            args.run_id, args.driver, args.helper,
+            args.driver_guest_path, args.helper_guest_path,
+        )
     except (FileNotFoundError, PermissionError, OSError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 3

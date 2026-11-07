@@ -82,7 +82,8 @@ class IntervalRunSandbox(unittest.TestCase):
         self.out = self.tmp / "runtime.txt"
         self.export_out = self.tmp / "export.txt"
 
-    def _run(self, *, persist: int = 6, sample: int = 2, settle: int = 0, starttime: int | None = None) -> subprocess.CompletedProcess[str]:
+    def _run(self, *, persist: int = 6, sample: int = 2, settle: int = 0,
+             starttime: int | None = None, export_at: int | None = None) -> subprocess.CompletedProcess[str]:
         if starttime is not None:
             (self.proc / str(self.PID) / "stat").write_text(_stat_text(self.PID, starttime), encoding="utf-8")
         env = {
@@ -93,6 +94,10 @@ class IntervalRunSandbox(unittest.TestCase):
             "IC_PERSIST_S": str(persist),
             "IC_SAMPLE_S": str(sample),
             "IC_SETTLE_S": str(settle),
+            # Export is scheduled inside the persistence loop now; put it at tick 2 so the short
+            # sandbox interval still exercises it. Real boots cannot move it (sandbox-gated).
+            "IC_EXPORT_AT_S": str(export_at if export_at is not None else 2),
+            "IC_DISPLAY_AT": "3",
             "IC_SNAP": str(self.tmp / "s.bin"),
             "IC_B64": str(self.tmp / "p.b64"),
             "IC_RAW": str(self.tmp / "raw"),
@@ -167,9 +172,34 @@ class IntervalRunSandbox(unittest.TestCase):
         runtime = self._text()
         export = self.export_out.read_text(encoding="utf-8") if self.export_out.is_file() else ""
         self.assertIn("PHASE export", runtime)
-        self.assertIn("EXPORT_CALL_OK rc=0", runtime)
+        self.assertIn("EXPORT_CALL_OK at_s=", runtime)
         self.assertIn("RECEIPT v2", export)
         self.assertIn("HARNESS run=sandbox", export)
+
+    def test_export_runs_once_at_the_declared_offset(self) -> None:
+        proc = self._run(persist=6, sample=2)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        runtime = self._text()
+        self.assertIn("EXPORT_CALL_OK at_s=2", runtime)
+        self.assertIn("EXPORT_SCHEDULE attempted=1 at_s=2", runtime)
+        # Exactly one attempt: a second would put two transactions on the export channel.
+        self.assertEqual(runtime.count("PHASE export"), 1)
+
+    def test_display_capture_is_attempted_at_the_declared_tick(self) -> None:
+        # The shooter does not exist on the host, so the honest sandbox result is "no_file" - which is
+        # the same path a real run would take if the tool were missing. It must be recorded, not
+        # silently skipped, and it must not abort the run.
+        proc = self._run(persist=6, sample=2)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        runtime = self._text()
+        self.assertIn("DISPLAY off_s=3", runtime)
+        self.assertIn("result=no_file", runtime)
+
+    def test_export_is_reported_as_not_attempted_if_the_interval_is_short(self) -> None:
+        # A persistence interval shorter than EXPORT_AT_S must say so rather than pretend.
+        proc = self._run(persist=2, sample=1, export_at=99)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("EXPORT_SCHEDULE attempted=0", self._text())
 
     def test_the_two_channels_do_not_contaminate_each_other(self) -> None:
         # A shared channel would put the driver's own OUTCOME line into the helper's transaction, and

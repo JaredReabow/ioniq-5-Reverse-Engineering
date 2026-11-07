@@ -3985,3 +3985,81 @@ model for it is absent rather than weak.
 
 `V-058` (bus address from `/tmp`), `V-064` (root services, no hardening), `V-065` (the same writable-path pattern for `/etc` anchors),
 `docs/vm/56-endgame-runbook.md` (the contract), `docs/trust-anchors-in-writable-runtime-paths.md`.
+
+---
+
+## V-077 — a root CPU-watchdog **reset request** is triggerable by an empty file in world-writable `/tmp`
+
+**Status:** measured from the shipped units and scripts. The marker family and several of these units were already
+recorded in V-055 and in the `/tmp` marker table; what is **new** here is the exact MICOM method, the three distinct reset
+codes, and a correction to an impact statement that understated this as "diagnostics plus a message".
+Class: local trigger of a privileged reset primitive / availability. Not privilege escalation.
+
+### What is measured
+
+Seven **enabled** systemd `.path` units gate services on files under `/tmp`, which is a world-writable tmpfs on this
+image. Three of them run **root shell scripts** that each call the same MICOM method with a **different reset code**:
+
+| Enabled unit | Watches | Activates | Root payload | MICOM call |
+|---|---|---|---|---|
+| `pstore-reboot.path` | `/tmp/pstore_saved` | `pstore-reboot.service` | `/etc/pstore-reboot.sh` | `SetETCCPUWDTReset array:byte:0x06` |
+| `spi-validation.path` | `/tmp/spi_validation_NOK` | `spi-validation.service` | `/etc/spi-validation.sh` | `SetETCCPUWDTReset array:byte:0x01` |
+| `weston-crash.path` | `/tmp/weston.crash` | `weston-crash.service` | `/etc/weston-crash.sh` | `SetETCCPUWDTReset array:byte:0x00` |
+| `mpauto.path` | `/tmp/AppMPAutoTest/do_mpauto` | `mpauto.service` | `/etc/mpauto.sh` | root `dbus-send` signal ×10 |
+| `supplicantmanager.path` | `/tmp/no_unece` | `supplicantmanager.service` | `/app/bin/supplicantmanager` | — |
+| `ofono.path` | `/tmp/no_isa` | `ofono.service` | `/usr/sbin/ofonod -nd` | — |
+| `remote.path` | `/tmp/no_isa` | `remote.service` | `/app/bin/TmsRemoteApp` | — |
+
+Each script invokes, as root on the **system** bus:
+
+```
+dbus-send --system --type=method_call --dest=com.lge.car.micom /Ihu \
+          com.lge.car.micom.ihu.SetETCCPUWDTReset array:byte:0x06|0x01|0x00
+```
+
+`SetETCCPUWDTReset` is a **CPU watchdog reset request addressed to the MICOM** — the separate microcontroller that governs
+power and reset of the head unit — not a log message. The three codes are distinct reset causes, so a local writer can
+choose which cause to assert.
+
+### Why this is more than the existing wording
+
+V-055's honest-limit paragraph describes `weston-crash.sh` as not restarting the compositor and "dumping diagnostics and
+sending a MICOM watchdog message". The measured method name and its argument make the second half stronger than that
+phrasing invites: the handler **asks the MCU to reset the CPU**. Whether the MCU honours it is a MICOM-side policy question
+this project has not measured, but the request is the finding, and describing it as a "message" understates it.
+
+Also new: the **three distinct codes** are recorded here for the first time, and `mpauto.path` is shown to be enabled and
+reachable, invoking a root script whose only effect is to emit a root-authority D-Bus signal ten times.
+
+### What is *not* established
+
+- **That the MICOM acts on the request.** The projection has no MICOM; the method call is delivered to a stand-in. On real
+  hardware the MCU may rate-limit, ignore or honour it. Not measured here.
+- **That an unprivileged writer to `/tmp` exists on a production unit.** As V-055 and V-054 already record, every vendor
+  process observed in this project runs as uid 0. So this is a **latent** primitive that becomes live the moment any lesser
+  privileged writer to `/tmp` exists — a compromised app, a sandboxed service, or any component the platform later
+  demotes.
+- Any claim that this is remotely reachable. It is local: it requires the ability to create a file in `/tmp`.
+
+### Relationship to V-073, which it does *not* resolve
+
+V-073's open question was whether the unauthenticated `socat` bridge in `AppMPAutoTest`/`TmsGuiApp` ever runs. This analysis
+**does not close it**: `remote.service` starts `/app/bin/TmsRemoteApp`, and `TmsRemoteApp` contains **zero** references to
+`socat` or `ttyUSB0` (measured by string count), so the path-unit family does not start the bridge. V-073 remains
+unexercised code.
+
+### Fix
+
+1. Move the marker paths out of `/tmp` into a root-only directory (e.g. `/run/mpauto/`) for **all seven** units; that alone
+   removes the unprivileged trigger without changing any payload.
+2. If a marker must stay in `/tmp`, place the reset handlers behind a unit that also requires an authenticated or
+   root-created prerequisite, and rate-limit them.
+3. Treat `SetETCCPUWDTReset` as a privileged operation: any future caller should be auditable, and the MICOM side should
+   reject reset requests that do not match the state it independently observed.
+
+### Verify
+
+On a unit: create one marker as a non-root user (e.g. `: > /tmp/weston.crash`), then check
+`journalctl -u weston-crash.service` for the handler run and observe whether the MICOM is asked to reset. **A handler run
+triggered by a non-root write is this finding.** For the MICOM-side question, capture the bus traffic rather than inferring
+from the head unit's behaviour.

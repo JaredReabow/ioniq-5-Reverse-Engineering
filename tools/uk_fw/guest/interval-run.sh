@@ -33,21 +33,36 @@ set -u
 
 OUT=/dev/ttyS2
 APP=AppHomeScreen
+LOG=/tmp/weston-real.log
 MANIFEST=/run/interval-manifest.txt
 HELPER=/interval-capture.sh
 PERSIST_S=120
 SAMPLE_S=5
 SETTLE_S=20
-SOCKET=/run/user/root/wayland-0
+SOCKET=${IC_SOCKET:-/run/user/root/wayland-0}
+UPTIME_FILE=${IC_UPTIME:-/proc/uptime}
 PROC_ROOT=${IC_PROC:-/proc}
+
+# SANDBOX MODE exists only so this driver can be exercised on a host before it is trusted in a boot.
+# It is enabled ONLY when IC_PROC points somewhere other than the real /proc, and it is the only mode
+# in which the intervals may be shortened. A real run cannot silently reduce PERSIST_S, which is the
+# whole point of fixing the interval before launch.
+SANDBOX=no
+if [ "$PROC_ROOT" != "/proc" ]; then
+  SANDBOX=yes
+  PERSIST_S=${IC_PERSIST_S:-$PERSIST_S}
+  SAMPLE_S=${IC_SAMPLE_S:-$SAMPLE_S}
+  SETTLE_S=${IC_SETTLE_S:-$SETTLE_S}
+fi
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --out)      OUT=${2:-}; shift 2 ;;
+    --log)      LOG=${2:-}; shift 2 ;;
     --app)      APP=${2:-}; shift 2 ;;
     --manifest) MANIFEST=${2:-}; shift 2 ;;
     --helper)   HELPER=${2:-}; shift 2 ;;
-    -h|--help)  echo "usage: interval-run.sh [--out DEV] [--app NAME] [--manifest PATH] [--helper PATH]" >&2; exit 2 ;;
+    -h|--help)  echo "usage: interval-run.sh [--out DEV] [--log PATH] [--app NAME] [--manifest PATH] [--helper PATH]" >&2; exit 2 ;;
     *)          echo "interval-run: unknown argument $1" >&2; exit 2 ;;
   esac
 done
@@ -66,7 +81,7 @@ log() {
 }
 
 now_cs() {
-  read -r _up _rest < /proc/uptime 2>/dev/null || return 1
+  read -r _up _rest < "$UPTIME_FILE" 2>/dev/null || return 1
   _w=${_up%%.*}
   if [ "$_w" = "$_up" ]; then _f=00; else _f=${_up#*.}; fi
   while [ ${#_f} -lt 2 ]; do _f="${_f}0"; done
@@ -83,11 +98,25 @@ starttime_of() {
   sed 's/.*) //' "$PROC_ROOT/$1/stat" 2>/dev/null | awk '{print $20}' 2>/dev/null
 }
 
-pids_of() { pidof "$APP" 2>/dev/null; }
+# pidof is used when present (the guest has busybox). A /proc scan is the fallback, which is also
+# what makes this driver testable on a host: without it, pids_of returned nothing outside the guest,
+# the first-generation wait spun for its full 180 s, and the sandbox tests appeared to hang.
+pids_of() {
+  if command -v pidof >/dev/null 2>&1; then
+    pidof "$APP" 2>/dev/null
+    return 0
+  fi
+  for _d in "$PROC_ROOT"/[0-9]*; do
+    [ -r "$_d/stat" ] || continue
+    _c=$(sed -n 's/^[0-9]* (\(.*\)) .*/\1/p' "$_d/stat" 2>/dev/null)
+    [ "$_c" = "$APP" ] && printf '%s\n' "${_d##*/}"
+  done
+  return 0
+}
 
 T0=$(now_cs) || { echo "interval-run: clock unavailable" >&2; exit 3; }
 
-log "DRIVER version=1 app=$APP persist_s=$PERSIST_S sample_s=$SAMPLE_S settle_s=$SETTLE_S"
+log "DRIVER version=1 app=$APP log=$LOG persist_s=$PERSIST_S sample_s=$SAMPLE_S settle_s=$SETTLE_S sandbox=$SANDBOX proc_root=$PROC_ROOT socket=$SOCKET"
 log "DRIVER fixed_before_launch=yes t0_cs=$T0"
 
 if [ ! -r "$MANIFEST" ]; then
@@ -187,7 +216,7 @@ log "PHASE export helper=$HELPER expect_pid=$LAST_PID expect_starttime=$LAST_ST"
 # Capture the helper's own exit status. `if ! cmd; then _rc=$?; fi` would report the status of the
 # NEGATION (always 0) instead of the helper's code, which is the kind of silently-wrong observation
 # this project keeps having to unlearn.
-"$HELPER" --manifest "$MANIFEST" --log /tmp/weston-real.log --out "$OUT" \
+"$HELPER" --manifest "$MANIFEST" --log "$LOG" --out "$OUT" \
       --settle 0 --app "$APP" \
       --expect-pid "$LAST_PID" --expect-starttime "$LAST_ST"
 _hrc=$?

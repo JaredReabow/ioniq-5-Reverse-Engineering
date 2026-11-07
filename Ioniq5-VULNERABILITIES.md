@@ -4187,3 +4187,101 @@ so the enclosing function cannot be named, and its callers must be found by patt
    VM and a variant to compare against.
 
 Option 1 remains the cheaper one and now starts from a known address instead of a string search.
+
+---
+
+## V-079 — severity calibration: the image has **no non-root execution context at all**, which makes the local-trigger family latent rather than live
+
+**Status:** measured. This is **not a vulnerability** — it is the bounding measurement that several entries have each been
+asserting separately as a per-entry caveat ("no lesser-privileged writer is demonstrated"). Recording it once, with the
+measurements, so those caveats rest on a fact instead of on repetition.
+Class: severity calibration / evidence boundary.
+
+### The measurement
+
+| Check | Result |
+|---|---|
+| `User=` directives across **129** service units (`lib/systemd/system`, `etc/systemd/system`) | **exactly one**, and it is `User=%i` in stock systemd's `user@.service` |
+| `@`-instance of that template enabled or wanted | **none** — the template never runs |
+| setuid binaries anywhere in the extracted rootfs | **zero** |
+| setgid binaries anywhere in the extracted rootfs | **zero** |
+
+So: every service starts as root, no unit names a non-root user, no file carries a privilege-elevating mode bit, and there is
+no enabled per-user manager instance. **Inside this image there is no mechanism that produces a non-root process.**
+
+### What this bounds, and it is a lot of entries
+
+These entries each turn on a *lesser-privileged* actor being able to do something a root process would not normally do. This
+measurement says such an actor does not exist in the image:
+
+- **V-051** — application manager runs a caller-named binary as root. Demonstrated, but the caller must already be able to
+  reach the session bus, which in this image means being root.
+- **V-055** — `/tmp/weston.ini` selects root-loaded modules.
+- **V-058** — eleven services take their D-Bus address from a world-writable file.
+- **V-071** — a `/tmp` marker enables the root console and SSH.
+- **V-077** — three root scripts send MICOM CPU-watchdog reset requests on `/tmp` markers.
+- **V-078** — the UNECE/wireless gate is recorded in world-writable `/tmp`.
+
+Each is a real defect in the *design*: a privileged decision recorded in a world-writable location. Each is **latent** on
+this image, because the only processes that can write those markers already run as root.
+
+### What it does **not** bound — stated so the calibration is not over-read
+
+1. **A service may drop privileges in its own code.** `setuid`/`setgid` calls inside a daemon are not visible to file-mode or
+   unit-file inspection and were **not** systematically checked here. A single daemon that drops to a service account, or that
+   spawns a worker under a different uid, would open the whole family at once. This is the most important remaining
+   verification.
+2. **A compromised root process is not a lesser-privileged actor**, so this does not make the findings harmless — it makes
+   them not *escalations from the image itself*. They still turn a single compromised component into broader control
+   (console, wireless posture, a reset primitive).
+3. **The production unit may differ from the extracted image** — additional applications, provisioning, telematics
+   components, or a different market variant. Absence here is absence in *this* extraction, not on the vehicle.
+4. **Zero setuid binaries does not mean no privilege boundary.** Linux capabilities, SMACK labels and D-Bus policy all remain
+   in play, and this project has separately found the MAC policy to be permissive (V-052) and the bus policy to allow the
+   default context (V-063).
+
+### The one check this finding asks for next
+
+Search every shipped daemon for an in-code privilege drop — `setuid`, `setgid`, `setresuid`, `seteuid`, `setgroups`,
+`initgroups`, `prctl(PR_SET_NO_NEW_PRIVS)`, or a `User=`-equivalent applied at runtime — and list any that actually change
+identity. **One hit converts the entire family above from latent to live**, and that is the highest-value single check left
+on this workstream.
+
+### The privilege-drop scan, performed — 36 references, two vendor candidates
+
+The check asked for above was run: every file in `app/bin`, `usr/bin`, `usr/sbin` and `usr/libexec` was searched for an exact
+reference to `setuid`, `setgid`, `setresuid`, `setresgid`, `seteuid`, `setegid`, `setgroups` or `initgroups`.
+
+**36 binaries reference one of those.** Most are stock system/admin utilities (busybox and util-linux applet symlinks such as
+`chfn.shadow`, `eject.util-linux`, `openvt.kbd`, plus `dbus-daemon`, `strace`, `systemd-run`, `systemd-nspawn`, `socat`,
+`nsenter`, `gpasswd`, `unix_chkpwd`). Those are not services and do not bound anything on a normal boot.
+
+**Two are vendor components that matter:**
+
+| Binary | Why it matters |
+|---|---|
+| `app/bin/mdnsd` | this is the Apple mDNSResponder of **V-072**, recorded as a **root network daemon with no sandboxing and no `User=`**. A privilege-drop reference in it means the "runs as root" characterisation in V-072 may be incomplete |
+| `app/bin/AppSDS` | a vendor application, not previously characterised in this register |
+
+`usr/bin/weston` and `usr/bin/weston-launch` also appear. `weston-launch` is *designed* to open privileged devices then drop —
+but the run evidence in this project (`docs/kernel/45`) shows the compositor's own surfaces being created by a client at the
+same privilege level, and the projection starts weston through a wrapper, so this needs to be read from the actual code before
+any claim is made.
+
+### What this does and does not establish
+
+**Does:** the claim "every process runs as root" is **not yet established**. There are 36 references to privilege-drop
+functions and at least two are vendor daemons rather than admin tools.
+
+**Does not:** establish that any of them actually drops to a *lesser* uid. A reference to `setuid` may be an unused import, a
+busybox applet table entry, or a drop to a service account that is itself privileged enough to reach the same interfaces. That
+requires reading the call sites.
+
+**The precise next check:** for `app/bin/mdnsd` (V-072) and `app/bin/AppSDS`, find the call site of the privilege-drop import
+and determine (a) whether it is called on a normal startup path, and (b) what uid it drops to. **If either drops to a non-root
+uid, the whole latent family — V-051, V-055, V-058, V-071, V-077, V-078 — becomes live for that process's reachable surface**,
+and V-072's own severity changes accordingly.
+
+Both binaries are dynamic ELF; check `llvm-nm --undefined-only` for the exact import, then the call site. This is the same
+"find the author of the request" move that resolved the `screen_create` question, and it is bounded: two binaries, one call
+site each.

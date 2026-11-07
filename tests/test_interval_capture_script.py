@@ -142,5 +142,54 @@ class IntervalCaptureIntegration(unittest.TestCase):
         self.assertIn("OUTCOME HARNESS_MISMATCH", self.out.read_text(encoding="utf-8"))
 
 
+class TestCentiConversion(unittest.TestCase):
+    """Regression test for the centisecond conversion, against the REAL function in the script.
+
+    The conversion is extracted from the script rather than copied, so this test cannot drift away
+    from the implementation it claims to cover. Two inputs used to be wrong: a single decimal place
+    (1000.5 -> 10005 instead of 100050) and an integer (1234 -> 1234 instead of 123400).
+    """
+
+    @staticmethod
+    def _centi_source() -> str:
+        text = SCRIPT.read_text(encoding="utf-8")
+        start = text.index("centi() {")
+        depth = 0
+        for i in range(start, len(text)):
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    return text[start : i + 1]
+        raise AssertionError("could not extract centi() from the script")
+
+    def _convert(self, value: str) -> str:
+        harness = self._centi_source() + '\nprintf "%s" "$(centi ' + f"'{value}'" + ')"\n'
+        proc = subprocess.run(["/bin/sh", "-c", harness], capture_output=True, text=True, timeout=60)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return proc.stdout.strip()
+
+    def test_two_decimals(self) -> None:
+        self.assertEqual(self._convert("1000.00"), "100000")
+
+    def test_single_decimal_place_is_not_ten_times_low(self) -> None:
+        self.assertEqual(self._convert("1000.5"), "100050")
+        self.assertEqual(self._convert("0.5"), "50")
+
+    def test_integer_uptime_is_not_hundred_times_low(self) -> None:
+        self.assertEqual(self._convert("1234"), "123400")
+
+    def test_leading_zero_fraction(self) -> None:
+        self.assertEqual(self._convert("0.05"), "5")
+        self.assertEqual(self._convert("0.50"), "50")
+
+    def test_zero(self) -> None:
+        self.assertEqual(self._convert("0.00"), "0")
+
+    def test_extra_decimals_are_truncated_not_rounded_up(self) -> None:
+        self.assertEqual(self._convert("999.999"), "99999")
+
+
 if __name__ == "__main__":
     unittest.main()

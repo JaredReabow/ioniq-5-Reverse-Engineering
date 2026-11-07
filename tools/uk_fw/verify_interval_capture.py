@@ -24,6 +24,7 @@ defects, all of which are fixed here:
 Outcomes:
 
     LOG_RECEIPT_MISMATCH  --log and --receipt do not describe the same capture
+    RECEIPT_INCOMPLETE    the receipt has no terminal OUTCOME CAPTURED line
     HARNESS_MISMATCH      harness identity, generation binding, or timestamp integrity unproven
     SNAPSHOT_NOT_CLOSED   export did not round-trip to the measured size
     CAPTURE_TRUNCATED     the precursor was not reached, so silence means nothing
@@ -31,7 +32,7 @@ Outcomes:
     REGISTRATION_PRESENT  the marker matched the structured pattern
 
 Exit status: 0 PRESENT, 10 ABSENT, 11 TRUNCATED, 20 HARNESS_MISMATCH, 21 SNAPSHOT_NOT_CLOSED,
-22 LOG_RECEIPT_MISMATCH, 2 usage/parse error.
+22 LOG_RECEIPT_MISMATCH, 23 RECEIPT_INCOMPLETE, 2 usage/parse error.
 
 Usage:
     verify_interval_capture.py --receipt r.txt --log interval.bin --marker AppHomeScreen \\
@@ -62,6 +63,7 @@ TS_RE = re.compile(rb"^\[(\d+)\.(\d+)\]", re.MULTILINE)
 DEFAULT_MARKER_PATTERN = r'create_hmi_client\([^)]*"{marker}"'
 
 LOG_RECEIPT_MISMATCH = "LOG_RECEIPT_MISMATCH"
+RECEIPT_INCOMPLETE = "RECEIPT_INCOMPLETE"
 HARNESS_MISMATCH = "HARNESS_MISMATCH"
 SNAPSHOT_NOT_CLOSED = "SNAPSHOT_NOT_CLOSED"
 CAPTURE_TRUNCATED = "CAPTURE_TRUNCATED"
@@ -75,6 +77,7 @@ EXIT = {
     HARNESS_MISMATCH: 20,
     SNAPSHOT_NOT_CLOSED: 21,
     LOG_RECEIPT_MISMATCH: 22,
+    RECEIPT_INCOMPLETE: 23,
 }
 
 
@@ -204,7 +207,22 @@ def decide(
             f"receipt declares {receipt.capture_bytes} bytes but --log is {len(log_bytes)} bytes"
         )
 
-    # Gate 1: harness identity and generation binding.
+    # Gate 1: the receipt must be a COMPLETE record.
+    #
+    # The guest appends its receipt incrementally, so a run killed between SNAPSHOT_CLOSED and the
+    # terminal OUTCOME leaves a receipt that looks finished. Worse, SNAPSHOT_CLOSED is emitted BEFORE
+    # the payload is appended to the channel, so a receipt can declare a closed snapshot that was
+    # never transmitted. Requiring the terminal line is what makes "the receipt exists" different
+    # from "the capture completed". Found by writing a receipt with no OUTCOME line and observing
+    # that it verified as REGISTRATION_PRESENT.
+    if not any(o.startswith("CAPTURED") for o in receipt.outcomes):
+        seen = "; ".join(receipt.outcomes) if receipt.outcomes else "none"
+        return RECEIPT_INCOMPLETE, (
+            f"receipt carries no terminal 'OUTCOME CAPTURED' line (outcomes seen: {seen}); the capture "
+            "was interrupted or the receipt is truncated, so nothing in it may be treated as complete"
+        )
+
+    # Gate 2: harness identity and generation binding.
     if receipt.self_algo in (None, "", "none") or not receipt.self_digest or receipt.self_digest == "none":
         return HARNESS_MISMATCH, "harness digest unavailable, so the run cannot be attributed to a script"
     if receipt.target_binding != "pinned_pid_and_starttime":
@@ -212,7 +230,7 @@ def decide(
             f"capture bound by {receipt.target_binding or 'nothing'}, not a pinned (pid, starttime)"
         )
 
-    # Gate 2: timestamp integrity, re-derived from the log and cross-checked against the receipt.
+    # Gate 3: timestamp integrity, re-derived from the log and cross-checked against the receipt.
     bounds = ts_bounds_from_log(log_bytes)
     if bounds is None:
         return HARNESS_MISMATCH, "log carries no protocol timestamps, or its stamps are not monotonic"
@@ -230,14 +248,14 @@ def decide(
     if window < 0:
         return HARNESS_MISMATCH, f"non-monotonic window of {window} ms"
 
-    # Gate 3: snapshot closure.
+    # Gate 4: snapshot closure.
     if not receipt.snapshot_closed:
         present_note = ""
         if marker_pattern.search(log_bytes):
             present_note = " Note: the marker pattern IS present in this unclosed capture; it is being discarded."
         return SNAPSHOT_NOT_CLOSED, f"export did not round-trip to the measured size.{present_note}"
 
-    # Gate 4: did the run reach the stage at which the milestone is even possible?
+    # Gate 5: did the run reach the stage at which the milestone is even possible?
     if precursor_pattern is None:
         return CAPTURE_TRUNCATED, (
             "no precursor pattern supplied, so the capture cannot be shown to have reached the "
@@ -250,14 +268,14 @@ def decide(
             "marker's absence carries no information"
         )
 
-    # Gate 5: presence, matched against the structured pattern rather than a bare substring.
+    # Gate 6: presence, matched against the structured pattern rather than a bare substring.
     if marker_pattern.search(log_bytes):
         return REGISTRATION_PRESENT, (
             f"marker matched {marker_pattern.pattern.decode()!r} inside a closed, identified capture "
             f"(precursor at {prec_offset} ms)"
         )
 
-    # Gate 6: absence becomes a negative ONLY when the window has demonstrably passed the milestone,
+    # Gate 7: absence becomes a negative ONLY when the window has demonstrably passed the milestone,
     # measured from the in-stream precursor.
     #
     # The absolute offset deliberately has no decision role. Opus 4.7 (docs/planning/opus-4-7-c8.md)

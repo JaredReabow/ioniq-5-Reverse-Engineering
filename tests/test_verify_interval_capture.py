@@ -102,6 +102,55 @@ class TestGate0LogReceiptBinding(unittest.TestCase):
         self.assertEqual(outcome, mod.LOG_RECEIPT_MISMATCH)
 
 
+class TestGate1ReceiptCompleteness(unittest.TestCase):
+    """A receipt is appended incrementally, so a killed run leaves one that looks finished.
+
+    SNAPSHOT_CLOSED is written before the payload is appended to the channel, so without a terminal
+    line a receipt can declare a closed snapshot that was never transmitted. Found by writing such a
+    receipt by hand and observing that it verified as REGISTRATION_PRESENT.
+    """
+
+    def test_receipt_without_terminal_outcome_is_incomplete(self) -> None:
+        data = b"[1000.000] start\n" + registration_line(1500) + b"[200000.000] end\n"
+        text = "".join(
+            line + "\n"
+            for line in [
+                "RECEIPT v2",
+                f"SELF path=/x algo=sha256 digest={'a' * 64}",
+                "TARGET binding=pinned_pid_and_starttime pid=1 starttime=1",
+                f"CAPTURE bytes={len(data)} digest={_sha(data)} first_ts=1000 last_ts=200000",
+                f"SNAPSHOT_CLOSED bytes={len(data)} decoded={len(data)} match=yes",
+            ]
+        )
+        r = mod.parse_receipt(text)
+        outcome, reason = decide(r, data)
+        self.assertEqual(outcome, mod.RECEIPT_INCOMPLETE)
+        self.assertIn("no terminal", reason)
+
+    def test_failure_outcome_is_not_a_complete_capture(self) -> None:
+        data = b"[1000.000] start\n" + registration_line(1500) + b"[200000.000] end\n"
+        text = "".join(
+            line + "\n"
+            for line in [
+                "RECEIPT v2",
+                f"SELF path=/x algo=sha256 digest={'a' * 64}",
+                "TARGET binding=pinned_pid_and_starttime pid=1 starttime=1",
+                f"CAPTURE bytes={len(data)} digest={_sha(data)} first_ts=1000 last_ts=200000",
+                f"SNAPSHOT_CLOSED bytes={len(data)} decoded={len(data)} match=yes",
+                "OUTCOME CLOCK_UNAVAILABLE reason=cannot_read_uptime",
+            ]
+        )
+        r = mod.parse_receipt(text)
+        outcome, _ = decide(r, data)
+        self.assertEqual(outcome, mod.RECEIPT_INCOMPLETE)
+
+    def test_complete_receipt_passes_this_gate(self) -> None:
+        data = b"[1000.000] start\n" + registration_line(1500) + b"[200000.000] end\n"
+        r = receipt_bytes(data, first=1000, last=200000)
+        outcome, _ = decide(r, data)
+        self.assertEqual(outcome, mod.REGISTRATION_PRESENT)
+
+
 class TestGate2TimestampIntegrity(unittest.TestCase):
     """Opus finding 1: TS_RE was defined and never used."""
 
@@ -314,8 +363,8 @@ class TestRealRunReproduction(unittest.TestCase):
 
 class TestExitCodes(unittest.TestCase):
     def test_every_outcome_has_a_distinct_exit_code(self) -> None:
-        self.assertEqual(len(mod.EXIT), 6)
-        self.assertEqual(len(set(mod.EXIT.values())), 6)
+        self.assertEqual(len(mod.EXIT), 7)
+        self.assertEqual(len(set(mod.EXIT.values())), 7)
 
     def test_present_is_zero(self) -> None:
         self.assertEqual(mod.EXIT[mod.REGISTRATION_PRESENT], 0)

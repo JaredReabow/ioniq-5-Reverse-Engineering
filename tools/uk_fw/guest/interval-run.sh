@@ -82,6 +82,14 @@ log() {
 
 now_cs() {
   read -r _up _rest < "$UPTIME_FILE" 2>/dev/null || return 1
+  # Strict format. Without this, "." produced an empty whole part that padded to "00" and was
+  # reported as a confident 0 - the same fabricated-timestamp defect the helper had to be fixed for.
+  case "$_up" in
+    '') return 1 ;;
+    *[!0-9.]*) return 1 ;;
+    *.*.*) return 1 ;;
+    .*) return 1 ;;
+  esac
   _w=${_up%%.*}
   if [ "$_w" = "$_up" ]; then _f=00; else _f=${_up#*.}; fi
   while [ ${#_f} -lt 2 ]; do _f="${_f}0"; done

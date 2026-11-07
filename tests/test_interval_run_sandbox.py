@@ -168,6 +168,26 @@ class IntervalRunSandbox(unittest.TestCase):
         self.assertIn("HARNESS run=sandbox", text)
         self.assertIn("EXPORT_CALL_OK rc=0", text)
 
+    # ---- clock format ----------------------------------------------------
+
+    def test_malformed_uptime_is_rejected_not_fabricated(self) -> None:
+        # "." previously padded to "00" and was reported as a confident 0.
+        for bad in (".", "1.23.4", "garbage", ""):
+            with self.subTest(uptime=bad):
+                self.uptime.write_text(f"{bad}\n", encoding="utf-8")
+                proc = self._run(persist=1, sample=1)
+                self.assertEqual(proc.returncode, 3, proc.stderr)
+                self.assertIn("clock unavailable", proc.stderr)
+                self.uptime.write_text("1000.00 2000.00\n", encoding="utf-8")
+
+    def test_valid_uptime_converts_to_centiseconds(self) -> None:
+        for value, expected in (("1000.25", "100025"), ("1000.5", "100050"), ("1234", "123400")):
+            with self.subTest(uptime=value):
+                self.uptime.write_text(f"{value} 2000.00\n", encoding="utf-8")
+                self._run(persist=1, sample=1)
+                self.assertIn(f"t0_cs={expected}", self._text())
+                self.uptime.write_text("1000.00 2000.00\n", encoding="utf-8")
+
     # ---- sandbox gate -----------------------------------------------------
 
     def test_intervals_cannot_be_shortened_against_the_real_proc(self) -> None:

@@ -21,6 +21,41 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
+## 5.60.0 - instrument loop closed: qualified for a narrow claim, frozen, next session is the run
+
+Two rejections in, I stopped asking for code review and asked Astra for a decision: is this instrument worth more work, and what is the strongest claim it can honestly carry? (`docs/planning/astra-c11.md`)
+
+**Decision: QUALIFY FOR THE NARROW CLAIM.** Freeze revision 3 and use it as an **evidence-export tool**, not as certification of runtime behaviour. Astra's reasoning ends the loop:
+
+> On your stated premise that revision 3 fixes the concrete defects, none of A1, A3 or A4 blocks the narrow claim below. They block stronger interpretations. Another hardening round cannot change that distinction.
+
+That resolves the tension the project was stuck in: the three gaps are not defects to fix, they are the boundary between what an exporter can report and what only runtime evidence can establish.
+
+### The claim this instrument may now carry
+
+> The retained payload contains the specified structured marker, and its received byte count and digest match the completed capture transaction. That transaction records checks that the **named driver file** matched the frozen manifest and that the supplied process identity passed the helper's checks around copying; these checks do **not** establish driver execution, attribution of the marker to that process generation, or an atomic or complete record of producer activity.
+
+Two wording corrections from Astra: "exported by a run whose driver bytes matched" is wrong because it risks identifying the checked file as the actual driving program; and "closed snapshot" is acceptable only if defined as *a fixed exported byte sequence*.
+
+### Not sufficient by itself — hence two evidence channels
+
+A marker does not establish execution, generation or persistence, and boot58's 112 ms of retained tail is inadequate evidence of persistence. That makes the exporter insufficient **as the sole evidence source**, not the run unjustified. The next run therefore uses, fixed before launch:
+
+- **Export evidence** — the validated capture package, under the six citation conditions.
+- **Runtime evidence** — a retained execution record tying the run to the frozen launch chain, continuous display recording, and contemporaneous lifecycle observation over a persistence interval fixed before launch; plus an input and visible response if interactivity is claimed.
+
+Reporting rule set in advance: **marker presence is an artifact result; registration, persistence and interaction are separate runtime conclusions.** Anything runtime evidence cannot establish is reported as **unresolved**, not absent.
+
+### Eight sentences that must never be written on this instrument's authority
+
+"This is a generation-attributed capture." · "The manifest proves that the driver ran." · "This is an atomic snapshot of the compositor log." · "The capture contains all activity during the observation interval." · "`REGISTRATION_PRESENT` proves that authentic Home persisted." · "`REGISTRATION_ABSENT` proves that Home did not register." · "A truncated window confirms absence." · "The boot58/boot65 comparison is now attributable."
+
+### Consequence
+
+The instrument is **frozen**; further hardening is out of scope unless a specific defect blocks the narrow claim, which Astra states none does. Astra's closing instruction was explicit: **"The next working session should be the controlled run, not revision 4 of the capture harness."** The boot78 task stays paused, but no longer because the instrument is unqualified — it was specified on a withdrawn premise and must be re-specified with the two evidence channels.
+
+53 tests pass; `check_all.sh` passes.
+
 ## 5.59.0 - Astra C10 rejected revision 2 and falsified two of my claims
 
 Astra re-reviewed the guest script (`docs/planning/astra-c10.md`) and **REJECTED** it: *"The rewrite fixes process selection and several failure paths. It still does not establish a producer-bounded, generation-attributable snapshot, and a failed payload export can still take the success path."*

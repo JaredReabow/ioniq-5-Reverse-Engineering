@@ -269,7 +269,64 @@ The transaction fix also retroactively invalidates the `RECEIPT_INCOMPLETE` gate
 `b393622`: that gate used `any(o.startswith("CAPTURED"))`, which accepted a stale terminal line and
 accepted `CAPTURED` followed by `EXPORT_FAILED`. The review found it within the hour.
 
-### Status: NOT qualified, and three gaps are not fixable by this instrument
+## QUALIFIED FOR THE NARROW CLAIM — FROZEN (Astra C11)
+
+Astra C11 (`docs/planning/astra-c11.md`) ended the hardening loop:
+
+> **QUALIFY FOR THE NARROW CLAIM.** Freeze revision 3 and use it as an **evidence-export tool**, not
+> as certification of runtime behaviour.
+>
+> On your stated premise that revision 3 fixes the concrete defects, none of A1, A3 or A4 blocks the
+> narrow claim below. They block stronger interpretations. **Another hardening round cannot change
+> that distinction.**
+
+**This instrument is frozen. Do not start revision 4.** Further work on it is out of scope unless a
+specific defect blocks the narrow claim, which Astra states none does.
+
+### The claim this instrument may carry
+
+> The retained payload contains the specified structured marker, and its received byte count and
+> digest match the completed capture transaction. That transaction records checks that the **named
+> driver file** matched the frozen manifest and that the supplied process identity passed the helper's
+> checks around copying; these checks do **not** establish driver execution, attribution of the marker
+> to that process generation, or an atomic or complete record of producer activity.
+
+Two wording rules from Astra: say **"named driver file matched"**, never "exported by a run whose
+driver bytes matched", and define **"closed snapshot"** only as *a fixed exported byte sequence*,
+never as a coherent point-in-time snapshot of the source.
+
+### Sentences that must never be written on this instrument's authority
+
+"This is a generation-attributed capture." · "The manifest proves that the driver ran." · "This is an
+atomic snapshot of the compositor log." · "The capture contains all activity during the observation
+interval." · "`REGISTRATION_PRESENT` proves that authentic Home persisted." · "`REGISTRATION_ABSENT`
+proves that Home did not register." · "A truncated window confirms absence." · "The boot58/boot65
+comparison is now attributable."
+
+The full six citation conditions are in `docs/planning/astra-c11.md`.
+
+### What changed in the plan
+
+Astra's decisive point: the narrow claim is **not sufficient by itself** to answer *"does authentic
+Home register and persist"* — a marker does not establish execution, generation or persistence, and
+boot58's 112 ms of retained tail is inadequate evidence of persistence. But that makes the exporter
+insufficient **as the sole evidence source**, not the run unjustified.
+
+So the next run uses **two channels**, fixed before launch:
+
+- **Export evidence** — the validated capture package above.
+- **Runtime evidence** — a retained execution record tying the run to the frozen launch chain, plus
+  continuous display recording and contemporaneous lifecycle observation over a persistence interval
+  **fixed before launch**; plus an input and its visible response if interactivity is claimed.
+
+Reporting rule, set before launch: **marker presence is an artifact result; registration, persistence
+and interaction are separate runtime conclusions.** Anything runtime evidence cannot establish is
+reported as **unresolved** — not absent.
+
+### Status: the remaining gaps are boundaries, not defects
+
+Three gaps are **not fixable by this instrument** and are now recorded as its stated limits rather
+than as work items:
 
 53 tests pass and the pair works end to end on both retained logs. That is not qualification.
 
@@ -283,4 +340,8 @@ accepted `CAPTURED` followed by `EXPORT_FAILED`. The review found it within the 
 - **A1 needs producer coordination.** Flush-and-stop, or an acknowledged rotation. The helper has
   neither.
 
-The boot78 task stays paused. A run remains unjustified.
+The boot78 task stays paused **not because the instrument is unqualified, but because it was
+specified on a withdrawn premise**; it must be re-specified with the two evidence channels above
+before it runs. Astra's closing instruction is explicit:
+
+> The next working session should be the controlled run, not revision 4 of the capture harness.

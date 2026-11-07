@@ -162,6 +162,44 @@ In both cases the base64 block encodes the whole decoded export and nothing furt
 `dbg-out.txt` is the launcher log and screenshot channel, not withheld protocol stream. **So boot65's
 weston capture genuinely ends at protocol timestamp 1,397,571 and there is no unread remainder.**
 
+## Finding 6 — the defects are not one-off; they are the house style of the existing probe set
+
+So far the three defects have been described as properties of the two runs. A sweep of the 58 existing
+probe scripts (`work/vm/kbuild/ws/partimg-build/*.sh`, `tools/uk_fw/guest/*.sh`,
+`tools/uk_fw/vm_partimg/*.sh`) shows they are the norm, not the exception:
+
+| Property | Count of 58 probes |
+|---|---:|
+| Binds an observation by process name (`pidof`/`pgrep`) rather than a pinned pid | **35** |
+| Measures a log size then reads the log | 15 |
+| …of those, reads it **without** `head -c`, so the export can exceed the measured size | **6** |
+| Records its own identity (hashes itself, or emits a `SELF path=… digest=…` line) | **0** |
+
+The six streaming probes are `appcrash-dump.sh`, `final-run.sh`, `hmi-run.sh`, `lay-run.sh`,
+`qualified.sh`, `read-raw.sh`.
+
+### This changes the boot58/boot65 story in one useful way
+
+`final-run.sh` — the **retained driver of boot65** — exhibits the streaming defect directly:
+
+```sh
+101:{ printf 'BEGIN weston %s\n' "$WZ"; /bin/busybox base64 /tmp/weston-real.log 2>/dev/null | tr -d '\n'; ... }
+```
+
+It declares `$WZ` as the length, then encodes the whole file. So boot65's export exceeding its own
+declared length by 2,292 bytes needs no hypothesis about an unknown driver: **its own driver explains
+it**. And boot58's much larger 42,873-byte growth is the same mechanism with a longer gap between
+measurement and encoding.
+
+So the growth asymmetry between the two runs is a timing artefact of a shared defect, not evidence of a
+different measurement discipline. That removes one candidate explanation from the pile rather than adding
+one.
+
+### Consequence for the harness
+
+A fixed `interval-capture.sh` is not over-engineering for one bad script: it replaces a pattern that 35
+of 58 probes use for process binding, 6 use for export, and 0 address for identity.
+
 ## Conclusion — not attributable, and that is the result
 
 Three independent confounds separate the two observations:

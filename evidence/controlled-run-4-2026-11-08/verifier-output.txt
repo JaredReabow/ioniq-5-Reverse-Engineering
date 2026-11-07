@@ -1,0 +1,1 @@
+CAPTURE_TRUNCATED marker absent and the capture extends 35944 ms past the precursor, 60501 ms short of the 96445 ms milestone reference

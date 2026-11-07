@@ -1,0 +1,1117 @@
+[    0.000000] Initializing cgroup subsys cpuset
+[    0.000000] Initializing cgroup subsys cpu
+[    0.000000] Initializing cgroup subsys cpuacct
+[    0.000000] Linux version 4.1.27-abl (leo@Leo.local) (gcc version 14.2.0 (GCC) ) #4 SMP Fri Nov 6 05:41:35 AEDT 2026
+[    0.000000] Command line: root=/dev/mmcblk0p5 rootwait rootdelay=2 rootfstype=ext4 rw init=/init-interval-run.sh console=ttyS0,115200 panic=-1 loglevel=7 ABL.oemkm=40@20000000 ABL.seed=21000000,21000040
+[    0.000000] KERNEL supported cpus:
+[    0.000000]   Intel GenuineIntel
+[    0.000000] e820: BIOS-provided physical RAM map:
+[    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
+[    0.000000] BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
+[    0.000000] BIOS-e820: [mem 0x0000000000100000-0x000000007ffdefff] usable
+[    0.000000] BIOS-e820: [mem 0x000000007ffdf000-0x000000007fffffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000b0000000-0x00000000bfffffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000fed1c000-0x00000000fed1ffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
+[    0.000000] NX (Execute Disable) protection: active
+[    0.000000] SMBIOS 2.8 present.
+[    0.000000] e820: last_pfn = 0x7ffdf max_arch_pfn = 0x400000000
+[    0.000000] PAT not supported by CPU.
+[    0.000000] found SMP MP-table at [mem 0x000f54c0-0x000f54cf] mapped at [ffff8800000f54c0]
+[    0.000000] Scanning 1 areas for low memory corruption
+[    0.000000] Using GB pages for direct mapping
+[    0.000000] init_memory_mapping: [mem 0x00000000-0x000fffff]
+[    0.000000] init_memory_mapping: [mem 0x7fc00000-0x7fdfffff]
+[    0.000000] init_memory_mapping: [mem 0x60000000-0x7fbfffff]
+[    0.000000] init_memory_mapping: [mem 0x40000000-0x5fffffff]
+[    0.000000] init_memory_mapping: [mem 0x00100000-0x3fffffff]
+[    0.000000] init_memory_mapping: [mem 0x7fe00000-0x7ffdefff]
+[    0.000000] ACPI: Early table checksum verification disabled
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
+[    0.000000]   DMA32    [mem 0x0000000001000000-0x000000007ffdefff]
+[    0.000000]   Normal   empty
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000000001000-0x000000000009efff]
+[    0.000000]   node   0: [mem 0x0000000000100000-0x000000007ffdefff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000000001000-0x000000007ffdefff]
+[    0.000000] ACPI: PM-Timer IO Port: 0x608
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0xff] dfl dfl lint[0x1])
+[    0.000000] IOAPIC[0]: apic_id 0, version 32, address 0xfec00000, GSI 0-23
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 5 global_irq 5 high level)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 10 global_irq 10 high level)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 11 global_irq 11 high level)
+[    0.000000] Using ACPI (MADT) for SMP configuration information
+[    0.000000] ACPI: HPET id: 0x8086a201 base: 0xfed00000
+[    0.000000] smpboot: Allowing 4 CPUs, 0 hotplug CPUs
+[    0.000000] e820: [mem 0xc0000000-0xfed1bfff] available for PCI devices
+[    0.000000] clocksource refined-jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1910969940391419 ns
+[    0.000000] setup_percpu: NR_CPUS:4 nr_cpumask_bits:4 nr_cpu_ids:4 nr_node_ids:1
+[    0.000000] PERCPU: Embedded 30 pages/cpu @ffff88007fc00000 s84376 r8192 d30312 u524288
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 515944
+[    0.000000] Kernel command line: root=/dev/mmcblk0p5 rootwait rootdelay=2 rootfstype=ext4 rw init=/init-interval-run.sh console=ttyS0,115200 panic=-1 loglevel=7 ABL.oemkm=40@20000000 ABL.seed=21000000,21000040
+[    0.000000] log_buf_len individual max cpu contribution: 131072 bytes
+[    0.000000] log_buf_len total cpu_extra contributions: 393216 bytes
+[    0.000000] log_buf_len min size: 262144 bytes
+[    0.000000] log_buf_len: 1048576 bytes
+[    0.000000] early log buf free: 254700(97%)
+[    0.000000] PID hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.000000] Dentry cache hash table entries: 262144 (order: 9, 2097152 bytes)
+[    0.000000] Inode-cache hash table entries: 131072 (order: 8, 1048576 bytes)
+[    0.000000] xsave: enabled xstate_bv 0x1f, cntxt size 0x440 using standard form
+[    0.000000] Memory: 2046932K/2096628K available (4918K kernel code, 465K rwdata, 2476K rodata, 720K init, 688K bss, 49696K reserved, 0K cma-reserved)
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=4, Nodes=1
+[    0.000000] Hierarchical RCU implementation.
+[    0.000000] 	CONFIG_RCU_FANOUT set to non-default value of 32
+[    0.000000] 	Additional per-CPU info printed with stalls.
+[    0.000000] NR_IRQS:4352 nr_irqs:456 16
+[    0.000000] Console: colour dummy device 80x25
+[    0.000000] console [ttyS0] enabled
+[    0.000000] clocksource hpet: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604467 ns
+[    0.000000] tsc: Fast TSC calibration using PIT
+[    0.000000] tsc: Detected 999.997 MHz processor
+[    0.003349] Calibrating delay loop (skipped), value calculated using timer frequency.. 1999.99 BogoMIPS (lpj=999997)
+[    0.003808] pid_max: default: 32768 minimum: 301
+[    0.004000] ACPI: Core revision 20150410
+[    0.013000] Security Framework initialized
+[    0.014000] Smack:  Initializing.
+[    0.014286] Mount-cache hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.014528] Mountpoint-cache hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.019787] Initializing cgroup subsys memory
+[    0.020000] Initializing cgroup subsys freezer
+[    0.020608] CPU: Physical Processor ID: 0
+[    0.020787] CPU: Processor Core ID: 0
+[    0.021000] CPU: Physical Processor ID: 0
+[    0.023114] CPU: Processor Core ID: 0
+[    0.024000] mce: CPU supports 10 MCE banks
+[    0.024442] process: using mwait in idle threads
+[    0.024642] Last level iTLB entries: 4KB 0, 2MB 0, 4MB 0
+[    0.024758] Last level dTLB entries: 4KB 0, 2MB 0, 4MB 0, 1GB 0
+[    0.028000] Freeing SMP alternatives memory: 12K (ffffffff81b2a000 - ffffffff81b2d000)
+[    0.034000] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+[    0.041000] APIC calibration not consistent with PM-Timer: 146ms instead of 100ms
+[    0.041000] APIC delta adjusted to PM-Timer: 6249948 (9151188)
+[    0.041000] smpboot: CPU0: Intel QEMU TCG CPU version 2.5+ (fam: 06, model: 06, stepping: 03)
+[    0.041000] Performance Events: Broken PMU hardware detected, using software events only.
+[    0.041077] Failed to access perfctr msr (MSR c2 is 0)
+[    0.046000] NMI watchdog: disabled (cpu0): hardware events not enabled
+[    0.046016] NMI watchdog: Shutting down hard lockup detector on all cpus
+[    0.047981] x86: Booting SMP configuration:
+[    0.048000] .... node  #0, CPUs:      #1 #2 #3
+[    0.258172] x86: Booted up 1 node, 4 CPUs
+[    0.258519] smpboot: Total of 4 processors activated (10972.15 BogoMIPS)
+[    0.265328] devtmpfs: initialized
+[    0.270000] clocksource jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1911260446275000 ns
+[    0.270436] pinctrl core: initialized pinctrl subsystem
+[    0.274000] NET: Registered protocol family 16
+[    0.285120] cpuidle: using governor ladder
+[    0.291062] cpuidle: using governor menu
+[    0.291777] ACPI: bus type PCI registered
+[    0.292037] PCI: Using configuration type 1 for base access
+[    0.293464] mtrr: your CPUs had inconsistent fixed MTRR settings
+[    0.293789] mtrr: your CPUs had inconsistent variable MTRR settings
+[    0.294000] mtrr: your CPUs had inconsistent MTRRdefType settings
+[    0.294000] mtrr: probably your BIOS does not setup all CPUs.
+[    0.294014] mtrr: corrected configuration.
+[    0.307790] ACPI: Added _OSI(Module Device)
+[    0.308000] ACPI: Added _OSI(Processor Device)
+[    0.308000] ACPI: Added _OSI(3.0 _SCP Extensions)
+[    0.308013] ACPI: Added _OSI(Processor Aggregator Device)
+[    0.323000] ACPI: Interpreter enabled
+[    0.323552] ACPI: (supports S0 S3 S5)
+[    0.323766] ACPI: Using IOAPIC for interrupt routing
+[    0.325000] PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
+[    0.340147] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+[    0.340858] acpi PNP0A08:00: _OSC: OS supports [ASPM ClockPM Segments MSI]
+[    0.341714] acpi PNP0A08:00: _OSC: not requesting OS control; OS requires [ExtendedConfig ASPM ClockPM MSI]
+[    0.343048] PCI host bridge to bus 0000:00
+[    0.343981] pci_bus 0000:00: root bus resource [bus 00-ff]
+[    0.344000] pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7 window]
+[    0.344025] pci_bus 0000:00: root bus resource [io  0x0d00-0xffff window]
+[    0.344387] pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000bffff window]
+[    0.344886] pci_bus 0000:00: root bus resource [mem 0x80000000-0xafffffff window]
+[    0.345017] pci_bus 0000:00: root bus resource [mem 0xc0000000-0xfebfffff window]
+[    0.345463] pci_bus 0000:00: root bus resource [mem 0x100000000-0x8ffffffff window]
+[    0.353421] pci 0000:00:1f.0: quirk: [io  0x0600-0x067f] claimed by ICH6 ACPI/GPIO/TCO
+[    0.359929] ACPI: PCI Interrupt Link [LNKA] (IRQs 5 *10 11)
+[    0.360905] ACPI: PCI Interrupt Link [LNKB] (IRQs 5 *10 11)
+[    0.361281] ACPI: PCI Interrupt Link [LNKC] (IRQs 5 10 *11)
+[    0.361936] ACPI: PCI Interrupt Link [LNKD] (IRQs 5 10 *11)
+[    0.362000] ACPI: PCI Interrupt Link [LNKE] (IRQs 5 *10 11)
+[    0.362284] ACPI: PCI Interrupt Link [LNKF] (IRQs 5 *10 11)
+[    0.362771] ACPI: PCI Interrupt Link [LNKG] (IRQs 5 10 *11)
+[    0.363075] ACPI: PCI Interrupt Link [LNKH] (IRQs 5 10 *11)
+[    0.363519] ACPI: PCI Interrupt Link [GSIA] (IRQs *16)
+[    0.363843] ACPI: PCI Interrupt Link [GSIB] (IRQs *17)
+[    0.364000] ACPI: PCI Interrupt Link [GSIC] (IRQs *18)
+[    0.364116] ACPI: PCI Interrupt Link [GSID] (IRQs *19)
+[    0.365000] ACPI: PCI Interrupt Link [GSIE] (IRQs *20)
+[    0.365120] ACPI: PCI Interrupt Link [GSIF] (IRQs *21)
+[    0.365429] ACPI: PCI Interrupt Link [GSIG] (IRQs *22)
+[    0.365769] ACPI: PCI Interrupt Link [GSIH] (IRQs *23)
+[    0.368000] media: Linux media interface: v0.10
+[    0.368169] Linux video capture interface: v2.00
+[    0.369186] Advanced Linux Sound Architecture Driver Initialized.
+[    0.369519] PCI: Using ACPI for IRQ routing
+[    0.373000] NetLabel: Initializing
+[    0.373000] NetLabel:  domain hash size = 128
+[    0.373011] NetLabel:  protocols = UNLABELED CIPSOv4
+[    0.373960] NetLabel:  unlabeled traffic allowed by default
+[    0.374265] hpet0: at MMIO 0xfed00000, IRQs 2, 8, 0
+[    0.374557] hpet0: 3 comparators, 64-bit 100.000000 MHz counter
+[    0.377507] Switched to clocksource hpet
+[    0.380331] pnp: PnP ACPI init
+[    0.381157] ACPI: IRQ 3 override to edge, high
+[    0.382913] ACPI: IRQ 4 override to edge, high
+[    0.384236] ACPI: IRQ 4 override to edge, high
+[    0.385973] system 00:07: [mem 0xb0000000-0xbfffffff window] has been reserved
+[    0.387319] pnp: PnP ACPI: found 8 devices
+[    0.414155] clocksource acpi_pm: mask: 0xffffff max_cycles: 0xffffff, max_idle_ns: 2085701024 ns
+[    0.415843] NET: Registered protocol family 2
+[    0.420547] TCP established hash table entries: 16384 (order: 5, 131072 bytes)
+[    0.421340] TCP bind hash table entries: 16384 (order: 6, 262144 bytes)
+[    0.421963] TCP: Hash tables configured (established 16384 bind 16384)
+[    0.422960] UDP hash table entries: 1024 (order: 3, 32768 bytes)
+[    0.423356] UDP-Lite hash table entries: 1024 (order: 3, 32768 bytes)
+[    0.424993] NET: Registered protocol family 1
+[    0.429454] Scanning for low memory corruption every 60 seconds
+[    0.430848] AVX2 version of gcm_enc/dec engaged.
+[    0.431111] AES CTR mode by8 optimization enabled
+[    0.435345] futex hash table entries: 1024 (order: 4, 65536 bytes)
+[    0.435788] audit: initializing netlink subsys (disabled)
+[    0.436966] audit: type=2000 audit(1794058777.436:1): initialized
+[    0.439460] HugeTLB registered 2 MB page size, pre-allocated 0 pages
+[    0.466951] Key type asymmetric registered
+[    0.467302] Asymmetric key parser 'x509' registered
+[    0.468048] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 252)
+[    0.468481] io scheduler noop registered
+[    0.468721] io scheduler deadline registered
+[    0.469503] io scheduler cfq registered (default)
+[    0.471581] input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN:00/input/input0
+[    0.471791] ACPI: Power Button [PWRF]
+[    0.473370] Serial: 8250/16550 driver, 4 ports, IRQ sharing disabled
+[    0.505392] 00:00: ttyS3 at I/O 0x2e8 (irq = 3, base_baud = 115200) is a 16550A
+[    0.537297] 00:01: ttyS2 at I/O 0x3e8 (irq = 4, base_baud = 115200) is a 16550A
+[    0.568854] 00:05: ttyS0 at I/O 0x3f8 (irq = 4, base_baud = 115200) is a 16550A
+[    0.572626] [drm] Initialized drm 1.1.0 20060810
+[    0.576793] [drm] Found bochs VGA, ID 0xb0c5.
+[    0.577068] [drm] Framebuffer size 16384 kB @ 0xfd000000, mmio @ 0xfebf0000.
+[    0.577797] [TTM] Zone  kernel: Available graphics memory: 1023472 kiB
+[    0.578245] [TTM] Initializing pool allocator
+[    0.578601] [TTM] Initializing DMA pool allocator
+[    0.600559] bochs-drm 0000:00:01.0: fb0: bochsdrmfb frame buffer device
+[    0.600937] bochs-drm 0000:00:01.0: registered panic notifier
+[    0.601422] [drm] Initialized bochs-drm 1.0.0 20130925 for 0000:00:01.0 on minor 0
+[    0.618052] loop: module loaded
+[    0.619254] zram: Created 1 device(s)
+[    0.619496] micom: projection stand-in (spi_validation=1 lcd_type=3 oem_type=1)
+[    0.620770] lpc_ich 0000:00:1f.0: I/O space for GPIO uninitialized
+[    0.621601] CAN device driver interface
+[    0.622543] i2c /dev entries driver
+[    0.623297] device-mapper: uevent: version 1.0.3
+[    0.624658] device-mapper: ioctl: 4.31.0-ioctl (2015-3-12) initialised: dm-devel@redhat.com
+[    0.625895] sdhci: Secure Digital Host Controller Interface driver
+[    0.626215] sdhci: Copyright(c) Pierre Ossman
+[    0.626344] sdhci-pci 0000:00:02.0: SDHCI controller found [1b36:0007] (rev 0)
+[    0.629418] ACPI: PCI Interrupt Link [GSIG] enabled at IRQ 22
+[    0.631861] sdhci-pci 0000:00:02.0: No vmmc regulator found
+[    0.632274] sdhci-pci 0000:00:02.0: No vqmmc regulator found
+[    0.636395] mmc0: SDHCI controller on PCI [0000:00:02.0] using ADMA
+[    0.636905] sdhci-pltfm: SDHCI platform and OF driver helper
+[    0.637249] Netfilter messages via NETLINK v0.30.
+[    0.638245] nf_conntrack version 0.5.0 (16384 buckets, 65536 max)
+[    0.640413] ctnetlink v0.93: registering with nfnetlink.
+[    0.643550] ip_tables: (C) 2000-2006 Netfilter Core Team
+[    0.645098] arp_tables: (C) 2002 David S. Miller
+[    0.647342] NET: Registered protocol family 10
+[    0.651120] ip6_tables: (C) 2000-2006 Netfilter Core Team
+[    0.653235] NET: Registered protocol family 17
+[    0.653812] can: controller area network core (rev 20120528 abi 9)
+[    0.654344] NET: Registered protocol family 29
+[    0.654664] can: raw protocol (rev 20120528)
+[    0.654664] can: broadcast manager protocol (rev 20120528 t)
+[    0.655339] can: netlink gateway (rev 20130117) max_hops=1
+[    0.662044] ALSA device list:
+[    0.662240]   No soundcards found.
+[    0.665934] Waiting 2 sec before mounting root device...
+[    0.678942] mmc0: new high speed SDXC card at address 832d
+[    0.681068] mmcblk0: mmc0:832d QEMU! 36.1 GiB 
+[    0.693655]  mmcblk0: p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p15 p16 p17
+[    1.432484] tsc: Refined TSC clocksource calibration: 999.993 MHz
+[    1.433069] clocksource tsc: mask: 0xffffffffffffffff max_cycles: 0x1cd420e9bab, max_idle_ns: 881590482973 ns
+[    2.443381] Switched to clocksource tsc
+[    2.735814] EXT4-fs (mmcblk0p5): mounted filesystem with ordered data mode. Opts: (null)
+[    2.736325] VFS: Mounted root (ext4 filesystem) on device 179:5.
+[    2.758477] devtmpfs: mounted
+[    2.933563] Freeing unused kernel memory: 720K (ffffffff81a76000 - ffffffff81b2a000)
+[    2.935333] Write protecting the kernel read-only data: 10240k
+[    2.941571] Freeing unused kernel memory: 1220K (ffff8800014cf000 - ffff880001600000)
+[    2.956583] Freeing unused kernel memory: 1620K (ffff88000186b000 - ffff880001a00000)
+mount tmp filesystems
+OEM Type: 1, KMC
+Car Type: 0, LX2
+LCD TYPE: 3
+cat: /sys/devices/pci0000:00/0000:00:16.0/i2c_designware.0/i2c-0/0-a042/adv7282m_lock: No such file or directory
+ECO Type: 0, NA
+cat: /sys/devices/pci0000:00/0000:00:17.1/i2c_designware.5/i2c-5/5-a048/max9288_lock: No such file or directory
+Telematics: 0, NA
+MIC: 0, ONE
+CAMERA TYPE Exception : none(Unknown camera type)
+HW_TYPE: 0, OLD
+[EarlyCamera] There is no device for LGE-RVC
+COUNTRY: 0, KOREA
+[    4.537768] random: weston.real urandom read with 15 bits of entropy available
+[    4.720918] EXT4-fs (mmcblk0p2): mounted filesystem with ordered data mode. Opts: (null)
+##### /etc/setup_ecnr_engine_db.sh: LX2 KOREA 
+ecnr-engine config path : /etc/ecnr/LX2/NONE/NONE/NONE/NONE
+##### /etc/setup_ecnr_micgain_db.sh: LX2 KOREA 
+ecnr-engine config path : /etc/ecnr_micgain/SK3/EU/NONE/NONE
+ecnr-engine config path : default :SK3
+/etc/setup_bt_patchram.sh: line 3: /log_data/BT/vbt.log: No such file or directory
+/etc/setup_bt_patchram.sh: line 21: /log_data/BT/vbt.log: No such file or directory
+NAVI SUPPORT: no
+[    6.052516] ------------[ cut here ]------------
+[    6.052767] WARNING: CPU: 1 PID: 768 at kernel/module.c:970 module_put+0x3f/0x49()
+[    6.053969] ---[ end trace d1634e8a62ed4884 ]---
+[    6.086447] ------------[ cut here ]------------
+[    6.089787] WARNING: CPU: 1 PID: 768 at kernel/module.c:970 module_put+0x3f/0x49()
+[    6.090267] ---[ end trace d1634e8a62ed4885 ]---
+[    6.092327] ------------[ cut here ]------------
+[    6.093241] WARNING: CPU: 3 PID: 769 at kernel/module.c:970 module_put+0x3f/0x49()
+[    6.093748] ---[ end trace d1634e8a62ed4886 ]---
+[    6.094046] xhci_pci: Unknown symbol pci_d3cold_disable (err 0)
+[    6.094220] ------------[ cut here ]------------
+[    6.094220] WARNING: CPU: 1 PID: 768 at kernel/module.c:970 module_put+0x3f/0x49()
+[    6.095124] ---[ end trace d1634e8a62ed4887 ]---
+[    6.095278] ------------[ cut here ]------------
+[    6.095412] WARNING: CPU: 1 PID: 768 at kernel/module.c:970 module_put+0x3f/0x49()
+[    6.095805] ---[ end trace d1634e8a62ed4888 ]---
+modprobe: ERROR: could not insert 'xhci_pci': Unknown symbol in module, or unknown parameter (see dmesg)
+[    6.162042] usb_ctl: Unknown symbol get_pcb_version (err 0)
+[    6.162428] usb_ctl: Unknown symbol get_hw_version (err 0)
+[    6.163641] zram0: detected capacity change from 0 to 1287651328
+modprobe: ERROR: could not insert 'usb_ctl': Unknown symbol in module, or unknown parameter (see dmesg)
+Setting up swapspace version 1, size = 1.2 GiB (1287647232 bytes)
+no label, UUID=ba39306d-103d-4188-8336-0c578dd094b0
+[    6.250301] ------------[ cut here ]------------
+[    6.250590] WARNING: CPU: 2 PID: 796 at kernel/module.c:970 module_put+0x3f/0x49()
+[    6.250706] Adding 1257468k swap on /dev/zram0.  Priority:1 extents:1 across:1257468k SS
+[    6.251512] ---[ end trace d1634e8a62ed4889 ]---
+[    6.253314] ------------[ cut here ]------------
+[    6.253553] WARNING: CPU: 2 PID: 796 at kernel/module.c:970 module_put+0x3f/0x49()
+[    6.253620] ---[ end trace d1634e8a62ed488a ]---
+[    6.294943] scsi_mod: Unknown symbol blk_set_runtime_active (err 0)
+SECURE CONSOLE Mode: NO !!!
+modprobe: ERROR: could not insert 'usb_storage': Unknown symbol in module, or unknown parameter (see dmesg)
+[    6.330458] ------------[ cut here ]------------
+[    6.330696] WARNING: CPU: 1 PID: 804 at kernel/module.c:970 module_put+0x3f/0x49()
+[    6.331236] ---[ end trace d1634e8a62ed488b ]---
+IPTABLES_DEBUG_MODE: 0
+FireWall(iptables-dbg) DEBUG Disabled !!!
+[    6.350451] ------------[ cut here ]------------
+[    6.350625] WARNING: CPU: 1 PID: 808 at kernel/module.c:970 module_put+0x3f/0x49()
+[    6.351061] ---[ end trace d1634e8a62ed488c ]---
+[    6.368738] rear_comm: Unknown symbol get_car_type (err 0)
+modprobe: ERROR: could not insert 'rear_comm': Unknown symbol in module, or unknown parameter (see dmesg)
+[eMMC] ***** New partition(rw_data=/dev/mmcblk0p11)
+[eMMC] ***** rw_data(dev/mmcblk0p11) partition check
+[eMMC] ***** Last Shutdown was OK !!!
+[    6.654381] EXT4-fs (mmcblk0p8): mounted filesystem with ordered data mode. Opts: (null)
+mv: cannot stat `/log_data/fs_log': No such file or directory
+`/tmp/fs_log' -> `/log_data/fs_log'
+`/tmp/fs_log/fsck.log' -> `/log_data/fs_log/fsck.log'
+[eMMC] ***** Set Check Interval (/dev/mmcblk0p11)
+[eMMC] ***** eMMC RW_DATA Partition Check and Recovery Start!!!
+[eMMC] ***** mount -t ext4 /dev/mmcblk0p11 /tmp/format_emmc
+[    6.971769] EXT4-fs (mmcblk0p11): warning: checktime reached, running e2fsck is recommended
+[    6.973576] EXT4-fs (mmcblk0p11): mounted filesystem with ordered data mode. Opts: (null)
+[eMMC] ***** eMMC RW_DATA Partition Check and Recovery Complete!!!
+[    7.015385] ------------[ cut here ]------------
+[    7.015591] WARNING: CPU: 3 PID: 847 at kernel/module.c:970 module_put+0x3f/0x49()
+[    7.016646] ---[ end trace d1634e8a62ed488d ]---
+/dev /
+/
+/etc/set_gps_ttyhook.sh: line 8: /sys/devices/platform/ttyhook/ttyhook_name: No such file or directory
+[    7.269940] systemd[1]: Successfully loaded Smack policies.
+[    7.271950] systemd[1]: Successfully loaded Smack/CIPSO policies.
+[    7.289193] ------------[ cut here ]------------
+[    7.290097] WARNING: CPU: 3 PID: 1 at kernel/module.c:970 module_put+0x3f/0x49()
+[    7.290836] ---[ end trace d1634e8a62ed488e ]---
+[    7.303288] systemd[1]: Relabelled /dev and /run in 4.647ms.
+[    7.332544] systemd[1]: systemd 225 running in system mode. (-PAM -AUDIT -SELINUX +IMA -APPARMOR +SMACK +SYSVINIT +UTMP -LIBCRYPTSETUP -GCRYPT -GNUTLS +ACL +XZ -LZ4 -SECCOMP +BLKID -ELFUTILS +KMOD -IDN)
+[    7.334502] systemd[1]: Detected virtualization other.
+[    7.334868] systemd[1]: Detected architecture x86-64.
+
+Welcome to [1mOpenEmbedded 1.0[0m!
+
+[    7.338098] systemd[1]: Set hostname to <prm-gen-5>.
+[    7.340464] systemd[1]: Initializing machine ID from random generator.
+[    7.782649] systemd[1]: Configuration file /lib/systemd/system/pstore-reboot.path is marked executable. Please remove executable permission bits. Proceeding anyway.
+[    7.784654] systemd[1]: Configuration file /lib/systemd/system/pstore-reboot.service is marked executable. Please remove executable permission bits. Proceeding anyway.
+[    7.788394] systemd[1]: Configuration file /lib/systemd/system/spi-validation.path is marked executable. Please remove executable permission bits. Proceeding anyway.
+[    7.790370] systemd[1]: Configuration file /lib/systemd/system/spi-validation.service is marked executable. Please remove executable permission bits. Proceeding anyway.
+[    7.808350] systemd[1]: TimeManager.service: Service has Restart= setting other than no, which isn't allowed for Type=oneshot services. Refusing.
+[    7.827596] systemd[1]: TimeManager.service: Cannot add dependency job, ignoring: Unit TimeManager.service failed to load: Invalid argument. See system logs and 'systemctl status TimeManager.service' for details.
+[    7.836027] systemd[1]: Started Dispatch Password Requests to Console Directory Watch.
+[[32m  OK  [0m] Started Dispatch Password Requests to Console Directory Watch.
+[    7.838357] systemd[1]: Started Forward Password Requests to Wall Directory Watch.
+[[32m  OK  [0m] Started Forward Password Requests to Wall Directory Watch.
+[    7.840238] systemd[1]: Created slice Root Slice.
+[[32m  OK  [0m] Created slice Root Slice.
+[    7.842071] systemd[1]: Listening on udev Control Socket.
+[[32m  OK  [0m] Listening on udev Control Socket.
+[    7.842383] systemd[1]: Listening on Syslog Socket.
+[[32m  OK  [0m] Listening on Syslog Socket.
+[    7.843425] systemd[1]: Listening on /dev/initctl Compatibility Named Pipe.
+[[32m  OK  [0m] Listening on /dev/initctl Compatibility Named Pi[    7.843954] systemd[1]: Starting of Arbitrary Executable File Formats File System Automount Point not supported.
+pe.
+[[1;33mUNSUPP[0m] Starting of Arbitrary Executable Fi...m Automoun[    7.845181] systemd[1]: Reached target Swap.
+t Point not supported.
+[[32m  OK  [0m] Reached target Swap.
+[    7.845747] systemd[1]: Reached target Timers.
+[[32m  OK  [0m] Reached target Timers.
+[    7.847091] systemd[1]: Created slice System Slice.
+[[32m  OK  [0m] Created slice System Slice.
+[    7.853082] systemd[1]: Starting Create list of required static device nodes for the current kernel...
+         Starting Create list of required st... nodes for the current kernel...
+[    7.856211] systemd[1]: Starting Remount Root and Kernel File Systems...
+         Starting Remount Root and Kernel File Systems...
+[    7.860756] systemd[1]: Mounting Huge Pages File System...
+         Mounting Huge Pages File System...
+[    7.863820] systemd[1]: Reached target Slices.
+[[32m  OK  [0m] Reached target Slices.
+[    7.882087] systemd[1]: Mounting Debug File System...
+         Mounting Debug File System...
+[    7.887966] systemd[1]: Mounting POSIX Message Queue File System...
+         Mounting POSIX Message Queue File System...
+[    7.893469] systemd[1]: Created slice system-getty.slice.
+[[32m  OK  [0m] Created slice system-getty.slice.
+[    7.901434] systemd[1]: Starting Load Kernel Modules...
+         Starting Load Kernel Modules...
+[    7.903182] systemd[1]: Listening on udev Kernel Socket.
+[[32m  OK  [0m] Listening on udev Kernel Socket.
+[    7.909520] systemd[1]: Started Create list of required static device nodes for the current kernel.
+[[32m  OK  [0m] Started Create list of required sta...ce nodes for the current kernel.
+Create new configuration.
+/etc/set_isys_freq_with_file.sh: line 18: /home/root/.config/isys_freq.dat: No such file or directory
+/etc/set_isys_freq_with_file.sh: line 21: /sys/bus/intel-ipu4-bus/devices/intel-ipu4-isys0/ipu4_core_freq: No such file or directory
+[    7.987411] systemd-modules-load[881]: Module 'i2c_dev' is builtin
+[    7.988002] systemd-modules-load[881]: Module 'i2c_designware_platform' is builtin
+[    7.988466] systemd-modules-load[881]: Module 'pinctrl_broxton' is builtin
+[    7.988893] systemd-modules-load[881]: Module 'crlmodule' is builtin
+[    7.988975] systemd-modules-load[881]: Module 'videobuf2_core' is builtin
+[    7.989875] systemd-modules-load[881]: Module 'videobuf2_memops' is builtin
+[    7.990247] systemd-modules-load[881]: Module 'videobuf2_dma_contig' is builtin
+[    7.990699] systemd-modules-load[881]: Module 'intel_ipu4_acpi' is builtin
+[    7.990760] systemd-modules-load[881]: Module 'intel_ipu4_wrapper_bxtB0' is builtin
+[    7.991483] systemd-modules-load[881]: Module 'lib2600psys_mod_bxtB0' is builtin
+[    7.991854] systemd-modules-load[881]: Module 'lib2600_mod_bxtB0' is builtin
+[    7.992184] systemd-modules-load[881]: Module 'intel_ipu4_mod_bxtB0' is builtin
+[    7.992435] systemd-modules-load[881]: Module 'intel_ipu4_mmu_bxtB0' is builtin
+[    7.993003] systemd-modules-load[881]: Module 'intel_ipu4_psys_mod_bxtB0' is builtin
+[    7.993399] systemd-modules-load[881]: Module 'intel_ipu4_isys_mod_bxtB0' is builtin
+[    8.011747] ------------[ cut here ]------------
+[    8.011981] WARNING: CPU: 3 PID: 881 at kernel/module.c:970 module_put+0x3f/0x49()
+[    8.012318] ---[ end trace d1634e8a62ed488f ]---
+[    8.012318] systemd-modules-load[881]: Inserted module 'mei'
+[    8.019653] ------------[ cut here ]------------
+[    8.019744] WARNING: CPU: 3 PID: 881 at kernel/module.c:970 module_put+0x3f/0x49()
+[    8.020519] ---[ end trace d1634e8a62ed4890 ]---
+[    8.020798] systemd-modules-load[881]: Inserted module 'mei_me'
+[    8.026274] ------------[ cut here ]------------
+[    8.026467] WARNING: CPU: 3 PID: 881 at kernel/module.c:970 module_put+0x3f/0x49()
+[    8.027160] ---[ end trace d1634e8a62ed4891 ]---
+[    8.027495] systemd-modules-load[881]: Inserted module 'mei_txe'
+[    8.038995] ------------[ cut here ]------------
+[    8.039676] WARNING: CPU: 3 PID: 881 at kernel/module.c:970 module_put+0x3f/0x49()
+[    8.039914] ---[ end trace d1634e8a62ed4892 ]---
+[    8.042398] ------------[ cut here ]------------
+[    8.042636] WARNING: CPU: 3 PID: 881 at kernel/module.c:970 module_put+0x3f/0x49()
+[    8.042825] ---[ end trace d1634e8a62ed4893 ]---
+[    8.043591] systemd-modules-load[881]: Inserted module 'lgivi_usbser'
+[    8.046626] lgivi_usbrmnet: module license 'GPL V2' taints kernel.
+[    8.046978] Disabling lock debugging due to kernel taint
+[    8.048015] ------------[ cut here ]------------
+[    8.048330] WARNING: CPU: 3 PID: 881 at kernel/module.c:970 module_put+0x3f/0x49()
+[    8.048853] ---[ end trace d1634e8a62ed4894 ]---
+[    8.049565] systemd-modules-load[881]: Inserted module 'lgivi_usbrmnet'
+[    8.054040] systemd[1]: Started Load Kernel Modules.
+[[32m  OK  [0m] Started Load Kernel Modules.
+[    8.068917] systemd[1]: Starting Apply Kernel Variables...
+         Starting Apply Kernel Variables...
+[    8.088405] ------------[ cut here ]------------
+[    8.088641] WARNING: CPU: 3 PID: 884 at mm/vmalloc.c:1458 __vunmap+0x5e/0xaf()
+[    8.089114] ---[ end trace d1634e8a62ed4895 ]---
+[    8.097123] systemd[1]: Mounting Configuration File System...
+         Mounting Configuration File System...
+[    8.132259] systemd[1]: Mounted Huge Pages File System.
+[[32m  OK  [0m] Mounted Huge Pages File System.
+[    8.133840] systemd[1]: Mounted Debug File System.
+[[32m  OK  [0m] Mounted Debug File System.
+[    8.135315] systemd[1]: Started Apply Kernel Variables.
+[[32m  OK  [0m] Started Apply Kernel Variables.
+[    8.137696] systemd[1]: Mounted POSIX Message Queue File System.
+[[32m  OK  [0m] Mounted POSIX Message Queue File System.
+[    8.153034] systemd[1]: Mounted Configuration File System.
+[[32m  OK  [0m] Mounted Configuration File System.
+[    8.155527] EXT4-fs (mmcblk0p6): mounted filesystem with ordered data mode. Opts: (null)
+[    8.175200] EXT4-fs (mmcblk0p8): mounted filesystem with ordered data mode. Opts: journal_checksum
+[    8.194564] EXT4-fs (mmcblk0p9): mounted filesystem with ordered data mode. Opts: journal_checksum
+[    8.214294] EXT4-fs (mmcblk0p10): mounted filesystem with ordered data mode. Opts: journal_checksum
+[    8.231990] EXT4-fs (mmcblk0p11): warning: checktime reached, running e2fsck is recommended
+[    8.233562] EXT4-fs (mmcblk0p11): mounted filesystem with ordered data mode. Opts: journal_checksum
+[    8.252650] EXT4-fs (mmcblk0p12): mounted filesystem with ordered data mode. Opts: journal_checksum
+[    8.271363] EXT4-fs (mmcblk0p13): mounted filesystem with ordered data mode. Opts: journal_checksum
+[    8.289286] EXT4-fs (mmcblk0p14): mounted filesystem with ordered data mode. Opts: (null)
+[    8.308667] EXT4-fs (mmcblk0p15): mounted filesystem with ordered data mode. Opts: (null)
+[    8.329697] EXT4-fs (mmcblk0p17): mounted filesystem with ordered data mode. Opts: (null)
+[    8.408012] systemd[1]: Started Remount Root and Kernel File Systems.
+[[32m  OK  [0m] Started Remount Root and Kernel File Systems.
+[    8.453823] systemd[1]: Starting Rebuild Hardware Database...
+         Starting Rebuild Hardware Database...
+[    8.456891] systemd[1]: Starting Create System Users...
+         Starting Create System Users...
+[    8.463566] systemd[1]: Starting partition mount check service...
+         Starting partition mount check service...
+[    8.504287] systemd-sysusers[927]: Creating group wheel with gid 993.
+[    8.504528] systemd-sysusers[927]: Creating group systemd-bus-proxy with gid 992.
+[    8.506085] systemd-sysusers[927]: Creating user systemd-bus-proxy (systemd Bus Proxy) with uid 992 and gid 992.
+[    8.519935] systemd-sysusers[927]: Creating group nobody with gid 991.
+[    8.559617] systemd[1]: Started Create System Users.
+[[32m  OK  [0m] Started Create System Users.
+[    8.562781] systemd[1]: Starting Create Static Device Nodes in /dev...
+         Starting Create Static Device Nodes in /dev...
+[    8.641731] systemd[1]: Started Create Static Device Nodes in /dev.
+[[32m  OK  [0m] Started Create Static Device Nodes in /dev.
+[    8.668382] systemd[1]: Reached target Local File Systems (Pre).
+[[32m  OK  [0m] Reached target Local File Systems (Pre).
+[    8.672619] systemd[1]: Mounting Smack filesystem mounting...
+         Mounting Smack filesystem mounting...
+[    8.675710] systemd[1]: Mounting /var/volatile...
+         Mounting /var/volatile...
+[    8.680133] systemd[1]: Starting udev Kernel Device Manager...
+         Starting udev Kernel Device Manager...
+[    8.728250] systemd[1]: Mounted Smack filesystem mounting.
+[[32m  OK  [0m] Mounted Smack filesystem mounting.
+[    8.795910] systemd[1]: Mounted /var/volatile.
+[[32m  OK  [0m] Mounted /var/volatile.
+[    8.812680] systemd[1]: Reached target Local File Systems.
+[[32m  OK  [0m] Reached target Local File Systems.
+[    8.830418] systemd[1]: Starting Create Volatile Files and Directories...
+         Starting Create Volatile Files and Directories...
+[    8.836618] systemd[1]: Starting Load/Save Random Seed...
+         Starting Load/Save Random Seed...
+[    8.841708] systemd[1]: Starting Security Auditing Service...
+         Starting Security Auditing Service...
+[    8.877792] systemd[1]: Started Create Volatile Files and Directories.
+[[32m  OK  [0m] Started Create Volatile Files and Directories.
+[    8.890939] systemd[1]: Started Load/Save Random Seed.
+[[32m  OK  [0m] Started Load/Save Random Seed.
+[    8.925988] systemd[1]: Started udev Kernel Device Manager.
+[[32m  OK  [0m] Started udev Kernel Device Manager.
+[    8.993654] systemd[1]: auditd.service: Main process exited, code=exited, status=6/NOTCONFIGURED
+[    8.997001] systemd[1]: Failed to start Security Auditing Service.
+[[1;31mFAILED[0m] Failed to start Security Auditing Service.
+See 'systemctl status auditd.service' for details.
+[    8.998515] systemd[1]: auditd.service: Failed with result 'exit-code'.
+[    9.006370] systemd[1]: Starting Update UTMP about System Boot/Shutdown...
+         Starting Update UTMP about System Boot/Shutdown...
+[    9.072954] systemd[1]: Started Update UTMP about System Boot/Shutdown.
+[[32m  OK  [0m] Started Update UTMP about System Boot/Shutdown.
+[    9.359444] systemd[1]: auditd.service: Service hold-off time over, scheduling restart.
+[    9.361151] systemd[1]: Stopped Security Auditing Service.
+[[32m  OK  [0m] Stopped Security Auditing Service.
+[    9.364459] systemd[1]: Starting Security Auditing Service...
+         Starting Security Auditing Service...
+[    9.448442] systemd[1]: auditd.service: Main process exited, code=exited, status=6/NOTCONFIGURED
+[    9.469582] systemd[1]: Failed to start Security Auditing Service.
+[[1;31mFAILED[0m] Failed to start Security Auditing Service.
+See 'systemctl status auditd.service' for details.
+[    9.471207] systemd[1]: auditd.service: Failed with result 'exit-code'.
+[    9.821730] systemd[1]: auditd.service: Service hold-off time over, scheduling restart.
+[    9.822453] systemd[1]: Stopped Security Auditing Service.
+[[32m  OK  [0m] Stopped Security Auditing Service.
+[    9.837796] systemd[1]: Starting Security Auditing Service...
+         Starting Security Auditing Service...
+[    9.896886] systemd[1]: auditd.service: Main process exited, code=exited, status=6/NOTCONFIGURED
+[    9.903601] systemd[1]: Failed to start Security Auditing Service.
+[[1;31mFAILED[0m] Failed to start Security Auditing Service.
+See 'systemctl status auditd.service' for details.
+[    9.904420] systemd[1]: auditd.service: Failed with result 'exit-code'.
+[   10.368015] systemd[1]: auditd.service: Service hold-off time over, scheduling restart.
+[   10.932828] systemd[1]: Started Rebuild Hardware Database.
+[[32m  OK  [0m] Started Rebuild Hardware Database.
+[   12.647564] systemd[1]: Starting Update is Completed...
+         Starting Update is Completed...
+[   12.780317] systemd[1]: Starting udev Coldplug all Devices...
+         Starting udev Coldplug all Devices...
+[   12.781038] systemd[1]: Stopped Security Auditing Service.
+[[32m  OK  [0m] Stopped Security Auditing Service.
+[   12.784925] systemd[1]: Starting Security Auditing Service...
+         Starting Security Auditing Service...
+[   12.820568] systemd[1]: Started Update is Completed.
+[[32m  OK  [0m] Started Update is Completed.
+[   12.923177] systemd[1]: Started Security Auditing Service.
+[[32m  OK  [0m] Started Security Auditing Service.
+[   12.928081] systemd[1]: auditd.service: Main process exited, code=exited, status=6/NOTCONFIGURED
+[   12.930530] systemd[1]: auditd.service: Failed with result 'exit-code'.
+[   13.054082] systemd[1]: Started udev Coldplug all Devices.
+[[32m  OK  [0m] Started udev Coldplug all Devices.
+[   13.055557] systemd[1]: auditd.service: Service hold-off time over, scheduling restart.
+[   13.055638] systemd[1]: Stopped Security Auditing Service.
+[[32m  OK  [0m] Stopped Security Auditing Service.
+[   13.059493] systemd[1]: Starting Security Auditing Service...
+         Starting Security Auditing Service...
+[   13.060227] systemd[1]: Reached target System Initialization.
+[[32m  OK  [0m] Reached target System Initialization.
+[   13.061305] systemd[1]: Started alsa-dev.path.
+[[32m  OK  [0m] Started alsa-dev.path.
+[   13.061792] systemd[1]: Reached target Paths.
+[[32m  OK  [0m] Reached target Paths.
+[   13.062745] systemd[1]: Listening on D-Bus System Message Bus Socket.
+[[32m  OK  [0m] Listening on D-Bus System Message Bus Socket.
+[   13.063379] systemd[1]: Reached target Sockets.
+[[32m  OK  [0m] Reached target Sockets.
+[   13.063582] systemd[1]: Reached target Basic System.
+[[32m  OK  [0m] Reached target Basic System.
+[   13.068326] systemd[1]: Starting Network Firewall Manager...
+         Starting Network Firewall Manager...
+[   13.076312] systemd[1]: Starting HKMC Preminum AVN 2.1 -Launcher...
+         Starting HKMC Preminum AVN 2.1 -Launcher...
+[   13.081436] systemd[1]: Started Getty on tty1.
+[[32m  OK  [0m] Started Getty on tty1.
+[   13.088081] systemd[1]: Reached target Login Prompts.
+[[32m  OK  [0m] Reached target Login Prompts.
+[   13.091443] systemd[1]: Started GENIVI DLT logging daemon.
+[[32m  OK  [0m] Started GENIVI DLT logging daemon.
+[   13.095194] systemd[1]: Started D-Bus System Message Bus.
+[[32m  OK  [0m] Started D-Bus System Message Bus.
+[   13.107770] ------------[ cut here ]------------
+[   13.107930] WARNING: CPU: 1 PID: 1384 at kernel/module.c:970 module_put+0x3f/0x49()
+[   13.108822] ---[ end trace d1634e8a62ed4896 ]---
+[   13.119428] ------------[ cut here ]------------
+[   13.119695] WARNING: CPU: 1 PID: 667 at mm/vmalloc.c:1458 __vunmap+0x5e/0xaf()
+[   13.121095] ---[ end trace d1634e8a62ed4897 ]---
+[   13.122673] scsi_mod: Unknown symbol blk_set_runtime_active (err 0)
+[   13.148121] scsi_mod: Unknown symbol blk_set_runtime_active (err 0)
+[   14.471245] ------------[ cut here ]------------
+[   14.471245] WARNING: CPU: 0 PID: 1384 at kernel/module.c:970 module_put+0x3f/0x49()
+[   14.472085] ---[ end trace d1634e8a62ed4898 ]---
+[   15.137184] systemd[1]: Starting Persistence Administration Service...
+         Starting Persistence Administration Service...
+[   15.144026] systemd[1]: Started GENIVI DLT system. Application to forward syslog messages to DLT, transfer system information, logs and files..
+[[32m  OK  [0m] Started GENIVI DLT system. Applicat...em information, logs and files..
+[   15.156927] systemd[1]: Starting Connection service...
+         Starting Connection service...
+[   15.181511] systemd[1]: Starting System service for micommanager (projection stand-in)...
+         Starting System service for micommanager (projection stand-in)...
+[   15.226511] systemd[1]: Started HKMC Preminum AVN 2.1 -Launcher.
+[[32m  OK  [0m] Started HKMC Preminum AVN 2.1 -Launcher.
+[   15.234965] systemd[1]: auditd.service: Main process exited, code=exited, status=6/NOTCONFIGURED
+[   15.264315] systemd[1]: Failed to start Security Auditing Service.
+[[1;31mFAILED[0m] Failed to start Security Auditing Service.
+See 'systemctl status auditd.service' for details.
+[   15.266010] systemd[1]: auditd.service: Failed with result 'exit-code'.
+[   15.392823] systemd[1]: Found device /dev/mmcblk0p13.
+[[32m  OK  [0m] Found device /dev/mmcblk0p13.
+[   15.431104] systemd[1]: auditd.service: Service hold-off time over, scheduling restart.
+[   15.499198] systemd[1]: Found device /dev/mmcblk0p12.
+[[32m  OK  [0m] Found device /dev/mmcblk0p12.
+[   15.573140] systemd[1]: Found device /dev/mmcblk0p10.
+[[32m  OK  [0m] Found device /dev/mmcblk0p10.
+[   15.629880] systemd[1]: Found device /dev/mmcblk0p8.
+[[32m  OK  [0m] Found device /dev/mmcblk0p8.
+[   15.677434] systemd[1]: Found device /dev/mmcblk0p15.
+[[32m  OK  [0m] Found device /dev/mmcblk0p15.
+[   15.679135] systemd[1]: Found device /dev/mmcblk0p17.
+[[32m  OK  [0m] Found device /dev/mmcblk0p17.
+[   15.697226] systemd[1]: Found device /dev/mmcblk0p11.
+[[32m  OK  [0m] Found device /dev/mmcblk0p11.
+[   15.752778] systemd[1]: Found device /dev/mmcblk0p14.
+[[32m  OK  [0m] Found device /dev/mmcblk0p14.
+[   15.809719] systemd[1]: Found device /dev/mmcblk0p6.
+[[32m  OK  [0m] Found device /dev/mmcblk0p6.
+[   15.888009] systemd[1]: Found device /dev/mmcblk0p9.
+[[32m  OK  [0m] Found device /dev/mmcblk0p9.
+[   15.914221] systemd[1]: Started System service for micommanager (projection stand-in).
+[[32m  OK  [0m] Started System service for micommanager (projection stand-in).
+[   15.918636] systemd[1]: Started AudioManager.
+[[32m  OK  [0m] Started AudioManager.
+[   15.919575] systemd[1]: Started Reboot action after pstore msg saved(Path).
+[[32m  OK  [0m] Started Reboot action after pstore msg saved(Path).
+[   15.925415] systemd[1]: Started System service for usb-automount.
+[[32m  OK  [0m] Started System service for usb-automount.
+[   15.933516] systemd[1]: Starting AVN2.1 - CarPlay iAP2Service Launcher...
+         Starting AVN2.1 - CarPlay iAP2Service Launcher...
+[   15.953726] systemd[1]: Started AVN2.1 - CarPlay mdnsd Launcher.
+[[32m  OK  [0m] Started AVN2.1 - CarPlay mdnsd Launcher.
+[   15.955467] systemd[1]: Started SPI Protocol Validation Check(Path).
+[[32m  OK  [0m] Started SPI Protocol Validation Check(Path).
+[   15.956526] systemd[1]: Started Weston Process Crash Monitoring.
+[[32m  OK  [0m] Started Weston Process Crash M[   15.957045] systemd[1]: Started Weston Process Crash Monitoring.
+onitoring.
+[[32m  OK  [0m] Started Weston Process Crash Monitoring.
+[   15.958079] systemd[1]: Stopped Security Auditing Service.
+[[32m  OK  [0m] Stopped Securi[   15.958515] systemd[1]: auditd.service: Start request repeated too quickly.
+ty Auditing Service.
+[   15.958944] systemd[1]: Failed to start Security Auditing Service.
+[[1;31mFAILED[0m] Failed to start Security Auditing Service.
+See 'systemctl status auditd.ser[   15.959958] systemd[1]: auditd.service: Failed with result 'start-limit'.
+vice' for details.
+[   15.962340] systemd[1]: Starting Smack service loads smack rules in /etc/smack/accesses.d...
+         Starting Smack service loads smack rules in /etc/smack/accesses.d...
+[   15.967296] systemd[1]: Started CryptoService.
+[[32m  OK  [0m] Started CryptoService.
+[   15.972121] systemd[1]: Started HKMC Preminum AVN 2.1 - MOFManager.
+[[32m  OK  [0m] Started HKMC Preminum AVN 2.1 - MOFManager.
+[   15.977487] systemd[1]: Starting CredMan service...
+         Starting CredMan service...
+[   15.980619] systemd[1]: Started MediaBrowser.
+[[32m  OK  [0m] Started MediaBrowser.
+mDNSResponder: mDNSResponder (Engineering Build) (Jan 28 2026 16:05:56) starting
+[   16.125418] ------------[ cut here ]------------
+[   16.125666] WARNING: CPU: 1 PID: 1460 at kernel/module.c:970 module_put+0x3f/0x49()
+[   16.125694] ---[ end trace d1634e8a62ed4899 ]---
+[   16.138656] ------------[ cut here ]------------
+[   16.138721] WARNING: CPU: 2 PID: 1464 at kernel/module.c:970 module_put+0x3f/0x49()
+[   16.139392] ---[ end trace d1634e8a62ed489a ]---
+mDNSResponder: Unable to parse DNS server list. Unicast DNS-SD unavailable
+mDNSResponder: mDNSPlatformSourceAddrForDest: connect 1.1.1.1 failed errno 101 (Network is unreachable)
+[   16.253593] ------------[ cut here ]------------
+[   16.253643] WARNING: CPU: 2 PID: 1467 at kernel/module.c:970 module_put+0x3f/0x49()
+[   16.254565] ---[ end trace d1634e8a62ed489b ]---
+[   16.470769] ------------[ cut here ]------------
+[   16.471061] WARNING: CPU: 3 PID: 1470 at kernel/module.c:970 module_put+0x3f/0x49()
+[   16.471479] ---[ end trace d1634e8a62ed489c ]---
+[   16.592371] systemd[1]: Starting System Logging Service...
+         Starting System Logging Service...
+[   16.606159] systemd[1]: Started watchdog daemon for system monitor.
+[[32m  OK  [0m] Started watchdog daemon for system monitor.
+[   16.608612] systemd[1]: Started Network Firewall Manager.
+[[32m  OK  [0m] Started Network Firewall Manager.
+[   16.622111] systemd[1]: Started Smack service loads smack rules in /etc/smack/accesses.d.
+[[32m  OK  [0m] Started Smack service loads smack rules in /etc/smack/accesses.d.
+[   16.653616] systemd[1]: Started CredMan service.
+[[32m  OK  [0m] Started CredMan service.
+[   16.678320] systemd[1]: Starting Default SMACK setup...
+         Starting Default SMACK setup...
+[   16.686017] systemd[1]: Reached target Network (Pre).
+[[32m  OK  [0m] Reached target Network (Pre).
+[   16.766648] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   16.766671] ------------[ cut here ]------------
+[   16.767677] WARNING: CPU: 1 PID: 1477 at kernel/module.c:970 module_put+0x3f/0x49()
+[   16.768205] ---[ end trace d1634e8a62ed489d ]---
+[   16.987138] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   16.987978] ------------[ cut here ]------------
+[   16.988233] WARNING: CPU: 3 PID: 1492 at kernel/module.c:970 module_put+0x3f/0x49()
+[   16.988790] ---[ end trace d1634e8a62ed489e ]---
+[   17.064341] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   17.064713] ------------[ cut here ]------------
+[   17.064713] WARNING: CPU: 1 PID: 1497 at kernel/module.c:970 module_put+0x3f/0x49()
+[   17.066641] ---[ end trace d1634e8a62ed489f ]---
+[   17.075271] systemd[1]: carplay_iAP2.service: Control process exited, code=exited status=1
+[   17.076554] systemd[1]: Failed to start AVN2.1 - CarPlay iAP2Service Launcher.
+[[1;31mFAILED[0m] Failed to start AVN2.1 - CarPlay iAP2Service Launcher.
+See 'systemctl status carplay_iAP2.service' for details.
+[   17.077984] systemd[1]: carplay_iAP2.service: Failed with result 'exit-code'.
+[   17.440934] systemd[1]: carplay_iAP2.service: Service hold-off time over, scheduling restart.
+[   17.456399] systemd[1]: Stopped AVN2.1 - CarPlay iAP2Service Launcher.
+[[32m  OK  [0m] Stopped AVN2.1 - CarPlay iAP2Service Launcher.
+[   17.494196] systemd[1]: Starting AVN2.1 - CarPlay iAP2Service Launcher...
+         Starting AVN2.1 - CarPlay iAP2Service Launcher...
+[   18.312600] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   18.312977] ------------[ cut here ]------------
+[   18.313106] WARNING: CPU: 2 PID: 1515 at kernel/module.c:970 module_put+0x3f/0x49()
+[   18.313305] ---[ end trace d1634e8a62ed48a0 ]---
+[   18.674103] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   18.700040] ------------[ cut here ]------------
+[   18.700269] WARNING: CPU: 1 PID: 1522 at kernel/module.c:970 module_put+0x3f/0x49()
+[   18.700666] ---[ end trace d1634e8a62ed48a1 ]---
+[   18.867215] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   18.867940] ------------[ cut here ]------------
+[   18.868145] WARNING: CPU: 0 PID: 1542 at kernel/module.c:970 module_put+0x3f/0x49()
+[   18.875707] ---[ end trace d1634e8a62ed48a2 ]---
+[   18.919295] systemd[1]: carplay_iAP2.service: Control process exited, code=exited status=1
+[   18.921981] systemd[1]: Failed to start AVN2.1 - CarPlay iAP2Service Launcher.
+[[1;31mFAILED[0m] Failed to start AVN2.1 - CarPlay iAP2Service Launcher.
+See 'systemctl status carplay_iAP2.service' for details.
+[   18.923142] systemd[1]: carplay_iAP2.service: Failed with result 'exit-code'.
+[   19.086906] systemd[1]: Started Connection service.
+[[32m  OK  [0m] Started Connection service.
+[   19.087631] systemd[1]: carplay_iAP2.service: Service hold-off time over, scheduling restart.
+[   19.097906] systemd[1]: Stopped AVN2.1 - CarPlay iAP2Service Launcher.
+[[32m  OK  [0m] Stopped AVN2.1 - CarPlay iAP2Service Launcher.
+[   19.119300] systemd[1]: Starting AVN2.1 - CarPlay iAP2Service Launcher...
+         Starting AVN2.1 - CarPlay iAP2Service Launcher...
+[   19.119936] systemd[1]: Reached target Remote File Systems (Pre).
+[[32m  OK  [0m] Reached target Remote File Systems (Pre).
+[   19.120125] systemd[1]: Reached target Remote File Systems.
+[[32m  OK  [0m] Reached target Remote File Systems.
+[   19.598560] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   19.598940] ------------[ cut here ]------------
+[   19.598940] WARNING: CPU: 3 PID: 1599 at kernel/module.c:970 module_put+0x3f/0x49()
+[   19.600034] ---[ end trace d1634e8a62ed48a3 ]---
+[   19.781583] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   19.798579] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   19.803912] ------------[ cut here ]------------
+[   19.804102] WARNING: CPU: 2 PID: 1615 at kernel/module.c:970 module_put+0x3f/0x49()
+[   19.804655] ---[ end trace d1634e8a62ed48a4 ]---
+[   19.899827] systemd[1]: Started System Logging Service.
+[[32m  OK  [0m] Started System Logging Service.
+[   19.911544] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   19.911976] ------------[ cut here ]------------
+[   19.912235] WARNING: CPU: 3 PID: 1636 at kernel/module.c:970 module_put+0x3f/0x49()
+[   19.912235] ---[ end trace d1634e8a62ed48a5 ]---
+[   19.935152] systemd[1]: carplay_iAP2.service: Control process exited, code=exited status=1
+[   19.937226] systemd[1]: Failed to start AVN2.1 - CarPlay iAP2Service Launcher.
+[[1;31mFAILED[0m] Failed to start AVN2.1 - CarPlay iAP2Service Launcher.
+See 'systemctl status carplay_iAP2.service' for details.
+[   19.938249] systemd[1]: carplay_iAP2.service: Failed with result 'exit-code'.
+[   20.111183] systemd[1]: carplay_iAP2.service: Service hold-off time over, scheduling restart.
+[   20.113942] systemd[1]: Stopped AVN2.1 - CarPlay iAP2Service Launcher.
+[[32m  OK  [0m] Stopped AVN2.1 - CarPlay iAP2Service Launcher.
+[   20.141120] systemd[1]: Starting AVN2.1 - CarPlay iAP2Service Launcher...
+         Starting AVN2.1 - CarPlay iAP2Service Launcher...
+[   20.167033] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   20.254104] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   20.254124] ------------[ cut here ]------------
+[   20.254810] WARNING: CPU: 1 PID: 1695 at kernel/module.c:970 module_put+0x3f/0x49()
+[   20.255326] ---[ end trace d1634e8a62ed48a6 ]---
+[   20.320542] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   20.320977] ------------[ cut here ]------------
+[   20.321184] WARNING: CPU: 1 PID: 1712 at kernel/module.c:970 module_put+0x3f/0x49()
+[   20.321184] ---[ end trace d1634e8a62ed48a7 ]---
+[   20.397603] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   20.398635] ------------[ cut here ]------------
+[   20.398829] WARNING: CPU: 3 PID: 1726 at kernel/module.c:970 module_put+0x3f/0x49()
+[   20.399290] ---[ end trace d1634e8a62ed48a8 ]---
+[   20.583064] systemd[1]: carplay_iAP2.service: Control process exited, code=exited status=1
+[   20.585072] systemd[1]: Failed to start AVN2.1 - CarPlay iAP2Service Launcher.
+[[1;31mFAILED[0m] Failed to st[   20.585807] systemd[1]: carplay_iAP2.service: Failed with result 'exit-code'.
+art AVN2.1 - CarPlay iAP2Service Launcher.
+See 'systemctl status carplay_iAP2.service' for details.
+[   20.649045] systemd[1]: Started Default SMACK setup.
+[[32m  OK  [0m] Started Default SMACK setup.
+[   20.722063] systemd[1]: carplay_iAP2.service: Service hold-off time over, scheduling restart.
+[   20.725261] systemd[1]: Stopped AVN2.1 - CarPlay iAP2Service Launcher.
+[[32m  OK  [0m] Stopped AVN2.1 - CarPlay iAP2Service Launcher.
+[   20.728465] systemd[1]: Starting AVN2.1 - CarPlay iAP2Service Launcher...
+         Starting AVN2.1 - CarPlay iAP2Service Launcher...
+[   20.821118] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   20.822715] ------------[ cut here ]------------
+[   20.823212] WARNING: CPU: 2 PID: 1744 at kernel/module.c:970 module_put+0x3f/0x49()
+[   20.823542] ---[ end trace d1634e8a62ed48a9 ]---
+[   20.930014] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   20.930754] ------------[ cut here ]------------
+[   20.930981] WARNING: CPU: 0 PID: 1746 at kernel/module.c:970 module_put+0x3f/0x49()
+[   20.931572] ---[ end trace d1634e8a62ed48aa ]---
+[   21.033070] libcomposite: Unknown symbol lge_usb_adapter_get_iap_ean_status (err 0)
+[   21.034172] ------------[ cut here ]------------
+[   21.034405] WARNING: CPU: 3 PID: 1751 at kernel/module.c:970 module_put+0x3f/0x49()
+[   21.034969] ---[ end trace d1634e8a62ed48ab ]---
+[   21.104663] systemd[1]: carplay_iAP2.service: Control process exited, code=exited status=1
+[   21.106884] systemd[1]: Failed to start AVN2.1 - CarPlay iAP2Service Launcher.
+[[1;31mFAILED[0m] Failed to start AVN2.1 - CarPlay iAP2Service Launcher.
+See 'systemctl status carplay_iAP2.service' for details.
+[   21.107670] systemd[1]: carplay_iAP2.service: Failed with result 'exit-code'.
+[   21.365774] systemd[1]: carplay_iAP2.service: Service hold-off time over, scheduling restart.
+[   21.369450] systemd[1]: Stopped AVN2.1 - CarPlay iAP2Service Launcher.
+[[32m  OK  [0m] Stopped AVN2.1 - CarPlay iAP2Service Launcher.
+[   21.397047] systemd[1]: carplay_iAP2.service: Start request repeated too quickly.
+[   21.397211] systemd[1]: Failed to start AVN2.1 - CarPlay iAP2Service Launcher.
+[[1;31mFAILED[[   21.398113] systemd[1]: carplay_iAP2.service: Failed with result 'start-limit'.
+0m] Failed to start AVN2.1 - CarPlay iAP2Service Launcher.
+See 'systemctl status carplay_iAP2.service' for details.
+[   21.486805] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   21.803243] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   21.897091] random: nonblocking pool is initialized
+[   24.668487] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   25.205128] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   26.543383] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[[0m[31m*     [0m] (1 of 2) A start job is running for...tration Service (18s / 1min 37s)[   26.935279] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[1;31m*[0m[31m*    [0m] (1 of 2) A start job is running for...tration Service (19s / 1min 37s)[K[[31m*[1;31m*[0m[31m*   [0m] (1 of 2) A start job is running for...tration Service (19s / 1min 37s)[K[ [31m*[1;31m*[0m[31m*  [0m] (2 of 2) A start job is running for...t check service (20s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] (2 of 2) A start job is running for...t check service (20s / no limit)[   28.244495] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   28.564895] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] (2 of 2) A start job is running for...t check service (20s / no limit)[K[    [31m*[1;31m*[0m] (1 of 2) A start job is running for...tration Service (21s / 1min 37s)[K[     [31m*[0m] (1 of 2) A start job is running for...tration Service (21s / 1min 37s)[K[    [31m*[1;31m*[0m] (1 of 2) A start job is running for...tration Service (22s / 1min 37s)[K[   [31m*[1;31m*[0m[31m*[0m] (2 of 2) A start job is running for...t check service (22s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] (2 of 2) A start job is running for...t check service (23s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] (2 of 2) A start job is running for...t check service (23s / no limit)[   31.392465] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[31m*[1;31m*[0m[31m*   [0m] (1 of 2) A start job is running for...tration Service (23s / 1min 37s)[   31.738444] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[1;31m*[0m[31m*    [0m] (1 of 2) A start job is running for...tration Service (24s / 1min 37s)[K[[0m[31m*     [0m] (1 of 2) A start job is running for...tration Service (24s / 1min 37s)[   33.093408] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[1;31m*[0m[31m*    [0m] (2 of 2) A start job is running for...t check service (25s / no limit)[   33.406516] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[31m*[1;31m*[0m[31m*   [0m] (2 of 2) A start job is running for...t check service (25s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] (2 of 2) A start job is running for...t check service (26s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] (1 of 2) A start job is running for...tration Service (26s / 1min 37s)[   34.722466] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] (1 of 2) A start job is running for...tration Service (26s / 1min 37s)[   35.086453] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[    [31m*[1;31m*[0m] (1 of 2) A start job is running for...tration Service (27s / 1min 37s)[K[     [31m*[0m] (2 of 2) A start job is running for...t check service (27s / no limit)[K[    [31m*[1;31m*[0m] (2 of 2) A start job is running for...t check service (28s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] (2 of 2) A start job is running for...t check service (28s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] (1 of 2) A start job is running for...tration Service (29s / 1min 37s)[K[ [31m*[1;31m*[0m[31m*  [0m] (1 of 2) A start job is running for...tration Service (29s / 1min 37s)[   37.888996] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[31m*[1;31m*[0m[31m*   [0m] (1 of 2) A start job is running for...tration Service (30s / 1min 37s)[   38.343447] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[1;31m*[0m[31m*    [0m] (2 of 2) A start job is running for...t check service (30s / no limit)[K[[0m[31m*     [0m] (2 of 2) A start job is running for...t check service (30s / no limit)[K[[1;31m*[0m[31m*    [0m] (2 of 2) A start job is running for...t check service (31s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] (1 of 2) A start job is running for...tration Service (31s / 1min 37s)[   39.659592] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   39.981278] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[ [31m*[1;31m*[0m[31m*  [0m] (1 of 2) A start job is running for...tration Service (32s / 1min 37s)[K[  [31m*[1;31m*[0m[31m* [0m] (1 of 2) A start job is running for...tration Service (32s / 1min 37s)[K[   [31m*[1;31m*[0m[31m*[0m] (2 of 2) A start job is running for...t check service (33s / no limit)[K[    [31m*[1;31m*[0m] (2 of 2) A start job is running for...t check service (33s / no limit)[   41.374938] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   41.688416] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[     [31m*[0m] (2 of 2) A start job is running for...t check service (33s / no limit)[K[    [31m*[1;31m*[0m] (1 of 2) A start job is running for...tration Service (34s / 1min 37s)[K[   [31m*[1;31m*[0m[31m*[0m] (1 of 2) A start job is running for...tration Service (34s / 1min 37s)[K[  [31m*[1;31m*[0m[31m* [0m] (1 of 2) A start job is running for...tration Service (35s / 1min 37s)[K[ [31m*[1;31m*[0m[31m*  [0m] (2 of 2) A start job is running for...t check service (35s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] (2 of 2) A start job is running for...t check service (36s / no limit)[K[[1;31m*[0m[31m*    [0m] (2 of 2) A start job is running for...t check service (36s / no limit)[   44.479304] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[0m[31m*     [0m] (1 of 2) A start job is running for...tration Service (37s / 1min 37s)[   45.071674] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[1;31m*[0m[31m*    [0m] (1 of 2) A start job is running for...tration Service (37s / 1min 37s)[K[[31m*[1;31m*[0m[31m*   [0m] (1 of 2) A start job is running for...tration Service (38s / 1min 37s)[K[ [31m*[1;31m*[0m[31m*  [0m] (2 of 2) A start job is running for...t check service (38s / no limit)[   46.384019] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   46.703480] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[  [31m*[1;31m*[0m[31m* [0m] (2 of 2) A start job is running for...t check service (38s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] (2 of 2) A start job is running for...t check service (39s / no limit)[K[    [31m*[1;31m*[0m] (1 of 2) A start job is running for...tration Service (39s / 1min 37s)[   48.049004] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[     [31m*[0m] (1 of 2) A start job is running for...tration Service (40s / 1min 37s)[   48.377380] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[    [31m*[1;31m*[0m] (1 of 2) A start job is running for...tration Service (40s / 1min 37s)[K[   [31m*[1;31m*[0m[31m*[0m] (2 of 2) A start job is running for...t check service (40s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] (2 of 2) A start job is running for...t check service (41s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] (2 of 2) A start job is running for...t check service (42s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] (1 of 2) A start job is running for...tration Service (42s / 1min 37s)[K[[1;31m*[0m[31m*    [0m] (1 of 2) A start job is running for...tration Service (43s / 1min 37s)[   51.181480] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[0m[31m*     [0m] (1 of 2) A start job is running for...tration Service (43s / 1min 37s)[K[[1;31m*[0m[31m*    [0m] (2 of 2) A start job is running for...t check service (43s / no limit)[   51.871813] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[31m*[1;31m*[0m[31m*   [0m] (2 of 2) A start job is running for...t check service (44s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] (2 of 2) A start job is running for...t check service (44s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] (1 of 2) A start job is running for...tration Service (44s / 1min 37s)[   53.313264] systemd[1]: Started Persistence Administration Service.
+[K[[32m  OK  [0m] Started Persistence Administration Service.
+[   53.334211] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   53.334808] systemd[1]: Starting HKMC Preminum AVN 2.1 -Launcher...
+         Starting HKMC Preminum AVN 2.1 -Launcher...
+[   53.383698] systemd[1]: Started HKMC Preminum AVN 2.1 -Launcher.
+[[32m  OK  [0m] Started HKMC Preminum AVN 2.1 -Launcher.
+[   53.404667] systemd[1]: Started remote start path.
+[[32m  OK  [0m] Started remote start path.
+[   53.428155] systemd[1]: Started Geely - Media Manager.
+[[32m  OK  [0m] Started Geely - Media Manager.
+[   53.432135] systemd[1]: Starting Kernel Logging Service...
+         Starting Kernel Logging Service...
+[   53.437488] systemd[1]: Started HKMC Bluetooth Daemon.
+[[32m  OK  [0m] Started HKMC Bluetooth Daemon.
+[   53.445951] systemd[1]: Started ofono start path.
+[[32m  OK  [0m] Started ofono start path.
+[   53.446596] systemd[1]: Started Weston Process Crash Monitoring.
+[[32m  OK  [0m] Started Weston Process Crash Monitoring.
+[   54.152490] systemd[1]: Starting Wifi ACC Mode Manager Daemon...
+         Starting Wifi ACC Mode Manager Daemon...
+[   54.170588] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   54.245247] ------------[ cut here ]------------
+[   54.245608] WARNING: CPU: 1 PID: 1987 at kernel/module.c:970 module_put+0x3f/0x49()
+[   54.246074] ---[ end trace d1634e8a62ed48ac ]---
+[   54.386035] EXT4-fs (mmcblk0p14): re-mounted. Opts: (null)
+[   54.602126] systemd[1]: Started Wifi ACC Mode Manager Daemon.
+[[32m  OK  [0m] Started Wifi ACC Mode Manager Daemon.
+[   54.606739] systemd[1]: Started Kernel Logging Service.
+[[32m  OK  [0m] Started Kernel Logging Service.
+[   54.629568] ------------[ cut here ]------------
+[   54.629659] WARNING: CPU: 3 PID: 2004 at kernel/module.c:970 module_put+0x3f/0x49()
+[   54.630241] ---[ end trace d1634e8a62ed48ad ]---
+[   54.639020] systemd[1]: Reached target Multi-User System.
+[[32m  OK  [0m] Reached target Multi-User System.
+[   54.642889] systemd[1]: Started Default SMACK setup recovery.
+[[32m  OK  [0m] Started Default SMACK setup recovery.
+[   54.701224] systemd[1]: Starting Update UTMP about System Runlevel Changes...
+         Starting Update UTMP about System Runlevel Changes...
+[   54.734692] systemd[1]: Started Update UTMP about System Runlevel Changes.
+[[32m  OK  [0m] Started Update UTMP about System Runlevel Changes.
+[   55.436937] EXT4-fs (mmcblk0p5): re-mounted. Opts: data=ordered
+[   55.647148] EXT4-fs (mmcblk0p14): re-mounted. Opts: (null)
+[   56.081070] EXT4-fs (mmcblk0p15): re-mounted. Opts: (null)
+[   56.718830] EXT4-fs (mmcblk0p6): re-mounted. Opts: (null)
+[   56.950304] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   57.027636] EXT4-fs (mmcblk0p17): re-mounted. Opts: (null)
+[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...t check service (52s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...t check service (52s / no limit)ð  [K[     [31m*[0m] A start job is running for partitio...t check service (53s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...t check service (53s / no limit)[   61.533888] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...t check service (53s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...t check service (54s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...t check service (55s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...t check service (55s / no limit)[   63.662576] systemd[1]: mediamanager.service: Watchdog timeout (limit 10s)!
+[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...t check service (56s / no limit)[K [[0m[31m*     [0m] A start job is running for partitio...t check service (56s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...t check service (57s / no limit)[   65.377454] systemd[1]: mediamanager.service: State 'stop-sigabrt' timed out. Terminating.
+[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...t check service (57s / no limit)[   65.899084] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...t check service (58s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start jo[   66.663173] systemd[1]: mediamanager.service: State 'stop-sigterm' timed out. Killing.
+b is running for partitio...t check service (58s / no limit)[   66.713229] systemd[1]: mediamanager.service: Main process exited, code=killed, status=9/KILL
+[   66.715562] systemd[1]: mediamanager.service: Failed with result 'signal'.
+[   66.871090] systemd[1]: mediamanager.service: Service hold-off time over, scheduling restart.
+[   66.875855] systemd[1]: Stopped Geely - Media Manager.
+[K[[32m  OK  [0m] Stopped Geely - Media Manager.
+[   66.989597] systemd[1]: Started Geely - Media Manager.
+[[32m  OK  [0m] Started Geely - Media Manager.
+[   67.854156] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+ [   70.667624] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   71.505695] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...eck service (1min 4s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...eck service (1min 4s / no limit) [K[     [31m*[0m] A start job is running for partitio...eck service (1min 5s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...eck service (1min 5s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...eck service (1min 6s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...eck service (1min 7s / no limit)[   75.451560] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...eck service (1min 8s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...eck service (1min 8s / no limit)[   76.458177] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+ [K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...eck service (1min 9s / no limit)[   77.125386] systemd[1]: mediamanager.service: Watchdog timeout (limit 10s)!
+[K[[0m[31m*     [0m] A start job is running for partitio...eck service (1min 9s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (1min 10s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (1min 10s / no limit)[   78.366363] systemd[1]: mediamanager.service: State 'stop-sigabrt' timed out. Terminating.
+[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (1min 11s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start jo[   79.468642] systemd[1]: mediamanager.service: State 'stop-sigterm' timed out. Killing.
+b is running for partitio...ck service (1min 11s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (1min 12s / no limit)[   80.472042] systemd[1]: mediamanager.service: Processes still around after SIGKILL. Ignoring.
+[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (1min 12s / no limit)[K[     [31m*[0m] A start job is running for partitio...ck service (1min 13s / no limit) [   80.958189] systemd[1]: mediamanager.service: Main process exited, code=killed, status=9/KILL
+[   80.967273] systemd[1]: mediamanager.service: Failed with result 'signal'.
+[   81.162847] systemd[1]: mediamanager.service: Service hold-off time over, scheduling restart.
+[   81.265341] systemd[1]: Stopped Geely - Media Manager.
+[K[[32m  OK  [0m] Stopped Geely - Media Manager.
+[   81.327238] systemd[1]: Started Geely - Media Manager.
+[[32m  OK  [0m] Started Geely - Media Manager.
+[   81.718388] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   83.968798] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+ [    [31m*[1;31m*[0m] A start job is running for partitio...ck service (1min 18s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (1min 19s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (1min 19s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (1min 20s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (1min 20s / no limit) [K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (1min 21s / no limit)[K[[0m[31m*     [0m] A start job is running for partitio...ck service (1min 21s / no limit)[   89.475675] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (1min 22s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (1min 22s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (1min 23s / no limit)[   90.993138] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (1min 23s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (1min 23s / no limit)[   91.687911] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (1min 24s / no limit)[K[     [31m*[0m] A start job is running for partitio...ck service (1min 24s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (1min 25s / no limit)[   93.131491] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m[   93.616820] systemd[1]: vbtd.service: Service hold-off time over, scheduling restart.
+] A start job is running for partitio...ck service (1min 25s / no limit)[   93.622270] systemd[1]: Stopped HKMC Bluetooth Daemon.
+[K[[32m  OK  [0m] Stopped HKMC Bluetooth Daemon.
+[   93.628096] systemd[1]: Started HKMC Bluetooth Daemon.
+[[32m  OK  [0m] Started HKMC Bluetooth Daemon.
+ ð [   96.151656] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   98.774178] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (1min 30s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (1min 31s / no limit) [K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (1min 32s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (1min 32s / no limit)[K[[0m[31m*     [0m] A start job is running for partitio...ck service (1min 32s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (1min 33s / no limit)[  101.416262] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (1min 34s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (1min 34s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (1min 35s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (1min 35s / no limit)[  103.687279] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+ [K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (1min 35s / no limit)[K[     [31m*[0m] A start job is running for partitio...ck service (1min 36s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (1min 37s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (1min 37s / no limit)[  105.575030] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (1min 38s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (1min 38s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (1min 39s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (1min 39s / no limit) [K[[0m[31m*     [0m] A start job is running for partitio...ck service (1min 40s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (1min 40s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (1min 40s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (1min 41s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (1min 41s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (1min 42s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (1min 43s / no limit)[K[     [31m*[0m] A start job is running for partitio...ck service (1min 43s / no limit) [K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (1min 44s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (1min 45s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (1min 45s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (1min 46s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (1min 46s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (1min 47s / no limit)[K[[0m[31m*     [0m] A start job is running for partitio...ck service (1min 47s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (1min 48s / no limit) [K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (1min 48s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (1min 48s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (1min 49s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (1min 50s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (1min 50s / no limit)[K[     [31m*[0m] A start job is running for partitio...ck service (1min 51s / no limit) [K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (1min 52s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (1min 52s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (1min 53s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (1min 53s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (1min 54s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (1min 54s / no limit)[K[[0m[31m*     [0m] A start job is running for partitio...ck service (1min 55s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (1min 55s / no limit) [K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (1min 56s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (1min 56s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (1min 56s / no limit)[  124.805800] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (1min 57s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (1min 57s / no limit)[  125.950489] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[     [31m*[0m] A start job is running for partitio...ck service (1min 58s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (1min 58s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (1min 59s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (1min 59s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (1min 59s / no limit)[  127.710631] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio... check service (2min / no limit)[  128.366363] systemd[1]: vbtd.service: Service hold-off time over, scheduling restart.
+[  128.370509] systemd[1]: Stopped HKMC Bluetooth Daemon.
+[K[[32m  OK  [0m] Stopped HKMC Bluetooth Daemon.
+[  128.432128] systemd[1]: Started HKMC Bluetooth Daemon.
+[[32m  OK  [0m] Started HKMC Bluetooth Daemon.
+[  131.019814] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+ð  [  132.343828] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[[1;31m*[0m[31m*    [0m] A start job is running for partitio...eck service (2min 5s / no limit)[  133.668629] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[0m[31m*     [0m] A start job is running for partitio...eck service (2min 6s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...eck service (2min 6s / no limit) [K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...eck service (2min 7s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...eck service (2min 7s / no limit)[  135.877535] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...eck service (2min 8s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...eck service (2min 8s / no limit)[  137.097380] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[    [31m*[1;31m*[0m] A start job is running for partitio...eck service (2min 9s / no limit)[K[     [31m*[0m] A start job is running for partitio...eck service (2min 9s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (2min 10s / no limit)[  138.077932] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (2min 10s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (2min 11s / no limit) [K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (2min 11s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (2min 12s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (2min 12s / no limit)[  140.432719] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[0m[31m*     [0m] A start job is running for partitio...ck service (2min 13s / no limit)[  141.319527] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (2min 13s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (2min 13s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (2min 14s / no limit)[  142.318696] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (2min 14s / no limit) [  143.045741] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (2min 15s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (2min 15s / no limit)[  143.671621] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[     [31m*[0m] A start job is running for partitio...ck service (2min 16s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (2min 16s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (2min 17s / no limit)[  146.094876] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (2min 18s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (2min 18s / no limit) [K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (2min 19s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (2min 19s / no limit)[  147.947356] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[0m[31m*     [0m] A start job is running for partitio...ck service (2min 20s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (2min 20s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (2min 21s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (2min 21s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (2min 22s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (2min 22s / no limit) [K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (2min 23s / no limit)[  151.227014] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[     [31m*[0m] A start job is running for partitio...ck service (2min 24s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (2min 24s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (2min 25s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (2min 26s / no limit)[  154.820015] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (2min 27s / no limit) [K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (2min 27s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (2min 28s / no limit)[K[[0m[31m*     [0m] A start job is running for partitio...ck service (2min 28s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (2min 29s / no limit)[  157.484238] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (2min 29s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (2min 30s / no limit)[  158.596585] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (2min 30s / no limit) [K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (2min 31s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (2min 31s / no limit)[  159.672949] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[     [31m*[0m] A start job is running for partitio...ck service (2min 32s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (2min 32s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (2min 33s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start jo[  161.620997] systemd[1]: vbtd.service: Service hold-off time over, scheduling restart.
+b is running for partitio...ck service (2min 33s / no limit)[  161.623790] systemd[1]: Stopped HKMC Bluetooth Daemon.
+[K[[32m  OK  [0m] Stopped HKMC Bluetooth Daemon.
+[  161.628862] systemd[1]: Started HKMC Bluetooth Daemon.
+[[32m  OK  [0m] Started HKMC Bluetooth Daemon.
+[  162.746073] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+ð  [  164.621183] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  165.408180] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  166.100222] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (2min 39s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (2min 39s / no limit) [K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (2min 40s / no limit)[K[[0m[31m*     [0m] A start job is running for partitio...ck service (2min 40s / no limit)[  168.662239] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (2min 41s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (2min 41s / no limit)[  169.676109] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (2min 42s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (2min 42s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (2min 43s / no limit)[  170.966761] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (2min 43s / no limit) [K[     [31m*[0m] A start job is running for partitio...ck service (2min 44s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (2min 44s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (2min 45s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (2min 45s / no limit)[  173.510985] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (2min 46s / no limit)[  174.184026] serial8250: too much work for irq4
+[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (2min 46s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (2min 46s / no limit)[K[[0m[31m*     [0m] A start job is running for partitio...ck service (2min 47s / no limit)[  175.158789] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (2min 47s / no limit) [K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (2min 48s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (2min 48s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (2min 49s / no limit)[  177.723282] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (2min 49s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (2min 50s / no limit)[K[     [31m*[0m] A start job is running for partitio...ck service (2min 50s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (2min 51s / no limit)[  179.686751] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (2min 52s / no limit) [K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (2min 52s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (2min 53s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (2min 53s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (2min 54s / no limit)[K[[0m[31m*     [0m] A start job is running for partitio...ck service (2min 54s / no limit)[  182.648461] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (2min 54s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (2min 55s / no limit)[  183.133140] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  183.609548] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (2min 55s / no limit) [  184.025733] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (2min 56s / no limit)[  184.508154] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (2min 56s / no limit)[  184.920311] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (2min 57s / no limit)[K[     [31m*[0m] A start job is running for partitio...ck service (2min 57s / no limit)[  185.554753] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[    [31m*[1;31m*[0m] A s[  185.872134] systemd[1]: vbtd.service: Service hold-off time over, scheduling restart.
+tart job is running for partitio...ck service (2min 58s / no limit)[  185.877099] systemd[1]: Stopped HKMC Bluetooth Daemon.
+[K[[32m  OK  [0m] Stopped HKMC Bluetooth Daemon.
+[  185.890537] systemd[1]: Started HKMC Bluetooth Daemon.
+[[32m  OK  [0m] Started HKMC Bluetooth Daemon.
+[  186.150371] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  186.698035] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+ð  [  187.322348] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  189.777037] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  190.365075] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  190.804875] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...eck service (3min 3s / no limit) [  191.365054] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...eck service (3min 3s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...eck service (3min 4s / no limit)[  192.029284] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...eck service (3min 4s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...eck service (3min 5s / no limit)[K[[0m[31m*     [0m] A start job is running for partitio...eck service (3min 5s / no limit)[  194.068017] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...eck service (3min 6s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...eck service (3min 6s / no limit)[  194.747710] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...eck service (3min 7s / no limit) [K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...eck service (3min 7s / no limit)[  195.468432] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...eck service (3min 8s / no limit)[  195.928301] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[    [31m*[1;31m*[0m] A start job is running for partitio...eck service (3min 8s / no limit)[  196.496397] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[     [31m*[0m] A start job is running for partitio...eck service (3min 9s / no limit)[  197.304222] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[    [31m*[1;31m*[0m] A start job is running for partitio...eck service (3min 9s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (3min 10s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (3min 10s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (3min 11s / no limit) [K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (3min 11s / no limit)[  199.613405] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (3min 11s / no limit)[  200.208628] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[0m[31m*     [0m] A start job is running for partitio...ck service (3min 12s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (3min 12s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (3min 13s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (3min 13s / no limit)[  201.803573] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (3min 14s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (3min 14s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (3min 15s / no limit) [K[     [31m*[0m] A start job is running for partitio...ck service (3min 15s / no limit)[  203.783621] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (3min 15s / no limit)[  204.320740] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (3min 16s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (3min 17s / no limit)[  204.940051] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (3min 17s / no limit)[  205.713930] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (3min 18s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (3min 18s / no limit)[  206.440189] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[0m[31m*     [0m] A start job is running for partitio...ck service (3min 19s / no limit)[  207.032053] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+ [K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (3min 19s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (3min 19s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (3min 20s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (3min 20s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (3min 21s / no limit)[  209.280779] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  209.439434] systemd[1]: vbtd.service: Service hold-off time over, scheduling restart.
+[  209.443746] systemd[1]: Stopped HKMC Bluetooth Daemon.
+[K[[32m  OK  [0m] Stopped HKMC Bluetooth Daemon.
+[  209.447303] systemd[1]: Started HKMC Bluetooth Daemon.
+[[32m  OK  [0m] Started HKMC Bluetooth Daemon.
+[  209.994964] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  210.488401] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+ð  [  211.221157] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  211.807473] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  212.328387] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  214.482822] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (3min 26s / no limit) [  215.011646] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[     [31m*[0m] A start job is running for partitio...ck service (3min 27s / no limit)[  215.595274] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (3min 27s / no limit)[  215.940438] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (3min 28s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (3min 28s / no limit)[  216.383254] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (3min 29s / no limit)[  217.200613] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (3min 29s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (3min 29s / no limit)[K[[0m[31m*     [0m] A start job is running for partitio...ck service (3min 30s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (3min 30s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (3min 31s / no limit) [  219.604365] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (3min 31s / no limit)[  219.984203] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (3min 32s / no limit)[  220.290372] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (3min 32s / no limit)[  220.624832] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (3min 33s / no limit)[  220.960119] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  221.266740] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[     [31m*[0m] A start job is running for partitio...ck service (3min 33s / no limit)[  221.713495] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (3min 33s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (3min 34s / no limit)[  222.523221] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (3min 34s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (3min 35s / no limit) [  223.332636] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (3min 35s / no limit)[  223.843427] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (3min 36s / no limit)[K[[0m[31m*     [0m] A start job is running for partitio...ck service (3min 36s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (3min 37s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (3min 37s / no limit)[  225.369792] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  225.861066] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (3min 38s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (3min 38s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (3min 39s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (3min 39s / no limit) [K[     [31m*[0m] A start job is running for partitio...ck service (3min 40s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (3min 40s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (3min 41s / no limit)[  228.946970] EXT4-fs (mmcblk0p17): re-mounted. Opts: (null)
+[  229.290795] EXT4-fs (mmcblk0p6): re-mounted. Opts: (null)
+[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (3min 41s / no limit)[  229.330129] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  229.780987] EXT4-fs (mmcblk0p15): re-mounted. Opts: (null)
+[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (3min 41s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (3min 42s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (3min 42s / no limit)[K[[0m[31m*     [0m] A start job is running for partitio...ck service (3min 43s / no limit) [K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (3min 43s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (3min 44s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (3min 44s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (3min 45s / no limit)[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (3min 45s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (3min 46s / no limit)[K[     [31m*[0m] A start job is running for partitio...ck service (3min 46s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (3min 47s / no limit)[  235.223883] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+ [K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (3min 47s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (3min 48s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (3min 48s / no limit)[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (3min 49s / no limit)[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (3min 49s / no limit)[K[[0m[31m*     [0m] A start job is running for partitio...ck service (3min 50s / no limit)[  238.877478] serial8250: too much work for irq4
+[K[[1;31m*[0m[31m*    [0m] A start job is running for partitio...ck service (3min 51s / no limit)[  239.142298] serial8250: too much work for irq4
+[K[[31m*[1;31m*[0m[31m*   [0m] A start job is running for partitio...ck service (3min 51s / no limit)[K[ [31m*[1;31m*[0m[31m*  [0m] A start job is running for partitio...ck service (3min 52s / no limit)[K[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio...ck service (3min 52s / no limit)[  240.865321] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (3min 53s / no limit)[  241.612466] EXT4-fs (mmcblk0p14): re-mounted. Opts: (null)
+ [K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (3min 53s / no limit)[K[     [31m*[0m] A start job is running for partitio...ck service (3min 54s / no limit)[K[    [31m*[1;31m*[0m] A start job is running for partitio...ck service (3min 54s / no limit)[  243.137190] systemd[1]: vbtd.service: Service hold-off time over, scheduling restart.
+[K[   [31m*[1;31m*[0m[31m*[0m] A start job is running for partitio...ck service (3min 55s / no limit)[  243.140235] systemd[1]: Stopped HKMC Bluetooth Daemon.
+[K[[32m  OK  [0m] Stopped HKMC Bluetooth Daemon.
+[  243.146194] systemd[1]: Started HKMC Bluetooth Daemon.
+[[32m  OK  [0m] Started HKMC Bluetooth Daemon.
+[  243.347248] EXT4-fs (mmcblk0p5): re-mounted. Opts: data=ordered
+[  243.778049] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+ð  [  245.480327] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  246.942713] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  247.210352] audit: type=1400 audit(1794059024.208:2): lsm=SMACK fn=smack_inode_permission action=denied subject="_" object="Log::dlt_vcrm" requested=x pid=1390 comm="dlt-daemon" name="dltlog" dev="mmcblk0p8" ino=98305
+[  247.211540] audit: type=1400 audit(1794059024.210:3): lsm=SMACK fn=smack_inode_permission action=denied subject="_" object="Log::dlt_vcrm" requested=r pid=1390 comm="dlt-daemon" name="dltlog" dev="mmcblk0p8" ino=98305
+[  247.212350] audit: type=1400 audit(1794059024.210:4): lsm=SMACK fn=smack_inode_permission action=denied subject="_" object="Log::dlt_vcrm" requested=r pid=1390 comm="dlt-daemon" name="dltlog" dev="mmcblk0p8" ino=98305
+[  247.213395] audit: type=1400 audit(1794059024.212:5): lsm=SMACK fn=smack_inode_permission action=denied subject="_" object="Log::dlt_vcrm" requested=x pid=1390 comm="dlt-daemon" name="dltlog" dev="mmcblk0p8" ino=98305
+[  247.213656] audit: type=1400 audit(1794059024.212:6): lsm=SMACK fn=smack_inode_permission action=denied subject="_" object="Log::dlt_vcrm" requested=x pid=1422 comm="dlt-convert" name="dltlog" dev="mmcblk0p8" ino=98305
+[  247.213942] audit: type=1400 audit(1794059024.212:7): lsm=SMACK fn=smack_inode_permission action=denied subject="_" object="Log::dlt_vcrm" requested=x pid=1422 comm="dlt-convert" name="dltlog" dev="mmcblk0p8" ino=98305
+[  247.216771] audit: type=1400 audit(1794059024.215:8): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  247.218492] audit: type=1400 audit(1794059024.217:9): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  247.219911] audit: type=1400 audit(1794059024.218:10): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  247.222327] audit: type=1400 audit(1794059024.220:11): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  [31m*[1;31m*[0m[31m* [0m] A start job is running for partitio... check service (4min / no limit)[  248.263820] systemd[1]: Started partition mount check service.
+[K[[32m  OK  [0m] Started partition mount check service.
+[  248.264648] systemd[1]: Startup finished in 7.167s (kernel) + 4min 1.097s (userspace) = 4min 8.264s.
+[  248.506015] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+ [  248.826450] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  249.145772] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  249.468260] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  250.405868] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  250.697733] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+ [  252.880110] audit_printk_skb: 261 callbacks suppressed
+[  252.880575] audit: type=1400 audit(1794059029.878:99): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt_vcrm" requested=r pid=1390 comm="dlt-daemon" path="/log_data/telematics/tms_00000001.dlt" dev="mmcblk0p8" ino=8194
+[  252.881537] audit: type=1400 audit(1794059029.880:100): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt_vcrm" requested=r pid=1390 comm="dlt-daemon" path="/log_data/telematics/tms_00000001.dlt" dev="mmcblk0p8" ino=8194
+[  252.882849] audit: type=1400 audit(1794059029.882:101): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt_vcrm" requested=r pid=1390 comm="dlt-daemon" path="/log_data/telematics/tms_00000001.dlt" dev="mmcblk0p8" ino=8194
+[  252.884221] audit: type=1400 audit(1794059029.883:102): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  252.885817] audit: type=1400 audit(1794059029.885:103): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  252.887304] audit: type=1400 audit(1794059029.886:104): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  252.888026] audit: type=1400 audit(1794059029.886:105): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  252.889379] audit: type=1400 audit(1794059029.888:106): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  252.890270] audit: type=1400 audit(1794059029.888:107): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  252.890270] audit: type=1400 audit(1794059029.888:108): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+ [  258.024225] audit_printk_skb: 78 callbacks suppressed
+[  258.024465] audit: type=1400 audit(1794059035.023:135): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt_vcrm" requested=r pid=1390 comm="dlt-daemon" path="/log_data/telematics/tms_00000001.dlt" dev="mmcblk0p8" ino=8194
+[  258.025047] audit: type=1400 audit(1794059035.023:136): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt_vcrm" requested=r pid=1390 comm="dlt-daemon" path="/log_data/telematics/tms_00000001.dlt" dev="mmcblk0p8" ino=8194
+[  258.027061] audit: type=1400 audit(1794059035.026:137): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt_vcrm" requested=r pid=1390 comm="dlt-daemon" path="/log_data/telematics/tms_00000001.dlt" dev="mmcblk0p8" ino=8194
+[  258.028255] audit: type=1400 audit(1794059035.026:138): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  258.029105] audit: type=1400 audit(1794059035.028:139): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  258.030955] audit: type=1400 audit(1794059035.030:140): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  258.031862] audit: type=1400 audit(1794059035.031:141): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  258.033927] audit: type=1400 audit(1794059035.032:142): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  258.035145] audit: type=1400 audit(1794059035.033:143): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  258.036027] audit: type=1400 audit(1794059035.034:144): lsm=SMACK fn=smack_inode_getattr action=denied subject="_" object="Log::dlt" requested=r pid=1390 comm="dlt-daemon" path="/log_data/kernel/kernel_00000001.dlt" dev="mmcblk0p8" ino=57346
+[  259.394004] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  259.667785] EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: (null)
+[  2

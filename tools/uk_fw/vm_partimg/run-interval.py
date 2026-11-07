@@ -34,7 +34,7 @@ sys.path.insert(0, str(PROJECT / "tools/uk_fw"))
 import vm_boot as vb  # noqa: E402
 
 # A CoW clone, never the base workspace. Created with `cp -c` (APFS clonefile).
-WS = (PROJECT / "work/vm/kbuild/ws-run63").resolve()
+WS = (PROJECT / "work/vm/kbuild/ws-run64").resolve()
 ACTIVE_ROOT = "/dev/mmcblk0p5"
 INIT = "/init-interval-run.sh"
 

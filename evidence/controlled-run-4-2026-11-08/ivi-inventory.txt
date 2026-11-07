@@ -1,0 +1,44 @@
+===== IVI inventory at +10s =====
+ivi_place: connecting to /run/user/root/wayland-0
+ivi_place: bound ivi_controller (registry name 15, version 1)
+ivi_place: announced by ivi_controller: 0 layers, 0 surfaces, 0 screens
+ivi_place:   global ivi_application      present (version 1)
+ivi_place:   global ivi_window_manager   present (version 1)
+ivi_place:   global ivi_hmi_requester    present (version 1)
+ivi_place:   global ivi_info_requester   present (version 1)
+ivi_place:   global ivi_share            present (version 1)
+ivi_place:   global ivi_controller       present (version 1)
+ivi_place: layer ids:   (none)
+ivi_place: surface ids: (none)
+ivi_place: screen ids:  (none)
+ivi_place: nothing changed
+
+===== IVI inventory at +60s =====
+ivi_place: connecting to /run/user/root/wayland-0
+ivi_place: bound ivi_controller (registry name 15, version 1)
+ivi_place: announced by ivi_controller: 0 layers, 0 surfaces, 0 screens
+ivi_place:   global ivi_application      present (version 1)
+ivi_place:   global ivi_window_manager   present (version 1)
+ivi_place:   global ivi_hmi_requester    present (version 1)
+ivi_place:   global ivi_info_requester   present (version 1)
+ivi_place:   global ivi_share            present (version 1)
+ivi_place:   global ivi_controller       present (version 1)
+ivi_place: layer ids:   (none)
+ivi_place: surface ids: (none)
+ivi_place: screen ids:  (none)
+ivi_place: nothing changed
+
+===== IVI inventory at +110s =====
+ivi_place: connecting to /run/user/root/wayland-0
+ivi_place: bound ivi_controller (registry name 15, version 1)
+ivi_place: announced by ivi_controller: 0 layers, 0 surfaces, 0 screens
+ivi_place:   global ivi_application      present (version 1)
+ivi_place:   global ivi_window_manager   present (version 1)
+ivi_place:   global ivi_hmi_requester    present (version 1)
+ivi_place:   global ivi_info_requester   present (version 1)
+ivi_place:   global ivi_share            present (version 1)
+ivi_place:   global ivi_controller       present (version 1)
+ivi_place: layer ids:   (none)
+ivi_place: surface ids: (none)
+ivi_place: screen ids:  (none)
+ivi_place: nothing changed

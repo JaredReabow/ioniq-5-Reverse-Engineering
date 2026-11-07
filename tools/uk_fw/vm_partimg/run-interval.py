@@ -100,6 +100,13 @@ def main() -> int:
     ap.add_argument("--cmd", default=DIAG_CMD)
     ap.add_argument("--interactive", action="store_true")
     ap.add_argument("--smp", default=SMP)
+    # The SDHCI compat patch is applied over a gdb RSP connection BEFORE the guest runs, and vm_boot
+    # caps that connection at 30 s. In run 1794056122069443000 the patch never completed (no
+    # patch.json) and qemu was killed at 30.28 s, yet the guest had already mounted mmcblk0p16 and
+    # reached systemd - which is evidence the patch may no longer be required for this image. Left
+    # selectable so the choice is explicit and recorded rather than silently assumed.
+    ap.add_argument("--compat", dest="compat", action="store_true", default=True)
+    ap.add_argument("--no-compat", dest="compat", action="store_false")
     args = ap.parse_args()
 
     SMP = str(args.smp)
@@ -113,7 +120,7 @@ def main() -> int:
 
     return vb.run(
         WS,
-        True,
+        args.compat,
         args.cmd,
         timeout=args.timeout,
         interactive=args.interactive,

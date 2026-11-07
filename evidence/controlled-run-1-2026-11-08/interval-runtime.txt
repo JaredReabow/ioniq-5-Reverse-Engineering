@@ -1,0 +1,49 @@
+[irun] DRIVER version=1 app=AppHomeScreen log=/tmp/weston-real.log out=/dev/ttyS2 export_out=/dev/ttyS3 persist_s=120 sample_s=5 settle_s=20 sandbox=no proc_root=/proc socket=/run/user/root/wayland-0
+[irun] DRIVER fixed_before_launch=yes t0_cs=459
+[irun] PHASE wait_socket socket=/run/user/root/wayland-0
+[irun] PHASE socket_up waited_s=0
+[irun] PHASE wait_first_generation
+
+OpenEmbedded 1.0 (none) ttyS2
+
+(none) login: [irun] GEN n=1 pid=2318 starttime=9042 observed_at_cs=9089
+[irun] PHASE persistence persist_s=120
+[irun] SAMPLE n=1 at_cs=9601 pid=2318 starttime=9042 alive=yes same_generation=yes
+[irun] SAMPLE n=2 at_cs=10146 pid=2318 starttime=9042 alive=yes same_generation=yes
+S4_START
+
+OpenEmbedded 1.0 prm-gen-5 ttyS2
+
+prm-gen-5 login: [irun] SAMPLE n=3 at_cs=10660 pid=2318 starttime=9042 alive=yes same_generation=yes
+[irun] SAMPLE n=4 at_cs=11200 pid=2318 starttime=9042 alive=yes same_generation=yes
+[irun] SAMPLE n=5 at_cs=11762 pid=2318 starttime=9042 alive=yes same_generation=yes
+[irun] SAMPLE n=6 at_cs=12288 pid=2318 starttime=9042 alive=yes same_generation=yes
+[irun] SAMPLE n=7 at_cs=12853 pid=2318 starttime=9042 alive=yes same_generation=yes
+[irun] SAMPLE n=8 at_cs=13462 pid=2318 starttime=9042 alive=yes same_generation=yes
+[irun] SAMPLE n=9 at_cs=14037 pid=2318 starttime=9042 alive=yes same_generation=yes
+[irun] SAMPLE n=10 at_cs=14626 pid=2318 starttime=9042 alive=yes same_generation=yes
+[irun] SAMPLE n=11 at_cs=15149 pid=2318 starttime=9042 alive=yes same_generation=yes
+[irun] SAMPLE n=12 at_cs=15692 pid=2318 starttime=none alive=no same_generation=no
+[irun] SAMPLE n=13 at_cs=16207 pid=2318 starttime=none alive=no same_generation=no
+[irun] SAMPLE n=14 at_cs=16716 pid=2318 starttime=none alive=no same_generation=no
+[irun] SAMPLE n=15 at_cs=17282 pid=2318 starttime=none alive=no same_generation=no
+[irun] SAMPLE n=16 at_cs=17797 pid=2318 starttime=none alive=no same_generation=no
+[irun] SAMPLE n=17 at_cs=18310 pid=2318 starttime=none alive=no same_generation=no
+[irun] SAMPLE n=18 at_cs=18820 pid=2318 starttime=none alive=no same_generation=no
+[irun] SAMPLE n=19 at_cs=19348 pid=2318 starttime=none alive=no same_generation=no
+[irun] SAMPLE n=20 at_cs=19887 pid=2318 starttime=none alive=no same_generation=no
+[irun] SAMPLE n=21 at_cs=20433 pid=2318 starttime=none alive=no same_generation=no
+[irun] SAMPLE n=22 at_cs=20943 pid=2318 starttime=none alive=no same_generation=no
+[irun] SAMPLE n=23 at_cs=21449 pid=2318 starttime=none alive=no same_generation=no
+[irun] SAMPLE n=24 at_cs=21961 pid=2318 starttime=none alive=no same_generation=no
+[irun] PERSISTENCE_RESULT samples=24 alive=11 of=24 interval_s=120
+[irun] PHASE settle settle_s=20
+S4_SOCKET=[wayland-0 wayland-0.lock ]
+[irun] PHASE export helper=/interval-capture.sh expect_pid=2318 expect_starttime=9042
+[irun] EXPORT_CALL_FAILED rc=5
+[irun] DRIVER_DONE generations=1 final_generation_pid=2318 starttime=9042 final_cs=24593
+[irun] OUTCOME COMPLETED generations=1 persistence_samples=24 persistence_alive=11
+S4_RC=1
+S4_HITS=[]
+S4_HEAD=[QIODevice::read: device not open|Using Wayland-EGL|libEGL warning: DRI2: failed to open swrast (search paths /usr/lib/dri)|failed to initialize EGL display|wl_display@1: error 0: invalid object 18|]
+S4_END

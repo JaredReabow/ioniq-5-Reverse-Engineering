@@ -21,6 +21,57 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
+## 5.62.0 - controlled run 1: the export failed closed, and the runtime channel measured a process lifetime
+
+The controlled run happened. Run `1794056221676329000` on the CoW clone `work/vm/kbuild/ws-run61`, with the driver committed at `70ad2bc` (sha256 `b8e762c2…`) and the manifest generated from the tracked bytes before launch. Artifacts retained in `evidence/controlled-run-1-2026-11-08/`. Full record: `docs/vm/60-controlled-run-1-result.md`.
+
+### Two defects found before the run could work
+
+| Defect | Evidence | Fix |
+|---|---|---|
+| An init script runs **before `/proc` is mounted** | `/interval-run.sh: line 86: /proc/uptime: No such file or directory`, driver exited 3 having done nothing | waits for the clock source |
+| **`ttyS2` is a vendor getty console** | a `login:` prompt landed in the export file | export moved to the pristine `ttyS3`; runtime stays on `ttyS2`, where `[irun]` makes lines identifiable |
+
+Also added `IONIQ_VM_USERSPACE_READY` to `DIAG_CMD`; without it `vm_boot` never sends the command.
+
+A third change is recorded as a **choice, not a finding**: the SDHCI gdb patch never completed and `vm_boot` caps that socket at 30 s, so two attempts died at 30.28 s with no `patch.json` — yet the guest had already mounted `mmcblk0p16` and reached systemd. This run used `--no-compat` explicitly; the justification is not yet independent evidence.
+
+### Runtime channel — measured
+
+| Quantity | Value |
+|---|---|
+| driver start | 4.59 s |
+| `AppHomeScreen` generation first observed | **90.89 s** (`pid 2318`, `starttime 9042`) |
+| samples alive | **11 of 24** (last alive 151.49 s) |
+| first dead sample | **156.92 s** |
+| persistence interval | 120 s, fixed before launch and not tuned |
+
+One `AppHomeScreen` process appeared at ~91 s and was gone by ~157 s. It did not survive the fixed interval.
+
+### Export channel — failed closed
+
+`SELF digest=13b5920a…`, `HARNESS … driver_sha256=b8e762c2…` (matching the committed driver), `TARGET pid=2318 starttime=9042`, then `OUTCOME BINDING_FAILED phase=start reason=pid_not_running`. The helper verified its own digest and the driver's bytes in the guest, then refused to capture because the bound process had exited. The frozen verifier reports `RECEIPT_INCOMPLETE … not a completed capture` (exit 23). **No false positive, and no silent downgrade to a negative.**
+
+### Conclusions, per the table fixed before launch
+
+| Claim | Status |
+|---|---|
+| Marker present in a closed capture | **UNRESOLVED** — instrument failed; no conclusion about Home |
+| Authentic Home **registered** | **UNRESOLVED** — a process existing is not a registration |
+| AppHomeScreen **process persisted** across the interval | **NO** |
+| Home **rendered** | **UNRESOLVED** — no display recording was captured |
+| **Interactive** | **UNRESOLVED** — not attempted |
+
+The one supported conclusion is about a process, not the UI. **This run does not establish why it exited**; the launcher-timeout story remains a candidate, not a finding.
+
+### An open anomaly, recorded rather than explained away
+
+`socket_up waited_s=0` at 4.59 s, although the compositor cannot have been listening that early and `debugfs` reports no leftover `/run/user/root/wayland-0` in the staged image. The likely reading is that the socket wait gate is **ineffective**, in which case the generation wait is what sequenced this run. Unresolved, and not a licence to re-tune anything.
+
+### Host-side caveat
+
+There is no `result.json`: the host invocation was interrupted by the operator tool's own time limit after the guest work had finished. The guest did not time out; `DRIVER_DONE`, `OUTCOME COMPLETED` and the export receipt are all present.
+
 ## 5.61.0 - the run's prerequisite: a retained driver, a generated manifest, intervals fixed before launch
 
 Astra C11 required the next work to be the controlled run, with two evidence channels and the persistence interval fixed **before** launch. This entry records the prerequisite. **No run has been performed under this spec yet.**

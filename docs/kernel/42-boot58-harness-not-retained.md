@@ -217,4 +217,21 @@ artefact into a confident negative.
   `work/vm/kbuild/ws/runs/1793944643111075000/exported-weston.bin` — decoded streams.
 - `work/vm/kbuild/ws/partimg-build/final-run.sh`, `hmi-run.sh` — retained drivers.
 - `docs/planning/astra-c8.md` — the consultation that required this audit.
-- `docs/kernel/41-apphomescreen-absent-in-boot65.md` — the corrected presence/absence document.
+- `docs/kernel/41-apphomescreen-absent-in-boot65.md` — the corrected presence/absence document.- `docs/vm/58-interval-capture-harness.md` — the harness that implements the five preconditions below.
+
+## Instrument (implemented)
+
+The five preconditions are now implemented and verified on the host, not merely stated:
+
+- `tools/uk_fw/guest/interval-capture.sh` — enforces preconditions 1–4 in the guest and refuses to
+  judge its own capture.
+- `tools/uk_fw/verify_interval_capture.py` — enforces precondition 5, with the outcome vocabulary
+  `HARNESS_MISMATCH` / `SNAPSHOT_NOT_CLOSED` / `CAPTURE_TRUNCATED` / `REGISTRATION_ABSENT` /
+  `REGISTRATION_PRESENT`.
+- `tests/test_interval_capture_script.py` (9 integration tests) and
+  `tests/test_verify_interval_capture.py` (16 tests), wired into `tools/check_all.sh` Stage 8.
+
+The verifier reproduces the two real runs as regression cases: the boot58 shape yields
+`REGISTRATION_PRESENT`, the boot65 shape yields `CAPTURE_TRUNCATED` with the 22,694 ms shortfall
+named. The instrument has **not** been exercised against the guest yet, and it does not by itself
+authorise a run.

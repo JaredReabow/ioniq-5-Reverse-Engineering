@@ -21,6 +21,42 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
+## 5.55.0 - the five preconditions become an instrument, and three checks in check_all.sh turn out never to have run
+
+The five preconditions of 5.53.0 were prose. They are now implemented and verified on the host.
+
+### The instrument
+
+`tools/uk_fw/guest/interval-capture.sh` enforces preconditions 1–4 in the guest and **deliberately refuses to judge its own capture**; `tools/uk_fw/verify_interval_capture.py` enforces precondition 5 on the host. The split is the point: deciding "the window was too short" from inside the capture is the exact mechanism that converted a truncated instrument into a confident negative.
+
+| # | Precondition | Mechanism |
+|---|---|---|
+| 1 | Harness identity | `SELF path=… algo=sha256 digest=…`, or `algo=none` and exit 3 **before measuring** |
+| 2 | Both clocks on every marker | `MARK … t_mono=… off_c=…` |
+| 3 | Closed snapshot | size measured → `head -c` → decode → compare to measured size; mismatch exits 4 |
+| 4 | Pinned generation | `pid` + `/proc/<pid>/stat` field 22 starttime; otherwise explicit `binding=name_only` |
+| 5 | Per-cause null | `HARNESS_MISMATCH` / `SNAPSHOT_NOT_CLOSED` / `CAPTURE_TRUNCATED` / `REGISTRATION_ABSENT` / `REGISTRATION_PRESENT` |
+
+Gate order is harness-before-presence, so a marker found through an unidentifiable harness still reports `HARNESS_MISMATCH`.
+
+### The two real runs are now regression cases
+
+boot58's shape (186,509 ms window, marker at a 186,397 ms offset) yields `REGISTRATION_PRESENT`. boot65's shape (163,703 ms window against the same offset) yields `CAPTURE_TRUNCATED`, naming the 22,694 ms shortfall. A future edit that loosens the truncation rule fails that test.
+
+### A unit trap in the new tool, caught before it entered the record
+
+Protocol stamps look like `[824313.371]`. The whole part is **already milliseconds**; the decimals are sub-millisecond. The first draft multiplied by 1000 and would have reported a 51-hour window. The conversion now carries its cross-check in a docstring, with two tests pinning it.
+
+### Separate defect: three checks in `tools/check_all.sh` had never executed
+
+Stages 6 and 7 sat **after** an `exit "$rc"`, so `tools/verify_findings.py` and the `measure.sh` fail-closed self-test were unreachable dead code despite being described as wired in. Stage 6 also invoked bare `python3`, which is broken on this host. The summary and exit now come last, Stage 6 uses `"$PY"`, and Stage 8 runs the new tests. First real execution: `verify_findings` 5 pass / 0 fail / 0 skip; measure self-test 6 ok / 0 failed; Stage 8 25 tests OK.
+
+### Verification scope
+
+Host-side only — 9 integration tests that run the real shell script against synthetic logs, and 16 unit tests. The instrument has **not** been exercised against the guest, does not authorise a run by itself, and should be reviewed by Astra and Opus 4.7 before it is trusted with a measurement.
+
+See `docs/vm/58-interval-capture-harness.md`.
+
 ## 5.54.0 - decisive: boot65's stream ended 22.7 s before the milestone boot58 recorded
 
 The byte-count asymmetry in 5.52.0 was a crude proxy, because the exports differ in size for reasons unrelated to protocol coverage. The protocol stream carries its own monotonic millisecond timestamps, and both runs' streams come from the same logger, so **durations compare directly despite different boot clock origins**.

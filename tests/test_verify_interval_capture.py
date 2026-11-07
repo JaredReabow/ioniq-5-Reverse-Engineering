@@ -1,6 +1,15 @@
+"""Tests for tools/uk_fw/verify_interval_capture.py (revision 2).
+
+Revision 1 was rejected by Opus 4.7 (docs/planning/opus-4-7-c8.md). Every blocking finding from that
+review has a test here, plus an end-to-end reproduction against the two retained logs when they are
+available on this host.
+"""
+
 from __future__ import annotations
 
+import hashlib
 import importlib.util
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -11,133 +20,302 @@ TOOL_PATH = ROOT / "tools/uk_fw/verify_interval_capture.py"
 spec = importlib.util.spec_from_file_location("verify_interval_capture", TOOL_PATH)
 assert spec and spec.loader
 mod = importlib.util.module_from_spec(spec)
-# A @dataclass resolves its own module through sys.modules while decorating, so the module must
-# be registered before exec_module or dataclasses raises AttributeError on None.
+# A @dataclass resolves its own module through sys.modules while decorating, so the module must be
+# registered before exec_module or dataclasses raises AttributeError on None.
 sys.modules[spec.name] = mod
 spec.loader.exec_module(mod)
 
-# Real measured values from the retained runs, docs/kernel/42 Findings 3 and 5.
-BOOT58_FIRST_TS = "637916.158"
-BOOT58_LAST_TS = "824425.000"
-BOOT58_WINDOW_MS = 186509
-BOOT58_HOME_OFFSET_MS = 186397
+# Real measured values, docs/kernel/42 Findings 3 and 5 and docs/kernel/43.
+BOOT58 = dict(run="1793931162561454000", first=637916, last=824425, precursor=89952)
+BOOT65 = dict(run="1793944643111075000", first=1233868, last=1397571, precursor=89289)
+MILESTONE_AFTER_PRECURSOR = 96445
+RUNS_DIR = ROOT / "work/vm/kbuild/ws/runs"
 
-BOOT65_FIRST_TS = "1233868.000"
-BOOT65_LAST_TS = "1397571.000"
-BOOT65_WINDOW_MS = 163703
+MARKER = re.compile(mod.DEFAULT_MARKER_PATTERN.format(marker="AppHomeScreen").encode())
+PRECURSOR = re.compile(b"create_hmi_client")
 
 
-def receipt(
+def _sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def receipt_bytes(
+    data: bytes,
     *,
+    first: int | None,
+    last: int | None,
     algo: str = "sha256",
-    digest: str = "a" * 64,
     binding: str = "pinned_pid_and_starttime",
     closed: bool = True,
-    first_ts: str | None = BOOT58_FIRST_TS,
-    last_ts: str | None = BOOT58_LAST_TS,
-) -> str:
+    digest: str | None = None,
+) -> mod.Receipt:
+    """Build a Receipt as the guest would emit it, for the given log bytes."""
     lines = [
         "RECEIPT v1",
-        f"SELF path=/interval-capture.sh algo={algo} digest={digest}",
+        f"SELF path=/interval-capture.sh algo={algo} digest={'a' * 64 if algo != 'none' else 'none'}",
         "GEN_COUNT count=1 app=AppHomeScreen",
         f"TARGET generation=1 pid=2667 starttime=12345 binding={binding}",
-        f"CAPTURE file=/tmp/weston-real.log bytes=1000 digest=deadbeef "
-        f"first_ts={first_ts or 'none'} last_ts={last_ts or 'none'} b64_len=1336 seq=1",
-        f"SNAPSHOT_CLOSED bytes=1000 decoded=1000 match={'yes' if closed else 'no'}",
-        "OUTCOME CAPTURED bytes=1000 generation=1",
+        f"CAPTURE file=/tmp/weston-real.log bytes={len(data)} digest={digest or _sha(data)} "
+        f"first_ts={first if first is not None else 'none'} last_ts={last if last is not None else 'none'}",
+        f"SNAPSHOT_CLOSED bytes={len(data)} decoded={len(data)} match={'yes' if closed else 'no'}",
+        "OUTCOME CAPTURED",
     ]
-    return "\n".join(lines) + "\n"
+    return mod.parse_receipt("\n".join(lines) + "\n")
 
 
-class TestTimestampConversion(unittest.TestCase):
-    def test_weston_timestamp_whole_part_is_milliseconds(self) -> None:
-        # The whole part is already ms; the decimals are sub-ms. Getting this wrong rescales
-        # every verdict by 1000x, which is why the assertion is explicit.
-        self.assertEqual(mod._ts_to_ms("824313.371"), 824313)
-
-    def test_fraction_does_not_change_the_millisecond_value(self) -> None:
-        self.assertEqual(mod._ts_to_ms("100.5"), 100)
-        self.assertEqual(mod._ts_to_ms("100.999"), 100)
-
-    def test_unparseable_returns_none(self) -> None:
-        self.assertIsNone(mod._ts_to_ms("none"))
-        self.assertIsNone(mod._ts_to_ms(""))
+def log_lines(stamps: list[int], body: str = "") -> bytes:
+    return b"".join(f"[{s}.000] {body}\n".encode() for s in stamps)
 
 
-class TestRealRunReproduction(unittest.TestCase):
-    """The decisive regression: the verifier must reproduce the boot58/boot65 verdicts."""
+REGISTRATION_BODY = b'  -> ivi_hmi_requester@18.create_hmi_client(1, 1006, "AppHomeScreen", new id ivi_hmi_client@21)\n'
 
-    def test_boot58_shape_reports_present(self) -> None:
-        # boot58's window reached its own registration, which sits 112 ms before the end.
-        r = mod.parse_receipt(receipt())
-        self.assertEqual(r.window_ms, BOOT58_WINDOW_MS)
-        outcome, _ = mod.decide(r, "create_hmi_client(1, 1006, \"AppHomeScreen\")", "AppHomeScreen", BOOT58_HOME_OFFSET_MS)
+
+def registration_line(stamp: int) -> bytes:
+    """The exact retained registration form, at a caller-chosen stamp.
+
+    Carrying a fixed stamp was a fixture bug: it made several tests non-monotonic, and the new
+    timestamp gate correctly rejected them. That is the gate doing its job, not a reason to weaken
+    the gate.
+    """
+    return b"[%d.000]" % stamp + REGISTRATION_BODY
+
+
+def decide(r: mod.Receipt, data: bytes, *, precursor=True, ms=MILESTONE_AFTER_PRECURSOR):
+    return mod.decide(r, data, MARKER, PRECURSOR if precursor else None, ms)
+
+
+class TestGate0LogReceiptBinding(unittest.TestCase):
+    """Opus finding 5: --log and --receipt were never bound together."""
+
+    def test_wrong_log_is_rejected(self) -> None:
+        measured = log_lines([1000, 2000])
+        other = log_lines([1000, 2000], body="different content")
+        r = receipt_bytes(measured, first=1000, last=2000)
+        outcome, reason = decide(r, other)
+        self.assertEqual(outcome, mod.LOG_RECEIPT_MISMATCH)
+        self.assertIn("different captures", reason)
+
+    def test_byte_count_mismatch_is_rejected(self) -> None:
+        measured = log_lines([1000, 2000])
+        r = receipt_bytes(measured, first=1000, last=2000)
+        outcome, _ = decide(r, measured + b"extra")
+        self.assertEqual(outcome, mod.LOG_RECEIPT_MISMATCH)
+
+
+class TestGate2TimestampIntegrity(unittest.TestCase):
+    """Opus finding 1: TS_RE was defined and never used."""
+
+    def test_receipt_bounds_are_rederived_not_trusted(self) -> None:
+        data = log_lines([1000, 2000])
+        # Receipt claims a window far wider than the log actually contains.
+        r = receipt_bytes(data, first=1000, last=999999)
+        outcome, reason = decide(r, data)
+        self.assertEqual(outcome, mod.HARNESS_MISMATCH)
+        self.assertIn("disagrees with the log", reason)
+
+    def test_first_stamp_disagreement_is_rejected(self) -> None:
+        data = log_lines([1000, 2000])
+        r = receipt_bytes(data, first=500, last=2000)
+        outcome, _ = decide(r, data)
+        self.assertEqual(outcome, mod.HARNESS_MISMATCH)
+
+    def test_non_monotonic_stream_is_rejected(self) -> None:
+        data = log_lines([2000, 1000])
+        r = receipt_bytes(data, first=2000, last=1000)
+        outcome, reason = decide(r, data)
+        self.assertEqual(outcome, mod.HARNESS_MISMATCH)
+        self.assertIn("monotonic", reason)
+
+    def test_no_timestamps_is_rejected(self) -> None:
+        data = b"no stamps here\n"
+        r = receipt_bytes(data, first=None, last=None)
+        outcome, _ = decide(r, data)
+        self.assertEqual(outcome, mod.HARNESS_MISMATCH)
+
+
+class TestGate3SnapshotClosure(unittest.TestCase):
+    def test_unclosed_snapshot_blocks_conclusion(self) -> None:
+        data = log_lines([1000, 2000])
+        r = receipt_bytes(data, first=1000, last=2000, closed=False)
+        outcome, _ = decide(r, data)
+        self.assertEqual(outcome, mod.SNAPSHOT_NOT_CLOSED)
+
+    def test_unclosed_snapshot_still_reports_what_was_discarded(self) -> None:
+        # Opus's corollary: boot58's only positive sat past its declared bound, so a strict rule
+        # discards it. It must be visible rather than silent.
+        data = b"[1000.000] start\n" + registration_line(1500) + b"[2000.000] end\n"
+        r = receipt_bytes(data, first=1000, last=2000, closed=False)
+        outcome, reason = decide(r, data)
+        self.assertEqual(outcome, mod.SNAPSHOT_NOT_CLOSED)
+        self.assertIn("IS present", reason)
+
+
+class TestGate4Precursor(unittest.TestCase):
+    """Opus finding 2 and Astra's concurrence: absolute offsets impose one run's pacing on another."""
+
+    def test_no_precursor_pattern_means_no_negative(self) -> None:
+        data = log_lines([1000, 2000])
+        r = receipt_bytes(data, first=1000, last=2000)
+        outcome, _ = mod.decide(r, data, MARKER, None, MILESTONE_AFTER_PRECURSOR)
+        self.assertEqual(outcome, mod.CAPTURE_TRUNCATED)
+
+    def test_missing_precursor_means_no_negative(self) -> None:
+        # Premature HMI-client construction never happened; absence of the marker proves nothing.
+        data = log_lines([1000, 200000])
+        r = receipt_bytes(data, first=1000, last=200000)
+        outcome, reason = decide(r, data)
+        self.assertEqual(outcome, mod.CAPTURE_TRUNCATED)
+        self.assertIn("precursor absent", reason)
+
+
+class TestGate5StructuredMatch(unittest.TestCase):
+    """Opus finding 3: the bare substring was unsafe grammar."""
+
+    def test_death_notice_does_not_read_as_registration(self) -> None:
+        data = (
+            b"[1000.000]  -> ivi_hmi_requester@18.create_hmi_client(1, 1000, \"Other\", new id x)\n"
+            b"[1100.000] killed AppHomeScreen pid=2667\n"
+            b"[200000.000] end\n"
+        )
+        r = receipt_bytes(data, first=1000, last=200000)
+        outcome, _ = decide(r, data)
+        self.assertNotEqual(outcome, mod.REGISTRATION_PRESENT)
+        self.assertEqual(outcome, mod.REGISTRATION_ABSENT)
+
+    def test_path_does_not_read_as_registration(self) -> None:
+        data = (
+            b"[1000.000]  -> ivi_hmi_requester@18.create_hmi_client(1, 1000, \"Other\", new id x)\n"
+            b"[1100.000] exec(/app/bin/AppHomeScreen)\n"
+            b"[200000.000] end\n"
+        )
+        r = receipt_bytes(data, first=1000, last=200000)
+        outcome, _ = decide(r, data)
+        self.assertEqual(outcome, mod.REGISTRATION_ABSENT)
+
+    def test_class_name_does_not_read_as_registration(self) -> None:
+        data = (
+            b"[1000.000]  -> ivi_hmi_requester@18.create_hmi_client(1, 1000, \"Other\", new id x)\n"
+            b"[1100.000] AppHomeScreenController constructed\n"
+            b"[200000.000] end\n"
+        )
+        r = receipt_bytes(data, first=1000, last=200000)
+        outcome, _ = decide(r, data)
+        self.assertEqual(outcome, mod.REGISTRATION_ABSENT)
+
+    def test_real_registration_form_matches(self) -> None:
+        # The exact retained form, with trailing arguments before the closing paren.
+        data = (
+            b"[1000.000]  -> ivi_hmi_requester@18.create_hmi_client(1, 1000, \"Other\", new id x)\n"
+            + registration_line(1500)
+            + b"[200000.000] end\n"
+        )
+        r = receipt_bytes(data, first=1000, last=200000)
+        outcome, _ = decide(r, data)
         self.assertEqual(outcome, mod.REGISTRATION_PRESENT)
 
-    def test_boot65_shape_is_truncated_not_absent(self) -> None:
-        # This is the whole point of the tool. boot65's window is 163,703 ms against a
-        # 186,397 ms milestone offset, so silence must be CAPTURE_TRUNCATED, never a negative.
-        r = mod.parse_receipt(receipt(first_ts=BOOT65_FIRST_TS, last_ts=BOOT65_LAST_TS))
-        self.assertEqual(r.window_ms, BOOT65_WINDOW_MS)
-        outcome, reason = mod.decide(r, "no marker here", "AppHomeScreen", BOOT58_HOME_OFFSET_MS)
+
+class TestGate6AbsenceCriteria(unittest.TestCase):
+    def test_absence_with_short_tail_is_truncated(self) -> None:
+        # precursor at 1000, window to 51000 -> 50000 ms of tail, milestone 96445
+        data = (
+            b"[1000.000]  -> create_hmi_client(1, 1000, \"Other\", new id x)\n"
+            b"[51000.000] end\n"
+        )
+        r = receipt_bytes(data, first=1000, last=51000)
+        outcome, reason = decide(r, data)
         self.assertEqual(outcome, mod.CAPTURE_TRUNCATED)
-        self.assertIn("22694", reason)
+        self.assertIn("46445 ms short", reason)
+
+    def test_absence_with_long_enough_tail_is_a_negative(self) -> None:
+        start = 1000
+        prec = 1000
+        end = prec + MILESTONE_AFTER_PRECURSOR
+        data = b"".join(
+            [
+                b"[1000.000]  -> create_hmi_client(1, 1000, \"Other\", new id x)\n",
+                f"[{end}.000] end\n".encode(),
+            ]
+        )
+        r = receipt_bytes(data, first=start, last=end)
+        outcome, _ = decide(r, data)
+        self.assertEqual(outcome, mod.REGISTRATION_ABSENT)
+
+    def test_absolute_offset_alone_cannot_produce_a_negative(self) -> None:
+        # The absolute offset must never be sufficient. A precursor IS present and the window is
+        # long, so the only reason this cannot be a negative is that no precursor-relative
+        # reference was supplied.
+        data = (
+            b"[1000.000]  -> create_hmi_client(1, 1000, \"Other\", new id x)\n"
+            b"[500000.000] end\n"
+        )
+        r = receipt_bytes(data, first=1000, last=500000)
+        outcome, reason = mod.decide(r, data, MARKER, PRECURSOR, None, 186397)
+        self.assertEqual(outcome, mod.CAPTURE_TRUNCATED)
+        self.assertIn("no --milestone-after-precursor-ms", reason)
 
 
 class TestHarnessGates(unittest.TestCase):
     def test_missing_digest_blocks_conclusion(self) -> None:
-        r = mod.parse_receipt(receipt(algo="none", digest="none"))
-        outcome, _ = mod.decide(r, "AppHomeScreen", "AppHomeScreen", 186397)
+        data = b"[1000.000] start\n" + registration_line(1500)
+        r = receipt_bytes(data, first=1000, last=1500, algo="none")
+        outcome, _ = decide(r, data)
         self.assertEqual(outcome, mod.HARNESS_MISMATCH)
 
     def test_name_only_binding_blocks_conclusion(self) -> None:
-        r = mod.parse_receipt(receipt(binding="name_only"))
-        outcome, _ = mod.decide(r, "AppHomeScreen", "AppHomeScreen", 186397)
+        data = b"[1000.000] start\n" + registration_line(1500)
+        r = receipt_bytes(data, first=1000, last=1500, binding="name_only")
+        outcome, _ = decide(r, data)
         self.assertEqual(outcome, mod.HARNESS_MISMATCH)
 
-    def test_unclosed_snapshot_blocks_conclusion(self) -> None:
-        r = mod.parse_receipt(receipt(closed=False))
-        outcome, _ = mod.decide(r, "AppHomeScreen", "AppHomeScreen", 186397)
-        self.assertEqual(outcome, mod.SNAPSHOT_NOT_CLOSED)
-
-    def test_no_timestamps_blocks_conclusion(self) -> None:
-        r = mod.parse_receipt(receipt(first_ts=None, last_ts=None))
-        outcome, _ = mod.decide(r, "AppHomeScreen", "AppHomeScreen", 186397)
-        self.assertEqual(outcome, mod.HARNESS_MISMATCH)
-
-    def test_gate_order_prefers_harness_over_presence(self) -> None:
-        # A present marker in an unidentifiable harness is still not a valid measurement.
-        r = mod.parse_receipt(receipt(algo="none", digest="none"))
-        outcome, _ = mod.decide(r, "AppHomeScreen", "AppHomeScreen", 186397)
+    def test_harness_outranks_presence(self) -> None:
+        data = b"[1000.000] start\n" + registration_line(1500)
+        r = receipt_bytes(data, first=1000, last=1500, algo="none")
+        outcome, _ = decide(r, data)
         self.assertEqual(outcome, mod.HARNESS_MISMATCH)
 
 
-class TestAbsenceRequiresWindow(unittest.TestCase):
-    def test_absence_without_offset_is_not_a_negative(self) -> None:
-        r = mod.parse_receipt(receipt())
-        outcome, _ = mod.decide(r, "no marker", "AppHomeScreen", None)
+class TestBinarySafety(unittest.TestCase):
+    """Opus finding 6: errors='replace' could fabricate or erase match boundaries."""
+
+    def test_non_utf8_bytes_do_not_break_matching(self) -> None:
+        data = (
+            b"[1000.000] \xff\xfe garbage \x80\n"
+            + registration_line(1500)
+            + b"[200000.000] end\n"
+        )
+        r = receipt_bytes(data, first=1000, last=200000)
+        outcome, _ = decide(r, data)
+        self.assertEqual(outcome, mod.REGISTRATION_PRESENT)
+
+
+class TestRealRunReproduction(unittest.TestCase):
+    """End-to-end against the two retained logs. The decisive regression."""
+
+    def _receipt_for(self, spec_: dict, data: bytes) -> mod.Receipt:
+        return receipt_bytes(data, first=spec_["first"], last=spec_["last"])
+
+    def test_boot58_registration_present(self) -> None:
+        path = RUNS_DIR / BOOT58["run"] / "exported-weston.bin"
+        if not path.is_file():
+            self.skipTest("retained boot58 log not present")
+        data = path.read_bytes()
+        outcome, _ = decide(self._receipt_for(BOOT58, data), data)
+        self.assertEqual(outcome, mod.REGISTRATION_PRESENT)
+
+    def test_boot65_truncated_not_absent(self) -> None:
+        path = RUNS_DIR / BOOT65["run"] / "exported-weston.bin"
+        if not path.is_file():
+            self.skipTest("retained boot65 log not present")
+        data = path.read_bytes()
+        outcome, reason = decide(self._receipt_for(BOOT65, data), data)
         self.assertEqual(outcome, mod.CAPTURE_TRUNCATED)
-
-    def test_absence_with_sufficient_window_is_absent(self) -> None:
-        r = mod.parse_receipt(receipt())
-        outcome, _ = mod.decide(r, "no marker", "AppHomeScreen", 180000)
-        self.assertEqual(outcome, mod.REGISTRATION_ABSENT)
-
-    def test_window_exactly_at_offset_counts_as_reaching_it(self) -> None:
-        r = mod.parse_receipt(receipt())
-        outcome, _ = mod.decide(r, "no marker", "AppHomeScreen", BOOT58_WINDOW_MS)
-        self.assertEqual(outcome, mod.REGISTRATION_ABSENT)
-
-    def test_window_one_ms_short_is_truncated(self) -> None:
-        r = mod.parse_receipt(receipt())
-        outcome, _ = mod.decide(r, "no marker", "AppHomeScreen", BOOT58_WINDOW_MS + 1)
-        self.assertEqual(outcome, mod.CAPTURE_TRUNCATED)
+        self.assertIn("22031", reason)
 
 
 class TestExitCodes(unittest.TestCase):
     def test_every_outcome_has_a_distinct_exit_code(self) -> None:
-        self.assertEqual(len(mod.EXIT), 5)
-        self.assertEqual(len(set(mod.EXIT.values())), 5)
+        self.assertEqual(len(mod.EXIT), 6)
+        self.assertEqual(len(set(mod.EXIT.values())), 6)
 
     def test_present_is_zero(self) -> None:
         self.assertEqual(mod.EXIT[mod.REGISTRATION_PRESENT], 0)

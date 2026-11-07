@@ -21,6 +21,50 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
+## 5.57.0 - both reviewers rejected the capture harness; the verifier is rewritten, the guest script is not
+
+Sent the harness to Astra (guest script) and Opus 4.7 (verifier) with deliberately non-overlapping scopes so the verdicts would be independent. **Both returned REJECT**, on different files. Recorded in `docs/planning/astra-c9.md` and `docs/planning/opus-4-7-c8.md`.
+
+### What the reviews found
+
+Astra's most consequential finding is that **hashing the helper does not retain the harness that drove the run**. Precondition 1 was specified as "probe script frozen and hashed into `result.json`"; the implementation weakened it to "this helper hashes itself". A future unretained driver could invoke the helper, and the receipt would carry a valid helper hash while the experiment-driving program stayed unrecoverable — boot58's failure mode exactly. Astra also found the "closed snapshot" to be five independent reads of a mutable pathname (rotation or in-place overwrite defeats it), `--generation N` to be a `pidof` enumeration slot that shifts when a process exits, the generation binding to be optional and never re-checked at capture time, a failed export still able to emit `SNAPSHOT_CLOSED` and exit 0, and a failed `sleep` able to shorten the window silently.
+
+Opus 4.7's sharpest finding is that **`TS_RE` was defined at module scope and never used.** The regex existed precisely so the verifier could re-derive window bounds from the log instead of believing the receipt, and it was left dead — so the verifier reproduced the boot65 defect inside itself. Opus also found no `--log`/`--receipt` binding, unsafe bare-substring grammar, a prior-run constant imposed on a differently-paced run, self-attested binding strings, unsafe `errors="replace"` on a binary log, and an unhandled negative window.
+
+### The convergent conclusion
+
+Both reviewers independently concluded that `REGISTRATION_ABSENT` cannot be safely reported on an absolute offset at all, and both required an **in-stream precursor** instead. That precursor had already been measured in this session and is stable: the first `create_hmi_client` falls at 89,952 ms in boot58 and 89,289 ms in boot65 — a 663 ms (0.7%) drift — against stream origins that are arbitrary. Recorded in `docs/kernel/43`, which also reproduces the 112 ms margin from `docs/kernel/42` from the independent reference.
+
+### Verifier revision 2
+
+All eight Opus findings addressed except one:
+
+| Finding | Status |
+|---|---|
+| `TS_RE` unused | Bounds re-derived from the log; monotonicity asserted; disagreement is `HARNESS_MISMATCH` |
+| No log/receipt binding | New gate 0: re-digest and byte count, else `LOG_RECEIPT_MISMATCH` |
+| Bare substring | Structured `create_hmi_client(...)` pattern; `killed AppHomeScreen`, `/app/bin/AppHomeScreen`, `AppHomeScreenController` proven not to match |
+| Absolute offset as criterion | Replaced by precursor + `--milestone-after-precursor-ms`; absolute offset has **no** decision role |
+| Self-attested `target_binding` | **Not fixed** — requires the guest to emit the pid/starttime evidence block |
+| `errors="replace"` | Log read as bytes |
+| Negative window | `HARNESS_MISMATCH` |
+| Fractional truncation | Documented, cross-checked in `docs/kernel/43` |
+
+### Two defects caught by the tests, not by review
+
+1. The first structured pattern required the quoted name immediately before `)`, which never matches the real form `create_hmi_client(1, 1006, "AppHomeScreen", new id ivi_hmi_client@21)`. Run against boot58's retained log it reported `REGISTRATION_ABSENT` — a **false negative on the only positive this project has**. Found because the verifier was exercised on real data, not only synthetic fixtures.
+2. A first attempt kept the absolute offset as a fallback when no precursor-relative reference was supplied, so an operator could still restore the rejected criterion by passing one flag. It now has no decision role: without `--milestone-after-precursor-ms` the answer is "cannot decide".
+
+### Verified
+
+End-to-end against both retained logs: boot58 → `REGISTRATION_PRESENT` (exit 0); boot65 → `CAPTURE_TRUNCATED` naming the 22,031 ms shortfall (exit 11). Full suite 40 tests OK.
+
+### Still unqualified
+
+The guest script still carries Astra's six blocking defects apart from the `centi()` fix. **A correct verifier cannot rescue a guest that may report a window it did not measure.** The harness remains unqualified and the boot78 task stays paused.
+
+See `docs/vm/58-interval-capture-harness.md`.
+
 ## 5.56.0 - the three harness defects are the house style, not two unlucky runs
 
 Swept all 58 existing probe scripts for the defects documented in 5.53.0:

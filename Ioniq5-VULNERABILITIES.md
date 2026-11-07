@@ -4117,3 +4117,27 @@ On a unit with UNECE support configured: as a non-root user, `: > /tmp/no_unece`
 `systemctl status supplicantmanager` shows the unit started and that `cfg80211` was loaded. **A wireless daemon started on a
 marker written by a non-root user, on a unit configured as UNECE, is this finding.** Whether the radio then powers up is a
 separate check governed by V-050's remaining gates.
+
+### Provisioning source of the variant table — examined, **not established**
+
+The open question above was "how is the variant configuration provisioned, and is it writable". The following was checked
+and is recorded as a **negative result**, so the next attempt does not repeat it:
+
+| Check | Result |
+|---|---|
+| `app/bin/AppLauncher.sh` argument passing | `ExecStart=/app/bin/AppLauncher.sh`; the script's last line is `/app/bin/AppLauncher 3&` — **a single positional argument `3`, no variant flags**. The `-un`/`-os`/`-osr` table is therefore the binary's *parsing capability*, not evidence of how this unit is configured |
+| binaries referencing `OptionVariant` | only `AppLauncher` (1 occurrence); `ApplicationManager` has none |
+| `/etc` files mentioning `UNECE` / `OptionVariant` / `VariationCode` | only `etc/smack_setup.sh` — a policy script, which names the string but is not a configuration source |
+| D-Bus interfaces in `ApplicationManager` matching `*variant*` / `*option*` | none found by string search |
+
+`AppLauncher` also carries the log format `OptionVariant[%1] = %2`, which indicates values are applied one by one and
+logged, but the string set does not reveal where they are read from.
+
+**What this rules out:** a plain `/etc` configuration file, and an obvious variant D-Bus interface on the application
+manager. **What it does not establish:** the actual source. Remaining candidates are a file under `/app`, `/navi` or the data
+partition, a shared-memory or property channel, or a variant table compiled into the binary with the option strings used only
+for overrides.
+
+**Next step, precisely:** disassemble the `OptionVariant` consumer in `AppLauncher` and follow the data into whatever it
+reads, or — on a controlled run — trace `open`/`read` from `AppLauncher` and diff against a known UNECE-configured variant.
+The second needs a VM and a variant to compare against; the first needs no run and is the cheaper next attempt.

@@ -80,6 +80,7 @@ class IntervalRunSandbox(unittest.TestCase):
         self.assertEqual(rc.returncode, 0, rc.stderr)
 
         self.out = self.tmp / "runtime.txt"
+        self.export_out = self.tmp / "export.txt"
 
     def _run(self, *, persist: int = 6, sample: int = 2, settle: int = 0, starttime: int | None = None) -> subprocess.CompletedProcess[str]:
         if starttime is not None:
@@ -98,8 +99,9 @@ class IntervalRunSandbox(unittest.TestCase):
             "IC_DEC": str(self.tmp / "dec"),
         }
         return subprocess.run(
-            ["/bin/sh", str(DRIVER), "--out", str(self.out), "--manifest", str(self.manifest),
-             "--helper", str(HELPER), "--app", "AppHomeScreen", "--log", str(self.weston_log)],
+            ["/bin/sh", str(DRIVER), "--out", str(self.out), "--export-out", str(self.export_out),
+             "--manifest", str(self.manifest), "--helper", str(HELPER),
+             "--app", "AppHomeScreen", "--log", str(self.weston_log)],
             capture_output=True, text=True, env=env, timeout=300, cwd=str(ROOT),
         )
 
@@ -147,8 +149,8 @@ class IntervalRunSandbox(unittest.TestCase):
 
     def test_missing_helper_is_a_prerequisite_failure(self) -> None:
         proc = subprocess.run(
-            ["/bin/sh", str(DRIVER), "--out", str(self.out), "--manifest", str(self.manifest),
-             "--helper", str(self.tmp / "nope.sh")],
+            ["/bin/sh", str(DRIVER), "--out", str(self.out), "--export-out", str(self.export_out),
+             "--manifest", str(self.manifest), "--helper", str(self.tmp / "nope.sh")],
             capture_output=True, text=True, timeout=120, cwd=str(ROOT),
             env={"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "IC_UPTIME": str(self.uptime),
                  "IC_PROC": str(self.proc), "IC_SOCKET": str(self.sock_path),
@@ -159,14 +161,27 @@ class IntervalRunSandbox(unittest.TestCase):
 
     # ---- the export channel is reached ------------------------------------
 
-    def test_helper_is_invoked_and_its_receipt_lands_in_the_same_channel(self) -> None:
+    def test_helper_is_invoked_on_the_separate_export_channel(self) -> None:
         proc = self._run(persist=2, sample=1)
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        text = self._text()
-        self.assertIn("PHASE export", text)
-        self.assertIn("RECEIPT v2", text)
-        self.assertIn("HARNESS run=sandbox", text)
-        self.assertIn("EXPORT_CALL_OK rc=0", text)
+        runtime = self._text()
+        export = self.export_out.read_text(encoding="utf-8") if self.export_out.is_file() else ""
+        self.assertIn("PHASE export", runtime)
+        self.assertIn("EXPORT_CALL_OK rc=0", runtime)
+        self.assertIn("RECEIPT v2", export)
+        self.assertIn("HARNESS run=sandbox", export)
+
+    def test_the_two_channels_do_not_contaminate_each_other(self) -> None:
+        # A shared channel would put the driver's own OUTCOME line into the helper's transaction, and
+        # the verifier requires exactly one terminal outcome - so sharing makes every run read as
+        # RECEIPT_INCOMPLETE. This asserts the separation is real, not merely intended.
+        proc = self._run(persist=2, sample=1)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        runtime = self._text()
+        export = self.export_out.read_text(encoding="utf-8") if self.export_out.is_file() else ""
+        self.assertNotIn("RECEIPT v2", runtime)
+        self.assertNotIn("[irun]", export)
+        self.assertEqual(export.count("OUTCOME "), 1)
 
     # ---- clock format ----------------------------------------------------
 

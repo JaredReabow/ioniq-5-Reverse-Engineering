@@ -162,3 +162,49 @@ Two candidates, and they should be distinguished before any boot:
 
 Option 1 is cheap, offline, and decisive if it succeeds. It should be tried first — the same
 "find the author of the request" move that resolved the `screen_create` question in `docs/kernel/40`.
+
+---
+
+## CORRECTION (same session): I attributed the hiding to a client, and the protocol says otherwise
+
+The section above says "a controller client set the new app surface hidden and unlayered at
+registration time". **That attribution is wrong**, and the retained protocol XML settles it.
+
+`tools/uk_fw/ias_backend_soft/ivi-controller.xml`, interface `ivi_controller_surface`:
+
+| Kind | Methods |
+|---|---|
+| **requests** (client → server) | `set_visibility`, `set_opacity`, `set_source_rectangle`, `set_destination_rectangle`, `set_configuration`, `set_orientation`, `screenshot`, `send_stats`, `destroy` |
+| **events** (server → client) | `visibility`, `opacity`, `source_rectangle`, `destination_rectangle`, `configuration`, `orientation`, `pixelformat`, `layer`, `stats`, `destroyed`, `content` |
+
+So in the payload:
+
+- `ivi_controller_surface@22.visibility(0)`, `.layer(nil)`, `.source_rectangle(0, 0, 0, 0)` — **no
+  `set_` prefix, therefore events**. They are the compositor **reporting the surface's layout state**,
+  not a client asking for it.
+- `ivi_controller_surface@22.set_destination_rectangle(0, 0, 1920, 720)` — **has `set_`, therefore a
+  request** from a controller client.
+- `ivi_controller@11.surface_create(1000, …)` — a request, so a controller client did create the
+  wrapper.
+
+The corrected reading of the sequence is therefore:
+
+1. the app creates IVI surface 1000, registers as an HMI client, and commits **with no `attach()`**, so
+   no buffer exists;
+2. a controller client creates the controller-side wrapper (`surface_create`) and sets the destination
+   rectangle to 1920×720 (`set_destination_rectangle`);
+3. the compositor **reports** the resulting layout state as `visibility(0)`, `layer(nil)`,
+   `source_rectangle(0, 0, 0, 0)`.
+
+**What is observed, and it is the same conclusion as before:** the surface's layout state is hidden,
+unlayered and has a zero source region — and across every retained capture, no `ivi_controller_surface`
+ever reports `visibility(1)` or a numeric layer.
+
+**What is no longer claimed:** that a client "hid" the surface. The state is a property of the
+layout, and the requests that produced it are not fully identified. This is the third time in this
+project that a direction or naming ambiguity nearly produced a confident wrong attribution — see
+`docs/kernel/33` and `docs/kernel/40`. The rule that caught it was checking the XML for
+`request` vs `event` rather than inferring from the method name.
+
+Ownership of the `ivi_controller` connection is still not established, and `docs/kernel/40` already
+recorded that object ids do not identify processes.

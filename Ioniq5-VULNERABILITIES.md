@@ -4285,3 +4285,47 @@ and V-072's own severity changes accordingly.
 Both binaries are dynamic ELF; check `llvm-nm --undefined-only` for the exact import, then the call site. This is the same
 "find the author of the request" move that resolved the `screen_create` question, and it is bounded: two binaries, one call
 site each.
+
+### CORRECTION: the privilege-drop scan above counted strings, not calls — the real number is **2**, and neither creates a non-root context
+
+The preceding scan searched `strings` output for whole-line matches of `setuid`/`setgid`/… and reported **36 binaries**. That
+was the sloppy version of the test: a literal string is not a call. Re-running it against **undefined dynamic symbols** —
+which is what a real import looks like in a dynamically linked ELF — gives a completely different answer.
+
+**Binaries in `app/bin`, `usr/bin`, `usr/sbin`, `usr/libexec` that actually import a privilege-drop call: exactly 2.**
+
+| Binary | Imports | Is it started? |
+|---|---|---|
+| `usr/bin/weston` | `seteuid` | this path is the image's **`/usr/bin/weston`, which the projection replaces with a wrapper**; the vendor binary is `weston.real` |
+| `usr/bin/weston-launch` | `initgroups`, `setgid`, `setuid` | **not referenced** anywhere in `/etc` or `/lib/systemd` — nothing starts it |
+
+And the two vendor candidates that the previous section flagged as possibly dropping privileges **do not**:
+
+| Binary | `llvm-nm --undefined-only` | Verdict |
+|---|---|---|
+| `app/bin/mdnsd` | no privilege-drop import; dynamic ELF, interpreter present | the string hit was literal text; **V-072's "runs as root" holds** |
+| `app/bin/AppSDS` | same | the string hit was literal text |
+
+The other 34 "hits" were stock busybox/util-linux/systemd admin applets whose *strings* mention those names — not services,
+and not callers.
+
+### What V-079 now establishes, and it is now established rather than merely measured
+
+1. **One** `User=` across **129** service units, and it is stock systemd's `user@.service` template with **no enabled
+   instance**.
+2. **Zero** setuid and **zero** setgid binaries.
+3. **Two** binaries import a privilege-drop call, both on the compositor's privileged path, and **the only one that is a
+   launcher (`weston-launch`) is not invoked**.
+
+Therefore: **nothing on a normal boot of this image creates a non-root execution context.** The latent family — V-051, V-055,
+V-058, V-071, V-077, V-078 — is latent **by measurement, not by assumption**, and the residual condition is narrow and
+nameable: if anything ever starts `weston-launch`, or if the compositor's `seteuid` path runs under the vendor binary
+(`weston.real`) rather than the projection wrapper, a non-root process may exist and every entry in that family becomes live
+for its reachable surface.
+
+### The lesson, recorded because this is the third self-correction of the same kind
+
+A string match is not a call, exactly as an object id is not a process (`docs/kernel/40`) and a method name is not a request
+direction (`docs/kernel/44`). The correct test for "does this binary call X" on a dynamically linked ELF is
+`llvm-nm --undefined-only`, not `strings`. Using the weaker test first produced a 36-binary finding that would have gone into
+the register as a live concern; it took one extra command to reduce it to 2, and both of those turn out not to be started.

@@ -26,6 +26,7 @@ matter** unless you know what you are looking for.
 | `docs/vm/46-sim-unimplemented-backlog.md` | The stand-in's measured backlog: 60 unanswered MICOM calls across 10 methods during one boot |
 | `docs/vm/47-what-the-display-ceiling-blocks.md` | Every open item blocked by the display ceiling, what would unblock each, and the one action with highest leverage |
 | `docs/planning/` | Four independent plans (Fable 5.1, Astra, Daybreak Blue, Opus 5.5) and the agreed next steps after them |
+| `docs/vm/59-controlled-run-spec.md` | The controlled run specification: two evidence channels, and the persistence interval (120 s), sample period (5 s) and milestone reference (96,445 ms) fixed BEFORE launch. Specification only — the run has not been performed |
 | `docs/vm/58-interval-capture-harness.md` | The capture instrument that makes the boot58/boot65 defects unrepresentable: self-identified harness, closed snapshot, pinned generations, and a per-cause null that refuses to turn a truncated window into a negative |
 | `docs/kernel/` | The rebuilt kernel and retained compositor evidence; docs 39/40 correct the boot65 `ivi_place` zero-count interpretation and distinguish server events from client requests; doc 42 shows boot65's stream ended 22.7 s before the milestone boot58 recorded, so the comparison cannot yield a cause |
 | `vm/authentic-hmi.md` | The authentic `esinit → weston` path rendering: multi-user at 97.3 s, compositor alive, a 129 KB capture. The three projection-only instruments are listed here. |

@@ -21,6 +21,46 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
+## 5.61.0 - the run's prerequisite: a retained driver, a generated manifest, intervals fixed before launch
+
+Astra C11 required the next work to be the controlled run, with two evidence channels and the persistence interval fixed **before** launch. This entry records the prerequisite. **No run has been performed under this spec yet.**
+
+### The driver is now retained
+
+boot58's fatal flaw was an unretained driver. Confirmed with `git check-ignore` that `work/` is ignored, which is why every driver staged there was unretained. The new driver is a tracked file, `tools/uk_fw/guest/interval-run.sh`, and it records each generation's `(pid, starttime)` at first sight, then supplies that exact pair to the helper — so the capture binding is launcher-supplied rather than a `pidof` enumeration.
+
+### The manifest is generated, not written
+
+`tools/uk_fw/make_run_manifest.py` hashes the actual bytes and emits `RUN`/`DRIVER`/`HELPER` records. Astra C10 rejected a hand-written manifest because it proves nothing. The generator preserves paths containing spaces, because this project's path does, and a truncated extraction once resolved to a directory that hashed to nothing.
+
+### Values fixed before launch
+
+Committed in `docs/vm/59-controlled-run-spec.md`:
+
+| Constant | Value |
+|---|---:|
+| `PERSIST_S` | 120 |
+| `SAMPLE_S` | 5 (24 samples) |
+| `SETTLE_S` | 20 |
+| milestone after precursor | 96,445 ms (from `docs/kernel/43`) |
+
+A future run wanting different values needs its own spec and pre-commitment; it may not retro-fit these.
+
+### Channel authority, separated
+
+- **Runtime channel** — generation observations, 24 liveness samples, continuous display recording, external execution record, and a recorded input plus response if interactivity is claimed. This is the only channel that may speak about behaviour.
+- **Export channel** — one helper invocation, yielding only the narrow claim from 5.60.0.
+
+Reporting rule fixed in advance: **marker presence is an artifact result; registration, persistence and interaction are separate runtime conclusions**; anything unestablished is **unresolved**, not absent.
+
+An outcome table is committed in advance so no post-hoc interpretation is possible: `CAPTURE_TRUNCATED` is always unresolved and never a negative; `HARNESS_MISMATCH`, `SNAPSHOT_NOT_CLOSED`, `RECEIPT_INCOMPLETE` and `LOG_RECEIPT_MISMATCH` yield **no conclusion about Home**; `REGISTRATION_ABSENT` is bounded to the payload.
+
+### One bug in my own driver
+
+`if ! cmd; then rc=$?; fi` captures the status of the negation (always 0), not the command's. Replaced with an explicit status capture and a comment — silently-wrong observations are this project's recurring failure.
+
+62 tests pass, including generator-to-helper integration and both end-to-end chains on the retained logs. **Next action: stage the driver, helper and manifest into a CoW clone and boot.**
+
 ## 5.60.0 - instrument loop closed: qualified for a narrow claim, frozen, next session is the run
 
 Two rejections in, I stopped asking for code review and asked Astra for a decision: is this instrument worth more work, and what is the strongest claim it can honestly carry? (`docs/planning/astra-c11.md`)

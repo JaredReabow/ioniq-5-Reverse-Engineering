@@ -1,5 +1,13 @@
 # The swrast is Mesa 18.2.8 and the vendor libEGL is Mesa 11.2.1 — the library fix was necessary but not sufficient
 
+> **CORRECTION (same day, `docs/kernel/48`):** the claim below that the "real cause" is a categorical
+> Mesa-generation incompatibility is **withdrawn as overstated**. Astra C12 correctly noted that
+> release numbers are not a definitive DRI incompatibility test. The performed audit found a **specific**
+> defect instead: `libLLVM-6.0.so.1` requires `GLIBCXX_3.4.22` while the vendor `libstdc++6.0.21` stops
+> at `3.4.21`. That is resolvable, and the projection already holds a `3.4.22` build. What stands from
+> this document is the **measurement** (18.2.8 vs 11.2.1) and the fact that runs 5/6 refuted the
+> library-staging hypothesis; what does not stand is the categorical conclusion.
+
 Date: 2026-11-08. Runs 5 (`1794060182350787000`) and 6 (`1794060579223340000`), workspaces
 `ws-run65` and `ws-run66`. **This entry records a refuted hypothesis and the evidence that replaced it.**
 

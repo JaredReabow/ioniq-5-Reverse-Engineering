@@ -38,6 +38,51 @@ GUEST_HELPER = "/interval-capture.sh"
 GUEST_MANIFEST = "/interval-manifest.txt"
 GUEST_INIT = "/init-interval-run.sh"
 
+# PROJECTION-ONLY runtime libraries. The staged swrast_dri.so needs these, and the vendor image has
+# them only in /opt/software-egl18/lib, which AppLauncher.sh discards when it overwrites
+# LD_LIBRARY_PATH (docs/kernel/46). Placing them in /usr/lib puts them where the vendor libEGL already
+# searches, and touches no vendor file.
+#
+# Provenance: both are third-party ELF shared objects already used by this projection. The host
+# candidates below are the existing staged copies; the guest path is the vendor search path.
+EXTRA_LIBS = (
+    ("libsensors.so.4", "/usr/lib/libsensors.so.4", (
+        PROJECT / "work/vm/kbuild/ws/inject-new/stage/libsensors.so.4",
+        PROJECT / "work/vm/kbuild/ws/inject/egl-lib/libsensors.so.4",
+    )),
+    ("libLLVM-6.0.so.1", "/usr/lib/libLLVM-6.0.so.1", (
+        PROJECT / "work/vm/kbuild/ws/inject/egl-lib/libLLVM-6.0.so.1",
+    )),
+    # Transitive dependencies. libLLVM needs libedit; libedit needs libbsd. Both exist only under
+    # /opt/software-egl18/lib, so the same trap applies one and two levels down. libedit's other
+    # dependency (libncurses.so.5) is already on the vendor path, so it is not listed.
+    ("libedit.so.2", "/usr/lib/libedit.so.2", (
+        PROJECT / "work/vm/kbuild/ws/inject-new/stage/libedit.so.2",
+    )),
+    ("libbsd.so.0", "/usr/lib/libbsd.so.0", (
+        PROJECT / "work/vm/kbuild/ws/inject-new/stage/libbsd.so.0",
+    )),
+)
+
+
+def resolve_extra_libs() -> list[tuple[Path, str]]:
+    """Return (host_path, guest_path) pairs, failing loudly if a library cannot be located."""
+    found: list[tuple[Path, str]] = []
+    missing: list[str] = []
+    for name, guest, candidates in EXTRA_LIBS:
+        for candidate in candidates:
+            if candidate.is_file():
+                found.append((candidate, guest))
+                break
+        else:
+            missing.append(name)
+    if missing:
+        raise FileNotFoundError(
+            "projection runtime libraries not found: " + ", ".join(missing)
+            + " (see docs/kernel/46 for why they are needed)"
+        )
+    return found
+
 INIT_TEMPLATE = """#!/bin/sh
 # PROJECTION-ONLY init for the controlled interval run (docs/vm/59-controlled-run-spec.md).
 #
@@ -129,6 +174,19 @@ def main() -> int:
         INIT_TEMPLATE.format(driver=GUEST_DRIVER, manifest=GUEST_MANIFEST, helper=GUEST_HELPER),
         encoding="utf-8",
     )
+    # Projection-only runtime libraries, copied into the stage with space-free names.
+    try:
+        extras = resolve_extra_libs()
+    except FileNotFoundError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 3
+    lib_cmds = []
+    for index, (host_lib, guest_lib) in enumerate(extras):
+        local = f"extra-lib-{index}.so"
+        shutil.copyfile(host_lib, stage / local)
+        print(f"extra lib      {host_lib.name} -> {guest_lib}  sha256={sha256_of(host_lib)}")
+        lib_cmds.append((local, guest_lib))
+
     # The staged bytes must equal the tracked bytes, or the manifest would describe something else.
     for staged, source in (("interval-run.sh", DRIVER), ("interval-capture.sh", HELPER)):
         if sha256_of(stage / staged) != sha256_of(source):
@@ -156,8 +214,11 @@ def main() -> int:
                 f"rm {GUEST_INIT}",
                 f"write init-interval-run.sh {GUEST_INIT}",
                 f"set_inode_field {GUEST_INIT} mode 0100755",
-                "",
             ]
+            + [f"rm {guest_lib}" for _, guest_lib in lib_cmds]
+            + [f"write {local} {guest_lib}" for local, guest_lib in lib_cmds]
+            + [f"set_inode_field {guest_lib} mode 0100755" for _, guest_lib in lib_cmds]
+            + [""]
         ),
         encoding="utf-8",
     )
@@ -169,7 +230,9 @@ def main() -> int:
         return 4
 
     print("=== verify staged files in p5.img ===")
-    for path in (GUEST_DRIVER, GUEST_HELPER, GUEST_MANIFEST, GUEST_INIT):
+    for path in (GUEST_DRIVER, GUEST_HELPER, GUEST_MANIFEST, GUEST_INIT) + tuple(
+        guest_lib for _, guest_lib in lib_cmds
+    ):
         stat = subprocess.run([debugfs, "-R", f"stat {path}", str(p5)], capture_output=True, text=True)
         ok = "Inode:" in stat.stdout
         print(f"  {'OK ' if ok else 'MISSING'} {path}")

@@ -121,6 +121,32 @@ A wider sweep confirms there is no third data point anywhere:
 So the sole run that produced the positive is the sole run whose driver is unretained, and the only runs
 with a retained driver never reached the milestone. That is the complete search space.
 
+## Finding 5 — boot65's stream was 22.7 s too short to have reached the milestone at all
+
+The byte counts in Finding 3 are suggestive but crude, because the two exports have different sizes and
+different amounts of non-protocol content. The protocol stream carries its own monotonic millisecond
+timestamps, which makes durations comparable **regardless of the different boot clock origins**.
+
+| Run | First event | Last event | Stream duration |
+|---|---:|---:|---:|
+| boot58 | 637,916 | 824,425 | **186,509 ms** |
+| boot65 | 1,233,868 | 1,397,571 | **163,703 ms** |
+
+boot58's `AppHomeScreen` registration is at timestamp 824,313 — that is offset **186,397 ms** from its
+stream's first event, or **112 ms before the stream's final event**.
+
+boot65's entire retained stream spans 163,703 ms. **It ends 22,694 ms (22.7 s) before the offset at which
+boot58 registered Home.** Had boot65's stream run for the same duration as boot58's, it would have reached
+timestamp 1,420,265; it stopped at 1,397,571.
+
+This is stronger than "not attributable". **boot65's retained observation window is structurally too short
+to have contained the milestone even if registration had succeeded.** The absence of `AppHomeScreen` from
+boot65 is therefore consistent with truncation, and cannot be read as a negative result at all.
+
+The same measurement also shows how fragile boot58's positive is: it arrived 112 ms before its own capture
+ended. A slightly slower run would have lost it. That is the margin on which this project's only
+AppHomeScreen observation rests.
+
 ## Conclusion — not attributable, and that is the result
 
 Three independent confounds separate the two observations:
@@ -128,6 +154,10 @@ Three independent confounds separate the two observations:
 1. **Different, partly unretained harnesses** with different timing and different relaunch logic.
 2. **Materially different capture windows**, one of which demonstrably exceeded its declared bound.
 3. **Different launch generations observed**, including a PID change after the warm relaunch marker.
+
+Finding 5 makes this stronger than mere non-attribution: **boot65's stream was 22.7 s too short to have
+reached the milestone at all**, so its silence is not even a negative observation. The comparison is not
+merely uninformative about cause — it is uninformative about presence.
 
 Any single-cause account of "why AppHomeScreen appears in boot58 and not boot65" is therefore
 **unsupported**, including:

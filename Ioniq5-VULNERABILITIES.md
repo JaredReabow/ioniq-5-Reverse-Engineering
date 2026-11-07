@@ -2513,8 +2513,7 @@ directory only the bus owner can write (`/run/user/0`, mode 0700), rather than `
 
 ## V-059 — verify-then-install TOCTOU on attacker-supplied USB media (corroborated in our own image)
 
-**Status:** the *mechanism* is **statically corroborated in this repository's copy of the same build**; the dynamic demonstration is external and has **not** been reproduced here.
-Imported analysis: `evidence/external-ioniq5-usb-toctou/` (documentation only; their PoC and key tooling were deliberately not vendored).
+**Status:** the *mechanism* is **statically corroborated in this repository's EU `260128` image**. A dynamic demonstration is reported by external Gen5W researchers (including a transcript statement of code execution through a USB file and the linked PoC repository), but it has **not** been independently reproduced here or established for this exact variant. See `docs/external-community-claims-2026-11.md` for provenance and variant boundaries. Imported analysis: `evidence/external-ioniq5-usb-toctou/` (documentation only; the upstream PoC was not copied into sanitized `main`; its complete source archive is on the private `unsanitised` branch).
 
 ### The claim
 

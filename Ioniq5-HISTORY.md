@@ -6498,3 +6498,10 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 - Three things settled: ivi-module on stock is two modules (no hmi-controller), the missing layer ids are the whole reason for 0 layers, and the ids we chased are the shell's own widgets.
 - Adopt the vendor file verbatim with four substitutions (backend, shell UI path, modules, output). Pre-committed readings: layers non-zero is the whole point.
 - Noted two vendor packaging defects in the template itself (a typo and a missing binary path), neither of which is our blocker.
+
+## 2026-11-07 - correct the boot65 observer and preserve external research sources
+
+- Re-read the retained boot65 Weston protocol stream against `ivi-controller.xml`, `ivi_place.c`, and extracted compositor ELFs: `screen` is a server event, not a client request; object IDs such as `@11` do not identify a process, and `screen(7)` is not established as a layout-screen ID. The stream contains server-side screen/layer/surface events; static `ivi-shell.so` analysis finds initial output-list layout creation. Corrected docs 39/40 and withdrew the no-screen inference.
+- Kept the boot58/boot65 AppHomeScreen count difference unresolved. Astra flagged summary-regex and process/launch-window attribution risks; no additional QEMU run or config change was authorized.
+- Reviewed the supplied community transcript and the linked USB TOCTOU and persistent-SSH statements. The EU `260128` updater and `esinit` contain related static mechanisms, but external runtime claims and variant applicability remain unverified locally; V-059 now records that provenance without upgrading local status.
+- Mirrored the linked relevant upstream Git repositories as full-history bundles on the private `unsanitised` branch, with provenance/checksums. `ntwm787/Auto-DST-Gen5` returned 404 and is recorded as unavailable. No upstream code was copied into sanitized `main`.

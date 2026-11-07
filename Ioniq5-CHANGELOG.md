@@ -3,7 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.48.0 - reconcile the compositor protocol and preserve community source repositories
+
+### Corrections from the retained boot65 stream
+
+Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_place.c`, and extracted compositor ELFs corrects the earlier boot65 interpretation. `screen` is a server event, not a client `screen_create` request; boot65's stream contains server-side screen/layer/surface announcements. Object IDs such as `@11` are connection-local, not process identities, and the `screen(7)` argument is derived from a client's `wl_output` resource rather than established as a layout-screen ID. `ivi_place` binds no `wl_output` and reports after its initial registry roundtrip, so its zero counts are observer-specific and cannot establish that the system had no screens or layers. Static analysis of `ivi-shell.so` identifies compositor-side initialization from existing outputs. Docs 39/40 retain the history but explicitly withdraw the false system-level conclusion. The boot58/boot65 AppHomeScreen summary remains unresolved pending raw process/PID/launch-window correlation; no new boot is authorized by this update.
+
+### External claims and archive
+
+The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
+
 ## 5.47.0 - the vendor's own template was the answer, and it explains every symptom
+
+**Historical preliminary conclusion, superseded by 5.48.0:** the `ivi_place` zero counts were observer output, not proof of zero system screens/layers. The claims below that the layer IDs did not create layers, or that this explained all prior zero listings, are withdrawn. The broad mapping of IDs 1001–1007 to shell widgets is also not established: boot58 records AppHomeScreen using 1006, while W65 assigns 1006 to AppStandbyClock; do not infer ownership or collision from a numeric ID alone. See `docs/kernel/39-drm-boots-ivi-has-zero-screens.md` and `docs/kernel/40-ivi-screen-create-client.md`.
 
 Doc 38 found the root cause at the config level, and the vendor's own `weston_1920.ini` (923 B, shipped in the image) explains every symptom this project has measured.
 

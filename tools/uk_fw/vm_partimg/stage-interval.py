@@ -45,9 +45,10 @@ INIT_TEMPLATE = """#!/bin/sh
 # vendor boot proceeds normally. The driver waits for the compositor socket itself, so nothing here
 # depends on timing.
 #
-# Two channels: the driver reports to ttyS3 and hands the helper ttyS2.
+# Two channels: the driver reports to ttyS2 (vendor getty, prefixed lines are fine) and
+# hands the helper ttyS3, which is pristine so the receipt transaction is uncontaminated.
 ( {driver} --manifest {manifest} --helper {helper} \\
-    --log /tmp/weston-real.log --out /dev/ttyS3 --export-out /dev/ttyS2 ) &
+    --log /tmp/weston-real.log --out /dev/ttyS2 --export-out /dev/ttyS3 ) &
 exec /lib/systemd/esinit
 """
 

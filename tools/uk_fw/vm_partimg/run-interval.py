@@ -68,10 +68,12 @@ def qemu_command(*args, **kwargs):  # type: ignore[no-untyped-def]
     # Two file-backed serial channels. ttyS0 stays on stdio (serial.log); ttyS1 is left unused
     # because the micom boundary may claim it; the evidence channels are ttyS2 and ttyS3.
     argv += [
-        "-chardev", f"file,id=exp,path={EXPORT_CHANNEL}",
-        "-device", "isa-serial,chardev=exp,index=2",
+        # index=2 is ttyS2, which the vendor image gives a getty; index=3 is ttyS3, which showed no
+        # getty in run 1794055821491663000. The pristine channel carries the export transaction.
         "-chardev", f"file,id=run,path={RUNTIME_CHANNEL}",
-        "-device", "isa-serial,chardev=run,index=3",
+        "-device", "isa-serial,chardev=run,index=2",
+        "-chardev", f"file,id=exp,path={EXPORT_CHANNEL}",
+        "-device", "isa-serial,chardev=exp,index=3",
     ]
     return argv
 
@@ -80,7 +82,13 @@ vb.qemu_command = qemu_command
 
 # The driver reports to ttyS3 and hands the helper ttyS2. Nothing in the guest writes serial output
 # directly, so the diagnostic command string is only a liveness marker.
-DIAG_CMD = "echo ===interval-run===; cat /proc/uptime; ls -l /interval-run.sh /interval-capture.sh /interval-manifest.txt 2>/dev/null"
+# vm_boot only sends the command once it sees this exact line, and only then sets userspace=True.
+# Omitting it made the first attempt stall and report userspace=false (run 1794055821491663000).
+DIAG_CMD = (
+    "echo IONIQ_VM_USERSPACE_READY; "
+    "cat /proc/uptime; "
+    "ls -l /interval-run.sh /interval-capture.sh /interval-manifest.txt 2>/dev/null"
+)
 
 
 def main() -> int:

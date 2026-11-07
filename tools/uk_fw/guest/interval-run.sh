@@ -31,8 +31,8 @@
 
 set -u
 
-OUT=/dev/ttyS3
-EXPORT_OUT=/dev/ttyS2
+OUT=/dev/ttyS2
+EXPORT_OUT=/dev/ttyS3
 APP=AppHomeScreen
 LOG=/tmp/weston-real.log
 MANIFEST=/run/interval-manifest.txt
@@ -123,6 +123,19 @@ pids_of() {
   done
   return 0
 }
+
+# An init script runs BEFORE /proc is mounted, so the very first clock read fails. Observed in run
+# 1794055821491663000: "/interval-run.sh: line 86: /proc/uptime: No such file or directory" and the
+# driver exited 3 before doing anything. Wait for the clock source to appear.
+_cw=0
+while [ ! -r "$UPTIME_FILE" ] && [ "$_cw" -lt 120 ]; do
+  sleep 1 2>/dev/null || break
+  _cw=$((_cw + 1))
+done
+if [ ! -r "$UPTIME_FILE" ]; then
+  echo "interval-run: FATAL $UPTIME_FILE never appeared after ${_cw}s" >&2
+  exit 3
+fi
 
 T0=$(now_cs) || { echo "interval-run: clock unavailable" >&2; exit 3; }
 

@@ -31,7 +31,8 @@
 
 set -u
 
-OUT=/dev/ttyS2
+OUT=/dev/ttyS3
+EXPORT_OUT=/dev/ttyS2
 APP=AppHomeScreen
 LOG=/tmp/weston-real.log
 MANIFEST=/run/interval-manifest.txt
@@ -58,11 +59,12 @@ fi
 while [ $# -gt 0 ]; do
   case "$1" in
     --out)      OUT=${2:-}; shift 2 ;;
+    --export-out) EXPORT_OUT=${2:-}; shift 2 ;;
     --log)      LOG=${2:-}; shift 2 ;;
     --app)      APP=${2:-}; shift 2 ;;
     --manifest) MANIFEST=${2:-}; shift 2 ;;
     --helper)   HELPER=${2:-}; shift 2 ;;
-    -h|--help)  echo "usage: interval-run.sh [--out DEV] [--log PATH] [--app NAME] [--manifest PATH] [--helper PATH]" >&2; exit 2 ;;
+    -h|--help)  echo "usage: interval-run.sh [--out DEV] [--export-out DEV] [--log PATH] [--app NAME] [--manifest PATH] [--helper PATH]" >&2; exit 2 ;;
     *)          echo "interval-run: unknown argument $1" >&2; exit 2 ;;
   esac
 done
@@ -124,7 +126,7 @@ pids_of() {
 
 T0=$(now_cs) || { echo "interval-run: clock unavailable" >&2; exit 3; }
 
-log "DRIVER version=1 app=$APP log=$LOG persist_s=$PERSIST_S sample_s=$SAMPLE_S settle_s=$SETTLE_S sandbox=$SANDBOX proc_root=$PROC_ROOT socket=$SOCKET"
+log "DRIVER version=1 app=$APP log=$LOG out=$OUT export_out=$EXPORT_OUT persist_s=$PERSIST_S sample_s=$SAMPLE_S settle_s=$SETTLE_S sandbox=$SANDBOX proc_root=$PROC_ROOT socket=$SOCKET"
 log "DRIVER fixed_before_launch=yes t0_cs=$T0"
 
 if [ ! -r "$MANIFEST" ]; then
@@ -224,7 +226,7 @@ log "PHASE export helper=$HELPER expect_pid=$LAST_PID expect_starttime=$LAST_ST"
 # Capture the helper's own exit status. `if ! cmd; then _rc=$?; fi` would report the status of the
 # NEGATION (always 0) instead of the helper's code, which is the kind of silently-wrong observation
 # this project keeps having to unlearn.
-"$HELPER" --manifest "$MANIFEST" --log "$LOG" --out "$OUT" \
+"$HELPER" --manifest "$MANIFEST" --log "$LOG" --out "$EXPORT_OUT" \
       --settle 0 --app "$APP" \
       --expect-pid "$LAST_PID" --expect-starttime "$LAST_ST"
 _hrc=$?

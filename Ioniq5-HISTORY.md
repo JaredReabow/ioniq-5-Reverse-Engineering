@@ -6510,3 +6510,10 @@ keeping. The defects are recorded here instead, which is the one repair this fil
 
 - A transcript claim of CVE-2021-3405 prompted a fresh check of the EU `260128` rootfs. `libebml.pc` reports 1.3.4, and the shipped `matroska.so`/`libmatroska.so.6` depend on `libebml.so.4`; `.so.4` is the ABI SONAME, not the upstream release version.
 - Compared the version with NVD's CVE-2021-3405 range (before 1.4.2). This is a candidate-level match; no backport audit, USB parser reachability proof, crafted media test, or code-execution claim is established. Updated V-047 and corrected the earlier version-mismatch statement in `docs/FINDINGS-SUMMARY.md`.
+
+## 2026-11-08 - AppHomeScreen confirmed absent in boot65, present in boot58; registration timing is the blocker
+
+- Re-read the retained `exported-weston.bin` logs from boot58 and boot65: `create_hmi_client(1, 1006, "AppHomeScreen", new id ivi_hmi_client@21)` appears once in boot58 at timestamp 824313.371, followed by `set_display_plane(1)`. **Zero occurrences of `AppHomeScreen` exist in boot65.** Surface 1006 in boot65 is instead consumed by `AppStandbyClock` at 1397567.242.
+- Confirmed both runs load identical IVI modules, output mode (Virtual-1 1920x720), and server-side screen/layer/surface topology. The discriminator is not the compositor, surface ID, missing `hmi-controller.so`, or `ivi_place` zero counts. It is registration timing: cold launch loses to the launcher timeout (~48.58s vs ~39.8–45s); warm registration takes 1–8s and survived in boot58.
+- Boot58 previously registered AppStandbyClock at 1006 (line 3082) before AppHomeScreen took it (line 4414); boot65 never reaches the second registration at 1006.
+- Stop condition holds: do not load `hmi-controller.so`, patch the launcher, change surface IDs, or extend timeouts. The next authorized run (boot78) tests one gate only — does AppHomeScreen register surface 1006 before the launcher timeout under boot58-identical conditions?

@@ -46,6 +46,11 @@ SETTLE_S=20
 EXPORT_AT_S=30
 DISPLAY_AT="10 60 110"
 SHOOTER=/usr/libexec/weston-screenshooter
+IVI_PLACE=/usr/bin/ivi-place
+# Run 4: the sharp question is why a registered surface does not reach the visible output. Answering it
+# needs a protocol-side observation taken at the SAME instant as a frame, so the IVI inventory is
+# probed on the same ticks as the display capture.
+IVI_AT="10 60 110"
 SOCKET=${IC_SOCKET:-/run/user/root/wayland-0}
 UPTIME_FILE=${IC_UPTIME:-/proc/uptime}
 PROC_ROOT=${IC_PROC:-/proc}
@@ -64,6 +69,7 @@ if [ "$PROC_ROOT" != "/proc" ]; then
   # offset, which is fixed before launch.
   EXPORT_AT_S=${IC_EXPORT_AT_S:-$EXPORT_AT_S}
   DISPLAY_AT=${IC_DISPLAY_AT:-$DISPLAY_AT}
+  IVI_AT=${IC_IVI_AT:-$IVI_AT}
 fi
 
 while [ $# -gt 0 ]; do
@@ -246,6 +252,32 @@ capture_display() {
   return 0
 }
 
+# Synchronised protocol probe. Caveat recorded in docs/kernel/39-40: ivi-place binds only
+# ivi_controller and not wl_output, so its screen listing is observer-specific and must not be read as
+# a system census. Its layer/surface listing is what this run wants, and it is stored verbatim so a
+# later reader can re-read it rather than trust a summary.
+probe_ivi() {
+  _off=$1
+  _iout=$(XDG_RUNTIME_DIR=/run/user/root WAYLAND_DISPLAY=wayland-0 \
+    /bin/busybox timeout 25 "$IVI_PLACE" --list 2>&1)
+  _irc=$?
+  log "IVI off_s=$_off rc=$_irc"
+  if printf 'BEGIN ivi %s\n%s\nENDivi\n' "$_off" "$_iout" >> "$OUT"; then
+    log "IVI off_s=$_off result=framed"
+  else
+    log "IVI off_s=$_off result=frame_write_failed"
+    return 1
+  fi
+  return 0
+}
+
+is_ivi_tick() {
+  for _i in $IVI_AT; do
+    [ "$_i" = "$1" ] && return 0
+  done
+  return 1
+}
+
 is_display_tick() {
   for _d in $DISPLAY_AT; do
     [ "$_d" = "$1" ] && return 0
@@ -284,6 +316,10 @@ while [ "$_tick" -lt "$PERSIST_S" ]; do
 
   if is_display_tick "$_tick"; then
     capture_display "$_tick"
+  fi
+
+  if is_ivi_tick "$_tick"; then
+    probe_ivi "$_tick"
   fi
 
   if [ "$_tick" -eq "$EXPORT_AT_S" ] && [ "$_export_done" = no ]; then

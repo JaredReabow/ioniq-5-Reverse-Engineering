@@ -21,6 +21,35 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
+## 5.56.0 - the three harness defects are the house style, not two unlucky runs
+
+Swept all 58 existing probe scripts for the defects documented in 5.53.0:
+
+| Property | Count of 58 |
+|---|---:|
+| Binds an observation by process name (`pidof`/`pgrep`), not a pinned pid | **35** |
+| Measures a log size then reads the log | 15 |
+| …of those, reads it **without** `head -c`, so the export can exceed the measured size | **6** |
+| Records its own identity | **0** |
+
+The six streaming probes are `appcrash-dump.sh`, `final-run.sh`, `hmi-run.sh`, `lay-run.sh`, `qualified.sh`, `read-raw.sh`.
+
+### One part of the preceding analysis is corrected in a useful direction
+
+`final-run.sh` — the **retained** driver of boot65 — carries the streaming defect at line 101: it declares `$WZ` as the length, then encodes the whole file. So boot65's export exceeding its own declared length by 2,292 bytes needs no hypothesis about an unknown driver; its own driver explains it. boot58's larger 42,873-byte growth is the same mechanism with a longer gap between measurement and encoding.
+
+The growth asymmetry between the two runs is therefore a **timing artefact of a shared defect**, not evidence of stricter measurement discipline in one of them. A candidate explanation is removed rather than added.
+
+### Why that matters for the harness
+
+`interval-capture.sh` replaces a pattern that 35 of 58 probes use for process binding, 6 use for export, and none address for identity. It is not over-engineering for one bad script.
+
+### Process note
+
+A free-tier worker dispatched to produce this inventory failed to emit any output ("streamed reasoning but produced no output"). Its intermediate greps surfaced `poweron-capture.sh` binding by name, which prompted the sweep, but every published figure was re-derived locally. That is the second consecutive free-worker failure; both are recorded because the supervision rule is only meaningful if its false leads are logged.
+
+See `docs/kernel/42-boot58-harness-not-retained.md` (Finding 6).
+
 ## 5.55.0 - the five preconditions become an instrument, and three checks in check_all.sh turn out never to have run
 
 The five preconditions of 5.53.0 were prose. They are now implemented and verified on the host.

@@ -95,19 +95,31 @@ It does **not** establish why it exited. The historic launcher-timeout explanati
 `docs/kernel/24`) is a candidate, not a finding, and this run adds no evidence for or against it
 beyond the two timestamps.
 
-## Open anomaly — recorded, not explained away
+## The `waited_s=0` anomaly — RESOLVED, and my first reading of it was wrong
 
-`socket_up waited_s=0` at `t0_cs=459` (4.59 s). The compositor cannot have been listening that early,
-and `debugfs -R "stat /run/user/root/wayland-0"` on the staged `p5.img` reports *File not found*, so
-there is no leftover socket in the image to explain it.
+Initially recorded as "the socket wait gate is probably ineffective". **That reading is withdrawn.**
 
-The most likely reading is that the wait gate is **ineffective** — `[ -S "$SOCKET" ]` returned true,
-or the loop exited early, when the path did not exist. If so, the driver does not actually sequence
-itself after compositor start; in this run the *generation wait* is what did the sequencing, since the
-first process was found at 90.89 s.
+Evidence against it: the run's own serial log contains
 
-This is unresolved and is not a licence to re-tune anything. What it means for interpretation is
-narrow and stated: the socket gate in this run proves nothing.
+```
+[    4.506160] random: weston
+```
+
+which is the kernel crediting a process whose `comm` is **weston** for entropy consumption. So a
+process named `weston` was already running at 4.51 s, and the driver's gate passed at 4.59 s. The
+gate was not ineffective; the compositor simply starts far earlier in this image than I assumed when
+I wrote the anomaly note.
+
+What remains true and worth keeping:
+
+- `/run` is a real directory in the image (inode 57853, mode 0755) and `/var/run` is a symlink to it.
+- `/run/user/root` does **not** exist in the staged image, so the gate cannot have passed on a
+  leftover socket from a previous boot. Combined with `random: weston` at 4.51 s, the only consistent
+  reading is that the socket was created during this boot by that already-running weston.
+
+What this means for interpretation: the socket gate did sequence the driver after compositor start,
+so the "generation wait is what did the sequencing" caveat is unnecessary. It does **not** mean the
+driver is therefore proven correct in general — one observation of one gate, in one run.
 
 ## Host-side caveat
 

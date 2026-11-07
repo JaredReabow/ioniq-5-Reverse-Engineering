@@ -21,7 +21,44 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
-## 5.58.0 - guest script revision 2 closes all six of Astra's blockers, and the pair is proven end-to-end
+## 5.59.0 - Astra C10 rejected revision 2 and falsified two of my claims
+
+Astra re-reviewed the guest script (`docs/planning/astra-c10.md`) and **REJECTED** it: *"The rewrite fixes process selection and several failure paths. It still does not establish a producer-bounded, generation-attributable snapshot, and a failed payload export can still take the success path."*
+
+### Two overclaims falsified
+
+1. **"No suppressed failures remain" was false.** The frame write used `{ printf; cat; printf; }`, and a brace group returns only its **last** command's status. Astra reproduced a failed `cat` followed by a successful `printf` reaching `EXPORT_WRITTEN`, `OUTCOME CAPTURED` and exit 0. Confirmed here by direct shell comparison: old form exits 0 with a failing `cat`; three separately checked appends exit 6. The encoder (only `tr`'s status was seen) and decoder (status discarded, length only) are now staged, status-checked steps with a decoded-digest comparison.
+2. **"An unretained driver can no longer produce a valid receipt" was false.** An unretained driver can invoke the helper while supplying a manifest naming some *other* retained, matching driver. The checks prove the named driver's bytes existed and matched; they do not prove it **ran**.
+
+### A6 was only partly closed
+
+Astra measured that a failed transformation could still fabricate a timestamp: `.` → success with `0`; `1.23.4` → `123`; failing `cut` → `1000`; failing `sed` → `0`; backward clock → `off_c=-10` with success. Now the format is strict (digits, at most one dot, no leading dot), `cut`/`sed` statuses are checked, and the final value must be all digits. Re-verified across seven inputs.
+
+### A new defect that invalidated my own previous fix
+
+The receipt channel is append-only in usage but not write-once in implementation, so an earlier `OUTCOME CAPTURED` satisfied the completeness gate for a later truncated receipt — and `CAPTURED` followed by `EXPORT_FAILED` also passed. **That retroactively invalidates the `RECEIPT_INCOMPLETE` gate added in commit `b393622` within the hour of adding it.** Fixed: the guest emits `RECEIPT v2 id=<run>-t0c<cs>`; the verifier parses only the **last** transaction and requires **exactly one** outcome, which must be terminal success. Both of Astra's reproductions now return `RECEIPT_INCOMPLETE`.
+
+### Final blocker status
+
+| Blocker | Status |
+|---|---|
+| A1 closed snapshot | **PARTIALLY CLOSED** — one artefact downstream, but `cp` is not atomic |
+| A2 `pidof` slot | **CLOSED** |
+| A3 binding | **PARTIALLY CLOSED** — a shared log has no per-generation tag |
+| A4 harness retention | **PARTIALLY CLOSED** — proves existence, not execution |
+| A5 export failure | **fixed after review** |
+| A6 clock/sleep | **PARTIALLY CLOSED**, then hardened |
+
+Three gaps are stated as **not fixable by this instrument**: A3, because no capture from a shared compositor log may be called "generation-attributed"; A4, because execution proof needs an invocation record the helper cannot forge; A1, because atomicity needs producer coordination the helper does not have.
+
+53 tests pass; `check_all.sh` passes; the pair still works end to end on both retained logs. **The harness remains unqualified and boot78 stays paused.** The 5.58.0 headline is withdrawn: revision 2 closed one blocker fully and four partially, and A5 was still open when reviewed.
+
+See `docs/vm/58-interval-capture-harness.md` and `docs/planning/astra-c10.md`.
+
+## 5.58.0 - guest script revision 2 addresses Astra's blockers, and the pair is proven end-to-end
+
+**Superseded in part by 5.59.0:** Astra's re-review found A5 still open (a brace-group status bug) and
+falsified two claims in this entry. Read 5.59.0 for the accurate blocker status.
 
 Rewrote `tools/uk_fw/guest/interval-capture.sh` against `docs/planning/astra-c9.md`.
 

@@ -12,10 +12,22 @@
 #       (pid, starttime) pair and is mandatory.
 #   A3  The binding was optional and never re-checked. It is now required, verified at start, and
 #       re-verified immediately before the snapshot. Any change aborts the capture.
+#       PARTIAL ONLY: a shared compositor log carries no per-generation tag. Checking a (pid,
+#       starttime) pair twice proves that process was alive around the copy; it does NOT prove the
+#       copied bytes are that generation's activity. Do not describe a capture as
+#       "generation-attributed".
+#
+#   A1  PARTIAL ONLY, per Astra C10: the copy is one artefact for all downstream reads, but `cp` is not
+#       an atomic snapshot. Rotation, in-place rewriting, truncate-then-regrow, and unflushed writer
+#       buffers are not excluded. `grew_during_copy=` records an observation; it is not a guarantee.
 #   A4  Hashing this helper did not retain the harness that drove the run. The script now requires a
 #       frozen run manifest naming the DRIVER and this HELPER with their SHA-256 digests, verifies
 #       its own digest against the manifest, and records the manifest's identity in the receipt.
-#       An unretained driver can no longer produce a valid receipt.
+#       PARTIAL ONLY: this proves the named driver EXISTED and matched when hashed. It does NOT prove
+#       that driver RAN. An unretained driver can still invoke this helper while supplying a manifest
+#       that names some other retained, matching driver. Astra C10 (docs/planning/astra-c10.md)
+#       rejected the stronger claim; do not reinstate it without an invocation record the helper
+#       cannot forge.
 #   A5  A failed export could still emit SNAPSHOT_CLOSED and exit 0, because verification ran on the
 #       in-memory copy. The export is now staged to a file, verified, then appended to the output
 #       channel with its status checked. No suppressed failures anywhere.
@@ -105,8 +117,14 @@ read_uptime_cs() {
   if ! read -r _up _rest < "$UPTIME_FILE" 2>/dev/null; then
     return 1
   fi
+  # Strict format validation. Accepting "any digits and dots" let "." through as 0 and "1.23.4" as
+  # 123, and a failed cut/sed could fabricate a value that still looked numeric. Astra reproduced all
+  # three (docs/planning/astra-c10.md). Reject anything that is not digits with at most one dot.
   case "$_up" in
-    ''|*[!0-9.]*) return 1 ;;
+    '') return 1 ;;
+    *[!0-9.]*) return 1 ;;
+    *.*.*) return 1 ;;
+    .*) return 1 ;;
   esac
   _whole=${_up%%.*}
   if [ "$_whole" = "$_up" ]; then
@@ -115,10 +133,17 @@ read_uptime_cs() {
     _frac=${_up#*.}
   fi
   while [ ${#_frac} -lt 2 ]; do _frac="${_frac}0"; done
-  _frac=$(printf '%s' "$_frac" | cut -c1-2)
+  _frac=$(printf '%s' "$_frac" | cut -c1-2) || return 1
+  case "$_frac" in ''|*[!0-9]*) return 1 ;; esac
   _raw="$_whole$_frac"
-  _out=$(printf '%s' "$_raw" | sed 's/^0*//')
+  _out=$(printf '%s' "$_raw" | sed 's/^0*//') || return 1
   [ -z "$_out" ] && _out=0
+  # Final gate: the value must be plain digits. A failed transformation that produced nothing, or
+  # something non-numeric, must be a failure rather than a fabricated zero.
+  case "$_out" in
+    '') return 1 ;;
+    *[!0-9]*) return 1 ;;
+  esac
   printf '%s\n' "$_out"
 }
 
@@ -233,7 +258,10 @@ if [ "$DRIVER_ACTUAL" != "$MANIFEST_DRIVER_DIGEST" ]; then
   exit 3
 fi
 
-emit "RECEIPT v2"
+# The receipt channel is append-only, so a second run can share the file. Each transaction carries a
+# unique id and the verifier parses only the LAST one; otherwise an earlier OUTCOME CAPTURED would
+# satisfy the completeness gate for a later truncated receipt.
+emit "RECEIPT v2 id=${MANIFEST_RUN:-unnamed}-t0c${T0_CS}"
 # SELF carries the helper's own identity in the form the host verifier reads. HARNESS additionally
 # records the *driver* and the manifest, because a self-hash alone does not retain the program that
 # ran the experiment (Astra A4).
@@ -343,18 +371,32 @@ LAST_TS=$(head -c "$SNAP_SIZE" "$SNAP" 2>/dev/null | grep -ao '^\[[0-9]*\.[0-9]*
 
 # --- A5: stage, verify, then append ---------------------------------------
 B64_FILE="${IC_B64:-/tmp/interval-payload.$$.b64}"
-if ! head -c "$SNAP_SIZE" "$SNAP" 2>/dev/null | base64 2>/dev/null | tr -d '\n' > "$B64_FILE"; then
-  emit "OUTCOME EXPORT_FAILED reason=encode_failed"
-  echo "interval-capture: could not encode the snapshot" >&2
-  exit 6
-fi
+RAW_FILE="${IC_RAW:-/tmp/interval-raw.$$.bin}"
+head -c "$SNAP_SIZE" "$SNAP" 2>/dev/null > "$RAW_FILE" || {
+  emit "OUTCOME EXPORT_FAILED reason=snapshot_read_failed"; exit 6; }
+base64 < "$RAW_FILE" 2>/dev/null > "$RAW_FILE.b64" || {
+  emit "OUTCOME EXPORT_FAILED reason=encode_failed"; exit 6; }
+tr -d '\n' < "$RAW_FILE.b64" > "$B64_FILE" 2>/dev/null || {
+  emit "OUTCOME EXPORT_FAILED reason=newline_strip_failed"; exit 6; }
+rm -f "$RAW_FILE" "$RAW_FILE.b64" 2>/dev/null
 B64_SIZE=$(wc -c < "$B64_FILE" 2>/dev/null | tr -d ' ')
 
 # Verify the staged payload decodes back to the snapshot size BEFORE claiming anything.
-DECODED_SIZE=$(base64 -d < "$B64_FILE" 2>/dev/null | wc -c | tr -d ' ')
+DEC_FILE="${IC_DEC:-/tmp/interval-decoded.$$.bin}"
+base64 -d < "$B64_FILE" > "$DEC_FILE" 2>/dev/null || {
+  emit "OUTCOME EXPORT_FAILED reason=decode_failed"; exit 4; }
+DECODED_SIZE=$(wc -c < "$DEC_FILE" 2>/dev/null | tr -d ' ')
+DECODED_DIGEST=$(hash_file "$DEC_FILE")
+rm -f "$DEC_FILE" 2>/dev/null
 if [ "$DECODED_SIZE" != "$SNAP_SIZE" ]; then
-  emit "OUTCOME SNAPSHOT_NOT_CLOSED snapshot=$SNAP_SIZE decoded=$DECODED_SIZE"
-  echo "interval-capture: staged payload decodes to $DECODED_SIZE, expected $SNAP_SIZE" >&2
+  emit "OUTCOME SNAPSHOT_NOT_CLOSED snapshot=$SNAP_SIZE decoded=${DECODED_SIZE:-unknown}"
+  echo "interval-capture: staged payload decodes to ${DECODED_SIZE:-unknown}, expected $SNAP_SIZE" >&2
+  exit 4
+fi
+# Length alone would pass a payload that differs in content. Compare the digest too.
+if [ -z "$DECODED_DIGEST" ] || [ "$DECODED_DIGEST" != "$SNAP_DIGEST" ]; then
+  emit "OUTCOME SNAPSHOT_NOT_CLOSED reason=digest_mismatch snapshot_digest=$SNAP_DIGEST decoded_digest=${DECODED_DIGEST:-none}"
+  echo "interval-capture: staged payload digest does not match the snapshot" >&2
   exit 4
 fi
 
@@ -362,11 +404,16 @@ emit "CAPTURE snapshot=$SNAP bytes=$SNAP_SIZE digest=$SNAP_DIGEST first_ts=${FIR
 emit "SNAPSHOT_CLOSED bytes=$SNAP_SIZE decoded=$DECODED_SIZE match=yes"
 
 # Append the payload to the output channel with its status checked. No '|| true'.
-if ! { printf 'BEGIN interval %s\n' "$SNAP_SIZE"; cat "$B64_FILE"; printf '\nENDinterval\n'; } >> "$OUT" 2>/dev/null; then
-  emit "OUTCOME EXPORT_FAILED reason=channel_write_failed bytes=$B64_SIZE"
-  echo "interval-capture: writing the payload to $OUT failed" >&2
-  exit 6
-fi
+# Each frame component is written and checked SEPARATELY. A brace group returns only the status of
+# its last command, so `{ printf; cat; printf; }` succeeded even when the middle `cat` failed - which
+# meant a missing payload still reached EXPORT_WRITTEN and exit 0. Astra reproduced that against the
+# previous revision; this is the fix.
+printf 'BEGIN interval %s\n' "$SNAP_SIZE" >> "$OUT" 2>/dev/null || {
+  emit "OUTCOME EXPORT_FAILED reason=frame_open_failed"; exit 6; }
+cat "$B64_FILE" >> "$OUT" 2>/dev/null || {
+  emit "OUTCOME EXPORT_FAILED reason=payload_write_failed bytes=$B64_SIZE"; exit 6; }
+printf '\nENDinterval\n' >> "$OUT" 2>/dev/null || {
+  emit "OUTCOME EXPORT_FAILED reason=frame_close_failed"; exit 6; }
 emit "EXPORT_WRITTEN bytes=$B64_SIZE channel=$OUT"
 
 rm -f "$SNAP" "$B64_FILE" 2>/dev/null

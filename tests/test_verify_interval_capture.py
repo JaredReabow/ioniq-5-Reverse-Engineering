@@ -125,7 +125,7 @@ class TestGate1ReceiptCompleteness(unittest.TestCase):
         r = mod.parse_receipt(text)
         outcome, reason = decide(r, data)
         self.assertEqual(outcome, mod.RECEIPT_INCOMPLETE)
-        self.assertIn("no terminal", reason)
+        self.assertIn("exactly one terminal outcome", reason)
 
     def test_failure_outcome_is_not_a_complete_capture(self) -> None:
         data = b"[1000.000] start\n" + registration_line(1500) + b"[200000.000] end\n"
@@ -143,6 +143,51 @@ class TestGate1ReceiptCompleteness(unittest.TestCase):
         r = mod.parse_receipt(text)
         outcome, _ = decide(r, data)
         self.assertEqual(outcome, mod.RECEIPT_INCOMPLETE)
+
+    def _good_block(self, data: bytes) -> str:
+        return "".join(
+            line + "\n"
+            for line in [
+                f"SELF path=/x algo=sha256 digest={'a' * 64}",
+                "TARGET binding=pinned_pid_and_starttime pid=1 starttime=1",
+                f"CAPTURE bytes={len(data)} digest={_sha(data)} first_ts=1000 last_ts=200000",
+                f"SNAPSHOT_CLOSED bytes={len(data)} decoded={len(data)} match=yes",
+            ]
+        )
+
+    def test_stale_captured_from_an_earlier_transaction_does_not_count(self) -> None:
+        # The receipt channel is append-only, so an earlier run's terminal line can sit above a later
+        # truncated one. Only the last transaction may be considered.
+        data = b"[1000.000] start\n" + registration_line(1500) + b"[200000.000] end\n"
+        text = (
+            "RECEIPT v2 id=old\n"
+            + self._good_block(data)
+            + "OUTCOME CAPTURED bytes=118\n"
+            + "RECEIPT v2 id=new\n"
+            + self._good_block(data)
+        )
+        r = mod.parse_receipt(text)
+        outcome, _ = decide(r, data)
+        self.assertEqual(outcome, mod.RECEIPT_INCOMPLETE)
+
+    def test_captured_followed_by_a_failure_is_incomplete(self) -> None:
+        data = b"[1000.000] start\n" + registration_line(1500) + b"[200000.000] end\n"
+        text = (
+            "RECEIPT v2 id=t\n"
+            + self._good_block(data)
+            + "OUTCOME CAPTURED bytes=118\n"
+            + "OUTCOME EXPORT_FAILED reason=payload_write_failed\n"
+        )
+        r = mod.parse_receipt(text)
+        outcome, reason = decide(r, data)
+        self.assertEqual(outcome, mod.RECEIPT_INCOMPLETE)
+        self.assertIn("found 2", reason)
+
+    def test_transaction_id_is_captured(self) -> None:
+        data = b"[1000.000] start\n" + registration_line(1500) + b"[200000.000] end\n"
+        text = "RECEIPT v2 id=run-1-t0c100000\n" + self._good_block(data) + "OUTCOME CAPTURED bytes=1\n"
+        r = mod.parse_receipt(text)
+        self.assertIn("id=run-1", r.transaction or "")
 
     def test_complete_receipt_passes_this_gate(self) -> None:
         data = b"[1000.000] start\n" + registration_line(1500) + b"[200000.000] end\n"

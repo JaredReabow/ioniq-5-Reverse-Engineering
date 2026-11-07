@@ -93,6 +93,7 @@ class Receipt:
     last_ts_ms: int | None = None
     snapshot_closed: bool = False
     outcomes: list[str] = field(default_factory=list)
+    transaction: str | None = None
 
     @property
     def window_ms(self) -> int | None:
@@ -108,7 +109,16 @@ def _ts_to_ms(whole: bytes) -> int:
 
 def parse_receipt(text: str) -> Receipt:
     r = Receipt()
-    for raw in text.splitlines():
+    # Only the LAST transaction counts. The receipt channel is append-only, so an earlier run's
+    # records can sit above this one; without this cut, a stale OUTCOME CAPTURED satisfied the
+    # completeness gate for a later truncated receipt.
+    lines = text.splitlines()
+    start = 0
+    for i, raw in enumerate(lines):
+        if raw.strip().startswith("RECEIPT "):
+            start = i
+    r.transaction = lines[start].strip() if lines and lines[start].strip().startswith("RECEIPT ") else None
+    for raw in lines[start:]:
         line = raw.strip()
         if not line:
             continue
@@ -215,11 +225,18 @@ def decide(
     # never transmitted. Requiring the terminal line is what makes "the receipt exists" different
     # from "the capture completed". Found by writing a receipt with no OUTCOME line and observing
     # that it verified as REGISTRATION_PRESENT.
-    if not any(o.startswith("CAPTURED") for o in receipt.outcomes):
+    # Exactly one outcome, and it must be the terminal success. `any(...)` was not enough: a receipt
+    # containing CAPTURED followed by EXPORT_FAILED still passed, and so did a stale CAPTURED from an
+    # earlier transaction. Astra reproduced both (docs/planning/astra-c10.md).
+    if len(receipt.outcomes) != 1:
         seen = "; ".join(receipt.outcomes) if receipt.outcomes else "none"
         return RECEIPT_INCOMPLETE, (
-            f"receipt carries no terminal 'OUTCOME CAPTURED' line (outcomes seen: {seen}); the capture "
-            "was interrupted or the receipt is truncated, so nothing in it may be treated as complete"
+            f"receipt must carry exactly one terminal outcome, found {len(receipt.outcomes)} "
+            f"(outcomes seen: {seen}); the capture was interrupted, failed, or the receipt is truncated"
+        )
+    if not receipt.outcomes[0].startswith("CAPTURED"):
+        return RECEIPT_INCOMPLETE, (
+            f"receipt's terminal outcome is {receipt.outcomes[0]!r}, not a completed capture"
         )
 
     # Gate 2: harness identity and generation binding.

@@ -183,10 +183,35 @@ Two defects were caught by the tests during the rewrite rather than by review:
 Verified end-to-end against both retained logs: boot58 → `REGISTRATION_PRESENT` (exit 0); boot65 →
 `CAPTURE_TRUNCATED`, naming the 22,031 ms shortfall (exit 11). 40 tests pass in the full suite.
 
-### Guest script (Astra's findings) — revision 2, awaiting re-review
+### Guest script (Astra's findings) — revision 2, RE-REVIEWED AND STILL REJECTED
 
-All six blockers are addressed in `interval-capture.sh` revision 2, plus the clock defect fixed
-along the way:
+**Astra C10 (`docs/planning/astra-c10.md`) rejected revision 2, and two of the claims below were
+false.** The table is retained because it records what was attempted; the honesty note after it
+records what actually closed.
+
+| Blocker | Astra C10 verdict |
+|---|---|
+| A1 closed snapshot | **PARTIALLY CLOSED** — one artefact for downstream reads, but `cp` is not atomic |
+| A2 `pidof` enumeration slot | **CLOSED** |
+| A3 binding re-check | **PARTIALLY CLOSED** — a shared log has no per-generation tag, so attribution is not achievable this way |
+| A4 harness retention | **PARTIALLY CLOSED** — proves the driver existed and matched; does **not** prove it ran |
+| A5 export failure | **STILL OPEN** at the time of review — the brace-group defect below |
+| A6 clock/sleep failures | **PARTIALLY CLOSED** — a failed transformation could still fabricate a timestamp |
+
+Two overclaims made in this document were falsified:
+
+1. **"No suppressed failures remain"** was false. The frame write used `{ printf; cat; printf; }`,
+   and a brace group returns only its *last* command's status. Astra reproduced a failed `cat`
+   followed by a successful `printf` taking the success path, reaching `EXPORT_WRITTEN`,
+   `OUTCOME CAPTURED` and exit 0.
+2. **"An unretained driver can no longer produce a valid receipt"** was false. An unretained driver
+   can invoke the helper while supplying a manifest naming some *other* retained, matching driver.
+   Nothing verifies the named driver *ran*.
+
+Both are now corrected in the script header, and both are fixed or narrowed as described under
+"Fixes applied after Astra C10" below.
+
+The blocker table that follows is the original revision-2 claim, kept for the record:
 
 | Astra blocker | Fix |
 |---|---|
@@ -231,8 +256,31 @@ synthetic fixtures:
 47 tests pass in the full suite. This is what caught revision 1's false negative on boot58's only
 positive.
 
-### Status: still unqualified
+### Fixes applied after Astra C10
 
-Revision 2 addresses every blocker **on paper and in tests**, but Astra has not re-reviewed it. Per
-the standing rule that a new instrument is qualified before it is trusted with a measurement, the
-harness remains **unqualified** and the boot78 task stays paused until that review lands.
+| Astra finding | Fix | Verified by |
+|---|---|---|
+| A5 brace-group status | Frame written as three separately checked appends | Direct shell comparison: old form exits 0 with a failing `cat`, new form exits 6 |
+| A5 encoder/decoder status | Encode staged through `head`/`base64`/`tr`, each checked; decode staged, status checked, decoded **digest** compared as well as length | Test suite |
+| A6 fabricated timestamps | Strict format (digits, at most one dot, no leading dot); `cut`/`sed` statuses checked; final value must be all digits | Seven inputs: `.`, `1.23.4`, `1000.25`, `0.00`, `1234`, `1000.5`, `garbage` → all correct |
+| New defect 2: no transaction boundary | Guest emits `RECEIPT v2 id=…`; verifier parses only the **last** transaction and requires **exactly one** outcome, which must be terminal success | Both of Astra's reproductions now return `RECEIPT_INCOMPLETE` |
+
+The transaction fix also retroactively invalidates the `RECEIPT_INCOMPLETE` gate added in commit
+`b393622`: that gate used `any(o.startswith("CAPTURED"))`, which accepted a stale terminal line and
+accepted `CAPTURED` followed by `EXPORT_FAILED`. The review found it within the hour.
+
+### Status: NOT qualified, and three gaps are not fixable by this instrument
+
+53 tests pass and the pair works end to end on both retained logs. That is not qualification.
+
+- **A3 is not fixable here.** A shared compositor log carries no per-generation tag. The helper can
+  prove a process with the expected `(pid, starttime)` was alive around the copy; it cannot prove the
+  copied bytes are that generation's activity. No capture from this instrument may be described as
+  "generation-attributed".
+- **A4 is only partly fixable.** A manifest plus digest proves the driver existed and matched. Proving
+  it ran needs an invocation record the helper cannot forge, or an external ledger. Until then
+  boot58's failure mode is narrowed, not closed.
+- **A1 needs producer coordination.** Flush-and-stop, or an acknowledged rotation. The helper has
+  neither.
+
+The boot78 task stays paused. A run remains unjustified.

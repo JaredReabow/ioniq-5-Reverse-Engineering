@@ -183,21 +183,56 @@ Two defects were caught by the tests during the rewrite rather than by review:
 Verified end-to-end against both retained logs: boot58 → `REGISTRATION_PRESENT` (exit 0); boot65 →
 `CAPTURE_TRUNCATED`, naming the 22,031 ms shortfall (exit 11). 40 tests pass in the full suite.
 
-### Guest script (Astra's findings) — **still rejected**
+### Guest script (Astra's findings) — revision 2, awaiting re-review
 
-Only the `centi()` clock defect is fixed (commit `81a1201`, six regression tests). Astra's six
-blocking findings remain open:
+All six blockers are addressed in `interval-capture.sh` revision 2, plus the clock defect fixed
+along the way:
 
-- the closed snapshot is still several reads of a mutable pathname;
-- `--generation N` is still a `pidof` enumeration slot;
-- the generation binding is still optional and never re-checked at capture time;
-- **hashing this helper still does not retain the driving harness**, so boot58's actual failure mode
-  is still reachable;
-- a failed export can still emit `SNAPSHOT_CLOSED` and exit 0;
-- a failed `sleep` still shortens the window silently, and the clock still substitutes `0`.
+| Astra blocker | Fix |
+|---|---|
+| A1 closed snapshot was several reads of a mutable pathname | The source is read **once** into a private snapshot; size, digest, timestamps and export all derive from that single copy. A short copy is fatal. Concurrent growth is measured before and after and recorded as `SOURCE_BOUNDARY … grew_during_copy=` rather than assumed away |
+| A2 `--generation N` was a `pidof` enumeration slot | The enumeration is **removed**. A generation is supplied by the launcher as an exact `(pid, starttime)` pair and is mandatory |
+| A3 binding optional and never re-checked | `--expect-pid` and `--expect-starttime` are required arguments; the pair is verified at start **and** immediately before the snapshot; any change aborts |
+| A4 self-hash did not retain the driving harness | A frozen run manifest naming `DRIVER` and `HELPER` with SHA-256 is **required**. The script verifies its own digest against the manifest and verifies the driver's bytes still match. An unretained driver can no longer produce a valid receipt |
+| A5 failed export could emit `SNAPSHOT_CLOSED` and exit 0 | The payload is staged to a file, decoded and size-checked, then appended with its status checked. `emit()` fails the script on a write error instead of falling back to stdout. No suppressed failures remain |
+| A6 clock/sleep failures were silent | A malformed or unreadable `/proc/uptime` aborts (exit 7); a failed `sleep` aborts; one clock sample per marker feeds both fields |
 
-The first of those is the one Astra calls most important: acquire one immutable, producer-bounded
-artifact and derive every field from those exact bytes.
+### Integration between the two files
 
-**Therefore the harness remains unqualified.** A correct verifier cannot rescue a guest that may
-report a window it did not measure.
+The revision-2 script emits `SELF` and `TARGET` lines in the vocabulary the verifier reads, plus a
+`HARNESS` line carrying the manifest and driver identity. This was a real gap: the first draft of
+revision 2 emitted `BINDING_REQUESTED` and no `SELF`, which the verifier would have rejected as
+`HARNESS_MISMATCH`.
+
+### Defects found by testing rather than by review
+
+1. **A helper `die()` wrote to an undefined exit code and was never called** — removed.
+2. **`emit`/`exit` inside a command substitution** only exits the subshell, so a clock failure would
+   have been swallowed and the caller would have carried on with an empty timestamp. The clock
+   function now returns non-zero and each caller decides.
+3. **The `path=` extraction truncated at the first space.** On this project the repository path
+   itself contains spaces, so the truncated path resolved to an existing *directory*, passed the
+   readability test, and hashed to nothing. The extraction now spans `path=` to ` sha256=`, and an
+   empty digest is a hard failure rather than a mismatch message.
+4. **A test hardcoded the host's absolute Python interpreter path**, which the sanitisation rule
+   forbids in committed content — the path was removed from the test before it was committed.
+   Replaced with `sys.executable`.
+
+### End-to-end proof on the real logs
+
+The two files are now exercised **together** against the retained captures, not just against
+synthetic fixtures:
+
+| Run | Pipeline result |
+|---|---|
+| boot58 (`1793931162561454000`) | guest script → receipt → decode → verifier → `REGISTRATION_PRESENT`, exit 0 |
+| boot65 (`1793944643111075000`) | guest script → receipt → decode → verifier → `CAPTURE_TRUNCATED`, naming the 22,031 ms shortfall, exit 11 |
+
+47 tests pass in the full suite. This is what caught revision 1's false negative on boot58's only
+positive.
+
+### Status: still unqualified
+
+Revision 2 addresses every blocker **on paper and in tests**, but Astra has not re-reviewed it. Per
+the standing rule that a new instrument is qualified before it is trusted with a measurement, the
+harness remains **unqualified** and the boot78 task stays paused until that review lands.

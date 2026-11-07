@@ -74,6 +74,30 @@ class TestManifestContents(unittest.TestCase):
             mod.build_manifest("r1", ROOT / "tools", HELPER)
 
 
+class TestGuestPaths(unittest.TestCase):
+    """The guest sees staged paths, not host paths, so the manifest must be able to name them.
+
+    The digest is still computed from the host file - only the recorded path differs. Recording the
+    host path would make the helper's in-guest readability check fail for the wrong reason.
+    """
+
+    def test_guest_paths_are_recorded_while_digests_come_from_host_files(self) -> None:
+        text = mod.build_manifest(
+            "r1", DRIVER, HELPER,
+            driver_guest_path="/interval-run.sh",
+            helper_guest_path="/interval-capture.sh",
+        )
+        self.assertIn("DRIVER path=/interval-run.sh", text)
+        self.assertIn("HELPER path=/interval-capture.sh", text)
+        self.assertIn(f"sha256={_sha(DRIVER)}", text)
+        self.assertIn(f"sha256={_sha(HELPER)}", text)
+        self.assertNotIn(str(DRIVER), text)
+
+    def test_absent_guest_path_falls_back_to_host_path(self) -> None:
+        text = mod.build_manifest("r1", DRIVER, HELPER)
+        self.assertIn(f"DRIVER path={DRIVER}", text)
+
+
 class TestManifestCli(unittest.TestCase):
     def test_writes_file(self) -> None:
         tmp = Path(tempfile.mkdtemp(prefix="manifest-cli-"))

@@ -65,6 +65,17 @@ EXTRA_LIBS = (
 )
 
 
+# DIAGNOSTIC PROBE, not a settled fix. docs/kernel/48 measured that libLLVM-6.0.so.1 requires
+# GLIBCXX_3.4.22 while the vendor libstdc++6.0.21 stops at 3.4.21. The projection's own libstdc++
+# provides 3.4.1 through 3.4.22 - a superset - so substituting it is backward compatible for every
+# vendor binary that needs 3.4.21 or below. This replaces ONE vendor library, which is a wide
+# divergence: it is applied here to test the diagnosis, and a narrow per-process arrangement would
+# still be needed for a final fix.
+STAGED_LIBSTDCXX = PROJECT / "work/vm/kbuild/ws/inject-new/stage/libstdc++.so.6"
+GUEST_LIBSTDCXX_REAL = "/usr/lib/libstdc++.so.6.0.22"
+GUEST_LIBSTDCXX_LINK = "/usr/lib/libstdc++.so.6"
+
+
 def resolve_extra_libs() -> list[tuple[Path, str]]:
     """Return (host_path, guest_path) pairs, failing loudly if a library cannot be located."""
     found: list[tuple[Path, str]] = []
@@ -187,6 +198,26 @@ def main() -> int:
         print(f"extra lib      {host_lib.name} -> {guest_lib}  sha256={sha256_of(host_lib)}")
         lib_cmds.append((local, guest_lib))
 
+    # Diagnostic libstdc++ substitution (see STAGED_LIBSTDCXX note above).
+    libstdcxx_cmds: list[str] = []
+    if STAGED_LIBSTDCXX.is_file():
+        shutil.copyfile(STAGED_LIBSTDCXX, stage / "libstdc++.so.6.0.22")
+        print(f"diagnostic     libstdc++.so.6 -> {GUEST_LIBSTDCXX_REAL}  sha256={sha256_of(STAGED_LIBSTDCXX)}")
+        # debugfs's `symlink` silently failed here (the link path ended up absent), so the file is
+        # written under BOTH names instead. 1.5 MB duplicated in the image, which is irrelevant, and
+        # it removes a silent-failure mode from the staging step.
+        shutil.copyfile(STAGED_LIBSTDCXX, stage / "libstdc++.so.6.link")
+        libstdcxx_cmds = [
+            f"rm {GUEST_LIBSTDCXX_REAL}",
+            f"write libstdc++.so.6.0.22 {GUEST_LIBSTDCXX_REAL}",
+            f"set_inode_field {GUEST_LIBSTDCXX_REAL} mode 0100755",
+            f"rm {GUEST_LIBSTDCXX_LINK}",
+            f"write libstdc++.so.6.link {GUEST_LIBSTDCXX_LINK}",
+            f"set_inode_field {GUEST_LIBSTDCXX_LINK} mode 0100755",
+        ]
+    else:
+        print("diagnostic     libstdc++.so.6 source NOT FOUND - skipping substitution")
+
     # The staged bytes must equal the tracked bytes, or the manifest would describe something else.
     for staged, source in (("interval-run.sh", DRIVER), ("interval-capture.sh", HELPER)):
         if sha256_of(stage / staged) != sha256_of(source):
@@ -218,6 +249,7 @@ def main() -> int:
             + [f"rm {guest_lib}" for _, guest_lib in lib_cmds]
             + [f"write {local} {guest_lib}" for local, guest_lib in lib_cmds]
             + [f"set_inode_field {guest_lib} mode 0100755" for _, guest_lib in lib_cmds]
+            + libstdcxx_cmds
             + [""]
         ),
         encoding="utf-8",

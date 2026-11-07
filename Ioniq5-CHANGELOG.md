@@ -21,6 +21,24 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
+## 5.51.0 - backfill audit of the two durable records, and a worker-routing policy
+
+### Retrospective backfill audit
+
+A mechanical coverage audit was run against `Ioniq5-CHANGELOG.md` and `Ioniq5-HISTORY.md` and its results appended to the history as an explicitly retrospective section. Three real gaps were found, and all three are recorded rather than silently repaired:
+
+1. **`2026-11-06` appears zero times in the history**, while 40 `docs/kernel/` documents carry that date (the whole kernel/DRM/boot47–boot65 campaign). The work was backfilled under `2026-11-07`/`2026-11-08` headings, so the history's date axis does not align with the kernel evidence tree. The underlying docs and raw run artefacts survive; this is a dating defect, not a lost measurement.
+2. **An evidence-document subset appears in neither record:** `eu-root-sideload-applicability`, `ipu4-querycap-provenance`, `telemetry-applicability`. All three are scope/decision documents rather than live experimental results — the likely reason they were skipped, though that reason had never been written down.
+3. **31 of 154 `evidence/*.md` files are cited in the changelog but never in the history** (largest cluster `appfumo-*`, 15 files). The history records milestone events rather than every artefact; whether that is by design or a coverage hole is left open rather than declared fine.
+
+Method limit stated in the same section: basename plus leading-topic-token `grep -F` under-reports documents discussed under different wording, so the 31-figure is an upper bound. The three absences were hand-read to confirm they are real.
+
+### Worker routing policy
+
+`PROJECT-OPERATIONS.md` now records the owner's routing instruction: free OpenRouter models (`kilo-free` Nemotron entries, `openrouter/free`) for mechanical, verifiable grunt work; Astra and Fable for decisions and review; `shannon`/`daybreak-blue` only for genuinely blocked authorized work. Supervision is mandatory — a free worker's output is a lead, never evidence, and free workers are barred from writing the history or vulnerability register, from git authority, and from VM execution.
+
+**Calibration data point:** the first free-worker dispatch for this audit failed in the predicted mode. It split an unquoted path containing spaces, then recovered into a recursive `find` over the entire parent tree instead of reporting failure, and produced no usable census. The published figures were re-derived locally. Recorded in the history because it validates the supervision rule rather than merely asserting it.
+
 ## 5.50.0 - AppHomeScreen confirmed absent in boot65 and present in boot58; registration timing is the blocker
 
 A raw re-read of the retained `exported-weston.bin` logs confirms the decisive AppHomeScreen difference. `create_hmi_client(1, 1006, "AppHomeScreen", new id ivi_hmi_client@21)` appears once in boot58 at timestamp 824313.371; **zero** occurrences exist in boot65, which instead assigns surface 1006 to `AppStandbyClock`. Both runs share identical IVI modules, output topology, and screen/layer/surface events; the discriminator is registration timing (cold launch loses to the launcher timeout; warm registration survives).
@@ -2201,7 +2219,7 @@ fixdep: error opening config file: engineering/ioniq: No such file or directory
 fixdep: mmap: Invalid argument
 ```
 
-**`engineering/ioniq` is the middle of this repository's path** - `/Users/leo/Documents/ChatGPT/reverse engineering/ioniq research` contains **two spaces**. 4.1's kbuild host tools do not quote paths, so the build splits on the space and looks for a file called `engineering/ioniq`.
+**`engineering/ioniq` is the middle of this repository's path** - the project directory path contains **two spaces**. 4.1's kbuild host tools do not quote paths, so the build splits on the space and looks for a file called `engineering/ioniq`.
 
 **It is not a compiler problem, and it may be what the earlier `relocs` failures were too.** The fix is one line of setup: build in a space-free directory (`/tmp/kb/linux-4.1.27`) and copy only the finished `bzImage` back. Sent to the worker with the instruction to **try the existing `bzImage-4.1.27-abl-vdisp` before compiling anything**.
 

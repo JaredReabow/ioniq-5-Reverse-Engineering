@@ -74,6 +74,7 @@ echo "=== interval capture: closed-snapshot and per-cause-null guarantees ==="
 mkdir -p work/test-tmp
 if ! TMPDIR="$PWD/work/test-tmp" "$PY" -m unittest tests.test_interval_capture_script \
       tests.test_verify_interval_capture tests.test_make_run_manifest \
+      tests.test_interval_run_sandbox \
       > /tmp/interval-capture-tests.out 2>&1; then
   echo "  FAIL: the interval-capture harness or verifier broke a guarantee (see /tmp/interval-capture-tests.out)"
   tail -20 /tmp/interval-capture-tests.out

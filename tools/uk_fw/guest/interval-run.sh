@@ -213,11 +213,22 @@ fi
 # client and needs the runtime dir and display name; earlier staged drivers exported both.
 capture_display() {
   _off=$1
-  _png=/tmp/wayland-screenshot.png
-  rm -f "$_png" 2>/dev/null
-  XDG_RUNTIME_DIR=/run/user/root WAYLAND_DISPLAY=wayland-0 \
-    /bin/busybox timeout 25 "$SHOOTER" >/dev/null 2>&1
-  if [ -f "$_png" ]; then
+  # Run 2 produced "result=no_file" at all three points, including while the process was alive. The
+  # likely cause is the working directory: the driver runs from / (it is started by an init script),
+  # and the shooter may write wayland-screenshot.png relative to $PWD rather than to a fixed path.
+  # Earlier retained drivers invoked it from a different cwd and then looked in /tmp. So: run it from
+  # /tmp, check BOTH candidate locations, and record the shooter's own exit status - because "exited 0
+  # and wrote somewhere else" and "failed" are different faults and must be distinguishable.
+  _png=""
+  rm -f /tmp/wayland-screenshot.png /wayland-screenshot.png 2>/dev/null
+  ( cd /tmp && XDG_RUNTIME_DIR=/run/user/root WAYLAND_DISPLAY=wayland-0 \
+      /bin/busybox timeout 25 "$SHOOTER" >/dev/null 2>&1 )
+  _src=$?
+  for _cand in /tmp/wayland-screenshot.png /wayland-screenshot.png; do
+    if [ -f "$_cand" ]; then _png=$_cand; break; fi
+  done
+  log "DISPLAY off_s=$_off shooter_rc=$_src path=${_png:-none}"
+  if [ -n "$_png" ] && [ -f "$_png" ]; then
     _dsz=$(wc -c < "$_png" 2>/dev/null | tr -d ' ')
     log "DISPLAY off_s=$_off result=file bytes=${_dsz:-unknown}"
     if [ -n "${_dsz:-}" ] && [ "$_dsz" -gt 0 ] 2>/dev/null; then
@@ -230,7 +241,7 @@ capture_display() {
       log "DISPLAY off_s=$_off result=framed bytes=$_dsz"
     fi
   else
-    log "DISPLAY off_s=$_off result=no_file"
+    log "DISPLAY off_s=$_off result=no_file shooter_rc=$_src"
   fi
   return 0
 }

@@ -95,6 +95,32 @@ Re-derived from the retained artefacts:
 boot58's registration sits 19,494 B **beyond** its own declared length. Whatever window recorded the
 positive was not the window the driver had measured. boot65's window grew 19× less.
 
+## Finding 4 — the one retained-harness alternative never reached the stage under test
+
+`hmi-run.sh` (`[hmi2]`) is a derivative of boot58's driver, so any run it drove is the closest thing to a
+replication with a retained harness. Two such runs exist, both shortly after boot58 (13:31 and 13:43):
+
+| Run | Driver log | Reached | `AppHomeScreen` mentions |
+|---|---|---|---:|
+| `1793931975183356000` (boot59) | `[hmi2]` | `SOCKET_UP after 240s` only | 0 |
+| `1793932712081972000` (boot61) | `[hmi2]` | `SOCKET_UP after 240s` only | 0 |
+
+Both have `timeout=true`, `serial_completion_seen=false`, and `elapsed_seconds` of 300.07 and 300.10. They
+were the rejected `hmi-controller.so` experiments: the compositor did not reach the stage where any
+application registers. **They cannot discriminate the AppHomeScreen question because they never arrived at
+it.**
+
+A wider sweep confirms there is no third data point anywhere:
+
+| Sweep | Result |
+|---|---|
+| All 65 run directories, `exported-weston.bin` present | only 3; only boot58 contains `AppHomeScreen` |
+| All run `serial.log` files containing a `[hmi]` marker | boot58 only (18 hits) |
+| All run `serial.log` files containing `[hmi2]` | the two runs above, both truncated before the app stage |
+
+So the sole run that produced the positive is the sole run whose driver is unretained, and the only runs
+with a retained driver never reached the milestone. That is the complete search space.
+
 ## Conclusion — not attributable, and that is the result
 
 Three independent confounds separate the two observations:

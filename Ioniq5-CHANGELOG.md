@@ -21,6 +21,37 @@ Astra c7's review of the raw Weston protocol stream, `ivi-controller.xml`, `ivi_
 
 The supplied community transcript reports USB-update code execution and persistent debug/SSH on some Gen5W_L variants. We checked the corresponding updater and `esinit` mechanisms in our EU `260128` extraction: the static mechanisms are locally corroborated, but the external runtime results, applicability to this exact build, and SSH outcome are not. V-059 now records the new provenance without upgrading its local dynamic status. The selected linked upstream repositories are preserved as full-history Git bundles, with provenance and checksums, on the private `unsanitised` branch; sanitized `main` contains no copied upstream code.
 
+## 5.53.0 - the boot58/boot65 comparison cannot yield a cause: boot58's probe script was never retained
+
+Ran the offline launch-generation and export-cutoff audit that Astra C8 required. It ended at Astra's stated stop condition, and the stop is the result.
+
+### boot58's driver is missing from the repository
+
+| Run | Prefix in retained log | Driver |
+|---|---|---|
+| boot58 | `[hmi]` (18 lines) | **not retained** |
+| boot65 | `[final]` (24 lines) | `final-run.sh` |
+
+A search of every staged script for its `log() { echo` definition returns `[hmi2]`, `[final]`, `[apps-check]`, `[lay]`, `[end]` and others — but **no script emits `[hmi]`**. The nearest file, `hmi-run.sh`, emits `[hmi2]`; Astra had already noted it is a derivative, not boot58's driver. boot58's actual driver, its sleeps, its poll logic and its pre-commitments are therefore unreadable.
+
+### The retained drivers differ in the logic that produces the observation
+
+`hmi-run.sh` polls for the HMI controller client (`pgrep -f ivi-shell-user-interface`, 40 s) and checks power consumption via `GATE2_POWER_STATUS`; `final-run.sh` does neither and instead adds backend/compositor-init gates plus an `ivi_place` inventory with `HAS_1000..4000`. Observed milestones differ accordingly: cold PID 2268 at +75 s killed at +145 s, versus 2374 at +85 s killed at +125 s; boot58 logs no `WARM_RELAUNCH_SENT`, boot65 does; and boot65 observes three PID generations (2374, 2546, 2677) where boot58 observes two, with boot65's capture PID differing from its own warm PID.
+
+### Result recorded as a negative, not a cause
+
+Three independent confounds — an unretained and different harness, capture-window growth of 42,873 B versus 2,292 B, and a different observed launch generation — mean no single-cause account is supported. That includes the earlier "registration timing" claim in 5.50.0, a pure capture-truncation account, and a launcher-environment account. boot58 proves AppHomeScreen *can* register; it does not establish under what conditions.
+
+### One run is now justified, with five preconditions
+
+1. Probe script frozen and recorded by SHA-256 in the run's `result.json`.
+2. Every marker carries monotonic time *and* the driver's own offset.
+3. Compositor-log export is a closed snapshot, boundary recorded after the final event.
+4. Per-generation process identity (PID and start time), capture bound to a named generation rather than `pidof`.
+5. Per-cause null (`CAPTURE_TRUNCATED` / `HARNESS_MISMATCH` / `REGISTRATION_ABSENT`), so a harness or capture fault can never be reported as a confirmed negative.
+
+See `docs/kernel/42-boot58-harness-not-retained.md`.
+
 ## 5.52.0 - Astra stops the boot78 run: the boot58 positive lay outside the measurement window
 
 A scheduled boot78 QEMU run was **paused before executing**, after Astra's C8 consultation found that a claim in 5.50.0 and `docs/kernel/41` outran its evidence.

@@ -30,10 +30,28 @@ $ grep -ln 'echo "\[hmi\] ' work/vm/kbuild/ws/partimg-build/*.sh
 ```
 
 The nearest match, `hmi-run.sh`, emits `[hmi2]`, not `[hmi]`. Astra had already flagged this from the
-`[hmi2]` prefix; this audit confirms there is no `[hmi]` driver anywhere in the staged tree.
+`[hmi2]` prefix.
+
+### Search coverage for the missing driver
+
+The absence was then attacked at every plausible location, not just the staged-script directory:
+
+| Location searched | Result |
+|---|---|
+| All `log() { echo` definitions in `work/vm/kbuild/ws/partimg-build/*.sh` | `[hmi2]`, `[final]`, `[apps-check]`, `[lay]`, `[end]`, `[diag]`, `[both]`, `[close]`, `[preload]`, `[q]`, `[read]`, `[smp]`, `[stable]`, `[warm]`, `[appcrash]`, `[poweron]` — **no `[hmi]`** |
+| Whole tree, `*.sh`/`*.py`/`*.c`, for the literal prefix | none |
+| `git log --all -S'[hmi] '` across all branches | **no commit ever contained it** |
+| All 15 retained `init-authentic-hmi.sh` copies | none contains a driver: `COLD_PID=0`, no log prefix |
+| All 8 retained `weston-auth-check.sh` copies | all emit `[auth-hmi]`; `COLD_PID=0` in every one |
+| boot58's own `command.json` | names `init=/init-authentic-hmi.sh`, which launches `/weston-auth-check.sh` (the `[auth-hmi]` script) |
+
+The init-script chain is therefore intact and retained; what is missing is the **guest-side probe that
+produced the `[hmi]` lines**. It was staged into the image for that run and never copied back, or was
+overwritten by the later `[hmi2]` derivative. Either way it is unrecoverable from this repository.
 
 **So boot58's driving script is not retained at all.** Only its log survives. Its sleep offsets, poll
-structure, relaunch logic and pre-commitments cannot be read from any file in the repository.
+structure, relaunch logic and pre-commitments cannot be read from any file in the repository, and no
+git history exists to recover them from.
 
 ## Finding 2 — the two drivers differ in the logic that produces the observation
 

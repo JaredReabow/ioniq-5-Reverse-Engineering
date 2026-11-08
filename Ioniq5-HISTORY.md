@@ -6902,3 +6902,64 @@ This entry adds the measurement that turns the preceding two entries from "unatt
 - **The two vendor candidates I flagged last session do not drop privileges at all.** `app/bin/mdnsd` and `app/bin/AppSDS` are dynamically linked, have an interpreter, and have **no privilege-drop import** and no defined privilege-drop symbol. So the earlier string hit was literal text, and **V-072's "runs as root" characterisation holds** rather than being incomplete as I had suggested.
 - **V-079 is therefore established, not merely measured:** one `User=` across 129 units and it is stock `user@.service` with no enabled instance; zero setuid; zero setgid; two binaries importing a privilege drop, both on the compositor path, and the only launcher among them uninvoked. Nothing on a normal boot of this image creates a non-root execution context, so the latent family (V-051, V-055, V-058, V-071, V-077, V-078) is latent **by measurement**. The residual condition is narrow and nameable: if anything starts `weston-launch`, or if the compositor's `seteuid` path runs under `weston.real` rather than the projection wrapper.
 - **The lesson, and it is the third of its kind in this project:** a string match is not a call, exactly as an object id is not a process (`docs/kernel/40`) and a method name is not a request direction (`docs/kernel/44`). The correct test for "does this binary call X" on a dynamically linked ELF is `llvm-nm --undefined-only`, not `strings`. The weaker test first produced a 36-binary finding that would have entered the register as a live concern.
+
+## 2026-11-08 - the /tmp path-unit family specified as one remediation change
+
+- After V-077 and V-078 established the family, wrote the migration as a **single** specified change rather than seven separate ones: `docs/remediation/tmp-path-unit-migration.md`. Covers V-077, V-078, V-050 and the `/tmp` half of V-055/V-071. **Specified, not applied.**
+- **Enumerated exactly:** six distinct markers watched by seven enabled units (`/tmp/no_isa` is shared by `ofono.path` and `remote.path`), each with the service it activates and the privilege it runs at - three of them root shell scripts sending `SetETCCPUWDTReset` with codes `0x06`, `0x01` and `0x00`.
+- **Creators located by literal search of `/etc`, `/app/bin`, `/usr/bin`:** `ApplicationManager`, `micommanager_userspace` and `AppMPAutoTest` for `/tmp/AppMPAutoTest/do_mpauto`; `AppLauncher` for `/tmp/no_isa` and `/tmp/no_unece`; `dlt-daemon` for `/tmp/pstore_saved`.
+- **Two creators are unlocated, and that is recorded as a coverage limit rather than as absence:** `/tmp/spi_validation_NOK` and `/tmp/weston.crash` have no creator in those three trees. A creator in `/usr/sbin`, `/usr/libexec`, `/lib`, a kernel module, or a path assembled at runtime would not have been seen. Locating them is a prerequisite for those two markers only; the other five are fully accounted for.
+- **The target was chosen against three alternatives, each rejected for a stated reason.** `/etc` is read-only at runtime; `/var` would let a stale marker fire a watchdog reset on the next boot; a `0700` subdirectory of `/tmp` reintroduces exactly the ordering dependency the change exists to remove. `/run/state/` at `0700`, created by each creator with `mkdir -p`, is the choice.
+- **Three do-not items recorded**, including the tempting one: do not guard the units with `ConditionPathIsReadWrite`. That changes when they fire, not who can make them fire, and would silently stop four fault handlers working on a real fault.
+- **The verification that matters most is boot regression, not the fix.** Four of the seven units exist to handle genuine faults, so a migration that closes the unprivileged trigger while stopping them firing on a real fault would trade one defect for a worse one. The spec's step 3 therefore requires a boot to multi-user and a check that no WDT-reset method is sent on a healthy boot.
+- **Specified, not applied, and deliberately not partially applied:** the value is that all seven markers leave `/tmp` in one step, so half-closing the family would leave it hard to reason about.
+- **Process note.** The record-keeping for this change (register cross-reference, changelog 5.67.0, this entry, `tools/check_all.sh`, commit, push) was blocked: the access policy moved to read-only mid-session, the combined command was cancelled once, and the resubmission was denied as "approval expired; no permission was granted for this execution attempt". The file edits were completed under the policy's explicit allowance for ordinary project edits; the commit remains pending an approved command. Recorded rather than retried, per the standing rule.
+
+## 2026-11-08 - CORRECTION to the process note immediately above: most of it did complete
+
+- The preceding entry's process note said the record-keeping "was blocked". That was true when written and is now **partly superseded**, so this is appended rather than edited in.
+- **What did land, via ordinary project file edits once the policy returned to project-only:** `docs/remediation/tmp-path-unit-migration.md`, the `docs/INDEX.md` entry, this history entry, and the **`Ioniq5-VULNERABILITIES.md` cross-reference from V-077's Fix section** - which was the one that mattered, because the register is the artifact this workstream exists to produce and it previously said nothing about the migration.
+- **What remains blocked:** the `Ioniq5-CHANGELOG.md` version 5.67.0 insert was denied **three times**, across two different access policies, while edits to `docs/INDEX.md`, `Ioniq5-HISTORY.md` and `Ioniq5-VULNERABILITIES.md` all succeeded in the same sessions. That is a file-specific pattern, not an approval expiry, and it is recorded as such rather than retried a fourth time.
+- **Also still blocked:** `tools/check_all.sh`, `git commit`, and the pushes to `ioniq` and `old`. Every bash invocation this session was denied, including a read-only `grep`. So the three modified files and one new file are on disk and **not committed**, and both remotes remain at `7070d11`.
+- **Consequence for a reader:** the specification and the register cross-reference are correct and self-consistent on disk, but the changelog summary does not mention this work and nothing is in version control. Do not treat the disk state as the project's state until a commit lands.
+
+## 2026-11-08 - the changelog has outgrown its own tooling, and this is recorded here because the handoff file is deleted
+
+- **A records-hygiene finding, not a research one.** `Ioniq5-CHANGELOG.md` is **1.29 MB** and is the only file in this repository that the primary editing tool cannot write. It is also explicitly designated *editable* by the records rule. Those two facts cannot both hold indefinitely.
+- **Evidence that the file is the variable, not approval timing.** Seven edit attempts were denied across three access policies, while in the *same* approval windows edits to `Ioniq5-VULNERABILITIES.md`, `docs/REMEDIATION-REPORT.md`, `Ioniq5-HISTORY.md` and the handoff file itself all succeeded. Payload size was ruled out separately: a ~200-character replacement failed exactly as a 2 KB one did. Every file under ~1 MB edited fine; the one file over it never did.
+- **HISTORY is next.** At **0.65 MB** it is halfway to the same ceiling, and it is append-only, so it will hit the wall in a few sessions. The failure mode is quiet: no error, just denials indistinguishable from an approval problem — which is how this one was discovered, after several cycles of assuming the gate was at fault.
+- **Recommended:** split both by year. For the changelog, archive older series into `docs/history/changelog-archive-<year>.md` with an index pointer. For HISTORY the split must move **whole old series** into an archive file and leave a pointer; it must never rewrite existing entries or compress them in place, because that would break the append-only rule this project relies on. Recorded as a recommendation, not acted on: both files are governed by the records rule and the split is the owner's call.
+- **Why this entry exists.** This finding was captured only in `docs/remediation/PENDING-COMMIT.md`, which is designed to be **deleted in the commit that lands the pending work**. A finding that lives in a file scheduled for deletion is not recorded. HISTORY is the durable place for it, which is why it is appended here rather than left there.
+
+## 2026-11-08 - the block cleared: three checks resolved, four changelog versions written, and the commit lands
+
+- **The access policy returned to full-access, and every command that had been denied then ran first time.** That is the
+  confirmation the earlier entries could not get: the denials were the gate, not the work.
+- **The three outstanding checks are now closed with results, not plans.** (1) The stale-path check found **no defect**: the
+  register carries `/run/state` once and `/run/mpauto` zero times, so the contradiction was introduced and corrected inside one
+  session and never reached a committed document. (2) The V-042 comparison **is** a duplicate - V-042 already recorded the
+  mechanism, the zero-length-file DoS reachability and the same remediation - so V-077's heading is marked `DUPLICATE of V-042`,
+  both bodies are kept, and V-042 gained a Corroboration bullet carrying V-077's genuine additions. (3) The distinct count is
+  **derived, not withheld**: seven duplicate headings (six `V-`, one `I-`) and three `Amendment to` sections give **73 distinct
+  `V-` findings** and **75 overall**, with the derivation commands written beside the figures so the next reader can re-check
+  them rather than re-derive them.
+- **The changelog gap was four versions wide, not one.** The pending-work note assumed only 5.67.0 was missing; the highest
+  recorded version was actually **5.63.0**, so the whole of runs 4-8, the EGL investigation, the DRI elimination and the
+  defensive register work were unrecorded. 5.64.0 through 5.67.0 are now written by command, one per thematic block.
+- **The 5.67.0 diagnosis held up.** The earlier conclusion that the changelog denials were file-size-specific rather than
+  approval-related was correct in effect: a command succeeded immediately where seven tool edits across three policies had
+  failed. The file is now **1.34 MB** and still growing, which makes the yearly-split recommendation recorded above more urgent,
+  not less. Still the owner's call, and still not acted on.
+- **A self-contradiction was caught in the new header text before commit** - the draft said "Nine headings are marked
+  `DUPLICATE of`" and then listed seven. Corrected to seven. This is the fourth time a document in this programme has been wrong
+  in a way only re-reading caught, and the first time it was caught in the same session it was written.
+- **The dropbear restraint paid off.** `docs/FINDINGS-SUMMARY.md`'s claim that the dropbear *binary* is absent had been flagged
+  as possibly stale, because a `dropbear@.service` unit ships gated on a `/tmp` marker. The check shows the unit, `/etc/default/dropbear`,
+  `/etc/dropbear/` and a key installer all ship and **no binary does**, so the summary was right and "correcting" it would have
+  introduced an error. Deliberately-leave-alone is a valid outcome and this is the clean example of it.
+- **What this entry does NOT claim.** Application rendering remains blocked (Mesa 18.2.8 driver against an 11.2.1 loader,
+  dependency causes excluded by elimination, A-prime exhausted). Interactivity remains unmet on two counts, since input
+  injection is unimplemented. No controlled run was executed in this session, so nothing here bears on the capture harness or
+  on the boot58/boot65 closure, both of which stand as recorded.
+- **Next exact action:** the controlled run specified in `docs/vm/59-controlled-run-spec.md`, with the export channel's driver
+  and manifest committed before launch and the persistence interval fixed in advance - not a fifth round of tooling.

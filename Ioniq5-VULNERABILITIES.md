@@ -1,6 +1,6 @@
 # IONIQ 5 infotainment vulnerability and remediation register
 
-Updated: 2026-11-03. Internal defensive research; no disclosure or vendor contact is implied.
+Updated: 2026-11-08. Internal defensive research; no disclosure or vendor contact is implied.
 
 ## Duplicate entries after the repository combination
 
@@ -23,13 +23,46 @@ keypad credential derives from static unsalted digests), **V-042** (world-writab
 actions) and **V-043** (privileged services import environment files from a world-writable path — the mechanism behind the
 chain noted under V-036, which previously had no entry of its own).
 
+> **RESOLVED 2026-11-08 — V-077 duplicates V-042, confirmed.** V-042, "Marker files under world-writable runtime paths
+> trigger privileged actions" (imported from the parallel repository as V-011), already records the mechanism, already notes
+> that "at least one forced-reboot trigger is reachable by any local process creating a zero-length file (local denial of
+> service class)", and already states the same remediation direction. V-077's heading is therefore marked `DUPLICATE of
+> V-042` and both bodies are kept, per the convention above. **V-077 must not be counted as an independent finding.**
+> V-077 was still worth writing — it adds the exact MICOM method `SetETCCPUWDTReset`, its three codes, all seven enabled
+> units, and five named creators — and it upgrades V-042 from "candidates, each individually unvalidated" to an enumeration
+> measured from the shipped units. That corroboration is cross-referenced from V-042's own entry. The incident repeats the
+> V-078-against-V-050 oversight: an entry was written before checking whether the register already held the finding.
+
 **One duplicate carries a superseded claim.** V-037's status line still says root execution was demonstrated; **V-006's
 measurement supersedes it** (the payload is rewritten to underscores by udev's allow-list before it reaches the sink), and a
 reconciliation note sits inside V-037 rather than its text being deleted. Anyone quoting severity must read V-006, not V-037.
 
-So the register holds **47 numbered entries** — 44 `V-`, 2 `I-` and 1 `H-` — of which **6 are duplicates**, leaving **41
-distinct findings** (39 `V-`, `I-001`, `H-001`). When citing a count, use the distinct figure; the 47 includes corroborating
-duplicates and should not be quoted as the number of separate issues found.
+So the register contains **79 `V-` headings**, measured 2026-11-08. The previous figure in this paragraph — "47 numbered entries, 44
+`V-`, 2 `I-`, 1 `H-`, 6 duplicates, 41 distinct" — was accurate when written and is now **stale by roughly 35 entries**. It is
+withdrawn rather than left standing, because a reader citing it would understate the register by half.
+
+**The distinct-finding count was re-derived on 2026-11-08 and is now stated, with its method, so it can be re-checked.**
+Seven headings are marked `DUPLICATE of` another entry — six `V-` headings (`V-037`→`V-006`, `V-038`→`V-007`,
+`V-039`→`V-008`, `V-040`→`V-028`, `V-044`→`V-034`, `V-077`→`V-042`) and one `I-` heading (`I-002`→`I-001`).
+Three further headings are `Amendment to` sections,
+not new findings. So the register holds **73 distinct `V-` findings** (79 headings minus 6 duplicate `V-` headings), and
+**75 distinct findings overall** once `H-001` and `I-001` are counted. Addenda are sub-sections inside their parent entry and
+are not counted separately.
+
+The derivation is reproducible and is what `tools/check_all.sh` should police but does not:
+
+```sh
+rg -c '^## V-' Ioniq5-VULNERABILITIES.md                          # 79 headings
+rg -n '^## V-.*DUPLICATE of' Ioniq5-VULNERABILITIES.md            # 6 of them are duplicates
+rg -n '^## .*Amendment' Ioniq5-VULNERABILITIES.md                 # 3 amendments, outside the V- numbering
+```
+
+If an entry gains a `DUPLICATE of` marking, **this paragraph and the 73/75 figures must be updated in the same edit**, or the
+header drifts again exactly as it did before.
+
+**`tools/check_all.sh` does not catch this.** It reported `RESULT: coherent` on this file while the header still claimed 47, so
+`check_register_consistency.py` does not police the header's counts against the actual headings. The header drifted silently,
+which is why it was wrong by half before anyone noticed.
 
 ## Numbering and provenance
 
@@ -1302,6 +1335,18 @@ carry a correction note.
 - **Validation needed:** per-unit-file reachability on a running unit, and
   taint traces for the command templates before any of these is promoted to
   a vulnerability.
+- **Corroboration (2026-11-08):** **V-077** duplicates this entry and was
+  retained for its detail, not as a second finding. It supplies the exact
+  MICOM method `SetETCCPUWDTReset` with three codes — `0x00` weston-crash,
+  `0x01` spi-validation, `0x06` pstore-reboot — the full enumeration of
+  **seven enabled `.path` units** with service, payload and privilege, and
+  **five creators named**: `AppLauncher`, `dlt-daemon`,
+  `ApplicationManager`, `micommanager_userspace`, `AppMPAutoTest`. Two
+  creators remain **unlocated, not absent**: `spi_validation_NOK` and
+  `weston.crash`. This upgrades the status above from "candidates, each
+  individually unvalidated" to an enumeration measured from the shipped
+  units and scripts. Remediation is specified in
+  `docs/remediation/tmp-path-unit-migration.md`.
 
 
 ### The full marker table, measured from the image
@@ -3988,11 +4033,22 @@ model for it is absent rather than weak.
 
 ---
 
-## V-077 — a root CPU-watchdog **reset request** is triggerable by an empty file in world-writable `/tmp`
+## V-077 — **DUPLICATE of V-042** — a root CPU-watchdog reset request is triggerable by an empty file in `/tmp`
 
-**Status:** measured from the shipped units and scripts. The marker family and several of these units were already
-recorded in V-055 and in the `/tmp` marker table; what is **new** here is the exact MICOM method, the three distinct reset
-codes, and a correction to an impact statement that understated this as "diagnostics plus a message".
+**Status: duplicate, confirmed by search 2026-11-08.** This entry records the same mechanism as **V-042** — "Marker files
+under world-writable runtime paths trigger privileged actions", imported from the parallel repository as V-011 — and V-042
+already noted that "at least one forced-reboot trigger is reachable by any local process creating a zero-length file (local
+denial of service class)", with the same remediation direction. **Do not count V-077 separately from V-042.**
+
+**Retained as corroborating detail**, per the register's convention, because it adds three things V-042 did not carry:
+(i) the **exact MICOM method** `SetETCCPUWDTReset` and its **three distinct codes** — `0x00` weston-crash, `0x01`
+spi-validation, `0x06` pstore-reboot; (ii) **all seven enabled units** enumerated with the service, payload and privilege of
+each; (iii) **five creators located by name** — `AppLauncher`, `dlt-daemon`, `ApplicationManager`, `micommanager_userspace`,
+`AppMPAutoTest` — with two still unlocated. It also upgrades V-042's status from "configuration observation; candidates, each
+individually unvalidated" to an enumeration **measured from the shipped units and scripts**.
+
+A correction to an impact statement belongs with it too: item 3 of `docs/REMEDIATION-REPORT.md` described this as
+"diagnostics plus a message", when the measured call is a CPU watchdog **reset request** to the MCU.
 Class: local trigger of a privileged reset primitive / availability. Not privilege escalation.
 
 ### What is measured
@@ -4050,8 +4106,11 @@ unexercised code.
 
 ### Fix
 
-1. Move the marker paths out of `/tmp` into a root-only directory (e.g. `/run/mpauto/`) for **all seven** units; that alone
-   removes the unprivileged trigger without changing any payload.
+1. Move the marker paths out of `/tmp` into a root-only directory (e.g. `/run/state/`) for **all seven** units; that alone
+   removes the unprivileged trigger without changing any payload. **Specified in full in
+   `docs/remediation/tmp-path-unit-migration.md`** — the six markers, the seven enabled units, the five creators located, the
+   two that are **unlocated rather than absent**, the three rejected target alternatives, the three do-not items, and the
+   boot-regression step that matters more than the fix itself.
 2. If a marker must stay in `/tmp`, place the reset handlers behind a unit that also requires an authenticated or
    root-created prerequisite, and rate-limit them.
 3. Treat `SetETCCPUWDTReset` as a privileged operation: any future caller should be auditable, and the MICOM side should

@@ -65,6 +65,45 @@ So the correct forward position for rendering is **A-prime**: not a 2016 Mesa bu
 wholesale EGL replacement, but first supply a `GLIBCXX_3.4.22` `libstdc++` to the graphics closure and
 re-observe. That is cheaper than either A or B as originally framed.
 
+---
+
+## CORRECTION (same day, after the test): A-prime was tried and **exhausted**
+
+This section's conclusion is superseded. A-prime was tested in run `1794062803051700000` (workspace
+`ws-run68`) and **the fix did not work**, so the paragraph above should not be read as the current
+forward position.
+
+**What was done.** The projection's `libstdc++.so.6` (providing `GLIBCXX_3.4.1` through **3.4.22**, a
+superset that remains backward compatible for every vendor binary needing 3.4.21 or below) was staged
+into `/usr/lib` under both `libstdc++.so.6` and `libstdc++.so.6.0.22`. Two staging details matter: the
+image's existing `libstdc++.so.6` was a symlink to `6.0.21`, and `debugfs symlink` **failed silently**,
+leaving the link path absent while `6.0.22` was written — so the stager now writes the file under both
+names. And `LD_LIBRARY_PATH=/app/lib:/navi/navi/Lib` is applied first, so a `libstdc++` in either
+directory would have made the substitution meaningless; measured, `libstdc++.so.6` is **absent** from
+both and **present** only in `/usr/lib`. **The substituted library was therefore in effect.**
+
+**The pre-committed observation, stated before looking, answered against the fix.** If EGL initialised,
+the display captures had to differ from the byte-identical 129,844-byte KIA splash. Measured: frames
+of exactly **129,844 bytes at +10, +60 and +110 s**, and `S4_HEAD` still reporting
+`DRI2: failed to open swrast` then `failed to initialize EGL`.
+
+**What that establishes.** Three independently measurable dependency-level defects have now been
+fixed and confirmed applied — the four `/opt`-only libraries (runs 5 and 6) and `GLIBCXX_3.4.22`
+(run 8) — and the failure is **unchanged in all three**. **Dependency resolution is therefore
+excluded as the cause**, which leaves **DRI interface negotiation** between a Mesa 18.2.8 driver and a
+Mesa 11.2.1 loader as the best-supported remaining explanation.
+
+**What this means for the two routes.** They stand as originally framed, and A-prime is no longer
+between them: **A** (a matched Mesa 11.2.1 `swrast_dri.so`, a 2016 build) or **B** (a complete matched
+Mesa 18.2.8 EGL set, which the projection cannot currently supply because it holds `swrast`, `libglapi`
+and `libLLVM` of that generation but **no `libEGL.so.1`**). Neither should be attempted without its own
+pre-commitment.
+
+**The methodological point worth keeping.** `docs/kernel/47` asserted this categorical incompatibility
+from two version strings and Astra C12 rightly required that claim be withdrawn as unproven. It is now
+supported **by elimination** rather than by version numbers — which is a stronger footing, obtained by
+testing the cheap explanation rather than by arguing about it.
+
 ## What is NOT claimed
 
 - Not that this fix will work. It removes one measured blocker; the DRI interface negotiation behind it

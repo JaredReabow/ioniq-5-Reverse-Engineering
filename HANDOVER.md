@@ -1,10 +1,28 @@
 # HANDOVER — IONIQ 5 Gen5W research
 
-Updated **2026-11-08**. The recovered authentic Hyundai/LG launcher chain now
-passes the standby/profile-confirm gate and visibly foregrounds authentic
-`AppHomeScreen` in the local VM. Authentic AppNavi map pixels still render
-separately. The remaining integration goal is stable Home↔Navigation operation,
-followed by stateful service/CAN/persistence reconstruction.
+Updated **2026-11-08**. **Correction to this opening paragraph, same date — read it before relying on it.** It previously
+said the VM "visibly foregrounds authentic `AppHomeScreen`". Eight controlled runs do not support that, and the difference is
+not pedantic:
+
+- **What is visible is the shell UI, not the app.** Vendor Weston 1.10.0 runs and `/usr/libexec/weston-ivi-shell-user-interface`
+  draws the 1920×720 KIA boot splash — captured three times in run 3 and **byte-identical** at +10/+60/+110 s.
+- **An AppHomeScreen *registration* exists** in run 3's protocol stream (`create_hmi_client(1, 1006, "AppHomeScreen")`). That
+  satisfies the capture harness's narrow claim and says **nothing** about rendering, persistence or interactivity.
+- **The application does not render.** Its `wl_surface.commit()` arrives with **no preceding `attach()`** — no buffer is ever
+  supplied — EGL never initialises (`DRI2: failed to open swrast` → `failed to initialize EGL`), and the IVI layout reports the
+  surface `visibility(0)` / `layer(nil)`.
+- **Why, as far as it is measured:** the projection supplies a Mesa **18.2.8** `swrast` driver to a vendor **11.2.1** EGL. Three
+  rounds of dependency fixes left the failure unchanged, which excludes dependency resolution and leaves a driver/loader
+  generation mismatch (`docs/kernel/48`). A-prime was tested and exhausted; routes A and B stand, neither attempted.
+
+What still stands from the old paragraph: the launcher chain does reach the standby/profile-confirm gate, and authentic AppNavi
+map pixels do render separately. What is **withdrawn** is "visibly foregrounds authentic `AppHomeScreen`". The remaining
+integration goal keeps its shape — application rendering first, then stable Home↔Navigation operation, then stateful
+service/CAN/persistence reconstruction — but rendering is blocked on the graphics stack, and input injection is unimplemented,
+so "interactive" is unmet on two independent counts.
+
+This paragraph is the project's most-read summary. It was wrong for several sessions while the controlled runs that disprove it
+were being recorded elsewhere; treat the dated sections below as authoritative over it.
 
 #### From the parallel repository
 

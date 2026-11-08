@@ -107,6 +107,20 @@ Specifically, none of these may be written on this run's authority:
 - Tests: `tests/test_interval_capture_script.py`, `tests/test_verify_interval_capture.py`,
   `tests/test_make_run_manifest.py` — including two that run the chain end-to-end on the retained
   boot58/boot65 logs.
-- **The run itself has not been performed.** Staging the driver, helper and manifest into the image
-  and booting is the next action, and it is the reason this document is a specification rather than a
-  result.
+- **The run itself has since been performed — eight times.** This document was accurate when written and
+  is retained as the specification it was, but its status line is superseded. The results are recorded
+  in `docs/vm/60-controlled-run-1-result.md`, `docs/vm/62-controlled-run-3-result.md` and
+  `docs/vm/63-controlled-run-4-result.md`, with runs 5, 6 and 8 covering the graphics-stack work and
+  summarised in `docs/kernel/48-dri-compatibility-audit.md`.
+
+**What the runs established, in one place, because the specification alone no longer says it:**
+
+| Question | Answer |
+|---|---|
+| Does the driver, helper, manifest and two-channel arrangement work end to end? | **Yes** — run 3 produced a completed export transaction and the frozen verifier returned `REGISTRATION_PRESENT` |
+| Does a marker mean Home persisted or rendered? | **No** — run 3 also shows the visible frame is the shell UI's KIA splash, byte-identical at +10/+60/+110 s |
+| Is application rendering working? | **No** — EGL never initialises; `DRI2: failed to open swrast` |
+| Did fixing the dependency-level defects fix EGL? | **No** — runs 5/6 (four `/opt`-only libraries) and run 8 (`GLIBCXX_3.4.22`) all left the failure unchanged, so dependency resolution is excluded and a driver/loader generation mismatch remains |
+| Is the run trigger correct? | **No** — it is wall-clock while the milestone is protocol-time; runs 3 and 4 used the same trigger with opposite adequacy |
+
+The fixed intervals in this document were honoured, not tuned.

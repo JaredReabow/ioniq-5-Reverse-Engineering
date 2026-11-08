@@ -17,9 +17,11 @@ project or explicitly attributed to an external source; each section says which.
 | Vendor kernel boot in QEMU | working | documented ABL boot-parameter adaptation |
 | Vendor userspace (EU `260128`) | working | decrypted offline, booted, mounted read-only |
 | Launcher, driver-select, safety notice | working | authentic screens captured |
-| Home screen application | **renders** | creates a surface, commits buffers, placed via `ivi_window_manager` |
+| Home screen application | **registers; does not render** | Controlled runs (2026-11-08, `docs/vm/60`, `62`, `63`): run 3 contains `create_hmi_client(1, 1006, "AppHomeScreen")`, but the app's `wl_surface@15.commit()` arrives with **no preceding `attach()`** — no buffer is ever supplied — and the visible frame is the shell UI's KIA splash, byte-identical at +10/+60/+110 s. EGL never initialises (`DRI2: failed to open swrast` → `failed to initialize EGL`). IVI layout reports the surface `visibility(0)` / `layer(nil)`. Earlier "renders / commits buffers / placed via `ivi_window_manager`" rode on the surface-ID patch, which was reverted; that claim is withdrawn |
 | Clean frame on the vendor compositor | **working, reproduced 2026-11-04** | `docs/vm/24-clean-vendor-backend-2026-11-04.png` |
-| MICOM transport + boot-info profile | working | `micom-dbus-sim`, 35-byte authentic profile served |
+| MICOM transport; boot-info **profile not accepted** | transport working, profile rejected | `micom-dbus-sim` serves the 35-byte authentic profile over D-Bus and the peer answers (`RESULT_SVC=720`, `RESULT_SVC_ANSWERS=1`), but `ApplicationManager` **still fails** `initBootInfo attach` and never logs `reply is VALID`. Empirical variant probing (all-zero, byte 28 = `0x01`, `0xFF`) was rejected in every case, so the acceptance criteria must be read from the parser rather than guessed — see the register's MICOM shared-memory / `initBootInfo`
+thread, where the payload rejection and the variant probing are recorded in full. (The entry number is deliberately not cited here:
+the register is not in numeric order and the number was not verified.) Earlier "boot-info profile working" is withdrawn |
 | Engineering mode | **launchable, renders striped under our backend** | `docs/vm/23-…png` |
 
 ## 2. Why the screenshots were striped — and the answer
@@ -54,10 +56,8 @@ everything they touched. The remaining question is bounded inside `ias-backend-s
 | Menu | Trigger | Status |
 | --- | --- | --- |
 | **Engineering mode** | Settings → General → About, tap the software version **5–10×** (or the blank area at the bottom), then enter a PIN | **documented by the external project**; the equivalent code path exists in our image (`AppSetup` compares app id `0x12D` at `0x573194`) |
-| Engineering PIN — engineer | **`19491003 *(see correction below — not valid on this build)*`** | external; verified as unsalted SHA-256 hashes in the binary. Overlaps this register's **V-041** |
-
-> **Corrected 2026-11-04:** the value `19491003` comes from the sibling platform and does **not** match this build. `AppEngineerMode` carries exactly two SHA-256 constants; the engineer one matches a different vendor default code, and the dealer one is `2400`. Both were verified against those constants. The plaintext engineer code is withheld from this public tree as V-041 requires.
-| Engineering PIN — dealer | **`2400`** | external; same |
+| Engineering PIN — engineer | **not `19491003`** (corrected 2026-11-04) | `19491003` is from the sibling platform and does **not** match this build. `AppEngineerMode` carries exactly two SHA-256 constants; the engineer one matches a different vendor default code, and the dealer one is `2400`. Both were verified against those constants. The plaintext engineer code is withheld from this public tree as **V-041** requires |
+| Engineering PIN — dealer | **`2400`** | external; verified against the second of the two SHA-256 constants |
 | `S/W Update → Encryption Update` | inside engineering mode | our binary analysis and their guide agree; creates `/update/disableEncryptionUpdate` |
 | `IpConfigShell` | inside engineering mode | external: described as shell-command execution |
 | Develop state | a develop build placed at `/tmp/app/bin/AppEngineerMode` by a VarUpgrade deployment | launcher hook is ours, deployment is theirs |
@@ -97,7 +97,7 @@ execution with no user interaction beyond insertion**:
 /usr/lib/liblightmediascanner.so.0.5.1  present
 /usr/share/dbus-1/services/org.lightmediascanner.service   D-Bus activatable
 /app/bin/lightmediascannerctl           present
-lms_asf.so                              NOT present — **but the plugin is `asf.so`, which ships** (correction, see §6)
+lms_asf.so                              NOT present (but a plugin named asf.so DOES ship — see the paragraph below)
 libebml.pc                              Version 1.3.4; libebml.so.4 is the ABI SONAME, not a release number
 ```
 

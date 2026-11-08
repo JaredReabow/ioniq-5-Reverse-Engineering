@@ -1,0 +1,5 @@
+RECEIPT v2 id=interval-r2-t0c15614
+SELF path=/interval-capture.sh algo=sha256 digest=13b5920a187bf802358e20968643982f06627bcc4f49de9fa1c77419ee100663
+HARNESS run=interval-r2 manifest=/interval-manifest.txt manifest_sha256=fa28d836e49fcf288fa1bafe28fc2aaedc914e9c7797c926db7126296cb9ba9a helper=/interval-capture.sh helper_sha256=13b5920a187bf802358e20968643982f06627bcc4f49de9fa1c77419ee100663 driver=/interval-run.sh driver_sha256=09f5b9f900732bbfb003093296bfc4cbd578e64069d23ac86c4a2d3a89a23055
+TARGET app=AppHomeScreen binding=pinned_pid_and_starttime pid=2436 starttime=10296 generation=launcher_supplied
+OUTCOME BINDING_FAILED phase=start reason=pid_not_running pid=2436

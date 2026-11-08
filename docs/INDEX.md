@@ -25,6 +25,7 @@ matter** unless you know what you are looking for.
 | `docs/vm/45-backend-is-forced-not-chosen.md` | The headless backend is forced: the vendor kernel's only DRM driver is i915, so no QEMU DRM device exists |
 | `docs/vm/46-sim-unimplemented-backlog.md` | The stand-in's measured backlog: 60 unanswered MICOM calls across 10 methods during one boot |
 | `docs/vm/47-what-the-display-ceiling-blocks.md` | Every open item blocked by the display ceiling, what would unblock each, and the one action with highest leverage |
+| `docs/remediation/tmp-path-unit-migration.md` | **The `/tmp` path-unit migration, specified not applied**: six markers, seven enabled path units, five creators located and two not, target `/run/state/` at `0700`. Covers V-077, V-078, V-050 and the `/tmp` half of V-055/V-071. Includes the boot-regression step that matters most |
 | `docs/planning/` | Four independent plans (Fable 5.1, Astra, Daybreak Blue, Opus 5.5) and the agreed next steps after them |
 | `docs/kernel/48-dri-compatibility-audit.md` | **The audit Astra C12 required**: the blocker is a specific `GLIBCXX_3.4.22` requirement on `libLLVM-6.0.so.1` that the vendor `libstdc++6.0.21` (`3.4.21`) cannot satisfy — not a categorical Mesa mismatch. Withdraws the overstatement in doc 47 and records the adopted honest VM statement |
 | `docs/planning/astra-c12.md` | Astra C12: **defer application rendering (option C), keep A as the preferred future route**, after one read-only DRI compatibility audit. Adopts the three-level security status distinction |

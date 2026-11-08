@@ -60,7 +60,8 @@ file was copied.
 `ivi-module=` — all loadable objects loaded by a **root** process.
 
 **Exposes.** Whoever can write that path chooses the shared objects the display server loads. Effect applies at the next compositor start, not instantly
-(`weston-crash.sh` dumps diagnostics and messages MICOM's watchdog; it does not restart weston).
+(`weston-crash.sh` dumps diagnostics and, as **3c** records precisely, sends a **CPU watchdog reset request** with code
+`0x00` — not merely a message; it does not restart weston).
 
 **Fix.** Keep compositor configuration in read-only storage; require module paths to be absolute and inside a signed directory rather than whatever the config names.
 
@@ -81,6 +82,35 @@ privileged environment variable.
 write (`/run/user/0`, mode 0700). A file that decides where eleven services connect must not be world-writable.
 
 **Verify.** On a unit, confirm the file is absent from `/tmp` and that the units still resolve their bus; then confirm a non-privileged writer cannot influence it.
+
+### 3c. Seven enabled path units start root services when a marker appears in `/tmp`
+
+**Evidence.** Six marker files under the `1777` tmpfs activate seven enabled systemd `.path` units. Three of them run root shell scripts
+that each send a **CPU watchdog reset request** to the MICOM with a distinct code — `SetETCCPUWDTReset array:byte:0x00` (weston-crash),
+`0x01` (spi-validation), `0x06` (pstore-reboot). One runs a root script that emits a root-authority D-Bus signal ten times. Three more
+start root applications (`supplicantmanager`, whose `ExecStartPre` is `/sbin/modprobe cfg80211`; `ofonod`; `TmsRemoteApp`) on
+`/tmp/no_unece` and `/tmp/no_isa`. Five of the six creators are located; two are not. Full specification, with the unit-to-marker table,
+the creator list and the coverage limit: `docs/remediation/tmp-path-unit-migration.md`.
+
+**Exposes.** Any process able to write `/tmp` can make root run a fault handler or bring the wireless manager up — and can choose
+*which* of the three reset causes to assert. This is the marker family, and it is a different mechanism from items 2, 3 and 3b above:
+those are `/tmp` as a **configuration home** (a symlink redirects *where* a privileged component reads), whereas this is `/tmp` as a
+**trigger** (a marker decides *whether* a privileged component runs at all), so fixing the symlinks does not touch it.
+
+**Current exposure is latent, and that is measured.** V-079 established that this image creates **no non-root execution context**: one
+`User=` across 129 units and it is stock `user@.service` with no enabled instance; zero setuid and zero setgid binaries; and the only
+two binaries importing a privilege drop are `weston` and `weston-launch`, the latter referenced nowhere in `/etc` or `/lib/systemd`. So
+this becomes live the moment any lesser-privileged writer appears — a compromised app, a sandboxed service, or any component the
+platform later demotes.
+
+**Fix.** Move all six markers into `/run/state/`, mode `0700`, created by each creator with `mkdir -p` — seven `PathExists=` edits plus
+the creator side. `/run` rather than `/etc` (read-only at runtime), `/var` (a stale marker would fire a watchdog reset on the next boot)
+or a subdirectory of `/tmp` (which reintroduces the ordering dependency). **Do not** instead add `ConditionPathIsReadWrite` guards: those
+change *when* the units fire, not *who* can make them fire, and would silently stop four fault handlers working on a real fault.
+
+**Verify.** As root, create each marker under `/run/state/` and confirm the unit starts; then create the old `/tmp` marker as a
+non-root user and confirm it does **not**. **The step that matters most is boot regression**: boot to multi-user, confirm no reset
+method is sent on a healthy boot, and confirm the wireless daemon's start/no-start behaviour is unchanged for the configured variant.
 
 ### 4. A tampered data partition turns mandatory access control off
 

@@ -3,6 +3,42 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.67.0 - the register is re-derived, and the /tmp trigger family gets a migration specification
+
+### V-077 is a duplicate of V-042 - confirmed by search, not assumed
+
+V-042 ("Marker files under world-writable runtime paths trigger privileged actions", imported from the parallel repository as V-011) already recorded this mechanism, including that "at least one forced-reboot trigger is reachable by any local process creating a zero-length file (local denial of service class)", and already gave the same remediation direction. V-077's heading is now marked `DUPLICATE of V-042`; both bodies are retained, and V-042 gained a **Corroboration** bullet carrying what V-077 genuinely added: the exact MICOM method `SetETCCPUWDTReset`, its three codes (`0x00` weston-crash, `0x01` spi-validation, `0x06` pstore-reboot), all seven enabled `.path` units, and five named creators. Two creators remain **unlocated, not absent**: `spi_validation_NOK` and `weston.crash`.
+
+### The distinct count is re-derived rather than withheld
+
+Seven headings carry `DUPLICATE of` (six `V-`, one `I-`) and three are `Amendment to` sections, giving **73 distinct `V-` findings** and **75 distinct findings overall** with `H-001` and `I-001`. The derivation commands are written into the header beside the figures, with the instruction to update both together if any entry gains a duplicate marking - the header drifted to half its true size precisely because nothing forced that update, and `check_all.sh` reported `RESULT: coherent` throughout.
+
+### Remediation item 3c and the migration it specifies
+
+`docs/REMEDIATION-REPORT.md` gains item 3c under the existing 3b lettered-subitem precedent, so no renumbering. Item 3's "messages MICOM's watchdog" is corrected to `SetETCCPUWDTReset` code `0x00` and cross-referenced. `docs/remediation/tmp-path-unit-migration.md` specifies moving the marker family to `/run/state/` at `0700`, records creators located for five of seven markers, and records three do-not items - including rejecting `ConditionPathIsReadWrite`, which changes *when* units fire, not *who* can make them fire.
+
+### Documents corrected after re-reading
+
+`HANDOVER.md`'s opening "visibly foregrounds authentic `AppHomeScreen`" is **withdrawn** and replaced with the measured position, with a pointer that the dated sections below it are authoritative. `docs/FINDINGS-SUMMARY.md` "Home screen application **renders**" becomes "**registers; does not render**", and "MICOM transport + boot-info profile **working**" becomes "**profile not accepted**". One dropbear claim was checked and deliberately **left unchanged**: `find -name '*dropbear*'` returns a unit, config and a key installer but **no binary**, so "the binary is absent" is correct. The inclination to "correct" it would have introduced an error.
+
+## 5.66.0 - application rendering is deferred, and dependency causes are excluded by elimination
+
+Run `1794062803051700000` staged a `GLIBCXX_3.4.22`-providing `libstdc++.so.6` under both names (a `debugfs symlink` had failed silently, leaving the link absent) and verified no `/app/lib` or `/navi/navi/Lib` shadowing. **EGL still failed identically**, and frames remained byte-identical at 129,844 bytes. Three independently fixed dependency defects - four `/opt`-only libraries, then `GLIBCXX_3.4.22` - leaving the failure unchanged **excludes dependency resolution** and leaves a DRI driver/loader generation mismatch, now supported by elimination rather than by version comparison alone.
+
+Astra C12 **defers application rendering**. Route A (a matched Mesa 11.2.1 `swrast_dri.so`) is the preferred future route and is a build task; route B (a complete matched 18.2.8 EGL set) is not obtainable locally, because the projection holds `swrast`, `libglapi` and `libLLVM` but **no `libEGL.so.1`** of that generation. A-prime is exhausted. Note that "Mesa release numbers are not themselves a definitive DRI incompatibility test" - the elimination above carries the conclusion, not the numbers.
+
+## 5.65.0 - EGL never initialises, and the missing-library hypothesis is refuted
+
+`docs/kernel/45` records the actual failure: `S4_HEAD=[QIODevice::read: device not open|Using Wayland-EGL|libEGL warning: DRI2: failed to open swrast (search paths /usr/lib/dri)|failed to initialize EGL dis...]`. This explains the `wl_surface@15.commit()` seen with no preceding `attach()`: no frame is ever produced. Two independent gaps are now separated - EGL (no frame) and layout (surface hidden and unlayered).
+
+`docs/kernel/46` found `AppLauncher.sh` doing `export LD_LIBRARY_PATH=/app/lib:/navi/navi/Lib`, discarding `/opt/software-egl18/lib`, where the staged `swrast_dri.so` expects `libsensors.so.4` and `libLLVM-6.0.so.1`. Staging all four `/opt`-only libraries and verifying them present did **not** change the failure, so `docs/kernel/47`'s missing-library hypothesis is **refuted**. A claim in 47 that the staging itself was faulty was later corrected as overstated.
+
+## 5.64.0 - run 4: an observer-blind instrument, and a claim withdrawn the same day
+
+Run `1794058777482602000` returned `0 layers, 0 surfaces, 0 screens` from `ivi-place --list`, but `ivi-place` binds no `wl_output` and is documented observer-blind, so those zeroes carry no system-level meaning. The verifier returned `CAPTURE_TRUNCATED`, **60,501 ms short** - the same wall-clock trigger as run 3 with opposite adequacy. Neither run's outcome is a runtime conclusion about Home, and the `REGISTRATION_ABSENT` reading that truncation would otherwise invite is not available.
+
+`docs/kernel/44` found that app surfaces get `visibility(0)` and `layer(nil)` while surface 30000 (shell UI) attaches a real 1920x720 buffer and gets `visibility(1)`. **Corrected the same day:** `visibility`, `layer` and `source_rectangle` **without a `set_` prefix are events**, not requests, per `ivi-controller.xml`. The observation stands; the attribution "a client hid it" is withdrawn. This is the fourth instance of a pattern this programme keeps hitting - a method name is not a request direction.
+
 ## 5.49.0 - validate the libebml version claim and correct a prior false negative
 
 ### Transcript CVE lead checked against the target image and NVD

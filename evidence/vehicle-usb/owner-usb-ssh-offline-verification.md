@@ -223,3 +223,38 @@ host-side reads remain unverified. The owner reported that moving the cable
 to the Mac would interrupt power. No shutdown/reboot was sent. Head-unit
 installation, kernel 4.1 execution, real vehicle authentication and local
 terminal visibility remain target-only checks; no car update was started.
+
+## Subsequent cold-boot and physical USB test: unresolved second-read mismatch
+
+The owner connected the Radxa to the Mac after a clean cable-swap shutdown.
+Cold boot restored SSH, an unlocked autologin desktop, dashboard 1.0.7 and
+keepawake. The persistent preflight passed in 0.782 seconds; arming took 2.799
+seconds. USB identity, serial/port and the exact 30064771072-byte physical
+medium were checked before mounting its IONIQ5_EU volume read-only.
+
+| Physical USB file read | Seconds | SHA-256 | Result |
+| --- | ---: | --- | --- |
+| First | 22.418 | `362d9e329d970f403df4e69fece976ed6b4aaa27537e27a99e96e7796b9ad491` | exact genuine |
+| Second | 28.826 | `9ec5e571393f3df51b21ec99b2019afc449321250721212b149b82a94f065386` | does not match custom |
+
+Each read contained 879126179 bytes and used Mac F_NOCACHE with read-ahead
+disabled. The test unmounted its owned volume and tore down the gadget. This
+does not qualify the physical switching path. It also does not demonstrate
+that the retained package is corrupt: its byte-level checks and direct Linux
+NBD sweeps passed. A later repeat-arm NBD boot-sector probe passed in 0.0046
+seconds after a 2.468-second arm, with clean teardown.
+
+Astra and Sol recommended classifying received blocks and correlating backend
+read traces before changing the switching heuristic. Mac/gadget caching is
+plausible but unproven. Local genuine-prefix and genuine-edge/custom-middle
+hash reconstructions did not reproduce the wrong digest. Diagnostic retries
+preserved state/backend logs but did not obtain another usable Mac volume.
+The local diagnostic is prepared to capture per-block classifications once
+the host permits a fresh connection. No production switching change was made.
+
+Computer control explicitly refused access to macOS UserNotificationCenter
+for safety reasons despite the owner's USB-prompt authorization. That block
+was reported and not bypassed; a manual Allow click may be required at the
+next attempt. The device remains running, with the updater inactive/disabled
+and its test resources cleaned up. The selected 4.0.2 firmware is preserved,
+but the new vehicle flash is not marked ready pending physical USB diagnosis.

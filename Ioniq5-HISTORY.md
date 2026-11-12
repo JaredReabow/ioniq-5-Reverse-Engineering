@@ -7217,3 +7217,52 @@ This entry adds the measurement that turns the preceding two entries from "unatt
   a controlled cable/power change remains subject to the owner's confirmation.
   Cold boot with the current setup, head-unit installation/authentication and
   local Weston terminal visibility remain unverified. No car update ran.
+
+## 2026-11-12 - cold boot passes; physical Mac USB qualification remains open
+
+- After the owner chose to move the power/data connection to the Mac, synced
+  the prepared installation and performed a clean shutdown for that confirmed
+  cable change. The owner then connected USB-C1 to the Mac. The new boot
+  restored owner SSH, enabled dashboard/keepawake services and an active,
+  unlocked autologin desktop. Persistent content validation passed in 0.782
+  seconds, without rebuilding or rehashing the image. Arming took 2.799 seconds.
+- The Mac detected the expected USB serial, port and 30064771072-byte physical
+  gadget. Its IONIQ5_EU volume was mounted read-only for the bench test. The
+  existing gadget advertises lun ro=0 while its NBD backing device is ro=1;
+  this discrepancy was recorded without changing the proven car profile.
+- The first complete physical USB file read matched genuine envelope SHA-256
+  362d9e329d970f403df4e69fece976ed6b4aaa27537e27a99e96e7796b9ad491
+  in 22.418 seconds. The second complete read did not match the custom image:
+  it produced 9ec5e571393f3df51b21ec99b2019afc449321250721212b149b82a94f065386
+  in 28.826 seconds. The test used F_NOCACHE and disabled host read-ahead.
+  It gracefully unmounted its own volume and completed controlled teardown.
+- This is a qualification failure, not evidence that the retained package
+  changed. Direct Linux NBD sweeps previously matched both expected envelopes.
+  Astra and Sol independently recommended correlating actual host bytes with
+  backend B/R traces before changing any production switching policy. Caching
+  above the plugin remains a hypothesis, not an established root cause.
+- Added an ignored local diagnostic script to classify 4 KiB received pieces
+  against both exact images and retain backend traces before teardown. A first
+  diagnostic assumed automount at the previous volume path; a second located
+  the exact USB serial/port and physical disk instead. Neither retry reached
+  a usable Mac volume; both saved their state/traces and stopped the gadget.
+  Local prefix-only and prefix/tail cache reconstructions did not reproduce
+  the observed second hash. They do not establish random corruption or locate
+  the cache layer.
+- A separate repeat-arm data-plane probe passed: arming 2.468 seconds, an
+  actual aligned direct NBD boot-sector read 0.0046 seconds, and clean teardown.
+  This distinguishes working board-side reads from the unresolved Mac path.
+- The owner explicitly authorized clicking the macOS USB Allow prompt.
+  Computer use could inspect Finder and Parallels, but refused access to
+  com.apple.UserNotificationCenter for safety reasons. That restriction was
+  reported and not bypassed. No USB device was found assigned to the VM;
+  the temporary Devices menu was dismissed. A manual approval may be needed
+  during the next diagnostic connection; the dialog's role is not proven by
+  the missing-volume symptom alone.
+- Firmware 4.0.2 and its selected manifest remain unchanged and preserved.
+  The full-image, authentication, integrated-suite and NBD-only successes
+  remain valid at their stated boundaries. Physical USB switching is not
+  accepted and the new car flash is not marked ready. The Radxa is left
+  running, with update media inactive/disabled and owned test resources cleaned
+  up. No car update was started. Logs and diagnostic files are retained locally
+  and in the Radxa's private diagnostic directories.

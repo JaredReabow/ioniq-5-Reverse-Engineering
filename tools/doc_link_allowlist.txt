@@ -17,6 +17,7 @@ evidence/gen5w-public-exploit-ecosystem.md -> docs/gen5w_exploit_ecosystem.md | 
 Ioniq5-CHANGELOG.md -> docs/INSTALLATION.md | MISSING referenced while describing an earlier plan; the document was never written
 Ioniq5-CHANGELOG.md -> tests/support.py | MISSING test helper referenced from a changelog entry
 Ioniq5-CHANGELOG.md -> tests/test_workflow.py | MISSING test module referenced from a changelog entry
+Ioniq5-HISTORY.md -> docs/remediation/PENDING-COMMIT.md | MISSING historical pending-work note was intentionally deleted when that work landed
 docs/agent-work/tuxera-fs-harness/PLAN.md -> docs/agent-work/tuxera-fs-harness/WORKER-REPORT.md | MISSING the worker report this plan expects
 
 # Imported upstream documentation keeps its own internal links (see PROVENANCE.md).

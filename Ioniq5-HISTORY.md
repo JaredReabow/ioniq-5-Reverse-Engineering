@@ -6963,3 +6963,208 @@ This entry adds the measurement that turns the preceding two entries from "unatt
   on the boot58/boot65 closure, both of which stand as recorded.
 - **Next exact action:** the controlled run specified in `docs/vm/59-controlled-run-spec.md`, with the export channel's driver
   and manifest committed before launch and the persistence interval fixed in advance - not a fifth round of tooling.
+
+## 2026-11-11 - minimal owner SSH moves to USB Ethernet and passes the real-media offline replay
+
+- Replaced the Wi-Fi access-point design with the narrower steady-state path:
+  Radxa Zero 3W for dynamic update-media delivery only, then a dedicated
+  USB-to-Ethernet adapter for SSH. The target address is `10.42.0.1/24`, the Mac
+  is `10.42.0.2/24`, and there is deliberately no DHCP, gateway, forwarding,
+  internet sharing, or OEM network-service shutdown.
+- Built owner overlay `2.0.0` around a pinned static Dropbear 2026.94 binary.
+  Authentication is Ed25519 key-only root SSH; password, PAM, agent forwarding,
+  TCP forwarding, and stream forwarding are disabled at build time. An exact
+  USB identity/driver allowlist, identity-safe cleanup, interface-scoped
+  firewall policy, ConnMan exclusion, and legacy SCP wrapper are included.
+- Hardened the supporting transaction: firmware builder `1.0.2` snapshots and
+  revalidates the genuine source, publishes the image and manifest with rollback
+  for catchable failures, and does not delete foreign staging files. Radxa tool
+  `1.1.1` validates portable builder hashes plus the exact genuine extent in the
+  whole baseline image, revalidates local inode/content identities, checkpoints
+  partial NBD/configfs ownership, and refuses ambiguous teardown. The
+  dynamic-media plugin clips reads at both replacement boundaries.
+- Generated a real 30,064,771,072-byte exFAT update image. All 36 package files
+  matched the official source by recursive checksum, AppleDouble files were
+  absent, and `fsck_exfat -n -x` reported the volume OK. A bounded exFAT parser
+  located `HU/images/mango-rootfs.tar.gz` at raw offset `5668864`, length
+  `879126179`, in 26,829 consecutive clusters; the raw extent hash matched the
+  official genuine envelope.
+- Replayed the complete image twice through the actual plugin. Pass 1 matched
+  baseline SHA-256 `bcfc2eb5...f889a36` and genuine extent
+  `362d9e32...6b9ad491`. Pass 2 matched full-image SHA-256
+  `dfb101b8...ed294a2` and custom extent `880cfb89...7d381c`; every byte outside
+  `[5668864, 884795043)` matched baseline. The generated disk image was then
+  detached.
+- The integrated focused harness passed `102` tests and `29` subtests; the
+  generated startup script passed shell syntax validation. These results are
+  source, package, filesystem, and replay evidence only. No SD card or vehicle
+  write occurred; physical Radxa enumeration, sustained USB reads, head-unit
+  boot, USB NIC binding, live key authentication, SCP, unplug/replug, and normal
+  infotainment regression remain target-only checks.
+
+## 2026-11-11 - the physical Radxa lifecycle passes after two kernel-only teardown corrections
+
+- Wrote and booted the owner SD image on the Radxa Zero 3W, then verified its
+  real network boundary: `radxa-ioniq.local` on the configured Wi-Fi, root login
+  by the retained Ed25519 key, SSH enabled and active after reboot, and effective
+  `AuthenticationMethods publickey` with password and keyboard-interactive
+  authentication disabled. The Mac alias `ssh radxa-ioniq` now selects that key.
+- The first recovery started from an owned, unbound configfs gadget holding
+  `/dev/nbd0`, with nbdkit already absent. Closing the gadget before detaching
+  NBD fixed the original busy-device ordering problem. The next live call found
+  that this kernel returns `ENODEV` when the already-empty UDC attribute is
+  written empty again; controller `1.1.5` made that step idempotent.
+- A complete `1.1.5` arm then proved UDC `fcc00000.usb`, `/dev/nbd0`, port
+  `10809`, nbdkit identity, configfs backing, content-bound state, and owner
+  checkpoints. Its first teardown correctly refused to claim completion because
+  sysfs still exposed the NBD immediately after successful `nbd-client -d`; the
+  resumptive exit-trap call completed once the kernel caught up.
+- Controller `1.1.6` adds a bounded five-second wait that repeatedly validates
+  the exact owned NBD identity. A changed claimant fails immediately, timeout
+  preserves the gadget-removed checkpoint, and only observed disappearance
+  permits `nbd_detached`. The final physical cycle armed in `19m19s`, passed all
+  ownership assertions, tore down in `0.839s`, and left no gadget, NBD PID,
+  listener, process, log state, or checkpoint. SSH remained active.
+- Built owner image `1.0.3` with controller `1.1.6`; SHA-256
+  `14d8662e84a84d8ce079042fb2ddb428a385af6c58e35ede853bf0273f169312`.
+  Its internal build checks and an independent read-only mount verified the
+  image version, exact controller/test hashes, Wi-Fi profile mode, public-key
+  SSH policy, disabled auto-arm, content binding, and filesystem health.
+- The consolidated candidate now passes `121` tests and `35` subtests. Sol and
+  OpenRouter DeepSeek independently accepted the final asynchronous-detach
+  correction. Opus 4.7 could not run because its provider account was out of
+  usage; the Opus 5.5 reviewer declined to certify an integrity-bypass vehicle
+  workflow, and the Shannon attempts did not produce an artifact-grounded
+  review. Those provider outcomes are not counted as technical acceptance.
+- Boundary retained: no vehicle update was started. Head-unit installation and
+  boot, physical USB-Ethernet enumeration, `10.42.0.1` owner SSH, SCP,
+  unplug/replug, and normal infotainment behaviour remain vehicle-only checks.
+
+## 2026-11-12 - authentication recovery and persistent Radxa preparation
+
+- Continued from the later reported successful car update and retained live
+  evidence of the RTL8152 link and expected Dropbear listener. The correct
+  owner key had been rejected because authorized_keys was outside the private
+  account home and the OEM root directory was group-writable. The correction
+  keeps it at /run/ioniq-owner/.ssh with root ownership and 0700/0600 modes.
+- Built a password-capable static Dropbear 2026.94 with PAM and forwarding
+  compiled out. Binary SHA-256:
+  722c49d48a435ab47d87df102434edc632b5dce27323c37580b4b4e6aa0cc3d8.
+  Actual amd64 Linux execution with / mode 0775 passed key and password login,
+  wrong/blank credential rejection, unrelated-key rejection, interactive PTY,
+  legacy SCP upload/download and forwarding refusal. The initial PTY fixture
+  closed stdin immediately; keeping interactive input open corrected the
+  fixture without changing the server.
+- The owner clarified that backups must address authentication. Kept Wi-Fi,
+  ECM and serial/TTL research source, but excluded those channels from the
+  selected recovery firmware. Added an independent HTTPS terminal design with
+  a distinct recovery password, plus a USB-keyboard-triggered local terminal.
+  The network and SSH units are separated; a fixture proves failed SSH startup
+  does not tear down Ethernet. Actual local terminal visibility is still a
+  head-unit verification item.
+- Installed Radxa runtime 1.2.1 in place with exact old runtime files backed up.
+  One explicit preparation verified the existing complete media image.
+  Loading its private persistent cache and running both pre-exposure checks
+  took 0.019 seconds in a fresh process. Cache tests reject inode changes,
+  mutation even with restored mtime, unsafe modes and incomplete preparation.
+  Source recipe 1.0.6 uses the shared command wrapper; no SD image was rebuilt.
+- Installed KDE autologin for the existing radxa account and the localhost-only
+  visual dashboard. Restarted the display manager after confirming only its
+  greeter was active; the radxa desktop then logged in automatically. No board
+  reboot or shutdown was issued. The Mac browser rendered the installed API
+  page at desktop and 800x480 sizes without JavaScript errors or overflow.
+- Native UI testing found additional real startup issues: hyphenated DOM IDs
+  had invalid dot-property syntax; KDE launched a backed-up .desktop file;
+  Chromium first-run and KWallet prompts obstructed the kiosk; the default
+  idle lock blanked progress. Fixed the script syntax, moved launcher backups
+  outside autostart, selected a dedicated browser profile, bypassed browser
+  onboarding/keyring prompts, and disabled idle locking for the dashboard
+  session. All previous configurations and profile data were preserved.
+- The Radxa subsequently stopped responding on its known Wi-Fi address.
+  Its cause remains unconfirmed. Dashboard 1.0.5 adds a separate sleep/idle
+  inhibitor so KDE power management cannot suspend an updater; that final
+  increment is local pending reconnection. The firmware work continues on the
+  Mac. No update media was armed and no car firmware was written in this run.
+- Provider issue retained: Fable produced no usable review because its
+  subscription route returned a safeguard/provider error. Earlier provider
+  failures are not counted as technical acceptance.
+
+## 2026-11-12 - corrected 4.0.2 recovery package and resolved Radxa suspend
+
+- Reconciled the apparent Radxa crash against its journal: KDE entered deep
+  suspend at 09:15:42 UTC and resumed at 09:33:59 UTC within the same boot.
+  NetworkManager disconnected Wi-Fi for sleep; the AC policy had a 900000 ms
+  suspend timeout. Installed dashboard 1.0.6 removes idle SuspendSession,
+  DPMSControl and DimDisplay actions, disables idle locking, and keeps an
+  enabled root sleep/idle inhibitor. The active blocker and native autologin
+  kiosk were verified. No board reboot or shutdown was sent.
+- Consolidated review caught two defects in the uninstalled 4.0.0 candidate:
+  the independent SSH launcher used an undefined interface variable under
+  set -u, and a bodyless browser Logout omitted CSRF and reconnected the old
+  authenticated session. The generated launcher now initializes its own
+  interface policy; mutating browser requests always include CSRF.
+- Actual browser testing caught another user-visible failure: default focus
+  on the terminal pre element overrode the pointerdown input focus. A focus
+  event now redirects keyboard input after the browser's default action. The
+  regression performs a normal click, asserts input focus, executes a split
+  output marker that cannot pass through command echo, signs out with HTTP
+  204, observes socket closure, and verifies unauthenticated status and reload.
+  Chrome-to-Linux execution on a temporary Radxa loopback server passed. That
+  server and its SSH tunnel were stopped; their files were preserved.
+- The first complete rerun exposed a fixture cleanup race: unittest tearDown
+  removed a directory before addCleanup stopped its writing child. Temporary
+  directory deletion is now the earliest registered cleanup, so LIFO cleanup
+  stops children first. The browser fixture also explicitly trusts its local
+  self-signed test certificate, including the WebSocket verifier.
+- Built web binary 1.0.2 and generator 1.0.3 into composite overlay 4.0.2.
+  Production amd64 binary SHA-256 is
+  18c6ac2eb0f5e3d92661bcf979f447e6bd211ab7541bc83847f5efb26c8e807b.
+  The final 879126179-byte TE2 has SHA-256
+  94323aa3d05b4cf2e1a894ca445f4bf8a85f9341c0a879d2cdbbc338304123c6.
+  Decryption, overlay bytes/modes/root ownership and TE2 integrity passed;
+  44639 padding bytes remain. Earlier 4.0.0 and 4.0.1 artifacts are retained.
+- Integrated pytest completed with 1388 passing tests, 352442 passing subtests
+  and four skips. Its only two failures were stale expected generator-version
+  strings after the 1.0.3 bump; both assertions were corrected and the full
+  affected HTTPS module then passed eight tests and five subtests, including
+  the exact packaged amd64 Linux smoke. Go race tests and vet passed. Astra
+  and Sol independently inspected the final overlay/binary/TE2 and accepted
+  the corrected offline candidate; their decisions do not certify the car.
+- Rechecked the installed controller, wrapper, dashboard and UI against their
+  exact local hashes. Copied the new versioned payload and manifest alongside
+  existing Radxa data. Explicit preparation verified the new payload while
+  reusing the existing baseline cache; no new 30 GB hash or SD rebuild ran.
+  The existing updater remains disabled and unarmed. Normal startup still
+  requires explicit manual arming, and the dashboard never infers car-side
+  flash completion from USB read progress.
+- Pre-push checks found no retained private credential in the 59 changed/new
+  files. The repository was confirmed private. Its privacy harness still has
+  ten pre-existing blocking findings in historical identifiers/logs/text;
+  these were not represented as a clean whole-repository audit or rewritten.
+  Head-unit installation, kernel 4.1 execution, real key/password/browser login
+  and local Weston visibility remain target-only checks. No new car update
+  was started during this work.
+- Selected 4.0.2 in the Radxa's default serve plan after successful preparation,
+  retaining the old plan/regions/cache in a private runtime backup. A fresh
+  cached plan process, including Python startup and live resource inspection,
+  completed in 0.735 seconds. The dashboard and keepawake services remain
+  active; the update-media service remains inactive and disabled.
+- After staging, the public-snapshot privacy scanner additionally flags the
+  sanitized verification report solely for its vehicle-evidence directory and
+  the browser's password-input variable reference as a credential assignment.
+  These two added flags contain no retained private credential. The complete
+  staged source set was checked against the actual private build inputs; no
+  key, password or private input was included. The ten older findings remain
+  unchanged; the scanner is not described as passing.
+- Final installed-product verification caught a dashboard-only false stale
+  warning: the retained cache contained old-size and current-size keys for
+  serve-plan.json. Dashboard 1.0.7 ignores stale same-path extents only when a
+  current whole-file identity exists; a matching partial extent cannot hide a
+  stale whole-file record, and later mutations remain changed. Single artifact
+  current flags now reflect their validated entries. The affected integrated
+  Radxa/dashboard/controller/image/wrapper slice passed 106 tests and six
+  subtests; Astra and Sol accepted this scoped correction. Installed it in
+  place with the prior dashboard backed up and restarted only its read-only
+  service. The live API now reports Prepared media ready; not armed, current
+  preparation and no active update. The firmware, controller and cache were
+  unchanged; no new hash, SD rebuild or car flash was needed.

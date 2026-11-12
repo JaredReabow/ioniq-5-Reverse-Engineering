@@ -2,11 +2,18 @@
 /evidence/vehicle-usb/**
 !/evidence/vehicle-usb/
 !/evidence/vehicle-usb/README.md
+!/evidence/vehicle-usb/owner-usb-ssh-offline-verification.md
 /evidence/upstream/
 /evidence/child-notes/artifacts/
 /research-ledger.json
 /council/review-batch-*/
 /work/
+!/work/
+/work/*
+!/work/radxa-os/
+/work/radxa-os/*
+!/work/radxa-os/build-owner-image.sh
+!/work/radxa-os/customize-owner-image-inner.sh
 
 # IONIQ 5 research repository policy.
 #

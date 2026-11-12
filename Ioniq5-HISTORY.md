@@ -7168,3 +7168,52 @@ This entry adds the measurement that turns the preceding two entries from "unatt
   service. The live API now reports Prepared media ready; not armed, current
   preparation and no active update. The firmware, controller and cache were
   unchanged; no new hash, SD rebuild or car flash was needed.
+
+## 2026-11-12 - complete readiness retest of the selected 4.0.2 installation
+
+- Re-ran the complete integrated suite against the committed candidate:
+  1391 tests and 352442 subtests passed, with four unrelated audit tests
+  skipped because their private canonical inputs are unavailable. No tests
+  failed. The exact packaged amd64 HTTPS smoke was enabled. Fresh Go race
+  tests and vet passed; the consolidated consistency runner also passed its
+  structural, history, syntax, document, measurement and capture checks.
+- Re-read the actual encrypted 4.0.2 package, checked its size and SHA-256,
+  decrypted a private temporary copy and verified all 38 final overlay
+  members, content, root ownership, modes and links. The retained original
+  package was not modified. Re-ran exact static Dropbear inside its isolated
+  amd64 Linux fixture: correct key/password, wrong/blank password and unrelated
+  key rejection, interactive PTY, SCP round-trip and forwarding refusal passed.
+- Repeated the real Chrome-to-Linux browser login, click-to-type shell command,
+  logout, socket closure and unauthenticated reload. Tested the installed
+  dashboard at 1280x800 and 800x480 with no JavaScript errors or horizontal
+  overflow; its mutating arm endpoint returned 405. Temporary browser/server
+  and tunnel processes were stopped. Screenshots and raw logs remain local.
+- Forced a fresh byte-level verification on the Radxa before car use: the
+  complete 30064771072-byte baseline, selected 879126179-byte replacement and
+  genuine-envelope extent all matched their bound manifests. This took 411
+  seconds and refreshed the persistent validation cache. The prior cache and
+  preparation log were backed up first. No SD image was rebuilt or rewritten.
+- After the owner confirmed the car was disconnected, exercised the actual
+  installed service, NBD client/backend and bound fcc00000.usb gadget. Arming
+  took 2.965 seconds. Direct aligned reads bypassed the Linux block cache:
+  the first complete 879126179-byte region read matched genuine SHA-256
+  362d9e329d970f403df4e69fece976ed6b4aaa27537e27a99e96e7796b9ad491;
+  the second matched custom SHA-256
+  94323aa3d05b4cf2e1a894ca445f4bf8a85f9341c0a879d2cdbbc338304123c6.
+  The boot-sector read also matched baseline. Teardown took 1.766 seconds.
+- Independent post-test checks found no owned gadget, NBD PID, backend process,
+  controller state, manual-arm marker or backend/test-server listener. The
+  updater is inactive and disabled; the dashboard reports prepared and
+  unarmed. A fresh cached plan then passed in 0.864 seconds. Verified persisted
+  GDM autologin in its actual Debian daemon.conf, disabled idle power/lock
+  policy, active enabled services and an unlocked active desktop session.
+- The repository consistency runner passed. The separate public-snapshot
+  privacy scanner still reports its 12 already-recorded findings; it is not
+  described as clean. An exact scan across 1589 tracked paths found none of
+  the retained owner private inputs, including the short Wi-Fi password.
+- The bench UDC reported no USB host attached, so this does not prove physical
+  USB enumeration or host-side reads. The owner confirmed that moving its data
+  connection to the Mac would interrupt power. No shutdown or reboot was sent;
+  a controlled cable/power change remains subject to the owner's confirmation.
+  Cold boot with the current setup, head-unit installation/authentication and
+  local Weston terminal visibility remain unverified. No car update ran.

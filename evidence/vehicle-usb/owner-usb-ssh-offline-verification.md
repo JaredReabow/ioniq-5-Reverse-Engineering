@@ -176,3 +176,50 @@ identity. The affected Radxa/dashboard/controller/image/wrapper suite passed
 106 tests and six subtests. Both reviewers accepted this scoped correction;
 the installed API then reported `Prepared media ready; not armed` with current
 identities and no active updater. Firmware 4.0.2 bytes remained unchanged.
+
+## 2026-11-12 complete readiness retest
+
+The final committed 4.0.2/1.0.7 source passed a fresh complete pytest run:
+**1391 tests and 352442 subtests passed; four tests skipped** for unavailable
+private AppLauncher/Smack audit inputs. No failures remained. The exact amd64
+packaged HTTPS smoke was enabled, and fresh Go race tests/vet passed. The
+consolidated repository consistency runner passed. Its separate public-snapshot
+privacy scan retains the 12 findings recorded in history; an exact search for
+retained owner private inputs across 1589 tracked paths found no matches.
+
+The actual encrypted package SHA and size matched the selected manifest.
+Decryption of a private temporary copy verified all 38 overlay members,
+including bytes, root ownership, modes and links. Fresh exact-binary Linux
+Dropbear tests passed key/password and rejection cases, PTY, SCP and forwarding
+refusal. Real Chrome-to-Linux recovery-terminal login, command and logout
+passed. Live dashboard checks at 1280x800 and 800x480 passed, including HTTP
+405 for its arm endpoint. Test servers and tunnels were stopped afterward.
+
+Forced content preparation on the installed Radxa freshly read the complete
+30064771072-byte baseline and selected replacement and verified the genuine
+extent against its builder manifest. This took **411 seconds**; prior cache
+and preparation log were backed up before the operation. The resulting cache
+is persistent and current. This was verification, not an SD image rebuild.
+
+With the car confirmed disconnected, the installed controller completed an
+actual service/NBD/configfs/UDC lifecycle. Arming took **2.965 seconds** and
+teardown **1.766 seconds**. Aligned `O_DIRECT` reads bypassed the Linux block
+cache and established:
+
+| Read | Bytes | SHA-256 |
+| --- | ---: | --- |
+| First region pass, genuine | 879126179 | `362d9e329d970f403df4e69fece976ed6b4aaa27537e27a99e96e7796b9ad491` |
+| Second region pass, custom | 879126179 | `94323aa3d05b4cf2e1a894ca445f4bf8a85f9341c0a879d2cdbbc338304123c6` |
+
+The boot-sector read matched baseline too. Post-test checks found no owned
+gadget, NBD PID, backend process, controller state, arm marker or test listener.
+The updater remains inactive/disabled, with the dashboard reporting ready and
+unarmed. A fresh cached plan passed in **0.864 seconds**. Persisted autologin,
+idle-lock/power policy and active unlocked desktop were checked without reboot.
+
+The UDC reported **no USB host attached**. These direct NBD reads prove the
+installed board-side serving and switching path; physical USB enumeration and
+host-side reads remain unverified. The owner reported that moving the cable
+to the Mac would interrupt power. No shutdown/reboot was sent. Head-unit
+installation, kernel 4.1 execution, real vehicle authentication and local
+terminal visibility remain target-only checks; no car update was started.

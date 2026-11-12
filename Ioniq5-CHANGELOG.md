@@ -3,6 +3,102 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.70.0 - independent authentication recovery and a reusable Radxa runtime
+
+The selected owner recovery overlay is 4.0.2 on the retained EU 260128 baseline.
+Its Ethernet service survives failure of the SSH login service. SSH supports
+the retained owner key or a nonempty password; the added HTTPS terminal has its
+own recovery password and does not depend on SSH keys, PAM, or account lookup.
+A USB keyboard can trigger the stock local terminal. Serial/TTL, Radxa ECM and
+the separately retained Wi-Fi AP module are excluded from this selected build.
+
+The pinned static Dropbear passes actual Linux tests for key/password login,
+wrong/blank credentials, unrelated keys, PTY, SCP round-trip and denied
+forwarding with an OEM-style group-writable root directory. A regression
+deliberately fails SSH startup and confirms that Ethernet remains up.
+The standalone generated SSH script initializes its own interface policy;
+the browser sends CSRF with bodyless Logout and retains keyboard focus after a
+normal terminal click. A real Chrome-to-Linux regression exercises a shell
+command, logout, socket closure and unauthenticated reload. Head-unit
+installation and local-terminal visibility remain separate checks.
+
+Radxa controller 1.2.1 separates explicit content preparation from fast arming.
+Its private persistent cache reuses unchanged file identities across boots;
+the real cached load plus both rechecks took 0.019 seconds. Changed inputs
+require preparation, and explicit verify forces full hashing. The optimization
+trusts local metadata and does not detect silent media corruption.
+The selected 4.0.2 payload is prepared on the existing Radxa installation;
+a fresh cached plan process completed in 0.735 seconds, including interpreter
+startup and live resource inspection. The old selection is backed up.
+
+The KDE autologin and read-only visual dashboard were installed in place, with
+native automatic login observed. The UI shows measured USB reads, preparation,
+verbose logs and interrupted-session warnings without claiming car-side writes.
+Dashboard 1.0.7 is installed. Logs identified the apparent crash as KDE's
+15-minute automatic deep suspend; the same boot resumed. Idle suspend,
+dimming and display power-off are disabled, and the active root sleep/idle
+inhibitor protects the updater. Native autologin and the kiosk were observed.
+The live dashboard correctly reports the selected 4.0.2 media ready and unarmed,
+even when the cache retains an older extent for the replaced serve plan.
+No reboot,
+shutdown, new vehicle update, SD-card erase or re-image was issued in this run.
+Prior source, firmware, keys, profiles and configuration backups are retained.
+
+## 5.69.0 - the Radxa image passes its physical gadget lifecycle
+
+Built Radxa owner image `1.0.3` with controller `1.1.6` and state schema `v4`.
+The image joins the configured Wi-Fi, advertises `radxa-ioniq.local`, enables
+key-only root OpenSSH on every boot, and leaves update-media auto-arm disabled.
+Its SHA-256 is
+`14d8662e84a84d8ce079042fb2ddb428a385af6c58e35ede853bf0273f169312`.
+A read-only mount independently confirmed the image version, controller and
+test hashes, SSH policy, private file modes, SSID, and disabled auto-arm marker.
+
+Physical testing on the Radxa Zero 3W verified the complete chain
+`nbdkit -> nbd-client -> /dev/nbd0 -> configfs mass storage -> fcc00000.usb`.
+The real 30 GB content binding passed before arming; the final arm recorded the
+owned UDC, NBD, process, port, configfs backing path, and checkpoint, then
+teardown removed them all in `0.839s`. A reboot restored Wi-Fi and SSH with no
+gadget, NBD PID, nbdkit listener/process, or checkpoint.
+
+Two real-kernel behaviours found by this test are now regressions. Configfs can
+return `ENODEV` when an already-empty UDC is redundantly cleared, so removal is
+idempotent. A successful `nbd-client -d` can precede sysfs disappearance, so
+teardown polls the exact owned identity for at most five seconds, rejects a
+foreign replacement, and preserves resumable state on timeout. The integrated
+suite passes `121` tests and `35` subtests; independent Sol and OpenRouter
+DeepSeek reviews accepted the final correction.
+
+This establishes the Radxa delivery device, not the vehicle result. No IONIQ 5
+update, head-unit boot, USB-Ethernet adapter enumeration, or head-unit SSH was
+performed in this version.
+
+## 5.68.0 - a minimal owner-SSH firmware candidate uses isolated USB Ethernet
+
+Added a fail-closed custom-firmware builder, dynamic-media plugin, Radxa Zero 3W
+adapter, and USB-Ethernet owner-SSH overlay with their integrated tests. The
+post-install network is intentionally narrow: an allowlisted Realtek or ASIX
+USB NIC becomes `ownerusb0`, the head unit uses `10.42.0.1/24`, the Mac uses
+`10.42.0.2/24`, and no DHCP, gateway, forwarding, internet sharing, or OEM
+network-service shutdown is introduced. Dropbear is a pinned static 2026.94
+build with key-only root login and password/PAM/forwarding features disabled.
+
+The firmware transaction now binds the exact genuine source bytes and publishes
+a verified candidate/manifest pair with catchable-failure rollback. The Radxa
+adapter binds copied artifacts by size, SHA-256, inode, the genuine extent inside
+the complete media image, and staged ownership of NBD/configfs resources; it
+refuses ambiguous cleanup. The dynamic-media plugin clips every boundary-crossing
+read to prevent replacement bytes escaping their declared region.
+
+The real 30,064,771,072-byte exFAT image passed a 36-file recursive checksum
+comparison and `fsck_exfat`. Its genuine rootfs is one contiguous extent at byte
+`5668864`, length `879126179`, and hashes to the official envelope. A complete
+two-pass replay matched every byte: pass 1 reproduced the baseline image and
+pass 2 changed only that extent to the reviewed custom envelope. The integrated
+suite passed `102` tests and `29` subtests. This is offline/package evidence;
+no SD card, Radxa, or vehicle was written, and target boot plus live SSH remain
+unverified.
+
 ## 5.67.0 - the register is re-derived, and the /tmp trigger family gets a migration specification
 
 ### V-077 is a duplicate of V-042 - confirmed by search, not assumed

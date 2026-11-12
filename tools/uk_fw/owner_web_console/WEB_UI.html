@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IONIQ 5 Recovery Console</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111513;
+      --panel: #1b211e;
+      --line: #34413a;
+      --text: #edf3ef;
+      --muted: #9eada4;
+      --accent: #59d68b;
+      --danger: #ff7770;
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input { font: inherit; }
+    .hidden { display: none !important; }
+    #login {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .login-panel {
+      width: min(390px, 100%);
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+    .mark {
+      width: 36px;
+      height: 4px;
+      margin-bottom: 22px;
+      background: var(--accent);
+    }
+    h1 { margin: 0 0 8px; font-size: 24px; line-height: 1.15; }
+    .sub { margin: 0 0 24px; color: var(--muted); }
+    label { display: block; margin-bottom: 7px; color: var(--muted); }
+    input {
+      width: 100%;
+      height: 44px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #0e1210;
+      color: var(--text);
+      outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+    .primary {
+      width: 100%;
+      height: 44px;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 5px;
+      background: var(--accent);
+      color: #07110a;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled { cursor: wait; opacity: .55; }
+    .error { min-height: 20px; margin: 12px 0 0; color: var(--danger); }
+    #console { height: 100%; display: grid; grid-template-rows: 48px 1fr; }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+    .title { font-weight: 700; }
+    #connection {
+      margin-left: auto;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    #connection.online { color: var(--accent); }
+    .icon-button {
+      height: 32px;
+      padding: 0 11px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .terminal-wrap {
+      position: relative;
+      min-height: 0;
+      padding: 12px;
+      background: #0d110f;
+      overflow: hidden;
+    }
+    #terminal {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      color: var(--text);
+      font: 14px/1.25 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre;
+      cursor: text;
+      outline: none;
+    }
+    #terminal-input {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .reconnect {
+      position: absolute;
+      right: 22px;
+      bottom: 22px;
+      z-index: 4;
+    }
+    @media (max-width: 520px) {
+      .login-panel { padding: 22px; }
+      .toolbar { gap: 8px; padding: 0 9px; }
+      .title { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <main id="login">
+    <form class="login-panel" id="login-form">
+      <div class="mark" aria-hidden="true"></div>
+      <h1>Recovery console</h1>
+      <p class="sub">Authenticate over the private vehicle link.</p>
+      <label for="password">Recovery password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password"
+             autocapitalize="none" spellcheck="false" required>
+      <button class="primary" id="login-button" type="submit">Connect</button>
+      <p class="error" id="login-error" role="alert"></p>
+    </form>
+  </main>
+
+  <main id="console" class="hidden">
+    <header class="toolbar">
+      <span class="title">Root terminal</span>
+      <span id="connection">connecting</span>
+      <button class="icon-button hidden" id="reconnect" type="button">Reconnect</button>
+      <button class="icon-button" id="logout" type="button">Sign out</button>
+    </header>
+    <section class="terminal-wrap" aria-label="Interactive root terminal">
+      <pre id="terminal" tabindex="0"></pre>
+      <textarea id="terminal-input" aria-label="Terminal keyboard input"
+                autocapitalize="none" autocomplete="off" spellcheck="false"></textarea>
+    </section>
+  </main>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>

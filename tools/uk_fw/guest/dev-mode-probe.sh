@@ -1,8 +1,10 @@
 #!/bin/sh
 # Disposable VM only. Does not call any update/factory-reset/vehicle-control action.
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/app/bin
-while [ ! -r /proc/uptime ] || [ ! -e /dev/ttyS0 ]; do sleep 1; done
-exec >/dev/ttyS0 2>&1
+while [ ! -r /proc/uptime ] || [ ! -e /dev/ttyS3 ]; do sleep 1; done
+# Dedicated file-backed channel, not the vendor console/getty UART.
+exec >/dev/ttyS3 2>&1
+set -x
 sleep 60
 printf '\nDEV_PROBE_BEGIN\n'
 cat /proc/uptime
@@ -40,3 +42,4 @@ for item in baseline modified modified_restart; do
     echo "DEV_PROBE_LOG_END $item"
 done
 printf '\nDEV_MODE_PROBE_COMPLETE\n'
+printf '\nDEV_MODE_PROBE_COMPLETE\n' >/dev/ttyS0

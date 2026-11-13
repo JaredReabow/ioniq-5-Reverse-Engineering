@@ -3,6 +3,12 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.77.0 - developer initializer proven on the authentic Wayland path; presentation remains blocked
+
+The precommitted Wayland follow-up completed at 195.82 host seconds. Both launches of the separately patched AppEngineerMode reached `setEngType()` and then `initConnmanIface()`, proving the setter returned. The retained one-byte change makes its only store write zero to the object-relative field, so `checkSOPVersion()` is false and the shipped QML selects its non-SOP/developer models on each modified launch. The production-state log text is emitted before the store and is explicitly not used as state evidence.
+
+Unmodified control failed earlier; all launches still encountered the existing `DRI2: failed to open swrast` / EGL failure and later protocol faults. There is no visual-menu, input, full stock-launch-chain, reboot-persistence or physical-unit claim. A persistent design, if separately authorized for the same verified build, must stage a hash-verified modified override before AppLauncher checks volatile `/tmp`; it must not write an object-relative RAM address. Retained evidence: `evidence/dev-mode-wayland-vm-2026-11-13/`.
+
 ## 5.76.0 - isolated developer observer completes; offscreen baseline and modified application both crash
 
 Moving the developer-state probe from console/getty ttyS0 to dedicated file-backed ttyS3 produced complete baseline/modified/restart traces. Twenty-second windows showed liveness but not target initialization; a precommitted 60-second follow-up recorded SIGSEGV/139 for all three, including the unchanged control. The observer completed at 275.51 host seconds without timeout. No developer-mode activation or persistence is established.

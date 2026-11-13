@@ -3,6 +3,12 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.75.0 - developer-mode initialization patch prepared; VM activation unresolved
+
+Verified the exact EU 260128 AppEngineerMode initializer and made a separate VM-only copy with one changed byte (`0x73726e`: `01` to `00`), leaving the control application and update-verification components untouched. The change alters the initializer's immediate, not a fixed RAM flag address.
+
+The first run was interrupted after baseline liveness; the resumed observer reached its 360-second deadline before a modified-app launch. Neither establishes runtime developer mode or restart/reboot persistence. The NUL-containing first serial log does contain observer output, correcting an initial chat search-based claim that it did not. Retained hashes and per-run limitations are in `docs/engineering-mode/persistent-dev-mode-vm-test.md`. No live-device change or deployment is claimed.
+
 ## 5.74.0 - live head-unit hardware inventory
 
 Read-only owner SSH inventory identifies the installed unit's Intel Atom A3930,

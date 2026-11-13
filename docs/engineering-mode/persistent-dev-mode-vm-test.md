@@ -14,4 +14,17 @@ Stop rule: if launches fail before developer-state initialization, report runtim
 
 ## Result
 
-Pending execution. The earlier no_unece experiment was aborted and supplies no completed result for this question. `no_unece` and `disableEncryptionUpdate` are not substitutes for the AppEngineerMode build-state field.
+**Runtime activation unresolved; do not deploy this experiment to hardware.** The earlier no_unece experiment was aborted and supplies no completed result for this question. `no_unece` and `disableEncryptionUpdate` are not substitutes for the AppEngineerMode build-state field.
+
+The ELF program-header mapping confirmed instruction file offset `0x737268`. The separate modified copy differs in exactly one byte: file offset `0x73726e`, `01` to `00`. Modified SHA-256: `73d282a73a8de1804041ff9658c286f19d9830710ed15c6f9dcd5e42badca0e9`. This changes the instruction's immediate; it does not write to a fixed runtime flag address. `/app/bin/AppEngineerMode` remains the unmodified control.
+
+Two runs were retained locally under `work/vm/kbuild/ws-dev-mode-probe/`:
+
+- `runs/1794571026254438000`: interrupted host invocation. `host-run.log` (111115 bytes, SHA-256 `642b78db19d7fc1849af9babe1213e524d2a2f4c40d57f8307095bf0a83d96af`) records `DEV_PROBE_BEGIN`, the baseline hash and `DEV_PROBE_ALIVE baseline pid=1931`, but no completed baseline stop or modified launch. An initial chat statement claiming there was no probe execution record was wrong: searching the NUL-containing serial log as text reveals it. No cause of the stall is established.
+- `runs/1794571645088431000`: resumed with bounded TERM/KILL handling and without procfs executable-link inspection. `host-resume.log` (138193 bytes, SHA-256 `028a704772e8274b9515c0ae935a773e1ea3fd9f2ef1cc34e2b50c498481854f`) reaches `DEV_PROBE_BEGIN` and the baseline launch announcement, but no subsequent baseline hash or modified launch. Result: `root_mounted=true`, `userspace=false`, `serial_completion_seen=false`, `timeout=true`, elapsed 360.17 host seconds. Here `userspace=false` is the harness's missing readiness marker, not proof that no userspace ran: systemd and the observer demonstrably did run.
+
+No modified-application startup, runtime developer-state value, menu appearance, application-restart persistence or reboot persistence was measured. Logs/launch records and modified binaries remain private local artifacts; no firmware binary is committed. Stop repeated boots until the baseline observer stall is understood. Successful file patching is not successful developer-mode activation.
+
+## Production interpretation
+
+The object field is `this + 0x13c`; its object address is not a constant RAM address. A fixed-address boot-time write is therefore not established or recommended. The code at `0x737268` is the initializer, while the changed file byte is at `0x73726e` in this exact build. A file-backed application-specific modification could survive ordinary reboots, but update replacement, application-integrity checks, startup dependencies and actual UI behaviour still need verification. Enabling engineering UI is not a global developer mode for the entire head unit, nor does it imply update verification is disabled.

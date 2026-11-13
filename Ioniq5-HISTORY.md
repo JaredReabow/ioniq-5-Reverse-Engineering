@@ -7503,3 +7503,11 @@ This entry adds the measurement that turns the preceding two entries from "unatt
 - Saved the detailed inventory in the existing vehicle USB/access evidence.
   No scan, association, AP activation, bus transaction probe, module change,
   service restart, network change, flash, reboot or shutdown was performed.
+
+## 2026-11-13 - VM-only developer-state experiment: file modification verified, activation unresolved
+
+- Owner authorized a disposable VM test of persistent developer-mode UI, not disabling firmware verification. Confirmed the EU 260128 AppEngineerMode hash and the initializer at instruction/file offset 0x737268; a separate application copy changes exactly one byte at 0x73726e from 1 to 0. The source/control application and update-verification binaries were not changed.
+- First run 1794571026254438000 was interrupted after baseline liveness. Correction to chat: it did record probe output; the initial search missed it because the serial log contains NULs. No modified-app launch was recorded.
+- After bounded process-stop handling was added, resumed run 1794571645088431000 reached its 360.17-second deadline. It recorded the probe beginning and baseline launch announcement, but not a completed baseline hash or a modified launch. No stall cause is established. No developer-state value, visible menu, restart persistence or reboot persistence was measured.
+- Raw logs, launch records and byte-difference manifest remain under work/vm/kbuild/ws-dev-mode-probe; document hashes and limitations are in docs/engineering-mode/persistent-dev-mode-vm-test.md. No physical head-unit changes were performed. The frozen interval exporter was not modified.
+- Repository is on codex/usb-ethernet-owner-ssh, not main. Keep its unrelated owner-access changes separate rather than implicitly merging them into main. Next action is to diagnose baseline-observer progress before any further VM or hardware activation claim.

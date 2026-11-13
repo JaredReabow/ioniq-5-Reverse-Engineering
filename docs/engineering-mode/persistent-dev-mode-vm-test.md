@@ -25,6 +25,14 @@ Two runs were retained locally under `work/vm/kbuild/ws-dev-mode-probe/`:
 
 No modified-application startup, runtime developer-state value, menu appearance, application-restart persistence or reboot persistence was measured. Logs/launch records and modified binaries remain private local artifacts; no firmware binary is committed. Stop repeated boots until the baseline observer stall is understood. Successful file patching is not successful developer-mode activation.
 
+## Dedicated-channel follow-up and fixed longer interval
+
+Run `1794577309908072000` moved observer output to a dedicated file-backed ttyS3 and enabled shell tracing. All three launch phases and their hash/stop/log-export records completed; the completion line was received at 147.28 host seconds, with `timeout=false`. The wrapper still returned failure because its separate userspace-ready marker was absent. This is a completed observer transaction, not full VM acceptance. Its trace establishes that the console-path ambiguity is removed, without proving the exact earlier ttyS0 blocking mechanism.
+
+All three processes were alive at their 20-second checks; baseline and first modified launch terminated with 143 (TERM), modified restart required KILL (137). The last launch reached `initAppication` line 736 (`m_view->show() = 1`) but no `setEngType` or `Run Version` output was recorded. The 20-second interval was therefore not sufficient to establish the target initializer executed. Reconfirmed statically that the `setEngType` call is at `0x74db11`, after the late window/native-platform setup.
+
+**One follow-up, fixed before launch:** retain dedicated ttyS3 and extend each launch observation from 20 to **60 guest seconds**, keeping the +60-second initial wait and 360-second host deadline. No additional binary patch. If developer-state initialization remains unobserved, stop and report unresolved rather than infer it from process liveness.
+
 ## Production interpretation
 
 The object field is `this + 0x13c`; its object address is not a constant RAM address. A fixed-address boot-time write is therefore not established or recommended. The code at `0x737268` is the initializer, while the changed file byte is at `0x73726e` in this exact build. A file-backed application-specific modification could survive ordinary reboots, but update replacement, application-integrity checks, startup dependencies and actual UI behaviour still need verification. Enabling engineering UI is not a global developer mode for the entire head unit, nor does it imply update verification is disabled.

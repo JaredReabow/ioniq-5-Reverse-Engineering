@@ -23,7 +23,7 @@ for item in baseline modified modified_restart; do
     sha256sum "$exe"
     "$exe" >/tmp/dev-probe/"$item".log 2>&1 &
     pid=$!
-    sleep 20
+    sleep 60
     if kill -0 "$pid" 2>/dev/null; then
         echo "DEV_PROBE_ALIVE $item pid=$pid"
         # Do not inspect procfs executable links here: observation must stay bounded.

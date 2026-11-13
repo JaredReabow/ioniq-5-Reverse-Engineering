@@ -24,8 +24,13 @@ for item in baseline modified modified_restart; do
     sleep 20
     if kill -0 "$pid" 2>/dev/null; then
         echo "DEV_PROBE_ALIVE $item pid=$pid"
-        readlink /proc/"$pid"/exe
+        # Do not inspect procfs executable links here: observation must stay bounded.
         kill "$pid"
+        sleep 2
+        if kill -0 "$pid" 2>/dev/null; then
+            echo "DEV_PROBE_FORCE_STOP $item pid=$pid"
+            kill -KILL "$pid"
+        fi
     else
         echo "DEV_PROBE_EXITED $item pid=$pid"
     fi

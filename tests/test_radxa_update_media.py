@@ -77,6 +77,13 @@ class RadxaUpdateMediaTests(unittest.TestCase):
         self.assertLess(log.index("systemctl stop "), log.index(" teardown --execute"))
         self.assertIn("stopped", log)
 
+    def test_installed_selftest_runs_dynamic_media_controller_and_fuse_checks(self):
+        (self.root / 'app').mkdir()
+        log = self.run_wrapper('selftest')
+        for name in ('test_nbdkit_dynamic_media.py', 'test_radxa_usb.py', 'test_radxa_usb_fuse.py'):
+            self.assertIn('-p '+name+' -q', log)
+        self.assertNotIn(' arm ', log)
+
 
 if __name__ == "__main__":
     unittest.main()

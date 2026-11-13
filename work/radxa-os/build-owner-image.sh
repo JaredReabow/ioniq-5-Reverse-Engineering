@@ -4,7 +4,7 @@ set -euo pipefail
 
 repo=$(git rev-parse --show-toplevel)
 source_image="$repo/work/radxa-os/radxa-zero3_bookworm_kde_b1.output_512.img"
-output_image=${1:-"$repo/work/radxa-os/radxa-zero3-owner-update-v1.1.0.img"}
+output_image=${1:-"$repo/work/radxa-os/radxa-zero3-owner-update-v1.1.1.img"}
 case "$output_image" in
     /*) ;;
     *) output_image="$repo/$output_image" ;;
@@ -20,7 +20,7 @@ expected_source=f530b3081332811d63e8250cad744aa032ea7cfcd127897f43d7ae2e6eabb892
 expected_baseline=3ddf02a9af81c8d95d06376e565f1998a646249519a201c3f5808ebc16fdb4ef
 expected_custom=94323aa3d05b4cf2e1a894ca445f4bf8a85f9341c0a879d2cdbbc338304123c6
 expected_plugin=e6013f44e8cb6c37c7b85670b8f2c4093ab1556d4e78997e207340bd62cff28a
-expected_radxa_usb=03c897eb12f7cdb372e3eb0292766f944dd53c16888fe544dd18dd6ac313f284
+expected_radxa_usb=19424901aff57e2c2c8e53a068361884916cedf9ae437dcbab1198e0b1a19ff2
 expected_builder_manifest=d608c49edce0e3f42e3146dff457d8cdbc29e462981c05e44d06a2becdfbf1ff
 
 hash_file() {

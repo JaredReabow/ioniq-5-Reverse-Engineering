@@ -69,8 +69,9 @@ case "$command" in
         ;;
     selftest)
         cd "$base"
-        python3 -m unittest discover -s tests -p 'test_nbdkit_dynamic_media.py' -q
-        exec python3 -m unittest discover -s tests -p 'test_radxa_usb.py' -q
+        for pattern in test_nbdkit_dynamic_media.py test_radxa_usb.py test_radxa_usb_fuse.py; do
+            python3 -m unittest discover -s tests -p "$pattern" -q
+        done
         ;;
     plan)
         radxa_media_kernel_prepare

@@ -132,9 +132,9 @@ class RadxaOwnerImageTests(unittest.TestCase):
     def test_image_version_is_bumped_and_console_printed(self) -> None:
         inner = INNER.read_text(encoding="utf-8")
         outer = BUILDER.read_text(encoding="utf-8")
-        self.assertIn("owner_image_version=1.1.0", inner)
+        self.assertIn("owner_image_version=1.1.1", inner)
         self.assertIn("/etc/issue.d/ioniq-owner.issue", inner)
-        self.assertIn("radxa-zero3-owner-update-v1.1.0.img", outer)
+        self.assertIn("radxa-zero3-owner-update-v1.1.1.img", outer)
 
     def test_recreation_keeps_selected_owner_firmware_and_prebuilt_helper(self) -> None:
         """Recreating media cannot silently restore the superseded v2 firmware."""

@@ -402,3 +402,92 @@ The installed-car SSH and HTTPS access checks now pass. Physical USB-keyboard
 terminal visibility and reconnection after a later cold boot remain untested.
 No further flash, reboot, service restart or network change was needed. The
 Radxa runtime and selected firmware are unchanged.
+
+## 2026-11-13: live hardware inventory of the owner's UK head unit
+
+This section records the actual running head unit after owner-access 4.0.2 was
+installed. It is separate from older Australian model assumptions and recovered
+firmware-only inventories. Commands read existing kernel, sysfs, procfs, bus
+enumeration and selected firmware metadata. No interfaces, radios, drivers,
+services, firmware or vehicle controls were changed. No I2C/SPI transaction
+probe, Wi-Fi scan, association or access-point activation was performed.
+
+### Wi-Fi
+
+One internal PCIe Wi-Fi adapter is detected; no USB Wi-Fi adapter is attached.
+
+| Property | Live observation |
+| --- | --- |
+| Hardware identity | Broadcom chip 4359, revision 5, package 2 |
+| PCI address and ID | 01:00.0, 14e4:43ef; subsystem 14e4:0000 |
+| Bound driver/module | pcieh / bcmdhd; driver 1.363.68 |
+| Firmware | 9.40.112.10, FWID 01-c52317a4; successful firmware startup in kernel log |
+| Firmware files | bcmdhd/rtecdc.bin, nvram.txt and 4359b1.clm_blob |
+| Linux radio/interface | phy0 / wlan0; managed mode; administratively down |
+| Advertised interface modes | managed, AP, IBSS, P2P-client, P2P-GO and P2P-device |
+| Advertised channels now | Only 2.4 GHz in the captured iw list |
+| Regulatory/configuration metadata | Global domain 00; board NVRAM ccode=GB and regrev=0 |
+| RF board metadata | rxchain=3, txchain=3, aa2g=2, aa5g=3 |
+| rfkill | Command exists, but /dev/rfkill and /sys/class/rfkill are absent |
+
+The live module's chip identity agrees with the
+[Linux Wireless PCI ID table](https://wireless.docs.kernel.org/en/latest/en/users/drivers/brcm80211.html),
+which maps 14e4:43ef to BCM4359. The head unit uses its existing vendor bcmdhd
+stack; this comparison does not recommend replacing that driver.
+
+AP/client/P2P are advertised capabilities, not completed functional tests. The
+5g fields in the board file do not establish functioning 5 GHz in this build;
+the current driver snapshot advertises no 5 GHz channels. A down interface and
+missing rfkill interface do not establish a hardware RF block. The OEM ConnMan
+and supplicant-manager services remain running and were not altered.
+
+### Main hardware and registered subsystems
+
+| Area | Identification and evidence | Boundary |
+| --- | --- | --- |
+| CPU | Intel Atom A3930 at 1.30 GHz; two cores/two logical processors | Live cpuinfo |
+| RAM | 4 GiB-class configuration; Linux MemTotal 3922484 KiB, about 3.74 GiB | Firmware reserves part of installed memory |
+| eMMC | S0J59X; 127305515008 bytes, about 127.3 GB; manufacture date 04/2021; manufacturer ID 0x13 | Model/ID read directly; no vendor inferred from ID |
+| Storage layout | mmcblk0p1 through p17, two 33030144-byte hardware boot areas, 4194304-byte RPMB area | No disk read/write test performed |
+| Graphics | Intel PCI 8086:5a85; i915; card0/renderD128 | Shared graphics, no dedicated VRAM amount inferred |
+| Display | HDMI-A-1 connected/enabled, 1920x720 variants; LCD initialization reports LGD | Kernel-internal connector naming does not imply an external HDMI socket |
+| Touch | SiW SW17700, product LA123WF7; I2C 3-0029; siw_touch_input | Successful touch-controller initialization in kernel log |
+| Audio | Intel 8086:5a98; snd_soc_skl with broxton-lgeavn machine | Nine ALSA PCM endpoints registered; MICOM reports BOSE_new external-amp configuration |
+| Camera/video processing | Intel IPU4 8086:5a88; ADV7282 CVBS and MAX9288 variants | ADV7282 stream start/stop observed in retained kernel history; other registered paths not independently tested |
+| USB Ethernet | Realtek 0bda:8152, product USB 10/100 LAN, r8152, ownerusb0 | Active owner link; this is the attached adapter |
+| USB hub | Terminus 1a40:0101, four-port USB 2.0 hub | Enumerated at 480 Mbit/s bus speed |
+| Cellular modem | Qualcomm 05c6:90a1; product descriptor MDM9628-MTP; lgivi_usbser and VaultQMIUSB/lgivi_qmi | Eight logical rmnet_usb interfaces registered and down; no modem command issued |
+| Bluetooth | Active vbtd-51 on ttyS0; selected BCM4349B1_002.002.014.0197.0487.hcd | No Linux HCI class exposed; patch selection is not a direct chip-revision query |
+| GPS | Bound lge_gps_driver; ttyGPS links to ttyS3 | Exact receiver silicon not exposed by these reads |
+| Vehicle/MCU interface | spi1.0 bound to micom_if; active MICOM manager | No bus transaction sent |
+| Rear communication | FM8802 at I2C 4-0060, bound to fm8802/rear_comm | Do not reinterpret the FM8802 name as an FM tuner |
+| CAN interface registrations | can0, can1 and can2; all down/stopped, clock 0 | Logical registrations do not prove direct operational CAN hardware |
+| USB controllers | Intel 8086:5aa8 xHCI and 8086:5aaa DWC3; USB 2.0 and 3.0 root hubs | Does not establish which external sockets expose each role/speed |
+| Other I/O | Intel LPSS I2C/UART/SPI, GPIO, DMA, PWM; spidev nodes, eMMC SDHCI, SATA AHCI controller | Controller presence is not proof of an attached peripheral/disk |
+| Temperature/cooling | coretemp, x86_pkg_temp and bound lge-fan platform driver | No fan or power setting changed |
+| Management/security | Intel MEI devices; unbound MSFT0101 ACPI device and TPM2 table | No usable TPM or security state is inferred |
+
+Other I2C registrations include ser/des/des_new, TW9912, MAX20037 variants and
+ADV7481 ACPI entries. Several have no bound device driver in this snapshot;
+they are retained as firmware/kernel registrations, not confirmed responsive
+physical chips. The power button is also exposed as a Linux input device.
+
+The complete sysfs bus-name/driver capture contains 270 entries across buses.
+These include multiple functions, interfaces and logical children of the same
+device and must not be described as 270 separate physical components. Similarly,
+the 45 video nodes are IPU4 pipeline/test/meta endpoints, not 45 cameras.
+
+### Capture retention and remaining identity limits
+
+Private raw command outputs are retained locally in
+`work/headunit-hardware-20261113/` (directory 0700, files 0600). They include
+PCI, USB/tree/descriptors, memory/storage/MMC, all network links, Wi-Fi
+capabilities/module/RF metadata, loaded modules, kernel log, input, audio,
+DRM/media/thermal, I2C/SPI/platform properties, device-node names and the complete
+sysfs bus/driver listing. Serial numbers and MAC addresses are omitted from this
+committed summary. CPU model/core data also appears in the live SSH transcript.
+
+The exact OEM board/module part number, GPS silicon, external amplifier part
+number and Bluetooth silicon response were not exposed by these reads. No
+claim is made that every declared peripheral is physically fitted, powered or
+operational. Wi-Fi association/AP/5 GHz tests were outside this inventory.

@@ -3,6 +3,12 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.76.0 - isolated developer observer completes; offscreen baseline and modified application both crash
+
+Moving the developer-state probe from console/getty ttyS0 to dedicated file-backed ttyS3 produced complete baseline/modified/restart traces. Twenty-second windows showed liveness but not target initialization; a precommitted 60-second follow-up recorded SIGSEGV/139 for all three, including the unchanged control. The observer completed at 275.51 host seconds without timeout. No developer-mode activation or persistence is established.
+
+The logs end at window-show setup. Static code calls and dereferences the native platform interface before setEngType, suggesting an offscreen compatibility issue, but no crash PC was captured. Stop further offscreen activation boots rather than patch around native setup. Traces and hashes are retained in `evidence/dev-mode-vm-2026-11-13/`; detailed limitations are in `docs/engineering-mode/persistent-dev-mode-vm-test.md`. No hardware changes or update-verification modifications.
+
 ## 5.75.0 - developer-mode initialization patch prepared; VM activation unresolved
 
 Verified the exact EU 260128 AppEngineerMode initializer and made a separate VM-only copy with one changed byte (`0x73726e`: `01` to `00`), leaving the control application and update-verification components untouched. The change alters the initializer's immediate, not a fixed RAM flag address.

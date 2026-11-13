@@ -1,0 +1,15 @@
+{
+  "init": "/init-dev-probe.sh",
+  "userspace": false,
+  "root_mounted": true,
+  "command_exit_code": null,
+  "serial_completion_marker": "DEV_MODE_PROBE_COMPLETE",
+  "serial_completion_seen": true,
+  "compatibility_patch": false,
+  "micom_serial": false,
+  "micom_serial_bytes": 0,
+  "timeout": false,
+  "error": null,
+  "qemu_returncode": 0,
+  "elapsed_seconds": 147.28
+}

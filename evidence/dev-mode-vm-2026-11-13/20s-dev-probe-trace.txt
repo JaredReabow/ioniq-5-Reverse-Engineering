@@ -1,0 +1,787 @@
++ sleep 60
++ printf '\nDEV_PROBE_BEGIN\n'
+
+DEV_PROBE_BEGIN
++ cat /proc/uptime
+64.44 24.04
++ export LD_LIBRARY_PATH=/app/lib:/usr/lib:/navi/navi/Lib
++ LD_LIBRARY_PATH=/app/lib:/usr/lib:/navi/navi/Lib
++ export QT_QPA_PLATFORM=offscreen
++ QT_QPA_PLATFORM=offscreen
++ export QT_PLUGIN_PATH=/usr/lib/qt5/plugins
++ QT_PLUGIN_PATH=/usr/lib/qt5/plugins
++ export QML2_IMPORT_PATH=/usr/lib/qt5/qml:/app/share
++ QML2_IMPORT_PATH=/usr/lib/qt5/qml:/app/share
++ export XDG_RUNTIME_DIR=/run/user/root
++ XDG_RUNTIME_DIR=/run/user/root
++ '[' -r /tmp/session_appmgr ']'
+++ cat /tmp/session_appmgr
++ export DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-qnMSBmDmyl,guid=f97e33ec7f25a9b4602c8b8a6af713aa
++ DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-qnMSBmDmyl,guid=f97e33ec7f25a9b4602c8b8a6af713aa
++ mkdir -p /tmp/dev-probe
++ for item in baseline modified modified_restart
++ case "$item" in
++ exe=/app/bin/AppEngineerMode
++ printf '\nDEV_PROBE_LAUNCH %s %s\n' baseline /app/bin/AppEngineerMode
+
+DEV_PROBE_LAUNCH baseline /app/bin/AppEngineerMode
++ sha256sum /app/bin/AppEngineerMode
+6ecfb7d1716d2b4f56d66477681127175c0ede9204e99f59980323d07d1adc7d  /app/bin/AppEngineerMode
++ /app/bin/AppEngineerMode
++ pid=1992
++ sleep 20
++ kill -0 1992
++ echo 'DEV_PROBE_ALIVE baseline pid=1992'
+DEV_PROBE_ALIVE baseline pid=1992
++ kill 1992
++ sleep 2
+/dev-mode-probe.sh: line 20:  1992 Terminated              "$exe" > /tmp/dev-probe/"$item".log 2>&1
++ kill -0 1992
++ wait 1992
++ echo 'DEV_PROBE_STATUS baseline rc=143'
+DEV_PROBE_STATUS baseline rc=143
++ echo 'DEV_PROBE_LOG_BEGIN baseline'
+DEV_PROBE_LOG_BEGIN baseline
++ cat /tmp/dev-probe/baseline.log
+[13-11-26 13:43:04:343][DBG]  QDBusConnection: system D-Bus connection created before QCoreApplication. Application may misbehave.
+[13-11-26 13:43:04:401][ERR]   [ int main(int, char**) ][ 130 ] AppEngineerMode Execute !! : main ->  230125
+[13-11-26 13:43:04:402][ERR]   [ int main(int, char**) ][ 139 ] [BB_MODE_MASS_PRODUCT]
+[13-11-26 13:43:04:409][ERR]   [ void PersistentManager::init(QString, int) ][ 65 ] SETTINGS FIND APP SUCCESS 
+[13-11-26 13:43:04:454][ERR]   [ void PersistentManager::init(QString, int) ][ 70 ] SETTINGS INIT DATABASE SUCCESS
+[13-11-26 13:43:04:456][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 158 ] GET VAL SUCCESS
+[13-11-26 13:43:04:456][ERR]   [ void checkArg(int, char**) ][ 21 ] ========================================
+[13-11-26 13:43:04:458][ERR]   [ void checkArg(int, char**) ][ 22 ]  : argc =  1
+[13-11-26 13:43:04:458][ERR]   [ void checkArg(int, char**) ][ 23 ]  : **argv =  0x7fffef5f7e18
+[13-11-26 13:43:04:459][ERR]   [ void checkArg(int, char**) ][ 24 ]  : PERSISTENT Value : APP_ENG_MODE_EMMCTEST_WRITE_ENABLE =  0  // emmc test on/off condition 
+[13-11-26 13:43:04:459][ERR]   [ void checkArg(int, char**) ][ 25 ] ========================================
+[13-11-26 13:43:04:465][ERR]   [ void checkArg(int, char**) ][ 28 ] : argv[ 0 ] =  /app/bin/AppEngineerMode
+[13-11-26 13:43:04:465][ERR]   [ void checkArg(int, char**) ][ 30 ] ========================================
+[13-11-26 13:43:04:465][ERR]   [ bool checkExecutMode(int, char**, QString) ][ 45 ]  : strFindTargetString =  "-emmt:"  / bTargetStringExist =  false
+[13-11-26 13:43:04:465][ERR]   [ bool checkExecutMode(int, char**, QString) ][ 45 ]  : strFindTargetString =  "-dc_block:"  / bTargetStringExist =  false
+[13-11-26 13:43:04:466][ERR]   [ bool checkExecutMode(int, char**, QString) ][ 45 ]  : strFindTargetString =  "-ecpt:"  / bTargetStringExist =  false
+[13-11-26 13:43:04:466][ERR]   [ int main(int, char**) ][ 161 ] AppEngineerMode App Start !!
+[13-11-26 13:43:04:888][ERR]   [ AppEngineerModeEngine::AppEngineerModeEngine(QGuiApplication*, QtQuick2ApplicationViewer*, QtQuick2ApplicationViewer*, QObject*) ][ 97 ] m_Arg_Run_Path :  "/app/bin/AppEngineerMode"
+[13-11-26 13:43:04:888][ERR]   [ AppEngineerModeEngine::AppEngineerModeEngine(QGuiApplication*, QtQuick2ApplicationViewer*, QtQuick2ApplicationViewer*, QObject*) ][ 107 ] enter AppEngineerModeEngine()
+[13-11-26 13:43:04:890][ERR]   [ void AppEngineerModeEngine::loadSetting() ][ 285 ] ------------------------------>>>> LCD TYPE LOAD FALSE
+[13-11-26 13:43:04:893][ERR]   [ void AppEngineerModeEngine::loadSetting() ][ 293 ] m_bIsBg_eMMCTestEnable =  false
+[13-11-26 13:43:04:894][ERR]   [ void AppEngineerModeEngine::loadVariantData() ][ 349 ] m_currentBuyer:  0
+[13-11-26 13:43:04:895][ERR]   [ void AppEngineerModeEngine::readShareMemorySupportChinese() ][ 378 ] m_shareMemorySupportChinese size: 1 ,  0x7f632d574000
+[13-11-26 13:43:04:895][ERR]   [ void AppEngineerModeEngine::readShareMemorySupportChinese() ][ 382 ] m_isSupportChinese:  false
+[13-11-26 13:43:05:197][ERR]   [ AppEngineerModeEngine::AppEngineerModeEngine(QGuiApplication*, QtQuick2ApplicationViewer*, QtQuick2ApplicationViewer*, QObject*) ][ 132 ] enter initFont()
+[13-11-26 13:43:05:744][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "APP_SETTING_GENERAL_SETTING_LANGUAGE"  ------------> Read fail count :  0
+[13-11-26 13:43:05:854][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "APP_SETTING_GENERAL_SETTING_LANGUAGE"  ------------> Read fail count :  1
+[13-11-26 13:43:06:061][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "APP_SETTING_GENERAL_SETTING_LANGUAGE"  ------------> Read fail count :  2
+[13-11-26 13:43:06:290][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 162 ] GET VAL FAILED
+[13-11-26 13:43:06:291][ERR]   [ void AppEngineerModeEngine::initLanguage() ][ 1013 ] PERSISTENT_MANAGER : nLoadLanguageType =  0
+[13-11-26 13:43:06:292][ERR]   [ void AppEngineerModeEngine::switchLanguage(int) ][ 1056 ] !! return : m_nCurrentLangType =   0  / nLangType =  0  (  "en_GB"  )
+[13-11-26 13:43:06:292][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 398 ]
+[13-11-26 13:43:06:292][ERR]   [ void PersistentManager::init(QString, int) ][ 65 ] SETTINGS FIND APP SUCCESS 
+[13-11-26 13:43:06:293][ERR]   [ void PersistentManager::init(QString, int) ][ 70 ] SETTINGS INIT DATABASE SUCCESS
+[13-11-26 13:43:06:295][ERR]   [ void SystemInfoEng::setInitHongkongValue() ][ 2111 ] get checking run hongkong file :  false
+[13-11-26 13:43:06:295][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 413 ] new SystemInfo
+[13-11-26 13:43:06:306][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 419 ] new ComLgeAvnAppmanagerInfoInterface
+[13-11-26 13:43:06:307][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 425 ] new ComLgeCarMicomCanInterface
+[13-11-26 13:43:06:307][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 431 ] new clock_iface
+[13-11-26 13:43:06:311][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 436 ] clock_iface valid:  false
+[13-11-26 13:43:06:311][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 443 ] new AppUtil
+[13-11-26 13:43:06:313][ERR]   [ SysInfoEng::SysInfoEng() ][ 67 ] carif NOT NULL
+[13-11-26 13:43:06:320][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 445 ] new SysInfo
+[13-11-26 13:43:06:320][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 200 ] SHM_MICOM_BOOT_INFO_SIZE =  35
+[13-11-26 13:43:06:321][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 0 ] =  0
+[13-11-26 13:43:06:321][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 1 ] =  0
+[13-11-26 13:43:06:321][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 2 ] =  8
+[13-11-26 13:43:06:321][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 3 ] =  38
+[13-11-26 13:43:06:322][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 4 ] =  5
+[13-11-26 13:43:06:322][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 5 ] =  0
+[13-11-26 13:43:06:322][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 6 ] =  0
+[13-11-26 13:43:06:322][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 7 ] =  5
+[13-11-26 13:43:06:322][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 8 ] =  16
+[13-11-26 13:43:06:322][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 9 ] =  2
+[13-11-26 13:43:06:322][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 10 ] =  0
+[13-11-26 13:43:06:323][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 11 ] =  0
+[13-11-26 13:43:06:323][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 12 ] =  3
+[13-11-26 13:43:06:323][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 13 ] =  200
+[13-11-26 13:43:06:323][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 14 ] =  20
+[13-11-26 13:43:06:323][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 15 ] =  0
+[13-11-26 13:43:06:323][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 16 ] =  0
+[13-11-26 13:43:06:323][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 17 ] =  0
+[13-11-26 13:43:06:324][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 18 ] =  0
+[13-11-26 13:43:06:324][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 19 ] =  0
+[13-11-26 13:43:06:324][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 20 ] =  0
+[13-11-26 13:43:06:324][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 21 ] =  0
+[13-11-26 13:43:06:324][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 22 ] =  0
+[13-11-26 13:43:06:324][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 23 ] =  0
+[13-11-26 13:43:06:324][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 24 ] =  0
+[13-11-26 13:43:06:324][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 25 ] =  0
+[13-11-26 13:43:06:324][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 26 ] =  0
+[13-11-26 13:43:06:324][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 27 ] =  0
+[13-11-26 13:43:06:325][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 28 ] =  2
+[13-11-26 13:43:06:325][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 29 ] =  0
+[13-11-26 13:43:06:325][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 30 ] =  1
+[13-11-26 13:43:06:325][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 31 ] =  0
+[13-11-26 13:43:06:325][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 32 ] =  0
+[13-11-26 13:43:06:326][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 33 ] =  0
+[13-11-26 13:43:06:326][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 34 ] =  0
+[13-11-26 13:43:06:326][ERR]   [ void SysInfoEng::Set_Initial_Data() ][ 2014 ] Set Initial Data
+[13-11-26 13:43:06:326][ERR]   [ void SysInfoEng::Set_Initial_Data() ][ 2016 ] Set Initial Data START ---->
+[13-11-26 13:43:06:326][ERR]   [ void SysInfoEng::Set_Initial_Data() ][ 2034 ] Set Initial Data - system_data FINISHED ---->
+[13-11-26 13:43:06:327][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1751 ]  eng_variant_data_insert START ::
+[13-11-26 13:43:06:327][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1768 ] ---- get SysOption DATA Size ::  16
+[13-11-26 13:43:06:327][DBG]  QString::arg: Argument missing: "" , 38
+[13-11-26 13:43:06:327][DBG]  QString::arg: Argument missing: "" , 5
+[13-11-26 13:43:06:328][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:06:328][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:06:328][DBG]  QString::arg: Argument missing: "" , 5
+[13-11-26 13:43:06:328][DBG]  QString::arg: Argument missing: "" , 16
+[13-11-26 13:43:06:328][DBG]  QString::arg: Argument missing: "" , 2
+[13-11-26 13:43:06:328][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:06:328][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:06:328][DBG]  QString::arg: Argument missing: "" , 3
+[13-11-26 13:43:06:328][DBG]  QString::arg: Argument missing: "" , 8
+[13-11-26 13:43:06:328][DBG]  QString::arg: Argument missing: "" , 1
+[13-11-26 13:43:06:328][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:06:328][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:06:329][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:06:329][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:06:329][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1780 ] sysOpt : strVariant =  ""
+[13-11-26 13:43:06:331][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1790 ] m_nProject_code =  38
+[13-11-26 13:43:06:332][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1793 ] m_nCountry_code =   5
+[13-11-26 13:43:06:332][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1797 ] m_nPlatform_code =  0
+[13-11-26 13:43:06:332][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1802 ] m_nEco_code =  8
+[13-11-26 13:43:06:332][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1807 ] (From AFW):  0 , (From Micom):  5  is not same
+[13-11-26 13:43:06:333][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1826 ] m_nLCD_type =  3
+[13-11-26 13:43:06:333][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1831 ] m_nProduct_No =  0
+[13-11-26 13:43:06:333][ERR]   [ void SysInfoEng::setVariantString(QString) ][ 84638 ]  strVariant =  "DynamicEU"
+[13-11-26 13:43:06:333][ERR]   [ void SysInfoEng::setVariantString(QString) ][ 84639 ]  m_strVariant =  ""
+[13-11-26 13:43:06:334][ERR]   [ void SysInfoEng::setVariantString(QString) ][ 84642 ]  variantStringChanged()
+[13-11-26 13:43:06:334][ERR]   [ void SysInfoEng::setVariantInfo(int) ][ 84629 ]  variant_info =  5  / m_nPlatform_code =  0  / m_nModem_exist =  0  / variantString =  "DynamicEU"
+[13-11-26 13:43:06:335][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1846 ] SEND Variant Changed SIGNAL ----->
+[13-11-26 13:43:06:338][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1894 ] parsing_VariantData()
+[13-11-26 13:43:06:575][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1933 ] navigation variant =  0
+[13-11-26 13:43:06:577][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1945 ] parking bit  false ,  false
+[13-11-26 13:43:06:579][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1984 ] Back Seat Care Mode bit(4) 0
+[13-11-26 13:43:06:579][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1985 ] Back Seat Care Mode bit(5) 0
+[13-11-26 13:43:06:579][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1986 ] Back Seat Care Mode bit(6) 0
+[13-11-26 13:43:06:579][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1994 ] is_in_ex_amp :  0
+[13-11-26 13:43:06:580][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1998 ] variant Passenger View Type :  0
+[13-11-26 13:43:06:585][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 2005 ] variant Mic Type :  0
+[13-11-26 13:43:06:587][ERR]   [ void SysInfoEng::setBootCarSignalData(const QByteArray&) ][ 85202 ] Car IF SYS Boot value
+[13-11-26 13:43:06:588][ERR]   [ void SysInfoEng::setBootCarSignalData(const QByteArray&) ][ 85210 ] 13. auto_light =  0  / parking =  1  / ill =  0  / alt =  0  / ign =  1  / acc =  1
+[13-11-26 13:43:06:588][ERR]   [ void SysInfoEng::setBootCarSignalData(const QByteArray&) ][ 85227 ] 14. autohold =  0  / rear_gear =  0  / p_position =  1  / low_fuel =  0  / parking brake =  1  / Door Open =  0  / ign3 =  0  / auto light =  0
+[13-11-26 13:43:06:591][ERR]   [ void SysInfoEng::setBootCarSignalData(const QByteArray&) ][ 85247 ] 4. cluster =  0  / svm =  0  / datc =  0  / amp =  0
+[13-11-26 13:43:06:592][ERR]   [ void SysInfoEng::setDealerModeCameraTypeValue(char) ][ 86100 ]  camera shift val :  0  || bit :  5
+[13-11-26 13:43:06:592][ERR]   [ void SysInfoEng::setEmmcTypeValue(char) ][ 86652 ]  Emmc shift val :  0  || bit :  0
+[13-11-26 13:43:06:592][ERR]   [ void SysInfoEng::setCanGenType(char) ][ 86692 ]  CAN Gen shift val :  0  || bit :  0
+[13-11-26 13:43:06:593][ERR]   [ void SysInfoEng::setCanGenType(char) ][ 86697 ] Set Gen Type :  0
+[13-11-26 13:43:06:595][ERR]   [ void SysInfoEng::setKeyboardType(char) ][ 86713 ]  Keyboard Type shift val :  0  || bit :  0
+[13-11-26 13:43:06:595][ERR]   [ void SysInfoEng::setRearModeVariantValue(char) ][ 87339 ]  rear Mode shift val :  0  || bit :  0
+[13-11-26 13:43:06:595][ERR]   [ void SysInfoEng::engreqSysVersion() ][ 164 ] engreqSysVersion
+[13-11-26 13:43:06:600][ERR]   [ void ListModel_HW_ECNR::setBackSeatCareModeSupport(bool) ][ 382 ] bIsSupport =  false
+[13-11-26 13:43:06:604][ERR]   [ void ListModel_HW_ECNR::initListModel() ][ 91 ] !!! return : m_bIsBackSeatCareModeSupport =  false
+[13-11-26 13:43:06:605][ERR]   [ void SysInfoEng::reqWipidInfo() ][ 86208 ] reqWipidInfo
+[13-11-26 13:43:06:607][ERR]   [ void SysInfoEng::reqTracedateInfo() ][ 86268 ] reqTracedateInfo
+[13-11-26 13:43:06:612][ERR]   [ void SysInfoEng::getModemInfo() ][ 86590 ] getModemInfo :  0
+[13-11-26 13:43:06:612][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 450 ] new CPUDegree
+[13-11-26 13:43:06:613][ERR]   [ CanClientInterface::CanClientInterface(QObject*) ][ 20 ] [QCAN] CanClientInterface constructor entry.
+[13-11-26 13:43:06:613][ERR]   [ bool CanClientInterface::Init() ][ 41 ] [QCAN] CanClientInterface::Init entry
+[13-11-26 13:43:06:614][ERR]   [ CanClient::CanClient() ][ 33 ] [CanClient] constructor entry
+[13-11-26 13:43:06:614][ERR]   [ bool CanClient::Init() ][ 50 ] [CanClient] Init entry
+[13-11-26 13:43:06:616][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 134 ] [CanClient] Initialize_raw_socket entry
+[13-11-26 13:43:06:616][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 160 ] "[CanClient] 1st Socket buffer size [212992]"
+[13-11-26 13:43:06:617][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 179 ] [CanClient] Initialize_raw_socket : Get Can Type -  0
+[13-11-26 13:43:06:617][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 197 ] [CanClient] Initialize_raw_socket : canIdCount -  12
+[13-11-26 13:43:06:629][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 232 ] [CanClient] Initialize_raw_socket, Error in RAW socket ioctl() call!!!
+[13-11-26 13:43:06:630][ERR]   [ bool CanClientInterface::Init() ][ 54 ] [QCAN] CanClientInterface::Init, Memory allocation failed !!!
+[13-11-26 13:43:06:635][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 454 ] new CanDataBind
+[13-11-26 13:43:06:636][ERR]   [ void CanDataBindEng::Init() ][ 106 ] Enter Init CAN DB =====.
+[13-11-26 13:43:07:073][ERR]   [ void CanDataBindEng::CQCANControllerTest_Can_Ver_data_send() ][ 2867 ] ======> inside CQCANControllerTest_Can_data_send - start
+[13-11-26 13:43:07:074][ERR]   [ void CanDataBindEng::sendCanSignalByMMUS(QByteArray&) ][ 2898 ] ======> [MMUS] Can_data_send - start
+[13-11-26 13:43:07:077][ERR]   [ void CanDataBindEng::sendCanSignalByMMUS(QByteArray&) ][ 2901 ] ======> [MMUS] Can_data_send - end
+[13-11-26 13:43:07:077][ERR]   [ void CanDataBindEng::CQCANControllerTest_Can_Ver_data_send() ][ 2886 ] ======> inside CQCANControllerTest_Can_data_send - end
+[13-11-26 13:43:07:078][ERR]   [ void CanDataBindEng::Init() ][ 286 ] End Init CAN DB=====
+[13-11-26 13:43:07:078][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 463 ] new FTMTestHandler
+[13-11-26 13:43:07:078][ERR]   [ void IperfHandler::init() ][ 52 ] init >>> 
+
+[13-11-26 13:43:07:079][ERR]   [ void IperfHandler::init() ][ 53 ] x =  iperf3 
+
+[13-11-26 13:43:07:079][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/bin/iperf3 
+
+[13-11-26 13:43:07:079][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/local/bin/iperf3 
+
+[13-11-26 13:43:07:079][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /bin/iperf3 
+
+[13-11-26 13:43:07:080][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/local/sbin/iperf3 
+
+[13-11-26 13:43:07:080][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/sbin/iperf3 
+
+[13-11-26 13:43:07:080][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /sbin/iperf3 
+
+[13-11-26 13:43:07:080][ERR]   [ void IperfHandler::init() ][ 52 ] init >>> 
+
+[13-11-26 13:43:07:080][ERR]   [ void IperfHandler::init() ][ 53 ] x =  iperf 
+
+[13-11-26 13:43:07:080][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/bin/iperf 
+
+[13-11-26 13:43:07:081][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 90 ] /usr/bin/iperf is found!
+[13-11-26 13:43:07:081][ERR]   [ void IperfHandler::init() ][ 65 ] Initialized OK...
+[13-11-26 13:43:07:082][ERR]   [ void IperfHandler::init() ][ 66 ] /usr/bin/iperf -s -i 10 -w 4M 
+
+[13-11-26 13:43:07:082][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 467 ] new IperfHandler
+[13-11-26 13:43:07:086][ERR]   [ void WiFiDebugScreenHandler::registerSignal() ][ 24 ]
+[13-11-26 13:43:07:089][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 470 ] new WiFiDebugScreenHandler
+[13-11-26 13:43:07:089][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 473 ] new OTASettingHandler
+[13-11-26 13:43:07:091][ERR]   [ void SystemProxyMethodEng::requestRecvMicomPartInfo() ][ 1059 ] request Part Info
+[13-11-26 13:43:07:093][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 480 ] new SystemProxyMethod
+[13-11-26 13:43:07:093][ERR]   [ QString SystemProxyMethodEng::OnCheckSecurityKey3Res() ][ 2663 ] OnCheckSecurityKey3Res start
+[13-11-26 13:43:08:340][ERR]   [ QByteArray SystemProxyMethodEng::ReqSecurity(QString) ][ 2709 ]  replyDat Count :  1
+[13-11-26 13:43:08:341][ERR]   [ QString SystemProxyMethodEng::OnCheckSecurityKey3Res() ][ 2674 ] retdata != 1
+[13-11-26 13:43:08:341][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 489 ] Secure Key is :  "un-stored"
+[13-11-26 13:43:08:341][ERR]   [ QString SystemProxyMethodEng::OnCheckSecurityKey3Res() ][ 2663 ] OnCheckSecurityKey3Res start
+[13-11-26 13:43:08:658][ERR]   [ QByteArray SystemProxyMethodEng::ReqSecurity(QString) ][ 2709 ]  replyDat Count :  1
+[13-11-26 13:43:08:658][ERR]   [ QString SystemProxyMethodEng::OnCheckSecurityKey3Res() ][ 2674 ] retdata != 1
+[13-11-26 13:43:08:658][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 489 ] Secure Key is :  "un-stored"
+[13-11-26 13:43:08:658][ERR]   [ QString SystemProxyMethodEng::OnCheckSecurityKey3Res() ][ 2663 ] OnCheckSecurityKey3Res start
+[13-11-26 13:43:11:028][ERR]   [ QByteArray SystemProxyMethodEng::ReqSecurity(QString) ][ 2709 ]  replyDat Count :  1
+[13-11-26 13:43:11:028][ERR]   [ QString SystemProxyMethodEng::OnCheckSecurityKey3Res() ][ 2674 ] retdata != 1
+[13-11-26 13:43:11:028][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 489 ] Secure Key is :  "un-stored"
+[13-11-26 13:43:11:029][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 515 ] new NaviServiceMethod
+[13-11-26 13:43:11:049][ERR]   [ void ListModel_DTCResult::init_DTC_Items() ][ 300 ] m_listData.size() =  50
+[13-11-26 13:43:11:050][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 518 ] new DiagProxyMethod
+[13-11-26 13:43:11:050][ERR]   [ UpgradeXMLParser::UpgradeXMLParser(QObject*) ][ 77 ] crypto_test : crypto_Interface new 
+[13-11-26 13:43:13:204][ERR]   [ void UpgradeXMLParser::checkrunCrypto() ][ 890 ] crypto_check => Cannot read isKeyExist. "Did not receive a reply. Possible causes include: the remote application did not send a reply, the message bus security policy blocked the reply, the reply timeout expired, or the network connection was broken."
+[13-11-26 13:43:13:205][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 521 ] new UpgradeXMLParser
+[13-11-26 13:43:13:205][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 158 ] GET VAL SUCCESS
+[13-11-26 13:43:13:206][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "VCRM_LOG_LIST_STATISTICAL"  ------------> Read fail count :  0
+[13-11-26 13:43:13:409][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "VCRM_LOG_LIST_STATISTICAL"  ------------> Read fail count :  1
+[13-11-26 13:43:13:625][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "VCRM_LOG_LIST_STATISTICAL"  ------------> Read fail count :  2
+[13-11-26 13:43:13:725][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 162 ] GET VAL FAILED
+[13-11-26 13:43:13:726][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 158 ] GET VAL SUCCESS
+[13-11-26 13:43:13:726][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 158 ] GET VAL SUCCESS
+[13-11-26 13:43:13:727][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 158 ] GET VAL SUCCESS
+[13-11-26 13:43:13:727][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 158 ] GET VAL SUCCESS
+[13-11-26 13:43:13:727][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 524 ] new LogEngSetting
+[13-11-26 13:43:13:728][ERR]   [ void EngAutoTestRefactor::requestUserModeInfo() ][ 171 ] requestUserModeInfo - Micom
+[13-11-26 13:43:13:730][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 527 ] new EngAutoTest
+[13-11-26 13:43:13:731][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 536 ] new EngIPConfigRefactor
+[13-11-26 13:43:13:736][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 539 ] new MPModeSet
+[13-11-26 13:43:13:736][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 548 ] new DealerMode
+[13-11-26 13:43:13:737][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 551 ] new DealerModeAACP
+[13-11-26 13:43:13:741][ERR]   [ void gpsInfo::reqMountAngleFileInfo() ][ 250 ] reqMountAngleFileInfo
+[13-11-26 13:43:13:743][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 554 ] new gpsInfo
+[13-11-26 13:43:13:752][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 557 ] new DeviceInfo
+[13-11-26 13:43:13:763][ERR]   [ void CNaviVersionInformerEng::loadNaviInfoEng() ][ 30 ] [Navi Info] Unable to attach to 'Navi Shared Memory'!!
+[13-11-26 13:43:13:789][ERR]   [ void SystemInfoEng::Initial_reqVerInfo() ][ 163 ] can't' open file /rw_data/AppUpgrade.txt
+[13-11-26 13:43:13:791][DBG]  QObject::connect: No such slot UpgradeXMLParser::refreshAmpUpdated(int,int,int)
+[13-11-26 13:43:13:792][DBG]  Read Current Car Type( 38 ) from Shared memory
+[13-11-26 13:43:13:793][DBG]  Read Current buyer( 0 ) from Shared memory
+[13-11-26 13:43:19:752][ERR]   [ void AppEngineerModeEngine::qmlLog(QString, QString) ][ 3066 ] [QML] :  "[main.qml]:  main.qml : Component.onCompleted "
+[13-11-26 13:43:19:757][DBG]  Read Current Car Type( 38 ) from Shared memory
+[13-11-26 13:43:19:757][DBG]  Read Current buyer( 0 ) from Shared memory
+[13-11-26 13:43:19:872][ERR]   [ void AppEngineerModeEngine::qmlLog(QString, QString) ][ 3066 ] [QML] :  "[main.qml]:  main.qml : Component.onCompleted "
+[13-11-26 13:43:19:873][ERR]   [ void AppEngineerModeEngine::initAppication() ][ 720 ] =====================================
++ echo 'DEV_PROBE_LOG_END baseline'
+DEV_PROBE_LOG_END baseline
++ for item in baseline modified modified_restart
++ case "$item" in
++ exe=/app/bin/AppEngineerMode-dev-probe
++ printf '\nDEV_PROBE_LAUNCH %s %s\n' modified /app/bin/AppEngineerMode-dev-probe
+
+DEV_PROBE_LAUNCH modified /app/bin/AppEngineerMode-dev-probe
++ sha256sum /app/bin/AppEngineerMode-dev-probe
+73d282a73a8de1804041ff9658c286f19d9830710ed15c6f9dcd5e42badca0e9  /app/bin/AppEngineerMode-dev-probe
++ pid=2221
++ sleep 20
++ /app/bin/AppEngineerMode-dev-probe
++ kill -0 2221
++ echo 'DEV_PROBE_ALIVE modified pid=2221'
+DEV_PROBE_ALIVE modified pid=2221
++ kill 2221
++ sleep 2
+/dev-mode-probe.sh: line 20:  2221 Terminated              "$exe" > /tmp/dev-probe/"$item".log 2>&1
++ kill -0 2221
++ wait 2221
++ echo 'DEV_PROBE_STATUS modified rc=143'
+DEV_PROBE_STATUS modified rc=143
++ echo 'DEV_PROBE_LOG_BEGIN modified'
+DEV_PROBE_LOG_BEGIN modified
++ cat /tmp/dev-probe/modified.log
+[13-11-26 13:43:34:937][DBG]  QDBusConnection: system D-Bus connection created before QCoreApplication. Application may misbehave.
+[13-11-26 13:43:34:993][ERR]   [ int main(int, char**) ][ 130 ] AppEngineerMode Execute !! : main ->  230125
+[13-11-26 13:43:34:994][ERR]   [ int main(int, char**) ][ 139 ] [BB_MODE_MASS_PRODUCT]
+[13-11-26 13:43:34:994][ERR]   [ void PersistentManager::init(QString, int) ][ 65 ] SETTINGS FIND APP SUCCESS 
+[13-11-26 13:43:35:007][ERR]   [ void PersistentManager::init(QString, int) ][ 70 ] SETTINGS INIT DATABASE SUCCESS
+[13-11-26 13:43:35:010][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 158 ] GET VAL SUCCESS
+[13-11-26 13:43:35:010][ERR]   [ void checkArg(int, char**) ][ 21 ] ========================================
+[13-11-26 13:43:35:010][ERR]   [ void checkArg(int, char**) ][ 22 ]  : argc =  1
+[13-11-26 13:43:35:011][ERR]   [ void checkArg(int, char**) ][ 23 ]  : **argv =  0x7ffe5be98528
+[13-11-26 13:43:35:011][ERR]   [ void checkArg(int, char**) ][ 24 ]  : PERSISTENT Value : APP_ENG_MODE_EMMCTEST_WRITE_ENABLE =  0  // emmc test on/off condition 
+[13-11-26 13:43:35:011][ERR]   [ void checkArg(int, char**) ][ 25 ] ========================================
+[13-11-26 13:43:35:011][ERR]   [ void checkArg(int, char**) ][ 28 ] : argv[ 0 ] =  /app/bin/AppEngineerMode-dev-probe
+[13-11-26 13:43:35:011][ERR]   [ void checkArg(int, char**) ][ 30 ] ========================================
+[13-11-26 13:43:35:012][ERR]   [ bool checkExecutMode(int, char**, QString) ][ 45 ]  : strFindTargetString =  "-emmt:"  / bTargetStringExist =  false
+[13-11-26 13:43:35:012][ERR]   [ bool checkExecutMode(int, char**, QString) ][ 45 ]  : strFindTargetString =  "-dc_block:"  / bTargetStringExist =  false
+[13-11-26 13:43:35:012][ERR]   [ bool checkExecutMode(int, char**, QString) ][ 45 ]  : strFindTargetString =  "-ecpt:"  / bTargetStringExist =  false
+[13-11-26 13:43:35:012][ERR]   [ int main(int, char**) ][ 161 ] AppEngineerMode App Start !!
+[13-11-26 13:43:35:356][ERR]   [ AppEngineerModeEngine::AppEngineerModeEngine(QGuiApplication*, QtQuick2ApplicationViewer*, QtQuick2ApplicationViewer*, QObject*) ][ 97 ] m_Arg_Run_Path :  "/app/bin/AppEngineerMode-dev-probe"
+[13-11-26 13:43:35:360][ERR]   [ AppEngineerModeEngine::AppEngineerModeEngine(QGuiApplication*, QtQuick2ApplicationViewer*, QtQuick2ApplicationViewer*, QObject*) ][ 107 ] enter AppEngineerModeEngine()
+[13-11-26 13:43:35:363][ERR]   [ void AppEngineerModeEngine::loadSetting() ][ 285 ] ------------------------------>>>> LCD TYPE LOAD FALSE
+[13-11-26 13:43:35:365][ERR]   [ void AppEngineerModeEngine::loadSetting() ][ 293 ] m_bIsBg_eMMCTestEnable =  false
+[13-11-26 13:43:35:367][ERR]   [ void AppEngineerModeEngine::loadVariantData() ][ 349 ] m_currentBuyer:  0
+[13-11-26 13:43:35:370][ERR]   [ void AppEngineerModeEngine::readShareMemorySupportChinese() ][ 378 ] m_shareMemorySupportChinese size: 1 ,  0x7f27873f4000
+[13-11-26 13:43:35:374][ERR]   [ void AppEngineerModeEngine::readShareMemorySupportChinese() ][ 382 ] m_isSupportChinese:  false
+[13-11-26 13:43:35:433][ERR]   [ AppEngineerModeEngine::AppEngineerModeEngine(QGuiApplication*, QtQuick2ApplicationViewer*, QtQuick2ApplicationViewer*, QObject*) ][ 132 ] enter initFont()
+[13-11-26 13:43:35:438][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "APP_SETTING_GENERAL_SETTING_LANGUAGE"  ------------> Read fail count :  0
+[13-11-26 13:43:35:539][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "APP_SETTING_GENERAL_SETTING_LANGUAGE"  ------------> Read fail count :  1
+[13-11-26 13:43:35:656][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "APP_SETTING_GENERAL_SETTING_LANGUAGE"  ------------> Read fail count :  2
+[13-11-26 13:43:35:777][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 162 ] GET VAL FAILED
+[13-11-26 13:43:35:778][ERR]   [ void AppEngineerModeEngine::initLanguage() ][ 1013 ] PERSISTENT_MANAGER : nLoadLanguageType =  0
+[13-11-26 13:43:35:778][ERR]   [ void AppEngineerModeEngine::switchLanguage(int) ][ 1056 ] !! return : m_nCurrentLangType =   0  / nLangType =  0  (  "en_GB"  )
+[13-11-26 13:43:35:779][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 398 ]
+[13-11-26 13:43:35:779][ERR]   [ void PersistentManager::init(QString, int) ][ 65 ] SETTINGS FIND APP SUCCESS 
+[13-11-26 13:43:35:779][ERR]   [ void PersistentManager::init(QString, int) ][ 70 ] SETTINGS INIT DATABASE SUCCESS
+[13-11-26 13:43:35:780][ERR]   [ void SystemInfoEng::setInitHongkongValue() ][ 2111 ] get checking run hongkong file :  false
+[13-11-26 13:43:35:782][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 413 ] new SystemInfo
+[13-11-26 13:43:35:786][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 419 ] new ComLgeAvnAppmanagerInfoInterface
+[13-11-26 13:43:35:787][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 425 ] new ComLgeCarMicomCanInterface
+[13-11-26 13:43:35:787][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 431 ] new clock_iface
+[13-11-26 13:43:35:850][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 436 ] clock_iface valid:  false
+[13-11-26 13:43:35:850][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 443 ] new AppUtil
+[13-11-26 13:43:35:867][ERR]   [ SysInfoEng::SysInfoEng() ][ 67 ] carif NOT NULL
+[13-11-26 13:43:35:872][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 445 ] new SysInfo
+[13-11-26 13:43:35:873][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 200 ] SHM_MICOM_BOOT_INFO_SIZE =  35
+[13-11-26 13:43:35:874][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 0 ] =  0
+[13-11-26 13:43:35:875][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 1 ] =  0
+[13-11-26 13:43:35:875][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 2 ] =  8
+[13-11-26 13:43:35:875][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 3 ] =  38
+[13-11-26 13:43:35:876][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 4 ] =  5
+[13-11-26 13:43:35:877][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 5 ] =  0
+[13-11-26 13:43:35:878][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 6 ] =  0
+[13-11-26 13:43:35:878][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 7 ] =  5
+[13-11-26 13:43:35:878][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 8 ] =  16
+[13-11-26 13:43:35:879][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 9 ] =  2
+[13-11-26 13:43:35:879][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 10 ] =  0
+[13-11-26 13:43:35:879][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 11 ] =  0
+[13-11-26 13:43:35:880][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 12 ] =  3
+[13-11-26 13:43:35:880][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 13 ] =  200
+[13-11-26 13:43:35:881][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 14 ] =  20
+[13-11-26 13:43:35:881][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 15 ] =  0
+[13-11-26 13:43:35:881][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 16 ] =  0
+[13-11-26 13:43:35:882][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 17 ] =  0
+[13-11-26 13:43:35:882][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 18 ] =  0
+[13-11-26 13:43:35:882][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 19 ] =  0
+[13-11-26 13:43:35:883][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 20 ] =  0
+[13-11-26 13:43:35:883][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 21 ] =  0
+[13-11-26 13:43:35:884][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 22 ] =  0
+[13-11-26 13:43:35:884][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 23 ] =  0
+[13-11-26 13:43:35:900][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 24 ] =  0
+[13-11-26 13:43:35:900][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 25 ] =  0
+[13-11-26 13:43:35:901][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 26 ] =  0
+[13-11-26 13:43:35:901][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 27 ] =  0
+[13-11-26 13:43:35:902][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 28 ] =  2
+[13-11-26 13:43:35:902][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 29 ] =  0
+[13-11-26 13:43:35:903][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 30 ] =  1
+[13-11-26 13:43:35:903][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 31 ] =  0
+[13-11-26 13:43:35:903][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 32 ] =  0
+[13-11-26 13:43:35:904][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 33 ] =  0
+[13-11-26 13:43:35:904][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 34 ] =  0
+[13-11-26 13:43:35:904][ERR]   [ void SysInfoEng::Set_Initial_Data() ][ 2014 ] Set Initial Data
+[13-11-26 13:43:35:905][ERR]   [ void SysInfoEng::Set_Initial_Data() ][ 2016 ] Set Initial Data START ---->
+[13-11-26 13:43:35:905][ERR]   [ void SysInfoEng::Set_Initial_Data() ][ 2034 ] Set Initial Data - system_data FINISHED ---->
+[13-11-26 13:43:35:906][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1751 ]  eng_variant_data_insert START ::
+[13-11-26 13:43:35:906][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1768 ] ---- get SysOption DATA Size ::  16
+[13-11-26 13:43:35:907][DBG]  QString::arg: Argument missing: "" , 38
+[13-11-26 13:43:35:907][DBG]  QString::arg: Argument missing: "" , 5
+[13-11-26 13:43:35:907][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:35:907][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:35:907][DBG]  QString::arg: Argument missing: "" , 5
+[13-11-26 13:43:35:907][DBG]  QString::arg: Argument missing: "" , 16
+[13-11-26 13:43:35:907][DBG]  QString::arg: Argument missing: "" , 2
+[13-11-26 13:43:35:907][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:35:908][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:35:908][DBG]  QString::arg: Argument missing: "" , 3
+[13-11-26 13:43:35:908][DBG]  QString::arg: Argument missing: "" , 8
+[13-11-26 13:43:35:908][DBG]  QString::arg: Argument missing: "" , 1
+[13-11-26 13:43:35:908][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:35:908][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:35:908][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:35:908][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:35:908][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1780 ] sysOpt : strVariant =  ""
+[13-11-26 13:43:35:909][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1790 ] m_nProject_code =  38
+[13-11-26 13:43:35:909][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1793 ] m_nCountry_code =   5
+[13-11-26 13:43:35:910][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1797 ] m_nPlatform_code =  0
+[13-11-26 13:43:35:911][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1802 ] m_nEco_code =  8
+[13-11-26 13:43:35:912][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1807 ] (From AFW):  0 , (From Micom):  5  is not same
+[13-11-26 13:43:35:912][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1826 ] m_nLCD_type =  3
+[13-11-26 13:43:35:913][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1831 ] m_nProduct_No =  0
+[13-11-26 13:43:35:913][ERR]   [ void SysInfoEng::setVariantString(QString) ][ 84638 ]  strVariant =  "DynamicEU"
+[13-11-26 13:43:35:914][ERR]   [ void SysInfoEng::setVariantString(QString) ][ 84639 ]  m_strVariant =  ""
+[13-11-26 13:43:35:914][ERR]   [ void SysInfoEng::setVariantString(QString) ][ 84642 ]  variantStringChanged()
+[13-11-26 13:43:35:915][ERR]   [ void SysInfoEng::setVariantInfo(int) ][ 84629 ]  variant_info =  5  / m_nPlatform_code =  0  / m_nModem_exist =  0  / variantString =  "DynamicEU"
+[13-11-26 13:43:35:915][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1846 ] SEND Variant Changed SIGNAL ----->
+[13-11-26 13:43:35:936][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1894 ] parsing_VariantData()
+[13-11-26 13:43:35:940][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1933 ] navigation variant =  0
+[13-11-26 13:43:35:942][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1945 ] parking bit  false ,  false
+[13-11-26 13:43:35:945][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1984 ] Back Seat Care Mode bit(4) 0
+[13-11-26 13:43:35:946][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1985 ] Back Seat Care Mode bit(5) 0
+[13-11-26 13:43:35:946][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1986 ] Back Seat Care Mode bit(6) 0
+[13-11-26 13:43:35:947][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1994 ] is_in_ex_amp :  0
+[13-11-26 13:43:35:947][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1998 ] variant Passenger View Type :  0
+[13-11-26 13:43:35:948][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 2005 ] variant Mic Type :  0
+[13-11-26 13:43:35:949][ERR]   [ void SysInfoEng::setBootCarSignalData(const QByteArray&) ][ 85202 ] Car IF SYS Boot value
+[13-11-26 13:43:35:950][ERR]   [ void SysInfoEng::setBootCarSignalData(const QByteArray&) ][ 85210 ] 13. auto_light =  0  / parking =  1  / ill =  0  / alt =  0  / ign =  1  / acc =  1
+[13-11-26 13:43:35:950][ERR]   [ void SysInfoEng::setBootCarSignalData(const QByteArray&) ][ 85227 ] 14. autohold =  0  / rear_gear =  0  / p_position =  1  / low_fuel =  0  / parking brake =  1  / Door Open =  0  / ign3 =  0  / auto light =  0
+[13-11-26 13:43:35:966][ERR]   [ void SysInfoEng::setBootCarSignalData(const QByteArray&) ][ 85247 ] 4. cluster =  0  / svm =  0  / datc =  0  / amp =  0
+[13-11-26 13:43:35:967][ERR]   [ void SysInfoEng::setDealerModeCameraTypeValue(char) ][ 86100 ]  camera shift val :  0  || bit :  5
+[13-11-26 13:43:35:967][ERR]   [ void SysInfoEng::setEmmcTypeValue(char) ][ 86652 ]  Emmc shift val :  0  || bit :  0
+[13-11-26 13:43:35:968][ERR]   [ void SysInfoEng::setCanGenType(char) ][ 86692 ]  CAN Gen shift val :  0  || bit :  0
+[13-11-26 13:43:35:969][ERR]   [ void SysInfoEng::setCanGenType(char) ][ 86697 ] Set Gen Type :  0
+[13-11-26 13:43:35:969][ERR]   [ void SysInfoEng::setKeyboardType(char) ][ 86713 ]  Keyboard Type shift val :  0  || bit :  0
+[13-11-26 13:43:35:970][ERR]   [ void SysInfoEng::setRearModeVariantValue(char) ][ 87339 ]  rear Mode shift val :  0  || bit :  0
+[13-11-26 13:43:35:970][ERR]   [ void SysInfoEng::engreqSysVersion() ][ 164 ] engreqSysVersion
+[13-11-26 13:43:35:972][ERR]   [ void ListModel_HW_ECNR::setBackSeatCareModeSupport(bool) ][ 382 ] bIsSupport =  false
+[13-11-26 13:43:35:973][ERR]   [ void ListModel_HW_ECNR::initListModel() ][ 91 ] !!! return : m_bIsBackSeatCareModeSupport =  false
+[13-11-26 13:43:35:973][ERR]   [ void SysInfoEng::reqWipidInfo() ][ 86208 ] reqWipidInfo
+[13-11-26 13:43:35:974][ERR]   [ void SysInfoEng::reqTracedateInfo() ][ 86268 ] reqTracedateInfo
+[13-11-26 13:43:35:975][ERR]   [ void SysInfoEng::getModemInfo() ][ 86590 ] getModemInfo :  0
+[13-11-26 13:43:35:975][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 450 ] new CPUDegree
+[13-11-26 13:43:35:977][ERR]   [ CanClientInterface::CanClientInterface(QObject*) ][ 20 ] [QCAN] CanClientInterface constructor entry.
+[13-11-26 13:43:35:978][ERR]   [ bool CanClientInterface::Init() ][ 41 ] [QCAN] CanClientInterface::Init entry
+[13-11-26 13:43:35:978][ERR]   [ CanClient::CanClient() ][ 33 ] [CanClient] constructor entry
+[13-11-26 13:43:35:979][ERR]   [ bool CanClient::Init() ][ 50 ] [CanClient] Init entry
+[13-11-26 13:43:35:979][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 134 ] [CanClient] Initialize_raw_socket entry
+[13-11-26 13:43:35:980][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 160 ] "[CanClient] 1st Socket buffer size [212992]"
+[13-11-26 13:43:35:981][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 179 ] [CanClient] Initialize_raw_socket : Get Can Type -  0
+[13-11-26 13:43:35:981][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 197 ] [CanClient] Initialize_raw_socket : canIdCount -  12
+[13-11-26 13:43:42:949][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 232 ] [CanClient] Initialize_raw_socket, Error in RAW socket ioctl() call!!!
+[13-11-26 13:43:42:950][ERR]   [ bool CanClientInterface::Init() ][ 54 ] [QCAN] CanClientInterface::Init, Memory allocation failed !!!
+[13-11-26 13:43:42:951][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 454 ] new CanDataBind
+[13-11-26 13:43:42:952][ERR]   [ void CanDataBindEng::Init() ][ 106 ] Enter Init CAN DB =====.
+[13-11-26 13:43:43:224][ERR]   [ void CanDataBindEng::CQCANControllerTest_Can_Ver_data_send() ][ 2867 ] ======> inside CQCANControllerTest_Can_data_send - start
+[13-11-26 13:43:43:225][ERR]   [ void CanDataBindEng::sendCanSignalByMMUS(QByteArray&) ][ 2898 ] ======> [MMUS] Can_data_send - start
+[13-11-26 13:43:43:230][ERR]   [ void CanDataBindEng::sendCanSignalByMMUS(QByteArray&) ][ 2901 ] ======> [MMUS] Can_data_send - end
+[13-11-26 13:43:43:230][ERR]   [ void CanDataBindEng::CQCANControllerTest_Can_Ver_data_send() ][ 2886 ] ======> inside CQCANControllerTest_Can_data_send - end
+[13-11-26 13:43:43:231][ERR]   [ void CanDataBindEng::Init() ][ 286 ] End Init CAN DB=====
+[13-11-26 13:43:43:231][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 463 ] new FTMTestHandler
+[13-11-26 13:43:43:232][ERR]   [ void IperfHandler::init() ][ 52 ] init >>> 
+
+[13-11-26 13:43:43:232][ERR]   [ void IperfHandler::init() ][ 53 ] x =  iperf3 
+
+[13-11-26 13:43:43:233][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/bin/iperf3 
+
+[13-11-26 13:43:43:233][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/local/bin/iperf3 
+
+[13-11-26 13:43:43:234][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /bin/iperf3 
+
+[13-11-26 13:43:43:256][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/local/sbin/iperf3 
+
+[13-11-26 13:43:43:257][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/sbin/iperf3 
+
+[13-11-26 13:43:43:271][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /sbin/iperf3 
+
+[13-11-26 13:43:43:271][ERR]   [ void IperfHandler::init() ][ 52 ] init >>> 
+
+[13-11-26 13:43:43:272][ERR]   [ void IperfHandler::init() ][ 53 ] x =  iperf 
+
+[13-11-26 13:43:43:272][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/bin/iperf 
+
+[13-11-26 13:43:43:273][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 90 ] /usr/bin/iperf is found!
+[13-11-26 13:43:43:274][ERR]   [ void IperfHandler::init() ][ 65 ] Initialized OK...
+[13-11-26 13:43:43:274][ERR]   [ void IperfHandler::init() ][ 66 ] /usr/bin/iperf -s -i 10 -w 4M 
+
+[13-11-26 13:43:43:275][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 467 ] new IperfHandler
+[13-11-26 13:43:43:279][ERR]   [ void WiFiDebugScreenHandler::registerSignal() ][ 24 ]
+[13-11-26 13:43:43:284][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 470 ] new WiFiDebugScreenHandler
+[13-11-26 13:43:43:285][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 473 ] new OTASettingHandler
+[13-11-26 13:43:43:287][ERR]   [ void SystemProxyMethodEng::requestRecvMicomPartInfo() ][ 1059 ] request Part Info
+[13-11-26 13:43:43:289][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 480 ] new SystemProxyMethod
+[13-11-26 13:43:43:290][ERR]   [ QString SystemProxyMethodEng::OnCheckSecurityKey3Res() ][ 2663 ] OnCheckSecurityKey3Res start
++ echo 'DEV_PROBE_LOG_END modified'
+DEV_PROBE_LOG_END modified
++ for item in baseline modified modified_restart
++ case "$item" in
++ exe=/app/bin/AppEngineerMode-dev-probe
++ printf '\nDEV_PROBE_LAUNCH %s %s\n' modified_restart /app/bin/AppEngineerMode-dev-probe
+
+DEV_PROBE_LAUNCH modified_restart /app/bin/AppEngineerMode-dev-probe
++ sha256sum /app/bin/AppEngineerMode-dev-probe
+73d282a73a8de1804041ff9658c286f19d9830710ed15c6f9dcd5e42badca0e9  /app/bin/AppEngineerMode-dev-probe
++ pid=2332
++ sleep 20
++ /app/bin/AppEngineerMode-dev-probe
++ kill -0 2332
++ echo 'DEV_PROBE_ALIVE modified_restart pid=2332'
+DEV_PROBE_ALIVE modified_restart pid=2332
++ kill 2332
++ sleep 2
++ kill -0 2332
++ echo 'DEV_PROBE_FORCE_STOP modified_restart pid=2332'
+DEV_PROBE_FORCE_STOP modified_restart pid=2332
++ kill -KILL 2332
++ wait 2332
+/dev-mode-probe.sh: line 39:  2332 Killed                  "$exe" > /tmp/dev-probe/"$item".log 2>&1
++ echo 'DEV_PROBE_STATUS modified_restart rc=137'
+DEV_PROBE_STATUS modified_restart rc=137
++ echo 'DEV_PROBE_LOG_BEGIN modified_restart'
+DEV_PROBE_LOG_BEGIN modified_restart
++ cat /tmp/dev-probe/modified_restart.log
+[13-11-26 13:43:54:375][DBG]  QDBusConnection: system D-Bus connection created before QCoreApplication. Application may misbehave.
+[13-11-26 13:43:54:388][ERR]   [ int main(int, char**) ][ 130 ] AppEngineerMode Execute !! : main ->  230125
+[13-11-26 13:43:54:389][ERR]   [ int main(int, char**) ][ 139 ] [BB_MODE_MASS_PRODUCT]
+[13-11-26 13:43:54:389][ERR]   [ void PersistentManager::init(QString, int) ][ 65 ] SETTINGS FIND APP SUCCESS 
+[13-11-26 13:43:54:400][ERR]   [ void PersistentManager::init(QString, int) ][ 70 ] SETTINGS INIT DATABASE SUCCESS
+[13-11-26 13:43:54:441][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 158 ] GET VAL SUCCESS
+[13-11-26 13:43:54:442][ERR]   [ void checkArg(int, char**) ][ 21 ] ========================================
+[13-11-26 13:43:54:442][ERR]   [ void checkArg(int, char**) ][ 22 ]  : argc =  1
+[13-11-26 13:43:54:442][ERR]   [ void checkArg(int, char**) ][ 23 ]  : **argv =  0x7ffedd7573e8
+[13-11-26 13:43:54:443][ERR]   [ void checkArg(int, char**) ][ 24 ]  : PERSISTENT Value : APP_ENG_MODE_EMMCTEST_WRITE_ENABLE =  0  // emmc test on/off condition 
+[13-11-26 13:43:54:443][ERR]   [ void checkArg(int, char**) ][ 25 ] ========================================
+[13-11-26 13:43:54:444][ERR]   [ void checkArg(int, char**) ][ 28 ] : argv[ 0 ] =  /app/bin/AppEngineerMode-dev-probe
+[13-11-26 13:43:54:444][ERR]   [ void checkArg(int, char**) ][ 30 ] ========================================
+[13-11-26 13:43:54:444][ERR]   [ bool checkExecutMode(int, char**, QString) ][ 45 ]  : strFindTargetString =  "-emmt:"  / bTargetStringExist =  false
+[13-11-26 13:43:54:455][ERR]   [ bool checkExecutMode(int, char**, QString) ][ 45 ]  : strFindTargetString =  "-dc_block:"  / bTargetStringExist =  false
+[13-11-26 13:43:54:455][ERR]   [ bool checkExecutMode(int, char**, QString) ][ 45 ]  : strFindTargetString =  "-ecpt:"  / bTargetStringExist =  false
+[13-11-26 13:43:54:455][ERR]   [ int main(int, char**) ][ 161 ] AppEngineerMode App Start !!
+[13-11-26 13:43:54:676][ERR]   [ AppEngineerModeEngine::AppEngineerModeEngine(QGuiApplication*, QtQuick2ApplicationViewer*, QtQuick2ApplicationViewer*, QObject*) ][ 97 ] m_Arg_Run_Path :  "/app/bin/AppEngineerMode-dev-probe"
+[13-11-26 13:43:54:678][ERR]   [ AppEngineerModeEngine::AppEngineerModeEngine(QGuiApplication*, QtQuick2ApplicationViewer*, QtQuick2ApplicationViewer*, QObject*) ][ 107 ] enter AppEngineerModeEngine()
+[13-11-26 13:43:54:679][ERR]   [ void AppEngineerModeEngine::loadSetting() ][ 285 ] ------------------------------>>>> LCD TYPE LOAD FALSE
+[13-11-26 13:43:54:679][ERR]   [ void AppEngineerModeEngine::loadSetting() ][ 293 ] m_bIsBg_eMMCTestEnable =  false
+[13-11-26 13:43:54:680][ERR]   [ void AppEngineerModeEngine::loadVariantData() ][ 349 ] m_currentBuyer:  0
+[13-11-26 13:43:54:681][ERR]   [ void AppEngineerModeEngine::readShareMemorySupportChinese() ][ 378 ] m_shareMemorySupportChinese size: 1 ,  0x7fee1336c000
+[13-11-26 13:43:54:681][ERR]   [ void AppEngineerModeEngine::readShareMemorySupportChinese() ][ 382 ] m_isSupportChinese:  false
+[13-11-26 13:43:54:721][ERR]   [ AppEngineerModeEngine::AppEngineerModeEngine(QGuiApplication*, QtQuick2ApplicationViewer*, QtQuick2ApplicationViewer*, QObject*) ][ 132 ] enter initFont()
+[13-11-26 13:43:54:726][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "APP_SETTING_GENERAL_SETTING_LANGUAGE"  ------------> Read fail count :  0
+[13-11-26 13:43:54:827][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "APP_SETTING_GENERAL_SETTING_LANGUAGE"  ------------> Read fail count :  1
+[13-11-26 13:43:54:941][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "APP_SETTING_GENERAL_SETTING_LANGUAGE"  ------------> Read fail count :  2
+[13-11-26 13:43:55:043][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 162 ] GET VAL FAILED
+[13-11-26 13:43:55:044][ERR]   [ void AppEngineerModeEngine::initLanguage() ][ 1013 ] PERSISTENT_MANAGER : nLoadLanguageType =  0
+[13-11-26 13:43:55:044][ERR]   [ void AppEngineerModeEngine::switchLanguage(int) ][ 1056 ] !! return : m_nCurrentLangType =   0  / nLangType =  0  (  "en_GB"  )
+[13-11-26 13:43:55:044][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 398 ]
+[13-11-26 13:43:55:044][ERR]   [ void PersistentManager::init(QString, int) ][ 65 ] SETTINGS FIND APP SUCCESS 
+[13-11-26 13:43:55:044][ERR]   [ void PersistentManager::init(QString, int) ][ 70 ] SETTINGS INIT DATABASE SUCCESS
+[13-11-26 13:43:55:046][ERR]   [ void SystemInfoEng::setInitHongkongValue() ][ 2111 ] get checking run hongkong file :  false
+[13-11-26 13:43:55:046][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 413 ] new SystemInfo
+[13-11-26 13:43:55:050][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 419 ] new ComLgeAvnAppmanagerInfoInterface
+[13-11-26 13:43:55:051][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 425 ] new ComLgeCarMicomCanInterface
+[13-11-26 13:43:55:051][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 431 ] new clock_iface
+[13-11-26 13:43:55:055][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 436 ] clock_iface valid:  false
+[13-11-26 13:43:55:055][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 443 ] new AppUtil
+[13-11-26 13:43:55:058][ERR]   [ SysInfoEng::SysInfoEng() ][ 67 ] carif NOT NULL
+[13-11-26 13:43:55:066][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 445 ] new SysInfo
+[13-11-26 13:43:55:069][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 200 ] SHM_MICOM_BOOT_INFO_SIZE =  35
+[13-11-26 13:43:55:070][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 0 ] =  0
+[13-11-26 13:43:55:070][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 1 ] =  0
+[13-11-26 13:43:55:071][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 2 ] =  8
+[13-11-26 13:43:55:071][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 3 ] =  38
+[13-11-26 13:43:55:071][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 4 ] =  5
+[13-11-26 13:43:55:072][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 5 ] =  0
+[13-11-26 13:43:55:072][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 6 ] =  0
+[13-11-26 13:43:55:072][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 7 ] =  5
+[13-11-26 13:43:55:073][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 8 ] =  16
+[13-11-26 13:43:55:073][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 9 ] =  2
+[13-11-26 13:43:55:075][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 10 ] =  0
+[13-11-26 13:43:55:077][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 11 ] =  0
+[13-11-26 13:43:55:077][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 12 ] =  3
+[13-11-26 13:43:55:079][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 13 ] =  200
+[13-11-26 13:43:55:079][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 14 ] =  20
+[13-11-26 13:43:55:080][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 15 ] =  0
+[13-11-26 13:43:55:080][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 16 ] =  0
+[13-11-26 13:43:55:080][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 17 ] =  0
+[13-11-26 13:43:55:081][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 18 ] =  0
+[13-11-26 13:43:55:081][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 19 ] =  0
+[13-11-26 13:43:55:081][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 20 ] =  0
+[13-11-26 13:43:55:082][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 21 ] =  0
+[13-11-26 13:43:55:082][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 22 ] =  0
+[13-11-26 13:43:55:084][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 23 ] =  0
+[13-11-26 13:43:55:084][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 24 ] =  0
+[13-11-26 13:43:55:084][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 25 ] =  0
+[13-11-26 13:43:55:085][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 26 ] =  0
+[13-11-26 13:43:55:085][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 27 ] =  0
+[13-11-26 13:43:55:088][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 28 ] =  2
+[13-11-26 13:43:55:089][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 29 ] =  0
+[13-11-26 13:43:55:089][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 30 ] =  1
+[13-11-26 13:43:55:089][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 31 ] =  0
+[13-11-26 13:43:55:089][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 32 ] =  0
+[13-11-26 13:43:55:090][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 33 ] =  0
+[13-11-26 13:43:55:091][ERR]   [ void SysInfoEng::loadSharedMemBootinfo() ][ 208 ] shardMemoryAskBootInfo[ 34 ] =  0
+[13-11-26 13:43:55:092][ERR]   [ void SysInfoEng::Set_Initial_Data() ][ 2014 ] Set Initial Data
+[13-11-26 13:43:55:092][ERR]   [ void SysInfoEng::Set_Initial_Data() ][ 2016 ] Set Initial Data START ---->
+[13-11-26 13:43:55:092][ERR]   [ void SysInfoEng::Set_Initial_Data() ][ 2034 ] Set Initial Data - system_data FINISHED ---->
+[13-11-26 13:43:55:094][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1751 ]  eng_variant_data_insert START ::
+[13-11-26 13:43:55:095][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1768 ] ---- get SysOption DATA Size ::  16
+[13-11-26 13:43:55:095][DBG]  QString::arg: Argument missing: "" , 38
+[13-11-26 13:43:55:095][DBG]  QString::arg: Argument missing: "" , 5
+[13-11-26 13:43:55:095][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:55:095][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:55:095][DBG]  QString::arg: Argument missing: "" , 5
+[13-11-26 13:43:55:095][DBG]  QString::arg: Argument missing: "" , 16
+[13-11-26 13:43:55:095][DBG]  QString::arg: Argument missing: "" , 2
+[13-11-26 13:43:55:096][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:55:097][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:55:097][DBG]  QString::arg: Argument missing: "" , 3
+[13-11-26 13:43:55:097][DBG]  QString::arg: Argument missing: "" , 8
+[13-11-26 13:43:55:100][DBG]  QString::arg: Argument missing: "" , 1
+[13-11-26 13:43:55:100][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:55:100][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:55:100][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:55:100][DBG]  QString::arg: Argument missing: "" , 0
+[13-11-26 13:43:55:100][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1780 ] sysOpt : strVariant =  ""
+[13-11-26 13:43:55:103][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1790 ] m_nProject_code =  38
+[13-11-26 13:43:55:103][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1793 ] m_nCountry_code =   5
+[13-11-26 13:43:55:106][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1797 ] m_nPlatform_code =  0
+[13-11-26 13:43:55:107][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1802 ] m_nEco_code =  8
+[13-11-26 13:43:55:107][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1807 ] (From AFW):  0 , (From Micom):  5  is not same
+[13-11-26 13:43:55:108][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1826 ] m_nLCD_type =  3
+[13-11-26 13:43:55:108][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1831 ] m_nProduct_No =  0
+[13-11-26 13:43:55:109][ERR]   [ void SysInfoEng::setVariantString(QString) ][ 84638 ]  strVariant =  "DynamicEU"
+[13-11-26 13:43:55:109][ERR]   [ void SysInfoEng::setVariantString(QString) ][ 84639 ]  m_strVariant =  ""
+[13-11-26 13:43:55:109][ERR]   [ void SysInfoEng::setVariantString(QString) ][ 84642 ]  variantStringChanged()
+[13-11-26 13:43:55:110][ERR]   [ void SysInfoEng::setVariantInfo(int) ][ 84629 ]  variant_info =  5  / m_nPlatform_code =  0  / m_nModem_exist =  0  / variantString =  "DynamicEU"
+[13-11-26 13:43:55:112][ERR]   [ void SysInfoEng::eng_variant_data_insert() ][ 1846 ] SEND Variant Changed SIGNAL ----->
+[13-11-26 13:43:55:117][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1894 ] parsing_VariantData()
+[13-11-26 13:43:55:130][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1933 ] navigation variant =  0
+[13-11-26 13:43:55:134][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1945 ] parking bit  false ,  false
+[13-11-26 13:43:55:156][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1984 ] Back Seat Care Mode bit(4) 0
+[13-11-26 13:43:55:156][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1985 ] Back Seat Care Mode bit(5) 0
+[13-11-26 13:43:55:157][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1986 ] Back Seat Care Mode bit(6) 0
+[13-11-26 13:43:55:157][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1994 ] is_in_ex_amp :  0
+[13-11-26 13:43:55:158][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 1998 ] variant Passenger View Type :  0
+[13-11-26 13:43:55:159][ERR]   [ bool SysInfoEng::parsing_VariantData() ][ 2005 ] variant Mic Type :  0
+[13-11-26 13:43:55:163][ERR]   [ void SysInfoEng::setBootCarSignalData(const QByteArray&) ][ 85202 ] Car IF SYS Boot value
+[13-11-26 13:43:55:164][ERR]   [ void SysInfoEng::setBootCarSignalData(const QByteArray&) ][ 85210 ] 13. auto_light =  0  / parking =  1  / ill =  0  / alt =  0  / ign =  1  / acc =  1
+[13-11-26 13:43:55:165][ERR]   [ void SysInfoEng::setBootCarSignalData(const QByteArray&) ][ 85227 ] 14. autohold =  0  / rear_gear =  0  / p_position =  1  / low_fuel =  0  / parking brake =  1  / Door Open =  0  / ign3 =  0  / auto light =  0
+[13-11-26 13:43:55:165][ERR]   [ void SysInfoEng::setBootCarSignalData(const QByteArray&) ][ 85247 ] 4. cluster =  0  / svm =  0  / datc =  0  / amp =  0
+[13-11-26 13:43:55:166][ERR]   [ void SysInfoEng::setDealerModeCameraTypeValue(char) ][ 86100 ]  camera shift val :  0  || bit :  5
+[13-11-26 13:43:55:166][ERR]   [ void SysInfoEng::setEmmcTypeValue(char) ][ 86652 ]  Emmc shift val :  0  || bit :  0
+[13-11-26 13:43:55:168][ERR]   [ void SysInfoEng::setCanGenType(char) ][ 86692 ]  CAN Gen shift val :  0  || bit :  0
+[13-11-26 13:43:55:168][ERR]   [ void SysInfoEng::setCanGenType(char) ][ 86697 ] Set Gen Type :  0
+[13-11-26 13:43:55:169][ERR]   [ void SysInfoEng::setKeyboardType(char) ][ 86713 ]  Keyboard Type shift val :  0  || bit :  0
+[13-11-26 13:43:55:169][ERR]   [ void SysInfoEng::setRearModeVariantValue(char) ][ 87339 ]  rear Mode shift val :  0  || bit :  0
+[13-11-26 13:43:55:169][ERR]   [ void SysInfoEng::engreqSysVersion() ][ 164 ] engreqSysVersion
+[13-11-26 13:43:55:172][ERR]   [ void ListModel_HW_ECNR::setBackSeatCareModeSupport(bool) ][ 382 ] bIsSupport =  false
+[13-11-26 13:43:55:173][ERR]   [ void ListModel_HW_ECNR::initListModel() ][ 91 ] !!! return : m_bIsBackSeatCareModeSupport =  false
+[13-11-26 13:43:55:173][ERR]   [ void SysInfoEng::reqWipidInfo() ][ 86208 ] reqWipidInfo
+[13-11-26 13:43:55:173][ERR]   [ void SysInfoEng::reqTracedateInfo() ][ 86268 ] reqTracedateInfo
+[13-11-26 13:43:55:174][ERR]   [ void SysInfoEng::getModemInfo() ][ 86590 ] getModemInfo :  0
+[13-11-26 13:43:55:174][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 450 ] new CPUDegree
+[13-11-26 13:43:55:174][ERR]   [ CanClientInterface::CanClientInterface(QObject*) ][ 20 ] [QCAN] CanClientInterface constructor entry.
+[13-11-26 13:43:55:174][ERR]   [ bool CanClientInterface::Init() ][ 41 ] [QCAN] CanClientInterface::Init entry
+[13-11-26 13:43:55:174][ERR]   [ CanClient::CanClient() ][ 33 ] [CanClient] constructor entry
+[13-11-26 13:43:55:174][ERR]   [ bool CanClient::Init() ][ 50 ] [CanClient] Init entry
+[13-11-26 13:43:55:175][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 134 ] [CanClient] Initialize_raw_socket entry
+[13-11-26 13:43:55:181][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 160 ] "[CanClient] 1st Socket buffer size [212992]"
+[13-11-26 13:43:55:181][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 179 ] [CanClient] Initialize_raw_socket : Get Can Type -  0
+[13-11-26 13:43:55:181][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 197 ] [CanClient] Initialize_raw_socket : canIdCount -  12
+[13-11-26 13:43:55:855][ERR]   [ bool CanClient::Initialize_raw_socket() ][ 232 ] [CanClient] Initialize_raw_socket, Error in RAW socket ioctl() call!!!
+[13-11-26 13:43:55:856][ERR]   [ bool CanClientInterface::Init() ][ 54 ] [QCAN] CanClientInterface::Init, Memory allocation failed !!!
+[13-11-26 13:43:55:856][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 454 ] new CanDataBind
+[13-11-26 13:43:55:857][ERR]   [ void CanDataBindEng::Init() ][ 106 ] Enter Init CAN DB =====.
+[13-11-26 13:43:56:466][ERR]   [ void CanDataBindEng::CQCANControllerTest_Can_Ver_data_send() ][ 2867 ] ======> inside CQCANControllerTest_Can_data_send - start
+[13-11-26 13:43:56:467][ERR]   [ void CanDataBindEng::sendCanSignalByMMUS(QByteArray&) ][ 2898 ] ======> [MMUS] Can_data_send - start
+[13-11-26 13:43:56:468][ERR]   [ void CanDataBindEng::sendCanSignalByMMUS(QByteArray&) ][ 2901 ] ======> [MMUS] Can_data_send - end
+[13-11-26 13:43:56:468][ERR]   [ void CanDataBindEng::CQCANControllerTest_Can_Ver_data_send() ][ 2886 ] ======> inside CQCANControllerTest_Can_data_send - end
+[13-11-26 13:43:56:468][ERR]   [ void CanDataBindEng::Init() ][ 286 ] End Init CAN DB=====
+[13-11-26 13:43:56:468][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 463 ] new FTMTestHandler
+[13-11-26 13:43:56:468][ERR]   [ void IperfHandler::init() ][ 52 ] init >>> 
+
+[13-11-26 13:43:56:469][ERR]   [ void IperfHandler::init() ][ 53 ] x =  iperf3 
+
+[13-11-26 13:43:56:469][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/bin/iperf3 
+
+[13-11-26 13:43:56:469][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/local/bin/iperf3 
+
+[13-11-26 13:43:56:469][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /bin/iperf3 
+
+[13-11-26 13:43:56:469][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/local/sbin/iperf3 
+
+[13-11-26 13:43:56:469][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/sbin/iperf3 
+
+[13-11-26 13:43:56:469][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /sbin/iperf3 
+
+[13-11-26 13:43:56:474][ERR]   [ void IperfHandler::init() ][ 52 ] init >>> 
+
+[13-11-26 13:43:56:474][ERR]   [ void IperfHandler::init() ][ 53 ] x =  iperf 
+
+[13-11-26 13:43:56:474][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 82 ] checkInstalledAndSetLocation =  /usr/bin/iperf 
+
+[13-11-26 13:43:56:475][ERR]   [ bool IperfHandler::checkInstalledAndSetLocation(IperfCmd_t&) ][ 90 ] /usr/bin/iperf is found!
+[13-11-26 13:43:56:475][ERR]   [ void IperfHandler::init() ][ 65 ] Initialized OK...
+[13-11-26 13:43:56:475][ERR]   [ void IperfHandler::init() ][ 66 ] /usr/bin/iperf -s -i 10 -w 4M 
+
+[13-11-26 13:43:56:475][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 467 ] new IperfHandler
+[13-11-26 13:43:56:482][ERR]   [ void WiFiDebugScreenHandler::registerSignal() ][ 24 ]
+[13-11-26 13:43:56:483][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 470 ] new WiFiDebugScreenHandler
+[13-11-26 13:43:56:484][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 473 ] new OTASettingHandler
+[13-11-26 13:43:56:485][ERR]   [ void SystemProxyMethodEng::requestRecvMicomPartInfo() ][ 1059 ] request Part Info
+[13-11-26 13:43:56:485][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 480 ] new SystemProxyMethod
+[13-11-26 13:43:56:485][ERR]   [ QString SystemProxyMethodEng::OnCheckSecurityKey3Res() ][ 2663 ] OnCheckSecurityKey3Res start
+[13-11-26 13:43:59:155][ERR]   [ QByteArray SystemProxyMethodEng::ReqSecurity(QString) ][ 2709 ]  replyDat Count :  1
+[13-11-26 13:43:59:155][ERR]   [ QString SystemProxyMethodEng::OnCheckSecurityKey3Res() ][ 2674 ] retdata != 1
+[13-11-26 13:43:59:156][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 489 ] Secure Key is :  "un-stored"
+[13-11-26 13:43:59:156][ERR]   [ QString SystemProxyMethodEng::OnCheckSecurityKey3Res() ][ 2663 ] OnCheckSecurityKey3Res start
+[13-11-26 13:44:01:094][ERR]   [ QByteArray SystemProxyMethodEng::ReqSecurity(QString) ][ 2709 ]  replyDat Count :  1
+[13-11-26 13:44:01:094][ERR]   [ QString SystemProxyMethodEng::OnCheckSecurityKey3Res() ][ 2674 ] retdata != 1
+[13-11-26 13:44:01:095][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 489 ] Secure Key is :  "un-stored"
+[13-11-26 13:44:01:095][ERR]   [ QString SystemProxyMethodEng::OnCheckSecurityKey3Res() ][ 2663 ] OnCheckSecurityKey3Res start
+[13-11-26 13:44:03:434][ERR]   [ QByteArray SystemProxyMethodEng::ReqSecurity(QString) ][ 2709 ]  replyDat Count :  1
+[13-11-26 13:44:03:435][ERR]   [ QString SystemProxyMethodEng::OnCheckSecurityKey3Res() ][ 2674 ] retdata != 1
+[13-11-26 13:44:03:435][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 489 ] Secure Key is :  "un-stored"
+[13-11-26 13:44:03:435][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 515 ] new NaviServiceMethod
+[13-11-26 13:44:03:443][ERR]   [ void ListModel_DTCResult::init_DTC_Items() ][ 300 ] m_listData.size() =  50
+[13-11-26 13:44:03:443][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 518 ] new DiagProxyMethod
+[13-11-26 13:44:03:466][ERR]   [ UpgradeXMLParser::UpgradeXMLParser(QObject*) ][ 77 ] crypto_test : crypto_Interface new 
+[13-11-26 13:44:05:501][ERR]   [ void UpgradeXMLParser::checkrunCrypto() ][ 890 ] crypto_check => Cannot read isKeyExist. "Did not receive a reply. Possible causes include: the remote application did not send a reply, the message bus security policy blocked the reply, the reply timeout expired, or the network connection was broken."
+[13-11-26 13:44:05:501][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 521 ] new UpgradeXMLParser
+[13-11-26 13:44:05:502][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 158 ] GET VAL SUCCESS
+[13-11-26 13:44:05:504][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "VCRM_LOG_LIST_STATISTICAL"  ------------> Read fail count :  0
+[13-11-26 13:44:05:605][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "VCRM_LOG_LIST_STATISTICAL"  ------------> Read fail count :  1
+[13-11-26 13:44:05:706][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 152 ] key :  "VCRM_LOG_LIST_STATISTICAL"  ------------> Read fail count :  2
+[13-11-26 13:44:05:807][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 162 ] GET VAL FAILED
+[13-11-26 13:44:05:808][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 158 ] GET VAL SUCCESS
+[13-11-26 13:44:05:808][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 158 ] GET VAL SUCCESS
+[13-11-26 13:44:05:808][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 158 ] GET VAL SUCCESS
+[13-11-26 13:44:05:808][ERR]   [ QVariant PersistentManager::value(QString, QVariant) ][ 158 ] GET VAL SUCCESS
+[13-11-26 13:44:05:809][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 524 ] new LogEngSetting
+[13-11-26 13:44:05:809][ERR]   [ void EngAutoTestRefactor::requestUserModeInfo() ][ 171 ] requestUserModeInfo - Micom
+[13-11-26 13:44:05:811][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 527 ] new EngAutoTest
+[13-11-26 13:44:05:812][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 536 ] new EngIPConfigRefactor
+[13-11-26 13:44:05:814][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 539 ] new MPModeSet
+[13-11-26 13:44:05:815][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 548 ] new DealerMode
+[13-11-26 13:44:05:815][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 551 ] new DealerModeAACP
+[13-11-26 13:44:05:823][ERR]   [ void gpsInfo::reqMountAngleFileInfo() ][ 250 ] reqMountAngleFileInfo
+[13-11-26 13:44:05:825][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 554 ] new gpsInfo
+[13-11-26 13:44:05:825][ERR]   [ void AppEngineerModeEngine::initEngine() ][ 557 ] new DeviceInfo
+[13-11-26 13:44:05:829][ERR]   [ void CNaviVersionInformerEng::loadNaviInfoEng() ][ 30 ] [Navi Info] Unable to attach to 'Navi Shared Memory'!!
+[13-11-26 13:44:05:830][ERR]   [ void SystemInfoEng::Initial_reqVerInfo() ][ 163 ] can't' open file /rw_data/AppUpgrade.txt
+[13-11-26 13:44:05:838][DBG]  QObject::connect: No such slot UpgradeXMLParser::refreshAmpUpdated(int,int,int)
+[13-11-26 13:44:05:840][DBG]  Read Current Car Type( 38 ) from Shared memory
+[13-11-26 13:44:05:840][DBG]  Read Current buyer( 0 ) from Shared memory
+[13-11-26 13:44:06:419][ERR]   [ void AppEngineerModeEngine::qmlLog(QString, QString) ][ 3066 ] [QML] :  "[main.qml]:  main.qml : Component.onCompleted "
+[13-11-26 13:44:06:425][DBG]  Read Current Car Type( 38 ) from Shared memory
+[13-11-26 13:44:06:425][DBG]  Read Current buyer( 0 ) from Shared memory
+[13-11-26 13:44:06:671][ERR]   [ void AppEngineerModeEngine::qmlLog(QString, QString) ][ 3066 ] [QML] :  "[main.qml]:  main.qml : Component.onCompleted "
+[13-11-26 13:44:06:671][ERR]   [ void AppEngineerModeEngine::initAppication() ][ 720 ] =====================================
+[13-11-26 13:44:10:550][ERR]   [ void AppEngineerModeEngine::qmlLog(QString, QString) ][ 3066 ] [QML] :  "[main.qml]: screen_Transition() : screenNext = QQmlComponent(0x564f8ebe5610)"
+[13-11-26 13:44:10:554][DBG]   == idAppMain focus: true activeFocus:false
+[13-11-26 13:44:10:555][DBG]   == idAppMain focus: true activeFocus:false
+[13-11-26 13:44:10:574][ERR]   [ void AppEngineerModeEngine::qmlLog(QString, QString) ][ 3066 ] [QML] :  "idAppRoot.onWidthChanged : idAppRoot.width 1920"
+[13-11-26 13:44:10:574][ERR]   [ void AppEngineerModeEngine::qmlLog(QString, QString) ][ 3066 ] [QML] :  "idAppRoot.onWidthChanged : idAppRoot.height 720"
+[13-11-26 13:44:10:579][ERR]   [ void AppEngineerModeEngine::qmlLog(QString, QString) ][ 3066 ] [QML] :  "[ SystemConst.qml ]onNLCD_Resolution_WidthChanged : nLCD_Resolution_Width = 1920"
+[13-11-26 13:44:10:595][ERR]   [ void AppEngineerModeEngine::qmlLog(QString, QString) ][ 3066 ] [QML] :  "[ LoaderEx.qml ]:idRoot.onSourceComponentChanged : !!! sourceComponent == null "
+[13-11-26 13:44:10:783][ERR]   [ void AppEngineerModeEngine::qmlLog(QString, QString) ][ 3066 ] [QML] :  "[ Global.qml ] Component.onCompleted "
+[13-11-26 13:44:10:785][ERR]   [ bool AppEngineerModeEngine::isMPAirConditionerScreen() ][ 4151 ] isMPAirConditionerScreen :  false
+[13-11-26 13:44:10:785][ERR]   [ bool AppEngineerModeEngine::isMpButtonTouchScreen() ][ 4263 ] isMpButtonTouchScreen :  false
+[13-11-26 13:44:10:921][ERR]   [ void AppEngineerModeEngine::qmlLog(QString, QString) ][ 3066 ] [QML] :  "AppMain.qml : Component.onCompleted"
+[13-11-26 13:44:10:922][ERR]   [ int SysInfoEng::variantInfo() ][ 84590 ]  variant_info =  5
+[13-11-26 13:44:10:923][ERR]   [ QString SysInfoEng::getVariantString() ][ 84650 ]  m_strVariant =  "DynamicEU"
+[13-11-26 13:44:10:923][ERR]   [ QString SysInfoEng::getVariantString() ][ 84650 ]  m_strVariant =  "DynamicEU"
+[13-11-26 13:44:10:933][ERR]   [ void AppEngineerModeEngine::qmlLog(QString, QString) ][ 3066 ] [QML] :  "[main.qml]: loader_1.onLoaded "
+[13-11-26 13:44:10:947][DBG]  QFSFileEngine::open: No file name specified
+[13-11-26 13:44:10:948][ERR]   [ void AppEngineerModeEngine::qmlLog(QString, QString) ][ 3066 ] [QML] :  "[main.qml]: screen_Transition() : screenNext = QQmlComponent(0x564f8ebec700)"
+[13-11-26 13:44:10:949][DBG]  <Unknown File>: File not found
+[13-11-26 13:44:10:949][ERR]   [ void AppEngineerModeEngine::initAppication() ][ 736 ] m_view->show() = 1
++ echo 'DEV_PROBE_LOG_END modified_restart'
+DEV_PROBE_LOG_END modified_restart
++ printf '\nDEV_MODE_PROBE_COMPLETE\n'
+
+DEV_MODE_PROBE_COMPLETE
++ printf '\nDEV_MODE_PROBE_COMPLETE\n'

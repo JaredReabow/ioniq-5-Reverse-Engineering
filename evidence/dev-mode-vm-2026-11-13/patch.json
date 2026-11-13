@@ -1,0 +1,13 @@
+{
+  "source_sha256": "6ecfb7d1716d2b4f56d66477681127175c0ede9204e99f59980323d07d1adc7d",
+  "modified_sha256": "73d282a73a8de1804041ff9658c286f19d9830710ed15c6f9dcd5e42badca0e9",
+  "instruction_vaddr": "0x737268",
+  "instruction_file_offset": "0x737268",
+  "changed_bytes": [
+    {
+      "offset": "0x73726e",
+      "old": 1,
+      "new": 0
+    }
+  ]
+}

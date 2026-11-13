@@ -371,3 +371,34 @@ See `work/vm/vendor-userspace-260128/tuxera-exfat-clean-probe-v2-host.log` and
 `work/appfumo-usb-pathname-provenance/usb-automount.full.asm`. These checks improve
 confidence but leave actual car USB/power, boot, authentication and terminal
 visibility unverified. No power cycle or car update was performed.
+
+## 2026-11-13: installed vehicle access confirmed
+
+After moving the Radxa to the car, its cached post-boot plan and explicitly
+requested arm succeeded with runtime 1.3.2. The UDC reached configured state.
+USB telemetry showed original data in pass 1 and replacement data in pass 2;
+the owner then reported the update complete. The USB read observations alone
+do not establish internal flashing or completion.
+
+With the head unit connected to the Mac over USB Ethernet, live checks passed:
+
+| Installed check | Observed result |
+| --- | --- |
+| Mac Ethernet route | Direct route to 10.42.0.1 through en7 |
+| Owner-key SSH | Strict host-pinned batch authentication; id returned uid=0(root) |
+| Password-only SSH | Public-key and keyboard-interactive disabled; id returned uid=0(root) |
+| Installed overlay identity | All 21 file hashes match the retained 4.0.2 manifest |
+| Owner services | Ethernet, authentication and HTTPS units loaded and active |
+| Independent HTTPS login | Retained certificate trust and hostname verification passed; separate password authenticated |
+| HTTPS WebSocket terminal | Read-only id command returned uid=0(root) |
+
+The head unit reports kernel 4.1.27-abl. Component service/binary versions are
+independent of the composite owner-overlay version 4.0.2. Retained credentials
+were read privately; no secrets or session material were printed or committed.
+The temporary SSH password helper was removed, the WebSocket shell exited, and
+test browser sessions were logged out.
+
+The installed-car SSH and HTTPS access checks now pass. Physical USB-keyboard
+terminal visibility and reconnection after a later cold boot remain untested.
+No further flash, reboot, service restart or network change was needed. The
+Radxa runtime and selected firmware are unchanged.

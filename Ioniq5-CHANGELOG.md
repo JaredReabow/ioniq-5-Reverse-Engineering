@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.73.0 - installed head-unit authentication verified
+
+The owner reported the vehicle update complete and connected the head unit to
+the Mac through USB Ethernet. Live key-only SSH and password-only SSH both ran
+`id` as root. The independent HTTPS login passed using the retained certificate
+as the trust anchor, and its WebSocket terminal also ran `id` as root. All 21
+installed owner-overlay file hashes match the retained 4.0.2 manifest.
+
+The Ethernet, authentication and HTTPS services are active. Temporary terminal
+and browser sessions were closed. Physical USB-keyboard terminal visibility
+remains untested. This is an evidence-only checkpoint: firmware 4.0.2 and Radxa
+runtime 1.3.2 are unchanged; no further flash, reboot or service restart occurred.
+
 ## 5.72.0 - additional pre-car readiness checks
 
 Controller/runtime 1.3.2 refreshes the installed self-test bundle with its

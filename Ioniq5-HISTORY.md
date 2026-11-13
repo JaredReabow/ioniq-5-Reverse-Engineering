@@ -7431,3 +7431,35 @@ This entry adds the measurement that turns the preceding two entries from "unatt
   accepted the packaging changes and Astra accepted the Mac access configuration.
   The vehicle payload and data-serving behavior are unchanged; no reboot,
   shutdown, media arming or vehicle update was performed during these checks.
+
+## 2026-11-13: vehicle update and installed owner-access verification
+
+- After the earlier readiness checks, the owner explicitly requested a clean
+  Radxa shutdown for moving it to the car. The SD was synced and systemd accepted
+  poweroff. On the next boot, owner SSH and the cached preparation plan worked
+  without rebuilding. The owner then explicitly requested arming; runtime 1.3.2
+  reported healthy direct-I/O FUSE backing and the UDC reached configured state.
+- Live USB telemetry first showed original data in read pass 1, then replacement
+  data in read pass 2. The controller, backend and USB backing remained healthy.
+  USB telemetry did not establish the head unit's internal write or completion.
+- The owner subsequently reported the car update complete and connected its
+  USB-Ethernet adapter to the Mac. The Mac has a direct route to 10.42.0.1 through
+  en7. Strict host-pinned, batch-mode owner-key SSH ran id and uname successfully:
+  uid=0(root), gid=0(root), kernel 4.1.27-abl.
+- A separate password-only SSH check explicitly disabled public-key and
+  keyboard-interactive authentication. The retained password was supplied through
+  a temporary private SSH_ASKPASS helper without printing it. id returned root;
+  the helper was removed automatically.
+- All 21 installed owner-overlay file SHA-256 values match the retained 4.0.2
+  manifest. Ethernet, authentication and HTTPS services are loaded and active.
+  Their component versions differ from the composite overlay version by design.
+- HTTPS at 10.42.0.1:8443 passed hostname/certificate verification using the
+  retained certificate as the trust anchor. Its independent password established
+  an authenticated session. The authenticated WebSocket terminal ran id and
+  returned uid=0(root). Temporary shell and browser sessions were closed and
+  logged out. No password, private key, session cookie or ticket was printed.
+- This closes the installed-car SSH and HTTPS authentication boundary. Physical
+  USB-keyboard terminal visibility and a later cold-boot reconnection remain
+  untested. No further flash, reboot, service restart or network configuration
+  change was performed during these access checks. Firmware 4.0.2 and Radxa
+  runtime 1.3.2 remain unchanged.

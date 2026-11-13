@@ -7463,3 +7463,43 @@ This entry adds the measurement that turns the preceding two entries from "unatt
   untested. No further flash, reboot, service restart or network configuration
   change was performed during these access checks. Firmware 4.0.2 and Radxa
   runtime 1.3.2 remain unchanged.
+
+## 2026-11-13: read-only hardware inventory on the installed head unit
+
+- Enumerated live PCI, USB, network, I2C, SPI, platform, MMC, input, DRM, audio,
+  media and thermal information through owner SSH. Preserved command outputs
+  privately under work/headunit-hardware-20261113 with directory mode 0700 and
+  capture mode 0600. Serial numbers and MAC addresses are omitted from the
+  committed summary. The 270 sysfs bus entries include functions and logical
+  registrations; they are not a count of independent physical chips.
+- Confirmed a single internal PCIe Broadcom radio at 01:00.0, ID 14e4:43ef.
+  Its live bcmdhd info_string identifies chip 4359, revision 5, package 2,
+  driver 1.363.68 and firmware 9.40.112.10. The firmware boots and wlan0/phy0
+  are registered, but wlan0 is administratively down in managed mode. iw list
+  advertises managed/AP/P2P modes and only 2.4 GHz channels in this snapshot.
+  RF board metadata contains GB country and 2g/5g antenna fields; it does not
+  establish working 5 GHz or successful client/AP operation. rfkill device and
+  class are absent. No USB Wi-Fi adapter is enumerated.
+- Confirmed Atom A3930 at 1.30 GHz, two CPU cores; MemTotal 3922484 KiB; eMMC
+  model S0J59X, 127305515008 bytes, 17 partitions plus hardware boot/RPMB areas.
+  The Intel i915, IPU4, audio, USB, MMC, GPIO and low-power I/O functions are
+  registered. The active display connector advertises 1920x720 variants; LCD
+  initialization identifies LGD and SiW touch identifies SW17700/LA123WF7.
+- The attached owner Ethernet adapter is Realtek 0bda:8152, driver r8152,
+  interface ownerusb0. USB also enumerates a Terminus 1a40:0101 hub and Qualcomm
+  05c6:90a1 modem whose product descriptor identifies MDM9628-MTP. Modem serial
+  and QMI drivers are bound; eight rmnet interfaces are registered and down.
+- The active OEM Bluetooth daemon is vbtd-51 over ttyS0 with the selected
+  BCM4349B1 patchram. No Linux Bluetooth HCI class is exposed, so that filename
+  is recorded as selected firmware rather than a queried silicon identity.
+  GPS is exposed as ttyGPS pointing to ttyS3. The platform GPS driver and the
+  MICOM SPI interface are bound; FM8802 rear-communication hardware is bound.
+- Registered media paths include ADV7282 CVBS and MAX9288 variants. Captured
+  kernel history shows the ADV7282 path streaming; 45 video nodes are IPU4
+  pipeline endpoints, not 45 physical cameras. MICOM reports RVM-C(CVBS) camera
+  and BOSE_new external-amplifier configuration. Three CAN network interfaces
+  are registered but down; these do not prove direct CAN-controller operation.
+  An unbound MSFT0101 ACPI device/TPM2 table likewise does not prove usable TPM.
+- Saved the detailed inventory in the existing vehicle USB/access evidence.
+  No scan, association, AP activation, bus transaction probe, module change,
+  service restart, network change, flash, reboot or shutdown was performed.

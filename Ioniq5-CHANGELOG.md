@@ -3,6 +3,19 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.74.0 - live head-unit hardware inventory
+
+Read-only owner SSH inventory identifies the installed unit's Intel Atom A3930,
+4 GiB-class RAM, 127305515008-byte eMMC, Intel graphics/audio/IPU4, LGD display,
+SiW SW17700 touch controller, Qualcomm MDM9628 USB modem, and internal Broadcom
+4359 PCIe Wi-Fi radio. The latter is initialized by bcmdhd but wlan0 is down;
+client/AP/P2P modes and only 2.4 GHz channels are advertised in this snapshot.
+
+The detailed inventory records USB, PCI, I2C, SPI, platform and media devices,
+the active proprietary Bluetooth UART stack, and the limits of driver-created
+camera/CAN/TPM registrations. Private raw captures are retained locally. No
+radio, driver, network setting, service, firmware or vehicle state was changed.
+
 ## 5.73.0 - installed head-unit authentication verified
 
 The owner reported the vehicle update complete and connected the head unit to

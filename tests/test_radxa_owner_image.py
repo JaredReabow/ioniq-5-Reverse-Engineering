@@ -132,9 +132,22 @@ class RadxaOwnerImageTests(unittest.TestCase):
     def test_image_version_is_bumped_and_console_printed(self) -> None:
         inner = INNER.read_text(encoding="utf-8")
         outer = BUILDER.read_text(encoding="utf-8")
-        self.assertIn("owner_image_version=1.0.6", inner)
+        self.assertIn("owner_image_version=1.1.0", inner)
         self.assertIn("/etc/issue.d/ioniq-owner.issue", inner)
-        self.assertIn("radxa-zero3-owner-update-v1.0.6.img", outer)
+        self.assertIn("radxa-zero3-owner-update-v1.1.0.img", outer)
+
+    def test_recreation_keeps_selected_owner_firmware_and_prebuilt_helper(self) -> None:
+        """Recreating media cannot silently restore the superseded v2 firmware."""
+        inner = INNER.read_text(encoding='utf-8')
+        outer = BUILDER.read_text(encoding='utf-8')
+        self.assertNotIn('owner_usb_ssh_v2_260128', inner + outer)
+        self.assertIn('owner_access_v4.0.2_260128.te2', inner)
+        self.assertIn('owner_access_v4.0.2_260128.te2', outer)
+        self.assertIn('94323aa3d05b4cf2e1a894ca445f4bf8a85f9341c0a879d2cdbbc338304123c6', inner)
+        self.assertIn('build-nbdfuse-direct.sh', inner)
+        self.assertLess(inner.index('chroot "$rootfs" /bin/bash /opt/ioniq5-update/tools/uk_fw/build-nbdfuse-direct.sh'),
+                        inner.index('rm -f "$rootfs/etc/resolv.conf"\ncase "$resolv_kind"'))
+        self.assertIn('/usr/local/libexec/ioniq-nbdfuse-direct', inner)
 
     def test_builder_pins_the_controller_installed_in_the_image(self) -> None:
         """The image recipe must fail if the reviewed Radxa tool changes."""

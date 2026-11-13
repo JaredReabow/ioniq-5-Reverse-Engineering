@@ -22,13 +22,17 @@ import time
 from typing import Callable, Mapping, Sequence
 from urllib.parse import urlsplit
 
+if __package__:
+    from . import radxa_usb as _radxa_controller
+else:
+    import radxa_usb as _radxa_controller
 
-DASHBOARD_VERSION = "1.0.7"
+DASHBOARD_VERSION = "1.0.10"
 API_VERSION = "1.0.0"
 API_SCHEMA = "ioniq-radxa-dashboard/v1"
-CONTROLLER_STATE_SCHEMA = "ioniq-radxa-usb-state/v4"
+CONTROLLER_STATE_SCHEMA = "ioniq-radxa-usb-state/v5"
 PREPARED_CACHE_SCHEMA = "ioniq-radxa-prepared-content/v1"
-PREPARED_CACHE_TOOL_VERSION = "1.2.1"
+PREPARED_CACHE_TOOL_VERSION = _radxa_controller.radxa_usb_validation_cache_version()
 SESSION_SCHEMA = "ioniq-radxa-session/v1"
 DEFAULT_STATE_ROOT = Path("/run/ioniq-toctou")
 DEFAULT_PERSISTENT_ROOT = Path("/var/lib/ioniq5-update")
@@ -143,7 +147,9 @@ def _bounded_file(
                                  "not a regular file")
         start = max(0, metadata.st_size - limit) if tail else 0
         os.lseek(descriptor, start, os.SEEK_SET)
-        payload = os.read(descriptor, max(0, metadata.st_size - start))
+        # procfs files can report size zero while containing readable data.
+        # The caller's limit, rather than st_size, bounds every read.
+        payload = os.read(descriptor, limit)
         return _FileSnapshot(
             payload.decode("utf-8", "replace"),
             True,
@@ -279,7 +285,7 @@ def _read_state(config: DashboardConfig) -> tuple[Mapping[str, object], _FileSna
         return {}, snapshot, f"runtime state is invalid JSON: {_safe_line(str(exc))}"
     if not isinstance(value, dict):
         return {}, snapshot, "runtime state is not a JSON object"
-    if value.get("schema") != CONTROLLER_STATE_SCHEMA:
+    if value.get("schema") not in (CONTROLLER_STATE_SCHEMA, "ioniq-radxa-usb-state/v4"):
         return value, snapshot, "runtime state uses an unsupported schema"
     return value, snapshot, None
 
@@ -1010,6 +1016,21 @@ def _nbd_status(
     return "waiting", f"{name} not attached"
 
 
+def radxa_dashboard_transport_status(
+    state: Mapping[str, object], config: DashboardConfig
+) -> tuple[str, str]:
+    """Display the controller's live FUSE verdict without duplicating its policy."""
+    if state.get("backing_kind") != "fuse-direct":
+        return _nbd_status(state, config.sysfs_root)
+    try:
+        live = _radxa_controller.radxa_usb_status(state_root=config.state_root)
+    except (OSError, ValueError, _radxa_controller.RadxaUSBError) as exc:
+        return "error", _safe_line(str(exc))
+    if not live.get("healthy"):
+        return "error", _safe_line(str(live.get("issues") or "USB backing is unhealthy"))
+    return "healthy", "Direct-I/O FUSE backing is live; disk is read-only"
+
+
 def _parse_events(lines: Sequence[str]) -> list[dict[str, object]]:
     events: list[dict[str, object]] = []
     for index, line in enumerate(lines):
@@ -1221,7 +1242,7 @@ def radxa_dashboard_collect_status(
         _process_status(state, config.proc_root) if state else ("waiting", "No runtime state")
     )
     nbd_health, nbd_detail = (
-        _nbd_status(state, config.sysfs_root) if state else ("waiting", "No runtime state")
+        radxa_dashboard_transport_status(state, config) if state else ("waiting", "No runtime state")
     )
     usb_health, usb_detail = (
         _usb_status(state, config.sysfs_root) if state else ("waiting", "No runtime state")
@@ -1248,7 +1269,10 @@ def radxa_dashboard_collect_status(
     regions = _regions(state)
     progress = _progress(regions, events, reads, monotonic_now)
     cleanup = _as_mapping(state.get("cleanup"))
-    cleanup_active = any(value is True for value in cleanup.values())
+    try:
+        cleanup_active = _radxa_controller.radxa_usb_cleanup_started(state) if state else False
+    except _radxa_controller.RadxaUSBError:
+        cleanup_active = bool(state)
     reconciliation = state.get("reconciliation_required")
     service_active = service.get("active") is True
     service_starting = service.get("state") in {"activating", "reloading"}
@@ -1368,7 +1392,7 @@ def radxa_dashboard_collect_status(
             config.service_name,
         ),
         _connection("Backend process", process_health, process_detail, "nbdkit ownership probe"),
-        _connection("NBD transport", nbd_health, nbd_detail, "Controller block backend"),
+        _connection("USB backing", nbd_health, nbd_detail, "Controller transport health"),
         _connection("USB output", usb_health, usb_detail, "Car-facing gadget binding"),
         _connection(
             "Event log",

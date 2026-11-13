@@ -1,0 +1,36 @@
+--- a/fuse/operations.c
++++ b/fuse/operations.c
+@@ -371,6 +371,9 @@
+   if (readonly && (fi->flags & O_ACCMODE) != O_RDONLY)
+     return -EACCES;
+ 
++  fi->direct_io = 1;
++  fi->keep_cache = 0;
++
+   return 0;
+ }
+ 
+--- a/fuse/nbdfuse.c
++++ b/fuse/nbdfuse.c
+@@ -256,7 +256,7 @@
+       break;
+ 
+     case 'V':
+-      display_version ("nbdfuse");
++      display_version ("ioniq-nbdfuse-direct");
+       exit (EXIT_SUCCESS);
+ 
+     default:
+--- a/common/utils/version.c
++++ b/common/utils/version.c
+@@ -31,8 +31,8 @@
+   const char *package_name = NULL;
+   const char *version = NULL;
+ 
+-  /* The program name and the version of the binary. */
+-  printf ("%s %s\n", program_name, PACKAGE_VERSION);
++  /* This binary is built only as the IONIQ direct-I/O helper. */
++  printf ("%s %s\n", program_name, "1.14.2-ioniq-direct.1");
+ 
+   /* Flush to make sure it is printed, even if the code below crashes
+    * for any reason.

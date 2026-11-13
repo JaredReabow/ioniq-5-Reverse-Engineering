@@ -4,7 +4,7 @@ set -euo pipefail
 
 repo=$(git rev-parse --show-toplevel)
 source_image="$repo/work/radxa-os/radxa-zero3_bookworm_kde_b1.output_512.img"
-output_image=${1:-"$repo/work/radxa-os/radxa-zero3-owner-update-v1.0.6.img"}
+output_image=${1:-"$repo/work/radxa-os/radxa-zero3-owner-update-v1.1.0.img"}
 case "$output_image" in
     /*) ;;
     *) output_image="$repo/$output_image" ;;
@@ -18,10 +18,10 @@ partial_image="$output_image.partial"
 inner="$repo/work/radxa-os/customize-owner-image-inner.sh"
 expected_source=f530b3081332811d63e8250cad744aa032ea7cfcd127897f43d7ae2e6eabb892
 expected_baseline=3ddf02a9af81c8d95d06376e565f1998a646249519a201c3f5808ebc16fdb4ef
-expected_custom=880cfb89a9aca758d9b9c4aef912855813b1ad9a632ae81d00cd03484a7d381c
+expected_custom=94323aa3d05b4cf2e1a894ca445f4bf8a85f9341c0a879d2cdbbc338304123c6
 expected_plugin=e6013f44e8cb6c37c7b85670b8f2c4093ab1556d4e78997e207340bd62cff28a
-expected_radxa_usb=d260c423e5db5e361597045cca4530f900d8a500c8dabc6005fe973c8a0a21c2
-expected_builder_manifest=21fa10958437188b5451c61b84e4ec595b41d9881a80f76e8f4f275864e7f83d
+expected_radxa_usb=03c897eb12f7cdb372e3eb0292766f944dd53c16888fe544dd18dd6ac313f284
+expected_builder_manifest=d608c49edce0e3f42e3146dff457d8cdbc29e462981c05e44d06a2becdfbf1ff
 
 hash_file() {
     shasum -a 256 "$1" | awk '{print $1}'
@@ -46,10 +46,10 @@ fi
 printf '[1/6] Verifying frozen source and payloads\n'
 require_hash "$source_image" "$expected_source"
 require_hash "$repo/work/radxa-toctou-build/ioniq5_eu_260128_baseline.img.dmg" "$expected_baseline"
-require_hash "$repo/work/radxa-toctou-build/owner_usb_ssh_v2_260128.te2" "$expected_custom"
+require_hash "$repo/work/radxa-toctou-build/owner_access_v4.0.2_260128.te2" "$expected_custom"
 require_hash "$repo/tools/uk_fw/nbdkit_dynamic_media.py" "$expected_plugin"
 require_hash "$repo/tools/uk_fw/radxa_usb.py" "$expected_radxa_usb"
-require_hash "$repo/work/radxa-toctou-build/owner_usb_ssh_v2_260128.te2.manifest.json" "$expected_builder_manifest"
+require_hash "$repo/work/radxa-toctou-build/owner_access_v4.0.2_260128.te2.manifest.json" "$expected_builder_manifest"
 
 printf '[2/6] Creating isolated image copy\n'
 cp -c "$source_image" "$partial_image"

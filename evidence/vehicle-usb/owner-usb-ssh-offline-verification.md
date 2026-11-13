@@ -258,3 +258,83 @@ was reported and not bypassed; a manual Allow click may be required at the
 next attempt. The device remains running, with the updater inactive/disabled
 and its test resources cleaned up. The selected 4.0.2 firmware is preserved,
 but the new vehicle flash is not marked ready pending physical USB diagnosis.
+
+## 2026-11-13: cache correlation and physical direct-I/O prototype
+
+The next correlated capture established stale reuse above nbdkit: 602112 bytes
+in the second host read were genuine-only, while all 6719 backend requests in
+that interval selected replacement/pass 2 and none covered those stale ranges.
+See `work/usb-diagnostic-5d5a4476fe80/`. The precise cache layer was not isolated.
+
+A pinned nbdfuse 1.14.2 frontend was built with an explicit successful-open
+`direct_io=1, keep_cache=0` change. One readonly connection and a single FUSE
+thread back the actual mass-storage LUN directly, without a kernel NBD or loop
+block device. The firmware package, byte ranges and backend switching profile
+were unchanged.
+
+| Actual Mac USB read | Seconds | SHA-256 | Result |
+| --- | ---: | --- | --- |
+| First | 83.920 | `362d9e329d970f403df4e69fece976ed6b4aaa27537e27a99e96e7796b9ad491` | exact genuine |
+| Second | 94.839 | `94323aa3d05b4cf2e1a894ca445f4bf8a85f9341c0a879d2cdbbc338304123c6` | exact custom |
+
+Each read contained 879126179 bytes. Second-pass classification contained zero
+genuine-only or unknown bytes. The temporary chain became ready in 0.415 seconds
+from the persistent preparation cache. Its effective LUN was read-only (`ro=1`),
+which remains an explicit car-compatibility boundary.
+
+This diagnostic enabled verbose libnbd tracing and filled `/run`; its final
+trace was partial and automatic teardown failed after USB unbinding. The
+200646656-byte log was verified and preserved in private persistent storage,
+then ownership-checked recovery removed the exact gadget and mount and verified
+process absence. The proof directory's cleanup.json records that recovery;
+this is not a claim of successful normal teardown. Prototype runtimes/journals
+are saved under `/var/lib/ioniq5-update/fuse-proof-preserved/` and the Mac's
+ignored work directory. The production candidate uses no verbose helper trace.
+
+The recreated packaged helper compiled natively with a zero-fuzz patch against
+the pinned source archive; its three patched C files match the USB-proven
+prototype exactly. SHA256:
+`c80695d05c904a829252495b36f85c67313b89281cfa3dcc9c41d5325fcdec9d`.
+Normal installed-controller lifecycle and physical replay are the next checks.
+No vehicle update has been performed in this diagnostic session.
+
+## Installed runtime qualification
+
+Controller 1.3.0's direct FUSE file mount passed complete physical USB reads
+of all 879126179 bytes: genuine in **69.716 s**, custom in **81.298 s**. The
+second read had **zero stale genuine-only or unclassified bytes**. The exact
+hashes are the same genuine/custom hashes above. Normal stop returned successful
+and inactive, with no state, gadget, mount or recorded child processes.
+See `work/usb-diagnostic-82b9af1e09df/`.
+
+A separate actual helper-crash test confirmed USB withdrawal and complete
+owned cleanup (`work/usb-diagnostic-507c949b5f74/`). Its final redundant Mac
+unmount failed because the test intentionally removed that disk; independent
+checks verified the expected absence and saved cleanup.json.
+
+Final controller **1.3.1** only changes status inspection to use the owned
+backend's mount namespace. Dashboard **1.0.9** loads the canonical controller
+and has the process-inspection capability needed by the hardened service.
+The actual installed HTTP service then reported a healthy USB backing while
+armed; a fresh physical USB 4096-byte prefix matched genuine, and stop again
+left no state, gadget, mount or owned processes. Final arming was **2.989 s**;
+fresh cached preflight was **0.878 s**, with no baseline rehash. See
+`work/usb-diagnostic-ddcdbefb8f22/`.
+
+The board remains running, prepared and unarmed. The firmware stays 4.0.2.
+The effective readonly disk and actual head-unit update/login behavior remain
+vehicle-only checks. No car was connected during these tests.
+
+The final dashboard-only follow-up is **1.0.10**. Sol identified that procfs
+command lines report size zero; the prior bounded reader therefore produced
+a false backend-process error. The corrected reader uses its explicit byte
+limit, with two regressions. In the final actual armed HTTP result, Controller
+service, Backend process and USB backing are all healthy and `errors=[]`.
+Arming took **2.875 s**, a physical USB prefix matched genuine again, and clean
+stop removed all owned resources. See `work/usb-diagnostic-973da2442d6f/`.
+
+Canonical tests: **1404 passed, 352442 subtests passed, five skipped**. After
+the last dashboard-only correction, all **122 affected tests and six subtests**
+passed. The controller/data-serving path remains 1.3.1 and firmware remains
+4.0.2. This qualifies the Radxa–Mac bench workflow, not vehicle installation
+or authentication.

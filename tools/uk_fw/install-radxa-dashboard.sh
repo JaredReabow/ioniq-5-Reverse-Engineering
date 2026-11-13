@@ -190,6 +190,11 @@ backup_existing "$install_root/radxa_dashboard.py"
 backup_existing "$install_root/WEB_UI_radxa_dashboard.html"
 install -m 0755 "$dashboard_source" "$install_root/radxa_dashboard.py"
 install -m 0644 "$web_ui_source" "$install_root/WEB_UI_radxa_dashboard.html"
+configuration_helper="$install_root/configure-dashboard"
+backup_existing "$configuration_helper"
+# The desktop account cannot traverse a root-private source staging folder.
+# Run its config renderer from this installed, readable copy instead.
+install -m 0755 "$0" "$configuration_helper"
 backup_existing "$install_root/start-dashboard-browser"
 cat >"$install_root/start-dashboard-browser" <<EOF
 #!/bin/sh
@@ -212,6 +217,7 @@ Documentation=file:/opt/ioniq5-update/dashboard/WEB_UI_radxa_dashboard.html
 [Service]
 Type=simple
 Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONPATH=/opt/ioniq5-update/tools/uk_fw
 ExecStart=/usr/bin/python3 /opt/ioniq5-update/dashboard/radxa_dashboard.py
 Restart=on-failure
 RestartSec=1
@@ -224,7 +230,9 @@ ProtectKernelModules=yes
 ProtectKernelTunables=yes
 RestrictRealtime=yes
 LockPersonality=yes
-CapabilityBoundingSet=
+# Read exact identities of the updater's root processes; filesystem and
+# kernel write restrictions above remain in force.
+CapabilityBoundingSet=CAP_SYS_PTRACE
 
 [Install]
 WantedBy=multi-user.target
@@ -262,7 +270,7 @@ if [[ -x /usr/bin/kwriteconfig5 ]]; then
 fi
 power_config="$desktop_home/.config/powermanagementprofilesrc"
 backup_existing "$power_config"
-runuser -u "$desktop_user" -- "$0" --render-power-config "$power_config"
+runuser -u "$desktop_user" -- "$configuration_helper" --render-power-config "$power_config"
 
 systemctl daemon-reload
 # A dedicated updater must remain awake during a long transfer, including when
@@ -297,7 +305,7 @@ if [[ ! -f "$gdm_config" ]]; then
     exit 2
 fi
 backup_existing "$gdm_config"
-"$0" --render-gdm-config "$gdm_config" "$desktop_user"
+"$configuration_helper" --render-gdm-config "$gdm_config" "$desktop_user"
 
 backup_existing "$dmrc_path"
 cat >"$dmrc_path.new" <<'EOF'

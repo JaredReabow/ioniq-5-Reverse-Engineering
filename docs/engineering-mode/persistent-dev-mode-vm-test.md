@@ -33,6 +33,16 @@ All three processes were alive at their 20-second checks; baseline and first mod
 
 **One follow-up, fixed before launch:** retain dedicated ttyS3 and extend each launch observation from 20 to **60 guest seconds**, keeping the +60-second initial wait and 360-second host deadline. No additional binary patch. If developer-state initialization remains unobserved, stop and report unresolved rather than infer it from process liveness.
 
+## 60-second outcome: both control and modified application crash
+
+Run `1794577647209216000` completed the observer in **275.51 host seconds**, without timeout. Baseline PID 1963, modified PID 2468 and modified-restart PID 3208 all exited with **139/SIGSEGV** before the 60-second checks. All three logs end at `initAppication` line 736 (`m_view->show() = 1`), with no retained `setEngType`, `Run Version` or `checkSOPVersion` output. The unchanged control crashes too, so these results do not isolate a regression caused by the one-byte developer-state change.
+
+Static inspection identifies a plausible existing offscreen-platform blocker: immediately after the line-736 log, the application calls `QGuiApplication::platformNativeInterface()` at `0x74daa6`, dereferences the result without a null check at `0x74dab4`, and makes an indirect native-platform call at `0x74daf3`, all before `setEngType` at `0x74db11`. This is **a hypothesis, not an established crash PC**: no fault PC/backtrace was captured. Do not bypass that setup with another vendor patch or invent a successful platform callback to force this test through.
+
+Retained sanitized evidence: `evidence/dev-mode-vm-2026-11-13/` contains both complete observer traces, result records, patch manifest (no vendor executable), launcher, init wrapper, 60-second driver, and SHA-256 manifest. Full console logs and historical launch identities remain in the private local workspace. The 20-second driver is retained in git commit `5e56cf5`; the 60-second driver was precommitted in `f3970c2`. The evidence launcher imports the project's VM harness and is not standalone.
+
+**Conclusion:** observation-path ambiguity is resolved by dedicated serial capture; runtime developer activation remains unresolved due to failure shared by the control and modified application in the offscreen VM environment. Stop this offscreen experiment. Next useful step is either a read-only crash-PC capture or fixing the existing authentic Wayland/platform initialization path. No reboot-persistence test or physical-head-unit deployment is justified by these results.
+
 ## Production interpretation
 
 The object field is `this + 0x13c`; its object address is not a constant RAM address. A fixed-address boot-time write is therefore not established or recommended. The code at `0x737268` is the initializer, while the changed file byte is at `0x73726e` in this exact build. A file-backed application-specific modification could survive ordinary reboots, but update replacement, application-integrity checks, startup dependencies and actual UI behaviour still need verification. Enabling engineering UI is not a global developer mode for the entire head unit, nor does it imply update verification is disabled.

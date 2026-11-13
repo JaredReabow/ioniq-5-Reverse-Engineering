@@ -338,3 +338,36 @@ the last dashboard-only correction, all **122 affected tests and six subtests**
 passed. The controller/data-serving path remains 1.3.1 and firmware remains
 4.0.2. This qualifies the Radxa–Mac bench workflow, not vehicle installation
 or authentication.
+
+## Additional unarmed readiness audit
+
+Runtime **1.3.2** fixes a stale installed test bundle and includes the FUSE
+module in `ioniq-update-media selftest`. The actual board passed **13 + 80 + 5**
+tests, and the Mac suite passed **1407 tests / 352442 subtests**, with five
+skipped. The transport behavior, helper, firmware 4.0.2 and cache policy remain
+unchanged. The fresh cached plan took **1.121 s** and the updater stayed unarmed.
+
+The selected firmware's owner key, host key, SSH password verifier, independent
+HTTPS verifier and TLS material all match retained recovery credentials. The
+Mac now has a strict host-pinned profile:
+
+```sh
+ssh ioniq-headunit
+ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password ioniq-headunit
+```
+
+Both this alias and the raw `10.42.0.1` address select the intended owner key.
+The Mac Ethernet interface already has `10.42.0.2/24` and a direct route. A live
+head-unit SSH server was not reachable in the current setup; no login was claimed.
+
+Read-only filesystem checks of synced copies of both SD boot partitions passed.
+No physical-card read/write failures were found in the current kernel log; the
+older NBD fault-test errors are separate. Required kernel modules match the
+installed kernel; package audit, free space, and sleep inhibition were checked.
+
+Existing authentic-kernel Tuxera evidence explicitly mounted write-protected
+USB media, and the retained stock automounter has an `MS_RDONLY` retry path.
+See `work/vm/vendor-userspace-260128/tuxera-exfat-clean-probe-v2-host.log` and
+`work/appfumo-usb-pathname-provenance/usb-automount.full.asm`. These checks improve
+confidence but leave actual car USB/power, boot, authentication and terminal
+visibility unverified. No power cycle or car update was performed.

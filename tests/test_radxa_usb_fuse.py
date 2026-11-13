@@ -256,7 +256,7 @@ class FuseTransportTests(RadxaUSBFixture):
 
     def test_cache_policy_is_stable_across_transport_version_and_rejects_change(self) -> None:
         """Transport 1.3 reuses policy 1.2.1 cache but changed inputs fail."""
-        self.assertEqual(radxa_usb.TOOL_VERSION, "1.3.1")
+        self.assertNotEqual(radxa_usb.TOOL_VERSION, radxa_usb.radxa_usb_validation_cache_version())
         self.assertEqual(radxa_usb.radxa_usb_validation_cache_version(), "1.2.1")
         cache_path = self.root / "private-cache/validated.json"
         with radxa_usb.radxa_usb_validation_session(cache_path, prepare=True):

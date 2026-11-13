@@ -7386,3 +7386,48 @@ This entry adds the measurement that turns the preceding two entries from "unatt
   encountered an unrelated standalone CLI parser; targeting the repository's
   tests directory completed the suite. Both Astra and Sol accepted the final
   source and installed bench boundary. Vehicle acceptance remains unverified.
+
+## 2026-11-13: additional pre-car readiness checks
+
+- A live source/hash and service audit found the selected 4.0.2 payload current,
+  matching controller/helper/plugin, auto-arm disabled, and dashboard/SSH/
+  keepawake enabled. Root storage had 23864291328 bytes free and /run had
+  200622080 bytes free; the measured SoC temperature was 48.888 C. The required
+  fuse/libcomposite/mass-storage modules match kernel 6.1.84-10-rk2410-nocsf.
+  dpkg reported no incomplete package installation; sleep/idle inhibition is
+  active. Historical NBD fault-test I/O messages are not physical-card errors.
+- The installed selftest exposed an old bundled v4-schema assertion and an
+  absent FUSE test file. This was a test-deployment gap, not a new data-plane
+  failure. Runtime/controller 1.3.2 now validates and installs all three matching
+  test modules while preserving the old bundle; selftest runs plugin, controller
+  and FUSE modules. Future image recipe 1.1.1 includes the FUSE test too. Native
+  installed selftest passed 13, 80 and 5 tests. A fresh unarmed preflight took
+  1.121 seconds and still selects owner_access_v4.0.2_260128.te2 without rehashing.
+- Sol verified retained owner private/public key coherence, SSH host-key bytes,
+  SSH password versus the packaged crypt verifier, independent HTTPS password
+  versus PBKDF2 verifier, TLS private key/certificate coherence and certificate
+  IP/date validity. No credential value was printed. Files remain 0600 inside
+  the 0700 private directory.
+- The Mac had no head-unit SSH profile, so a plain address selected default keys.
+  Added a narrowly scoped ioniq-headunit / 10.42.0.1 profile selecting the retained
+  owner key, root, IPv4, strict host verification and key/password authentication.
+  A separate known-hosts file pins the packaged host key; the prior SSH config
+  was backed up. Astra independently checked the profile, pin and unchanged
+  effective Radxa settings. This does not establish a live car login.
+- The Mac's en7 already has 10.42.0.2/24 with an active link and direct route to
+  10.42.0.1. A bounded TCP/22 check did not reach a head-unit SSH server in the
+  current setup; no authentication or car changes were attempted.
+- Two historical FAT unclean-unmount messages prompted synced raw snapshots
+  of /config and /boot/efi, retained privately on SD and Mac. Mac fsck_msdos -n
+  passed both copies with exit 0 through directory/orphan-cluster checks.
+  No live partition was unmounted, repaired, rewritten or erased. Evidence:
+  work/extra-readiness-20261113/mmcblk1p1-fsck.log and mmcblk1p2-fsck.log.
+- Existing authentic Tuxera readonly VM evidence and the retained automounter
+  disassembly support readonly mounting and fallback. Reviewed updater writes
+  target internal /update paths. This is positive evidence, not certification
+  of the actual vehicle update, electrical power or installed services.
+- The full canonical suite passed 1407 tests and 352442 subtests with five
+  skipped. The affected focused suite passed 98 tests and six subtests. Sol
+  accepted the packaging changes and Astra accepted the Mac access configuration.
+  The vehicle payload and data-serving behavior are unchanged; no reboot,
+  shutdown, media arming or vehicle update was performed during these checks.

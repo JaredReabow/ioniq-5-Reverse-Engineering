@@ -2,7 +2,7 @@
 # Linux-only inner stage for build-owner-image.sh. The Wi-Fi PSK arrives on stdin.
 set -euo pipefail
 
-owner_image_version=1.1.0
+owner_image_version=1.1.1
 
 # BEGIN RADXA_OWNER_FIRST_BOOT_PATCH
 radxa_owner_patch_first_boot_config() {
@@ -237,6 +237,7 @@ install -d -m 0755 "$base/tools/uk_fw" "$base/tests" "$base/config" "$base/media
 install -m 0755 /workspace/tools/uk_fw/radxa_usb.py "$base/tools/uk_fw/radxa_usb.py"
 install -m 0755 /workspace/tools/uk_fw/nbdkit_dynamic_media.py "$base/tools/uk_fw/nbdkit_dynamic_media.py"
 install -m 0644 /workspace/tests/test_radxa_usb.py "$base/tests/test_radxa_usb.py"
+install -m 0644 /workspace/tests/test_radxa_usb_fuse.py "$base/tests/test_radxa_usb_fuse.py"
 install -m 0644 /workspace/tests/test_nbdkit_dynamic_media.py "$base/tests/test_nbdkit_dynamic_media.py"
 cp --sparse=always \
     /workspace/work/radxa-toctou-build/ioniq5_eu_260128_baseline.img.dmg \
@@ -345,7 +346,7 @@ chmod 0644 \
     "$rootfs/etc/ioniq-owner-image-version"
 
 cat >"$base/README.txt" <<'EOF'
-IONIQ owner update-media image v1.1.0
+IONIQ owner update-media image v1.1.1
 
 SSH is key-only as root. The image joins its preconfigured Wi-Fi network and
 announces the hostname radxa-ioniq.local through Avahi.

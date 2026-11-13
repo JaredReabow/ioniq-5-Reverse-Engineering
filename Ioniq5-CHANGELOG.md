@@ -3,6 +3,25 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.72.0 - additional pre-car readiness checks
+
+Controller/runtime 1.3.2 refreshes the installed self-test bundle with its
+matching dynamic-media, controller and FUSE tests; selftest now executes all
+three modules. The previous in-place installer had retained old v4-schema
+tests and omitted the FUSE module. Existing tests are backed up before copying.
+Recreation recipe 1.1.1 includes the same FUSE test. Firmware 4.0.2, the serving
+path and prepared-cache policy 1.2.1 are unchanged.
+
+Mac head-unit access now has an explicit owner-key alias and a separately pinned
+host key, with password fallback. Retained SSH/HTTPS credentials and TLS material
+match the selected overlay. Its Ethernet route is already configured correctly.
+Readonly checks of copies of both SD boot partitions found no filesystem errors;
+kernel review found no physical-card read/write failures. The real vendor-driver
+evidence supports readonly media mounting, while actual car acceptance remains
+unverified. Native selftest passed 13 + 80 + 5 tests; the full Mac suite passed
+1407 tests and 352442 subtests, with five skipped. No reboot, arming or car update
+was needed for these checks.
+
 ## 5.71.0 - verified direct-I/O USB delivery
 
 Radxa controller 1.3.1 uses a pinned, prebuilt direct-I/O FUSE helper in the

@@ -52,7 +52,17 @@ class RadxaUpdateMediaTests(unittest.TestCase):
     def test_internal_arm_requires_prepared_cache(self):
         log = self.run_wrapper("internal-arm")
         self.assertIn("--execute --hold --validation-cache", log)
+        self.assertIn('--backing-kind fuse-direct', log)
+        self.assertIn('modprobe fuse', log)
+        self.assertNotIn('modprobe nbd', log)
         self.assertNotIn(" prepare ", log)
+
+    def test_inspection_and_plan_select_the_installed_fuse_transport(self):
+        log = self.run_wrapper('inspect')
+        self.assertIn('inspect --backing-kind fuse-direct', log)
+        self.log.unlink()
+        log = self.run_wrapper('plan')
+        self.assertIn('--backing-kind fuse-direct', log)
 
     def test_preparation_is_explicit_and_full_verify_can_be_requested(self):
         prepared = self.run_wrapper("prepare")

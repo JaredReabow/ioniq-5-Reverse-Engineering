@@ -3,3 +3,4 @@
 evidence/artifacts/kernel-candidates/*.patch -diff
 evidence/artifacts/media-candidates/*.patch -diff
 evidence/artifacts/network-candidates/*.patch -diff
+tools/uk_fw/ioniq-nbdfuse-direct.patch -diff

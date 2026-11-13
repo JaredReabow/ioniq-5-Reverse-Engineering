@@ -7266,3 +7266,123 @@ This entry adds the measurement that turns the preceding two entries from "unatt
   running, with update media inactive/disabled and owned test resources cleaned
   up. No car update was started. Logs and diagnostic files are retained locally
   and in the Radxa's private diagnostic directories.
+
+## 2026-11-13: correlated USB cache diagnosis and direct-I/O proof
+
+- The owner allowed the current Mac USB connection. The correlated diagnostic
+  at `work/usb-diagnostic-5d5a4476fe80/` reproduced the second-read failure:
+  602112 bytes were genuine-only, 878510080 replacement-only, 13987 identical
+  in both envelopes, and zero unclassified bytes. All stale intervals started
+  near the tail, from file offset 839127040. During the second host read, 6719
+  backend requests all selected replacement/pass 2; none covered those stale
+  intervals. This establishes reuse above the backend without claiming the
+  precise cache layer was independently isolated.
+- Astra and Sol reviewed a narrowly changed backing transport. Stock nbdfuse
+  1.14.2 does not set FUSE direct I/O, and libfuse 3.14 does not expose that
+  setting through its high-level `-o` option table. A distinct helper sets
+  `fi->direct_io=1` and `fi->keep_cache=0` in the open callback. It retains
+  upstream source/license and uses the distribution's libnbd/libfuse3.
+  Its source archive is pinned to SHA256
+  83cc3a88d63b17353275ff4c7c8dcc778437f48ca5d51caa76da415981a7a0cf.
+- The actual mass-storage/FUSE path passed two full Mac USB reads at
+  `work/fuse-usb-diagnostic-e95d1ba2e82b/`. Read 1 was exactly the genuine
+  879126179-byte envelope in 83.920 seconds; read 2 was exactly the selected
+  custom envelope in 94.839 seconds. Second-read classification was B=0,
+  R=879112192, S=13987, N=0. Ready time was 0.415 seconds with unchanged
+  prepared inputs, plugin, firmware bytes, and pass-2 policy.
+- This proof enabled exceptionally verbose libnbd tracing. Its 200646656-byte
+  debug log filled the small `/run` filesystem. Although both complete host
+  hashes passed, the backend trace ended partially and the cleanup checkpoint
+  failed with ENOSPC after UDC withdrawal. The harness's successful stop return
+  did not prove all resources were gone; a subsequent inspection found the
+  unbound gadget and dead FUSE mount. The earlier commentary claiming complete
+  automatic cleanup was corrected. No car was attached.
+- The exact debug log was copied to private persistent storage, SHA256-checked
+  before its runtime copy was removed, and all prototype journals/state were
+  preserved on the SD and Mac. Ownership-checked recovery removed the unbound
+  gadget, unmounted the exact recorded mount, and verified helper/backend PID
+  absence. The recovery outcome is recorded in the diagnostic's cleanup.json.
+  Production must not enable `-d`; the final installed harness now verifies
+  absence of state, gadget, mount and recorded processes instead of trusting
+  `systemctl stop` alone.
+- Prototype startup checks also exposed transient `/proc` identity during
+  exec and a FUSE mount type of plain `fuse` rather than `fuse.<subtype>`.
+  Stop checks and ownership-safe partial-mount recovery were added. No SD
+  re-image, shutdown, reboot or car update was performed.
+- The helper build recipe passed native ARM64 compilation. Initial post-build
+  checking incorrectly expected short options without their leading dash;
+  this was corrected. Strict GNU patch checking then exposed malformed hunk
+  metadata accepted by the prototype recipe; the patch was regenerated from
+  the pinned pristine archive, passed with zero fuzz, and compiled successfully.
+  All three resulting patched C files were byte-identical to the USB-proven
+  sources. Packaged helper SHA256 is
+  c80695d05c904a829252495b36f85c67313b89281cfa3dcc9c41d5325fcdec9d.
+- The FUSE file rejects writable opens, so the mass-storage kernel falls back
+  to effective LUN ro=1. This is an explicit host-visible difference from the
+  previous ro=0 advertisement over read-only NBD. The physical Mac test passed;
+  actual car acceptance remains a target-only check. Do not simulate successful
+  writes or change the established pass heuristic without evidence.
+
+## 2026-11-13: installed FUSE runtime and final physical verification
+
+- Installed controller 1.3.0 in place, preserving runtime and dashboard
+  backups. The existing content cache remains policy 1.2.1; fresh-process
+  cached preflight took 0.878 seconds. No 30 GB rehash or image rebuild ran.
+- A real helper SIGKILL test first unmounted the exact owned Mac volume.
+  The supervisor withdrew USB, cleaned its mount, gadget, state and both
+  recorded child processes, and reported the expected failed service. The
+  test harness then attempted a redundant unmount after the intentionally
+  disappeared disk; this harness error was corrected. Independent post-checks
+  verified all resources absent and saved cleanup.json. Evidence:
+  `work/usb-diagnostic-507c949b5f74/` and its private Radxa counterpart.
+- The installed file-mode FUSE path then passed both complete physical USB
+  reads: genuine SHA256 362d9e329d970f403df4e69fece976ed6b4aaa27537e27a99e96e7796b9ad491
+  in 69.716 seconds and custom SHA256
+  94323aa3d05b4cf2e1a894ca445f4bf8a85f9341c0a879d2cdbbc338304123c6
+  in 81.298 seconds. Both contained 879126179 bytes. Second-pass classification
+  again contained zero genuine-only or unclassified bytes. Normal stop had
+  Result=success, inactive service, and no state, gadget, mount or recorded
+  processes. Evidence: `work/usb-diagnostic-82b9af1e09df/`.
+- Installation exposed a root-private staging-directory traversal error when
+  runuser invoked the desktop renderer. It now uses an installed readable
+  helper. Astra also found the separate installed dashboard directory could
+  not import the canonical controller; the unit now supplies its module path,
+  covered by a separate installed-script import regression.
+- Actual dashboard HTTP checks while armed exposed insufficient capability
+  for exact root-process inspection and the dashboard's different mount
+  namespace. Controller 1.3.1 reads the owned backend's mountinfo while alive,
+  with controller-namespace fallback after backend exit. Dashboard 1.0.9 gets
+  CAP_SYS_PTRACE for inspection while retaining its filesystem/kernel write
+  restrictions. Cache validation and the USB-serving path were unchanged.
+- Final installed 1.3.1 arming took 2.989 seconds. A physical Mac USB 4096-byte
+  firmware prefix matched genuine data, the actual hardened HTTP service
+  reported version 1.0.9 with healthy direct-I/O backing and no interrupted
+  runtime, and normal teardown again verified complete resource absence.
+  Evidence: `work/usb-diagnostic-ddcdbefb8f22/`.
+- The recreation scripts now select the exact retained owner-access 4.0.2
+  package/manifest and build the helper once during image creation. Existing
+  SD media and prior payloads remain preserved. The Radxa stays powered,
+  prepared, unarmed and disabled for automatic USB exposure. No car update
+  was started; real vehicle authentication and read-only-media acceptance
+  remain to be observed on the head unit.
+
+- Sol found an additional display error in the captured 1.0.9 HTTP result:
+  the backend row read an empty command line because procfs reports file size
+  zero. Dashboard 1.0.10 reads up to the configured limit independently of
+  st_size; this also enforces the byte bound for ordinary head reads. Two
+  regressions reproduce zero-size/readable procfs and oversized head input.
+- The Mac network changed during the final deployment. mDNS rediscovered the
+  same SSH-identified Radxa on the new LAN; fresh IPv4 connections completed
+  installation. No Wi-Fi profile or credential was changed.
+- Final 1.0.10 armed HTTP evidence reports Controller service, Backend process
+  and USB backing all healthy, with errors=[] and car write status unknown.
+  A fresh physical USB prefix again matched genuine bytes. Arming was 2.875
+  seconds and normal stop removed all owned state, gadget, mount and processes
+  with Result=success. Evidence: `work/usb-diagnostic-973da2442d6f/`.
+- The canonical repository suite passed 1404 tests and 352442 subtests with
+  five skipped. After the dashboard-only procfs correction, the complete
+  affected controller/dashboard/image/wrapper/helper/FUSE slice passed 122
+  tests and six subtests. Initial unrestricted root pytest collection had
+  encountered an unrelated standalone CLI parser; targeting the repository's
+  tests directory completed the suite. Both Astra and Sol accepted the final
+  source and installed bench boundary. Vehicle acceptance remains unverified.

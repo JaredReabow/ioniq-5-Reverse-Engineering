@@ -3,6 +3,42 @@
 All entries describe the IONIQ 5 research programme. The root `CHANGELOG.md`
 belongs to the parallel Kona programme and is not modified by IONIQ work.
 
+## 5.71.0 - verified direct-I/O USB delivery
+
+Radxa controller 1.3.1 uses a pinned, prebuilt direct-I/O FUSE helper in the
+installed commands. The firmware, baseline and switching policy remain unchanged.
+This removes the kernel NBD block-device layer from the USB backing path.
+Exact helper, process, private-directory and mount identities are supervised;
+stopping releases the gadget before unmounting and observing helper exit.
+Boot remains unarmed. Validation policy 1.2.1 preserves the existing prepared
+cache across this transport update, without a rebuild or baseline rehash.
+
+The installed 1.3.0 serving path passed both full physical Mac USB reads:
+genuine first, custom second, with zero stale or unclassified second-pass bytes.
+It also passed helper-crash USB withdrawal and complete normal teardown.
+Version 1.3.1 corrects status inspection across the dashboard's mount namespace;
+the serving path is unchanged. Its physical prefix read, hardened dashboard's
+healthy verdict, and complete teardown passed. Cached preflight took 0.878
+seconds and final installed arming took 2.989 seconds.
+
+Dashboard 1.0.10 loads the canonical controller module and receives the specific
+process-inspection capability needed for its live ownership checks. Its desktop
+configuration renderer runs from an installed readable copy, so a private
+staging directory does not prevent installation. Bounded procfs reads handle
+readable files reporting size zero, fixing the false backend-process error;
+the final armed HTTP check reports all three critical connection rows healthy.
+Recreation recipe 1.1.0 now
+selects the prepared 4.0.2 firmware and builds the pinned helper during image
+creation; nothing is built or downloaded at boot or arm time.
+
+The disk explicitly reports read-only. Actual head-unit update acceptance,
+installed-car SSH/HTTPS authentication and local-terminal visibility still
+require the vehicle. No car update, SD re-image, reboot or shutdown was performed.
+
+The canonical suite passed 1404 tests and 352442 subtests, with five skipped.
+After the final dashboard-only correction, all 122 affected tests and six
+subtests passed. Final measured arming was 2.875 seconds, followed by clean stop.
+
 ## 5.70.0 - independent authentication recovery and a reusable Radxa runtime
 
 The selected owner recovery overlay is 4.0.2 on the retained EU 260128 baseline.

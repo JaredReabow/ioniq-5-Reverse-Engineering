@@ -42,12 +42,16 @@ DEFAULT_GADGET_NAME = "ioniq_toctou"
 DEFAULT_NBD_HOST = "127.0.0.1"
 DEFAULT_NBD_PORT = 10809
 DEFAULT_PORT_SCAN_COUNT = 64
-TOOL_VERSION = "1.2.1"
+DEFAULT_FUSE_HELPER = Path("/usr/local/libexec/ioniq-nbdfuse-direct")
+FUSE_HELPER_VERSION = "ioniq-nbdfuse-direct 1.14.2-ioniq-direct.1"
+TOOL_VERSION = "1.3.1"
+VALIDATION_CACHE_POLICY_VERSION = "1.2.1"
 SERVE_PLAN_SCHEMA = "ioniq-radxa-usb-serve-plan/v1"
 BUILDER_MANIFEST_SCHEMA = "ioniq5-custom-firmware/v1"
 BUILDER_TOOL_NAME = "ioniq5_custom_firmware"
 BUILDER_TOOL_VERSION = "1.0.2"
-STATE_SCHEMA = "ioniq-radxa-usb-state/v4"
+STATE_SCHEMA = "ioniq-radxa-usb-state/v5"
+LEGACY_STATE_SCHEMA_V4 = "ioniq-radxa-usb-state/v4"
 USB_VENDOR_ID = "0x0781"
 USB_PRODUCT_ID = "0x5591"
 USB_RELEASE = "0x0100"
@@ -61,8 +65,12 @@ SERVER_START_TIMEOUT_SECONDS = 8.0
 SERVER_POLL_SECONDS = 0.1
 NBD_DETACH_TIMEOUT_SECONDS = 5.0
 SUPERVISOR_POLL_SECONDS = 0.25
+FUSE_READY_TIMEOUT_SECONDS = 8.0
+FUSE_UNMOUNT_TIMEOUT_SECONDS = 5.0
+PROCESS_IDENTITY_RETRY_SECONDS = 2.0
 NBD_NAME_RE = re.compile(r"nbd([0-9]+)")
 SAFE_NAME_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*")
+BACKING_KINDS = frozenset(("nbd", "fuse-direct"))
 _VALIDATION_CACHE = ContextVar("radxa_usb_validation_cache", default=None)
 _CACHE_SCHEMA = "ioniq-radxa-prepared-content/v1"
 
@@ -115,7 +123,7 @@ class _RadxaUSBValidationCache:
                 except (ValueError, UnicodeError) as exc:
                     raise RadxaUSBError("invalid validation cache") from exc
             if (not isinstance(value, dict) or value.get("schema") != _CACHE_SCHEMA
-                    or value.get("tool_version") != TOOL_VERSION
+                    or value.get("tool_version") != VALIDATION_CACHE_POLICY_VERSION
                     or not isinstance(value.get("entries"), dict)):
                 if not prepare:
                     raise RadxaUSBError("validation cache policy changed; prepare again")
@@ -157,7 +165,8 @@ class _RadxaUSBValidationCache:
         fd, name = tempfile.mkstemp(prefix=".validation-", dir=self.path.parent)
         try:
             with os.fdopen(fd, "w") as stream:
-                json.dump({"schema": _CACHE_SCHEMA, "tool_version": TOOL_VERSION,
+                json.dump({"schema": _CACHE_SCHEMA,
+                           "tool_version": VALIDATION_CACHE_POLICY_VERSION,
                            "entries": self.entries}, stream, sort_keys=True)
                 stream.write("\n")
                 stream.flush()
@@ -185,6 +194,11 @@ def radxa_usb_validation_session(cache_path: str | Path | None, *, prepare: bool
             cache.save()
     finally:
         _VALIDATION_CACHE.reset(token)
+
+
+def radxa_usb_validation_cache_version() -> str:
+    """Return the stable prepared-content policy identity, independent of transport."""
+    return VALIDATION_CACHE_POLICY_VERSION
 
 
 @dataclass(frozen=True)
@@ -358,6 +372,8 @@ class RadxaUSBPlan:
     """Validated resources and commands for one explicit arm operation."""
 
     baseline_image: Path
+    backing_kind: str
+    backing_path: Path
     regions_json: Path
     plugin: Path
     serve_plan: Path
@@ -375,6 +391,13 @@ class RadxaUSBPlan:
     nbdkit_command: tuple[str, ...]
     nbd_client_attach_command: tuple[str, ...]
     nbd_client_detach_command: tuple[str, ...]
+    fuse_helper: Path | None = None
+    fuse_fusermount: Path | None = None
+    fuse_mount_directory: Path | None = None
+    fuse_fsname: str | None = None
+    fuse_helper_command: tuple[str, ...] = ()
+    fuse_unmount_command: tuple[str, ...] = ()
+    proc_root: Path = DEFAULT_PROC_ROOT
     issues: tuple[str, ...] = field(default_factory=tuple)
 
     @property
@@ -387,6 +410,7 @@ class RadxaUSBPlan:
         value = asdict(self)
         for key in (
             "baseline_image",
+            "backing_path",
             "regions_json",
             "plugin",
             "serve_plan",
@@ -395,8 +419,13 @@ class RadxaUSBPlan:
             "configfs_root",
             "gadget_path",
             "state_root",
+            "proc_root",
+            "fuse_helper",
+            "fuse_fusermount",
+            "fuse_mount_directory",
         ):
-            value[key] = str(value[key])
+            if value[key] is not None:
+                value[key] = str(value[key])
         value["nbd_device"] = asdict(self.nbd_device)
         value["nbd_device"]["device_path"] = str(self.nbd_device.device_path)
         value["nbd_device"]["sysfs_path"] = str(self.nbd_device.sysfs_path)
@@ -413,6 +442,10 @@ class RadxaUSBArmed:
     nbdkit_pid: int
     nbdkit_process: object = field(repr=False, compare=False)
     state: dict[str, object] = field(repr=False, compare=False)
+    fuse_helper_pid: int | None = None
+    fuse_helper_process: object | None = field(
+        default=None, repr=False, compare=False
+    )
 
 
 CommandRunner = Callable[[Sequence[str]], subprocess.CompletedProcess[str]]
@@ -580,6 +613,7 @@ def _radxa_usb_bound_udcs(configfs_root: Path) -> dict[str, str]:
 
 def radxa_usb_inspect(
     *,
+    backing_kind: str = "nbd",
     sysfs_root: str | Path = DEFAULT_SYSFS_ROOT,
     dev_root: str | Path = DEFAULT_DEV_ROOT,
     configfs_root: str | Path = DEFAULT_CONFIGFS_ROOT,
@@ -591,11 +625,13 @@ def radxa_usb_inspect(
     uname: Callable[[], object] = os.uname,
     is_block_device: PathChecker = _radxa_usb_default_is_block,
 ) -> RadxaUSBInspection:
-    """Return platform, dependency, UDC, NBD, and configfs state.
+    """Return platform, dependency, UDC, backing, and configfs state.
 
     The injected roots make every observation fixture-testable. This function
     performs no write and starts no process.
     """
+    if backing_kind not in BACKING_KINDS:
+        raise RadxaUSBError(f"unsupported backing kind: {backing_kind}")
     sysfs = Path(sysfs_root).expanduser().resolve()
     dev = Path(dev_root).expanduser().resolve()
     requested_configfs = Path(configfs_root).expanduser().absolute()
@@ -631,10 +667,16 @@ def radxa_usb_inspect(
     board_model = _radxa_usb_read_text(proc / "device-tree" / "model")
     gadget_path = configfs / gadget_name
     bound = _radxa_usb_bound_udcs(configfs)
-    dependencies = {"nbdkit": which("nbdkit"), "nbd-client": which("nbd-client")}
+    dependencies = {"nbdkit": which("nbdkit")}
+    if backing_kind == "nbd":
+        dependencies["nbd-client"] = which("nbd-client")
+    else:
+        dependencies["fusermount3"] = which("fusermount3")
+        helper = DEFAULT_FUSE_HELPER
+        dependencies["ioniq-nbdfuse-direct"] = str(helper) if os.access(helper, os.X_OK) else None
     if not udcs:
         issues.append(f"no UDC found under {udc_root}")
-    if not devices:
+    if backing_kind == "nbd" and not devices:
         issues.append(f"no NBD block devices found under {sysfs / 'block'}")
     for name, executable in dependencies.items():
         if not executable:
@@ -1315,9 +1357,35 @@ def _radxa_usb_make_command(
     )
 
 
+def _radxa_usb_preflight_fuse_helper(
+    helper: Path, *, runner: CommandRunner = radxa_usb_run_command
+) -> None:
+    """Require the exact installed helper identity before any arm mutation."""
+    reason = _radxa_usb_symlink_reason(helper)
+    if reason:
+        raise RadxaUSBError(f"FUSE helper {reason}")
+    try:
+        metadata = helper.lstat()
+    except OSError as exc:
+        raise RadxaUSBError(f"FUSE helper is unavailable: {helper}: {exc}") from exc
+    if not stat.S_ISREG(metadata.st_mode):
+        raise RadxaUSBError(f"FUSE helper is not a regular file: {helper}")
+    if metadata.st_uid != 0 or metadata.st_mode & 0o022:
+        raise RadxaUSBError("FUSE helper must be root-owned and not group/world writable")
+    result = runner((str(helper), "--version"))
+    _radxa_usb_require_success((str(helper), "--version"), result)
+    first_line = (result.stdout or "").splitlines()[0] if result.stdout else ""
+    if first_line != FUSE_HELPER_VERSION:
+        raise RadxaUSBError(
+            f"unexpected FUSE helper version: {first_line!r}; "
+            f"expected {FUSE_HELPER_VERSION!r}"
+        )
+
+
 def radxa_usb_build_plan(
     *,
     serve_plan: str | Path,
+    backing_kind: str = "nbd",
     udc: str | None = None,
     nbd_device: str | None = None,
     nbd_host: str = DEFAULT_NBD_HOST,
@@ -1330,6 +1398,10 @@ def radxa_usb_build_plan(
     proc_root: str | Path = DEFAULT_PROC_ROOT,
     state_root: str | Path = DEFAULT_STATE_ROOT,
     gadget_name: str = DEFAULT_GADGET_NAME,
+    helper_path: str | Path = DEFAULT_FUSE_HELPER,
+    fusermount3_path: str | Path | None = None,
+    helper_version_runner: CommandRunner = radxa_usb_run_command,
+    helper_preflight: Callable[[Path], None] | None = None,
     which: Callable[[str], str | None] = shutil.which,
     effective_uid: int | None = None,
     uname: Callable[[], object] = os.uname,
@@ -1338,10 +1410,11 @@ def radxa_usb_build_plan(
 ) -> RadxaUSBPlan:
     """Validate all resources and return a concrete arm plan.
 
-    Ambiguous UDCs require an explicit ``udc``. The lowest-numbered free NBD
-    device is selected unless one is named explicitly; an explicit occupied or
-    non-block device is rejected.
+    Ambiguous UDCs require an explicit ``udc``. Raw NBD mode selects the
+    lowest-numbered free device; FUSE mode has no NBD device dependency.
     """
+    if backing_kind not in BACKING_KINDS:
+        raise RadxaUSBError(f"unsupported backing kind: {backing_kind}")
     bound_content = _radxa_usb_load_bound_content(serve_plan)
     manifest_path = bound_content.manifest.path
     baseline = bound_content.baseline.path
@@ -1349,6 +1422,7 @@ def radxa_usb_build_plan(
     plugin_path = bound_content.plugin.path
     if inspection is None:
         inspection = radxa_usb_inspect(
+            backing_kind=backing_kind,
             sysfs_root=sysfs_root,
             dev_root=dev_root,
             configfs_root=configfs_root,
@@ -1387,21 +1461,21 @@ def radxa_usb_build_plan(
             f"{inspection.bound_udcs[selected_udc]}"
         )
 
-    available = [item for item in inspection.nbd_devices if item.free]
-    if nbd_device is None:
+    selected_nbd = RadxaUSBNbdDevice(
+        name="",
+        device_path=Path(),
+        sysfs_path=Path(),
+        pid=None,
+        holders=(),
+        block_device=False,
+    )
+    if backing_kind == "nbd" and nbd_device is None:
+        available = [item for item in inspection.nbd_devices if item.free]
         if available:
             selected_nbd = available[0]
         else:
-            selected_nbd = RadxaUSBNbdDevice(
-                name="",
-                device_path=Path(),
-                sysfs_path=Path(),
-                pid=None,
-                holders=(),
-                block_device=False,
-            )
             issues.append("no free NBD block device is available")
-    else:
+    elif backing_kind == "nbd":
         matches = [item for item in inspection.nbd_devices if item.name == nbd_device]
         if not matches:
             selected_nbd = RadxaUSBNbdDevice(
@@ -1453,16 +1527,63 @@ def radxa_usb_build_plan(
             str(selected_nbd.device_path),
             "-persist",
         )
-        if nbd_client and selected_nbd.device_path
+        if backing_kind == "nbd" and nbd_client and selected_nbd.device_path
         else ()
     )
     detach = (
         (nbd_client, "-d", str(selected_nbd.device_path))
-        if nbd_client and selected_nbd.device_path
+        if backing_kind == "nbd" and nbd_client and selected_nbd.device_path
         else ()
     )
+    helper: Path | None = None
+    fusermount: Path | None = None
+    mount_directory: Path | None = None
+    fsname: str | None = None
+    fuse_command: tuple[str, ...] = ()
+    fuse_unmount: tuple[str, ...] = ()
+    backing_path = selected_nbd.device_path
+    if backing_kind == "fuse-direct":
+        helper = Path(helper_path).expanduser().absolute()
+        try:
+            if helper_preflight is None:
+                _radxa_usb_preflight_fuse_helper(
+                    helper, runner=helper_version_runner
+                )
+            else:
+                helper_preflight(helper)
+        except (OSError, RadxaUSBError) as exc:
+            issues.append(str(exc))
+        selected_fusermount = fusermount3_path or inspection.dependencies.get(
+            "fusermount3"
+        )
+        if selected_fusermount is None:
+            issues.append("missing dependency: fusermount3")
+        else:
+            fusermount = Path(selected_fusermount).expanduser().absolute()
+        mount_directory = inspection.state_root / "fuse-mount"
+        backing_path = mount_directory / "lun"
+        fsname = "ioniq-fuse-" + secrets.token_hex(8)
+        if fusermount is not None:
+            fuse_command = (
+                str(helper),
+                "-r",
+                "-s",
+                "-C",
+                "1",
+                "-P",
+                str(inspection.state_root / "fuse-helper.pid"),
+                "-o",
+                f"fsname={fsname}",
+                str(backing_path),
+                "--tcp",
+                nbd_host,
+                str(selected_port),
+            )
+            fuse_unmount = (str(fusermount), "-u", str(backing_path))
     return RadxaUSBPlan(
         baseline_image=baseline,
+        backing_kind=backing_kind,
+        backing_path=backing_path,
         regions_json=regions,
         plugin=plugin_path,
         serve_plan=manifest_path,
@@ -1480,6 +1601,13 @@ def radxa_usb_build_plan(
         nbdkit_command=command,
         nbd_client_attach_command=attach,
         nbd_client_detach_command=detach,
+        fuse_helper=helper,
+        fuse_fusermount=fusermount,
+        fuse_mount_directory=mount_directory,
+        fuse_fsname=fsname,
+        fuse_helper_command=fuse_command,
+        fuse_unmount_command=fuse_unmount,
+        proc_root=inspection.proc_root,
         issues=tuple(dict.fromkeys(issues)),
     )
 
@@ -1528,6 +1656,9 @@ def _radxa_usb_state_document(
     return {
         "schema": STATE_SCHEMA,
         "tool_version": TOOL_VERSION,
+        "backing_kind": plan.backing_kind,
+        "backing_path": str(plan.backing_path),
+        "validation_cache_policy_version": radxa_usb_validation_cache_version(),
         "configfs_root": str(plan.configfs_root),
         "gadget_name": plan.gadget_name,
         "gadget_identity": gadget_identity,
@@ -1548,22 +1679,43 @@ def _radxa_usb_state_document(
         "nbdkit_plugin": str(plan.plugin),
         "nbdkit_command": list(plan.nbdkit_command),
         "nbdkit_identity": None,
+        "fuse_helper": str(plan.fuse_helper) if plan.fuse_helper else None,
+        "fuse_helper_pid": None,
+        "fuse_helper_command": list(plan.fuse_helper_command),
+        "fuse_helper_identity": None,
+        "fuse_fusermount": str(plan.fuse_fusermount) if plan.fuse_fusermount else None,
+        "fuse_mount_directory": (
+            str(plan.fuse_mount_directory) if plan.fuse_mount_directory else None
+        ),
+        "fuse_mount_dir_dev": None,
+        "fuse_mount_dir_ino": None,
+        "fuse_mountpoint": str(plan.backing_path) if plan.fuse_helper else None,
+        "fuse_fsname": plan.fuse_fsname,
+        "fuse_mount_identity": None,
+        "fuse_backing_size": None,
+        "fuse_lun_ro": None,
         "bound_content": plan.bound_content.to_dict(),
         "reconciliation_required": None,
         "sysfs_root": str(plan.sysfs_root),
+        "proc_root": str(plan.proc_root),
+        "fuse_unmount_command": list(plan.fuse_unmount_command),
+        "fuse_backing_dev": None,
+        "fuse_backing_ino": None,
         "state_root": str(plan.state_root),
         "state_dir_created": state_dir_created,
         "cleanup": {
             "udc_unbound": False,
-            "nbd_detached": False,
+            "nbd_detached": plan.backing_kind != "nbd",
             "gadget_removed": False,
+            "fuse_unmounted": plan.backing_kind != "fuse-direct",
+            "fuse_helper_stopped": plan.backing_kind != "fuse-direct",
             "nbdkit_stopped": False,
         },
     }
 
 
 def _radxa_usb_capture_process_identity(
-    pid: int, *, proc_root: Path = DEFAULT_PROC_ROOT
+    pid: int, *, proc_root: Path = DEFAULT_PROC_ROOT, label: str = "nbdkit"
 ) -> dict[str, object]:
     """Read one Linux process instance, rejecting exit/reuse during capture."""
     proc_dir = proc_root / str(pid)
@@ -1600,7 +1752,7 @@ def _radxa_usb_capture_process_identity(
             raise ValueError("process changed or has incomplete identity")
         return identity
     except (OSError, ValueError, IndexError) as exc:
-        raise RadxaUSBError(f"cannot establish nbdkit process identity: {exc}") from exc
+        raise RadxaUSBError(f"cannot establish {label} process identity: {exc}") from exc
 
 
 def _radxa_usb_default_process_probe(
@@ -1622,7 +1774,11 @@ def _radxa_usb_default_process_probe(
 
 
 def _radxa_usb_signal_process_instance(
-    pid: int, expected: Mapping[str, object], process_probe: ProcessProbe
+    pid: int,
+    expected: Mapping[str, object],
+    process_probe: ProcessProbe,
+    *,
+    label: str = "nbdkit",
 ) -> None:
     """Pin the PID before rechecking identity so reuse cannot redirect SIGTERM."""
     if not hasattr(os, "pidfd_open") or not hasattr(signal, "pidfd_send_signal"):
@@ -1636,7 +1792,7 @@ def _radxa_usb_signal_process_instance(
         if status == "absent":
             return
         if status != "owned":
-            raise RadxaUSBError("nbdkit PID changed before signalling")
+            raise RadxaUSBError(f"{label} PID changed before signalling")
         try:
             signal.pidfd_send_signal(pidfd, signal.SIGTERM)
         except ProcessLookupError:
@@ -1662,6 +1818,216 @@ def _radxa_usb_wait_for_port(
             sock.close()
         sleep(SERVER_POLL_SECONDS)
     raise RadxaUSBError(f"nbdkit did not listen on {host}:{port} before timeout")
+
+
+def _radxa_usb_decode_mountinfo(value: str) -> str:
+    """Decode the octal escapes used by Linux mountinfo."""
+    return re.sub(
+        r"\\([0-7]{3})", lambda match: chr(int(match.group(1), 8)), value
+    )
+
+
+def _radxa_usb_fuse_mount(
+    state: Mapping[str, object],
+) -> dict[str, object] | None:
+    """Find the exact FUSE target in proc mountinfo without touching its files."""
+    proc_root = Path(str(state.get("proc_root", DEFAULT_PROC_ROOT)))
+    mountpoint = str(_radxa_usb_state_value(state, "fuse_mountpoint", str))
+    fsname = str(_radxa_usb_state_value(state, "fuse_fsname", str))
+    # A hardened dashboard runs in another mount namespace. The backend
+    # inherits the controller's namespace, whose mount IDs were checkpointed.
+    # After backend exit, cleanup runs in the original controller namespace.
+    owner = state.get("nbdkit_pid")
+    owner_mountinfo = proc_root / str(owner) / "mountinfo"
+    mountinfo = owner_mountinfo if type(owner) is int and owner_mountinfo.exists() else proc_root / "self/mountinfo"
+    try:
+        lines = mountinfo.read_text(encoding="utf-8").splitlines()
+    except OSError as exc:
+        raise RadxaUSBError(f"cannot inspect FUSE mount provenance: {exc}") from exc
+    matches: list[dict[str, object]] = []
+    for line in lines:
+        fields = line.split()
+        try:
+            separator = fields.index("-")
+            live_mountpoint = _radxa_usb_decode_mountinfo(fields[4])
+            if live_mountpoint != mountpoint:
+                continue
+            matches.append(
+                {
+                    "mount_id": int(fields[0]),
+                    "parent_id": int(fields[1]),
+                    "device": fields[2],
+                    "mountpoint": live_mountpoint,
+                    "mount_options": fields[5],
+                    "fstype": fields[separator + 1],
+                    "fsname": _radxa_usb_decode_mountinfo(fields[separator + 2]),
+                }
+            )
+        except (IndexError, ValueError) as exc:
+            raise RadxaUSBError("invalid Linux mountinfo record") from exc
+    if len(matches) > 1:
+        raise RadxaUSBError("multiple mounts claim the owned FUSE target")
+    if not matches:
+        return None
+    live = matches[0]
+    if live["fstype"] != "fuse" or live["fsname"] != fsname:
+        raise RadxaUSBError("FUSE mount source or filesystem type changed")
+    return live
+
+
+def _radxa_usb_validate_fuse_mount(
+    state: Mapping[str, object], *, required: bool = True
+) -> dict[str, object] | None:
+    """Validate the exact recorded FUSE mount or report its absence."""
+    live = _radxa_usb_fuse_mount(state)
+    if live is None:
+        if required:
+            raise RadxaUSBError("owned FUSE mount disappeared")
+        return None
+    _radxa_usb_validate_fuse_directory(state)
+    expected = state.get("fuse_mount_identity")
+    if expected is not None and live != expected:
+        raise RadxaUSBError("FUSE mount identity changed")
+    return live
+
+
+def _radxa_usb_validate_fuse_directory(state: Mapping[str, object]) -> Path:
+    """Validate the private parent, which is outside the file-mode FUSE mount."""
+    directory = Path(str(_radxa_usb_state_value(state, "fuse_mount_directory", str)))
+    target = Path(str(_radxa_usb_state_value(state, "fuse_mountpoint", str)))
+    _radxa_usb_assert_safe_path(directory)
+    info = directory.lstat()
+    if (target.parent != directory or not stat.S_ISDIR(info.st_mode)
+            or info.st_uid != os.geteuid() or stat.S_IMODE(info.st_mode) != 0o700
+            or info.st_dev != state.get("fuse_mount_dir_dev")
+            or info.st_ino != state.get("fuse_mount_dir_ino")):
+        raise RadxaUSBError("FUSE private directory identity changed")
+    return directory
+
+
+def _radxa_usb_fuse_helper_status(
+    state: Mapping[str, object],
+    *,
+    owned_process: object | None,
+    process_probe: ProcessProbe,
+) -> str:
+    """Return absent, owned, or mismatch for the exact FUSE helper instance."""
+    pid_value = state.get("fuse_helper_pid")
+    if pid_value is None:
+        return "absent"
+    if not isinstance(pid_value, int) or pid_value <= 0:
+        raise RadxaUSBError("state has invalid FUSE helper PID")
+    command = state.get("fuse_helper_command")
+    if (
+        not isinstance(command, list)
+        or len(command) < 2
+        or any(not isinstance(arg, str) for arg in command)
+        or "-d" in command
+    ):
+        raise RadxaUSBError("state has invalid FUSE helper command")
+    identity = state.get("fuse_helper_identity")
+    if owned_process is not None:
+        if getattr(owned_process, "pid", None) != pid_value:
+            return "mismatch"
+        poll = getattr(owned_process, "poll", None)
+        if not callable(poll) or poll() is not None:
+            return "absent"
+        if identity is None:
+            return "owned"
+    if (
+        not isinstance(identity, dict)
+        or identity.get("pid") != pid_value
+        or identity.get("argv") != command
+        or not isinstance(identity.get("boot_id"), str)
+        or type(identity.get("start_ticks")) is not int
+        or identity["start_ticks"] <= 0
+        or not isinstance(identity.get("executable"), dict)
+    ):
+        raise RadxaUSBError("state has invalid FUSE helper identity")
+    return process_probe(pid_value, identity)
+
+
+def _radxa_usb_capture_started_process(
+    process: object,
+    *,
+    command: Sequence[str],
+    capture: ProcessIdentityCapture,
+    process_probe: ProcessProbe,
+    cancel_requested: CancelChecker | None,
+    sleep: Callable[[float], None] = time.sleep,
+) -> dict[str, object]:
+    """Capture a stable just-exec identity while the exact Popen stays owned."""
+    pid = int(getattr(process, "pid"))
+    deadline = time.monotonic() + PROCESS_IDENTITY_RETRY_SECONDS
+    last_error = "process identity unavailable"
+    while True:
+        _radxa_usb_check_cancelled(cancel_requested)
+        poll = getattr(process, "poll", None)
+        if not callable(poll):
+            raise RadxaUSBError("started process has no ownership probe")
+        if poll() is not None:
+            raise RadxaUSBError("started process exited before identity capture")
+        try:
+            identity = capture(pid)
+            if identity.get("pid") != pid or identity.get("argv") != list(command):
+                raise RadxaUSBError("started process command does not match its plan")
+            if process_probe(pid, identity) == "owned" and poll() is None:
+                return identity
+            last_error = "process changed during identity capture"
+        except RadxaUSBError as exc:
+            last_error = str(exc)
+        if time.monotonic() >= deadline:
+            raise RadxaUSBError(f"cannot establish process identity: {last_error}")
+        sleep(SERVER_POLL_SECONDS)
+
+
+def _radxa_usb_wait_for_fuse_ready(
+    plan: RadxaUSBPlan,
+    state: dict[str, object],
+    state_path: Path,
+    *,
+    helper_process: object,
+    process_probe: ProcessProbe,
+    cancel_requested: CancelChecker | None,
+    stat_once: Callable[[Path], os.stat_result] = Path.stat,
+    sleep: Callable[[float], None] = time.sleep,
+) -> dict[str, object]:
+    """Wait for exact mount provenance, then inspect the backing size once."""
+    pid = int(_radxa_usb_state_value(state, "fuse_helper_pid", int))
+    identity = _radxa_usb_state_value(state, "fuse_helper_identity", dict)
+    deadline = time.monotonic() + FUSE_READY_TIMEOUT_SECONDS
+    while True:
+        _radxa_usb_check_cancelled(cancel_requested)
+        status = _radxa_usb_fuse_helper_status(
+            state,
+            owned_process=helper_process,
+            process_probe=process_probe,
+        )
+        if status != "owned":
+            raise RadxaUSBError(f"FUSE helper is {status} before mount readiness")
+        mount = _radxa_usb_fuse_mount(state)
+        if mount is not None:
+            state["fuse_mount_identity"] = mount
+            _radxa_usb_atomic_json(state_path, state)
+            metadata = stat_once(plan.backing_path)
+            if (not stat.S_ISREG(metadata.st_mode)
+                    or metadata.st_size != plan.bound_content.baseline.size):
+                raise RadxaUSBError("FUSE backing size/type does not match the verified baseline")
+            state["fuse_backing_size"] = int(metadata.st_size)
+            _radxa_usb_atomic_json(state_path, state)
+            if (
+                _radxa_usb_fuse_helper_status(
+                    state,
+                    owned_process=helper_process,
+                    process_probe=process_probe,
+                )
+                != "owned"
+            ):
+                raise RadxaUSBError("FUSE helper exited after mount readiness")
+            return mount
+        if time.monotonic() >= deadline:
+            raise RadxaUSBError(f"FUSE helper PID {pid} did not mount before timeout")
+        sleep(SERVER_POLL_SECONDS)
 
 
 def _radxa_usb_create_gadget(
@@ -1717,11 +2083,18 @@ def _radxa_usb_create_gadget(
     )
     _radxa_usb_write_text(function / "stall", "1")
     _radxa_usb_write_text(function / "lun.0" / "removable", "1")
-    _radxa_usb_write_text(function / "lun.0" / "ro", "0")
+    requested_ro = "1" if plan.backing_kind == "fuse-direct" else "0"
+    _radxa_usb_write_text(function / "lun.0" / "ro", requested_ro)
     _radxa_usb_write_text(function / "lun.0" / "cdrom", "0")
     _radxa_usb_write_text(
-        function / "lun.0" / "file", str(plan.nbd_device.device_path)
+        function / "lun.0" / "file", str(plan.backing_path)
     )
+    effective_ro = _radxa_usb_read_text(function / "lun.0" / "ro")
+    if plan.backing_kind == "fuse-direct" and effective_ro != "1":
+        raise RadxaUSBError(
+            f"FUSE-backed mass storage did not remain read-only: lun.ro={effective_ro!r}"
+        )
+    state["fuse_lun_ro"] = effective_ro if plan.backing_kind == "fuse-direct" else None
     link = gadget / "configs" / "c.1" / "mass_storage.0"
     # Linux configfs resolves a function link through its configfs item, not as
     # an ordinary filesystem-relative symlink.  The Radxa kernel rejected the
@@ -1862,6 +2235,19 @@ def _radxa_usb_state_value(state: Mapping[str, object], key: str, kind: type):
     return value
 
 
+def _radxa_usb_state_backing_kind(state: Mapping[str, object]) -> str:
+    """Resolve v5 transport while treating only v4 as legacy raw NBD."""
+    schema = state.get("schema")
+    if schema == LEGACY_STATE_SCHEMA_V4:
+        return "nbd"
+    if schema != STATE_SCHEMA:
+        raise RadxaUSBError("unsupported arm-state schema")
+    backing_kind = state.get("backing_kind")
+    if backing_kind not in BACKING_KINDS:
+        raise RadxaUSBError(f"state has invalid backing kind: {backing_kind!r}")
+    return str(backing_kind)
+
+
 def _radxa_usb_live_identity(device: RadxaUSBNbdDevice) -> dict[str, object]:
     """Return the live evidence that distinguishes one NBD connection."""
     metadata = device.sysfs_path.lstat()
@@ -1887,21 +2273,39 @@ def _radxa_usb_checkpoint(
 
 
 def _radxa_usb_cleanup_flags(state: Mapping[str, object]) -> dict[str, bool]:
-    """Validate and return the four persisted cleanup progress flags."""
+    """Validate cleanup flags, adding FUSE-only checkpoints to legacy v4."""
     value = state.get("cleanup")
     if not isinstance(value, dict):
         raise RadxaUSBError("state has no cleanup progress record")
     flags: dict[str, bool] = {}
-    for name in (
-        "udc_unbound",
-        "nbd_detached",
-        "gadget_removed",
-        "nbdkit_stopped",
-    ):
+    schema = state.get("schema")
+    legacy = schema == LEGACY_STATE_SCHEMA_V4
+    backing_kind = "nbd" if legacy else state.get("backing_kind")
+    names = ["udc_unbound", "nbd_detached", "gadget_removed"]
+    if not legacy:
+        names.extend(("fuse_unmounted", "fuse_helper_stopped"))
+    names.append("nbdkit_stopped")
+    for name in names:
         if not isinstance(value.get(name), bool):
             raise RadxaUSBError(f"state cleanup flag is invalid: {name}")
         flags[name] = bool(value[name])
+    if legacy or backing_kind == "nbd":
+        flags["fuse_unmounted"] = True
+        flags["fuse_helper_stopped"] = True
+    elif backing_kind == "fuse-direct":
+        flags["nbd_detached"] = True
+    else:
+        raise RadxaUSBError(f"state has invalid backing kind: {backing_kind!r}")
     return flags
+
+
+def radxa_usb_cleanup_started(state: Mapping[str, object]) -> bool:
+    """Return whether relevant cleanup checkpoints have begun for this transport."""
+    kind = _radxa_usb_state_backing_kind(state)
+    flags = _radxa_usb_cleanup_flags(state)
+    names = ["udc_unbound", "gadget_removed", "nbdkit_stopped"]
+    names += ["nbd_detached"] if kind == "nbd" else ["fuse_unmounted", "fuse_helper_stopped"]
+    return any(flags[name] for name in names)
 
 
 def _radxa_usb_validate_gadget_identity(
@@ -1953,7 +2357,10 @@ def _radxa_usb_validate_gadget_identity(
         raise RadxaUSBError("gadget identity file is missing")
     config_directory = gadget / "configs" / "c.1"
     function = gadget / "functions" / "mass_storage.0"
-    expected_backing = str(_radxa_usb_state_value(state, "nbd_device", str))
+    if state.get("schema") == LEGACY_STATE_SCHEMA_V4:
+        expected_backing = str(_radxa_usb_state_value(state, "nbd_device", str))
+    else:
+        expected_backing = str(_radxa_usb_state_value(state, "backing_path", str))
     if phase in ("configured", "attached"):
         _radxa_usb_assert_safe_path(config_directory)
         _radxa_usb_assert_safe_path(function)
@@ -1965,6 +2372,8 @@ def _radxa_usb_validate_gadget_identity(
         backing = _radxa_usb_read_text(backing_path)
         if backing != expected_backing:
             raise RadxaUSBError("gadget backing device no longer matches owned state")
+        if state.get("backing_kind") == "fuse-direct" and _radxa_usb_read_text(function / "lun.0" / "ro") != "1":
+            raise RadxaUSBError("FUSE gadget is no longer read-only")
         config_link = config_directory / "mass_storage.0"
         if not config_link.is_symlink():
             raise RadxaUSBError("gadget function link is missing")
@@ -2013,8 +2422,7 @@ def _radxa_usb_unbind_owned_gadget(
     backend identity changes, the car-facing USB endpoint must still be removed
     immediately while foreign backend resources remain untouched.
     """
-    if state.get("schema") != STATE_SCHEMA:
-        raise RadxaUSBError(f"refusing unknown state schema in {state_path}")
+    _radxa_usb_state_backing_kind(state)
     if str(_radxa_usb_state_value(state, "state_root", str)) != str(
         state_path.parent
     ):
@@ -2197,6 +2605,124 @@ def _radxa_usb_stop_owned_nbdkit(
     _radxa_usb_checkpoint(state, state_path, "nbdkit_stopped")
 
 
+def _radxa_usb_unmount_fuse(
+    state: dict[str, object],
+    *,
+    state_path: Path,
+    runner: CommandRunner,
+) -> None:
+    """Unmount only the exact recorded FUSE target; lazy success is forbidden."""
+    live = _radxa_usb_validate_fuse_mount(state, required=False)
+    if live is None:
+        _radxa_usb_checkpoint(state, state_path, "fuse_unmounted")
+        return
+    if state.get("fuse_mount_identity") is None:
+        # A helper can mount just before startup fails. Its unique source and
+        # recorded private parent prove ownership before we checkpoint it.
+        state["fuse_mount_identity"] = live
+        _radxa_usb_atomic_json(state_path, state)
+    command = state.get("fuse_unmount_command")
+    if (
+        not isinstance(command, list)
+        or len(command) != 3
+        or any(not isinstance(argument, str) for argument in command)
+        or Path(command[0]).name != "fusermount3"
+        or command[1] != "-u"
+        or command[2] != state.get("fuse_mountpoint")
+        or command[0] != state.get("fuse_fusermount")
+        or "-z" in command
+    ):
+        raise RadxaUSBError("state has no valid non-lazy FUSE unmount command")
+    result = runner(command)
+    if result.returncode != 0 and _radxa_usb_validate_fuse_mount(
+        state, required=False
+    ) is not None:
+        _radxa_usb_require_success(command, result)
+    deadline = time.monotonic() + FUSE_UNMOUNT_TIMEOUT_SECONDS
+    while _radxa_usb_validate_fuse_mount(state, required=False) is not None:
+        if time.monotonic() >= deadline:
+            raise RadxaUSBError("FUSE mount remained live after unmount")
+        time.sleep(SERVER_POLL_SECONDS)
+    _radxa_usb_checkpoint(state, state_path, "fuse_unmounted")
+
+
+def _radxa_usb_stop_fuse_helper(
+    state: dict[str, object],
+    *,
+    state_path: Path,
+    owned_process: object | None,
+    process_probe: ProcessProbe,
+    process_terminator: ProcessTerminator | None = None,
+) -> None:
+    """Stop only the exact helper instance after its mount has been removed."""
+    status = _radxa_usb_fuse_helper_status(
+        state,
+        owned_process=owned_process,
+        process_probe=process_probe,
+    )
+    if status == "mismatch":
+        raise RadxaUSBError("FUSE helper PID belongs to a different process")
+    if status == "absent":
+        _radxa_usb_checkpoint(state, state_path, "fuse_helper_stopped")
+        return
+    pid = int(_radxa_usb_state_value(state, "fuse_helper_pid", int))
+    if owned_process is not None:
+        if state.get("fuse_mount_identity") is None:
+            owned_process.terminate()
+        owned_process.wait(timeout=5)
+        status = _radxa_usb_fuse_helper_status(
+            state,
+            owned_process=owned_process,
+            process_probe=process_probe,
+        )
+    else:
+        identity = _radxa_usb_state_value(state, "fuse_helper_identity", dict)
+        if state.get("fuse_mount_identity") is None:
+            if process_terminator is None:
+                _radxa_usb_signal_process_instance(
+                    pid, identity, process_probe, label="FUSE helper"
+                )
+            else:
+                process_terminator(pid)
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            status = process_probe(pid, identity)
+            if status != "owned":
+                break
+            time.sleep(SERVER_POLL_SECONDS)
+    if status == "mismatch":
+        raise RadxaUSBError("FUSE helper PID changed during cleanup")
+    if status != "absent":
+        raise RadxaUSBError("FUSE helper did not stop")
+    _radxa_usb_checkpoint(state, state_path, "fuse_helper_stopped")
+
+
+def _radxa_usb_remove_fuse_files(state: Mapping[str, object], state_path: Path) -> None:
+    """Remove only the unmounted regular stub and this helper's pidfile."""
+    directory = Path(str(_radxa_usb_state_value(state, "fuse_mount_directory", str)))
+    if directory.exists() or directory.is_symlink():
+        _radxa_usb_validate_fuse_directory(state)
+        backing = Path(str(_radxa_usb_state_value(state, "backing_path", str)))
+        if backing.exists() or backing.is_symlink():
+            _radxa_usb_assert_safe_path(backing)
+            info = backing.lstat()
+            if (not stat.S_ISREG(info.st_mode)
+                    or info.st_dev != state.get("fuse_backing_dev")
+                    or info.st_ino != state.get("fuse_backing_ino")):
+                raise RadxaUSBError("unmounted FUSE stub identity changed")
+            backing.unlink()
+        directory.rmdir()
+    pidfile = state_path.parent / "fuse-helper.pid"
+    if pidfile.exists() or pidfile.is_symlink():
+        _radxa_usb_assert_safe_path(pidfile)
+        info = pidfile.lstat()
+        if (not stat.S_ISREG(info.st_mode) or info.st_size > 128
+                or info.st_uid != os.geteuid()
+                or pidfile.read_text().strip() != str(state.get("fuse_helper_pid"))):
+            raise RadxaUSBError("FUSE pidfile identity changed")
+        pidfile.unlink()
+
+
 def _radxa_usb_attach_attempt(
     plan: RadxaUSBPlan, current_nbd: RadxaUSBNbdDevice
 ) -> dict[str, object]:
@@ -2302,12 +2828,15 @@ def _radxa_usb_cleanup(
     runner: CommandRunner,
     is_block_device: PathChecker = _radxa_usb_default_is_block,
     owned_process: object | None = None,
+    owned_fuse_process: object | None = None,
     process_probe: ProcessProbe = _radxa_usb_default_process_probe,
     process_terminator: ProcessTerminator | None = None,
 ) -> list[str]:
     """Preflight and checkpoint an ownership-safe teardown."""
-    if state.get("schema") != STATE_SCHEMA:
-        return [f"refusing to use unknown state schema in {state_path}"]
+    try:
+        backing_kind = _radxa_usb_state_backing_kind(state)
+    except RadxaUSBError as exc:
+        return [f"refusing to use unknown state schema in {state_path}: {exc}"]
     if state.get("reconciliation_required"):
         return [
             f"reconciliation required before teardown: {state_path}; "
@@ -2335,12 +2864,26 @@ def _radxa_usb_cleanup(
             gadget = None
             if recorded_gadget.exists() or recorded_gadget.is_symlink():
                 raise RadxaUSBError("gadget exists after gadget-removed checkpoint")
-        nbd_live = _radxa_usb_validate_nbd_identity(
-            state, is_block_device=is_block_device
-        )
-        _radxa_usb_detach_command(state)
-        if flags["nbd_detached"] and nbd_live is not None:
-            raise RadxaUSBError("NBD is connected after detached checkpoint")
+        if backing_kind == "nbd":
+            nbd_live = _radxa_usb_validate_nbd_identity(
+                state, is_block_device=is_block_device
+            )
+            _radxa_usb_detach_command(state)
+            if flags["nbd_detached"] and nbd_live is not None:
+                raise RadxaUSBError("NBD is connected after detached checkpoint")
+        else:
+            fuse_status = _radxa_usb_fuse_helper_status(
+                state,
+                owned_process=owned_fuse_process,
+                process_probe=process_probe,
+            )
+            if fuse_status == "mismatch":
+                raise RadxaUSBError("FUSE helper PID belongs to a different process")
+            if flags["fuse_helper_stopped"] and fuse_status == "owned":
+                raise RadxaUSBError("FUSE helper is live after stopped checkpoint")
+            fuse_mount = _radxa_usb_validate_fuse_mount(state, required=False)
+            if flags["fuse_unmounted"] and fuse_mount is not None:
+                raise RadxaUSBError("FUSE mount is live after unmounted checkpoint")
         process_status = _radxa_usb_process_status(
             state,
             owned_process=owned_process,
@@ -2386,7 +2929,11 @@ def _radxa_usb_cleanup(
 
     # Closing the configfs backing handle must precede NBD detach. Linux
     # rejects the NBD capacity reset while configfs still has the device open.
-    if not flags["nbd_detached"] and errors == []:
+    if (
+        backing_kind == "nbd"
+        and not flags["nbd_detached"]
+        and errors == []
+    ):
         if state.get("nbd_attached"):
             try:
                 detach = _radxa_usb_detach_command(state)
@@ -2419,6 +2966,28 @@ def _radxa_usb_cleanup(
             except OSError as exc:
                 errors.append(f"NBD checkpoint failed: {exc}")
 
+    if backing_kind == "fuse-direct" and errors == []:
+        if not flags["fuse_unmounted"]:
+            try:
+                _radxa_usb_unmount_fuse(
+                    state, state_path=state_path, runner=runner
+                )
+                flags["fuse_unmounted"] = True
+            except (OSError, RadxaUSBError) as exc:
+                errors.append(f"FUSE unmount failed: {exc}")
+        if not flags["fuse_helper_stopped"] and errors == []:
+            try:
+                _radxa_usb_stop_fuse_helper(
+                    state,
+                    state_path=state_path,
+                    owned_process=owned_fuse_process,
+                    process_probe=process_probe,
+                    process_terminator=process_terminator,
+                )
+                flags["fuse_helper_stopped"] = True
+            except (OSError, RadxaUSBError, subprocess.SubprocessError) as exc:
+                errors.append(f"FUSE helper teardown failed: {exc}")
+
     if not flags["nbdkit_stopped"] and errors == []:
         try:
             _radxa_usb_stop_owned_nbdkit(
@@ -2434,6 +3003,11 @@ def _radxa_usb_cleanup(
 
     if errors:
         return errors
+    if backing_kind == "fuse-direct":
+        try:
+            _radxa_usb_remove_fuse_files(state, state_path)
+        except (OSError, RadxaUSBError) as exc:
+            return [f"FUSE files could not be released: {exc}"]
     if state.get("state_dir_created"):
         for owned_log in ("nbdkit.log", "reads.log"):
             try:
@@ -2466,18 +3040,19 @@ def _radxa_usb_health(
     state: Mapping[str, object],
     *,
     owned_process: object | None,
+    owned_fuse_process: object | None = None,
     process_probe: ProcessProbe,
     is_block_device: PathChecker,
 ) -> dict[str, object]:
     """Validate every live component required to keep USB safely exposed."""
-    if state.get("schema") != STATE_SCHEMA:
-        raise RadxaUSBError("armed state uses an unsupported schema")
-    flags = _radxa_usb_cleanup_flags(state)
-    if any(flags.values()):
+    backing_kind = _radxa_usb_state_backing_kind(state)
+    if radxa_usb_cleanup_started(state):
         raise RadxaUSBError("armed state has already entered teardown")
     if state.get("gadget_phase") != "attached" or not state.get("udc_attached"):
         raise RadxaUSBError("USB gadget is not recorded as attached")
-    if state.get("nbd_phase") != "attached" or not state.get("nbd_attached"):
+    if backing_kind == "nbd" and (
+        state.get("nbd_phase") != "attached" or not state.get("nbd_attached")
+    ):
         raise RadxaUSBError("NBD backend is not recorded as attached")
     process_status = _radxa_usb_process_status(
         state,
@@ -2486,12 +3061,45 @@ def _radxa_usb_health(
     )
     if process_status != "owned":
         raise RadxaUSBError(f"nbdkit backend is {process_status}")
-    nbd = _radxa_usb_validate_nbd_identity(
-        state,
-        is_block_device=is_block_device,
-    )
-    if nbd is None:
-        raise RadxaUSBError("owned NBD connection disappeared")
+    if backing_kind == "nbd":
+        nbd = _radxa_usb_validate_nbd_identity(
+            state,
+            is_block_device=is_block_device,
+        )
+        if nbd is None:
+            raise RadxaUSBError("owned NBD connection disappeared")
+        backing_detail: dict[str, object] = {
+            "nbd_name": str(_radxa_usb_state_value(state, "nbd_name", str)),
+            "nbd_device": str(_radxa_usb_state_value(state, "nbd_device", str)),
+            "nbd_live_identity": _radxa_usb_state_value(
+                state, "nbd_live_identity", dict
+            ),
+        }
+        backing_path = str(_radxa_usb_state_value(state, "nbd_device", str))
+    else:
+        helper_status = _radxa_usb_fuse_helper_status(
+            state,
+            owned_process=owned_fuse_process,
+            process_probe=process_probe,
+        )
+        if helper_status != "owned":
+            raise RadxaUSBError(f"FUSE helper is {helper_status}")
+        mount = _radxa_usb_validate_fuse_mount(state)
+        assert mount is not None
+        backing_path = str(_radxa_usb_state_value(state, "backing_path", str))
+        backing_detail = {
+            "helper_pid": int(_radxa_usb_state_value(state, "fuse_helper_pid", int)),
+            "helper_identity": _radxa_usb_state_value(
+                state, "fuse_helper_identity", dict
+            ),
+            "mountpoint": str(_radxa_usb_state_value(state, "fuse_mountpoint", str)),
+            "fsname": str(_radxa_usb_state_value(state, "fuse_fsname", str)),
+            "mount_id": int(mount["mount_id"]),
+            "fstype": str(mount["fstype"]),
+            "readonly": True,
+            "lun_ro": str(_radxa_usb_state_value(state, "fuse_lun_ro", str)),
+            "backing_size": int(_radxa_usb_state_value(state, "fuse_backing_size", int)),
+        }
     gadget = _radxa_usb_validate_gadget_identity(state)
     if gadget is None:
         raise RadxaUSBError("owned USB gadget disappeared")
@@ -2499,13 +3107,20 @@ def _radxa_usb_health(
     expected_udc = str(_radxa_usb_state_value(state, "udc", str))
     if live_udc != expected_udc:
         raise RadxaUSBError("owned USB gadget is no longer bound to its UDC")
-    return {
+    result: dict[str, object] = {
         "armed": True,
+        "ready": True,
+        "healthy": True,
+        "backing_kind": backing_kind,
+        "backing_path": backing_path,
+        "backing_detail": backing_detail,
         "nbdkit_pid": int(_radxa_usb_state_value(state, "nbdkit_pid", int)),
-        "nbd_device": str(_radxa_usb_state_value(state, "nbd_device", str)),
         "udc": expected_udc,
         "gadget": str(gadget),
     }
+    if backing_kind == "nbd":
+        result["nbd_device"] = backing_path
+    return result
 
 
 def radxa_usb_status(
@@ -2597,6 +3212,7 @@ def radxa_usb_supervise(
         health = _radxa_usb_health(
             armed.state,
             owned_process=armed.nbdkit_process,
+            owned_fuse_process=armed.fuse_helper_process,
             process_probe=process_probe,
             is_block_device=is_block_device,
         )
@@ -2611,6 +3227,7 @@ def radxa_usb_supervise(
             health = _radxa_usb_health(
                 armed.state,
                 owned_process=armed.nbdkit_process,
+                owned_fuse_process=armed.fuse_helper_process,
                 process_probe=process_probe,
                 is_block_device=is_block_device,
             )
@@ -2631,6 +3248,7 @@ def radxa_usb_supervise(
                 runner=runner,
                 is_block_device=is_block_device,
                 owned_process=armed.nbdkit_process,
+                owned_fuse_process=armed.fuse_helper_process,
                 process_probe=process_probe,
             )
         )
@@ -2655,6 +3273,7 @@ def radxa_usb_supervise(
         runner=runner,
         is_block_device=is_block_device,
         owned_process=armed.nbdkit_process,
+        owned_fuse_process=armed.fuse_helper_process,
         process_probe=process_probe,
     )
     if cleanup_errors:
@@ -2701,9 +3320,10 @@ def radxa_usb_arm(
         raise RadxaUSBError(f"refusing to adopt existing state root: {state_root}")
     if not state_root.parent.is_dir():
         raise RadxaUSBError(f"state parent is unavailable: {state_root.parent}")
-    state_root.mkdir()
+    state_root.mkdir(mode=0o700)
     state_dir_created = True
     process = None
+    fuse_process = None
     gadget_identity = f"{USB_SERIAL_PREFIX}-{secrets.token_hex(8)}"
     state = _radxa_usb_state_document(
         plan,
@@ -2744,51 +3364,104 @@ def radxa_usb_arm(
         _radxa_usb_atomic_json(state_path, state)
         _radxa_usb_check_cancelled(cancel_requested)
 
-        current_nbd = _radxa_usb_snapshot_nbd(
-            sysfs_root=plan.sysfs_root,
-            nbd_name=plan.nbd_device.name,
-            device_path=plan.nbd_device.device_path,
-            is_block_device=is_block_device,
-        )
-        if current_nbd is None:
-            raise RadxaUSBError(
-                f"selected NBD device disappeared: {plan.nbd_device.name}"
-            )
-        if not current_nbd.free:
-            raise RadxaUSBError(
-                "selected NBD device was claimed after planning: "
-                + str(current_nbd.occupancy_reason())
-            )
-        state["nbd_phase"] = "attach_pending"
-        state["nbd_attempt"] = _radxa_usb_attach_attempt(plan, current_nbd)
-        _radxa_usb_atomic_json(state_path, state)
-        try:
-            result = runner(plan.nbd_client_attach_command)
-        except BaseException as exc:
-            classification_error: str | None = None
+        if plan.backing_kind == "fuse-direct":
+            _radxa_usb_preflight_fuse_helper(plan.fuse_helper)
+            assert plan.fuse_mount_directory is not None
+            plan.fuse_mount_directory.mkdir(mode=0o700)
+            parent_info = plan.fuse_mount_directory.lstat()
+            state["fuse_mount_dir_dev"] = parent_info.st_dev
+            state["fuse_mount_dir_ino"] = parent_info.st_ino
+            # A regular stub selects nbdfuse file-mount mode; its private
+            # parent stays outside FUSE for nonblocking ownership checks.
+            fd = os.open(plan.backing_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
             try:
-                _radxa_usb_classify_attach_result(
-                    plan, state, is_block_device=is_block_device
+                stub = os.fstat(fd)
+                state["fuse_backing_dev"] = stub.st_dev
+                state["fuse_backing_ino"] = stub.st_ino
+            finally:
+                os.close(fd)
+            _radxa_usb_atomic_json(state_path, state)
+            _radxa_usb_check_cancelled(cancel_requested)
+            fuse_process = process_starter(
+                list(plan.fuse_helper_command), stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                start_new_session=True, close_fds=True,
+            )
+            state["fuse_helper_pid"] = int(fuse_process.pid)
+            _radxa_usb_atomic_json(state_path, state)
+            state["fuse_helper_identity"] = _radxa_usb_capture_started_process(
+                fuse_process, command=plan.fuse_helper_command,
+                capture=process_identity_capture, process_probe=process_probe,
+                cancel_requested=cancel_requested,
+            )
+            _radxa_usb_atomic_json(state_path, state)
+            _radxa_usb_wait_for_fuse_ready(
+                plan, state, state_path, helper_process=fuse_process,
+                process_probe=process_probe, cancel_requested=cancel_requested,
+            )
+        else:
+            current_nbd = _radxa_usb_snapshot_nbd(
+                sysfs_root=plan.sysfs_root,
+                nbd_name=plan.nbd_device.name,
+                device_path=plan.nbd_device.device_path,
+                is_block_device=is_block_device,
+            )
+            if current_nbd is None:
+                raise RadxaUSBError(
+                    f"selected NBD device disappeared: {plan.nbd_device.name}"
                 )
-            except (OSError, RadxaUSBError) as identity_exc:
-                classification_error = str(identity_exc)
-            if classification_error:
-                reconciliation = _radxa_usb_preserve_reconciliation(
-                    state,
-                    state_path=state_path,
-                    reason=classification_error,
-                    owned_process=process,
-                    process_probe=process_probe,
+            if not current_nbd.free:
+                raise RadxaUSBError(
+                    "selected NBD device was claimed after planning: "
+                    + str(current_nbd.occupancy_reason())
                 )
-                if not isinstance(exc, Exception):
-                    exc.add_note(str(reconciliation))
-                    raise
-                raise reconciliation from exc
-            raise
-        if result.returncode != 0:
+            state["nbd_phase"] = "attach_pending"
+            state["nbd_attempt"] = _radxa_usb_attach_attempt(plan, current_nbd)
+            _radxa_usb_atomic_json(state_path, state)
             try:
-                _radxa_usb_classify_attach_result(
-                    plan, state, is_block_device=is_block_device
+                result = runner(plan.nbd_client_attach_command)
+            except BaseException as exc:
+                classification_error: str | None = None
+                try:
+                    _radxa_usb_classify_attach_result(
+                        plan, state, is_block_device=is_block_device
+                    )
+                except (OSError, RadxaUSBError) as identity_exc:
+                    classification_error = str(identity_exc)
+                if classification_error:
+                    reconciliation = _radxa_usb_preserve_reconciliation(
+                        state,
+                        state_path=state_path,
+                        reason=classification_error,
+                        owned_process=process,
+                        process_probe=process_probe,
+                    )
+                    if not isinstance(exc, Exception):
+                        exc.add_note(str(reconciliation))
+                        raise
+                    raise reconciliation from exc
+                raise
+            if result.returncode != 0:
+                try:
+                    _radxa_usb_classify_attach_result(
+                        plan, state, is_block_device=is_block_device
+                    )
+                except (OSError, RadxaUSBError) as identity_exc:
+                    raise _radxa_usb_preserve_reconciliation(
+                        state,
+                        state_path=state_path,
+                        reason=str(identity_exc),
+                        owned_process=process,
+                        process_probe=process_probe,
+                    ) from identity_exc
+                state["nbd_phase"] = "attach_failed"
+                _radxa_usb_atomic_json(state_path, state)
+                _radxa_usb_require_success(
+                    plan.nbd_client_attach_command, result
+                )
+            try:
+                attached_nbd = _radxa_usb_classify_attach_result(
+                    plan, state, is_block_device=is_block_device, succeeded=True
                 )
             except (OSError, RadxaUSBError) as identity_exc:
                 raise _radxa_usb_preserve_reconciliation(
@@ -2798,31 +3471,14 @@ def radxa_usb_arm(
                     owned_process=process,
                     process_probe=process_probe,
                 ) from identity_exc
-            state["nbd_phase"] = "attach_failed"
+            if attached_nbd is None:
+                raise RadxaUSBError(
+                    "nbd-client succeeded without observable NBD ownership"
+                )
+            state["nbd_live_identity"] = _radxa_usb_live_identity(attached_nbd)
+            state["nbd_attached"] = True
+            state["nbd_phase"] = "attached"
             _radxa_usb_atomic_json(state_path, state)
-            _radxa_usb_require_success(
-                plan.nbd_client_attach_command, result
-            )
-        try:
-            attached_nbd = _radxa_usb_classify_attach_result(
-                plan, state, is_block_device=is_block_device, succeeded=True
-            )
-        except (OSError, RadxaUSBError) as identity_exc:
-            raise _radxa_usb_preserve_reconciliation(
-                state,
-                state_path=state_path,
-                reason=str(identity_exc),
-                owned_process=process,
-                process_probe=process_probe,
-            ) from identity_exc
-        if attached_nbd is None:
-            raise RadxaUSBError(
-                "nbd-client succeeded without observable NBD ownership"
-            )
-        state["nbd_live_identity"] = _radxa_usb_live_identity(attached_nbd)
-        state["nbd_attached"] = True
-        state["nbd_phase"] = "attached"
-        _radxa_usb_atomic_json(state_path, state)
 
         _radxa_usb_check_cancelled(cancel_requested)
         _radxa_usb_create_gadget(plan, state, state_path)
@@ -2848,6 +3504,8 @@ def radxa_usb_arm(
             nbdkit_pid=pid,
             nbdkit_process=process,
             state=state,
+            fuse_helper_pid=state["fuse_helper_pid"],
+            fuse_helper_process=fuse_process,
         )
     except RadxaUSBReconciliationRequired:
         raise
@@ -2859,6 +3517,7 @@ def radxa_usb_arm(
                 runner=runner,
                 is_block_device=is_block_device,
                 owned_process=process,
+                owned_fuse_process=fuse_process,
                 process_probe=process_probe,
             )
         except BaseException as cleanup_exc:
@@ -2938,10 +3597,12 @@ def radxa_usb_main(argv: Sequence[str] | None = None) -> int:
     inspect_parser = sub.add_parser("inspect", help="report board and resource state")
     _radxa_usb_add_common_paths(inspect_parser)
     inspect_parser.add_argument("--json", action="store_true")
+    inspect_parser.add_argument("--backing-kind", choices=sorted(BACKING_KINDS), default="nbd")
 
     plan_parser = sub.add_parser("plan", help="validate inputs and print an arm plan")
     _radxa_usb_add_common_paths(plan_parser)
     plan_parser.add_argument("--serve-plan", required=True)
+    plan_parser.add_argument("--backing-kind", choices=sorted(BACKING_KINDS), default="nbd")
     plan_parser.add_argument("--udc")
     plan_parser.add_argument("--nbd")
     plan_parser.add_argument("--nbd-host", default=DEFAULT_NBD_HOST)
@@ -2954,6 +3615,7 @@ def radxa_usb_main(argv: Sequence[str] | None = None) -> int:
     )
     _radxa_usb_add_common_paths(arm_parser)
     arm_parser.add_argument("--serve-plan", required=True)
+    arm_parser.add_argument("--backing-kind", choices=sorted(BACKING_KINDS), default="nbd")
     arm_parser.add_argument("--udc")
     arm_parser.add_argument("--nbd")
     arm_parser.add_argument("--nbd-host", default=DEFAULT_NBD_HOST)
@@ -3016,6 +3678,7 @@ def radxa_usb_main(argv: Sequence[str] | None = None) -> int:
             return 0
         if args.command == "inspect":
             inspection = radxa_usb_inspect(
+                backing_kind=args.backing_kind,
                 sysfs_root=args.sysfs_root,
                 dev_root=args.dev_root,
                 configfs_root=args.configfs_root,
@@ -3042,6 +3705,7 @@ def radxa_usb_main(argv: Sequence[str] | None = None) -> int:
         if args.command in ("plan", "arm"):
             plan = radxa_usb_build_plan(
                 serve_plan=args.serve_plan,
+                backing_kind=args.backing_kind,
                 udc=args.udc,
                 nbd_device=args.nbd,
                 nbd_host=args.nbd_host,
@@ -3099,7 +3763,7 @@ def radxa_usb_main(argv: Sequence[str] | None = None) -> int:
             else:
                 print(
                     f"{'armed' if isinstance(result, RadxaUSBArmed) else 'dry-run'}: "
-                    f"UDC={plan.udc} NBD={plan.nbd_device.device_path} "
+                    f"UDC={plan.udc} backing={plan.backing_kind}:{plan.backing_path} "
                     f"port={plan.nbd_port}"
                 )
                 if isinstance(result, RadxaUSBArmed):
@@ -3113,7 +3777,8 @@ def radxa_usb_main(argv: Sequence[str] | None = None) -> int:
             else:
                 print(
                     "update media healthy: "
-                    f"PID={result['nbdkit_pid']} NBD={result['nbd_device']} "
+                    f"runtime={TOOL_VERSION} PID={result['nbdkit_pid']} "
+                    f"backing={result['backing_kind']}:{result['backing_path']} "
                     f"UDC={result['udc']}"
                 )
             return 0

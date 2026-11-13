@@ -387,6 +387,21 @@ class RadxaUSBFixture(unittest.TestCase):
 
 
 class InspectionTests(RadxaUSBFixture):
+    def test_fuse_inspection_uses_the_recorded_backend_mount_namespace(self):
+        """A sandboxed dashboard must compare mount IDs in the owner's namespace."""
+        (self.proc / 'self').mkdir(exist_ok=True)
+        (self.proc / '4242').mkdir(exist_ok=True)
+        target = self.root / 'lun'
+        state = {'proc_root': str(self.proc), 'nbdkit_pid': 4242,
+                 'fuse_mountpoint': str(target), 'fuse_fsname': 'ioniq-test'}
+        line = ' 1 0:50 / ' + str(target) + ' rw - fuse ioniq-test rw,user_id=0\n'
+        (self.proc / 'self/mountinfo').write_text('100' + line)
+        owner = self.proc / '4242/mountinfo'
+        owner.write_text('200' + line)
+        self.assertEqual(radxa_usb._radxa_usb_fuse_mount(state)['mount_id'], 200)
+        owner.unlink()
+        self.assertEqual(radxa_usb._radxa_usb_fuse_mount(state)['mount_id'], 100)
+
     """Exercise read-only platform discovery."""
 
     def test_inspect_discovers_radxa_udc_nbd_devices_and_dependencies(self) -> None:
@@ -1428,7 +1443,7 @@ class ArmAndTeardownTests(RadxaUSBFixture):
         self.arm(plan)
         before = (self.state / "state.json").read_bytes()
         state = json.loads(before)
-        self.assertEqual(state["schema"], "ioniq-radxa-usb-state/v4")
+        self.assertEqual(state["schema"], "ioniq-radxa-usb-state/v5")
         self.assertEqual(state["nbdkit_identity"]["argv"], list(plan.nbdkit_command))
         command_count = len(self.commands)
         changed_media = [

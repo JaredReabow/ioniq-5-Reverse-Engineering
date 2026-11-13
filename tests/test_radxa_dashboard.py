@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -78,7 +79,7 @@ class DashboardFixture(unittest.TestCase):
             "sha256": "b" * 64,
         }
         state = {
-            "schema": radxa_dashboard.CONTROLLER_STATE_SCHEMA,
+            "schema": "ioniq-radxa-usb-state/v4",
             "tool_version": "1.2.0",
             "udc": "fixture-udc",
             "gadget_name": "ioniq_toctou",
@@ -237,6 +238,57 @@ class DashboardFixture(unittest.TestCase):
 
 class RadxaDashboardTests(DashboardFixture):
     """Verify honest progress, bounded observation and HTTP safety."""
+
+    def test_readable_zero_size_proc_cmdline_reports_the_running_backend(self) -> None:
+        """Kernel procfs size zero does not mean its command line is empty."""
+        from types import SimpleNamespace
+        cmdline = (self.proc / '4242/cmdline').stat()
+        real_fstat = os.fstat
+
+        def proc_stat(descriptor):
+            info = real_fstat(descriptor)
+            if (info.st_dev, info.st_ino) == (cmdline.st_dev, cmdline.st_ino):
+                return SimpleNamespace(st_mode=info.st_mode, st_size=0, st_mtime=info.st_mtime)
+            return info
+
+        with mock.patch.object(os, 'fstat', side_effect=proc_stat):
+            state = json.loads(self.state_path.read_text())
+            health, detail = radxa_dashboard._process_status(state, self.proc)
+        self.assertEqual(health, 'healthy', detail)
+
+    def test_head_reads_are_bounded_even_for_large_files(self) -> None:
+        """Both head and tail observation respect their byte budget."""
+        source = self.root / 'large-observation'
+        source.write_text('a' * 512)
+        snapshot = radxa_dashboard._bounded_file(source, limit=32, tail=False)
+        self.assertEqual(len(snapshot.text), 32)
+        self.assertTrue(snapshot.truncated)
+
+    def test_fuse_transport_uses_live_controller_verdict_without_nbd(self) -> None:
+        """A FUSE-backed session never depends on a stale NBD attachment."""
+        state = json.loads(self.state_path.read_text())
+        state['backing_kind'] = 'fuse-direct'
+        self.state_path.write_text(json.dumps(state))
+        (self.sysfs / 'block/nbd2/pid').unlink()
+        with mock.patch.object(radxa_dashboard._radxa_controller, 'radxa_usb_status',
+                               return_value={'healthy': True, 'backing_kind': 'fuse-direct'}) as probe:
+            status, _ = self.collect()
+        probe.assert_called_once_with(state_root=self.state_root)
+        row = next(item for item in status['connections'] if item['name'] == 'USB backing')
+        self.assertEqual(row['status'], 'healthy')
+        self.assertIn('read-only', row['value'])
+
+    def test_fuse_helper_failure_is_visible_in_dashboard(self) -> None:
+        """A recorded mount alone must not be displayed as a working transport."""
+        state = json.loads(self.state_path.read_text())
+        state['backing_kind'] = 'fuse-direct'
+        self.state_path.write_text(json.dumps(state))
+        with mock.patch.object(radxa_dashboard._radxa_controller, 'radxa_usb_status',
+                               side_effect=radxa_dashboard._radxa_controller.RadxaUSBError('helper exited')):
+            status, _ = self.collect()
+        row = next(item for item in status['connections'] if item['name'] == 'USB backing')
+        self.assertEqual(row['status'], 'error')
+        self.assertIn('helper exited', row['value'])
 
     def test_active_snapshot_reports_measured_coverage_without_flash_claim(self) -> None:
         status, commands = self.collect()
@@ -535,7 +587,7 @@ class RadxaDashboardTests(DashboardFixture):
             )
 
     def test_version_and_ui_have_recovery_and_reduced_motion(self) -> None:
-        self.assertEqual(radxa_dashboard.radxa_dashboard_version(), "1.0.7")
+        self.assertEqual(radxa_dashboard.radxa_dashboard_version(), "1.0.10")
         self.assertEqual(radxa_dashboard.radxa_dashboard_api_version(), "1.0.0")
         self.assertEqual(
             radxa_dashboard.DEFAULT_STATE_ROOT,
@@ -564,10 +616,29 @@ class RadxaDashboardTests(DashboardFixture):
         self.assertIn("No synthetic percentage", source)
         self.assertIn("Preparation progress", source)
         self.assertIn("prepare-log", source)
-        self.assertIn('"version">1.0.7', source)
+        self.assertIn('"version">1.0.10', source)
         self.assertIn("textContent", source)
         self.assertNotIn("--no-sandbox", source)
         self.assertNotIn("innerHTML", source)
+
+    def test_installed_script_resolves_canonical_controller_dependency(self) -> None:
+        """Exercise script-mode import from the separate installed dashboard directory."""
+        import shutil
+        installed = self.root / 'installed'
+        dashboard = installed / 'dashboard'
+        controller = installed / 'tools/uk_fw'
+        dashboard.mkdir(parents=True)
+        controller.mkdir(parents=True)
+        for name, dest in [('radxa_dashboard.py', dashboard), ('radxa_usb.py', controller)]:
+            shutil.copy2(PROJECT / 'tools/uk_fw' / name, dest / name)
+        installer = (PROJECT / 'tools/uk_fw/install-radxa-dashboard.sh').read_text()
+        self.assertIn('Environment=PYTHONPATH=/opt/ioniq5-update/tools/uk_fw', installer)
+        result = subprocess.run([sys.executable, str(dashboard / 'radxa_dashboard.py'), '--help'],
+                                cwd=self.root, env=os.environ | {'PYTHONPATH': str(controller)},
+                                capture_output=True, text=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('usage:', result.stdout)
+        self.assertIn('runuser -u "$desktop_user" -- "$configuration_helper"', installer)
         dashboard_source = (
             PROJECT / "tools/uk_fw/radxa_dashboard.py"
         ).read_text(encoding="utf-8")

@@ -2,7 +2,7 @@
 # Linux-only inner stage for build-owner-image.sh. The Wi-Fi PSK arrives on stdin.
 set -euo pipefail
 
-owner_image_version=1.0.6
+owner_image_version=1.1.0
 
 # BEGIN RADXA_OWNER_FIRST_BOOT_PATCH
 radxa_owner_patch_first_boot_config() {
@@ -132,9 +132,22 @@ fi
 printf '#!/bin/sh\nexit 101\n' >"$policy"
 chmod 0755 "$policy"
 
+base="$rootfs/opt/ioniq5-update"
+install -d -m 0755 "$base/tools/uk_fw"
+install -d -m 0700 "$base/helper-builds"
+install -m 0755 /workspace/tools/uk_fw/build-nbdfuse-direct.sh "$base/tools/uk_fw/build-nbdfuse-direct.sh"
+install -m 0644 /workspace/tools/uk_fw/ioniq-nbdfuse-direct.patch "$base/tools/uk_fw/ioniq-nbdfuse-direct.patch"
 chroot "$rootfs" /usr/bin/env DEBIAN_FRONTEND=noninteractive apt-get update
 chroot "$rootfs" /usr/bin/env DEBIAN_FRONTEND=noninteractive \
-    apt-get install -y --no-install-recommends nbd-client nbdkit nbdkit-plugin-python
+    apt-get install -y --no-install-recommends nbd-client nbdkit nbdkit-plugin-python \
+        fuse3 libfuse3-dev libnbd-dev build-essential pkg-config curl
+# Build the pinned helper while the build's resolver is installed. Retain its
+# source and license; the finished image never downloads or compiles at boot.
+chroot "$rootfs" /bin/bash /opt/ioniq5-update/tools/uk_fw/build-nbdfuse-direct.sh \
+    /opt/ioniq5-update/helper-builds/1.14.2-ioniq-direct.1
+install -d -m 0755 "$rootfs/usr/local/libexec"
+install -m 0755 "$base/helper-builds/1.14.2-ioniq-direct.1/ioniq-nbdfuse-direct" \
+    "$rootfs/usr/local/libexec/ioniq-nbdfuse-direct"
 chroot "$rootfs" apt-get clean
 rm -rf "$rootfs/var/lib/apt/lists"/*
 
@@ -229,18 +242,18 @@ cp --sparse=always \
     /workspace/work/radxa-toctou-build/ioniq5_eu_260128_baseline.img.dmg \
     "$base/media/ioniq5-eu-260128-baseline.img"
 cp \
-    /workspace/work/radxa-toctou-build/owner_usb_ssh_v2_260128.te2 \
-    "$base/media/owner-usb-ssh-v2-260128.te2"
+    /workspace/work/radxa-toctou-build/owner_access_v4.0.2_260128.te2 \
+    "$base/media/owner_access_v4.0.2_260128.te2"
 install -m 0644 \
-    /workspace/work/radxa-toctou-build/owner_usb_ssh_v2_260128.te2.manifest.json \
-    "$base/config/owner-usb-ssh-v2-260128.te2.manifest.json"
+    /workspace/work/radxa-toctou-build/owner_access_v4.0.2_260128.te2.manifest.json \
+    "$base/config/owner_access_v4.0.2_260128.te2.manifest.json"
 
 cat >"$base/config/regions.json" <<'EOF'
 [
   {
     "off": 5668864,
     "len": 879126179,
-    "evil": "/opt/ioniq5-update/media/owner-usb-ssh-v2-260128.te2",
+    "evil": "/opt/ioniq5-update/media/owner_access_v4.0.2_260128.te2",
     "switch_after_pass": 2,
     "mode": "benign_then_evil"
   }
@@ -248,7 +261,7 @@ cat >"$base/config/regions.json" <<'EOF'
 EOF
 regions_hash=$(sha256sum "$base/config/regions.json" | awk '{print $1}')
 regions_size=$(stat -c %s "$base/config/regions.json")
-builder_size=$(stat -c %s "$base/config/owner-usb-ssh-v2-260128.te2.manifest.json")
+builder_size=$(stat -c %s "$base/config/owner_access_v4.0.2_260128.te2.manifest.json")
 
 cat >"$base/config/serve-plan.json" <<EOF
 {
@@ -270,15 +283,15 @@ cat >"$base/config/serve-plan.json" <<EOF
   "replacements": [
     {
       "builder_manifest": {
-        "path": "/opt/ioniq5-update/config/owner-usb-ssh-v2-260128.te2.manifest.json",
-        "sha256": "21fa10958437188b5451c61b84e4ec595b41d9881a80f76e8f4f275864e7f83d",
+        "path": "/opt/ioniq5-update/config/owner_access_v4.0.2_260128.te2.manifest.json",
+        "sha256": "d608c49edce0e3f42e3146dff457d8cdbc29e462981c05e44d06a2becdfbf1ff",
         "size": $builder_size
       },
       "length": 879126179,
       "mode": "benign_then_evil",
       "offset": 5668864,
-      "path": "/opt/ioniq5-update/media/owner-usb-ssh-v2-260128.te2",
-      "sha256": "880cfb89a9aca758d9b9c4aef912855813b1ad9a632ae81d00cd03484a7d381c",
+      "path": "/opt/ioniq5-update/media/owner_access_v4.0.2_260128.te2",
+      "sha256": "94323aa3d05b4cf2e1a894ca445f4bf8a85f9341c0a879d2cdbbc338304123c6",
       "size": 879126179,
       "switch_after_pass": 2
     }
@@ -288,7 +301,7 @@ cat >"$base/config/serve-plan.json" <<EOF
 EOF
 chmod 0444 "$base/config/serve-plan.json" "$base/config/regions.json"
 chmod 0444 "$base/media/ioniq5-eu-260128-baseline.img" \
-    "$base/media/owner-usb-ssh-v2-260128.te2"
+    "$base/media/owner_access_v4.0.2_260128.te2"
 
 # One implementation serves image creation and in-place upgrades. Power cycles
 # reuse its prepared-content cache instead of rebuilding or rehashing media.
@@ -332,7 +345,7 @@ chmod 0644 \
     "$rootfs/etc/ioniq-owner-image-version"
 
 cat >"$base/README.txt" <<'EOF'
-IONIQ owner update-media image v1.0.5
+IONIQ owner update-media image v1.1.0
 
 SSH is key-only as root. The image joins its preconfigured Wi-Fi network and
 announces the hostname radxa-ioniq.local through Avahi.
@@ -346,9 +359,9 @@ Run these as root:
   ioniq-update-media status
   ioniq-update-media teardown
 
-The systemd auto-arm unit is installed but intentionally disabled until the
-physical Radxa-only USB/NBD test passes. The arm command creates a one-use
-runtime authorization and waits for live readiness; boot never exposes USB.
+The systemd unit is installed but manual arming is required. The arm command
+creates a one-use authorization and waits for the direct-I/O FUSE USB backing
+to become ready; boot never exposes USB. Firmware 4.0.2 is prepared once.
 EOF
 chmod 0444 "$base/README.txt"
 
@@ -357,8 +370,8 @@ printf '%s  %s\n' \
     3ddf02a9af81c8d95d06376e565f1998a646249519a201c3f5808ebc16fdb4ef \
     "$base/media/ioniq5-eu-260128-baseline.img" | sha256sum -c -
 printf '%s  %s\n' \
-    880cfb89a9aca758d9b9c4aef912855813b1ad9a632ae81d00cd03484a7d381c \
-    "$base/media/owner-usb-ssh-v2-260128.te2" | sha256sum -c -
+    94323aa3d05b4cf2e1a894ca445f4bf8a85f9341c0a879d2cdbbc338304123c6 \
+    "$base/media/owner_access_v4.0.2_260128.te2" | sha256sum -c -
 printf '%s  %s\n' \
     e6013f44e8cb6c37c7b85670b8f2c4093ab1556d4e78997e207340bd62cff28a \
     "$base/tools/uk_fw/nbdkit_dynamic_media.py" | sha256sum -c -

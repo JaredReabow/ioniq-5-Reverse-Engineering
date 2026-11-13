@@ -11,7 +11,7 @@ cache="$private/validation-cache.json"
 manual_marker="$runtime/manual-arm"
 
 radxa_media_kernel_prepare() {
-    modprobe nbd nbds_max=8 max_part=0
+    modprobe fuse
     modprobe libcomposite
     if ! mountpoint -q /sys/kernel/config; then
         mount -t configfs configfs /sys/kernel/config
@@ -65,7 +65,7 @@ case "$command" in
         ;;
     inspect)
         radxa_media_kernel_prepare
-        exec python3 "$tool" inspect
+        exec python3 "$tool" inspect --backing-kind fuse-direct
         ;;
     selftest)
         cd "$base"
@@ -75,7 +75,8 @@ case "$command" in
     plan)
         radxa_media_kernel_prepare
         shift
-        exec python3 "$tool" plan --serve-plan "$plan" --validation-cache "$cache" "$@"
+        exec python3 "$tool" plan --serve-plan "$plan" --validation-cache "$cache" \
+            --backing-kind fuse-direct "$@"
         ;;
     arm)
         radxa_media_kernel_prepare
@@ -103,7 +104,7 @@ case "$command" in
         radxa_media_kernel_prepare
         shift
         exec python3 "$tool" arm --serve-plan "$plan" --execute --hold \
-            --validation-cache "$cache" "$@"
+            --validation-cache "$cache" --backing-kind fuse-direct "$@"
         ;;
     teardown)
         shift

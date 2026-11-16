@@ -76,7 +76,7 @@ def council_check_packages(
     """Run the checker CLI against every frozen council package with a packet."""
     root = Path(root)
     checker = Path(checker_path or council_checker_path())
-    if not checker.is_file():
+    if runner is None and not checker.is_file():
         raise common.HarnessError(f"council checker not found: {checker}")
     run = runner or common.common_run
     records: list[dict] = []

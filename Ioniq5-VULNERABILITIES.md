@@ -2884,7 +2884,7 @@ name and direction marker**, not captured on a wire. Class: data exposure / priv
 From the upstream dump (`evidence/upstream/Ioniq5_Gen5W_Log_Dump`, 545 files), with the context intact:
 
 ```
-[VH_VoiceHandler::sendServerInfoVin(6165)]  [VH -> SDS] VIN [redacted-vehicle-id]
+[VH_VoiceHandler::sendServerInfoVin(6165)]  [VH -> SDS] VIN [REDACTED-VEHICLE-ID]
 ```
 
 and the bare identifier appears **78 times** across the sampled files.

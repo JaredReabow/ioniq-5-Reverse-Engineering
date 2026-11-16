@@ -1,0 +1,15 @@
+# TE2 envelope round-trip, 2026-11-05
+# source: work/appfumo-iasimage-eu260128/encrypted/iasImage_1920_12
+
+inspect (shipped envelope):
+  "total_size": 6226728,
+  "body_size": 6210308,
+  "magic_valid": true,
+  "iv": "bb6197ffeca0cab780b205de55494e29",
+  "integrity_valid": true,
+
+decrypt -> /tmp/rt/iasImage_1920_12, re-encrypt with --from <original> -> /tmp/rt2/iasImage_1920_12
+cmp result:
+  byte-identical: YES ( 6226728 bytes)
+
+plaintext signature: 6970 6b2e  (reads 'ipk.')

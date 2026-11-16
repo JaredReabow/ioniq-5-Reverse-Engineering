@@ -108,7 +108,7 @@ Run, in order:
 2. `py_compile` for the model and test;
 3. exact static regeneration/hash/address checks against both ignored ELFs;
 4. `git diff --check`;
-5. `/Users/leo/.platformio/penv/bin/python3 -m pytest -q tests`;
+5. `python3 -m pytest -q tests`;
 6. the repository public harness if applicable.
 
 Review must inspect the actual diff and independently verify that every

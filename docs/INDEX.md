@@ -1,0 +1,111 @@
+# Documentation index
+
+The tree grew to thirty documents during one long session. This page says what each one answers, so nobody has to open them to find out. Start at **the four that
+matter** unless you know what you are looking for.
+
+## The four that matter
+
+| Document | Answers |
+| --- | --- |
+| **`CURRENT-STATE.md`** | What works, what is blocked, what to do next. The entry point; everything else is detail behind it. |
+| **`REMEDIATION-REPORT.md`** | Ten findings ordered by **cost to fix**, each with evidence, exposure, fix and verification. The document to put in front of a platform team. |
+| **`MEASUREMENT-DISCIPLINE.md`** | Eight rules distilled from nine corrections this project made, each with the concrete case. Read before trusting any number here. |
+| **`../tools/check_all.sh`** | Runs every consistency check: register numbering, the append-only history invariant, and 1,300+ document cross-references. Each has already caught something a careful read missed. |
+| **`VM-RUNBOOK.md`** | How to boot the projection, drive it live, inject touch, and the false readings that have already misled this project. |
+
+## The VM: how faithful it is, and how it got there
+
+| Document | Answers |
+| --- | --- |
+| `vm/vendor-kernel-boot.md` | Why USB never worked here, and the vendor kernel that fixed it. Includes the module load order that matters. |
+| `vm/partitioned-image.md` | The `p1…p17` layout, eight sizes measured from a vehicle's own fsck logs, the A/B slot map, and how `esinit` finally reached multi-user. |
+| `vm/vendor-userspace-boot.md` | Booting the authentic rootfs under systemd with udev, and the media-indexer probe underneath it. |
+| `vm/reproducing-the-authentic-image.md` | **How to rebuild the working image**: what the three ingredients are, where each staged file comes from, the boot command, what success looks like, and the surface-selection trap that cost five attempts. |
+| `docs/vm/interacting-with-the-vm.md` | The interaction recipe: boot it, power it on so the layout appears, click, capture by surface, and how to tell each step worked |
+| `docs/vm/45-backend-is-forced-not-chosen.md` | The headless backend is forced: the vendor kernel's only DRM driver is i915, so no QEMU DRM device exists |
+| `docs/vm/46-sim-unimplemented-backlog.md` | The stand-in's measured backlog: 60 unanswered MICOM calls across 10 methods during one boot |
+| `docs/vm/47-what-the-display-ceiling-blocks.md` | Every open item blocked by the display ceiling, what would unblock each, and the one action with highest leverage |
+| `docs/remediation/tmp-path-unit-migration.md` | **The `/tmp` path-unit migration, specified not applied**: six markers, seven enabled path units, five creators located and two not, target `/run/state/` at `0700`. Covers V-077, V-078, V-050 and the `/tmp` half of V-055/V-071. Includes the boot-regression step that matters most |
+| `docs/planning/` | Four independent plans (Fable 5.1, Astra, Daybreak Blue, Opus 5.5) and the agreed next steps after them |
+| `docs/kernel/48-dri-compatibility-audit.md` | **The audit Astra C12 required**: the blocker is a specific `GLIBCXX_3.4.22` requirement on `libLLVM-6.0.so.1` that the vendor `libstdc++6.0.21` (`3.4.21`) cannot satisfy — not a categorical Mesa mismatch. Withdraws the overstatement in doc 47 and records the adopted honest VM statement |
+| `docs/planning/astra-c12.md` | Astra C12: **defer application rendering (option C), keep A as the preferred future route**, after one read-only DRI compatibility audit. Adopts the three-level security status distinction |
+| `docs/kernel/47-swrast-is-mesa-18-and-the-loader-is-mesa-11.md` | **Refutes the library hypothesis and finds the real cause**: after staging all four missing libraries (verified present), EGL still fails — the staged `swrast_dri.so` is **Mesa 18.2.8** and the vendor `libEGL` is **Mesa 11.2.1**. A driver and loader must be a matched set. Two coherent fixes specified |
+| `docs/kernel/46-ld-library-path-excludes-swrast-dependencies.md` | **Root cause of "no frame"**: `AppLauncher.sh` overwrites `LD_LIBRARY_PATH` with `/app/lib:/navi/navi/Lib`, discarding `/opt/software-egl18/lib`; the staged `swrast_dri.so` needs `libsensors.so.4` and `libLLVM-6.0.so.1`, which exist **only** in that discarded directory. A projection defect, with the fix specified |
+| `docs/kernel/45-egl-never-initialises-so-no-frame-is-committed.md` | **Closes the causal chain**: the app's own stderr shows `DRI2: failed to open swrast` → `failed to initialize EGL`, and the payload shows a commit with no `attach()`. Two independent gaps: EGL (no frame) and layout (hidden/unlayered). Also rules out the projection's Qt drop-in as a cause |
+| `docs/kernel/44-app-surfaces-hidden-and-unlayered.md` | **Protocol answer to "why no visible Home"**: app surfaces are created, registered and sized, then set `visibility(0)` + `layer(nil)` — and a project-wide scan of every retained payload finds **no** numeric `layer()` and **no** `visibility(1)` on any controller surface. The KIA splash is the shell UI (surface 30000) |
+| `docs/vm/63-controlled-run-4-result.md` | **Run 4 result**: the synchronised IVI probe used `ivi-place`, which is documented as observer-blind (binds no `wl_output`), so it did not answer the question; and the export fired at the same wall-clock offset yet the window was 60,501 ms short → `CAPTURE_TRUNCATED`/unresolved. The **trigger** is misaligned, not the verdict |
+| `docs/vm/62-controlled-run-3-result.md` | **Run 3 result**: the narrow claim is satisfied for the first time (`REGISTRATION_PRESENT`, driver hash matched, closed snapshot) — and the display channel shows the **KIA boot splash**, byte-identical at +10/+60/+110 s. A registration marker can be present while the Home UI has not rendered |
+| `docs/vm/61-controlled-run-2-spec.md` | **Run 2 specification, fixed before launch**: export moved to `EXPORT_AT_S=30` (inside the observed process lifetime), persistence stays at 120 s, display captured at +10/+60/+110 s via `/usr/libexec/weston-screenshooter`. Separates the marker question from the persistence question |
+| `docs/vm/60-controlled-run-1-result.md` | **Controlled run 1 result**: the retained harness verified its own identity in the guest and failed closed (`BINDING_FAILED`) rather than report a false positive; the runtime channel measured one AppHomeScreen process alive 11 of 24 samples, first seen at 90.89 s and gone by 156.92 s. Registration, rendering and interactivity are all UNRESOLVED |
+| `docs/vm/59-controlled-run-spec.md` | The controlled run specification: two evidence channels, and the persistence interval (120 s), sample period (5 s) and milestone reference (96,445 ms) fixed BEFORE launch. Specification only — the run has not been performed |
+| `docs/vm/58-interval-capture-harness.md` | The capture instrument that makes the boot58/boot65 defects unrepresentable: self-identified harness, closed snapshot, pinned generations, and a per-cause null that refuses to turn a truncated window into a negative |
+| `docs/kernel/` | The rebuilt kernel and retained compositor evidence; docs 39/40 correct the boot65 `ivi_place` zero-count interpretation and distinguish server events from client requests; doc 42 shows boot65's stream ended 22.7 s before the milestone boot58 recorded, so the comparison cannot yield a cause |
+| `vm/authentic-hmi.md` | The authentic `esinit → weston` path rendering: multi-user at 97.3 s, compositor alive, a 129 KB capture. The three projection-only instruments are listed here. |
+| `vm/spi-gate.md` | The MICOM SPI gate: shut by default (`param=0`), opened by a stand-in that mounts `/sys` first. Three corrections, and the vendor's `> kmsg` typo that hid it. |
+| `vm/SCREENSHOT-LABELS.md` | Which screenshot is actually which surface. Exists because two were mislabelled as the engineering screen and were the home screen. |
+| `vm/apphomescreen-show-gate.md` | The early show-gate investigation, superseded in part but kept for the reasoning. |
+| `vm/fastest-path-plan.md` | The sequencing plan written mid-session, with the Astra/Fable review folded in. |
+
+## The interface, and why it stays black
+
+| Document | Answers |
+| --- | --- |
+| `engineering-mode/engineering-paint.md` | The app never attaches a buffer: 624 bytes of Wayland traffic, all object-id teardown. It waits to be *shown* by the app manager. |
+| `engineering-mode/appmanager-micom-replies.md` | Answering the manager's MICOM calls worked (`reply is not VALID` → zero), and the two blockers that remain: an unregistered show interface, and a liveness watchdog that reaps the unshown app. |
+| `engineering-mode/engineering-data-services.md` | The six data services the engineering UI waits on, and the correction that answering them did not fix the paint. |
+| `engineering-mode/dev-mode.md`, `engineering-mode/hidden-menus.md`, `engineering-mode/usb-and-hidden-triggers.md`, `engineering-mode/signature-vs-encryption.md` | The engineering-mode menus, what gates them, and the update/encryption boundary. |
+
+## Security
+
+| Document | Answers |
+| --- | --- |
+| **`root-access-paths.md`** | Every route to root, **ranked by what it costs to use** — the offensive view of the register: what you would try on a stock unit and what each attempt requires. |
+| `../Ioniq5-VULNERABILITIES.md` | The register: ten entries, each with status, evidence and what would falsify it. Corrections are kept in place, not edited away. |
+| `trust-anchors-in-writable-runtime-paths.md` | The argument behind six of the ten: a privileged decision resolved from writable state, and why that pattern matters more than any single instance. |
+| `docs/defences/micom-coupled-hash-and-keycheck.md` | A MICOM-coupled hash (`getIVDHash`) and seed/key-check in the launcher: a real defence shape, enforcement unproven and inert under emulation |
+| `docs/defences/controls-inventory.md` | The eight controls the platform does have, what each is worth, and where each stands - read before patching so they are not lost |
+| `advisory/stock-vector-triage.md` | Two outside models asked what is reachable on a stock unit, what they agreed on, and the two things they corrected here. |
+| `physical-and-wireless-vectors.md` | WiFi, USB Ethernet, UART, CAN: hardware present vs software enabled vs root path. |
+| `wifi-enable-procedure.md` | How the radio would be turned on using the image's own machinery, and why it cannot be tested in QEMU. |
+| `DOWNGRADE-POSSIBILITIES.md` | What the updater permits, and the one question (anti-rollback) that decides whether an authentic older image installs. |
+| `navigation-status.md` | Navigation stack status, from before this session. |
+
+## Evidence and the record
+
+| Path | Contains |
+| --- | --- |
+| `evidence/serial-console/` | The raw bytes of the ttyS2 login prompt, and the recipe. |
+| `evidence/vehdata-ground-truth.md` | What Battery and Range read on a real IONIQ 5 (321 value pairs from 545 vehicle logs) - the standard any injection is judged against |
+| `docs/vehdata/03-can-shim-first-run.md` | The SocketCAN shim: the app's own `socket(PF_CAN)`/bind sequence intercepted, and why the visual result is still unmeasured |
+| `docs/vehdata/04-capture-channel-and-light-frame.md` | Getting frames off the guest losslessly (and the `\n`->`\r\n` trap), plus what the first real frames show |
+| `docs/vehdata/05-day-shell-untranslated-and-black-region.md` | The settled frame: untranslated `STR_` keys and a black region, i.e. an unloaded resource model rather than missing CAN data |
+| `docs/vehdata/06-surface-identity-and-why-captures-looked-identical.md` | Surface identity from the compositor log: why every capture had the same size, and what that retires |
+| `docs/vehdata/07-ivi-controller-announces-nothing.md` | A late `ivi_controller` client sees zero layers and surfaces, and the composited output is the background even with three apps running |
+| `docs/vehdata/08-hmi-controller-negative.md` | Adding `hmi-controller.so` to the ivi-module list: the launcher chain never starts, and which file really decides the config |
+| `docs/vehdata/09-placement-works-and-my-sequencing-bug.md` | Placement works on the shipped config; the app is in standby because the power-on call is issued before it owns its bus name |
+| `docs/vehdata/10-the-shim-was-crashing-the-app.md` | The app's own log shows a Wayland fatal error, and the A/B test says the CAN shim was causing the restart loop |
+| `docs/vehdata/11-what-the-projection-shows-with-no-instruments.md` | With no instruments the app is stable and shows its KIA splash, plus the `DB UPDATE COMMIT FAIL` lead |
+| `docs/vehdata/12-missing-layout-db-directory.md` | The layout database has no directory on the data partition, and creating it did not stop the restarts |
+| `docs/vehdata/13-two-instances-at-once.md` | Two `AppHomeScreen` instances run concurrently, which explains both the Wayland crash and the SQLite commit failures |
+| `docs/vehdata/14-duplicate-confirmed-as-the-cause.md` | Killing down to one instance drives both the Wayland errors and the commit failures to zero |
+| `docs/vehdata/15-retraction-duplicate-not-confirmed.md` | **Retraction**: the duplicate was not the cause; the zero counters came from a truncated log |
+| `docs/vehdata/16-chronology-of-the-failure.md` | The failure in order across half a second: the app survives the Wayland error with a dead connection |
+| `docs/vehdata/17-two-db-handles-and-env-stripping.md` | The launcher strips the environment, and the log shows two database handles locking each other |
+| `docs/vehdata/18-wrapper-stops-the-app-and-two-traps.md` | A wrapper in place of the binary stops the app launching, plus the `debugfs` overwrite hazard |
+| `docs/vehdata/19-the-protocol-exchange-that-kills-the-app.md` | The compositor trace: the app creates an `ivi_controller_surface` and the server rejects the object id |
+| `evidence/fde/` | The passphrase demonstration with its negative control. |
+| `docs/v059-command-substitution-filtering.md` | Whether the mount image path is filtered before it reaches a shell string - measured: it is not |
+| `docs/v059-producer-trace.md` | What feeds the substituted path: `QFileInfo::absoluteFilePath`, and `%1` in `cp -a %1 /app/bin/` is the payload's own binary |
+| `evidence/vm-bringup/` | The touch proof: `QWaylandInputDevice::Touch::touch_down` in the application's own log. |
+| `evidence/engineering-mode-appmanager-micom-methods-*.txt` | The exact MICOM methods the manager asked for and the stand-in did not answer. |
+| `external-community-claims-2026-11.md` | Community reports from the supplied November transcript, with local validation boundaries, variant caveats, and private source-archive provenance. |
+| `../Ioniq5-CHANGELOG.md` | Newest first, every change, including every correction and why it was needed. |
+| `../Ioniq5-HISTORY.md` | Append-only, one human paragraph per session event. |
+
+## Conventions used throughout
+
+- **[E]** measured or quoted from the image; **[I]** inference. Where neither is stated, the sentence is a plan, not a finding.
+- Every claim that could be wrong names **what would falsify it**.
+- Every projection-only addition is labelled in its own file comment **and** in the changelog: the MICOM SPI stand-in, the `/usr/bin/weston` wrapper, the pixman solid-fill
+  shim, the `lge_usb_adapter` neutralisation, the SMACK probe drop-in.
+- "Not established" is a status. It is used deliberately and often.

@@ -49,7 +49,7 @@ Public-source clones and generated JSON remain ignored under `work/`.
 ## Verification
 
 ```sh
-/Users/leo/.platformio/penv/bin/python3 -m pytest -q tests/test_busybox_huft_bounds_model.py
-/Users/leo/.platformio/penv/bin/python3 -m pytest -q tests
+python3 -m pytest -q tests/test_busybox_huft_bounds_model.py
+python3 -m pytest -q tests
 git diff --check
 ```

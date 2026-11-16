@@ -69,7 +69,7 @@ The parser treats all input as data.
 ## Verification
 
 ```sh
-/Users/leo/.platformio/penv/bin/python3 -m pytest -q tests/test_bench_state_bundle.py
-/Users/leo/.platformio/penv/bin/python3 -m pytest -q tests
-/Users/leo/.platformio/penv/bin/python3 tests/run_all.py
+python3 -m pytest -q tests/test_bench_state_bundle.py
+python3 -m pytest -q tests
+python3 tests/run_all.py
 ```

@@ -70,6 +70,7 @@ extern ssize_t write(int, const void *, size_t);
 #define POLL_MS 100
 
 static struct weston_seat *vm_seat;
+static struct weston_compositor *vm_compositor;
 static struct wl_event_source *vm_timer;
 static int action;             /* 0 idle, 1 click, 2 touch drag, 3 pointer drag */
 static int phase;
@@ -305,9 +306,40 @@ static void execute_action(void)
     }
 }
 
+
+/* PROJECTION-ONLY: bind the first seat if the compositor has one.
+ *
+ * weston 1.10 creates a seat in the *backend*: headless does it unconditionally
+ * (weston_seat_init(&b->fake_seat, ...)), while drm and fbdev rely on the
+ * libinput/udev path and only get a seat when udev reports an input device - which
+ * QEMU does not provide. Returning -1 here made the module abort the whole
+ * compositor on those backends (VM_INPUT_NO_SEAT, then teardown), which looked like
+ * a display-backend failure for several runs before a trace showed the exit.
+ *
+ * So: attach if a seat exists, otherwise stay loaded and try again on the timer.
+ */
+static int bind_first_seat(struct weston_compositor *c)
+{
+    struct wl_list *head = (struct wl_list *)((char *)c + SEAT_LIST_OFFSET);
+    struct wl_list *link = head->next;
+
+    if (!link || link == head)
+        return 0;                       /* no seat yet - not an error */
+    vm_seat = (struct weston_seat *)((char *)link - SEAT_LINK_OFFSET);
+    weston_seat_init_touch(vm_seat);
+    log_literal("VM_INPUT_SEAT_BOUND\n", 21);
+    return 1;
+}
+
 static int timer_handler(void *data)
 {
     (void)data;
+    if (!vm_seat) {
+        if (!bind_first_seat(vm_compositor)) {
+            (void)wl_event_source_timer_update(vm_timer, POLL_MS);
+            return 0;                   /* still no seat: stay alive, keep polling */
+        }
+    }
     if (action)
         execute_action();
     else
@@ -319,21 +351,17 @@ static int timer_handler(void *data)
 __attribute__((visibility("default")))
 int module_init(struct weston_compositor *compositor, int *argc, char *argv[])
 {
-    struct wl_list *head;
-    struct wl_list *link;
     struct wl_display *display;
     struct wl_event_loop *loop;
     (void)argc;
     (void)argv;
 
-    head = (struct wl_list *)((char *)compositor + SEAT_LIST_OFFSET);
-    link = head->next;
-    if (!link || link == head) {
-        log_literal("VM_INPUT_NO_SEAT\n", 17);
-        return -1;
+    vm_compositor = compositor;
+    if (!bind_first_seat(compositor)) {
+        log_literal("VM_INPUT_NO_SEAT_DEFERRED\n", 26);
+        /* not an error: the timer binds when a seat appears (drm/fbdev have none
+         * under QEMU until an input device is reported) */
     }
-    vm_seat = (struct weston_seat *)((char *)link - SEAT_LINK_OFFSET);
-    weston_seat_init_touch(vm_seat);
     display = *(struct wl_display **)((char *)compositor + DISPLAY_OFFSET);
     loop = wl_display_get_event_loop(display);
     vm_timer = wl_event_loop_add_timer(loop, timer_handler, NULL);

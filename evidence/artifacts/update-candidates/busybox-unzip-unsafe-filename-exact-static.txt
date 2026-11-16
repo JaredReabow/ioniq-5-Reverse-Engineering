@@ -1,0 +1,102 @@
+IONIQ 5 EU 260128 — BusyBox unzip unsafe-filename fix applicability
+Scope: exact AppScomoDM two-member extraction route only. Offline static and
+public-source comparison; no archive, malformed filename, payload, or target
+process was created or run.
+
+[canonical target identities]
+Canonical rootfs:
+  work/decrypted-eu-260128/HU/images/mango-rootfs.tar.gz
+  size=879109759
+  sha256=423491fd8b86bd815d4e12f47054e08a589a5159f87213f08980fcc3a0e47c84
+Stock /bin/busybox:
+  sha256=95bab633630fb158344497af52dc112e9e777458b810860068d4daa257bd9ebc
+  banner=BusyBox v1.23.2 (2026-01-28 16:00:27 KST)
+  ELF=ET_DYN x86-64
+  examined preserved stock copy:
+    work/decrypted-eu-260128/extracted-partial-bsdtar/mango-rootfs/bin/busybox
+AppScomoDM:
+  sha256=c44da21eb39987e88d71c648f625338722b8458f0ff8ecfe29e3321cf6d62046
+  build-id=496a47fae4cca227723b1f4037be918cae18473c
+
+[exact caller]
+AppScomoDM QProcess::execute(QString) at 0xbfaf2 constructs:
+  unzip -o <selected archive> -d /update/usb/temp AppUpgrade .lge.upgrade.xml
+The two final operands are literal inclusion names, not wildcards.
+
+[public fix]
+Upstream BusyBox commit:
+  8c06bc6ba14949d945eff0abcabab885f1ef7680
+  subject: unzip: prevent attacks via malicious filenames
+  date: 2015-02-10
+Preserved patch:
+  work/online-busybox-unzip-20261108/8c06bc6ba.patch
+  sha256=6110c8337bf4115c9d581a3b5af21ebc6e3aaf7193ce2b38989c7edaa878cb73
+The commit is not an ancestor of tag 1_23_2 and is contained beginning with
+release tag 1_24_0. It adds strip_unsafe_prefix(dst_fn) before member filtering.
+Version ancestry is context only; the route result below comes from exact target
+instructions and exact caller operands.
+
+[exact target member filtering]
+After reading the local-header filename into a NUL-terminated allocation, target
+unzip_main calls the inclusion/exclusion matcher before directory creation,
+stat, open, or decompression.
+
+  0x45e1d  mov 0x48(%rsp),%rdi       ; first filter-list pointer
+  0x45e22  mov %rbx,%rsi             ; raw member-name C string
+  0x45e25  call 0x491a0              ; list matcher
+  0x45e2a  test %rax,%rax
+  0x45e2d  je 0x45e45
+  ...
+  0x45e45  mov 0x40(%rsp),%rdi       ; second filter-list pointer
+  0x45e4a  test %rdi,%rdi
+  0x45e4d  je 0x45e5c                ; no inclusion list
+  0x45e4f  mov %rbx,%rsi             ; raw member-name C string
+  0x45e52  call 0x491a0
+  0x45e57  test %rax,%rax
+  0x45e5a  je 0x45e2f                ; skip unmatched entry
+
+Matcher 0x491a0 traverses the linked list and calls fnmatch(pattern, member, 0):
+
+  0x491c1  mov 0x8(%rbx),%rdi        ; pattern
+  0x491c5  xor %edx,%edx             ; flags=0
+  0x491c7  mov %rbp,%rsi             ; member
+  0x491ca  call fnmatch@plt
+  0x491cf  test %eax,%eax
+  0x491d1  jne 0x491d8               ; continue on mismatch
+  0x491d3  mov %rbx,%rax              ; return matching node
+
+There is no strip_unsafe_prefix-equivalent call between filename read and these
+filter calls in the exact target. That absence is bounded to this reviewed
+instruction region and agrees with the pre-fix 1_23_2 source.
+
+[applicability result]
+For this caller, zaccept contains literal patterns "AppUpgrade" and
+".lge.upgrade.xml". With fnmatch flags zero and no wildcard metacharacters in
+either pattern, a member containing an absolute prefix, a parent-directory
+prefix, an added path component, or a trailing traversal component does not
+match and is skipped before any output-path operation. Examples of rejected
+shape classes include /AppUpgrade, ../AppUpgrade, x/AppUpgrade, and
+AppUpgrade/../x. These are shape explanations, not test archives.
+
+An embedded NUL is interpreted by both fnmatch and later path operations as the
+same C-string terminator. A member whose visible prefix is exactly AppUpgrade
+therefore targets the literal AppUpgrade output name; bytes after the NUL do not
+become a separate traversal suffix in these calls.
+
+Conclusion: commit 8c06bc6ba's unsafe-prefix defect is present in the stock
+BusyBox generation, but the exact AppScomoDM command's literal inclusion filter
+blocks traversal-shaped member names before output. It is not a supported
+path-traversal finding for this route.
+
+[separate boundaries]
+- This does not negate V-020/CVE-2015-9261: compressed data for an accepted
+  literal member still reaches the method-8 Huffman parser before AppScomoDM
+  authenticates the extracted bytes.
+- This does not assess other BusyBox unzip callers or commands without a literal
+  inclusion list.
+- A pre-existing output symlink, output-directory substitution, or race is a
+  different filesystem-object question; commit 8c06bc6ba does not establish or
+  remediate those conditions, and they are not proved here.
+- No owner-unit invocation, write outside /update/usb/temp, code execution,
+  SMACK transition, root transition, signature bypass, update acceptance,
+  partition write, boot acceptance, or persistence is established.

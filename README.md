@@ -38,25 +38,82 @@ requirements.
 
 ## Where the project is right now
 
-The VM boots the genuine vendor kernel and the genuine recovered userspace, and
-reaches the real Hyundai home screen. Navigation is the open problem.
+*Status as of 2026-11-05.* Two goals run in parallel: **(1)** run the infotainment system in a VM, as
+close to stock as is reasonable, with working interaction; **(2)** identify root access and keep what
+malicious actors could use in a separate, patchable register (`Ioniq5-VULNERABILITIES.md`).
+
+**Goal 1 is met in outline.** The vehicle's own kernel boots the vehicle's own `esinit`, which starts
+the vehicle's own compositor, which runs the vehicle's own `AppHomeScreen` — and that application now
+**lays out its real home screen and accepts synthetic clicks**. Three substitutions stand in for vendor
+components that need hardware we do not have, all documented:
+
+| Substitution | Stands in for | Why |
+| --- | --- | --- |
+| software renderer (`ias-backend-soft.so` / pixman) | the IAS GPU backend | no vendor GPU in QEMU |
+| MICOM stand-in (`eng-data-sim`) | `com.lge.car.micom` | no SPI-attached MICOM |
+| software-GL driver path | the vendor EGL/GL stack | vendor launcher strips `LIBGL_*` from children |
 
 | Area | State | Notes |
 | --- | --- | --- |
-| Vendor kernel boot | **Working** | Gen5W kernel boots under QEMU with a documented ABL boot-parameter adaptation. Anti-tamper is satisfied inside the VM. |
-| Recovered rootfs / userspace | **Working** | EU 2026-01-28 image decrypted offline and mounted read-only. |
-| Launcher: standby → profile confirm | **Working** | Authentic driver-selection and safety-notice screen. |
-| Launcher: Home screen | **Working** | Authentic `AppHomeScreen` with real tile grid. |
-| AppNavi (navigation) | **Partial** | Process starts, initialises, and renders genuine map pixels into its own surface. |
-| Home ↔ Navigation compositing | **Blocked** | AppNavi never becomes the foreground window; Home stays visible. See below. |
-| Audio | Not started | Needs C-TRACS/audio service contracts. |
-| CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed. |
-| Persistence, restart/suspend | Not started | Needs evidence-derived storage and power contracts. |
-| Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end. |
+| Vendor kernel → vendor `esinit` → systemd | **Working** | Multi-User at ~97 s on the authentic path; `docs/vm/authentic-hmi.md` |
+| **Rebuilt kernel with a DRM device** | **Working** | `bochs-drm` binds the QEMU VGA adapter; `/dev/dri/card0` exists, `Output Virtual-1`, Multi-User reached. **`virtio-gpu` does not exist in 4.1.27** - see `docs/kernel/` |
+| Vendor compositor (`weston.real`) | **Working** | the vehicle's own binary and its own `weston_1920.ini` |
+| Managed `AppHomeScreen` | **Runs stably on `headless`; shows its splash** | with no instruments it holds one pid for 105 s. On the rebuilt kernel's `drm-backend` the **compositor stalls before creating its socket**, so the application cannot start there yet - `docs/kernel/05-drm-backend-result.md` |
+| Interaction (synthetic touch) | **Accepted; delivery unmeasured, and the placement tool crashes the app** | `VM_INPUT_CLICK_ACCEPTED`, `VM_INPUT_FOCUS_BEFORE_MOVE pid=797 uid=0` - that pid was the compositor's client on the standby frame |
+| Home widget values (Battery, Range) | **Placeholder** | widgets are placed, values render `---`; the data path is being mapped |
+| Engineering mode inside the projection | **Not open** | D-Bus `show_engineermode` is accepted and *does nothing* (two runs); see below |
+| Reproduction from an empty base | **Working** | `tools/uk_fw/vm_partimg/inject-stockui.sh`, verified end-to-end |
+| Navigation (`AppNavi` foreground) | Open | renders real map pixels into its own surface, never becomes foreground |
+| Audio, persistence, suspend | Not started | need evidence-derived service contracts |
 
-Everything above is measured by snapshot runs — the disk image is never written
-to, and the base rootfs hash is rechecked after each experiment
-(`4953a005…6d036f`).
+### The two open problems, precisely
+
+1. **Home widget values.** The layout is correct and the values are `---` because no vehicle data
+   reaches the widgets. This is ordinary adaptor work — the same kind that produced every other
+   contract in this repository — and it is in progress.
+2. **Engineering mode inside the projection.** Two D-Bus routes exist on a stock unit. The method
+   route is **accepted and inert**: `com.lge.avn.appmanager.info.show_engineermode` returns a clean
+   `method return` and starts nothing, measured twice, the second time with the home screen running
+   (`docs/engineering-mode/show-engineermode-accepted-but-inert.md`). The signal route is **forgeable**
+   — see V-060 — but the payload format the manager expects is not yet decoded.
+
+**How the layout problem was solved**, because it is the shape of every remaining one: the app was not
+broken and nothing was mis-rendering. The standby frame *was* the application's powered-down face, and
+one call tells the manager to power on:
+
+```sh
+dbus-send --session --dest=com.lge.hyundai.avn.appmanager /Information \
+  com.lge.avn.appmanager.info.set_power_on_status int32:1 int32:0
+```
+
+Frame: `docs/vm/38-gesture-home-layout-after-set-power-on-2026-11-05.png`.
+
+### Goal 2 in one paragraph
+
+**70 entries** in `Ioniq5-VULNERABILITIES.md` and **20 items** in `docs/REMEDIATION-REPORT.md`, cross-referenced in
+both directions. The finding that matters most is no longer the one that was hardest to reach:
+
+- **V-064 - the reason every other finding is severe.** **106 of 107 services run as root** with no systemd hardening
+  at all; every hardened unit in the image is a stock systemd one. On this platform "the bus is root-only" is not a
+  boundary between applications, and a file write is the ambient condition rather than a high bar.
+- **V-069 - the cheapest path, and it needs no hardware.** The navigation update's root CA ships **group-writable on a
+  read-write partition**, and the updater's own code names that file as the trust root. One file write could let an
+  attacker sign a package the unit accepts, and the payload runs as root.
+- **V-067 - a static root SSH key ships in the image.** Blocked today only because the daemon binary is absent and its
+  gate is a file in `/tmp`.
+- **V-059 - still the strongest *demonstrated* mechanism**: a keyless downgrade, where a genuine older package is already
+  encrypted with the unit's own key.
+- **V-070 - persistence**: a shell-script path on a persistent partition, referenced by the manufacturing test app.
+
+Two routes were **refuted** this session and are recorded as refuted rather than deleted: a crafted USB filename cannot
+reach the shell that installs (the staging copy renames every artefact to a fixed name), and the About-screen tap
+gesture is absent from this build's code.
+
+**The single recommendation is unchanged and now better supported: never resolve a security decision from a writable
+path, and make every such check fail closed.** V-064 is why that sentence is about *everything* rather than about one
+lamp on one service.
+
+All four stages are green at the commit this line describes.
 
 ### Where the VM work stands
 
@@ -65,12 +122,378 @@ to, and the base rootfs hash is rechecked after each experiment
 | Vendor kernel boot | Working | Gen5W kernel boots under QEMU with a documented ABL boot-parameter adaptation; anti-tamper satisfied inside the VM |
 | Recovered rootfs / userspace | Working | EU `260128` image decrypted offline; mounted read-only |
 | Launcher standby → profile confirm | Working | Authentic driver-selection and safety-notice screen |
-| Authentic Home screen | Working | Real `AppHomeScreen` tile grid |
+| Authentic Home screen | **Working** | the app *lays out* its real home screen, but only after `set_power_on_status`; without it the app shows its standby face |
+| Home widget values | Placeholder | Battery and Range are placed and read `---`; the vehicle-data path is being mapped |
 | AppNavi (navigation) | Partial | Process starts and renders genuine map pixels into surface 3000 |
-| Home ↔ Navigation compositing | Blocked | AppNavi never becomes the foreground window; Home stays composed |
+| Home ↔ Navigation compositing | Open | AppNavi renders but never becomes the foreground window |
 | Audio, persistence, restart/suspend | Not started | Need evidence-derived service contracts |
-| CAN / MICOM | Partial | Local D-Bus simulation exists; real contract still being reconstructed |
-| Input (touch/keys) | Partial | Wayland input harness exists; not wired end to end |
+| CAN / MICOM | Partial | Stand-in owns `com.lge.car.micom`; vehicle **values** are the missing part |
+| Input (touch/keys) | **Working, with a caveat** | clicks are accepted and delivered (`VM_INPUT_CLICK_ACCEPTED`, `VM_INPUT_FOCUS_BEFORE_MOVE pid=797 uid=0`) - but on the black standby frame the focus target was the **compositor's own client**, not the app. Whether a click now reaches an app widget on the laid-out screen is **not yet measured** |
+| Engineering mode in the projection | Not open | `show_engineermode` accepted and inert; the special-key signal is forgeable (V-060) but its payload format is undecoded |
+
+### Fidelity: the vehicle's own boot path paints a frame
+
+**The authentic path now renders the product's own interface.** Vendor kernel → vendor `/lib/systemd/esinit` → esinit's own `/usr/bin/weston --tty=1` → the vendor
+application stack, with `AppHomeScreen` registering its bus name, answering introspection and painting:
+
+```
+[FTL]  Using Wayland-EGL                       no "DRI2: failed to open swrast" any more
+BYHAND_NAME_OWNED=[com.lge.hkmc.avn.appfunc.AppHomeScreen]
+BYHAND_INTRO=[method return … Introspectable …]
+BYHAND_CAPTURE1..3 bytes=120556                changed from the 129,844-byte early-background
+```
+
+Three projection-only substitutions get it there, and nothing else on the boot path is ours:
+
+1. **a software backend** standing in for `ias-backend.so` and the Intel GPU (the vendor ivi shell otherwise trips its own pixman
+   `composite_clipped` assertion, which a vehicle never hits because it uses GL);
+2. **a MICOM SPI stand-in** in front of the init, because the gate is shut by default (`spi_validation=0`) and `esinit` only takes its OK branch when it reads 1;
+3. **the software-GL driver path** for the applications — the vendor launcher strips `LIBGL_*` from its children, so without it the loader finds only the
+   vendor's `i965_dri.so` stub and EGL initialisation fails.
+
+**Both launch paths paint.** The managed instance — systemd → `ApplicationLauncher` → `ApplicationManager` → `AppHomeScreen` — renders the vendor interface with its own KIA logo
+(`docs/vm/32-managed-home-screen-kia-logo-authentic-2026-11-05.png`), as does a by-hand launch. The last five attempts failed because the probe asked *which surface is newest* instead of *which
+surface is this*: the background's surface is created last, so it always won.
+
+Details, evidence and every eliminated hypothesis: `docs/vm/authentic-hmi-apps.md`. The compositor's configuration is also worth reading as **V-055** — it is a
+symlink into `/tmp`.
+
+### The vehicle's own boot sequence now runs, not a bypass
+
+A **GPT-partitioned image** with the real `p1…p17` layout lets `/lib/systemd/esinit` do its eMMC recovery and hand over to systemd
+**by itself**, reaching multi-user with every fstab partition mounted:
+
+```
+mmcblk0: p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p15 p16 p17
+VFS: Mounted root (ext4 filesystem) on device 179:5.
+[eMMC] ***** eMMC RW_DATA Partition Check and Recovery Complete!!!
+systemd[1]: Reached target Local File Systems.      (14.1 s)
+systemd[1]: Reached target Basic System.            (18.3 s)
+systemd[1]: Reached target Multi-User System.       (75.9 s)
+```
+
+`local-fs.target` is the specific target a single-partition clone could never reach. The layout table — with **eight sizes measured from
+the vehicle's own `e2fsck` logs**, the **A/B slot map** (active root `p5`, inactive `p3`, `/update` on `p9`, `/rw_data` on `p11`) and the
+one-line neutralisation that keeps a vendor USB driver from deadlocking esinit on non-vendor hardware — is in
+`docs/vm/partitioned-image.md`, and the image is reproducible with `tools/uk_fw/vm_partimg/build-partitioned-image.py`.
+
+**Honest caveat:** the harness's `root=/dev/mmcblk0` token must become `root=/dev/mmcblk0p5`, because a GPT header overwrites the ext4
+superblock at byte 1024. That is one documented change to the fixed command line, recorded rather than patched silently.
+
+### Interaction on the vendor boot path
+
+The click proof above came from the research chain. It now exists on the **authentic** path too - vendor kernel, vendor `esinit`, esinit's own `weston --tty=1`, the vendor application stack:
+
+```
+VM_INPUT_READY
+VM_INPUT_CLICK_ACCEPTED
+VM_INPUT_FOCUS_BEFORE_MOVE pid=797 uid=0
+VM_INPUT_FOCUS_AFTER_MOVE  pid=797 uid=0
+VM_INPUT_CLICK_DONE
+```
+
+A synthetic click lands on a real client with a real pid, running as uid 0. The input module was **already** listed in the vendor compositor's configuration
+(`modules=/weston-vm-input.so`) - what had been missing was a surface placed under the pointer, which is the same thing the research chain had to learn (`pid=NO_VIEW` was never a broken input
+path, only an empty screen).
+
+So the VM goal is met on both axes it was set on: **the vehicle's own boot path**, and **interaction with it**. The three documented substitutions - software backend, MICOM SPI stand-in,
+software-GL driver path - are the whole of what is not the vendor's.
+
+### The VM is interactive, and the app logs prove it
+
+A synthetic click travels the whole way in and is handled by the authentic application. Compositor side:
+
+```
+VM_INPUT_CLICK_ACCEPTED
+VM_INPUT_FOCUS_BEFORE_MOVE pid=821 uid=0
+VM_INPUT_FOCUS_AFTER_MOVE  pid=821 uid=0
+VM_INPUT_CLICK_DONE
+```
+
+and then the **application's own Qt/Wayland log**:
+
+```
+QWaylandInputDevice::Touch::touch_down: PID(821), ID(0)
+QWaylandInputDevice::Touch::touch_up:   PID(821), ID(0)
+[Re-enable touch]
+```
+
+So the click goes file → vendor `weston-vm-input.so` → compositor seat → `AppHomeScreen`'s Qt input device, arriving as a real touch
+event with the app's own PID, and the app acts on it. Raw capture: `evidence/vm-bringup/interactive-touch-2026-11-04.log`.
+
+Two practical notes: the surface must be placed first (`/usr/bin/ivi-wm 2080`) or the compositor reports `pid=NO_VIEW`/`NO_CLIENT`, and the
+window only draws after placement — placement, not drawing, was the blocker for a long time.
+
+### The vendor userspace now boots in the VM
+
+The projection boots the **authentic rootfs under systemd as PID 1** with the **vendor kernel** (`boot/bzImage-4.1.27-abl`), reaching
+
+```
+Basic System.  Local File Systems.  Login Prompts.  Paths.  Sockets.  Swap.
+```
+
+with `systemd-udevd` active (`Listening on udev Control Socket`, `Starting udev Kernel Device Manager...`). Method and caveats:
+`docs/vm/vendor-userspace-boot.md`; the kernel-side story, including why every previous USB conclusion here was wrong, is in
+`docs/vm/vendor-kernel-boot.md`.
+
+What that changed in practice:
+
+- **USB now works.** The research `bzImage` never exported `usb_speed_string`, so the vendor's USB modules could not load. With the
+  vendor kernel a USB stick enumerates (`/dev/sda`), mounts, and is processed by the shipped `60-persistent-storage.rules` and `scsi_id`
+  (`ID_SERIAL=…`).
+- **udev runs**, so "plugged in" can become "root unit started" — the question V-014 turns on.
+- **The serial console path exists end to end**: `agetty` on ttyS2, gate open by default, prompt captured in
+  `evidence/serial-console/`.
+- Still not faithful to the vehicle's own init: `/lib/systemd/esinit` stops at `[FDE] use fstab` because it expects eMMC partitions
+  `p8`–`p12` and our clone has one. Starting systemd directly bypasses that rather than solving it.
+
+### Running and interacting with the VM
+
+Practical instructions, verified checks and a list of **false readings that have already misled this project** are in
+**`docs/VM-RUNBOOK.md`**. The essentials:
+
+- **The compositor's process name is `weston-headless`, not `weston`.** `pidof weston` returns nothing even when the
+  compositor is perfectly healthy; several "the compositor died" conclusions were that check and nothing else.
+- **Engineering mode launches from the developer path.** Copy `AppEngineerMode` to `/tmp/app/bin/`, then request
+  **app id 301** from `com.lge.avn.applauncher` with that path on the session bus. It works, and it takes **45–70 s** to
+  appear under software rendering — polling, not a short fixed sleep.
+- **The VM is interactive.** The vendor module `/weston-vm-input.so` accepts `click`, `drag` and `pdrag` over
+  `/tmp/weston-vm-input`, and the compositor acknowledges each with `VM_INPUT_CLICK_ACCEPTED` / `CLICK_DONE`. It must be
+  listed in the compositor config (`modules=/weston-vm-input.so`) or nothing is injected at all.
+- **`pid=NO_VIEW` is the black screen from the pointer's side**: the click is delivered and there is no surface under it.
+  Input works; a placed, drawn view is the remaining gap.
+- **False readings to avoid**: `pidof weston` (wrong name) · `wait` inside a subshell returning 127 · `ias-shot` writing
+  ASCII PPM with a `.png` extension · a successful capture not proving the compositor is alive · the chain's own teardown
+  killing the compositor after ~155 s.
+
+### Fixing it: the remediation report
+
+`docs/REMEDIATION-REPORT.md` orders nine findings by **cost to fix** rather than by severity, because the cheapest ones also remove the most. Each item gives the
+measured evidence, what it exposes, the fix and how to verify the fix.
+
+| Tier | Items | Character |
+| --- | --- | --- |
+| 1 | applications run under SMACK's exempt `_` label; account database in `/tmp`; compositor modules named by `/tmp/weston.ini`; a tampered data partition turns MAC permissive; the serial console is on by default behind a writable parameter | configuration, hours |
+| 2 | the app manager executes a caller-named path as root; the signature key is read from `/tmp`; `debug-shell.service` is an unauthenticated root shell | code, needs a release |
+| 3 | data "encryption" uses the literal passphrase `1234` — and in the shipped flow never engages at all | data protection |
+
+The report ends with one sentence for the platform team: six of the nine are **one mistake** — a security decision resolved from state the threat model treats as
+untrusted — and the fix is to move those decisions onto read-only or hardware-backed state and make every one of them **fail closed**.
+
+### OTA envelope tooling: `gen5w_crypt.py`
+
+LG ships update payloads wrapped in a **TE2 envelope** — an AES-128-CBC body followed by a 0x4024-byte metadata trailer whose `[4:36]` field is a SHA-256 over the IV plus the rest of the
+metadata. `gen5w_crypt.py` (repository root) reads and writes that container:
+
+```sh
+python3 gen5w_crypt.py inspect  AppUpgrade                   # report layout, IV, integrity, cipher
+python3 gen5w_crypt.py decrypt  AppUpgrade AppUpgrade.plain
+python3 gen5w_crypt.py encrypt  AppUpgrade.plain AppUpgrade  # from scratch, or with --from <envelope>
+python3 gen5w_crypt.py decrypt-tree --root encrypted/ --out plain/
+python3 gen5w_crypt.py encrypt-tree --root plain/ --out new/
+```
+
+`--force` overwrites existing output.
+
+#### Round-trip verified, byte for byte
+
+Decrypting a shipped envelope and re-encrypting it reproduces the original **exactly**:
+
+```
+inspect   work/appfumo-iasimage-eu260128/encrypted/iasImage_1920_12
+          magic_valid: true   integrity_valid: true   cipher: AES-128-CBC
+decrypt   -> iasImage_1920_12              6,210,308 bytes, begins "ipk."
+encrypt   -> iasImage_1920_12  --from <original>
+cmp       byte-identical: YES (6,226,728 bytes)
+```
+
+Evidence: `evidence/te2-envelope/roundtrip-2026-11-05.log`.
+
+#### Two things that will bite you, both discovered the hard way
+
+- **The IV derives from the file's basename.** `IV = SHA256((basename + signed_int32(body_size)))`, so decrypt and encrypt must use the *same* name — for `encrypt`, that means the
+  **output** name. Writing to `iasImage_1920_12.new` produces a valid envelope with a different IV and byte-wise different ciphertext. Use identical names in different directories.
+- **`cryptography` is required for decrypt/encrypt, not for inspect.** It is not installed for this host's interpreters; a throwaway venv works:
+  `python3.13 -m venv /tmp/cryptenv && /tmp/cryptenv/bin/pip install cryptography`.
+
+#### What this does and does not give you
+
+- **Does**: read any TE2 payload to plaintext, and re-wrap a modified plaintext into a structurally valid, integrity-correct TE2 envelope. For a payload the device would accept, the
+  real trailer must be carried over (`--from`/`--trailer`), because the metadata's signature/key store is hashed into `[4:36]` — a from-scratch trailer zeroes those bytes and is explicitly
+  **not** device-faithful.
+- **Does not**: sign anything. `AppUpgrade`'s RSA verification of `.lge.upgrade.xml`, the version gate and any anti-rollback remain exactly as they were — see
+  `docs/DOWNGRADE-POSSIBILITIES.md`. Reproducing an envelope byte for byte proves the *container* is understood, not that the *contents* are trusted.
+
+### Root access, ranked by cost
+
+`docs/root-access-paths.md` lists every route found and what each requires: **the serial console** (physical pads + the root password, prompt captured, password uncracked), **engineering
+mode** (touch only — and it yields menus, not a shell, on this build), **a write to `/tmp`** (three demonstrated anchors, but no non-root writer exists here), **`request.launch`**
+(executed as uid 0, but the bus is root-only), **the auto-mounted kernel filesystem drivers** (20 crafted images, no fault), **USB SCSI property injection** (payload is an
+unauthenticated root shell; needs a programmable bridge), **media parsers** (present, unexercised), **WiFi** (hardware there, no shell behind it), and **downgrade**
+(anti-rollback unresolved).
+
+The uncomfortable conclusion, in the page's own words: the cheapest route has no way in, and the most reliable one needs a screwdriver.
+
+### Downgrade — can older firmware be installed?
+
+Short answer: **not through any menu, and not with a modified package — but yes, by racing the updater with a genuine older one.** Full reasoning in
+**`docs/DOWNGRADE-POSSIBILITIES.md`**; the leading route is **V-059** in `Ioniq5-VULNERABILITIES.md`.
+
+| Route | Status |
+| --- | --- |
+| **USB update TOCTOU (V-059)** | **yes, and keyless**: the updater the vehicle runs (FUMO) checks the payload with `md5sum`, then applies it in a **separate process** that opens it again — `DecryptToPIPE -d <src> <offset> 0 \| pv -q -L 8m \| dd of=<partition>`. A genuine older package is therefore installed after the version gate has been satisfied against the current bytes. No AES key, no RSA key, and anti-rollback does not apply. The apply stream is **rate-limited to 8 MB/s by its own command**, so a gadget never has to outrun that |
+| Engineering mode → **Force Update** | real facility — its own log line is `Force update !! Pass version compare.` — but gated by `[FORCE_UPDATE_FUCTION_ENABLE] DEV -> MP`, so **off on production builds** |
+| Engineering mode → **Previous Version** | a *view* of prior versions, not an installer |
+| FUMO **equal-version local relaunch** (`/update/usb/bin`, `force_launch=run`) | evidenced to **skip both verifier-result contracts**, but needs root write access to `/update` first |
+| SCOMO path (`-un:1`) | its `MASS_PRODUCT`/`PENETRATION` startup **explicitly ignores** `/update/disableEncryptionUpdate` — worse, not better |
+| Modified/unsigned package | **rejected** by RSA `PKCS#1` verification of `.lge.upgrade.xml` |
+| **Authentic older package, ordinary path** | **unknown** — decided by anti-rollback, unresolved here. V-059 is the route that does not ask it |
+
+The version gate is a **strict "must be newer" comparison**, so a lower version fails at the first gate — which is exactly why the TOCTOU matters: the gate runs on the *checked* bytes while
+the install consumes *different* ones.
+
+**Measured against `NE_E.EUR.S5W_L.001.001.260128` (2026-01-28)** — later than late-2025. Nothing has been attempted on hardware: V-059's remaining requirements are a programmable USB device
+and the page-cache question, both in `evidence/external-ioniq5-usb-toctou/HARDWARE-FEASIBILITY.md`.
+
+### Checking the record itself
+
+The documentation verifies itself, and has already caught three defects a careful read missed:
+
+```sh
+sh tools/check_all.sh
+```
+
+- **`check_register_consistency.py`** — every `V-NNN` exists, none duplicated, nothing cites an entry that is gone. It found a stale heading still asserting a claim that had been
+  withdrawn (the body was corrected; the heading, which appears in every table, was not).
+- **`check_history_append_only.py`** — walks the git history of `Ioniq5-HISTORY.md` and asserts every stored version is a prefix of the next, which is what "append-only" means. It found
+  **21 historical rewrites** and one future-dated entry, all before this session; it now fails only on *regressions* against that recorded baseline.
+- **`check_doc_links.py`** — resolves 1,300+ cross-references between documents. It found a one-character typo in the citation for the only evidence behind the console finding, and stale
+  references to screenshots that had been renamed.
+
+References that are deliberately not repository paths are listed in `tools/doc_link_allowlist.txt` as either `EXTERNAL` (inside other repositories) or `MISSING` (documents this tree
+promised and never wrote) — recorded rather than ignored.
+
+### Findings summary
+
+A single consolidated document — **`docs/FINDINGS-SUMMARY.md`** — collects the whole state: what works in the VM,
+why the screenshots were striped (our own backend, proven by a clean reproduction), what DEV mode actually is, every
+hidden menu and how it is triggered, the entry vectors ranked by what they require, the USB-media parser vector, what
+was imported from the second project on the same platform, register reconciliation, and the dead ends.
+
+Headline findings:
+
+- **Clean rendering is reachable and reproduced** (`docs/vm/24-clean-vendor-backend-2026-11-04.png`); the stripes are
+  produced by this project's ten-output research backend, not by the application or the compositor.
+- **DEV mode is a build-state integer**, not a setting, and on this `260128` build `setEngType()` writes it
+  unconditionally — so relaunching the shipped binary from `/tmp` changes nothing.
+- **Engineering mode is reachable from the stock UI** by a **tap-the-software-version gesture plus a PIN**
+  (`19491003 *(see correction below — not valid on this build)*` engineer, `2400` dealer), per an independent project on the same LGE Gen5W platform; the code path for
+
+> **Corrected 2026-11-04:** the value `19491003` comes from the sibling platform and does **not** match this build. `AppEngineerMode` carries exactly two SHA-256 constants; the engineer one matches a different vendor default code, and the dealer one is `2400`. Both were verified against those constants. The plaintext engineer code is withheld from this public tree as V-041 requires.
+  it exists in this image. Untested here.
+- **The strongest entry vector is a USB media file**: this image carries `libgstasf.so` from GStreamer 1.8.3 and a
+  D-Bus-activated `lightmediascanner 0.5.1`, and the external report documents root execution from ASF/EBML payloads
+  triggered by insertion alone. Filed as candidate **V-047**.
+
+### Engineering mode and DEV mode — entry vectors and dead ends
+
+Engineering mode on this platform is entered from the stock UI (`AppSetup` requests app id `0x12D` at `0x573194`). What the menu then shows depends on **one check**:
+
+```c
+checkSOPVersion():  cmpl $0x1, this+0x13c ; sete %al      /* true = production (SOP) menu */
+```
+
+and the only thing that writes that field is `setEngType()`, which compares the process's own executable path against the literal **`/tmp/app/bin/AppEngineerMode`**. Equal ⇒ development
+state; otherwise production. **DEV mode is therefore not a setting and not a menu item — it is which file the launcher runs.** The full list it reveals adds **Encryption Update**, whose buttons call
+`UpgradeVerInfo.enableUpdateFile(10)`; the production list shows only Scheduled Update List.
+
+`AppLauncher` cooperates with this deliberately: it tests `QFile::exists("/tmp/app/bin/AppEngineerMode")` and, when the launch is for app id `0x12D`, runs that copy in preference to `/app/bin`.
+
+| Entry vector | Status |
+| --- | --- |
+| Copy the binary to `/tmp/app/bin/AppEngineerMode`, then open engineering mode | **works** — measured in the projection; `readlink` showed the dev path |
+| One-byte patch at file offset `0x7372a6`, `74` → `EB`, forces the develop branch always | identified, not applied |
+| Stock engineering-mode entry from `AppSetup` | exists — shows the reduced SOP menu |
+| USB stick carrying the file | **dead end** — `usb-automount` mounts and reports over D-Bus, never executes |
+| Modified firmware through a normal update | **dead end on its own** — RSA PKCS#1 signature verification; the AES key ships in the image, the signing key does not |
+| Modified firmware after replacing the trust anchor (**V-034**) | works in principle — requires a privileged local write first |
+| USB Ethernet adaptor | **dead end for this image** — drivers present, but `/usr/sbin/dropbear` is absent and there is no `dropbear.socket` |
+
+Full detail, with the disassembly and the QML quotes: **`evidence/engineering-mode-dev-activation.md`**.
+The engineering application running from the dev path is captured in `docs/vm/23-engineering-mode-dev-launch-2026-11-02.png`; the launch is proven by `readlink`, and the screen itself is
+striped by the rendering fault described below, so the image documents that dev mode was entered rather than what the menu says.
+
+### Display investigation — current state
+
+The application renders: it calls `QWindow::show()`, creates a Wayland surface, attaches a buffer and commits, and the compositor reports a real window for it
+(`Surface id(…), Weston surface W(1926), H(753)`). Making it *visible* requires an explicit request — `ivi_wm` sends `set_surface_layout`, `set_surface_visible` and `request_fg`
+through the vendor's own `ivi_window_manager` interface, and that request is what makes content appear at all.
+
+The composite is **correct** when the application is forced onto Qt Quick's software renderer
+(`QT_QUICK_BACKEND=software`, `docs/vm/16-software-backend-no-shear-2026-10-31.png`), which produces clean 1920×720 geometry. That single substitution exonerates the
+compositor, its pixman renderer, the research backend and the placement work. The software path cannot show the **vendor UI**, because the application's own texture factory
+fails for every image when not on GL (`UncompressedTextureFactory::createTexture … Fail`).
+
+So the shear is confined to the EGL path. The standing explanation is arithmetic: the application's window is **1926 wide with stride 7704** while the compositor assumes the
+**1920**-wide screen at **7680** — 24 bytes, six pixels, per row. The chain that produces it is measured in pieces: the application asks for the primary screen size and receives
+**0×0**, and it never receives an `ivi_surface.configure`, so it cannot size itself to the screen. The drift itself has **not** been confirmed at the pixel level; frames are
+noise-like after it and cross-correlation was inconclusive.
+
+Its pixels travel in a single ~5.8 MB `mesa-shared` segment plus three 20 KB `weston-shared` state segments, not in a Wayland `wl_shm` pool — which is why scanning
+`/proc/<pid>` for a shared-memory frame found nothing.
+
+**Latest state: the shear has been removed by rewriting one expression.** The vendor's own quad vertex
+shader was recovered from the running process (`glShaderSource` interception) and is:
+
+```glsl
+attribute vec4 position;
+attribute vec4 texCoords;
+varying vec2 outTexCoords;
+void main() { gl_Position = position; outTexCoords = texCoords.xy; }
+```
+
+Rewriting the last line in memory, at upload, changes the result completely:
+`outTexCoords = texCoords.yx;` merely rearranges the stripes, while
+`outTexCoords = vec2(-texCoords.x, texCoords.y);` **removes them entirely**, yielding a clean window
+(`docs/vm/21-flipu-removes-shear-2026-10-31.png`). So the artefact comes from the sign of the `u`
+coordinate the application supplies. The corrected frame is mostly empty, which means the mapping is not a
+pure mirror; bracketing it with a short sweep of `a·u + b` candidates is the remaining work, and each
+candidate now costs one run. No vendor binary is modified — the rewrite happens in memory, by an
+interposer installed only in the research clone.
+
+**What is not available here:** weston's GL renderer. The vendor's `headless-backend.so` rejects `--use-gl` outright (`fatal: unhandled option`), so the EGL path cannot be
+tested against a renderer that can sample GL buffers, and the vendor `ias-backend.so` needs hardware this VM does not have.
+
+### Recently established (2026-10-31)
+
+Work in the merge of the two lineages resolved several faults that had been blocking
+reproducible rendering, and produced tools that are now part of the repository.
+
+| Finding | Evidence |
+| --- | --- |
+| The vendor IVI shell integration **silently declines to create a Wayland surface** unless it is given a surface id. With the launcher's `QT_WAYLAND_SET_SURFACE_ID=0` the client enters `IviShellIntegration::createShellSurface`, returns, and never calls the surface creator. | `Ioniq5-CHANGELOG.md` 2.64.0; `tools/uk_fw/ias_backend_soft/qt_show_trace.c` |
+| Forcing one id onto the app **collides** with the ids of its other surfaces: the compositor raises `id_surface(1) is already created`, the connection dies with a fatal protocol error, and the resulting teardown is what previously looked like two unrelated crashes in `free()` and in a widget destructor. | 2.72.0, 2.73.0 |
+| `QT_WAYLAND_USE_PID_FOR_SURFACE_ID=1` gives each client a unique id (its pid). The application then **stays alive indefinitely** and the compositor reports a real window: `Surface id(778), Weston surface W(1926), H(753)`. | 2.73.0 |
+| The vendor compositor **aborts** when more than one IVI screen exists: `pixman-renderer.c:277 composite_clipped: Assertion 'src_format' failed`. The cause is its own solid-colour backgrounds, which have no pixmap format. An interposer supplies one. | 2.53.0; `tools/uk_fw/ias_backend_soft/pixman_solid_shim.c` |
+| `hmi-controller.so` ships but **never loads** without nine `[ivi-shell]` config keys; with them it initialises. | 2.55.0 |
+| The vendor ships its own window-manager protocol (`/usr/share/ivi-window-manager/ivi-window-manager.xml`) with `set_surface_visible`, `request_fg` and `set_surface_layout` — the placement vocabulary this project had been hand-rolling. | 2.69.0; `tools/uk_fw/ias_backend_soft/ivi_wm.c` |
+| `org.genivi.persistence.admin` is **absent** from the image although clients link its library; a stub now provides it. Supplying it does **not** stop the client crashes — a refuted hypothesis, recorded as such. | 2.59.0, 2.61.0; `persistence_admin_stub.c` |
+
+New tools in `tools/uk_fw/ias_backend_soft/`: `qt_show_trace.c` (traces `QWindow::show`, the vendor shell surface calls and the HMI
+id request), `qt_env_shim.c` (environment interposer), `pixman_solid_shim.c`, `ivi_wm.c`, `ivi_place.c`, `persistence_admin_stub.c`.
+
+Two capabilities were added to the research backend for this work: `IAS_OUTPUT_COUNT` (present N IVI screens, which is what the
+vendor shell numbers screens by) and `IAS_REPAINT_OUTPUTS` / `IAS_SHIM` (limit which outputs composite, and disable the research
+surface shim), all defaulting to previous behaviour.
+
+**A caveat stated plainly:** the authentic Home screen capture in this README (`docs/vm/02-home-screen.png`) came from the earlier
+configuration. In the ten-screen research backend used for this week's work the composited frame still measures black
+(max channel value 8 of 255) even with the application's surface created and committed, so "Home renders" and "this particular backend
+shows it" are not the same claim, and the second is not established.
+
+**Security:** the same work produced register entry **V-046**, a *candidate*: every request in the vendor window-manager interface
+names its target by surface id rather than by calling client, which would permit cross-client window control unless the compositor
+validates the sender. No cross-client attempt has been made yet, and the entry says so.
 
 Runs use QEMU with TCG acceleration, `-cpu max,vendor=GenuineIntel`, 1536 MiB RAM,
 disk `snapshot=on`, and **no NIC**. Snapshot mode is mandatory: a run must never

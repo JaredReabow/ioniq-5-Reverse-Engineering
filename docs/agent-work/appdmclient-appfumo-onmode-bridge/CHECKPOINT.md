@@ -63,7 +63,7 @@ participation, sender identity, uid, and SMACK admission.
 Focused test command:
 
 ```text
-PYTHONDONTWRITEBYTECODE=1 /Users/leo/.platformio/penv/bin/python3 \
+PYTHONDONTWRITEBYTECODE=1 python3 \
   -m pytest -q -p no:cacheprovider \
   tests/test_appdmclient_appfumo_onmode_bridge.py
 ```
@@ -73,7 +73,7 @@ Independent review result: **17 passed, 33 subtests passed in 5.48s**.
 Full tests-scoped integration command after acceptance:
 
 ```text
-PYTHONDONTWRITEBYTECODE=1 /Users/leo/.platformio/penv/bin/python3 \
+PYTHONDONTWRITEBYTECODE=1 python3 \
   -m pytest -q tests
 ```
 

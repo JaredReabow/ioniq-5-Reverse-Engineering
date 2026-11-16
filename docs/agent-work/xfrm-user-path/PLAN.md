@@ -63,7 +63,7 @@ running recovered targets or performing any target/runtime operation.
 7. Integrate the narrow rejection into the retained artifact index, exploit
    inventory, handover, and IONIQ changelog.
 8. Run only focused tests and bytecode compilation with
-   `/Users/leo/.platformio/penv/bin/python3`, then `git diff --check`. Do not run
+   `python3`, then `git diff --check`. Do not run
    or claim the complete suite, public harness, or independent acceptance.
 
 ## Acceptance criteria

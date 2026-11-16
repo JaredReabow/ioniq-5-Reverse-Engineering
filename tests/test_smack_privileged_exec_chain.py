@@ -23,7 +23,7 @@ import smack_privileged_exec_chain as audit  # noqa: E402
 
 BoundaryError = audit.BoundaryError
 
-PYTHON = Path("/Users/leo/.platformio/penv/bin/python3")
+PYTHON = Path("python3")
 ROOTFS = ROOT / "work/decrypted-eu-260128/HU/images/mango-rootfs.tar.gz"
 BASH = ROOT / "work/decrypted-eu-260128/extracted-safe/mango-rootfs/bin/bash"
 REPORT = ROOT / "evidence/artifacts/application-candidates/smack-privileged-exec-chain-report.json"

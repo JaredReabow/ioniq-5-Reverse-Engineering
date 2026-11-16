@@ -5,6 +5,46 @@ reports supporting update-path assessments. Original firmware and recovered
 executables remain ignored under `work/`; retained files must not contain target
 payloads, bypasses, private operator paths, or executable target material.
 
+## Exact ABL IAS embedded-key trust boundary
+
+- [`abl-ias-key-trust.json`](abl-ias-key-trust.json): canonical update/rootfs,
+  exact 8 MiB ABL, BPDT/CPD/IBB, stock `ias_image_app`, twelve package-key,
+  and hash-bound public Intel source report (SHA-256
+  `df9d9a2f730efb2103a11113f028008ac3c36b1b05293602d72958f5612c5fa6`);
+- [`abl-ias-key-trust-exact-static.asm`](abl-ias-key-trust-exact-static.asm):
+  byte-free type-3 caller, key-hash comparison, SHA-256 wrapper, and RSA-entry
+  disassembly (SHA-256
+  `5c069c0b869288e38087ad25dc86c8efa18d2f16799a8c26434dc8d82515932b`).
+
+The exact package carries one shared RSA key. Strict host-side LZ4 recovery of
+the exact `rel.1714-HF3` IBB stage now proves that ABL hashes the carried
+modulus/exponent, compares 32 bytes with a selected external runtime hash
+record, fails on mismatch, and only then performs RSA payload verification. The
+type-3 OS path uses this routine with selector `0x27`. Public Intel Apollo Lake
+source independently has the same key-hash-before-RSA order. The persistent
+source of the expected digest remains unknown, as do custom-image boot, root,
+and persistence.
+Assessment: [`../../abl-ias-key-trust-boundary.md`](../../abl-ias-key-trust-boundary.md).
+
+## BusyBox unzip unsafe-filename applicability
+
+- [`busybox-unzip-unsafe-filename-exact-static.txt`](busybox-unzip-unsafe-filename-exact-static.txt):
+  exact stock filter/matcher instructions, caller operands, upstream-fix
+  provenance, and bounded route verdict (SHA-256
+  `478e1b8e17d2ae66a763dbc494ecb9838037f853085bb2b11ee8d51ccbc50549`).
+
+Upstream commit `8c06bc6ba14949d945eff0abcabab885f1ef7680` is absent
+from BusyBox 1.23.2, but the exact AppScomoDM command supplies only literal
+`AppUpgrade` and `.lge.upgrade.xml` inclusion patterns. Stock `unzip` calls
+`fnmatch(pattern, member, 0)` and skips unmatched local-header names before any
+output path operation. Absolute, parent-prefixed, component-prefixed, or
+trailing-traversal names therefore do not establish path traversal in this
+route. This does not affect V-020: compressed data for an accepted literal
+member still reaches the pre-fix method-8 parser before member authentication.
+Other unzip callers, pre-existing output objects, and filesystem races remain
+outside this result. Assessment:
+[`../../busybox-unzip-unsafe-filename-applicability.md`](../../busybox-unzip-unsafe-filename-applicability.md).
+
 ## AppDMClient AppUpgrade launch routing
 
 - [`appdmclient-appupgrade-launch-routing-manifest.json`](appdmclient-appupgrade-launch-routing-manifest.json):

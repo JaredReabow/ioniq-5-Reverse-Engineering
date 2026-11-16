@@ -1,0 +1,268 @@
+# Measurement discipline: the mistakes this project actually made
+
+Nine corrections were made in a single working session. Every one had the same shape: a plausible conclusion drawn from a measurement that could not have
+supported it. They are collected here as rules, each with the concrete case, because the cases are more persuasive than the rules and because the next person will
+make the same ones.
+
+---
+
+## 1. Check the instrument before you believe the result
+
+**The case.** The root password hash of V-049 was tested against 10,000 plausible candidates and "no match" was nearly recorded. The tool was
+`/usr/bin/python3`'s `crypt`, which on that host implements **DES only and silently ignored the `$6$` salt** — it was never computing SHA-512-crypt at all. Two
+tells: `crypt.methods` listed only `METHOD_CRYPT`, and 2,000 "hashes" completed in 0.00 s, which is impossible for a 5,000-round algorithm. Redone with
+`openssl passwd -6`, validated by checking the output shape for the known salt, the sweep was real (and still found nothing).
+
+**Rule.** Before trusting a negative, prove the instrument can produce a positive. A tool that silently degrades to a different algorithm will answer confidently
+and wrongly.
+
+## 2. Search for the artefact, not the mechanism
+
+Three separate false absences came from this:
+
+| Claim | What was searched for | What actually shipped |
+| --- | --- | --- |
+| "the ASF parser is absent" | a file named `lms_asf.so` | `app/lib/lightmediascanner/plugins/asf.so` |
+| "the MAC policy has no rules" | writes to `/sys/fs/smackfs/load2` in scripts | `/etc/smack/accesses.d/` — 27 files, 636 rules, loaded by `smack.service` |
+| "nothing enables the encryption" | callers of `fde_test_v2.sh` | the flag is *read* from a module parameter, not recomputed |
+
+**Rule.** If you are looking for data, look for the data. Absence of a write site does not mean absence of the artefact; a configuration file is not a script.
+
+## 3. One variable at a time, and remember which ones you changed
+
+**The case.** V-053 was reasoned down to "the encryption never engages" from the shipped flow. A later run showed `/dev/mapper/rw_data_enc is active` — encryption
+had engaged. Both were true: the run had an **instrument** that forced `optUNECE=1`, and `esinit` reads that flag rather than recomputing it. My own hand changed the
+behaviour under study.
+
+**Rule.** Keep a list of every injected file, forced parameter and wrapper in a boot. When two of your own runs disagree, suspect your own instruments first.
+
+## 4. "Black" is a conclusion, not an observation
+
+**The case.** A display was called broken for several sessions. The surface existed at 1926×753 the whole time and was simply **not placed** on screen; one
+`ivi-wm <id>` call made the interface visible. Later, the engineering window was called unpainted until `strace` showed the app had sent **624 bytes of Wayland
+traffic, all object-id teardown, no `attach` and no `commit`** — it was waiting to be *shown* by the app manager.
+
+**Rule.** Say what was measured: `pid=NO_VIEW` is not "input is broken", a capture size is not "rendering is broken". Distinguish *nothing drew* from *nothing was
+visible* from *nothing was asked to draw* — they have three different causes.
+
+## 5. A correlated line is not a cause
+
+**The case.** `random: weston urandom read` appeared in two runs and was used twice as evidence about a boot branch. It appears in **both** the working and the
+broken case, and no unit in the image even starts weston — some unidentified path invokes it. The line proved nothing either time.
+
+**Rule.** Before a log line becomes evidence, find the code that emits it and confirm it can only be emitted on the branch you claim.
+
+## 6. Negative controls turn a result into evidence
+
+**The case.** The demonstration that `/etc/fde_test_v2.sh`'s passphrase opens its own container reported
+`OPEN_WITH_1234_RC=0`. On its own that could mean the container was created with **no** passphrase. Adding `OPEN_WITH_RC_WRONG=5` — a wrong passphrase failing —
+is what made it evidence.
+
+**Rule.** Every "it worked" needs a matching "the wrong thing does not". Prefer a probe that also prints its own precondition: the invalid MAC probe failed because it
+never printed the object label it had tried to set.
+
+## 7. Verify the marker, not the exit code
+
+**The case.** Two scripted documentation edits were skipped when a heredoc failed mid-way, and the `git commit` still succeeded — with only the files that happened
+to exist. Caught by grepping for the expected new heading and finding `0`.
+
+**Rule.** After any scripted edit, assert the change is present. A clean exit from the tool that was supposed to make the change proves nothing about the file.
+
+## 8. Label the instrument in the artifact
+
+Every projection-only addition in this repository says so in a comment and in the changelog: the MICOM SPI stand-in, the `/usr/bin/weston` wrapper, the pixman
+solid-fill shim, the `lge_usb_adapter` neutralisation, the SMACK probe drop-in. Two of them changed the behaviour being studied.
+
+**Rule.** If a finding depends on a modified system, the modification is part of the finding. Otherwise "it works in the projection" quietly becomes "it works on the
+vehicle".
+
+---
+
+## The one-line version
+
+**State what you measured, with the raw line; prove the instrument could have produced the other answer; and change one thing at a time — including the things you
+changed yourself.**
+
+## 9. Count the lines; do not read a number that is sitting where a count goes
+
+**The case.** An audit log showed entries ending in `audit(615.831:21528)`, and `21528` was very nearly written up as "21,528 audit records" - which would have made audit volume look
+like a plausible cause of CPU starvation and sent someone chasing it for an hour. It is the kernel audit subsystem's cumulative **serial number**. The actual record count was **600**,
+one per second, which eliminates the hypothesis instead of supporting it.
+
+**Rule.** When a quantity matters, compute it from the data (`grep -c`, a sum over the field you mean) rather than from a number that merely appears in a plausible position. Serial
+numbers, timestamps, offsets and PIDs all live where counts live.
+
+## 10. Verify the write, and verify that your verification ran
+
+**The case.** A scripted edit to the register printed that it had recorded a finding. The insertion had actually matched nothing, so the file was unchanged - and the verification step I ran afterwards printed `0`, which I read as "the phrase may be phrased differently" and moved past. Two commits later the register was still asserting the opposite of what the evidence sheet said. The check existed, ran, produced the answer, and was ignored.
+
+The earlier version of this rule, from §7, was "verify the marker, not the exit code". This one is one step further out: **the marker check has to be asserted, not printed.** A count of zero next to a phrase you expected is a failure signal, not a note.
+
+**Rule.** After a scripted edit, assert positively - `grep -q` the exact new phrase and exit non-zero if it is absent - rather than eyeballing a number. And when a verification produces an unexpected value, stop the commit; do not reword the search and carry on.
+
+
+## 11. A byte size is a hint about which frame you captured, never a verdict about what it shows
+
+**The case.** This project has used PNG byte sizes as a shorthand for state for days: 129,844 is the
+early background, 120,5xx is the application's standby face, ~16,000 is the laid-out home screen. It
+worked often enough that "compare the size" became the first check.
+
+It broke on 2026-11-05. A worker captured `docs/vm/39-…png` at **131,845 bytes** and treated it as
+evidence that a CAN injection had been applied. I opened it: 1920x720, dark, title bar, **KIA logo, no
+widgets** - the **standby face**, the powered-off presentation. So one standby frame is 120,5xx and
+another is **131,845**, an 11 KB spread that is larger than the gap between two of the "reference"
+sizes this project quotes. The run had never powered the application on, so the injection could not
+have shown anything.
+
+**Rule.** Size tells you whether you captured *something new*. Only the image tells you *what*. When a
+state claim matters, describe the frame in words that a second person could check without your file -
+"KIA logo and no widgets" versus "Battery and Range placed with placeholder dashes" - and open it.
+Two frames of the *same* state can differ by more than two frames of *different* states.
+
+**Corollary for delegation.** A worker told "compare against these reference sizes" will treat a
+mismatched size as a state change. Give workers the **visual** test as well, in words, and require them
+to say which surface id a capture came from.
+
+## 12. A serial channel translates your bytes; only text survives it unchanged
+
+**The case.** A capture was sent raw over a file-backed serial device to get it off the guest losslessly.
+The PNG arrived mangled: magic `89504e47 0d0d0a 1a0d0a` instead of `89504e47 0d0a1a0a`. The line discipline
+rewrites `\n` (0x0A) to `\r\n`, so **every 0x0A byte in a binary payload gains a 0x0D**.
+
+**Rule.** Treat any serial channel as a **text** channel. Send binary as base64 with no newlines (base64
+never contains 0x0A), or explicitly switch the port to raw mode first. Verify by checking the first bytes
+of what arrives, not by comparing lengths - a length that grows by a few percent is the signature of this
+exact fault.
+
+**Corollary.** The same applies to the console: it is a log channel. Anything larger than a few KB, or
+anything that is not text, belongs on a dedicated file-backed device.
+
+## 13. Never elide a path in committed text
+
+**The case.** Twice in one session I wrote a house path with a middle elision -
+`01-...md` in the data notes, then `42-...png` in the VM captures. Both read fine, both are unusable: a reader cannot open
+them, and the link checker resolves them literally and fails the build. The second one I wrote *after*
+having been corrected for the first.
+
+**Rule.** A path in committed text is an address. Write it complete or write a description instead -
+"the 22,057-byte day-shell capture" is better prose than a truncated file name, and it cannot break.
+
+**Tell.** If a fix for a broken reference is to edit a checker allowlist, the path was wrong. The allowlist
+exists for references to things **outside this repository**, not for paths I was too lazy to type.
+
+## 14. A count is not evidence unless you know which file you counted
+
+**The case.** Two runs were compared to test whether duplicate application instances caused the Wayland fatal
+error and the database commit failures:
+
+| run | counters |
+|---|---|
+| with two instances | `wlerr=2` `commitfail=23` |
+| with one instance | `wlerr=0` `commitfail=0` |
+
+That looked like a clean confirmation, and it was written up as one. But the second run also printed
+**`initdone=[0]`** - not a single `AppHome Init Done` line - and that should have stopped everything. The
+application's launcher redirects its stderr with `>`, so **each new instance truncates the log**. The zeroes
+measured an almost-empty file created seconds earlier, not a fixed application.
+
+A later run with **one** instance and a **99,902-byte, 745-line** log still contained the Wayland fatal error
+and the `DB UPDATE COMMIT FAIL`.
+
+**Rule.** Whenever a counter is used as evidence, record **the size and identity of the file it came from** in
+the same line as the count - `wlerr=[0] logsz=[281]` would have caught this instantly. A count of zero is the
+most suspicious number there is, because emptiness and success look identical in it.
+
+**Corollary.** A log whose first expected line is missing is not a log with no errors; it is a log that is not
+about the thing you are measuring. Check for the *presence* of a known-good line before counting the absence
+of bad ones.
+
+## 15. Never overwrite a vendor file in the same step as an assumption about the tool
+
+**The case.** To trace the application's Wayland traffic I needed the real binary under a new name and a wrapper
+in its place. I assumed `debugfs` has a `rename` command. It does not - it answered `Command not found` - and
+because my next command wrote the wrapper to `/app/bin/AppHomeScreen` regardless, **the vendor binary in the
+clone was destroyed** and only recovered because a pristine extraction of the same image exists.
+
+**Rule.** Copy to the **new** name first, verify it (size, magic, hash against the pristine source), and only
+then replace the original. Two steps, not one. If the tool lacks the primitive you wanted, the safe move is to
+stop, not to continue with the next command in the chain.
+
+**Corollary.** Keep a pristine, read-only extraction of every vendor artefact that gets modified. This project
+has one, which is the only reason a mistyped chain cost nothing.
+
+## 16. A whole-file rewrite can destroy a document silently; check its size afterwards
+
+**The case.** Replacing one section of `docs/CURRENT-STATE.md` with a script, I computed the slice to replace as
+`t[t.index(start_marker):t.index(end_marker)]`. The two markers were **not in the order I assumed**, so the slice was the
+**empty string** - and `t.replace('', new)` inserts the replacement **between every character**. The file went from
+28,140 bytes to **33 MB / 702,293 lines** in one call.
+
+**What caught it:** a `grep -c` that should have returned `1` returned **`28077`**. An absurd count is a signal, exactly
+like the zero counts of rule 14 - both are numbers that cannot be true.
+
+**What fixed it:** `git checkout -- <file>` (the file was uncommitted), then the same edit with **three assertions** -
+markers found, `end > start`, and the slice longer than 200 characters. On the second attempt the assertion fired for
+the same reason, the file was untouched, and the markers were then located by living with the headings instead of
+assuming their order.
+
+**Rule.** Any programmatic rewrite of a whole document gets: (1) assertions that the region is what you think, (2) a
+size check afterwards against the expected change, and (3) **the file must be committed or restorable** before you run
+it. And when a count that should be 1 comes back in the thousands, stop and look at the file, not at the query.
+
+## Rule 17. A number is not a measurement unless the instrument proves it measured the intended target
+
+Adopted 2026-11-06, after the seventh instrument failure in one session and the first one where the *system* refused to be
+measured rather than the instrument misleading it: the monitor ran unlabelled, so it read a label from a dead pid and was denied
+the very directory it was checking, and both results looked like findings.
+
+**Every measurement now goes through `tools/uk_fw/guest/measure.sh`**, which emits exactly one of
+`MEASURED <claim> <value>` or `NOT MEASURED <claim> <reason>` and refuses the first when:
+
+1. **The target is not alive now**, or is a zombie - the dead-pid defect;
+2. **A positive control fails** - the instrument must first read a value it already knows, through the same mechanism, or it
+   cannot say anything about the target. This is the distinction between *the answer is empty* and *the instrument is blind*;
+3. **The command fails** - a non-zero exit through a healthy instrument is `NOT MEASURED`, never a value.
+
+**An empty result from a validated instrument is reported as `MEASURED ... <empty>`**, so that absence is never read as a negative
+finding - the mistake that produced three wrong conclusions earlier in this project.
+
+The wrapper is self-tested (`tools/uk_fw/guest/test_measure.sh`, six gates, runs anywhere including macOS by pointing
+`MEASURE_PROC` at a fake proc tree), because **an untested instrument is the trap this rule exists to close**.
+
+## Rule 18. A D-Bus *interface* is not a bus *name*, and `NameHasOwner` answers about names
+
+Adopted 2026-11-06, after three consecutive documents concluded "the registration bus name is unowned" from
+
+```
+dbus-send ... NameHasOwner string:com.lge.avn.appmanager.registration    -> boolean false
+```
+
+`com.lge.avn.appmanager.registration` is an **interface**. The bus name is `com.lge.hyundai.avn.appmanager`. No process owns an
+interface as a name, so the query could only ever return `false` - **a guaranteed negative read as a finding, three times.**
+
+It took a `dbus-monitor` capture started before the launch to show the truth: the calls are flowing to `com.lge.hyundai.avn.appmanager`,
+on that interface, at that path. The wrong-bus hypothesis that had been built on the false negative also died in the same capture: the
+manager's and the launcher's `DBUS_SESSION_BUS_ADDRESS` values are identical.
+
+**The general form:** when a probe returns a negative, the first question is not "what is broken" but **"what would this probe have printed if
+the system were healthy?"** If the answer is "the same thing", the probe is not a measurement of the system - it is a measurement of the
+probe.
+
+**And the second-order lesson:** this rule now has a sibling. Rules 17 and 18 are both about instruments, and the project has found more
+instrument faults than vendor faults in the last twenty-four hours. **The instrument deserves the same scepticism as the vendor.**
+
+## Rule 19. A finding derived from a string your own probe assembled is not evidence
+
+Adopted 2026-11-06. `WARM_DUPLICATE=1` was reported from a `WARM_REG=[…]` value that **the probe itself built by grepping the launcher log in
+place**. A gap in the pattern, an unescaped bracket, a log line that wrapped - any of them produces a confident number that describes the probe.
+
+**Read the raw artefact.** Retain the log, then read the lines. If a probe must summarise, it must also **retain the source** it summarised from,
+in the same run, in a place the host can read.
+
+**This is the third instrument lesson in one hour, and all three looked like vendor faults:**
+- rule 17 - the target was dead and the instrument reported an empty value;
+- rule 18 - the query asked about an interface and could only answer `false`;
+- rule 19 - the value was assembled by the probe from the thing it was describing.
+
+**The pattern to check for, in one line:** *could this number have been produced without the system behaving as reported?* If yes, it is not
+yet a measurement.

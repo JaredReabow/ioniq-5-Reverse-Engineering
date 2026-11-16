@@ -117,7 +117,7 @@ ChangeLog release commit/date. The unretained archive-index claim was removed.
 
 ## Validation
 
-- Focused model validation with `/Users/leo/.platformio/penv/bin/python3`:
+- Focused model validation with `python3`:
   **PASS**, 13 tests, zero failures/errors/skips.
 - Exhaustive classification: **PASS**, every emitted classification field
   asserted over all `2^15 = 32,768` Boolean states.

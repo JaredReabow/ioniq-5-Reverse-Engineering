@@ -28,7 +28,7 @@ constructing verifier input, or triggering the verifier.
 8. Integrate the narrow rejection into the retained artifact index, exploit
    inventory, handover, and IONIQ changelog.
 9. Run focused tests and bytecode compilation with
-   `/Users/leo/.platformio/penv/bin/python3`, then run `git diff --check`.
+   `python3`, then run `git diff --check`.
 10. Leave the complete suite, public harness, and independent acceptance pending.
 
 ## Acceptance criteria

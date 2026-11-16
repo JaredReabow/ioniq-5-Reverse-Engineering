@@ -1,6 +1,6 @@
 # IONIQ 5 infotainment vulnerability and remediation register
 
-Updated: 2026-11-03. Internal defensive research; no disclosure or vendor contact is implied.
+Updated: 2026-11-08. Internal defensive research; no disclosure or vendor contact is implied.
 
 ## Duplicate entries after the repository combination
 
@@ -23,13 +23,46 @@ keypad credential derives from static unsalted digests), **V-042** (world-writab
 actions) and **V-043** (privileged services import environment files from a world-writable path — the mechanism behind the
 chain noted under V-036, which previously had no entry of its own).
 
+> **RESOLVED 2026-11-08 — V-077 duplicates V-042, confirmed.** V-042, "Marker files under world-writable runtime paths
+> trigger privileged actions" (imported from the parallel repository as V-011), already records the mechanism, already notes
+> that "at least one forced-reboot trigger is reachable by any local process creating a zero-length file (local denial of
+> service class)", and already states the same remediation direction. V-077's heading is therefore marked `DUPLICATE of
+> V-042` and both bodies are kept, per the convention above. **V-077 must not be counted as an independent finding.**
+> V-077 was still worth writing — it adds the exact MICOM method `SetETCCPUWDTReset`, its three codes, all seven enabled
+> units, and five named creators — and it upgrades V-042 from "candidates, each individually unvalidated" to an enumeration
+> measured from the shipped units. That corroboration is cross-referenced from V-042's own entry. The incident repeats the
+> V-078-against-V-050 oversight: an entry was written before checking whether the register already held the finding.
+
 **One duplicate carries a superseded claim.** V-037's status line still says root execution was demonstrated; **V-006's
 measurement supersedes it** (the payload is rewritten to underscores by udev's allow-list before it reaches the sink), and a
 reconciliation note sits inside V-037 rather than its text being deleted. Anyone quoting severity must read V-006, not V-037.
 
-So the register holds **47 numbered entries** — 44 `V-`, 2 `I-` and 1 `H-` — of which **6 are duplicates**, leaving **41
-distinct findings** (39 `V-`, `I-001`, `H-001`). When citing a count, use the distinct figure; the 47 includes corroborating
-duplicates and should not be quoted as the number of separate issues found.
+So the register contains **79 `V-` headings**, measured 2026-11-08. The previous figure in this paragraph — "47 numbered entries, 44
+`V-`, 2 `I-`, 1 `H-`, 6 duplicates, 41 distinct" — was accurate when written and is now **stale by roughly 35 entries**. It is
+withdrawn rather than left standing, because a reader citing it would understate the register by half.
+
+**The distinct-finding count was re-derived on 2026-11-08 and is now stated, with its method, so it can be re-checked.**
+Seven headings are marked `DUPLICATE of` another entry — six `V-` headings (`V-037`→`V-006`, `V-038`→`V-007`,
+`V-039`→`V-008`, `V-040`→`V-028`, `V-044`→`V-034`, `V-077`→`V-042`) and one `I-` heading (`I-002`→`I-001`).
+Three further headings are `Amendment to` sections,
+not new findings. So the register holds **73 distinct `V-` findings** (79 headings minus 6 duplicate `V-` headings), and
+**75 distinct findings overall** once `H-001` and `I-001` are counted. Addenda are sub-sections inside their parent entry and
+are not counted separately.
+
+The derivation is reproducible and is what `tools/check_all.sh` should police but does not:
+
+```sh
+rg -c '^## V-' Ioniq5-VULNERABILITIES.md                          # 79 headings
+rg -n '^## V-.*DUPLICATE of' Ioniq5-VULNERABILITIES.md            # 6 of them are duplicates
+rg -n '^## .*Amendment' Ioniq5-VULNERABILITIES.md                 # 3 amendments, outside the V- numbering
+```
+
+If an entry gains a `DUPLICATE of` marking, **this paragraph and the 73/75 figures must be updated in the same edit**, or the
+header drifts again exactly as it did before.
+
+**`tools/check_all.sh` does not catch this.** It reported `RESULT: coherent` on this file while the header still claimed 47, so
+`check_register_consistency.py` does not police the header's counts against the actual headings. The header drifted silently,
+which is why it was wrong by half before anyone noticed.
 
 ## Numbering and provenance
 
@@ -325,6 +358,11 @@ bring-up defect. That question is open.
 - **Installed chain:** `60-persistent-v4l.rules` imports `v4l_id`; `50-udev-default.rules` executes nonempty `REMOVE_CMD` on removal. `60-persistent-storage.rules` imports `scsi_id` for `sd*`/`sr*`; `99-systemd.rules` tags block devices for systemd. The image ships `debug-shell.service`, with no `User=`, configured to run `/bin/sh` on `/dev/tty9` only when `ConditionPathExists=/dev/tty9` passes. Its preset disables default enablement but not an explicit unit request. The recovered kernel has `CONFIG_VT=y`, `CONFIG_VT_CONSOLE=y`, `CONFIG_USB_HID=m`, and `CONFIG_HID_GENERIC=m`.
 - **Strongest path:** the upstream advisory states that a malicious SCSI serial can introduce `SYSTEMD_WANTS`. In this image that property can name the already-installed `debug-shell.service`; no attacker-written service file is required. The parser control retained the fixed benign second property. A second matched control used exact udevd and PID 1 systemd: only the positive synthetic property started the transient BusyBox marker unit, and the negative run kept it inactive. A separate control confirmed `/dev/tty9` exists as `root:root` mode `0600`, character device `4:9`. Hardware bytes reaching shipped `scsi_id`, a request for the installed shell unit, production-node existence, virtual-terminal selection, visible output, and keyboard interaction remain untested.
 - **Relation to V-006:** V-006 remains blocked. Its `usb_id` `ID_SERIAL_SHORT` allowlist is not used here. V-014 crosses separate `v4l_id`/`scsi_id` line-oriented property boundaries that exact shipped instructions leave unsanitized.
+- **Reinterpretation (2026-11-05):** the "process gone" after a `show_window_fg` call has a second, likelier explanation than a crash. When the engineering app is
+  launched under a real `ApplicationManager`, the manager enforces an **app-alive handshake** and terminates apps that never answer it:
+  `AB010512*time*AppEngineerMode-5-hang`, then `appTerminateSlot`, then deregistration. An app that is never shown never satisfies that handshake, so it is removed
+  on a timer - measured by a worker while answering the manager's MICOM calls. The call may therefore be doing nothing wrong at all; the app is being reaped for not
+  being alive in the manager's sense. Both explanations remain open, and the reaping one at least has a log line behind it.
 - **Impact boundary:** a VM-only synthetic add event and benign transient unit request were demonstrated. No malicious USB device, hardware-controlled helper output, physical port, installed shell-unit request, observed root transition, interactive command, persistence, network path, CAN access, or safety impact was demonstrated. The V4L route also depends on choosing a useful existing executable and was not validated dynamically.
 - **Remediation:** backport both upstream control-character validation fixes; remove `debug-shell.service` from production rather than merely leaving it disabled; allowlist hardware-originated `SYSTEMD_WANTS`; remove generic `REMOVE_CMD` execution; disable unnecessary V4L/SCSI/USB classes.
 - **Evidence:** `evidence/systemd-udev-cve-2026-40225.md`; reviewed excerpts under `evidence/artifacts/udev-candidates/`.
@@ -1265,6 +1303,16 @@ vulnerability is claimed, and this test does not move either entry.
   partition/update controls on the owner build, and determine whether the
   second digest is a per-dealer code.
 
+### The two baked digests, identified (2026-11-04)
+
+`AppEngineerMode` carries exactly **two** SHA-256 constants (`8350242b…` and `a3946c51…`). Hashing candidates against them identifies
+both: the dealer constant is `2400`, and the engineer constant matches a vendor default code. The value `19491003`, which this
+repository previously quoted from a sibling-platform project, matches **neither** and is therefore **not valid on this build**.
+
+The digests are unsalted and shared across the build, so the finding stands as written: one cracked code opens every unit of this
+image. The plaintext engineer code is withheld from this public tree, as above, and the documents that quoted the sibling value now
+carry a correction note.
+
 ## V-042 — Marker files under world-writable runtime paths trigger privileged actions
 
 (Imported from the parallel repository, where this was numbered V-011.)
@@ -1287,6 +1335,89 @@ vulnerability is claimed, and this test does not move either entry.
 - **Validation needed:** per-unit-file reachability on a running unit, and
   taint traces for the command templates before any of these is promoted to
   a vulnerability.
+- **Corroboration (2026-11-08):** **V-077** duplicates this entry and was
+  retained for its detail, not as a second finding. It supplies the exact
+  MICOM method `SetETCCPUWDTReset` with three codes — `0x00` weston-crash,
+  `0x01` spi-validation, `0x06` pstore-reboot — the full enumeration of
+  **seven enabled `.path` units** with service, payload and privilege, and
+  **five creators named**: `AppLauncher`, `dlt-daemon`,
+  `ApplicationManager`, `micommanager_userspace`, `AppMPAutoTest`. Two
+  creators remain **unlocated, not absent**: `spi_validation_NOK` and
+  `weston.crash`. This upgrades the status above from "candidates, each
+  individually unvalidated" to an enumeration measured from the shipped
+  units and scripts. Remediation is specified in
+  `docs/remediation/tmp-path-unit-migration.md`.
+
+
+### The full marker table, measured from the image
+
+Ten systemd `.path` units ship, and several of them start a **privileged service on the existence of a file in `/tmp`**, which is a `1777` tmpfs. Combined
+with the `esinit` checks of the same kind, seven privileged behaviours are keyed on "does this file exist":
+
+| marker in `/tmp` | consumer | what happens |
+| --- | --- | --- |
+| `/tmp/no_isa` | `remote.path` → **`remote.service`** → `/app/bin/TmsRemoteApp` | the **telematics remote-control service** starts (EV OBC wake-up, remote command/request services, SMS notification monitoring) |
+| `/tmp/no_isa` | `ofono.path` → `ofono.service` | the telephony stack starts |
+| `/tmp/AppMPAutoTest/do_mpauto` | `mpauto.path` → `mpauto.service` → `/etc/mpauto.sh` | **manufacturing auto-test mode** is entered: the script signals `NotifyMPAutoModeTestStartEvent` ten times on the MICOM interface |
+| `/tmp/spi_validation_NOK` | `spi-validation.path` → `spi-validation.service`, and `esinit` | a validation service starts, and `esinit` suppresses the compositor |
+| `/tmp/no_unece` | `supplicantmanager.path` → `supplicantmanager.service` | the WiFi daemon starts (V-050) |
+| `/tmp/weston.crash` | `weston-crash.path` → `weston-crash.service` | diagnostics are dumped and a MICOM watchdog message is sent |
+| `/tmp/secure_console_disable` | `esinit` | decides whether root gets `/bin/sh` on the console (V-049, V-054) |
+
+Two of these deserve emphasis. **`/tmp/AppMPAutoTest/do_mpauto` puts the unit into manufacturing test mode**, which is a state the register already treats as
+privileged elsewhere. And **`/tmp/no_isa` starts `TmsRemoteApp`**, the component that handles telematics remote requests - so a write to a world-writable
+directory is what decides whether the remote-control service exists on the bus.
+
+`TmsRemoteApp` is not an IP listener: its symbols are MICOM/telematics request services (`RemoteRequestService`, `EVRemoteServiceSendOBCWakeUp`,
+`EVRemoteMonitoringSMSNotiControlService`). The exposure is therefore not "an open port" but "a remote-command consumer that an attacker can start".
+
+### The trigger fires, but the payload needs its dependencies - a bounded demonstration
+
+Creating `/tmp/no_isa` in an authentic boot was tested. The marker mechanism itself is real, but the demonstration only reached half way:
+
+- **The path units are evaluated** and do fire: the boot logs `Started ofono start path.` and then attempts `remote.service`, which fails on an unmet
+  dependency (`remote.service: Job remote.service/start failed with result 'dependency'`).
+- **The payload does not start.** `pidof TmsRemoteApp` and `pidof ofono` were empty both before and after the marker was created
+  (`MARKER before remote=[] ofono=[]`, `MARKER after remote=[] ofono=[] marker=present`), because those services `Require` the MICOM manager,
+  `Dbuslauncher`, `CryptoService` and `mof/ofono` - none of which come up in this projection.
+
+One further observation worth recording, because it complicates the picture: the path units fired at **25 s**, well before the probe created the marker at ~60 s. So
+`/tmp/no_isa` already existed in that boot, and no script in the image creates it - a vendor binary does. That means on systems where the platform itself sets this
+marker, the remote/ofono path opens **without any attacker action at all**, which would make the interesting question "what sets `no_isa`" rather than "who can
+write `/tmp`".
+
+So the honest state of this entry is: the marker-to-service wiring is confirmed statically and the trigger is observed being evaluated, **but no marker has been shown
+starting a privileged service end to end**, because the services in question depend on a chain this projection does not satisfy. Stating the static table as a
+capability requires that caveat next to it.
+
+### Who sets `no_isa`, found: the launcher itself, driven by a MICOM value
+
+The observation that `/tmp/no_isa` existed before any probe touched it now has an owner. The string lives in **`AppLauncher`**, next to the value it depends on:
+
+```
+%1 ISA value is %2
+/tmp/no_isa
+/tmp/no_isa opne fail          (sic - the vendor's typo)
+```
+
+So the launcher reads an **ISA value** and creates the marker when that value says there is no ISA bus. The marker then activates `ofono.service` and
+`remote.service` (`TmsRemoteApp`).
+
+That changes this row's character, and the change is worth stating plainly:
+
+- **It is not "an attacker writes a file and summons the remote service".** The writer is the launcher, and the input is a value it reads - which moves the
+  question from "who can write `/tmp`" to "what can influence that ISA value".
+- **It is a platform-state decision that opens a remote-command consumer.** On a unit where the value indicates no ISA bus, the telematics remote service is started
+  by design. That may be entirely intended for telematics-equipped vehicles and is not evidence of a vulnerability by itself.
+- **The marker is still a marker.** Because the mechanism is "file exists", anything else that can create the same path gets the same result - the design chooses a
+  trigger that cannot distinguish who set it.
+
+So the accurate statement for the table is: `/tmp/no_isa` is **set by `AppLauncher` from an ISA value**, and its effect is to start the telephony and telematics
+remote services. Whether that is a vulnerability depends on whether the ISA value can be influenced from outside the platform - which is a MICOM-boundary question,
+not a filesystem one, and is **not established**.
+
+**Why this matters more than any single marker:** fs the unit already had a reason to keep `/tmp` writable, each of these is an independent privilege
+escalation hinge on the same directory, and a fix that hardens one leaves six others.
 
 ## V-043 — Privileged services import environment files from a world-writable location
 
@@ -1379,9 +1510,12 @@ vulnerability is claimed, and this test does not move either entry.
 
 For each new issue record: stable ID, affected artifact/build and digest, source location, evidence type, caller/reachability, preconditions, bounded impact, remediation owner/status, regression test and remaining unknowns. Keep secrets and private keys out of reports. Append discovery/validation/correction events to `Ioniq5-HISTORY.md`; edit this register to reflect current conclusions. Preserve rejected findings to avoid rediscovery.
 
-## V-045 — Introspection disagrees with dispatch on `show_window_fg`/`hide_window_bg`, and mismatched arity terminates `AppHomeScreen` (denial of service)
+## V-045 — Introspection disagrees with dispatch on `show_window_fg`/`hide_window_bg`, and the process disappears after a mismatched-arity call (cause now DISPUTED: see status; denial of service)
 
-- **Status:** demonstrated in emulation (2026-10-31). Not yet reproduced against physical hardware.
+- **Status:** the *disappearance* is demonstrated in emulation (2026-10-31, and twice more on 2026-11-05); **the attribution is disputed.** The original reading was that the
+  mismatched-arity call terminates the app. A competing explanation now has log evidence behind it: `ApplicationManager` enforces an app-alive handshake and reaps apps that
+  never answer it (`AB010512*time*AppEngineerMode-5-hang`, `appTerminateSlot`, deregistration - see `docs/vm/apphomescreen-dbus-contract.md` §3), so an unshown app may be
+  removed on a timer with the call blameless. Both readings are recorded below; neither has been separated experimentally. Not reproduced against physical hardware.
 - **Component:** `/app/bin/AppHomeScreen`, session bus name `com.lge.hkmc.avn.appfunc.AppHomeScreen`, object
   `/com/lge/hkmc/avn/appfunc/appInterface`.
 - **The interface advertises** (live `org.freedesktop.DBus.Introspectable.Introspect`, 10,990 bytes, saved as
@@ -1416,3 +1550,2841 @@ For each new issue record: stable ID, affected artifact/build and digest, source
   error instead of entering engine code, and route any unexpected call on `com.lge.avn.appmanager.appbase` through a recoverable
   error path.
 
+## V-046 — The window-manager interface takes another client's surface id, permitting cross-client surface control (candidate)
+
+- **Status:** **candidate / unproven.** Source-documented interface shape (measured), effect **not yet demonstrated**. Filed because it is reachable from the same
+  work that solved the display problem, and because it would be irresponsible to note the mechanism in the changelog and not here.
+- **Component:** vendor `ivi_window_manager` Wayland interface, described by `/usr/share/ivi-window-manager/ivi-window-manager.xml` and implemented by
+  `/usr/lib/weston/ivi-window-manager.so`.
+- **The interface, verbatim from the vendor XML:** `set_surface_visible(uint surface_id, uint is_visible)`,
+  `request_fg(int display_plane_idx, uint surface_id)`, `set_surface_layout(uint surface_id, int x, int y, int width, int height)`,
+  `set_surface_alpha(uint surface_id, int alpha)`, `set_surface_to_full_screen(uint surface_id)`,
+  `set_surface_to_top_order_within_layer(uint surface_id)`, `set_visible_for_qtwayland(uint surface_id, int isVisible)`.
+- **Why this is a candidate vulnerability rather than an API note:** every one of those requests identifies the target **by surface id, not by the calling client**.
+  A protocol that takes another client's surface id as an argument allows, by construction, one client to change the visibility, geometry, stacking or alpha of
+  another client's window unless the compositor validates the sender. Nothing in the interface description expresses such a check.
+- **What an attacker would gain if no sender check exists:** the ability to hide, move, resize, make transparent or bring to front arbitrary windows — including the
+  ones a driver is looking at. Foreground theft is the interesting one: `request_fg` names the plane and the surface, so a malicious process could ask to be shown
+  over the primary display, which is a UI-spoofing primitive rather than only a denial of service.
+- **Related, already measured:** `QT_WAYLAND_SET_SURFACE_ID_FORCED=1` lets a client **assert** a surface id instead of being assigned one (this is exactly what made
+  the home screen draw at all). Combined with the above, a client may both choose an identity and request that identity be shown.
+- **What is NOT established, and must be before this is treated as a vulnerability:** whether `ivi-window-manager.so` verifies that the caller owns the surface id
+  it names; whether surface ids are guessable in practice; whether the shell's own `app_surface_created should be visible at Foreground` path makes the explicit
+  requests redundant for legitimate clients; and whether any of it is reachable from a non-privileged process on the vehicle's bus and Wayland socket. No
+  cross-client attempt has been made yet — deliberately, because it is the next experiment rather than a result.
+- **Evidence:** the vendor XML path above; `Ioniq5-CHANGELOG.md` entries 2.64.0 (forced surface id) and 2.69.0 (the protocol inventory); `ivi_wm.c` in
+  `tools/uk_fw/ias_backend_soft/` is a working client for the interface and is the tool that would run the test.
+- **Suggested patch direction:** have the compositor derive the surface from the calling client instead of trusting a supplied id, reject requests naming a surface
+  the sender does not own, and ignore externally supplied surface ids in the client library unless the client is entitled to that id.
+
+## V-047 — USB media parser class (GStreamer ASF demux and lightmediascanner) — candidate
+
+- **Status: candidate.** Components verified present in this image; the exploit itself is **external work not
+  reproduced here**. Filed because the class is a documented root-execution vector on this hardware platform and
+  this project's image carries the relevant components.
+- **Components measured in the EU `260128` image:**
+  - `/usr/lib/gstreamer-1.0/libgstasf.so` — built from **gst-plugins-ugly 1.8.3**, symbol `GstASFDemux` present
+    (build path string in the binary confirms the version).
+  - `/usr/lib/liblightmediascanner.so.0.5.1`, `/usr/share/dbus-1/services/org.lightmediascanner.service`
+    (**D-Bus activatable**), `/app/bin/lightmediascannerctl`.
+  - `/usr/lib/pkgconfig/libebml.pc` reports **Version 1.3.4**; `libebml.so.4.0.0`/`libebml.so.4` is its ABI SONAME, not an upstream release number. `matroska.so` and `libmatroska.so.6` both declare `NEEDED libebml.so.4`.
+  - **Absent:** the external report's `lms_asf.so` filename; this image ships `asf.so` instead. The Matroska plugin and the claimed libebml release are present, correcting the earlier version-mismatch conclusion.
+- **What the external report claims** (`coopermarino/2022-cerato-au-jailbreak`, imported into
+  `evidence/external-cerato-au-jailbreak/`): a GStreamer ASF demuxer stream-array overwrite, separate `lms_asf.so`
+  defects, and a libebml 1.3.4 heap overflow for `.mkv`. These are external assertions; the family-level report
+  does not establish exploitability or impact on this EU image.
+- **Validated version-level lead (2026-11-07):** upstream NVD CVE-2021-3405 describes a heap overflow in
+  `EbmlString::ReadData` / `EbmlUnicodeString::ReadData` before libebml 1.4.2. Our `.pc` metadata says 1.3.4,
+  and the Matroska plugin's dynamic dependencies include `libmatroska.so.6` and `libebml.so.4`. This puts the
+  shipped component in the published upstream version range. It does **not** prove the affected code is
+  unpatched in the vendor build, that the USB/indexer path reaches it, or that it yields code execution. NVD
+  scores the issue 6.5 (availability impact); the community's “potential RCE” wording is not supported by
+  that CVE record alone.
+- **Why it matters:** the media indexer runs as root and is **D-Bus activated on media insertion**, so the attack
+  surface is "plug in a volume", not "get a shell first" — the only vector found so far that does not require
+  prior privilege.
+- **Not established here:** whether the ASF demuxer path in 1.8.3 is reachable from the automatic indexer on this
+  build, which process would parse the file, and whether it runs as root in *this* image. No crafted file has
+  been produced or attempted.
+- **Suggested patch direction:** constrain the demuxer's stream count, and treat media parsing for removable
+  volumes as unprivileged — parse in a sandbox rather than in the root-owned media engine.
+
+
+## V-048 — root code execution through the application manager's `/tmp` verification key  — **CONFIRMED**
+
+**Status: confirmed in the projection**, and **superseded in importance by V-051**: the signature check this entry subverts is not
+reached at all when the caller supplies its own path, so the `/tmp` key is the narrower half of the problem.
+
+A binary signed with a key generated during this work was launched by the application manager and executed as **uid 0**. Nothing was attempted on hardware. What remains unknown is only how an attacker gets a file into
+`/tmp` and a request onto the session bus on a live unit.
+
+### The measurement
+
+A 301 KB statically linked payload (`work/poc-signature/payload.c`) that records its own identity was given a 256-byte `.sign`
+section, signed with a freshly generated RSA-2048 key, copied to `/tmp/app/bin/AppEngineerMode`, and paired with our own public key at
+`/tmp/app_normal.key`. The manager was then asked to launch app id 301. Result, verbatim:
+
+```
+PAYLOAD_MD5=8728bf479a26fbe25cc69a6d740d525a
+LAUNCHED=975 after req 1
+=== V048 PROOF FILE ===
+V048_PAYLOAD_RAN
+uid=0 euid=0 gid=0
+proof=an_unsigned_by_vendor_binary_was_launched
+```
+
+The `uid=0` line is written **by the payload itself** with `getuid()`, so it is the child's own report rather than an inference from
+the parent.
+
+### The mechanism, recovered
+
+`docs/engineering-mode/app-signature-check.md` reconstructs the verifier from the disassembly of `/app/bin/AppLauncher`
+(OpenSSL `libcrypto.so.1.0.2`, not mbedTLS):
+
+- the `.sign` section is located by **walking the section header string table**, not by a fixed offset, and its bytes are copied to
+  `/tmp/<basename>.sign` with `sh_offset` remembered;
+- the digest is **SHA-256 over the whole file with the `.sign` bytes zeroed**, and the check is
+  **`RSA_verify(NID_sha256, ...)`** — PKCS#1 v1.5 — against a **PEM** key read with `PEM_read_RSA_PUBKEY`;
+- authentic keys are pinned inside the binary as Qt resources (`:/app_normal.key`, `:/navi_public.key`), but they are copied to
+  `/tmp` **once** at first use and **the `/tmp` copy is trusted thereafter and never re-checked against the resource**.
+
+That last point is the whole vulnerability: the trust anchor for "may this binary run as root" lives at a **world-writable path**,
+and the manager will start whatever the caller's `appLocation` argument points at.
+
+### Reproducing it
+
+`tools/uk_fw/poc_sign.py` does the two steps that `objcopy` would normally do — `add` appends a zeroed 256-byte `.sign` section to an
+ELF (the linker here discards orphan sections, so it is done by rewriting the section header table), and `sign` hashes the file with
+those bytes zeroed and writes an OpenSSL PKCS#1 v1.5 signature into them. Our own signature verifies with
+`openssl dgst -sha256 -verify`, and the manager accepted it.
+
+### What still has to be true on a real unit
+
+1. Something must be able to write a file to `/tmp`. Vendor components demonstrably do; whether an attacker-reachable path does is a
+   separate question (**V-047** is one candidate class).
+2. The launch request must be accepted. It travels on the **session bus** to `com.lge.avn.applauncher`, and in the projection any
+   process could send it. On a unit, session-bus policy may restrict who may call `request.launch`.
+3. `appLocation` is taken from the request itself, which we observed directly:
+   `Request::launch appId[301] appName[AppEngineerMode] appLocation[/tmp/app/bin/AppEngineerMode]`.
+
+### Suggested patch direction
+
+Pin the verification key to the embedded resource and never read it from a writable path; make a verification failure fatal on every
+path; and refuse to launch any binary from a directory writable by a non-privileged user. The third item alone closes the launch
+vector even if the first two are mishandled.
+
+### Correction to an earlier reading
+
+The original note inferred from `ret = 1` followed by `m_AppProcess->start(...)` that a **failed** check was tolerated. In this run the
+same call reported `ret = 1` for a vendor binary **before** our key was in place and `ret = 0` afterwards, which means the return
+value's sense is the opposite of what that note assumed. The conclusion does not depend on it: the confirmed fact is that a binary
+signed by our own key was launched as root, and the disassembly says the launch path accepts only one specific value from the
+verifier.
+
+## V-049 — a root shell on the serial console, enabled by default, gated only by a runtime parameter  — **gate measured open**
+
+**Status:** the gate is **measured open on this build**, and the login is standard `agetty` requiring the root password. Not
+attempted on hardware; UART access on a production unit is assumed, not established.
+
+### The gate is open by default (measured)
+
+Booting the vendor kernel with the vendor's own `micom` module loaded, the parameter reads **0**:
+
+```
+cat /sys/module/micom/parameters/secure_console   ->  0
+ls /sys/module | grep micom                        ->  micom
+ls -l /dev/ttyS2                                   ->  crw-------  1 0 root  4, 66
+```
+
+### The login prompt, captured
+
+Running the vendor's `/etc/esinit_agetty.sh` unmodified in the projection produced this on the far side of `/dev/ttyS2`
+(`evidence/serial-console/ttyS2-login-prompt-2026-11-04.log`):
+
+```
+OpenEmbedded 1.0 (none) ttyS2
+
+(none) login:
+```
+
+That is an authenticated login, not a shell: the `-a root` autologin line in that script is commented out, so the password in
+`/etc/shadow.Global` is required. What it demonstrates is the part that matters — **the prompt exists on a stock build with the
+parameter at its default**, so anyone at the UART gets a password prompt rather than nothing.
+
+### The logic, verbatim from `/lib/systemd/esinit`
+
+```sh
+#secure_console : use console login
+touch /tmp/secure_console_disable
+...
+if [ -f /sys/module/micom/parameters/secure_console ]; then
+    secure_console_mode="$(cat /sys/module/micom/parameters/secure_console)"
+    if [ "$secure_console_mode" = "1" ]; then
+        /bin/rm /tmp/secure_console_disable
+        /bin/rm /dev/ttyS2                      # the device is deleted, not just unused
+    fi
+fi
+touch /tmp/shells
+if [ -f /tmp/secure_console_disable ]; then
+    echo "/bin/sh" >/tmp/shells
+    echo "SECURE CONSOLE Mode: NO !!!"
+else
+    echo "SECURE CONSOLE Mode: YES!!!"
+fi
+```
+
+So with the measured value of 0 the device survives and the console login proceeds. `/etc/esinit_agetty.sh` then runs
+
+```sh
+#autologin root
+#setsid /sbin/agetty -a root -8 -L ttyS2 115200 xterm
+setsid /sbin/agetty  -8 -L ttyS2 115200 xterm
+```
+
+An **autologin root line exists and is commented out**. The active line requires the password, which is the single SHA-512 hash in
+`/etc/shadow.Global` at a fixed image-wide salt (§The credential).
+
+### What this means
+
+The console is not a manufacturing-only facility that the production build removes — it is **on by default** and is switched off only
+if a loaded kernel module is told, at runtime, to report `secure_console=1`. Anything able to write that parameter, or the MICOM
+component that owns it, decides whether a root login prompt exists on the serial line. Clearing it re-enables the login.
+
+### Recorded as *not* a finding, to avoid overclaiming
+
+`esinit` also writes `echo "/bin/sh" >/tmp/shells` when the console is open, and `/tmp` is world-writable. That looks suggestive, and
+it is not a privilege path: **no binary in this image carries the `/tmp/shells` string**, so nothing reads it. It is a vestige. It is
+written down here so the next reader does not spend time on it.
+
+### Corroborated on the authentic boot path (2026-11-05)
+
+The prompt above was captured by invoking the vendor's `agetty` script by hand. During the authentic boot - vendor kernel, vendor `esinit`, no instrumentation of ours - the same
+prompt appears **by itself**, captured from a second serial port:
+
+```
+OpenEmbedded 1.0 prm-gen-5 ttyS2
+prm-gen-5 login:
+```
+
+So the login is not an artefact of running the script manually: it is what the shipped boot produces.
+
+### The credential
+
+`/etc/shadow` is a symlink to `/tmp/shadow`, populated at boot from `/etc/shadow.Global`. Exactly one entry carries a password:
+
+```
+root:$6$I6C6apC0ue$J1MSq...:2048        (SHA-512-crypt; 18 other accounts locked)
+```
+
+Sixty vendor-plausible defaults produced no match — a statement about sixty guesses. Because the salt is **fixed and identical on
+every unit built from this image**, cracking it once yields the same root password fleet-wide.
+
+### Suggested patch direction
+
+Disable the console login unconditionally in production rather than through a runtime parameter that can be cleared; give each unit a
+unique salt; and treat `/dev/ttyS2` as a manufacturing artifact that the production build does not create at all.
+
+## V-050 — WiFi is fully populated hardware, disabled in software, and re-enableable
+
+**Status:** candidate, statically established. The radio's presence in a given production unit is inferred from complete firmware and
+NVRAM for a named chip, not from hardware inspection.
+
+- The image ships the complete stack for a **Cypress/Broadcom CYW88359 (BCM4359B1)** PCIe part: `bcmdhd.ko` + `cfg80211.ko`
+  (both loadable, dependencies resolvable), `rtecdc.bin`, `4359b1.clm_blob`, and an NVRAM that names the module
+  (`RBHP-B207A`), the regulatory domain (`ccode=GB`) **and a MAC address (`00:90:4c:12:d0:e2`)**.
+- It is disabled three ways: a `modprobe.d` blacklist, a GPIO power gate, and a MICOM state gate.
+- The enable path ships too: `app/bin/supplicantmanager` and `etc/wpa_supplicant.conf`.
+
+**Why it matters.** If the radio is present and can be brought up, the unit gains a wireless interface that the vendor daemon — which
+runs as root — will associate to a network. There is **no sshd and no hostapd** in the image, so this is not a direct shell; the value
+to an attacker is a command-and-control and exfiltration channel, and the value to a defender is that it exists at all. The shared
+`macaddr` in NVRAM is separately interesting: units would be identifiable and possibly colliding on the same address.
+
+## V-051 — the application manager runs any binary a caller names, as root, with no signature check at all
+
+**Status: confirmed in the projection.** This is a *different* defect from **V-048** and a more severe one: V-048 showed that the
+verification key lives in `/tmp`; V-051 shows that **for a caller-supplied `appLocation` there is no verification to subvert in the
+first place**.
+
+### The measurement
+
+A statically linked payload with **no `.sign` section whatsoever**, launched while `/tmp/app_normal.key` and every `/tmp/*.sign` file
+had been deleted first:
+
+```
+KEY_PRESENT=no
+$ poc_sign.py info payload_plain   ->  no .sign section
+=== manager log ===
+"m_AppProcess->start(/poc/payload_plain) PID[952]"
+"m_AppProcess->start(/poc/payload_plain) PID[954]"
+=== payload's own report ===
+V048_PAYLOAD_RAN
+uid=0 euid=0 gid=0
+```
+
+The request used app id **10** — `AppStandbyClock`, an ordinary vendor application with no development hook — and the path was ours:
+
+```
+dbus-send --session --print-reply --dest=com.lge.avn.applauncher /Request \
+  com.lge.avn.applauncher.request.launch \
+  int32:10 string:AppStandbyClock string:/poc/payload_plain
+```
+
+So the manager takes `appLocation` from the caller and executes it **as root, unverified**, for any app id it knows. The earlier
+app-301 result, and the whole `/tmp/app_normal.key` substitution in V-048, were unnecessary: those steps only matter for binaries
+launched from `/app/bin`, where the check is performed. A path under `/poc` (and, by the same logic, any writable path) is not
+checked at all.
+
+### Why this is the more important defect
+
+- **No key needed.** No `/tmp` write, no RSA, no `.sign` section.
+- **No development path needed.** The app-301 hook is irrelevant; any known app id works.
+- **The process runs as uid 0** because the manager does.
+
+What it still requires is the ability to send a message to the session bus. That is the only remaining precondition, and it is what
+decides whether this is a local escalation or something reachable from a lower-privileged context. It is **not** established here.
+
+### Relationship to V-048
+
+Both should be fixed, and they need different fixes. V-048's fix is "stop trusting a key in a writable directory". V-051's fix is
+"verify before executing, and only execute from a trusted directory" — pinning the key would not have prevented V-051, because the
+check is not reached for caller-supplied paths at all.
+
+### Reachability, measured: the session bus is root-only, so this is not an escalation
+
+The bus policy is permissive, but policy is not the gate — **connection** is. `/etc/dbus-1/session.conf` also carries
+`<listen>unix:tmpdir=/tmp</listen>` and `<auth>EXTERNAL</auth>` with no `<user>` element, and `Dbuslaunch.service` starts the daemon
+with no `User=`. EXTERNAL authentication accepts only the daemon's own uid, i.e. root. Measured in the projection:
+
+```
+=== as root ===
+method return sender=org.freedesktop.DBus -> dest=:1.43 reply_serial=2      (ListNames succeeded)
+
+=== as uid 65534 (nobody) ===
+as-uid: now uid=65534
+Failed to open connection to "session" message bus: Did not receive a reply. ...
+
+=== as uid 65534, the launch request ===
+Failed to open connection to "session" message bus: ...
+PROOF_AFTER_NOBODY=none
+```
+
+And the image provisions no `uid >= 1000` accounts and starts no vendor process non-root (no `User=` in the unit files, and
+`AppLauncher` makes no `set*uid` call), so every local process is already uid 0.
+
+**Correction to this entry's first draft**, which claimed "any code execution as any user → root": that is **wrong**. Only a
+process already running as root can connect. V-051 is therefore **not** a privilege escalation; it is a **persistence and
+re-launch primitive for code that already has root**, plus a way to run a payload outside the SMACK/app-manager label it would
+otherwise be confined to.
+
+### What it is, precisely
+
+- **Not remote.** No network listener; the session bus is a local socket.
+- **Not an escalation from a lesser user.** Non-root cannot reach the bus (measured above).
+- **Still worth fixing**, because it converts *any* root-level foothold into repeated execution of an arbitrary binary, and because no
+  signature check stands in the way — V-048's key pinning would not help here at all.
+
+### Suggested patch direction
+
+Ignore `appLocation` from the request entirely and launch only binaries from a fixed, read-only application directory resolved by app
+id; verify the signature on that resolved path; and treat a signature failure as fatal.
+
+### Reachability, measured: there is no network-facing service on this build
+
+Worth recording here because it bounds every remote claim: the image has **no TCP listeners and no remote shell server**.
+
+- **No `adbd`** anywhere in the image.
+- **No `sshd`, no `dropbear` binary, no `telnetd`, no `hostapd`, no `dnsmasq`.** `busybox` carries `telnetd`/`httpd` applets but no
+  symlink activates them and no unit starts them.
+- **No TCP socket units**: `lib/systemd/system/*.socket` contains only `dbus.socket`, `dm-event.socket`, `lvm2-lvmetad.socket`,
+  `syslog.socket`, `systemd-bus-proxyd.socket`, `systemd-initctl.socket` and the two `udevd` sockets, all unix-domain.
+- Scanning every binary in `/app/bin` and `/usr/bin` for `AF_INET`, `SOCK_STREAM`, `0.0.0.0` and `bind(` finds exactly **one** network
+  component: **`mdnsd`**, plus **`AppSDS`**, which carries the UPnP/SSDP strings (`miracast=3 ssdp/upnp=41`).
+
+So the unit is not reachable over the network as configured. Those two components become the only inbound surface once WiFi is
+enabled (`docs/wifi-enable-procedure.md`), and both would parse attacker-reachable input **as root**. Nothing has been demonstrated
+against either, and this note exists so that "there is a network attack surface" is not asserted without that caveat.
+
+## V-052 — mandatory access control is switched to permissive by an unauthenticated filesystem check
+
+**Status:** mechanism statically confirmed and the deciding value **measured as 0** in the projection; not attempted on hardware. Whether the
+`isLuks` probe fails on any production unit is **not** established.
+
+### The chain
+
+`/lib/systemd/esinit` decides the value of a **kernel module parameter** from whether the read-write data partition happens to be LUKS:
+
+```sh
+/usr/sbin/cryptsetup -v isLuks /dev/${RW_PART}
+if [ $? -eq 0 ]; then endFde="1"; else endFde="0"; fi
+echo $endFde > /sys/module/micom/parameters/optUNECE
+```
+
+`/etc/smack_setup.sh` then reads that parameter, twice (once during setup, once in `check_label_final`), and acts on it:
+
+```sh
+CHECK_UNECE1=$(cat /sys/module/micom/parameters/optUNECE)
+if [ $CHECK_UNECE1 == "0" ]; then
+        echo "[SMACK] Not UNECE vehicle, Switch to permissive mode" > /dev/kmsg
+        echo "1" > /sys/fs/smackfs/bringup-switch
+fi
+```
+
+So "is this vehicle subject to UNECE R155/R156" is operationally defined as **"did `cryptsetup isLuks` succeed on the data partition just
+now"**, and a 0 puts SMACK into **permissive** mode — the mandatory confinement that would constrain a compromised application is switched
+off rather than merely reporting.
+
+Measured in the projection, with the vendor kernel:
+
+```
+optUNECE=0
+secure_console=0
+/sys/fs/smackfs/bringup-switch exists
+```
+
+i.e. the permissive path is taken on this image whenever the data partition is not recognised as LUKS.
+
+### Why it matters
+
+- **It is a whole-system security posture decided by an unauthenticated probe.** `cryptsetup isLuks` returns non-zero for *any* unreadable,
+  corrupt, truncated or replaced header — an attacker with write access to the data partition obtains "SMACK permissive" rather than "boot
+  failure", which is the wrong direction for the failure to point.
+- **The same parameter gates WiFi.** `AppLauncher` carries the string `/tmp/no_unece` (and the error text `/tmp/no_unece opne fail`), and
+  `supplicantmanager.path` is a `PathExists=/tmp/no_unece` unit. So the "not UNECE" state is also what brings the wireless daemon up.
+- **It is a file-system-shaped switch, not a signed one.** A kernel module parameter is writable by anything with root, and its value is
+  derived from state an attacker can perturb.
+
+### The page-cache question, partly answered by the binary: FUMO does not drop caches
+
+`HARDWARE-FEASIBILITY.md` names the page cache as the thing that could defeat the whole vector regardless of hardware: if the file is still cached when the install pass runs, the second
+read never reaches the device. The shipped binary speaks to it, and the answer is uncomfortable rather than reassuring.
+
+`AppUpgrade` contains cache-dropping code — but it is **SCOMO's**:
+
+```
+###[scomo][%s:%d] %s() [OK] drop_caches
+###[scomo][%s:%d] %s() [ERROR] drop_caches request: %s
+echo 1 > /proc/sys/vm/drop_caches
+echo 3 > /proc/sys/vm/drop_caches
+```
+
+and of the two embedded updaters' tags in the binary — `[scomo]` 765 strings, `[newota]` 138 — **`[newota]` (FUMO) contains zero references to `drop_caches`**. This vehicle's launcher row
+routes it to FUMO (`-un:0`), not SCOMO.
+
+So on the path this vehicle actually takes, **nothing explicitly evicts the checked file from the page cache before the install re-opens it.** The swap then depends on cache pressure: a
+payload that does not fit in RAM must be re-read from the device, and one that fits may not be.
+
+That is consistent with the upstream demonstration succeeding - their system image is ~879 MB and unit RAM is finite - but it makes the technique **size-dependent** rather than
+guaranteed, and it is the cheapest thing to check on a rig: watch whether the install pass generates USB traffic at all. If it does not, shrink the payload or grow the pressure until it
+does.
+
+### There *is* a heavy verification - for navigation, not for the system image
+
+The upstream argument is that the post-install "verify" is too short (46 ms) to re-hash a large partition. Our binary says where the verification effort actually goes, and it is not where a
+swap of the system image would be caught:
+
+```
+21  isNaviChecksumOK          14  naviChecksumFilePath        6  reqCheckNaviChecksum
+18  NaviChecksumThread        12  naviChecksumThread          4  teminateNaviChecksumThread
+```
+
+**Every checksum-related symbol in `AppUpgrade` is navigation's.** There is a long-running `NaviChecksumThread`, a `Checksum.txt` it reads (`getXMLChecksum`), cancellation and error paths - a
+real verification of extracted navigation content. Nothing equivalent exists for the system rootfs or the interface payload: those get the 46 ms step.
+
+**So the trade-off between payloads is finer than "pick the biggest".** Swapping navigation content walks into a checksum thread that will fail it. Swapping the **system image**
+(`mango-rootfs.tar.gz`, 879 MB) faces only the short verification - at the cost of being the payload most likely to be partially cached. Swapping the **interface payload**
+(`new_gui.tar.gz`, 2.09 GB) is cache-safe by size, but it is extracted into the same tree the GUI checksums cover, and whether that thread covers it is **not established**.
+
+That is the honest state: the cheap-looking route is the 879 MB system image; the cache-safe route is the 2.09 GB interface payload; and which one survives post-install verification depends
+on a checksum scope this repository has not mapped.
+
+### The checksum scope, answered: it covers MICOM and frontkey binaries, not the payloads that matter
+
+The open question was which files `Checksum.txt` lists, since a checksummed payload would fail after a swap regardless of how the read was staged. The package answers it.
+
+`Checksum.txt` ships in **two** places, and both are CRC32 lists for **small firmware binaries**:
+
+```
+update/micom/Checksum.txt      152 entries, e.g.  HCR_PE.DV.260120.09.REVC.BIN   CRC32=0x31D8C50F
+update/frontkey/Checksum.txt     2 entries, e.g.  MKBD_2_1F_00_NX4.BIN           CRC32=0x0E969002
+```
+
+**There is no `Checksum.txt` for `mango-rootfs.tar.gz`, `new_gui.tar.gz` or the navigation payload** (`appnavi.tar` contains none either). So the CRC verification the binary implements applies to the
+MICOM and frontkey components - which are delivered as individual `.BIN` files - and the large payloads are left with the short "System Update Verify" step the upstream project timed at
+46 ms.
+
+**That resolves the three-way trade-off in favour of the interface payload.** `new_gui.tar.gz` at **2,091,925,601 bytes** is:
+
+- **cache-safe**: larger than any plausible head-unit RAM, so its install pass must return to the medium;
+- **not checksummed**: it appears in no `Checksum.txt` in the package.
+
+The **system image** (`mango-rootfs.tar.gz`, 879 MB) is also outside the checksum lists, but is the payload most likely to be partly resident - so it is the second choice, not the first.
+
+What remains genuinely open is the code-level `NaviChecksumThread`: it exists, it parses a checksum file, and the navigation payload in *this* package carries no such file - so either it is
+generated during installation or it covers content delivered elsewhere. That is a smaller question than the one it replaced, and it does not touch the interface or system payloads.
+
+**And the cache problem has a practical answer: target the largest payload.** `HU/images/new_gui.tar.gz` is **2,091,925,601 bytes (1.95 GiB)**, which exceeds any plausible head-unit RAM, so
+its install pass must return to the medium regardless of cache policy - unlike the 879,109,759-byte `mango-rootfs.tar.gz`, which is at the edge of what a unit might keep resident.
+
+**Nothing here weakens the finding itself.** The verify-then-install structure and the two-read separation are measured in our own binary; what the cache does is decide how easily the
+second read can be made to differ, and that is a property of the payload and the RAM, not of the flaw.
+
+### What is not established - and one strong indication that it applies in the field
+
+Whether production units ship with `RW_PART` encrypted such that the probe succeeds, and therefore whether stock European vehicles run SMACK
+enforcing.
+
+There is one strong indication that they do **not**. The factory data partition ships as `/HU/images/mango-rwdata.tar.gz` — a **plain tar of
+plaintext files** (`./app_data/common/…`), with no LUKS magic anywhere in it. If a unit's `rw_data` is written from that tarball at manufacture,
+then `cryptsetup isLuks /dev/mmcblk0p11` fails on first boot, `endFde=0`, `optUNECE=0`, and `smack_setup.sh` takes the permissive branch — on every
+unit built this way. See V-053 for why the alternative (encryption being switched on later) does not happen in the shipped flow either.
+
+That is an inference from the shipped artefact plus the gating logic, not a measurement on a unit, and it is labelled as such.
+
+### Suggested patch direction
+
+Make the security posture fail closed: treat an unrecognised or unreadable data partition as requiring confinement, derive the UNECE status
+from a value the platform cannot lose (a signed build property or a fuse), and do not let the same flag that enables the radio also
+disable MAC.
+
+## V-053 — user data and logs are "encrypted" with a hardcoded four-digit passphrase
+
+**Status: demonstrated in the projection**, not merely read from the script. Whether a production unit has been through first-boot encryption is
+still not established.
+
+Measured, using the cipher string and passphrase taken verbatim from `/etc/fde_test_v2.sh`, on the partitioned image with the vendor kernel:
+
+```
+FORMAT_RC=0                 # the shipped parameters create a LUKS container
+ISLUKS_RC=0                 # cryptsetup agrees it is one
+OPEN_WITH_1234_RC=0         # the shipped passphrase opens it
+OPEN_WITH_WRONG_RC=5        # a wrong passphrase does not  <- negative control
+Cipher name:    aes
+Cipher mode:    cbc-essiv:sha256
+```
+
+The negative control is the part that makes this evidence rather than an assumption: `OPEN_WITH_1234_RC=0` on its own could mean the container
+was created without a passphrase, and `rc=5` for a wrong one shows the passphrase is genuinely checked and that `1234` is the correct one.
+Raw capture: `evidence/fde/passphrase-1234-2026-11-04.log`.
+
+### What the image does
+
+`/etc/fde_test_v2.sh` runs on first boot to turn on encryption for `/rw_data` (`mmcblk0p11`) and `/log_data` (`mmcblk0p8`):
+
+```sh
+do_EncryptHomeDirectory () {
+    ...
+    # 1. Make Luksformat - add footer
+    echo "1234" | $CRYPTSETUP -v -c "aes-cbc-essiv:sha256" luksFormat $1 --batch-mode
+    ...
+    # 2. LuksOpen -> /dev/mapper/$1
+    echo "1234" | $CRYPTSETUP luksOpen $1 $2
+    ...
+}
+```
+
+and the teardown path uses the same literal:
+
+```sh
+echo "1234" | $CRYPTSETUP luksOpen $1 $2
+```
+
+The script's own header states what this protects: *"Needed for features such as secure storage daemon, user data encryption."*
+
+### Why it matters
+
+- **The passphrase is `1234`, identical on every unit built from this image, and it is in the image.** Anyone who obtains the flash contents —
+  a removed eMMC, a chip-off, a full firmware image, a service-centre dump — can unlock both partitions offline with a four-digit literal.
+  The confidentiality the feature is meant to provide against exactly that threat does not exist.
+- **The passphrase lives in the same image as the ciphertext**, so this is not key management with a weak default; it is a fixed key.
+- **The cipher mode is `aes-cbc-essiv:sha256`**, a legacy CBC construction rather than an AEAD mode, chosen explicitly on the command line.
+- **What is inside those partitions is not trivial:** `/rw_data` holds persistent application data, and `/log_data` is where `dlt-daemon`
+  writes vehicle logs — the projection shows `kernel_*.dlt` accumulating there within minutes. Paired devices, positions and user
+  preferences would be expected to land in that set.
+
+### Relationship to V-052
+
+They are two halves of the same first-boot decision. `esinit` decides "this is a UNECE vehicle" by asking whether `mmcblk0p11` is LUKS
+(V-052), and `fde_test_v2.sh` decides *how* it becomes LUKS — with `1234`. So on a unit that has been through first boot, the answer to
+"is the data protected" is: the probe succeeds, MAC stays enforcing, and the ciphertext is openable by anyone holding the image.
+
+### Reachability settled: the script runs when the flag says so, and it then encrypts with `1234`
+
+The inference below - that the script never runs - was drawn from the normal boot flow and is **incomplete**. A later run that forced
+`optUNECE=1` in the init wrapper showed the encryption engaging, with the mappers active:
+
+```
+/dev/mapper/rw_data_enc is active.
+/dev/mapper/log_data_enc is active.
+EXT4-fs (dm-1): mounted filesystem with ordered data mode.
+```
+
+while in the same boot the raw probes still reported:
+
+```
+Device /dev/mmcblk0p11 is not a valid LUKS device.
+Device /dev/mmcblk0p8  is not a valid LUKS device.
+```
+
+Both are true, and the mechanism explains why. `esinit` does not recompute the flag before using it - it **reads** it:
+
+```sh
+if [ -f /etc/fde_test_v2.sh ]; then
+    endFde="$(cat /sys/module/micom/parameters/optUNECE)"     # read, not recomputed
+    case "$endFde" in "1") /etc/fde_test_v2.sh ;; "0") echo "FDE SUPPORT: No" ;; esac
+```
+
+and `fde_test_v2.sh` itself formats anything that is *not already* LUKS with the literal `1234`. So:
+
+| `optUNECE` at boot | what happens |
+| --- | --- |
+| **0** (the state a plaintext factory image produces) | no encryption, plaintext data, and SMACK is switched permissive by V-052 |
+| **1** | `fde_test_v2.sh` runs; if the partition is not already LUKS it formats it **with `1234`** and opens it |
+
+So the code is reachable - demonstrated here - and the flag is the only thing standing between a unit and encryption whose key is worthless. That makes the
+finding precise rather than speculative: **a unit whose flag is 1 but whose partition is not LUKS gets encrypted with `1234` on that boot.**
+
+### Not established - and one strong indication that the script never runs at all
+
+Whether production units reach this path, and whether any units derive a per-unit passphrase elsewhere. The literal `1234` is what the script
+uses; no other keying path was found in it.
+
+Tracing the gating found something that changes the picture: **`/etc/fde_test_v2.sh` is only ever invoked from `esinit`, and only when the data
+partition is *already* LUKS.**
+
+```sh
+/usr/sbin/cryptsetup -v isLuks /dev/${RW_PART}; if [ $? -eq 0 ]; then endFde="1"; else endFde="0"; fi
+echo $endFde > /sys/module/micom/parameters/optUNECE
+...
+case "$endFde" in
+    "1") echo "FDE SUPPORT: Yes"; /etc/fde_test_v2.sh ;;
+    "0") echo "FDE SUPPORT: No" ;;
+```
+
+The formatting functions inside `fde_test_v2.sh` are therefore **dead on a non-LUKS unit** — nothing else in the image invokes that script (a search
+of `/etc`, the unit directory and the `/app/bin` scripts finds only the two `esinit` lines). And the factory data partition is a plain tar of plaintext
+files, so a unit built from it is non-LUKS.
+
+So the most likely field state is the opposite of what this entry's title suggests: **the data is not encrypted at all**, the passphrase `1234` is
+never used because `luksFormat` never runs, and V-052's permissive-MAC branch is taken on every such unit. The `1234` defect is real code and would
+matter the moment anything engages it — a factory step outside this image, or a service that calls the script — but on the shipped flow it appears to
+be unreachable. Both readings are recorded because the difference matters: *weak encryption* and *no encryption plus permissive MAC* are different
+findings with different fixes.
+
+### Suggested patch direction
+
+Derive a per-unit key from a protected source (fuse/OTP or a hardware key store), never ship a passphrase in the image, and use an AEAD
+mode. Treat the current construction as obfuscation rather than encryption when assessing exposure from a device dump.
+
+## V-054 — the account database lives in `/tmp`, and the console policy is a file copy
+
+**Status: mechanism demonstrated** in the projection; not exercised on a unit. What is not established is a non-root context to exploit it from,
+since every vendor process observed here runs as uid 0.
+
+Measured: appending one line to `/etc/passwd` (which resolves through tmpfs) creates an account the system accepts immediately —
+
+```
+/etc/passwd -> /tmp/passwd
+echo "audit0:x:0:0:audit0:/tmp:/bin/sh" >> /etc/passwd
+id audit0        -> uid=0(audit0) gid=0(root) groups=0(root)
+getent passwd audit0 -> audit0:x:0:0:audit0:/tmp:/bin/sh
+```
+
+and the same works for `/etc/shadow`, whose entry was appended successfully. So a write to `/tmp` yields a **working uid-0 account entry, resolvable
+by NSS**, not merely a corrupted file. The two facts that bound it: `/tmp` is `1777` (measured), and every process on this build already runs as uid
+0 (measured) — so the mechanism is real and the attacker position is what is missing.
+
+### What the image does
+
+```
+/etc/passwd -> /tmp/passwd
+/etc/shadow -> /tmp/shadow
+```
+
+and `/lib/systemd/esinit` rebuilds both at boot:
+
+```sh
+ln -s /etc/shadow.Global /tmp/shadow
+...
+if [ -f /tmp/secure_console_disable ]; then
+        cp /etc/passwd.legacy /tmp/passwd      # root:x:0:0:root:/home/root:/bin/sh
+else
+        cp /etc/passwd.secure /tmp/passwd      # root:x:0:0:root:/home/root:/usr/sbin/nologin
+fi
+```
+
+So the *entire* account database — including the root password hash — is materialised in a world-writable tmpfs, and the difference
+between "root may log in on the console" and "root may not" is **which text file was copied there**, not a capability that is absent.
+
+### Why it matters
+
+- **A writable account database is account takeover for anything that can write `/tmp`.** Adding a uid-0 entry or changing root's shell
+  requires no vulnerability beyond the write; the next NSS resolution by `agetty` or by any service that maps a name to a uid sees it.
+- **It composes with V-049**, where the console login is enabled by default: an enabled console authenticating against a writable
+  `/etc/shadow` is worse than either issue alone.
+- **The "secure console" control is a file copy.** It does not remove the console, it copies `passwd.secure` over a tmpfs path. Anything
+  able to create `/tmp/secure_console_disable` *and* write `/tmp/passwd` reverses it.
+
+### Not established
+
+Whether any non-root process can write `/tmp` on a production unit. On this image every vendor process observed runs as uid 0, so the
+immediate escalation gain is nil; the finding matters as a **latent** one that turns any future lesser-privileged write into account
+takeover. This is stated rather than implied, because overstating it would be easy.
+
+### Suggested patch direction
+
+Keep the account database in read-only storage and make account changes explicit and authenticated; do not decide whether root has a shell
+by copying one of two files into a writable directory; and treat a missing or unexpected `/tmp/shadow` as a reason to refuse login rather
+than to proceed.
+
+## V-055 — the compositor's configuration is a symlink into `/tmp`, and it names loadable modules
+
+**Status:** confirmed from the image. Not exercised on a unit, and it needs two things that this build has not demonstrated from a
+non-privileged context: a write to `/tmp`, and a compositor start.
+
+### What the image does
+
+```
+/etc/xdg/weston/weston.ini -> /tmp/weston.ini
+```
+
+and `/etc/install_westonPngLogo.sh`, which `esinit` runs during boot, creates that link:
+
+```sh
+ln -sf /etc/xdg/weston/weston_${LCD_TYPE}.ini /tmp/weston.ini
+```
+
+The file it points at is what selects the compositor's behaviour:
+
+```ini
+[core]
+shell=ivi-shell.so
+backend=ias-backend.so
+
+[ivi-shell]
+ivi-module=ivi-window-manager.so,ivi-controller.so
+ivi-shell-user-interface=/usr/lib/weston/weston-ivi-shell-user-interface
+```
+
+### Why it matters
+
+- **`shell=`, `backend=` and `ivi-module=` are loadable-object selectors.** Whatever can write the file that `/tmp/weston.ini` resolves to
+  chooses which shared objects the **root** compositor loads at startup. That is code execution in the display server, which runs as uid 0
+  and sits in front of everything the driver sees.
+- **It is the same shape as V-054**: a privileged component's configuration resolved from a world-writable tmpfs path, re-pointed at boot by
+  a symlink.
+- **Honest limit on the impact:** the `weston-crash.sh` handler does **not** restart the compositor — it dumps diagnostics and sends a MICOM
+  watchdog message (`SetETCCPUWDTRese…`) — so a modified config takes effect on the next compositor start (a reboot, or any path that
+  starts it), not immediately. Saying "instant root" would be wrong.
+
+### Not established
+
+Whether a non-root writer to `/tmp` exists on a production unit. As with V-054, every vendor process observed here runs as uid 0, so this is
+recorded as a latent weakness that turns any future lesser-privileged tmp write into root code execution, not as a live escalation.
+
+### Suggested patch direction
+
+Keep the compositor configuration in read-only storage, stop resolving it through a symlink in a writable directory, and require module
+paths to be absolute and inside a signed/read-only directory rather than whatever the config names.
+
+## V-056 — the MAC rule set ships and loads; whether a process carrying `_` is confined by it is unproven
+
+**Status:** measured on the **authentic** boot path with the shipped policy loaded. This entry has been corrected twice; both corrections are kept below, because
+the second is what makes the finding trustworthy.
+
+### What is shipped
+
+`/etc/smack/accesses.d/` contains **27 rule files, 636 rules, 28 distinct subject labels** — a real per-domain scheme:
+
+```
+App::bluetooth _ rwxa--
+App::bluetooth System::bluetooth rw----
+App::bluetooth Log::bluetooth rwxat-
+App::bluetooth App::tms rwx---
+```
+
+and the authentic boot loads them:
+
+```
+systemd[1]: Starting Smack service loads smack rules in /etc/smack/accesses.d...
+systemd[1]: Started Smack service loads smack rules in /etc/smack/accesses.d.
+```
+
+### What is measured
+
+Every vendor application observed carries the label **`_`** (`AppHomeScreen`, `AppLauncher`, `keeper`, `ApplicationManager` — all `_`, uid 0). And under the
+authentic boot, in a process carrying that label, a file labelled `Log::dlt` was **readable and writable**:
+
+```
+SMACKPROBE label=_ rules=27 read=[secret] write=[ok]
+```
+
+So the rules exist, they are loaded, and **a process whose subject label is `_` is not confined by them.** The floor label is a wildcard in SMACK's rule
+language, and a process carrying it is effectively outside the policy — which is the conclusion this entry originally reached for the wrong reason.
+
+### The two corrections, kept deliberately
+
+1. **First version claimed "labels but no rules".** Wrong. It came from searching `/etc` and the unit directory for writes to `smackfs/load2` and
+   `smackfs/change-rule`, finding none, and concluding there were no rules. The rules are **data files**, not script writes — searching for the mechanism
+   instead of the artefact. Same class of error as concluding the ASF parser was absent because `lms_asf.so` does not exist.
+2. **Second version said the count was 12 files and that confinement was "open".** Both were wrong: it is **27** files (the 12 came from a truncated listing),
+   and the question is now answered by measurement rather than left open.
+
+### CORRECTION: the probe that "settled" this was not a valid test, and the real evidence says the opposite
+
+The previous two versions of this section reported a probe result -
+
+```
+SMACKPROBE label=_ read=[secret] write=[ok]
+```
+
+- as proof that a `_` subject is exempt from the policy, "under both the permissive and enforcing branches". **That inference is withdrawn.** The probe created a
+file in `/tmp`, labelled it with `/sbin/chsmack -a Log::dlt`, and then read it. It never verified that the labelling **succeeded**, so the read may simply have been
+a `_` subject reading a `_` object - which is trivially allowed and proves nothing. A follow-up run that did print `chsmack`'s own report produced no output at
+all, so the check never landed.
+
+### What the evidence actually shows
+
+The enforcing run's audit records contradict the "exempt" reading outright. Every denial in that boot is a **`_` subject being refused**:
+
+```
+[251.467716] lsm=SMACK fn=smack_inode_permission action=denied subject="_" object="Log::dlt_vcrm" requested=x comm="dlt-daemon"
+[251.468695] ... subject="_" object="Log::dlt_vcrm" requested=r comm="dlt-daemon"
+[251.469515] ... subject="_" object="Log::dlt"        requested=r comm="dlt-daemon"
+```
+
+Six denials against `Log::dlt` and four against `Log::dlt_vcrm`, all from `dlt-daemon` running as `_`. So with the policy enforcing:
+
+- **`_` is not exempt.** It is refused access to objects the rules do not grant it.
+- The policy is functional, and the vendor's own logging daemon is one of the things it blocks when enforced.
+
+### What this means for V-054 and V-055
+
+Neither can be justified by "applications are outside the policy" - that claim was based on the invalid probe. What remains measured is narrower and still relevant:
+applications run as uid 0 with the label `_`, and `_` is a subject the rules *do* constrain (as `dlt-daemon` demonstrates). Whether an application process is
+confined therefore depends on what the rules grant `_`, which was not established either way.
+
+The correct experiment is a probe that **verifies the object label first**:
+
+```
+/sbin/chsmack -a Log::dlt $F && /sbin/chsmack $F     # must print access="Log::dlt" before the read
+```
+
+and only then attempts the access. Until that runs successfully, this entry's status is **unproven**, not "measured in both directions".
+
+### How the labels are supposed to be applied - and why this cannot be settled from the artefact
+
+The policy is written per application domain, and it is thorough:
+
+```
+App::engineermode _  rwxa--
+App::engineermode Log::engineermode rwxat-
+App::engineermode App::manager rwx---
+App::engineermode App::home rwx---
+```
+
+Twenty-eight subject labels exist, most of them `App::*` domains. But **nothing in the shipped artifact applies them**:
+
+- no `chsmack -e` for any `/app/**` binary in `/etc` or the init scripts (the only `SMACK64EXEC` assignment found is `/update/usb/bin/AppUpgrade`);
+- no `SmackLabel=` (or equivalent) in any unit file;
+- no SMACK strings in `AppLauncher`, so it does not label its children;
+- and the shipping archive carries **no xattr records**: `/HU/images/mango-rootfs.tar.gz` contains no `SCHILY.xattr`/`LIBARCHIVE.xattr` file entries —
+  the few string occurrences of those names are inside `chsmack`/libarchive binaries in the tree.
+
+So either appliances are labelled by a step outside this artifact (a factory flash that preserves xattrs), or they genuinely run `_`. **This cannot be
+decided from the image, and the projection inevitably shows `_`** because it was built from that tarball.
+
+The one command that settles it on a unit:
+
+```
+getfattr -n security.SMACK64EXEC /app/bin/AppHomeScreen
+cat /proc/$(pidof AppHomeScreen)/attr/current
+```
+
+If the binary carries `SMACK64EXEC="App::home"` and the process reports that label, the policy is live and this entry should be narrowed to "unverified in the
+projection". If the attribute is absent on a production unit, the policy is written but never applied.
+
+### Why it matters
+
+The vendor built a 28-label policy with 636 rules and then runs the applications under the one label that is exempt from it. The policy constrains
+*something* — the labels appear in rules as objects and subjects — but not the application processes, which are the software most exposed to attacker input.
+That is what makes V-054 and V-055 reachable in principle: an application process is uid 0 with a wildcard subject label.
+
+### Suggested patch direction
+
+Give applications a real domain label (the scheme already exists — `App::*` labels are defined) and add the rules that let them do their work, then verify from a
+unit that an application process **cannot** read a `Log::*` object. The remaining gap is configuration, not design: the label vocabulary is already there.
+
+### Rule-set analysis (2026-11-05) - broad objects, narrow permissions
+
+Counted across the 636 loaded rules:
+
+```
+rules whose OBJECT is "*"                    28
+rules granting write (w) or execute (x)       0
+```
+
+The 28 wildcard-object rules are all of one shape - **`t` (transmute) only**:
+
+```
+App::bluetooth * ----t-
+App::camera * ----t-
+...
+_ * ----t-
+```
+
+**Two readings, and the honest one is the second:**
+
+1. *This looks like the policy is defeated*: `_` is the SMACK floor label, and V-056 records that applications carry it, so
+   `_ * ----t-` would make every object transmutable on the platform.
+2. *What the rules actually show*: **not one rule grants `w` or `x` anywhere.** Write and execute are the permissions that
+   matter for the findings in this register - a writable `/tmp/passwd`, an executable `/navi/Bin/AppNavi` - and the policy
+   does not hand them out broadly. The wildcard is confined to `t`, which governs label inheritance for **new** objects
+   rather than access to existing ones.
+
+**What is not established:** whether `t` on `*` from the floor label has the practical effect of relabelling, because this
+project has never *demonstrated* a relabel (V-056's `_` exemption was withdrawn for exactly that reason - `chsmack` was
+never verified to have run). Naming the semantics as the open question is the correct position; asserting either
+"SMACK is broken" or "SMACK is fine" from a rule listing is not.
+
+**What the analysis does add:** the label *set* is narrow where it counts. The next measurement that would settle the
+question is a **single controlled relabel**: as `_`, `chsmack` a file to a new label, then check `ls -Z` and whether a
+differently-labelled process is now denied or allowed. Ten minutes on a unit; never done here.
+
+## V-057 — closed-source third-party kernel filesystem drivers parse removable media that the unit auto-mounts
+
+**Status:** candidate. The attack surface is established from the image; **no specific defect in these drivers has been identified, and none is claimed**. This entry exists
+because it is the only stock-reachable path to *kernel*-level code execution that does not require a physical console or a vehicle-bus adapter.
+
+### What the image ships
+
+- **`texfat.ko`** (Tuxera exFAT) and **`tntfs.ko`** (Tuxera NTFS) — third-party, closed-source kernel filesystem drivers under
+  `lib/modules/4.1.27-abl/kernel/fs/`. Their build paths are preserved in the binaries (`/tmp/build/tuxera_ntfs/aops.c`,
+  `/opt/tuxera/kernel/...`), which is how they are identified.
+- **`usb-automount.service`** → `/app/bin/usb-automount`, a daemon that carries `mount`/`umount2` and a configuration naming the front and rear USB ports and
+  the SD card slot (`/etc/usb-automount.conf`, `[port] front1=… rear1=… sdcard=…`), and exports `com.lge.car.automount` on D-Bus.
+
+So a USB stick inserted into a port the daemon watches is **mounted without user interaction**, and if it is exFAT or NTFS the parsing is done by a closed-source
+kernel module running at ring 0.
+
+### Why that matters
+
+- **Kernel parsing is a different class from the rest of this register.** Every other finding here yields uid 0 *after* an attacker already has code execution, or
+  requires a physical console. A defect in a filesystem driver is reached by *plugging in a stick*, which is the one action an attacker can usually arrange.
+- **The drivers are third-party and closed.** Their code cannot be audited from the image, their patch history is the vendor's, and both formats are complex
+  (allocation tables, MFT, attribute runs) - the shape of code where such bugs live.
+- **The kernel is 4.1.27.** Old kernels plus out-of-tree filesystem drivers is a combination with a long history, and this image pins both.
+
+### Tested: 20 crafted images, no fault found (a weaker negative, not a proof of safety)
+
+A sweep was run against both drivers on the vendor kernel — the thing that was impossible before USB worked in the projection. Result:
+
+- **`texfat.ko` 3016.6.23.3** and **`tntfs.ko` 3016.7.1.2.3**, loaded and mounting clean images successfully (the baselines prove the instrument works);
+- **20 crafted images across 9 mutation classes**: truncated allocation tables, cyclic cluster chains (root and file), entry counts larger than the table, attribute/fragment runs
+  exceeding the cluster or volume, root-directory and file clusters pointing past the volume, absurd sector/cluster sizes, oversized MFT attribute/run lists, filename length at the
+  limit, and a valid header with a truncated body;
+- **no oops, panic, BUG or general-protection fault in either module across 23 boots.** Both drivers repeatedly detected and rejected the malformed structures through their own
+  validation - explicit `infinite chain` and bounds/`Inode is corrupt` checks - and returned `EIO`/`EINVAL` to the caller.
+
+**This is a weaker negative and is recorded as one.** What it does not cover: mutations were single-field edits rather than a coverage-guided sweep; the driver was mounted read-only, so
+write, truncate and decompression paths were not exercised; deep directory-tree traversal was not exercised; and "an image that still mounts and faults later in a specific syscall" is
+exactly the shape a one-edit sweep is least likely to find.
+
+**So the entry's status changes without the finding disappearing.** The surface is still real - closed-source, out-of-tree kernel code parsing attacker-supplied media that the unit
+auto-mounts - and the drivers handled everything this sweep threw at them. Twenty images and nine classes is a reason to stop calling it promising, not a reason to call it safe. The
+honest sentence is: *reachable, tested, no defect found in a limited sweep.*
+
+Full method, table and raw evidence: `docs/vm/tuxera-fs-probe.md`.
+
+### What is not claimed
+
+**No vulnerability has been found or demonstrated here.** No crafted image was produced, no fuzzing was run, and no CVE is asserted against any specific version of
+these drivers. Saying "these drivers have had CVEs historically" would be a general statement about the industry, not a finding about this unit.
+
+### The experiment that would settle it
+
+The projection can now do this, which it could not a few hours ago: USB works under the vendor kernel (`docs/vm/vendor-kernel-boot.md`). Load `texfat`/`tntfs`, then
+mount a sequence of deliberately malformed exFAT and NTFS images (truncated allocation tables, cyclic cluster chains, oversized attribute runs, bad MFT records) and
+watch for oopses or panics. Evidence would be a dmesg fault in `texfat`/`tntfs` with a crafted input; absence after a systematic sweep would be a (weaker) negative
+and worth recording as such.
+
+### Suggested patch direction
+
+Either drop the third-party drivers in favour of in-tree ones, or mount removable media through a userspace filesystem (FUSE) so a parser defect is not ring 0.
+Auto-mounting attacker-controlled filesystems with closed-source parsing is the combination worth removing.
+
+## V-058 — eleven services take their D-Bus address from a world-writable file, so a `/tmp` write redirects the whole application bus
+
+**Status:** confirmed from the shipped units and the one script that writes the file. Not exercised on a unit. Precondition is the same as the rest of the family: the ability to write `/tmp`,
+which on this build requires root — so today it is a **persistence and interception** primitive rather than an escalation.
+
+### The mechanism
+
+`/app/bin/Dbuslaunch.sh` (invoked by `Dbuslaunch.service`) is the only writer of the file:
+
+```sh
+SESSION_BUS_FILE="/tmp/session_appmgr"
+SESSION_ENV_FILE="/tmp/session_appmgr.env"
+rm $SESSION_BUS_FILE
+rm $SESSION_ENV_FILE
+dbus-daemon --session --print-address --fork > $SESSION_BUS_FILE
+session_addr=`cat $SESSION_BUS_FILE`
+echo "DBUS_SESSION_BUS_ADDRESS=$session_addr" > $SESSION_ENV_FILE
+```
+
+and **eleven units** read their bus address from that file through `EnvironmentFile`:
+
+```
+ApplicationLauncher  CryptoService  MediaBrowser  credman  mediamanager  mof
+nua  ofono  remote  vbtd  watchdogd
+```
+
+### Why it matters more than the other `/tmp` anchors
+
+The other writable anchors each subvert one decision - an account entry, a compositor module list, a binary verification key. **This one redirects the bus the entire application
+ecosystem runs on.** A process that can write `/tmp/session_appmgr.env` before those units start can point all eleven at a bus it controls, which yields:
+
+- **interception** - every `registration`, every data query, every command between the launcher, the manager and the applications passes through the attacker's daemon;
+- **impersonation** - a fake `com.lge.car.micom`, a fake `ApplicationManager`, a fake `AppHomeScreen`, all answering on the names the real components expect;
+- **ordering is not a defence**: `Dbuslaunch.sh` `rm`s and rewrites the file at every boot, which means the file's content is whatever ran last, and the units that read it start
+  afterwards.
+
+That is the most consequential instance of the family so far, because it does not need a defect in any component: the *systemd configuration itself* declares a writable path as the
+source of a privileged environment variable.
+
+### What is not established
+
+Whether a non-root writer to `/tmp` exists on a production unit (every vendor process observed runs as uid 0); whether systemd 225 tolerates the file being absent (older versions warn
+rather than fail, which would mean the units start with no address at all rather than a wrong one); and no unit has been tested with a substituted file.
+
+### Suggested patch direction
+
+Deliver the address over a channel that cannot be pre-created: pass it as a systemd `Environment=` value from a unit that owns the daemon (`BusAddress`-style), or put the file in a
+directory only the bus owner can write (`/run/user/0`, mode 0700), rather than `/tmp`. Any file that decides where eleven services connect must not be world-writable.
+
+## V-059 — verify-then-install TOCTOU on attacker-supplied USB media (corroborated in our own image)
+
+**Status:** the *mechanism* is **statically corroborated in this repository's EU `260128` image**. A dynamic demonstration is reported by external Gen5W researchers (including a transcript statement of code execution through a USB file and the linked PoC repository), but it has **not** been independently reproduced here or established for this exact variant. See `docs/external-community-claims-2026-11.md` for provenance and variant boundaries. Imported analysis: `evidence/external-ioniq5-usb-toctou/` (documentation only; the upstream PoC was not copied into sanitized `main`; its complete source archive is on the private `unsanitised` branch).
+
+### The claim
+
+`AppUpgrade` **verifies** an update file and then **installs** it in a *separate process that re-opens the same file*, while that file lives on attacker-controlled removable media.
+A device that returns different bytes on the second read installs unsigned content after a signed check has already passed — and there is no boot-time rootfs integrity to catch it.
+
+### What is independently confirmed in this image (EU `260128`)
+
+Every string the mechanism depends on is present in our own extraction of `app/bin/AppUpgrade`:
+
+```
+ionice -c3 md5sum %1 | awk '{print $1}'      the integrity check, as a shell command taking %1
+  PKCS#1 sig. verify:                        the signature step, with md5WithRSAEncryption
+pv -q %1 | tar -xvm -C %2                    SCOMO's install command (see the correction below: the vehicle runs FUMO)
+nice -n 19 dd if=%1 bs=4k skip=%2            other partitions, again re-reading %1  (also SCOMO)
+[%s] System Update Verify Time = %d          the post-install verification the upstream project timed at 46 ms
+[Info] ... %s file status = %d, system update verify skip      ← see below
+```
+
+and `/app/share/AppUpgrade/DecryptToPIPE` (559,192 bytes) exists and is referenced by the same binary. There is **no dm-verity** anywhere in `/etc` or the unit set; the only match for
+"verity" in the image is an unrelated `lvm.conf` line. The boot image is RSA-covered, but the rootfs is plain ext4 on `mmcblk0p3`/`p5`.
+
+Because the check and the install are **separate shell invocations that each name `%1`**, the file is opened twice with the integrity decision in between. That is the whole
+vulnerability, and it is visible in our binary without running anything.
+
+### The updater's code is not in `AppUpgrade` at all - it is two ELF images inside its data
+
+`AppUpgrade`'s own `.text` is **16,243 bytes**. Everything else - ~10.7 MB - is `.rodata`, and inside that data blob sit **two complete ELF binaries**:
+
+| offset in `AppUpgrade` | bytes | identity |
+| --- | --- | --- |
+| `0x7c64` | 5,678,432 | **SCOMO** (764 `###[scomo]` lines) |
+| `0x5721c8` | 5,066,264 | **FUMO / newota** (138 `###[newota]` lines) |
+
+`tools/uk_fw/extract_embedded_elfs.py` extracts both by ELF header and section-table extent. **Any claim about the updater's structure must be made against those files**, and a one-command check
+proves the point: `objdump -h app/bin/AppUpgrade` reports `.text 0x3f73`.
+
+**Correction, kept in place.** This section previously claimed the check and the install were *"constructed in different parts of the program, ~1.2 MB apart"*, on the strength of a scan for 32-bit
+RIP-relative displacements that resolved exactly to each command string. Both sites it found (`0x1877a8`, `0xbd744`) lie in **`.rodata`** - they are pointers inside the embedded images' data, not
+code references. **The claim is withdrawn**: the scan cannot distinguish code from data, and on this binary nearly everything is data.
+
+### The separation is real, and it is not where I first said: FUMO re-reads the payload in its apply step
+
+Running the same displacement scan inside the extracted FUMO image and keeping only sites in its `.text` (`0x24830..0x209a33`) gives these references:
+
+| command | string VA | code sites |
+| --- | --- | --- |
+| `ionice -c3 md5sum %1` (the check) | `0x22c4e0` | 1: **`0x13a550`** |
+| `tar xf %1 -C %2` | `0x20be5a` | 2: `0x633e0`, `0x101d2f` |
+| `tar -tvf %1` | `0x20b358` | 1: `0x5ea1c` |
+| `pv -q` | `0x210fc8` | 1: `0x70c75` |
+
+**Correction to what this entry said an hour ago.** I described the two `tar xf` sites as "the extraction" of the system image. Mapping every string referenced around both sites shows
+`cp -a %1 %2`, `cp -a %1/. %2`, `.whatsnew.tar.gz`, `whatsnew_usb.json` and `copyWhatsNewFiles` - **they are a copy/whatsnew helper, not the partition install.** The identification was
+wrong and is withdrawn.
+
+**The apply step is elsewhere in FUMO, and it is the one that matters:**
+
+```
+%1 -d %2 %3 0 | pv -q -L 8m | dd of=%4 bs=512
+%1 -d %2 %3 0 | dd of=%4 bs=512
+mount p3 original, p6 original, p5 mnt, p7 mnt
+mkfs.ext4 -E nodiscard -j /dev/mmcblk0p16
+```
+
+`%1` is the decryptor, `%2 %3` are its arguments (a source and an offset by position), and the stream is piped through **`pv -q -L 8m`** into **`dd of=%4 bs=512`** - a **partition device**. So
+the payload is decrypted and written **from a fresh invocation that opens the source again**, exactly the check-then-use shape this entry is about, and visibly separate from the `md5sum` site at
+`0x13a550`.
+
+**What the apply stage is made of**, from the strings its code site (`0x60f0b`) references:
+
+```
+/app/share/AppUpgrade/DecryptToPIPE                                   <- %1, the decryptor
+[%s] getKeyFile() is fail.!!! (%d)                                    <- the key is read at APPLY time
+%1 -d %2 %3 0 | pv -q -L 8m | dd of=%4 bs=512                         <- the pipeline
+[%s] Signed file resize fail.!!!(%s)                                  <- and a file gets resized
+```
+
+So the apply stage runs the shipped `DecryptToPIPE` against a source and an offset and writes to a device, and it reads the TE2 key **then**, not once at the start.
+
+**The one thing this still does not decide** is what `%2` actually points at: the removable medium, or a local file the flow has already staged. The `Signed file resize` message is the first
+hint that a *file* is being resized rather than a stream being read in place, which would lean towards staging - **a hint, not a measurement**, and the reverse of what the upstream project
+reports for its own unit. Settling it needs the runtime observation already named (`lsof`/`inotify` during a real update); nothing in the strings is going to answer it.
+
+**Resolved, and the missing mount call is explained: the mounting is delegated.** FUMO does not mount the medium itself - it **asks the automount service to do it**, during its own
+`[UPDATE_PREPARE]` stage:
+
+```
+com.lge.car.automount  /com/lge/car/automount
+[UPDATE_PREPARE]Could not connect to the automount service(UsbMount).
+[UPDATE_PREPARE]Could not connect to the automount service(UsbUnMount).
+mountPath is /update/usb/bin CloseApp called !
+```
+
+So the flow is: call **`UsbMount`** on `com.lge.car.automount`, receive a mounted volume, read the manifest and payloads from it, and call **`UsbUnMount`** afterwards. The mount point the application
+logs is `/update/usb/bin` - a subdirectory of the `/update` ext4 partition (`mmcblk0p9` per `fstab_emmc`), which is exactly where a mounted USB volume can live.
+
+**That also explains the earlier dead end.** FUMO's only `mount %1 %2` string resolves to a helper whose strings are `/rw_data/mnt/root` and `/space/vr_fixed` - a VR/rw_data mount - and the code
+never contains a second mount call for the stick **because the stick is mounted by another process**. The application's own log naming a `mountPath`, plus a delegated `UsbMount`, is a
+mechanism rather than a naming coincidence.
+
+**Residual, small:** the daemon's own mount point is configured rather than literal, so confirming that `/update/usb/bin` is what `usb-automount` mounts for this flow is one observation on a unit -
+the same `lsof`/`inotify` check that would have settled it anyway, now with a much narrower question to answer.
+
+### What an attacker actually needs — and a keyless downgrade that falls out of it
+
+The upstream project keeps the TE2 content key out of its repository, which raised the obvious question: **does the key ship in the image?** It does not.
+
+```
+AppUpgrade:  ./tool/velix_aes.key
+             /update/fota/velix_aes.key
+             VElix_GetAESKey KeySize : %d      getKeyFile() is fail.!!! (%d)
+```
+
+`velix_aes.key` appears in **no** shipped tarball and nowhere in the rootfs; it is read at run time from the update partition. What *does* ship is
+`/app/share/AppUpgrade/teruten5_pub.key` — a 294-byte DER `SubjectPublicKeyInfo`, a 2048-bit **public** key used to verify, which is not a secret and never was.
+
+So the requirement splits in two, and the split matters:
+
+| goal | needs |
+| --- | --- |
+| install **arbitrary** content (a custom rootfs) | the TE2 content key, which lives on the unit and not in the image |
+| install a **genuine older image** | **nothing beyond a legitimate package for this model** |
+
+The second row is the interesting one, and it is the answer to a question this project has carried open since the start. A genuine older package is already TE2-encrypted with the key the
+unit holds, so the install pass consumes it happily. The **version gate ran on the genuine current bytes**, because that is what the check pass read. Therefore:
+
+> **V-059 provides a downgrade path that needs no AES key, no RSA private key, and does not depend on anti-rollback**, because anti-rollback lives in the update logic that has already been
+> satisfied - against different bytes.
+
+The remaining unknowns are hardware, not cryptography: the dynamic-media gadget, and the page cache question in `HARDWARE-FEASIBILITY.md`. And the caveat stays: **not reproduced here**,
+on any unit or in the projection.
+
+This is the first downgrade route found in this project that does not bottom out in "anti-rollback is unresolved".
+
+### Why it matters for the two standing questions
+
+- **Root access:** it is the first credible path to installing **unsigned content without the RSA private key** — the genuine signed image satisfies the check, and the swapped image is
+  consumed by the install. No forgery, no key extraction, no engineering mode.
+- **Downgrade:** it sidesteps the version gate entirely, because the gate runs on the bytes that were *checked*, not on the bytes that are *installed*. The unresolved anti-rollback
+  question therefore does not bound this route.
+
+### What is not established
+
+- **Not reproduced here.** The demonstration needs programmable USB mass-storage hardware; this project has no such device and did not attempt it.
+- The `md5WithRSAEncryption` observation is theirs from decompilation; this repository confirmed only that the string is present.
+- **The swapped payload almost certainly has to be a well-formed TE2 envelope**, because the apply stage was measured invoking the shipped `/app/share/AppUpgrade/DecryptToPIPE` (the strings its code site at `0x60f0b` references). What is untested is whether a *malformed* envelope is rejected before or during that call.
+- No attempt was made to install anything on any unit.
+
+### Suggested patch direction
+
+Do not verify a file and then re-read it: hash **during** the install, or copy to protected local storage once and install from the copy, then verify the copy. Better: mount removable
+media with the update path reading through a single handle. And give the rootfs a boot-time integrity mechanism, so "installed unsigned content" is not the same as "runs at next
+boot".
+
+- **Which path the two reads actually open is not settled here, and there are two candidates in the binary.** The strings show a staging area
+  (`/update/usb/bin`, `/update/usb/upgrade`, `/update/usb/micom`) *and* FUMO mount points (`/update/fota/mnt/rootfs`, `/update/fota/mnt/navi/system`), plus a manifest-only copy
+  (`cp /update/usb/bin/.lge.upgrade.xml /tmp/`) and a family of `cp`/`mv`/`tar` commands taking `%1`. If the check and the install both read a **staged local copy**, the race as described
+  does not exist on this flow; if they read a **mount over the removable medium**, it does. The upstream project reports the latter for this build and demonstrated it dynamically; this
+  repository has only the strings, which support either.
+  **The observation that settles it is a `lsof`/`inotify`/`strace` on the unit during a real update**: which path does the `md5sum` open, and which does the `pv`/`dd` open.
+
+## Scope note - what the image does *not* have, which narrows the fixes
+
+Two sweeps that came back empty, recorded because a register that only lists what is wrong cannot tell a platform team
+where the boundary of the problem is:
+
+```
+setuid / setgid files                                        0
+world-writable directories (outside /tmp, /run, /var/volatile)  0
+```
+
+**Consequences, and they are useful:**
+
+1. **The V-066 world-writable executables are anomalous, not systemic.** Nothing in the image is a world-writable
+   *directory*, so this is not a permissions model applied to a tree - it is two files that ended up `0777` while
+   every directory around them is `0755`. The fix is therefore a **targeted `chmod go-w` on two paths**, not a tree
+   audit, which is much cheaper than the finding first suggested.
+2. **There is no setuid surface.** No `sudo`-style helper, no `ping`-style capability trick - nothing in this image
+   grants privilege through the file mode bits. Every privilege escalation in this register goes through a **writable
+   runtime path** or a **service**, not through a setuid binary. That is consistent with the whole shape of the
+   findings and it is worth knowing before anyone spends time looking for setuid bugs.
+3. It also means **the root-level consequences in V-048, V-054, V-066 come from ordinary file access**, not from
+   exploiting privilege bits - which is precisely why the "never resolve a security decision from a writable path"
+   recommendation is the right one for this platform rather than a generic hardening chant.
+
+---
+
+## Scope note - `applaunch-config.json` is referenced but never created
+
+`app/bin/AppLauncher` contains `/rw_data/applaunch-config.json`. A boot of the projection, checked at 150 s, found:
+
+```
+J1_EXISTS=no
+/rw_data:  app_data  dlt  home  lib  <one 0700 root dir>
+```
+
+**The file does not exist**, so nothing in it can be tampered with on this image and its content cannot be read. Whether
+it is created after a settings change, or by a component that does not run here, is unmeasured.
+
+**This is recorded as a negative rather than a finding.** The key names that suggested it might hold application paths
+(`appName`, `appid`, `applocation`) are also the **parameter names of `com.lge.avn.applauncher.request.launch`**, so the
+inference was weak to begin with and the file's absence settles nothing about what it would contain.
+
+**Why it is worth a line:** someone reading `AppLauncher`'s strings later will wonder the same thing. The answer is "the
+file is not there on a running unit of this build", measured, and that is cheaper to read than to re-derive.
+
+### The writable-path sweep is now complete for the paths that matter
+
+| path | state |
+|---|---|
+| `/rw_data/navi_data/certificates/TomTom_Root_CA.crt` | **exists, group-writable, managed by the updater** - V-069 |
+| `/app/data/AppEngineeringMode/shell/eject.sh` | **referenced, directory absent** - V-070 |
+| `/rw_data/applaunch-config.json` | **referenced, absent** - this note |
+| `/etc/*` symlinks into `/tmp` | nine, of which one demonstrated - V-065 |
+| `/tmp/*.key` | two, both filed - V-048, V-066 |
+
+That is every writable-path trust anchor the sweeps found, with its state. Three of the five are **absent or already
+fixed by an existing item**, which is the useful outcome: the family is enumerated.
+
+---
+
+## Scope note - the network listener surface, enumerated
+
+Same method as the `/tmp`-key and writable-path families: instead of filing what turns up, sweep for the whole surface so
+the register can say **"this is all of them"**.
+
+```
+app/bin/AppMPAutoTest   tcp-l:9997        V-073
+app/bin/TmsGuiApp       tcp-l:9997        V-073 (same bridge, second application)
+app/bin/mdnsd           port 5350         the mDNS responder, V-072 (UDP, multicast)
+```
+
+**No other listening port appears in any application binary.** That is a negative worth stating: the platform's
+application layer does not open sockets beyond one serial bridge and mDNS, so a future reviewer can stop looking in
+`app/bin` for listeners and start with the two entries above.
+
+**What this sweep does not cover**, stated so the completeness claim is not overread:
+
+- **`/usr/bin`, `/usr/sbin` and `/lib`** were not swept for the same patterns - `socat`, `wpa_supplicant`, `connmand` and
+  the `ofonod` family live there, and the last two are services that legitimately open sockets.
+- **Ports assembled at run time** (`QString` concatenation, config files under `/rw_data`, values from the MICOM) would not
+  appear as strings at all.
+- **Unix-domain sockets** are the platform's normal IPC (every D-Bus name in this register) and are out of scope here.
+
+So the honest claim is: **the TCP/UDP listener surface inside `app/bin` is two items, both filed.** Not "the device has two
+listeners".
+
+---
+
+## V-075 - the boot image is unprotected in userspace, and nothing verifies it here
+
+**Status:** the absence of verification **in the userspace image** is **measured**; whether the bootloader verifies the image
+is **outside what this project can see**, and is stated as unassessed. Class: boot integrity - open question, not a
+demonstrated vulnerability.
+
+### What is measured
+
+**No verified-boot machinery exists in the userspace image:**
+
+```
+grep -rhaoE 'avb|verified_?boot|boot\.img|vbmeta|dm-verity|verity'  esinit /etc/*.sh
+    ->  no matches
+```
+
+**`esinit` treats the boot partitions as ordinary filesystems.** In the crash-recovery path, when the bootloader has fallen
+back to the second slot, it does:
+
+```
+fsck.ext2 -fy /dev/mmcblk0p1
+FSCK_RET_VAL=$?
+if [ ret not in (0,1,2) ]; then
+    echo "Boot Mode PLK1 Partition Crashed and Recovery(mkfs)"
+    mke2fs -F -b 4096 /dev/mmcblk0p1
+fi
+mount /dev/mmcblk0p2 /tmp/plk2 ; mount /dev/mmcblk0p1 /tmp/plk1
+cp /tmp/plk2/iasImage /tmp/plk1/iasImage
+```
+
+**The `mke2fs` is not a defect** - it runs only in the crash-recovery boot mode and is immediately followed by restoring
+`iasImage` from the other slot. That is an **A/B recovery design**, and a resilient one. I had assumed it was a bricking
+vector before reading the four lines after it, and it is not.
+
+**What remains is that `iasImage` is a file**: both slots are mounted read-write, the copy is a plain `cp`, and **nothing in
+userspace checks a signature, hash or version** of what it copies.
+
+### Why that is filed rather than dismissed
+
+Every process on this unit runs as root (V-064), so any compromised component can write `iasImage` into either slot. **If the
+bootloader verifies it, that is a bricked unit or a refused boot; if it does not, it is persistence that survives every
+reinstall of the rootfs** - which would outrank V-069 as the cheapest persistent path.
+
+**The answer is in the bootloader, not in this image**, so this entry stops at the boundary and says so.
+
+### Not assessed, and how to assess it
+
+- **Whether ABL verifies `iasImage`** (signature, hash, rollback counter). It is closed firmware outside the extracted
+  image. The test is a unit, a modified `iasImage` in the inactive slot, and a reboot - **and it is destructive if there is
+  no verification**, so it belongs to someone with a recoverable unit.
+- **Whether the anti-rollback counter applies to the boot image** as it does to packages (V-059).
+
+### What this changes about the register
+
+Nothing already filed. It **bounds** the register's coverage: every finding here is about the running userspace, and the
+layer below it - what boots, and whether it is checked - is **not covered by anything in this document**. That gap is worth
+one line in a security review, and this is the line.
+
+---
+
+## V-074 - the VIN is written to persistent logs and handed to the voice backend
+
+**Status:** the log line is **measured** in the vehicle's own DLT dump; the transmission is **inferred from the function
+name and direction marker**, not captured on a wire. Class: data exposure / privacy (not an exploit).
+
+### Measured
+
+From the upstream dump (`evidence/upstream/Ioniq5_Gen5W_Log_Dump`, 545 files), with the context intact:
+
+```
+[VH_VoiceHandler::sendServerInfoVin(6165)]  [VH -> SDS] VIN [REDACTED-VEHICLE-ID]
+```
+
+and the bare identifier appears **78 times** across the sampled files.
+
+Two things follow, and they are different problems:
+
+1. **The VIN is persisted in DLT logs.** Those logs live on `/log_data` - a **writable partition that survives reboot**
+   (V-065's neighbours) - and are exported off the unit by the offline trace mechanism. Any dump of that partition, any
+   service ticket, any returned unit carries the vehicle identity.
+2. **`sendServerInfoVin` says the VIN is sent to `SDS`** - the speech/dialog service, which on this platform is a
+   network-backed assistant. The `[VH -> SDS]` marker is a direction annotation, so the code intends a transfer. **That
+   transfer is not observed here**; it requires a live SDS session.
+
+### Why it belongs in a security register
+
+Not because it can be exploited. Because a security review of a connected vehicle has to answer **"what leaves the unit
+and what persists"**, and this is a measured answer for one identifier: **the VIN leaves twice** - once into local logs that
+outlive the trip, once toward a voice backend, and the driver is not told either way.
+
+### What I checked and rejected, recorded so it is not re-derived
+
+A loose sweep suggested 695 password mentions, 24,076 `SSID`/`psk` hits, 75,572 coordinate-like hits and 30,745 phone
+numbers. **Sampled, they were noise or imported text:**
+
+- the password hits include **`###Title : Kia Engineering Mode password for August 2024 EU Maps...`** - a *forum post*
+  captured inside the dump, not the vehicle's own logging;
+- the coordinate pattern matched substrings such as *"related"*;
+- the `token`/`secret` hits were a filename (`google...`) inside an open error.
+
+**Only the VIN survived sampling.** That is the difference between a grep and a finding.
+
+### Fix
+
+- Stop logging the VIN at `[VH -> SDS]`: log a hash of it, or a session id, unless a diagnostic build asks otherwise.
+- Include `/log_data` in the data-retention story: it is a persistent partition holding vehicle identity.
+- If the voice backend needs the VIN, say so in the privacy notice and make it conditional on the feature being enabled.
+
+### Verify
+
+On a unit: `grep -a 'VIN ' /log_data/dlt/*.dlt | head`, and with the assistant active, capture the outbound session to see
+whether the identifier is in it. The first command proves persistence; the second would prove transmission.
+
+---
+
+## V-073 - an unauthenticated TCP-to-serial bridge ships in two applications
+
+**Status:** the command strings are **measured verbatim** in the shipped binaries; the code paths that run them are **not
+exercised** here, and the prerequisite `/dev/ttyUSB0` is absent in the projection. Class: network exposure / missing
+authentication.
+
+### What is in the binaries
+
+```
+app/bin/AppMPAutoTest:
+  socat -d -d tcp-l:9997,reuseaddr,fork /dev/ttyUSB0,nonblock,rawer,waitlock=/var/run/ttyUSB0 &
+
+app/bin/TmsGuiApp:
+  socat tcp-l:9997,reuseaddr,fork file:/dev/ttyUSB0,nonblock,raw,echo=0,waitlock=/var/run/ttyUSB0.lock &
+```
+
+Read the flags, because each one matters:
+
+| flag | effect |
+|---|---|
+| `tcp-l:9997` | **listens on TCP 9997** - not loopback-restricted, so any reachable interface |
+| `reuseaddr` | rebinds immediately after a restart |
+| `fork` | **serves multiple clients concurrently** |
+| `/dev/ttyUSB0` or `file:...` | the other end is a **USB serial device**, bridged byte-for-byte, `raw`/`rawer`, no translation |
+| `waitlock=` | serialises access to the device across clients - which implies the authors expected several |
+
+**There is no authentication, no TLS, no allow-list and no bind address.** Anyone who can reach port 9997 gets a
+bidirectional byte pipe to whatever serial device is attached - and serial devices on this platform are the kind a
+telematics or manufacturing tool talks to.
+
+### Why this is more than a misconfiguration
+
+- **`fork` + `reuseaddr` + `waitlock`** is a deliberate **service** shape, not a one-off debug line: the authors expected
+  concurrent clients and device contention. That is a supported remote-access feature, shipped without access control.
+- **It is in two different applications** - the manufacturing test app and the telematics GUI - so it is a pattern, not an
+  accident in one place.
+- On a connected vehicle, "serial device attached to the head unit" plausibly includes **the modem or a diagnostics
+  channel**. A network peer talking to that, unauthenticated, is the kind of primitive that turns a WiFi association into
+  device access.
+
+### What is *not* established
+
+- **That either path runs on a normal boot.** These are manufacturing/TMS code paths; nothing in this project's runs
+  showed `socat` running, and `/dev/ttyUSB0` does not exist in the projection.
+- **What the attached device would be.** The command names the node, not the hardware.
+- That port 9997 is reachable: the WiFi path is gated three ways (V-050) and the USB/Ethernet path is unmeasured.
+
+### Fix
+
+1. **Bind to loopback** (`tcp-l:9997,bind=127.0.0.1`) if the bridge is for a local companion process.
+2. If it must be reachable, **put it behind authentication and TLS**, or require a per-session token written to a
+   root-only file.
+3. Remove it from production images entirely if it exists only for manufacturing, and keep it in the manufacturing
+   build - the same split the platform already makes for engineering mode.
+
+### Verify
+
+On a unit: `netstat -ltnp | grep 9997` (or `ss -ltnp`), then, if listening, `socat - TCP:127.0.0.1:9997` from another
+machine on the same network and see whether the serial device answers. **A connection that succeeds without credentials is
+this finding.**
+
+---
+
+## V-072 - Apple's mDNSResponder runs as a root network daemon with no sandboxing
+
+**Status:** the binary, its provenance, the unit's lack of hardening and the absence of a user setting are **measured**; no
+specific parsing vulnerability is claimed or demonstrated. Class: attack surface / hardening.
+
+### What ships
+
+```
+lib/systemd/system/carplay_mdnsd.service   ENABLED in multi-user.target.wants
+  ExecStart=/app/bin/mdnsd
+  Requires=dbus-com.lge.car.micom.service
+  (no User=, no NoNewPrivileges, no CapabilityBoundingSet, no ProtectSystem)
+
+/app/bin/mdnsd        436,352 bytes
+  @(#) mDNSResponder (Engineering Build) (Jan 28 2026 16:05:56)
+  mDNSPosix.c / mDNSPlatformSendUDP ...        Apple's mDNSResponder, on UDP 5353
+/etc/mdnsd.conf       present
+```
+
+**An mDNS responder - a daemon whose entire job is parsing multicast packets from the local network - runs as root, with
+no unit-level restriction at all.** That is a second instance of the pattern V-064 names: everything on this platform is
+root, and this one is additionally **network-facing**.
+
+### Why it is worth a line even without a vulnerability
+
+- **Untrusted input, maximum privilege.** mDNS is unauthenticated by design and answers to anything on the link; the
+  parser is Apple's, a component with a long history of parsing advisories. Running it as root means any such defect is
+  immediately a root defect, with no capability or filesystem restriction to contain it.
+- **It is enabled, not optional.** `multi-user.target.wants` includes it, so it is part of the shipped behaviour.
+- **It depends on the MICOM service**, so on a unit where that service fails the unit fails - which is a reliability
+  observation, not a security one, but it is why the daemon is coupled to vehicle state.
+
+### A claim I made and withdrew
+
+`/app/bin/mdnsd` contains the string **`WARNING: mdnsd continuing as root because user "nobody" does not exist`**, which
+looks like a fail-open privilege drop. **It is not, on this image:** `nobody` is present in **both** `/etc/passwd.legacy`
+and `/etc/passwd.secure`, so the fallback path does not trigger. **Recorded because the string is exactly the kind of thing
+that gets quoted as a finding**, and checking it took one `grep`.
+
+### What is not claimed
+
+- That this build is vulnerable to anything. No fuzzing was performed and none is implied.
+- That the daemon is **reachable** on a given unit: mDNS needs an interface, and the WiFi path is gated three ways
+  (V-050). The **USB/Ethernet** path is unmeasured here.
+
+### Fix
+
+Give the unit the containment it lacks: `User=nobody` (which exists), `NoNewPrivileges=yes`, `CapabilityBoundingSet=`,
+`ProtectSystem=strict`, `PrivateTmp=yes`, and restrict it to the interfaces it must serve. None of that requires changing
+Apple's code, and all of it is configuration this platform already owns - the same recommendation as V-064, applied to the
+one service that answers the network.
+
+### Verify
+
+On a unit with a network interface: `ss -lunp | grep 5353`, then `ps -o user= -p $(pidof mdnsd)` - the answer to the second
+command is this entry.
+
+---
+
+## V-071 - one `/tmp` marker enables the root console and SSH, and `esinit` creates it every boot
+
+**Status:** the **init logic is measured verbatim** in `lib/systemd/esinit`; the console prompt it produces is
+**captured** (V-049); the SSH half is **latent** because the daemon binary is absent (V-067). Class: the actual gating
+mechanism behind V-049 and V-067, and it is a single file.
+
+### What `esinit` does, in its own words
+
+```
+#secure_console : use console login
+touch /tmp/secure_console_disable
+#check console=ttyS2 and earlycon=uart8250 for No Secure console Booting
+#grep 'console=ttyS2' /proc/cmdline | grep 'earlycon=uart8250'
+#if [ $? = 0 ]; then
+#    /bin/rm /tmp/secure_console_disable
+#    /bin/rm /dev/ttyS2
+#fi
+```
+
+**`esinit` creates the marker unconditionally on every boot**, with the comment *"use console login"*. The block that
+would remove it under a serial-console boot is **commented out**, so nothing in the image removes it.
+
+And the marker is then consulted three times, for three separate capabilities:
+
+```
+if [ -f /tmp/secure_console_disable ]; then echo "/bin/sh" > /tmp/shells        # 1. a valid login shell
+if [ -f /tmp/secure_console_disable ]; then cp /etc/passwd.legacy /tmp/passwd   # 2. root gets /bin/sh, not nologin
+if [ -f /tmp/secure_console_disable ]; then /etc/esinit_agetty.sh &             # 3. the ttyS2 root console starts
+```
+
+and once more, in a different unit (V-067):
+
+```
+dropbear@.service:   ConditionPathExists=/tmp/secure_console_disable            # 4. the SSH service is eligible
+```
+
+The two passwd variants differ exactly where it matters:
+
+```
+/etc/passwd.legacy   root:x:0:0:root:/home/root:/bin/sh
+/etc/passwd.secure   root:x:0:0:root:/home/root:/usr/sbin/nologin
+```
+
+### The only thing that turns it off
+
+```
+secure_console_mode="$(cat /sys/module/micom/parameters/secure_console)"
+if [ "$secure_console_mode" = "1" ]; then
+    /bin/rm /tmp/secure_console_disable
+    /bin/rm /dev/ttyS2
+fi
+```
+
+**One MICOM parameter is the entire control.** If it reads `1`, the marker is removed and `/dev/ttyS2` is deleted. If it
+reads anything else - including **the measured value of `0` in this image** (V-049) - the console, the shell-bearing
+account database and the SSH eligibility all remain.
+
+### Why this is the strongest statement about root access in this register
+
+It is not "a gate that happens to read 0" (V-049 as originally filed) and not "a stray marker" (V-067 as filed). **It is
+one deliberate switch, created at every boot, whose only off-position is a value delivered by the MICOM.** Everything
+else follows:
+
+- the **serial root console** exists because the marker exists (V-049's captured prompt);
+- **root's shell is `/bin/sh`, not `nologin`**, for the same reason;
+- **dropbear becomes eligible** for the same reason - blocked today only by a missing binary (V-067);
+- and the marker lives in a **world-writable directory** (V-065), so on a unit where `secure_console` is `1`, removing
+  the *effect* requires only recreating the file after boot - a race that costs an attacker nothing.
+
+### Correction - the marker grants *eligibility*, not access
+
+The entry above says "the password may not be the binding constraint". **Reading the console starter settles it, and it
+does not support that sentence:**
+
+```
+/etc/esinit_agetty.sh:
+  #autologin root
+  #setsid /sbin/agetty -a root -8 -L ttyS2 115200 xterm       <- COMMENTED OUT
+  setsid /sbin/agetty  -8 -L ttyS2 115200 xterm               <- active: a normal login prompt
+```
+
+**The autologin line is commented out**, so the console that the marker starts is an ordinary `agetty` requiring the root
+password - which is exactly the prompt V-049 captured and whose hash resisted 45,000 candidates.
+
+A second potential console is also disabled: `/etc/iap2_mod.sh` contains
+`#setsid /sbin/agetty -8 -L ttyGS0 115200 xterm &` under the comment *"getty login for TEST"* - **commented out**, so the
+USB-gadget serial console does **not** start.
+
+**So the corrected severity of V-071 is this:** the marker makes the console, the shell-bearing account database and SSH
+**possible**; it does not grant access by itself. What stands between an attacker and a root shell is still
+**V-049's password** (uncracked) or **V-067's private key** (not held). Removing the marker would close a door that is
+currently only latched - but it is latched, and I should not have implied otherwise.
+
+**What still makes this worth filing:** the design is **fail-open** - the safe behaviour depends on one MICOM value being
+`1`, the marker lives in a world-writable directory, and three other mechanisms inherit its state. A single wrong or
+unset MICOM value converts "latched" into "open" with no second check anywhere.
+
+### What is *not* claimed
+
+- That `secure_console` is 0 in the field. **Measured here as 0** in our projection, where the MICOM link is absent - so
+  the real unit's value is **unmeasured**, and this entry's severity depends on it more than on anything else.
+- That the console password can be obtained. V-049's hash resisted 45,000 candidates; **the point of this entry is that
+  the password may not be the binding constraint** - the shell-bearing passwd and the SSH eligibility are.
+
+### Fix
+
+1. **Invert the default**: create the marker only when a MICOM-provided debug state says so, rather than removing it
+   when MICOM says not to.
+2. **Move the marker out of `/tmp`** to a root-owned path, so recreating it requires the privilege the gate is supposed
+   to check.
+3. **Drop `/etc/passwd.legacy` from production images** and keep root `nologin` unconditionally; a debug console that
+   needs a shell-bearing root account should be a separate, deliberate provisioning step.
+
+### Verify
+
+On a unit: `cat /sys/module/micom/parameters/secure_console`, then `ls /tmp/secure_console_disable`, then
+`getent passwd root` - the three answers together are this finding, and they take ten seconds to read.
+
+---
+
+## V-070 - a shell script path in a writable data partition, referenced by the manufacturing test application
+
+**Status:** the **path string and the process-execution APIs are measured**; the directory does not exist in the
+shipped image, and that the application executes *that file* is **unproven**. Class: persistence primitive.
+
+### Measured
+
+```
+app/bin/AppMPAutoTest contains:   /app/data/AppEngineeringMode/shell/eject.sh
+and links:                        QProcess::start, QProcess::startDetached,
+                                  setStandardOutputFile, setStandardErrorFile, waitForStarted, waitForFinished
+```
+
+`/app/data` is a symlink to **`/rw_data/app_data`** - a read-write partition that **persists across reboots**.
+`/rw_data/app_data/AppEngineeringMode/shell/` is **not present in the image**, so the script is not shipped; the path
+exists in the binary and the directory does not exist on disk.
+
+V-042 already records that this application's manufacturing mode is triggered by a **file in `/tmp`**
+(`/tmp/AppMPAutoTest/do_mpauto`). Combining the two gives the shape below.
+
+### The shape, if the path is executed
+
+1. Any process with root - which per V-064 is most of the stack, and which several findings here achieve - **creates
+   one directory and one file** on a persistent partition.
+2. The manufacturing trigger is set (a `/tmp` marker, V-042).
+3. The manufacturing test application runs the script **as root, unattended**, and it **survives reboot** because
+   `/rw_data` persists.
+
+That is a **persistence** primitive, not an escalation: it needs root, but it converts temporary root into
+**permanent, automatically re-executed** code through a path the platform itself nominates.
+
+### What is *not* established
+
+- **That `AppMPAutoTest` executes that specific file.** The binary links `QProcess` and contains the path; the string
+  could be a log line, a check, or an argument to something else. That measurement would make this a finding rather
+  than a shape.
+- Whether the script would be run with any verification (hash, owner, label) - nothing in the strings suggests one,
+  but absence of strings is not absence of a check.
+
+### Measured negative - starting the application with the marker does not run the script
+
+Tested in the projection rather than left as a shape. `/app_data/AppEngineeringMode/shell/eject.sh` was created on the
+data partition containing a command that writes to the console, `/tmp/AppMPAutoTest/do_mpauto` was created, and
+`/app/bin/AppMPAutoTest` was started as root:
+
+```
+V70_PRE script=[-rwxr-xr-x]           the payload script is in place
+V70_MARKER=[do_mpauto]                the trigger marker exists
+V70_STARTED pid=4141
+V70_ALIVE=[yes]                       ran for the full 60 s
+V70_MPOUT_TAIL=[Using Wayland-EGL | libEGL warning: failed to initialize EGL display |
+                No such slot MMUSControl::NotifyEngAirConditionKeyTest(QByteArray)]
+MP_EJECT_RAN                          NEVER APPEARED
+```
+
+**The script was not executed.** So this entry's shape is **not reachable by starting the application with the marker in
+place** - the trigger must be something else: an engineering-mode action, an actual media-eject event (the file is named
+`eject.sh`), or a state that the projection does not produce.
+
+**What that changes:** the persistence primitive stands as a *possibility* only, and the cheapest reading of it - "drop
+a file, start the app, get root execution" - is **refuted here**. Anyone pursuing it next should look for the code path
+that would run an eject script, in `AppMPAutoTest`'s own handling of eject events, rather than at its start-up.
+
+**Also observed, and recorded because it is the kind of defect that matters later:** the application logs
+`No such slot MMUSControl::NotifyEngAirConditionKeyTest(QByteArray)` - a signal emitted or connected to a slot that does
+not exist in this build. Harmless on its own; it means the manufacturing UI and its control object are out of sync in
+this image, which is worth knowing before trusting either.
+
+### Fix
+
+Do not execute scripts from a persistent writable partition. If field diagnostics need a script, ship it on a
+read-only partition and run **that** path; or verify a signature over it with a key that is not itself on a writable
+partition - the failure mode V-069 records.
+
+### Verify
+
+On a unit: create `/rw_data/app_data/AppEngineeringMode/shell/eject.sh` with a single marker command, trigger
+manufacturing mode, observe whether it runs. Five minutes, and the answer is what this entry is missing.
+
+---
+
+## V-069 - the navigation update CA is a group-writable file on a read-write partition
+
+**Status:** the path, the file and its mode are **measured**; that the update verification actually trusts it is
+**strongly indicated by strings but not demonstrated end-to-end**. Class: trust anchor in a writable path - the same
+family as V-048 and V-066, and the cheapest of the three to exploit.
+
+### What ships
+
+```
+AppUpgrade contains:      /rw_data/navi_data/certificates/TomTom_Root_CA.crt
+and links:                mbedtls (an X.509 verification stack)
+
+in the image:             /rw_data/navi_data/certificates/TomTom_Root_CA.crt
+                          1,588 bytes, mode -rwxrwxr-x
+/rw_data                  partition p11, mounted read-write at runtime (measured while creating V-065's tables)
+```
+
+**A root CA for navigation updates lives on a writable partition, is group-writable, and is read by the update
+application.** Nothing in this register is easier to reach: no USB hardware, no TOCTOU window, no `/tmp` race - a
+single file write.
+
+### The chain, if the strings mean what they say
+
+1. Any process able to write that directory - root, or any process in the file's group - replaces the CA with its own.
+2. The unit then verifies a **signed navigation package against the attacker's CA** and accepts it.
+3. The navigation payload runs as root (it lives under `/navi` and is executed by the launcher), so acceptance is
+   **code execution as root**, and it survives reboot because the CA stays replaced.
+
+That would make this **the cheapest persistent root path in the register** - cheaper than V-059, which needs
+programmable USB hardware, and cheaper than V-054, which needs a `/tmp` write plus a login.
+
+### What is *not* established
+
+- **That `AppUpgrade` uses this file when verifying the navi package specifically.** It contains the path and links an
+  X.509 stack; the string could belong to a different connection. This is the one measurement that separates "a CA in a
+  bad place" from "an update channel an attacker can sign".
+- Whether `navi_data` is writable by anything other than root in production - the mode is `-rwxrwxr-x`, so group write
+  is permitted, and the group membership is unmeasured.
+
+### Update - SCOMO's own logic manages that file, which strengthens the premise
+
+The string is not incidental. Inside the SCOMO payload embedded in `AppUpgrade`, adjacent to the path:
+
+```
+###[scomo][changePath] ...
+/rw_data/navi_data/certificates/TomTom_Root_CA.crt
+[%s] TomTom Root CA copy : %s to %s
+[%s] TomTom Root CA is exist already.
+```
+
+**The updater copies a TomTom root CA to that writable path and, if one is already there, does not copy at all.** So on a
+unit built from this image - which ships the file - **the shipped, group-writable file is the one the update stack
+treats as the TomTom root CA**, and the refresh path only matters when it is missing.
+
+That moves this entry from "`AppUpgrade` contains a path string" to "**the update component's own logic names and manages
+this file as a trust root**", which is the stronger half of what was previously unproven. What remains unproven is the
+narrower question: whether the *navi package* signature is checked against it, or only some other connection - the path
+appears in SCOMO's upgrade flow, not in a separated verification routine that could be read in isolation.
+
+The **source** of the copy is passed as a runtime argument (`%s to %s`), so it cannot be resolved statically; and because
+of the "is exist already" branch, a shipped unit never exercises that copy at all.
+
+### Fix
+
+1. **Move the CA to read-only storage** - rootfs or the `/navi` partition (read-only in normal boot) - mode `0444`.
+2. Better, **do not ship a CA the unit reads from mutable storage**: verification should use a key compiled into, or
+   signed into, the read-only image.
+3. If field replacement must be possible, make the CA itself signed by a read-only-side key, so replacement requires
+   the vendor's signature rather than a file write.
+
+### Verify
+
+On a unit, replace the CA with a self-signed one, sign a navi package with it, and attempt an update. Acceptance moves
+this entry from "indicated" to "demonstrated" and takes five minutes for anyone holding a unit.
+
+---
+
+## V-068 - private key material is embedded in four shipped binaries
+
+**Status:** the **PEM blocks are measured** in the shipped binaries; their **purpose and counterpart trust are unproven**.
+Class: credential material compromised by distribution. **The key material itself is deliberately not reproduced here.**
+
+### What ships
+
+| binary | PEM private-key blocks | certificates |
+|---|---|---|
+| `app/bin/AppProjection` | **2** | **3** |
+| `app/bin/AppUpgrade` | 6 | 0 |
+| `app/bin/AppScomoDM` | 3 | 0 |
+| `app/bin/AppDMClient` | 3 | 0 |
+
+(`libgio`, `libQt5Network`, `librpmio` and `magic.mgc` also match a naive search - they carry the PEM *marker text* as
+strings, not keys. The four above are application binaries and their blocks parse as keys.)
+
+One block was parsed to metadata only: **`AppProjection`, first key, RSA 2048**, public-key SHA-256 beginning
+`af1e9a9a127165f5f7114d8ca8314c73`. `AppProjection` also carries three certificates, so at least one binary contains a
+complete **client identity** (certificate plus matching private key) rather than a bare key.
+
+`AppUpgrade` links **mbedtls** and references `/rw_data/navi_data/certificates/TomTom_Root_CA.crt` (see V-069), and
+`AppProjection` is the phone-projection stack.
+
+### Why embedded private keys are a finding regardless of purpose
+
+**Anything shipped is compromised by distribution.** A private key in firmware:
+- is **identical on every unit** built from that image, so a single extraction - by a researcher, a repair shop, a
+  scrap unit, or anyone who downloads an update package - is a key held by everyone;
+- **cannot be rotated per device**, and its owner has no way to distinguish a legitimate peer from an attacker using
+  the same key;
+- if it authenticates to a **backend service** (projection or device management), that service cannot tell units apart
+  by key, which removes the only thing client certificates are for.
+
+**The honest limits:** these may be **test keys**, a **shared device-identity** by design, or keys whose counterpart
+certificate is not trusted by any reachable server. None of that is established here. What is established is that
+**key material is in the shipped image**, and that is a fact a platform owner needs before deciding it is fine.
+
+### Fix
+
+1. Establish what each key authenticates to, and whether the matching certificate is trusted by a live service.
+2. **Rotate all of them**, per fleet, and reissue **per-device** credentials where the protocol allows (device
+   management and projection both normally do).
+3. Move key material out of the binary: a provisioning step at manufacture, stored on the unit's secure element or at
+   minimum in `/rw_data` with `0600` root ownership - never inside a distributed executable.
+
+### Verify
+
+Search the delivered image for `BEGIN .*PRIVATE KEY` in files under `/app/bin` - four matches - and compare the
+extracted public keys' fingerprints across two units: identical fingerprints mean a shared key.
+
+---
+
+## V-067 - a static root SSH key ships in the image, behind a `/tmp` marker and a missing binary
+
+**Status:** every component is **measured in the shipped image**; the SSH service **cannot run today** because its
+binary is absent. Class: hardcoded credential material / latent remote access.
+
+### The four measured facts
+
+1. **A root SSH public key ships**:
+
+```
+/etc/dropbear/authorized_keys     397 bytes, 1 key
+  ssh-rsa AAAA...  rsa-key-20181102          (372-character modulus, generated 2018-11-02 by the name)
+```
+
+2. **The service that would use it is installed** - `lib/systemd/system/dropbear@.service`:
+
+```
+ConditionPathExists=/tmp/secure_console_disable        <- the ONLY gate
+ExecStartPre=-/etc/dropbear/dropbear_publickey_installer.sh
+ExecStart=-/usr/sbin/dropbear -i -s -r /var/dropbear/dropbear_rsa_host_key
+```
+
+3. **Root logins are not disabled** - `/etc/default/dropbear` contains `# DROPBEAR_EXTRA_ARGS="-w"` **commented out**,
+   and `-w` is dropbear's "disallow root logins" flag.
+
+4. **The binary is absent** - `/usr/sbin/dropbear`, `/usr/bin/dropbearkey`, `/usr/bin/dbclient` are all missing, and the
+   unit is not enabled. **So this cannot be reached on the shipped image today.**
+
+### What the installer adds
+
+`/etc/dropbear/dropbear_publickey_installer.sh` copies the shipped key into place as the root account's key:
+
+```
+if [ -f /home/root/.ssh/authorized_keys ]; then ... cp /etc/dropbear/authorized_keys /home/root/.ssh/authorized_keys
+else mkdir /home/root/.ssh/; cp /etc/dropbear/authorized_keys /home/root/.ssh/authorized_keys
+```
+
+So if the service ever starts, **the key in the firmware becomes an accepted root login**.
+
+### Why this matters despite the missing binary
+
+- **The credential is static and shared.** Every unit built from this image that ships the same `authorized_keys`
+  accepts the same private key. One leak of that private key - anywhere, at any time, by anyone who has ever had the
+  firmware - is a **root login on every such unit**, and nothing in the image gives the owner a way to tell.
+- **The gate is a file in a world-writable directory.**
+  `ConditionPathExists=/tmp/secure_console_disable` means the difference between "no listener" and "listener" is the
+  presence of a `/tmp` file. Per V-065 the writers of `/tmp` files are boot scripts and per V-064 any of 106 root
+  services can create one; the name even reads like a *safety* marker ("secure console disable"), which invites someone
+  to create it to harden the box and get the opposite.
+- **It is one missing file from being live.** `dropbear` is a package the platform vendor can add for field debugging -
+  and the unit's own service file is already there, unwittingly enabling it. A single `opkg install`/rootfs change turns
+  this from latent to reachable.
+
+### What is *not* claimed
+
+That the platform is currently remotely accessible: **it is not** - no binary, no enablement, and the projection never
+starts it either. That the matching private key is known to anyone: **unproven** - the point is that the risk is
+**shared and unrotatable per device**.
+
+### Fix
+
+1. **Remove `/etc/dropbear/authorized_keys` from production images**, along with `dropbear@.service` and
+   `dropbearkey.service`. Debug access should be a per-device, provisioned credential, not a baked one.
+2. If SSH must exist, gate it on something better than a `/tmp` file - a MICOM-held state or a signed provisioned flag
+   in `/rw_data` - and leave `-w` (disallow root login) **enabled**.
+3. Treat the key `rsa-key-20181102` as **compromised-by-distribution**: it is in a shipped image, so any fleet built
+   from it should consider the corresponding private key untrusted.
+
+### Verify
+
+`grep -c . /etc/dropbear/authorized_keys` on a unit - any non-zero result is this finding. Then attempt to log in with
+the matching private key (the vendor's own holder can confirm); a successful `root` login before the binary is
+installed is impossible, which is why the fix above is about the *credential*, not about the daemon.
+
+---
+
+## Scope note - how complete the "keys from writable paths" set is
+
+Measured, so that V-048 and V-066 can be read as a **complete set** rather than as examples:
+
+```
+binaries that verify anything:
+  AppLauncher      RSA_verify       reads  /tmp/app_normal.key   (V-048)   /tmp/navi_public.key (V-066)
+  AppSDS           EVP_Verify       no /tmp references
+  NaviUpdateApp    RSA_verify       no /tmp references; only CA bundles and one build-time path
+  openssl          the tool          n/a
+```
+
+**Exactly two verification keys are materialised in a world-writable path, both in `AppLauncher`, and both are filed.**
+The other verifying components do not read keys from `/tmp`, `/run`, `/rw_data` or `/app/data`. That makes the
+`/tmp`-key family **enumerated, not sampled** - and it means the fix in items 9 and 17 closes it.
+
+Incidental, recorded because it is the kind of thing that leaks: `NaviUpdateApp` carries a **build-host path**
+(`/usr/local/oecore-x86_64/openssl/cert.pem`) baked into the binary. Harmless in effect - the path does not exist on
+the unit - but it is the same class of artefact as the developer account name in `vcrm.conf` (V-063).
+
+---
+
+## V-066 - the navigation payload's integrity story: world-writable binary, and a key materialised in `/tmp`
+
+**Status:** the file modes and the strings are **measured**; the *verification source* and the *exploitability* are **unproven**. Class: trust anchor in a writable path / permissions (V-048 family, second payload).
+
+### Part 1 - measured: 128 world-writable files, two of them executable
+
+```
+/navi/Bin/AppNavi           -rwxrwxrwx   143,718,392 bytes   the navigation binary
+/navi/Bin/CANService.sh     -rwxrwxrwx             217 bytes   a shell script
++ 126 configuration files under /navi/Bin/Config/
+```
+
+`/navi` and `/navi/Bin` are `drwxr-xr-x`, so **new** files cannot be created unprivileged - but **existing
+world-writable files can be modified in place by anyone who can open them for writing**, because the file mode, not
+the directory mode, governs that.
+
+**The mitigating fact, measured:** normal boot leaves `/navi` **read-only** (`esinit` carries both
+`remount,rw /navi` and `remount,ro /navi`; the read-only form is what a normal boot ends on). So the mode bits are
+**latent** - they only matter during a window when the partition is read-write.
+
+**And there is such a window:** `app/bin/AppLauncher` itself carries
+
+```
+mount -o remount,rw /navi
+mount -o remount,ro /navi
+```
+
+so the launcher opens a read-write window on `/navi` at runtime, and during it the world-writable `AppNavi` and
+`CANService.sh` are modifiable **by any process that is not root**.
+
+### Part 2 - measured strings, unproven effect: the key lives in `/tmp`
+
+The same launcher contains:
+
+```
+/tmp/navi_public.key
+:/navi_public.key
+LOCFILE:/update/activeNaviPath::DEFAULT:/navi/navi::CAND1:/navi/navi_1::CAND2:/navi/navi_2
+RSA_verify
+```
+
+**No navi public key ships anywhere in the image** (only `teruten5_pub.key` and keyboard licence keys exist). So the
+launcher **writes** `/tmp/navi_public.key` at runtime and verifies with `RSA_verify` against it.
+
+That is **exactly the V-048 shape** - a verification key trusted from a world-writable path - and V-048 was
+demonstrated there: a binary this project signed ran as `uid=0` because `/tmp/app_normal.key` was trusted.
+
+**What is not established:**
+- whether the key is **read from the navi payload tree itself** (`:<activeNaviPath>/navi_public.key`), which would make
+  the verification **self-referential** - an attacker who can write the payload can write the key that vouches for it;
+- whether the key is written **before** or **after** an attacker could reach it, and whether the verification result
+  gates execution at all.
+
+### Why this matters together
+
+If both parts hold, the chain is: modify `AppNavi` during the launcher's read-write window, and (if the key is read
+from the same tree) supply a matching key - and the payload executes as root. **That is not demonstrated**, and the two
+"if"s are precisely what the next measurements must settle.
+
+### Fix
+
+1. `chmod -R go-w /navi` at image build, and mount `/navi` **read-only unconditionally**; if a component needs to
+   write there, it should write to `/rw_data` and be pointed at it.
+2. Move the navi verification key out of `/tmp` to a root-owned, read-only location, and **ship it in the image** so
+   nothing has to materialise it at runtime - the same fix V-048 needs.
+
+### Verify
+
+On a unit: while the launcher's window is open, attempt to open `/navi/Bin/AppNavi` for writing from a non-root
+process; and read `/tmp/navi_public.key` to see whether its content matches a key present in the navi tree.
+
+---
+
+## V-065 - nine `/etc` trust anchors point into world-writable `/tmp`, and the pattern is systemic
+
+**Status:** the symlinks are **counted** in the shipped image; the effect is **demonstrated** for one of them
+(V-054, account database) and **latent** for the rest. Class: trust anchor in a writable runtime path - the family
+this register already documents, now with its true size.
+
+### The nine
+
+```
+/etc/passwd              -> /tmp/passwd            writer: esinit (boot)          <- V-054, demonstrated
+/etc/shadow              -> /tmp/shadow            writer: esinit (boot)          <- V-054
+/etc/shells              -> /tmp/shells            writer: esinit (boot)
+/etc/fstab               -> /tmp/fstab             writer: esinit (boot)
+/etc/resolv.conf         -> /tmp/resolv.conf       writer: /etc/smack_setup.sh
+/etc/ecnr/config         -> /tmp/ecnr_config       writer: /etc/setup_ecnr_engine_db.sh
+/etc/xdg/weston/weston.ini -> /tmp/weston.ini      writer: install_westonPngLogo.sh  <- V-055
+/etc/front_lcd.png       -> /tmp/front_lcd.png     writer: install_westonPngLogo.sh
+/etc/rear_lcd.png        -> /tmp/rear_lcd.png      writer: install_westonPngLogo.sh
+```
+
+V-054 and V-055 recorded two of these as findings. **There are nine**, and they are one design decision.
+
+### The fair reading of *why*, and the unfair part
+
+`esinit`'s remount lines are **commented out** (`#mount -o remount,ro /`), so the root filesystem is left read-only as
+mounted. **That makes the symlinks reasonable**: a generated config file needs a writable location on a read-only root.
+
+**The mistake is not the symlink - it is the destination.** `/tmp` is `1777` in this image (measured for V-054). A
+root-only writable directory exists and is used elsewhere (`/run`, `/rw_data`). So the vendor solved "root is
+read-only" with "put it somewhere every process can write", for **nine** files including the account database, the
+mount table, the DNS resolver configuration and the login shell list.
+
+### Which of the nine matter most, in order
+
+1. **`/etc/resolv.conf`** - read continuously by every resolver call, so a post-boot modification redirects name
+   resolution **immediately**, with no restart. A poisoned resolver on a connected vehicle is traffic redirection and
+   update-channel redirection (V-059's neighbour).
+2. **`/etc/passwd` + `/etc/shadow`** - V-054 **demonstrated**: appending a `uid=0` account yields a working root login.
+3. **`/etc/fstab`** - consumed by any later `mount -a` or `systemctl mount`; a mount entry pointing at attacker
+   content is a persistence primitive.
+4. **`/etc/shells`** - consulted by `su`/`chsh` validation: adding a path makes a shell "valid".
+5. **`/etc/xdg/weston/weston.ini`** - V-055: names `shell=`, `backend=`, `ivi-module=`.
+6. The ECNR config and the two splash images - lower value, but the splash images are loaded by the compositor path.
+
+### What it does not claim
+
+That each of the nine is reachable *before* its consumer reads it. The writers run at boot, so the **initial** content
+is trusted; the exposure is **post-boot** modification by any process that can write `/tmp` - which, per V-064, is any
+of the 106 root services, and would be *any user at all* if `/tmp` were reachable by a non-root process.
+
+### Fix - one change, nine findings
+
+Point these **nine** symlinks at a root-only writable directory instead:
+
+```
+/etc/passwd -> /run/etc/passwd        with /run/etc/ mode 0700, files 0600 root:root
+```
+
+and have the boot scripts create that directory before writing. `/run` is tmpfs as well, so nothing else changes except
+**who can write it**. Alternatively keep them in `/tmp` and set `PrivateTmp=yes` on every unit that does not need the
+shared one (V-064), which removes the reachable path for most processes.
+
+### Verify
+
+On a unit, as a non-root process, attempt to append a line to `/tmp/passwd`; on this image that succeeds only because
+`/tmp` is `1777` - after the fix it must fail. V-054's existing reproduction already demonstrates the root consequence.
+
+---
+
+## V-064 - one hundred and six services run as root with no systemd hardening at all
+
+**Status:** **counted** from the shipped unit files. No exploitation is implied - this is the reason the *other*
+findings are as severe as they are. Class: missing defence in depth.
+
+### The count
+
+```
+/lib/systemd/system/*.service                     107 units
+User=                                             1   (systemd's own user@.service)
+NoNewPrivileges                                   0
+CapabilityBoundingSet                             4
+ProtectSystem / ProtectHome / PrivateTmp          3 each
+ReadOnlyPaths                                     0
+RestrictAddressFamilies                           0
+SystemCallFilter                                  0
+```
+
+**Every unit that carries any hardening is a stock systemd one** - `locale1`, `machine1`, `timedate1`,
+`bus-proxyd`, `localed`, `timedated`, `machined`. **Not one vendor service sets a single hardening directive.**
+
+### Why this is the finding behind the other findings
+
+It explains a pattern that this register has recorded six times without naming the cause: *"the bus is root-only"*
+appears in V-051, V-058, V-061 and V-062 as though it were a boundary. It is not a boundary **between anything that
+matters**, because **106 of the 107 services are root**, and the one `User=` belongs to systemd itself.
+
+So a compromise of **any one** of the following is a compromise of everything: the media browser, the DLT logger, the
+thumbnail extractor (`org.lightmediascanner.Scanner1`), the location manager, the radio, the Bluetooth HMI, the
+telematics stack, the update path. There is **no privilege separation between components to contain it**, and no
+systemd-level containment either - a service that only needs to write a log file has exactly the privileges of one
+that flashes firmware.
+
+### What it does *not* claim
+
+That any specific service is vulnerable. It says that **when** one is, the platform offers no containment. Several
+findings in this register are only root-level **because** of this: the same weaknesses on a system where components
+ran as distinct users would be much narrower.
+
+### Fix - and it is the highest-leverage change in this document
+
+Apply systemd hardening to the vendor's ~100 units, in this order of value:
+
+1. **`NoNewPrivileges=yes`** everywhere it does not break the component (setuid helpers are the exception).
+2. **`CapabilityBoundingSet=`** reduced per service - most of these need none.
+3. **`ProtectSystem=strict`** with explicit `ReadWritePaths=` for the handful that must write, and
+   **`PrivateTmp=yes`** (which also neutralises several `/tmp`-anchored findings in one move).
+4. **`User=`** for the components that do not need root - the logger, the thumbnail extractor, the media browser.
+5. Later, `SystemCallFilter=` and `RestrictAddressFamilies=`.
+
+Items 1-3 are **configuration-only** changes to files the platform already owns, and they contain a large fraction of
+this register's impact without touching one line of application code.
+
+### Verify
+
+`systemd-analyze security` on a unit enumerates the same directives; or, statically, count `NoNewPrivileges=` across
+`/lib/systemd/system/*.service` and require it to be non-zero before release.
+
+---
+
+## V-063 - nine bus policies allow the default context, including state-changing services
+
+**Status:** the **policy text is measured** in the shipped image; the **effect** of the allowed calls is **not demonstrated** (no non-root test process was run, and this unit runs almost everything as root anyway). Class: policy misconfiguration / hardening.
+
+### The survey
+
+The system bus itself is correctly **deny-by-default** (`/etc/dbus-1/system.conf`:
+`<deny own="*"/>`, `<deny send_type="method_call"/>`). But **9 of the 18 per-service policy files then add a
+`<policy context="default">` block containing an `<allow>`**, which re-opens the service to *any* process on the bus:
+
+```
+connman.conf                       mof.conf
+org.freedesktop.locale1.conf       org.freedesktop.machine1.conf
+org.freedesktop.timedate1.conf     org.genivi.NodeStateManager.conf
+org.genivi.persistence.admin.conf  org.genivi.persistence.admin_svc.conf
+vcrm.conf
+```
+
+Some of those are the platform's own stock files (`locale1`, `timedate1`, `machine1`) and are legitimately readable.
+The interesting ones are the vendor's:
+
+| file | default-context allow | callable methods of note |
+|---|---|---|
+| `org.genivi.persistence.admin_svc.conf` | `send_destination=org.genivi.persistence.admin_svc` | **`SetSessionState`**, `GetSessionState`, `GetNodeState`, `GetApplicationMode` |
+| `org.genivi.NodeStateManager.conf` | `send_destination=org.genivi.NodeStateManager`, `send_interface=…LifeCycleConsumer` | node lifecycle registration |
+| `vcrm.conf` | `send_destination=com.lge.hkmc.tms.vcrmapp` | `setUsageData` |
+
+**So any process on the system bus - without root - can ask the platform's own node/session state service to change
+its state**, and can register as a life-cycle consumer.
+
+### Why that is a finding even when everything is root
+
+The practical impact today is small: this unit runs almost the whole application stack as `uid=0` (V-051 measured
+`AppHomeScreen` at `uid=0`), so a non-root caller is rare. But:
+
+1. **It is a deviation from the platform's own stated policy**, and deviations like this are how a single
+   non-root service becomes a pivot later. `pas-daemon` drives node and session state; being able to `SetSessionState`
+   from anywhere is a capability that should require authorisation.
+2. It **contradicts the pattern recorded in the trust-anchors document**: the vendor *did* use deny-by-default
+   elsewhere (micom, ofono), so the nine are not a deliberate uniform design - they are uneven.
+
+### The provenance is visible in the files
+
+```
+vcrm.conf:  <policy user="byungsu">      a developer's account name, shipped in production
+```
+
+**No such account exists** in `/etc/passwd` or the shadow copy, so this is not an access path - it is an **artefact
+that dates the policy**: this file was written for someone's local testing, and the `context="default"` allow sits
+next to it in the same file. That is evidence about *how* the policies were assembled, which is more useful than
+another single misconfiguration.
+
+### Fix
+
+Audit all 18 policy files and remove every `context="default"` allow that is not an intentional public query
+interface. `pas-daemon` and `NodeStateManager` should require an authorised caller for anything that changes state;
+`vcrmapp` should not accept `setUsageData` from arbitrary processes.
+
+### Verify
+
+From a **non-root** uid on a unit - `busctl`/`dbus-send` with the default context - call
+`org.genivi.persistence.admin_svc.SetSessionState` and observe whether it is accepted. An explicit `AccessDenied`
+means a narrower rule exists elsewhere; acceptance confirms the exposure.
+
+---
+
+## V-062 - the modem's factory interfaces are open to any process running as root
+
+**Status:** the interfaces are **present in the shipped `ofonod`** (strings confirmed) and the bus policy **allows
+root and denies everyone else**; the effect on a live modem is **not demonstrated** in this project (no QMI modem in
+the projection). Class: post-compromise capability / hardening.
+
+### What is exposed
+
+`/etc/dbus-1/system.d/ofono.conf`:
+
+```
+<policy user="root">          <allow own="org.ofono"/>  <allow send_destination="org.ofono"/>  ...
+<policy at_console="true">    <allow send_destination="org.ofono"/>
+<policy context="default">    <deny  send_destination="org.ofono"/>
+```
+
+`/usr/sbin/ofonod` contains, among others:
+
+```
+SetFactoryImei        (org.ofono.qmi.NTC)
+DeleteStoredCell      (org.ofono.qmi.NTC)
+SetLteBandPriority    (org.ofono.qmi.NAS)
+SetRegMgrConfig, SetVoipConfig, SetQipcallConfig   (org.ofono.qmi.IMSS)
+```
+
+and the QMI transport ships as a kernel module, `/lib/modules/4.1.27-abl/extra/lgivi_qmi.ko`.
+
+### Who can call it
+
+**Any process running as root.** On this unit that is not a privileged subset - it is the normal privilege level for
+the whole application stack: `AppHomeScreen` was measured running as `uid=0` (V-051, and the touch path logged
+`uid=0`). The bus policy therefore provides no separation **between applications**, only between applications and
+everything else.
+
+### Why that is a finding
+
+On a connected vehicle, `SetFactoryImei` and `DeleteStoredCell` are **anti-forensics and impersonation primitives**:
+change the identity the modem presents to the network, erase the record of which cells it associated with. They are
+manufacturing interfaces, and their presence in a production image behind nothing but "you are root" means **any
+application compromise inherits them**.
+
+### What is *not* claimed
+
+- **Not an escalation**: root is required, and this project has already documented several ways to reach root
+  (V-059, V-054, V-049). The value here is what an attacker gets *after* that.
+- **Not demonstrated on hardware**: the projection has no QMI modem, so the calls cannot be exercised. The methods
+  and the policy are static facts; the modem's response is not.
+- **The policy may be deliberate** for a manufacturing path that the platform vendor considers acceptable.
+
+### Fix
+
+Install a **production** ofono policy that denies the `org.ofono.qmi.*` factory interfaces to everything except the
+manufacturing component, and delete the factory methods from the production `ofonod` build if the platform supports
+it. Both are configuration-level changes, which is why this is filed at a low cost-to-fix.
+
+### Verify
+
+On a unit: call `SetFactoryImei` from a root process that is *not* the manufacturing component and observe whether it
+answers. A refusal means a narrower policy exists elsewhere; an answer confirms the exposure.
+
+---
+
+## V-061 - the application-set hash is an integrity oracle any session-bus client can query
+
+**Status:** the call is **demonstrated** in this image (`getIVDHash` answered with a 32-byte digest); its usefulness to an attacker is **unproven** and modest by construction. Class: information exposure / defence-testing oracle.
+
+### What is exposed
+
+`com.lge.avn.applauncher` on the session bus implements:
+
+```
+interface  com.lge.avn.applauncher.cipher
+  method     getIVDHash() -> ay hash_data
+object     /com/lge/avn/applauncher/cipher
+```
+
+The launcher computes a **SHA-256 over the application binaries** (it holds `/app/bin/AppHomeScreen`,
+`AppClimate`, `AppCamera`, `AppMediaPlayer` and the rest as strings beside `SHA256_Init/Update/Final`, and labels
+the result `SystemIVD`). A call in the projection returned:
+
+```
+d4 d8 03 8c eb 1d 4a 77 20 93 f2 0b 47 58 72 3a ff 8c e3 20 93 8c 53 a9 55 a4 e9 e0 71 6c df 98
+```
+
+### Why that is a finding rather than a curiosity
+
+The hash is a **fingerprint of the installed application set**. Two consequences for an attacker who already has
+code execution as root - which, on this unit, is most of the application stack:
+
+1. **It answers "did my tampering get noticed?"** A modified binary changes the digest. Comparing the value before
+   and after a modification tells the attacker whether the platform's integrity view changed - and if the value
+   does **not** change, tells them which of their modifications are invisible to it. That is the opposite of what an
+   integrity mechanism should provide.
+2. **It is a stable device fingerprint.** The same digest identifies a given application build, across queries, to
+   anything that can call it.
+
+**Bounded by the bus.** The session bus is root-only (V-051: `EXTERNAL` auth, uid 65534 refused), so this is
+reachable by processes already running as root, not by an unprivileged one. That is why the severity is low: it is
+not an escalation and it leaks no content.
+
+### What is *not* claimed
+
+- **Not a vulnerability in the integrity design itself.** The design is sound in shape: hash the application set,
+  compare against a reference, on a device with a trusted element. The reference is in **MICOM firmware**, which this
+  project cannot inspect or test - the comparison path is `NotifySystemHashDataEvent` / `NotifyAdvancedSecurityKeyEvent`
+  with `Seed` and `KeyCheck`, and it is **unenforceable in the projection** because no MICOM is attached.
+- **Not demonstrated** that the oracle helps in a real attack chain. It helps a *post-compromise* actor understand
+  the detection surface; it does not grant anything.
+
+### Fix
+
+Do not expose `getIVDHash` to the general session bus: restrict the interface to the components that need it (the
+MICOM bridge), or drop the method from the public object and keep the digest internal to the launcher. If an
+attestation answer is genuinely needed, make it a **challenge-signed** response rather than a stable digest, so
+querying it cannot be used to learn what is and is not detected.
+
+### Verify
+
+As root on a unit: query `getIVDHash`, change one byte in one application binary, query again. A changed value
+confirms the oracle; an unchanged value is itself a finding about coverage.
+
+---
+
+## Scope note - the register has a companion: the controls that exist
+
+Every entry above is a weakness. **`docs/defences/controls-inventory.md` lists the eight controls the platform does have**, each
+with its evidence, what it is worth, and where it actually stands - because a patch team reading only this document will not
+know what it must not break.
+
+Two of the eight are clean and structural: **there is no setuid or setgid binary in the image (0), and no world-writable
+directory outside the volatile areas (0)**. Six place a decision on attacker-reachable state.
+
+That split - **good hygiene where it is structural, weak where it is configured** - is the same conclusion as the
+trust-anchors document, reached from the opposite direction.
+
+---
+
+## Defence note - a MICOM-coupled hash and seed/key-check exists in the launcher
+
+Not a vulnerability: the counterpart to V-051, recorded so the register is not one-sided.
+
+`app/bin/AppLauncher` carries `com.lge.avn.applauncher.cipher.getIVDHash() -> ay`, a `SystemIVD` hash, an
+OpenSSL-backed cipher utility, and handlers for MICOM events named `NotifySystemHashDataEvent` and
+`NotifyAdvancedSecurityKeyEvent` with `Seed` and `KeyCheck` fields. That is the shape of a genuine anti-tamper
+control: a hash identity plus a challenge/response with the MICOM.
+
+**Enforcement is unproven.** A shell wrapper in place of `AppHomeScreen` produced no process and no log, which is
+*consistent* with a hash check and equally consistent with an `exec` that requires an ELF. The three tests that
+would separate them are in `docs/defences/micom-coupled-hash-and-keycheck.md`, including the important possibility
+that the control is **inert in the projection** because MICOM events never arrive here.
+
+V-051 stands unchanged: the launch path executes a caller-named path as root. The platform has the parts for
+verification even where the launch path does not use them, and both facts belong in the record.
+
+---
+
+## V-060 — the engineering-mode special-key signal is forgeable by any process on the system bus
+
+**Status:** the **subscription is unfiltered — measured by disassembly**; the *effect* of a forged signal is **not demonstrated** in the projection (measured negative, 9 payload variants). Class: unreliable-input / defence-in-depth.
+
+### What the manager does with the signal
+
+`ApplicationManager` connects to the **system bus** for the front-panel special key:
+
+```
+214dc9  leaq 0x30ca0d  len 0x1a   "NotifyKeyFrontSpecialEvent"          the signal name
+214de3  leaq 0x2fce8c  len 0x15   "com.lge.car.micom.can"               the interface
+214df3  leaq QArrayData::shared_null -> -0x60(%rbp)                     an EMPTY string
+214dfa  leaq QArrayData::shared_null -> -0x70(%rbp)                     another EMPTY string
+214e13  callq QDBusConnection::systemBus()
+214e3e  leaq 0x30ca28  "1specialKeySlot(QByteArray)"                   the slot
+```
+
+`QDBusConnection::connect(service, path, interface, name, receiver, slot)` is given **empty service and empty path**. Empty means *any sender, any path*: the match rule is interface + member only. So **any process that can write a signal to the system bus can deliver a front-panel key event to the manager**, with no sender check.
+
+This corroborates `hidden-menus.md` E2b from the receiving side: `micommanager_userspace` exposes `TestNotifyKeyFrontSpecialKeyEvent`-style test methods, and the manager would accept a signal from anywhere regardless of whether those methods exist.
+
+### The measured negative (and why it is not a refutation)
+
+In the projection, with the home screen running (`AppHomeScreen` pid 2490/2534), nine payloads were emitted from a normal session client:
+
+```
+dbus-send --system --type=signal /Can com.lge.car.micom.can.NotifyKeyFrontSpecialEvent array:byte:0x01,0x<00..08>
+```
+
+No `AppEngineerMode` process appeared for any of them. `micommanager_userspace` was **not running** (the stand-in owns `com.lge.car.micom`), so the sender was a plain client rather than the service that normally emits it. Two readings remain open:
+
+1. **Payload semantics.** `micommanager`'s own decoder (`0x206308`, per `hidden-menus.md` E2a) maps two payload bytes to two registers and `cmpl $0x1,%r13d; je` takes the special-key path — that is the *producer* of the signal from a raw key event. What `specialKeySlot(QByteArray)` expects is a separate, unread decode.
+2. **A further gate** after the slot — the same build-gate pattern seen everywhere else in engineering mode.
+
+**Not established:** that a forged signal opens engineering mode. **Established:** there is no sender filtering, so the only remaining obstacle is the payload format and any downstream gate — not authentication.
+
+### Fix
+
+Require the emitting connection to be the expected service. Pass `com.lge.car.micom` as the connect service (or verify `message().service()` in the slot) instead of relying on interface and member alone, and validate the payload length and key range before acting on it.
+
+---
+
+### Update: the payload is decoded, and it was already correct when tested
+
+The engineering-mode request through this signal is a **two-byte payload**, decoded at `0x206308`-`0x2062f8`:
+
+```
+payload[0] == 0x01                      the special-key discriminant
+payload[1] == 0x05                      -> movl $0x12d (301 = AppEngineerMode), then ask(301),
+                                          then ask(71) == 1, then the action at 0x1f6160
+payload[1] == 0x01 / 0x0a               two other branches (0x206360 / 0x2063d8)
+```
+
+So **any process on the system bus can request engineering mode with `[0x01, 0x05]`**, and the nine
+payloads already tested **included `0x05`** - which means the failure was delivery, not format. The
+remaining obstacle is **not** delivery: a monitor alongside the emission confirmed the signal on the
+system bus (`DL_MON_SEEN=[1]`) while no engineering application started, so the gate is logical - the
+`ask(301)` early-return or the `ask(71) == 1` condition. The security claim is unaffected: **no sender
+authentication stands between a process on the system bus and this handler.** See
+`docs/engineering-mode/special-key-payload-decoded.md`.
+
+## V-076 - app lifecycle and power state are unauthenticated on the session bus, and `launch` accepts a caller-named path
+
+**Status:** the unauthenticated reachability of the lifecycle and power interfaces is **measured statically**. Whether a
+caller-supplied `applocation` is *executed* is **NOT DEMONSTRATED** - the launcher checks existence, and the code path that
+consumes the third argument has not been traced. Class: control-plane authorization. Found while writing the endgame runbook
+(`docs/vm/56-endgame-runbook.md`), which needed the power-on contract and found no gate on it.
+
+### What is measured
+
+**1. The interfaces live on the session bus, and nothing mediates them.**
+
+```
+com.lge.hyundai.avn.appmanager  /Information   com.lge.avn.appmanager.info
+    set_power_on_status(int on, int position)      -> signal power_status(int status)
+com.lge.hyundai.avn.appmanager  /registration  com.lge.avn.appmanager.registration
+    registration(appid i, appname s, servicename s, objectpath s, plane i) -> result i
+    deregistration(appid i, appname s) -> result i
+com.lge.avn.applauncher  /com/lge/avn/applauncher  com.lge.avn.applauncher.request
+    launch(appid i, appname s, applocation s), terminate(appid i), appkill(appname s)
+```
+
+**2. There is no policy for any of it.** Every `*.conf` under `/etc/dbus-1/` is in **`system.d`** - the system bus. The appmanager
+runs with `dbus-daemon --session`, whose default configuration allows any client to own and call any name. **No SMACK rule names
+`dbus`** (`grep -r dbus /etc/smack/accesses.d/` returns nothing), so the mandatory-access-control layer does not mediate D-Bus
+messages at all.
+
+**3. The address is world-readable.** `App/bin/Dbuslaunch.sh` writes `/tmp/session_appmgr` and `/tmp/session_appmgr.env` with **no mode
+set**, in a `1777` directory (see `V-058` and `docs/trust-anchors-in-writable-runtime-paths.md`), so any local process can find the bus.
+
+**Consequence, measured by construction:** a process with code execution as **any** user can terminate applications and set the head
+unit's power state. No credential, no label, no policy is consulted. On a stock unit that is the difference between "an app is
+compromised" and "the head unit's application lifecycle is controlled".
+
+### What is NOT demonstrated, and must not be claimed
+
+`launch()` takes a caller-named `applocation` **path**, and the launcher's only stated check is an existence test
+(`[FAILURE] %1 Exec file does not exists!`). **An existence check is not an authorization check**, but this entry does **not** claim
+arbitrary execution: the handler may consume only its own app table, and the third argument may be used solely for logging or for a
+known-app path. **Demonstrating it requires a run, and it should be attempted only on our own unit** with a throwaway binary at a
+throwaway path.
+
+**If it is confirmed**, this becomes an unauthenticated local privilege boundary crossing that outranks most of the register, because the
+launcher is a long-lived process started early and the call needs no more than bus access. **If it is refuted**, the entry stands on the
+power and lifecycle reachability alone, which is already a finding worth fixing.
+
+### Why it matters more than the count suggests
+
+`V-064` records that 106 of 107 services run as root with no hardening. This entry is the **user-facing edge** of that: the control plane
+that starts, stops and powers the HMI is reachable by anything that can reach a `1777`-adjacent socket path, and the whole authorization
+model for it is absent rather than weak.
+
+### The fix
+
+- **Add a D-Bus policy** on the session bus restricting `com.lge.hyundai.avn.appmanager` and `com.lge.avn.applauncher` to the
+  systems that are meant to call them, and drop the default `allow everything`.
+- **Or mediate it in the manager**: check the caller's credentials (`org.freedesktop.DBus.GetConnectionCredentials`) and SMACK label
+  before honouring `registration`, `set_power_on_status`, `terminate`, `appkill`.
+- **Never execute a caller-named path.** Accept an `appid` and resolve it through the manager's own table; treat `applocation` as a
+  log field only, and reject any launch whose resolved path is not in the table.
+- **Give the bus address a mode** (see `V-058`): `install -m 600`, root-owned, validated by every consumer.
+
+### Cross-references
+
+`V-058` (bus address from `/tmp`), `V-064` (root services, no hardening), `V-065` (the same writable-path pattern for `/etc` anchors),
+`docs/vm/56-endgame-runbook.md` (the contract), `docs/trust-anchors-in-writable-runtime-paths.md`.
+
+---
+
+## V-077 — **DUPLICATE of V-042** — a root CPU-watchdog reset request is triggerable by an empty file in `/tmp`
+
+**Status: duplicate, confirmed by search 2026-11-08.** This entry records the same mechanism as **V-042** — "Marker files
+under world-writable runtime paths trigger privileged actions", imported from the parallel repository as V-011 — and V-042
+already noted that "at least one forced-reboot trigger is reachable by any local process creating a zero-length file (local
+denial of service class)", with the same remediation direction. **Do not count V-077 separately from V-042.**
+
+**Retained as corroborating detail**, per the register's convention, because it adds three things V-042 did not carry:
+(i) the **exact MICOM method** `SetETCCPUWDTReset` and its **three distinct codes** — `0x00` weston-crash, `0x01`
+spi-validation, `0x06` pstore-reboot; (ii) **all seven enabled units** enumerated with the service, payload and privilege of
+each; (iii) **five creators located by name** — `AppLauncher`, `dlt-daemon`, `ApplicationManager`, `micommanager_userspace`,
+`AppMPAutoTest` — with two still unlocated. It also upgrades V-042's status from "configuration observation; candidates, each
+individually unvalidated" to an enumeration **measured from the shipped units and scripts**.
+
+A correction to an impact statement belongs with it too: item 3 of `docs/REMEDIATION-REPORT.md` described this as
+"diagnostics plus a message", when the measured call is a CPU watchdog **reset request** to the MCU.
+Class: local trigger of a privileged reset primitive / availability. Not privilege escalation.
+
+### What is measured
+
+Seven **enabled** systemd `.path` units gate services on files under `/tmp`, which is a world-writable tmpfs on this
+image. Three of them run **root shell scripts** that each call the same MICOM method with a **different reset code**:
+
+| Enabled unit | Watches | Activates | Root payload | MICOM call |
+|---|---|---|---|---|
+| `pstore-reboot.path` | `/tmp/pstore_saved` | `pstore-reboot.service` | `/etc/pstore-reboot.sh` | `SetETCCPUWDTReset array:byte:0x06` |
+| `spi-validation.path` | `/tmp/spi_validation_NOK` | `spi-validation.service` | `/etc/spi-validation.sh` | `SetETCCPUWDTReset array:byte:0x01` |
+| `weston-crash.path` | `/tmp/weston.crash` | `weston-crash.service` | `/etc/weston-crash.sh` | `SetETCCPUWDTReset array:byte:0x00` |
+| `mpauto.path` | `/tmp/AppMPAutoTest/do_mpauto` | `mpauto.service` | `/etc/mpauto.sh` | root `dbus-send` signal ×10 |
+| `supplicantmanager.path` | `/tmp/no_unece` | `supplicantmanager.service` | `/app/bin/supplicantmanager` | — |
+| `ofono.path` | `/tmp/no_isa` | `ofono.service` | `/usr/sbin/ofonod -nd` | — |
+| `remote.path` | `/tmp/no_isa` | `remote.service` | `/app/bin/TmsRemoteApp` | — |
+
+Each script invokes, as root on the **system** bus:
+
+```
+dbus-send --system --type=method_call --dest=com.lge.car.micom /Ihu \
+          com.lge.car.micom.ihu.SetETCCPUWDTReset array:byte:0x06|0x01|0x00
+```
+
+`SetETCCPUWDTReset` is a **CPU watchdog reset request addressed to the MICOM** — the separate microcontroller that governs
+power and reset of the head unit — not a log message. The three codes are distinct reset causes, so a local writer can
+choose which cause to assert.
+
+### Why this is more than the existing wording
+
+V-055's honest-limit paragraph describes `weston-crash.sh` as not restarting the compositor and "dumping diagnostics and
+sending a MICOM watchdog message". The measured method name and its argument make the second half stronger than that
+phrasing invites: the handler **asks the MCU to reset the CPU**. Whether the MCU honours it is a MICOM-side policy question
+this project has not measured, but the request is the finding, and describing it as a "message" understates it.
+
+Also new: the **three distinct codes** are recorded here for the first time, and `mpauto.path` is shown to be enabled and
+reachable, invoking a root script whose only effect is to emit a root-authority D-Bus signal ten times.
+
+### What is *not* established
+
+- **That the MICOM acts on the request.** The projection has no MICOM; the method call is delivered to a stand-in. On real
+  hardware the MCU may rate-limit, ignore or honour it. Not measured here.
+- **That an unprivileged writer to `/tmp` exists on a production unit.** As V-055 and V-054 already record, every vendor
+  process observed in this project runs as uid 0. So this is a **latent** primitive that becomes live the moment any lesser
+  privileged writer to `/tmp` exists — a compromised app, a sandboxed service, or any component the platform later
+  demotes.
+- Any claim that this is remotely reachable. It is local: it requires the ability to create a file in `/tmp`.
+
+### Relationship to V-073, which it does *not* resolve
+
+V-073's open question was whether the unauthenticated `socat` bridge in `AppMPAutoTest`/`TmsGuiApp` ever runs. This analysis
+**does not close it**: `remote.service` starts `/app/bin/TmsRemoteApp`, and `TmsRemoteApp` contains **zero** references to
+`socat` or `ttyUSB0` (measured by string count), so the path-unit family does not start the bridge. V-073 remains
+unexercised code.
+
+### Fix
+
+1. Move the marker paths out of `/tmp` into a root-only directory (e.g. `/run/state/`) for **all seven** units; that alone
+   removes the unprivileged trigger without changing any payload. **Specified in full in
+   `docs/remediation/tmp-path-unit-migration.md`** — the six markers, the seven enabled units, the five creators located, the
+   two that are **unlocated rather than absent**, the three rejected target alternatives, the three do-not items, and the
+   boot-regression step that matters more than the fix itself.
+2. If a marker must stay in `/tmp`, place the reset handlers behind a unit that also requires an authenticated or
+   root-created prerequisite, and rate-limit them.
+3. Treat `SetETCCPUWDTReset` as a privileged operation: any future caller should be auditable, and the MICOM side should
+   reject reset requests that do not match the state it independently observed.
+
+### Verify
+
+On a unit: create one marker as a non-root user (e.g. `: > /tmp/weston.crash`), then check
+`journalctl -u weston-crash.service` for the handler run and observe whether the MICOM is asked to reset. **A handler run
+triggered by a non-root write is this finding.** For the MICOM-side question, capture the bus traffic rather than inferring
+from the head unit's behaviour.
+
+---
+
+## V-078 — the UNECE/wireless decision is read from a variant argument but recorded in world-writable `/tmp`, so the market gate can be overridden locally
+
+**Status:** measured, and deliberately **small**: the marker, the unit gate and the error string were *already* recorded in
+V-050. This entry adds only where the decision comes from, and what that means for the trust boundary.
+Class: local override of a market/regulatory configuration gate. Latent, not demonstrated.
+
+### What is measured
+
+`app/bin/AppLauncher` carries the vehicle-project variant argument table as literal strings, including:
+
+```
+ECO ARG, Buyer ARG, GUI Type ARG, SWRC CUSTOM ARG, Variation Code ARG, KEYBOARD_TOUCH ARG,
+Day/Night ARG, N-Mode Type ARG, Phone Projection Split Screen ARG, Kia emblem ARG, N-Mode ARG,
+Parent Vehicle Code, OTA Support ARG, OTA Region Arg, UNECE Support ARG, RADIO KEY ARG, ISR Support
+```
+
+with the corresponding short options `-et -by -gui -sc -vc -kt -dn -nm -p2s2 -ke -pf -pvv -os -osr -un -er -si`.
+
+So **`UNECE Support` is a variant parameter (`-un`)** — a market/regulatory decision supplied by the vehicle project
+configuration — and `AppLauncher` writes `/tmp/no_unece` from it, which `supplicantmanager.path` watches.
+
+### Why that matters, stated narrowly
+
+V-050 already establishes that this marker brings the wireless daemon up, and that WiFi is disabled three ways (modprobe
+blacklist, GPIO power gate, MICOM state gate). This entry adds only this: **the decision is configuration-derived but its
+record is a file in a world-writable directory.** Any local writer that creates `/tmp/no_unece` therefore asserts
+"this unit is not UNECE" without reference to the configured value, and the wireless daemon's `ExecStartPre` runs
+`/sbin/modprobe cfg80211` as root.
+
+### What this does *not* establish
+
+- **Not full WiFi enablement.** V-050's other two gates (GPIO power and MICOM state) are untouched by the marker; creating
+  it does not evidence that the radio powers up or that the MICOM permits the state.
+- **Not an escalation by itself.** As with V-077 and V-055, no lesser-privileged writer to `/tmp` has been demonstrated on a
+  production unit; every vendor process observed in this project runs as uid 0.
+- **Not a claim that the variant argument is attacker-reachable.** How the variant configuration is provisioned and whether
+  it is itself writable were not examined here.
+
+### Fix
+
+Same family fix as V-077: move the marker out of `/tmp` into a root-only directory. Additionally, since the value is a
+market/regulatory decision, it should not be inferable from a writable path at all — the daemon should read the
+configuration directly, or the marker should be created into a root-owned directory alongside an immutable copy of the
+variant argument it was derived from.
+
+### Verify
+
+On a unit with UNECE support configured: as a non-root user, `: > /tmp/no_unece`, then confirm
+`systemctl status supplicantmanager` shows the unit started and that `cfg80211` was loaded. **A wireless daemon started on a
+marker written by a non-root user, on a unit configured as UNECE, is this finding.** Whether the radio then powers up is a
+separate check governed by V-050's remaining gates.
+
+### Provisioning source of the variant table — examined, **not established**
+
+The open question above was "how is the variant configuration provisioned, and is it writable". The following was checked
+and is recorded as a **negative result**, so the next attempt does not repeat it:
+
+| Check | Result |
+|---|---|
+| `app/bin/AppLauncher.sh` argument passing | `ExecStart=/app/bin/AppLauncher.sh`; the script's last line is `/app/bin/AppLauncher 3&` — **a single positional argument `3`, no variant flags**. The `-un`/`-os`/`-osr` table is therefore the binary's *parsing capability*, not evidence of how this unit is configured |
+| binaries referencing `OptionVariant` | only `AppLauncher` (1 occurrence); `ApplicationManager` has none |
+| `/etc` files mentioning `UNECE` / `OptionVariant` / `VariationCode` | only `etc/smack_setup.sh` — a policy script, which names the string but is not a configuration source |
+| D-Bus interfaces in `ApplicationManager` matching `*variant*` / `*option*` | none found by string search |
+
+`AppLauncher` also carries the log format `OptionVariant[%1] = %2`, which indicates values are applied one by one and
+logged, but the string set does not reveal where they are read from.
+
+**What this rules out:** a plain `/etc` configuration file, and an obvious variant D-Bus interface on the application
+manager. **What it does not establish:** the actual source. Remaining candidates are a file under `/app`, `/navi` or the data
+partition, a shared-memory or property channel, or a variant table compiled into the binary with the option strings used only
+for overrides.
+
+**Next step, precisely:** disassemble the `OptionVariant` consumer in `AppLauncher` and follow the data into whatever it
+reads, or — on a controlled run — trace `open`/`read` from `AppLauncher` and diff against a known UNECE-configured variant.
+The second needs a VM and a variant to compare against; the first needs no run and is the cheaper next attempt.
+
+### Disassembly of the `OptionVariant` consumer — located, characterised, source still not resolved
+
+The cheaper next step named above was carried out. Result: the consumer is **precisely located**, its data shape is
+characterised, and the source is still not resolved. Recorded so the next attempt resumes here rather than re-discovering it.
+
+**Locations.** The format string `OptionVariant[%1] = %2` sits at file offset and virtual address **`0x52741`** (identity
+mapped in `.rodata`, which spans `0x466a0`–`0x55fa0`). It is referenced from exactly one place in the whole binary:
+
+```
+388cf:  leaq 0x19e6b(%rip), %rdi      # 0x52741     -> the format string
+388d9:  movl $0x16, %esi                            -> 22 = its length, passed to QString::fromAscii_helper
+388e3:  callq QString::fromAscii_helper
+```
+
+**The data shape.** Immediately before the format load, the code walks a container:
+
+```
+388ac:  movq -0x178(%rbp), %rax        ; some object, a parameter or member
+388ba:  movq 0x28(%rax), %rdx          ; rdx = pointer to a container header
+388be:  movslq 0x8(%rdx), %rax         ; header+8  = current offset
+388c2:  movl 0xc(%rdx), %ecx           ; header+0xc = size
+388c5:  subl %eax, %ecx                ; remaining = size - offset
+388c7:  cmpl %esi, %ecx
+388c9:  jle ...                        ; bounds check against index+1
+388de:  leaq 0x10(%rdx,%rax,8), %r13   ; element = header + 0x10 + offset*8
+```
+
+So the values come from a **Qt-style container of 8-byte elements** whose header carries an offset and a size — consistent
+with a `QStringList`/`QVariantList`, i.e. **already-resolved in-memory data**, not something read at this point.
+
+**What that rules out.** The function does **not** open a file, a settings store, a database, a JSON/XML/INI document, or a
+D-Bus interface: a window of ±0x400 bytes around the call site contains **no** `QFile`, `QSettings`, `QDBus`, `QJson`, `QXml`,
+`QTextStream`, `QSqlQuery` or `QProcess` references. The container is **passed in**.
+
+**What blocks name-based resolution.** `app/bin/AppLauncher` is **stripped** — `llvm-nm --defined-only` returns zero symbols —
+so the enclosing function cannot be named, and its callers must be found by pattern rather than by symbol.
+
+**Precise resume point for the next attempt.** Either:
+
+1. locate call sites of the function containing `0x388cf` and walk backwards to where the container is populated — no run
+   needed, but a larger static effort on a stripped binary; or
+2. on a controlled run, trace `open`/`read` from `AppLauncher` and diff against a known UNECE-configured variant — needs a
+   VM and a variant to compare against.
+
+Option 1 remains the cheaper one and now starts from a known address instead of a string search.
+
+---
+
+## V-079 — severity calibration: the image has **no non-root execution context at all**, which makes the local-trigger family latent rather than live
+
+**Status:** measured. This is **not a vulnerability** — it is the bounding measurement that several entries have each been
+asserting separately as a per-entry caveat ("no lesser-privileged writer is demonstrated"). Recording it once, with the
+measurements, so those caveats rest on a fact instead of on repetition.
+Class: severity calibration / evidence boundary.
+
+### The measurement
+
+| Check | Result |
+|---|---|
+| `User=` directives across **129** service units (`lib/systemd/system`, `etc/systemd/system`) | **exactly one**, and it is `User=%i` in stock systemd's `user@.service` |
+| `@`-instance of that template enabled or wanted | **none** — the template never runs |
+| setuid binaries anywhere in the extracted rootfs | **zero** |
+| setgid binaries anywhere in the extracted rootfs | **zero** |
+
+So: every service starts as root, no unit names a non-root user, no file carries a privilege-elevating mode bit, and there is
+no enabled per-user manager instance. **Inside this image there is no mechanism that produces a non-root process.**
+
+### What this bounds, and it is a lot of entries
+
+These entries each turn on a *lesser-privileged* actor being able to do something a root process would not normally do. This
+measurement says such an actor does not exist in the image:
+
+- **V-051** — application manager runs a caller-named binary as root. Demonstrated, but the caller must already be able to
+  reach the session bus, which in this image means being root.
+- **V-055** — `/tmp/weston.ini` selects root-loaded modules.
+- **V-058** — eleven services take their D-Bus address from a world-writable file.
+- **V-071** — a `/tmp` marker enables the root console and SSH.
+- **V-077** — three root scripts send MICOM CPU-watchdog reset requests on `/tmp` markers.
+- **V-078** — the UNECE/wireless gate is recorded in world-writable `/tmp`.
+
+Each is a real defect in the *design*: a privileged decision recorded in a world-writable location. Each is **latent** on
+this image, because the only processes that can write those markers already run as root.
+
+### What it does **not** bound — stated so the calibration is not over-read
+
+1. **A service may drop privileges in its own code.** `setuid`/`setgid` calls inside a daemon are not visible to file-mode or
+   unit-file inspection and were **not** systematically checked here. A single daemon that drops to a service account, or that
+   spawns a worker under a different uid, would open the whole family at once. This is the most important remaining
+   verification.
+2. **A compromised root process is not a lesser-privileged actor**, so this does not make the findings harmless — it makes
+   them not *escalations from the image itself*. They still turn a single compromised component into broader control
+   (console, wireless posture, a reset primitive).
+3. **The production unit may differ from the extracted image** — additional applications, provisioning, telematics
+   components, or a different market variant. Absence here is absence in *this* extraction, not on the vehicle.
+4. **Zero setuid binaries does not mean no privilege boundary.** Linux capabilities, SMACK labels and D-Bus policy all remain
+   in play, and this project has separately found the MAC policy to be permissive (V-052) and the bus policy to allow the
+   default context (V-063).
+
+### The one check this finding asks for next
+
+Search every shipped daemon for an in-code privilege drop — `setuid`, `setgid`, `setresuid`, `seteuid`, `setgroups`,
+`initgroups`, `prctl(PR_SET_NO_NEW_PRIVS)`, or a `User=`-equivalent applied at runtime — and list any that actually change
+identity. **One hit converts the entire family above from latent to live**, and that is the highest-value single check left
+on this workstream.
+
+### The privilege-drop scan, performed — 36 references, two vendor candidates
+
+The check asked for above was run: every file in `app/bin`, `usr/bin`, `usr/sbin` and `usr/libexec` was searched for an exact
+reference to `setuid`, `setgid`, `setresuid`, `setresgid`, `seteuid`, `setegid`, `setgroups` or `initgroups`.
+
+**36 binaries reference one of those.** Most are stock system/admin utilities (busybox and util-linux applet symlinks such as
+`chfn.shadow`, `eject.util-linux`, `openvt.kbd`, plus `dbus-daemon`, `strace`, `systemd-run`, `systemd-nspawn`, `socat`,
+`nsenter`, `gpasswd`, `unix_chkpwd`). Those are not services and do not bound anything on a normal boot.
+
+**Two are vendor components that matter:**
+
+| Binary | Why it matters |
+|---|---|
+| `app/bin/mdnsd` | this is the Apple mDNSResponder of **V-072**, recorded as a **root network daemon with no sandboxing and no `User=`**. A privilege-drop reference in it means the "runs as root" characterisation in V-072 may be incomplete |
+| `app/bin/AppSDS` | a vendor application, not previously characterised in this register |
+
+`usr/bin/weston` and `usr/bin/weston-launch` also appear. `weston-launch` is *designed* to open privileged devices then drop —
+but the run evidence in this project (`docs/kernel/45`) shows the compositor's own surfaces being created by a client at the
+same privilege level, and the projection starts weston through a wrapper, so this needs to be read from the actual code before
+any claim is made.
+
+### What this does and does not establish
+
+**Does:** the claim "every process runs as root" is **not yet established**. There are 36 references to privilege-drop
+functions and at least two are vendor daemons rather than admin tools.
+
+**Does not:** establish that any of them actually drops to a *lesser* uid. A reference to `setuid` may be an unused import, a
+busybox applet table entry, or a drop to a service account that is itself privileged enough to reach the same interfaces. That
+requires reading the call sites.
+
+**The precise next check:** for `app/bin/mdnsd` (V-072) and `app/bin/AppSDS`, find the call site of the privilege-drop import
+and determine (a) whether it is called on a normal startup path, and (b) what uid it drops to. **If either drops to a non-root
+uid, the whole latent family — V-051, V-055, V-058, V-071, V-077, V-078 — becomes live for that process's reachable surface**,
+and V-072's own severity changes accordingly.
+
+Both binaries are dynamic ELF; check `llvm-nm --undefined-only` for the exact import, then the call site. This is the same
+"find the author of the request" move that resolved the `screen_create` question, and it is bounded: two binaries, one call
+site each.
+
+### CORRECTION: the privilege-drop scan above counted strings, not calls — the real number is **2**, and neither creates a non-root context
+
+The preceding scan searched `strings` output for whole-line matches of `setuid`/`setgid`/… and reported **36 binaries**. That
+was the sloppy version of the test: a literal string is not a call. Re-running it against **undefined dynamic symbols** —
+which is what a real import looks like in a dynamically linked ELF — gives a completely different answer.
+
+**Binaries in `app/bin`, `usr/bin`, `usr/sbin`, `usr/libexec` that actually import a privilege-drop call: exactly 2.**
+
+| Binary | Imports | Is it started? |
+|---|---|---|
+| `usr/bin/weston` | `seteuid` | this path is the image's **`/usr/bin/weston`, which the projection replaces with a wrapper**; the vendor binary is `weston.real` |
+| `usr/bin/weston-launch` | `initgroups`, `setgid`, `setuid` | **not referenced** anywhere in `/etc` or `/lib/systemd` — nothing starts it |
+
+And the two vendor candidates that the previous section flagged as possibly dropping privileges **do not**:
+
+| Binary | `llvm-nm --undefined-only` | Verdict |
+|---|---|---|
+| `app/bin/mdnsd` | no privilege-drop import; dynamic ELF, interpreter present | the string hit was literal text; **V-072's "runs as root" holds** |
+| `app/bin/AppSDS` | same | the string hit was literal text |
+
+The other 34 "hits" were stock busybox/util-linux/systemd admin applets whose *strings* mention those names — not services,
+and not callers.
+
+### What V-079 now establishes, and it is now established rather than merely measured
+
+1. **One** `User=` across **129** service units, and it is stock systemd's `user@.service` template with **no enabled
+   instance**.
+2. **Zero** setuid and **zero** setgid binaries.
+3. **Two** binaries import a privilege-drop call, both on the compositor's privileged path, and **the only one that is a
+   launcher (`weston-launch`) is not invoked**.
+
+Therefore: **nothing on a normal boot of this image creates a non-root execution context.** The latent family — V-051, V-055,
+V-058, V-071, V-077, V-078 — is latent **by measurement, not by assumption**, and the residual condition is narrow and
+nameable: if anything ever starts `weston-launch`, or if the compositor's `seteuid` path runs under the vendor binary
+(`weston.real`) rather than the projection wrapper, a non-root process may exist and every entry in that family becomes live
+for its reachable surface.
+
+### The lesson, recorded because this is the third self-correction of the same kind
+
+A string match is not a call, exactly as an object id is not a process (`docs/kernel/40`) and a method name is not a request
+direction (`docs/kernel/44`). The correct test for "does this binary call X" on a dynamically linked ELF is
+`llvm-nm --undefined-only`, not `strings`. Using the weaker test first produced a 36-binary finding that would have gone into
+the register as a live concern; it took one extra command to reduce it to 2, and both of those turn out not to be started.

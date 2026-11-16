@@ -53,11 +53,19 @@ unknown installed firmware.
 - The configured launcher context defaults to uid 0 and intended policy labels
   AppScomoDM `App::upgrade`. Runtime route selection, inherited `PATH`, process
   identity/label, and the owner's installed hash remain physical-state gates.
+- Separate upstream commit `8c06bc6ba14949d945eff0abcabab885f1ef7680`
+  fixes unsafe output filenames and is absent from 1.23.2, but it is not an
+  AppScomoDM traversal finding. This exact command's literal `AppUpgrade` and
+  `.lge.upgrade.xml` inclusion patterns reject prefixed/suffixed traversal names
+  through `fnmatch(pattern, member, 0)` before output-path operations. That
+  negative does not affect malformed method-8 data inside an accepted literal
+  member.
 - No ZIP/DEFLATE fixture was made and no target ran. The strongest supported
   impact is likely `unzip` child crash/update DoS; no memory write, RCE, root,
   signature bypass, package acceptance, partition write, or persistence was
   demonstrated.
-- Evidence: `evidence/busybox-unzip-cve-2015-9261.md`.
+- Evidence: `evidence/busybox-unzip-cve-2015-9261.md` and
+  `evidence/busybox-unzip-unsafe-filename-applicability.md`.
 
 ### 3. ConnMan DHCPv6 DOMAIN_LIST overwrite — strongest static adjacent-network candidate
 
@@ -176,21 +184,36 @@ allocation-bound OOB, disclosure, write primitive, RCE, and owner applicability
 remain unknown. See
 `evidence/broadcom-bsa-bluetooth-cves.md`.
 
-### 8. USB gadget / iAP2 / CarPlay — recovered, parser review still needed
+### 8. USB gadget / iAP2 / CarPlay — recovered exact-static candidates, delivery unproved
 
 Kernel config enables `USB_F_IAP2`, `USB_U_IAP2`, `USB_G_SERIAL`,
-`GADGETFS`, `USB_F_MASS_STORAGE`, `USB_DWC3` dual-role. These are modules and the
-userspace has now been recovered. iAP2 is a bounded, length-prefixed protocol
-parser and remains an exact-code review target; no
-finding has yet been established.
-Note: `CONFIG_LGE_CARPLAY=y` in the kernel, yet no `carplay` symbols exist in
-`vmlinux`, so the parsing is userland.
+`GADGETFS`, `USB_F_MASS_STORAGE`, and `USB_DWC3` dual-role; the corresponding
+userspace is recovered. The generic `iAp2MarshalGetBytes` helper is bounded and
+performs no copy, but its complete direct-caller audit found 31 exact calls plus
+two caller-side candidates: a null-source `strncpy` path used by identification
+commands, and plain `%s` logging of length-delimited byte pointers. The
+null-source wrapper has 22 exact calls from `kCmdIdentificationSelect`
+(`0x2afb`) and `kCmdIdentificationUpdate` (`0x2f95`). These are exact-static
+denial-of-service/unbounded-read candidates only; physical phone delivery,
+iAP2 admission, process impact, attacker-visible disclosure, root, persistence,
+CVE identity, and installed-unit applicability remain unproved. See
+`evidence/iap2-marshal-getbytes-caller-audit.md`.
+
+The separate recovered AirPlay surface also contains the exact setup-key write,
+`spf` zero-divisor, and screen-parser read/write candidates documented in the
+projection evidence. Their static routes do not establish listening-interface
+reachability, successful control/session setup, accepted-socket delivery,
+process impact, code execution, or owner-unit applicability. Note:
+`CONFIG_LGE_CARPLAY=y` is set, yet no `carplay` symbols exist in `vmlinux`, so the
+reviewed parsing is userland.
 
 ### 8.5. AppLauncher on-demand D-Bus launch — strongest post-local-execution domain-amplification candidate
 
 V-028 corrects a literal-path-only negative. Exact `com.lge.avn.applauncher` Request adaptor code accepts runtime `applocation`, forwards it to dispatcher `[0x1ffd0,0x205b3)`, overwrites AppProcess program field `+0x58`, sets direct-launch byte `+0x1c`, and reaches a `QProcess::start` call site without either identified verifier call. The new-object helper checks only appid range and path existence before construction; a relevant existing appid object skips those create gates. Runtime Request registration, object construction, QProcess acceptance, successful exec and resulting privilege/label remain separate gates.
 
-This does not yet outrank V-014 as a physical entry because it starts after local code execution. It is stronger than the V-012 service-restart amplifier if its runtime gates hold: the private session bus defaults to the daemon's uid, many HMI applications/services are configured uid zero but SMACK-separated, and effective bus/socket/target labels remain unobserved. Prioritize passive installed hash, service/unit state, AppLauncher/caller uid and labels, `/tmp/session_appmgr{,.env}` metadata, and target-path execute access; leave service-name ownership and Request registration unknown because the probe does not connect to the bus. Do not send a launch request on the owner unit. See `evidence/applauncher-dbus-launch-bypass.md`.
+This does not yet outrank V-014 as a physical entry because it starts after local code execution. It is stronger than the V-012 service-restart amplifier if its runtime gates hold: the private session bus defaults to the daemon's uid, many HMI applications/services are configured uid zero but SMACK-separated, and effective bus/socket/target labels remain unobserved. Exact Linux 4.1 exec semantics now support a configured prediction of broad permitted/effective capabilities for the UID-zero launcher and app children, absent a separate runtime reduction. That does not bypass SMACK: recovered setup assigns `onlycap=Privileged`, so floor `_` is not eligible for SMACK override merely because capability bits are set. V-028's incremental value remains a predicted same-UID `App::* → _` domain transition with explicit access to enumerated app domains, not unrestricted root.
+
+Prioritize passive installed hash, service/unit state, AppLauncher/caller uid, complete capability masks, parent PID and labels, `/tmp/session_appmgr{,.env}` metadata, and target-object execute/xattr identity; leave service-name ownership and Request registration unknown because the probe does not connect to the bus. The passive collector now records those process capability fields and launcher-chain SMACK xattrs without sending a request. Do not send a launch request on the owner unit. See `evidence/applauncher-dbus-launch-bypass.md`, `evidence/applauncher-configured-privilege-chain.md`, and `evidence/app-domain-to-persistence-chain.md`.
 
 ### 8.55. Direct stock `App::*` to `Privileged` SMACK transition — configured candidate, runtime gates open
 

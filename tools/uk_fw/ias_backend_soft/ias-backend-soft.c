@@ -149,6 +149,23 @@ headless_output_repaint(struct weston_output *output_base,
 		}
 	}
 
+	/* Geometry cross-check: our image_buf is allocated from param->width while the
+	 * repaint path reads current_mode->width. If the renderer's shadow geometry and our
+	 * image geometry disagree, the composite shears by the difference, so print both
+	 * once per output rather than inferring the fault from stripes in a capture. */
+	if (output->image && repaint_count < 1) {
+		weston_log("ias-soft: geom output=%u mode=%dx%d image=%dx%d "
+			   "image_stride=%d buf_stride=%d param=%dx%d\n",
+			   output->base.id,
+			   output->base.current_mode->width,
+			   output->base.current_mode->height,
+			   pixman_image_get_width(output->image),
+			   pixman_image_get_height(output->image),
+			   pixman_image_get_stride(output->image),
+			   output->base.current_mode->width * 4,
+			   output->base.width, output->base.height);
+	}
+
 	if (composite)
 		ec->renderer->repaint_output(&output->base, damage);
 
@@ -227,7 +244,26 @@ headless_backend_create_output(struct headless_backend *b,
 	/* Give every output a distinct name: the output is identified by name in
 	 * logs and by the screenshooter, and duplicate names would make a
 	 * multi-output run unreadable. weston_output_destroy() frees this. */
-	snprintf(name, sizeof name, "IAS-%d", index);
+	/* The vendor layout names its screens by output name (the shipped
+	 * /etc/xdg/weston/weston_1920.ini declares [output] name=HDMI1 and HDMI2), and
+	 * ivi-window-manager resolves them by that name. Presenting outputs called
+	 * IAS-0 makes it find no screen at all and publish a primary screen size of
+	 * 0x0. Naming them as the vendor config expects is what lets the layout
+	 * resolve its screens. IAS_OUTPUT_NAMES=ias restores the old naming. */
+	{
+		/* Naming outputs HDMI1.. to match the vendor configuration was tried and
+		 * made things worse, not better: with the vendor [output] sections
+		 * matching, the captured output became a sheared frame where it had been
+		 * plain black, and no configuration of the name produced a correct
+		 * picture (see the changelog for the A/B). IAS-N names are therefore the
+		 * default again; HDMI naming stays available as IAS_OUTPUT_NAMES=hdmi for
+		 * whoever revisits this. */
+		const char *style = getenv("IAS_OUTPUT_NAMES");
+		if (style && strcmp(style, "hdmi") == 0)
+			snprintf(name, sizeof name, "HDMI%d", index + 1);
+		else
+			snprintf(name, sizeof name, "IAS-%d", index);
+	}
 	output->base.name = strdup(name);
 
 	output->mode.flags =

@@ -52,7 +52,7 @@ BusyBox injected into the research VM.
 ## Verification
 
 ```sh
-PY="${PYTHON:-/Users/leo/.platformio/penv/bin/python3}"
+PY="${PYTHON:-python3}"
 "$PY" -m pytest -q tests/test_busybox_huft_bounds_model.py
 "$PY" -m pytest -q tests
 "$PY" tests/run_all.py

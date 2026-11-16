@@ -36,7 +36,7 @@ disassemblies, or provide trigger/delivery procedures.
   output, complete identity and semantic drift, contradictory states,
   deterministic hostile-encoding output, privacy/non-operational content, and
   exact report equality when canonical artifacts are available.
-- Run the focused test file with `/Users/leo/.platformio/penv/bin/python3`,
+- Run the focused test file with `python3`,
   `py_compile`, two deterministic regenerations (including hostile
   `PYTHONIOENCODING`), UTF-8/LF checks, and `git diff --check`.
 

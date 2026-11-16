@@ -16942,3 +16942,9 @@ The following entries describe a parallel research branch and its own version nu
 - Added `tools/uk_fw/gen5w_encrypt.py`, the inverse of the TE2 decryptor. Proven against the real package: decrypting `HU/firmware/update.tar.gz` and re-encrypting it with the vendor envelope as template reproduces the original file **byte for byte**, including the ciphertext tail kept in the metadata padding field. `tests/test_gen5w_encrypt.py` pins the round trip and that reproduction.
 - Decrypted the packaged updater itself: `AppUpgrade` is a TE2 envelope whose body is an ELF64 binary (10.8 MB), now readable at `work/updater/AppUpgrade.elf`. Its strings show the acceptance logic instead of guessing it: RedBend `Source signature 0x%08x and CRC 0x%08x mismatch`, `[VELIX] : _CheckCKSOfFile … crc`, `Vr_fixed md5sum checking`, `CheckEncryptFile`, and a version gate (`E_UPDATE_VERSION_DOWN/SAME/UP`, UNECE version comparison).
 - Published `docs/update-deployment-feasibility.md`: a gate-by-gate map separating what this project can reproduce (`.ver` CRC, MD5 lists, version string, TE2 envelopes) from what needs the OEM private key (RSA-2048 signature on the `ipk.` boot container, `manifest_keyring` root of trust), with the cheapest next experiments ordered and the explicit non-goals.
+
+
+## 2026-11-16 — Rewrite public history for privacy
+
+- Rewrote the public repository branch histories to replace the identified vehicle identifiers, address-shaped strings and personal home path, without changing firmware or vehicle state. Earlier commit IDs changed.
+- The public serial excerpts remain explicitly marked as redacted, with original and redacted hashes recorded in `evidence/PUBLIC-REDACTIONS.md`. A private recovery bundle was retained locally. Forks, old clones, pull-request refs and GitHub caches may still contain the original data.

@@ -7142,3 +7142,9 @@ The following entries describe a parallel research branch and its own version nu
 
 - Redacted vehicle-identifying strings, a personal home-directory component and address-shaped identifiers from the current public tree. Reworded a system lookup configuration as prose; it was not a password.
 - Preserved original evidence in Git history and recorded original and redacted serial-excerpt hashes in `evidence/PUBLIC-REDACTIONS.md`. Existing Git history is not rewritten; the redaction applies to the current tree only.
+
+
+## 2026-11-16 — Rewrite public history for privacy
+
+- Rewrote the public repository branch histories to replace the identified vehicle identifiers, address-shaped strings and personal home path, without changing firmware or vehicle state. Earlier commit IDs changed.
+- The public serial excerpts remain explicitly marked as redacted, with original and redacted hashes recorded in `evidence/PUBLIC-REDACTIONS.md`. A private recovery bundle was retained locally. Forks, old clones, pull-request refs and GitHub caches may still contain the original data.

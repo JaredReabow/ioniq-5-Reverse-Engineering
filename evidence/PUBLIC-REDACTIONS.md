@@ -1,6 +1,6 @@
 # Public evidence redactions
 
-The serial-head excerpts listed below are redacted copies: two address-shaped identifiers were removed from each while the remaining recorded bytes and line endings were retained. The original bytes remain in prior Git history; redacting the current tree does not remove historical exposure. Hashes below distinguish the original from the redacted copy.
+The serial-head excerpts listed below are redacted copies: two address-shaped identifiers were removed from each while the remaining recorded bytes and line endings were retained. The identified values were also removed from the rewritten repository branch histories. Separate forks, existing clones, GitHub pull-request refs and cached objects may retain the original bytes; a private recovery bundle was retained locally. Hashes below distinguish the original from the redacted copy.
 
 - `evidence/controlled-run-1-2026-11-08/serial-head.log`
   - Original SHA-256: `fb62cae52b76fb8232407ce9030398982785e3185895ca96d9f93461b7bf138a`

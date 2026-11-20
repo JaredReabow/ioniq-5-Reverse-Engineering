@@ -83,10 +83,42 @@ class ServiceTests(unittest.TestCase):
         self.assertFalse(receipt.accepted)
         self.assertEqual(receipt.state, "starting")
         stop = service.shutdown()
-        self.assertFalse(stop.accepted)
+        self.assertTrue(stop.accepted)
+        self.assertEqual((stop.command_id, stop.state, stop.message),
+                         ("shutdown", "completed", "Service stop requested"))
         self.assertTrue(service.cancelled.is_set())
         self.assertEqual(service.get_status()["state"], "stopped")
         with self.assertRaises(RuntimeError): service.service_attach_backend(FakeBackend())
+
+    def test_stop_after_failure_and_repeated_stop_acknowledge_cancellation(self):
+        for failed in (False, True):
+            with self.subTest(failed=failed):
+                service = WorkbenchServiceBackend()
+                if failed:
+                    service.service_fail("missing_assets", "Compatible local assets are missing")
+                first = service.shutdown()
+                events = service.get_events(after_id=0, limit=20)
+                second = service.shutdown()
+                for receipt in (first, second):
+                    self.assertTrue(receipt.accepted)
+                    self.assertEqual(receipt.state, "completed")
+                    self.assertLessEqual(receipt.created_ns, receipt.acknowledged_ns)
+                self.assertTrue(service.cancelled.is_set())
+                self.assertEqual(service.get_status()["state"], "failed" if failed else "stopped")
+                self.assertEqual(service.get_events(after_id=0, limit=20), events)
+                self.assertFalse(service.send_key(action="tap", key="Enter").accepted)
+                if failed:
+                    self.assertEqual(service.get_status()["error_code"], "missing_assets")
+
+    def test_ready_shutdown_preserves_backend_receipt_and_delegation(self):
+        service, backend = WorkbenchServiceBackend(), FakeBackend()
+        receipt = CommandReceipt("backend-stop", True, "completed", "Backend stopped", 1, 2)
+        backend.shutdown = lambda: (backend.calls.append(("shutdown", {})), receipt)[1]
+        service.service_attach_backend(backend)
+        self.assertIs(service.shutdown(), receipt)
+        self.assertEqual(backend.calls, [("shutdown", {})])
+        self.assertTrue(service.cancelled.is_set())
+        self.assertEqual(service.get_status()["service_state"], "stopped")
 
     def test_failure_is_terminal_and_sanitized(self):
         service = WorkbenchServiceBackend()

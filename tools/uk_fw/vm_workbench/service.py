@@ -208,12 +208,16 @@ class WorkbenchServiceBackend:
     def shutdown(self) -> CommandReceipt:
         """Cancel startup or delegate bounded shutdown to the attached backend."""
 
+        created = time.time_ns()
         with self._lock:
             backend = self._backend
-        self.cancelled.set()
-        if backend is None:
-            self.service_stop("Stop requested before VM readiness")
-            return self._refusal("shutdown")
+            self.cancelled.set()
+            if backend is None:
+                # Cancellation is available even when VM controls never became ready.
+                # Keep an existing failure visible while acknowledging the stop request.
+                self.service_stop("Stop requested before VM readiness")
+                return CommandReceipt("shutdown", True, "completed", "Service stop requested",
+                                      created, time.time_ns())
         receipt = backend.shutdown()
         with self._lock:
             self._state, self._stage, self._message = "stopped", "stopped", "VM stopped"

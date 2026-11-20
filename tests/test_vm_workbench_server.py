@@ -104,7 +104,7 @@ class WorkbenchHTTPTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn(self.server.token.encode(), page)
         self.assertNotIn(b"__WORKBENCH_SESSION_TOKEN__", page)
-        self.assertIn(b"Gen5W VM Workbench 0.3.2", page)
+        self.assertIn(b"Gen5W VM Workbench 0.3.3", page)
         self.assertEqual(headers["Cache-Control"], "no-store")
         status, headers, frame = self.request("GET", "/api/v1/frame")
         self.assertEqual((status, frame), (200, b"fixture-png"))

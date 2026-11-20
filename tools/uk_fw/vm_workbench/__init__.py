@@ -4,7 +4,7 @@ The workbench controls only QEMU processes that it starts itself.  Its browser
 surface is a loopback operator console, not a vehicle control interface.
 """
 
-WORKBENCH_VERSION = "0.3.2"
+WORKBENCH_VERSION = "0.3.3"
 
 
 def vm_workbench_version() -> str:

@@ -2,7 +2,9 @@
 
 The launcher starts a local browser UI for the Gen5W simulator and keeps a terminal open with setup steps, command output, elapsed time, progress, and the chosen address. The browser shows VM startup status, then displays guest frames and sends gated input. The guest uses a snapshot with its network adapter disabled. Wi-Fi controls, when enabled, drive a simulation.
 
-This 0.3.2 package is a **developer preview for people who already hold the exact compatible prepared Workbench assets**. It is not a stock-update converter and it does not download those assets. Without them, setup stops at asset admission and the interactive VM cannot start. The snapshot-backed rootfs uses an explicit backend name for compatibility with QEMU 8.2. The guest still sees the same SD device and has no network adapter.
+This 0.3.3 package is a **developer preview for people who already hold the exact compatible prepared Workbench assets**. It is not a stock-update converter and it does not download those assets. Without them, setup stops at asset admission and the interactive VM cannot start. The snapshot-backed rootfs uses an explicit backend name for compatibility with QEMU 8.2. The guest still sees the same SD device and has no network adapter.
+
+**Stop VM** also cancels startup or closes the service after an asset-admission failure. Its response acknowledges the stop request even when no VM backend became ready; the original startup failure stays available for diagnosis.
 
 ## First launch
 

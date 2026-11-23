@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Gen5W VM Workbench
+Comment=Start a local interactive Gen5W VM
+Exec=/bin/sh -c "case \\"\\$1\\" in /*) exec /bin/sh \\"\\$(dirname -- \\"\\$1\\")/start.sh\\" --terminal ;; *) echo 'Open a terminal in the checkout and run sh launchers/start.sh'; read answer; exit 1 ;; esac" Gen5W %k
+Terminal=true
+Categories=System;Emulator;

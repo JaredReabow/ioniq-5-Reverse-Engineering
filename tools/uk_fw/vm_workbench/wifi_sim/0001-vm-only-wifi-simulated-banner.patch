@@ -1,0 +1,19 @@
+diff --git a/HomeScreen/WifiPage.qml b/HomeScreen/WifiPage.qml
+--- a/HomeScreen/WifiPage.qml
++++ b/HomeScreen/WifiPage.qml
+@@ -15,3 +15,14 @@ Item {
+     signal closed()
+-
++
++    // Local VM-only overlay: persistent across tabs, never an input target.
++    Text {
++        objectName: "simulationLabel"
++        x: 8
++        y: 8
++        z: 100000
++        text: "SIMULATED - NO RADIO"
++        color: "#FFC107"
++        font.pixelSize: 22
++    }
++
+     // ---- overlay / foreground ownership ------------------------------

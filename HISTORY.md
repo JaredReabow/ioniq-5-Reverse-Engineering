@@ -1,0 +1,147 @@
+# Public release history
+
+This append-only file records public Gen5W VM Workbench publication snapshots.
+It intentionally excludes private project history.
+
+## 2026-11-21 - Workbench 0.3.4 public snapshot
+
+- Published a source-only developer preview with macOS, Linux, and Windows
+  launchers.
+- Created a parentless public snapshot from the independently accepted 0.3.4
+  source archive.
+- Preserved explicit qualification limits for host setup, prepared guest
+  rendering and input, physical radio behavior, installation, and restoration.
+
+## 2026-11-21 - Workbench 0.3.5 public snapshot
+
+- Reduced guest acquisition verification subprocess overhead while preserving
+  every identity, marker, hash, log-scan and deadline gate.
+- Qualified one changed zero-input macOS run through historical and fresh frame
+  publication, visible Home rendering and complete owned-resource shutdown.
+- Published a new parentless source snapshot; Windows/Linux first-run and every
+  physical installation or restoration boundary remained unqualified.
+
+## 2026-11-21 - Workbench 0.3.6 public snapshot
+
+- Kept startup available when the optional Windows browser handoff fails while
+  preserving strict URL validation and explicit no-browser behavior.
+- Added clone-first staging, destination-capacity admission, sparse-aware
+  buffered copying, separate copy/verification progress, and owned-partial
+  cleanup.
+- Published a new parentless source snapshot after the consolidated 19-suite
+  harness and independent review passed. Real Windows/Linux and every physical
+  installation, recovery, restoration, and radio boundary remained
+  unqualified.
+
+## 2026-11-21 - Workbench 0.3.7 public snapshot
+
+- Added bounded optional timing diagnostics around the unchanged post-receipt
+  identity, output-digest and two log-scan phases.
+- Preserved acquisition results and native failure evidence when optional timing
+  metadata is malformed, duplicated, oversized or truncated.
+- Published a new parentless source snapshot after the consolidated 19-suite
+  harness and independent review passed. Live 0.3.7 timing, real Windows/Linux
+  rendering and every physical installation, recovery, restoration and radio
+  boundary remained unqualified.
+
+## 2026-11-22 - Workbench 0.3.8 source candidate
+
+- Selected `max,vendor=GenuineIntel,-avx2` only for Linux and WSL2 ARM64 QEMU
+  TCG hosts while preserving `max,vendor=GenuineIntel` for macOS and x86-64.
+- Propagated the selected profile through the runtime command, started event,
+  and status response.
+- Froze a deterministic 50-file source archive after independent source review.
+  Publication review and the changed full-assets Linux ARM64 live run remain
+  pending; this entry is not a publication claim.
+
+## 2026-11-22 - Workbench 0.4.0 source candidate
+
+- Record the 0.3.9 Linux ARM64 run, which reached HMI startup and stopped at
+  `reason11` / `DBUS_NO_REPLY` before producing a frame or accepting input.
+  Authenticated Stop completed with the full receipt and cleaned up its VM.
+- Refine the bounded log snapshot diagnostic. A reported nonzero status from
+  the final-byte pipeline now yields `read_failed`. A zero count still
+  yields `newline_check_failed`.
+- Prepare the 50-file source archive from the accepted 0.4.0 source. Linux
+  rendering and the cause of the D-Bus timeout remain unverified.
+
+## 2026-11-22 - Workbench 0.4.1 source candidate
+
+- A full-assets 0.4.0 Linux ARM64 run stopped at `capture_budget`. The IVI
+  capture path had inherited a whole-second budget check for a standalone
+  screenshot it never takes.
+- Remove that check from the IVI path. Keep the standalone screenshot path
+  and the strict IVI capture and verification deadlines. Retained synthetic
+  tests cover the cutoff at 15,000 ms and a clock crossing between checks.
+- Confirm the generated shell enables `pipefail` and cover upstream-only
+  `tail` failure in a synthetic test. Live 0.4.1 rendering remains unverified.
+
+## 2026-11-23 - Workbench 0.4.2 source candidate
+
+- Keep `newline_check_failed` and refuse the raw trace when the bounded
+  reason-11 snapshot ends in an incomplete DLT record, while deriving only a
+  fixed typed summary from validated complete records before that tail.
+- Reuse the DLT context and handler policy, skip a first fragment that crosses
+  the acquisition boundary, and independently require the copied scan length,
+  original inode, prefix, size and line bounds, and stable owner identity.
+- Keep marker channels distinct and reject malformed, duplicate, lone, or
+  swapped diagnostic records without replacing the structured acquisition
+  failure. Missing markers mean only `not_observed_in_complete_prefix`;
+  `absence_not_proven` remains true.
+- Preserve raw-trace rejection, acquisition outcome, foreground call, capture,
+  input, error precedence, and the strict 15/20-second deadlines. Live 0.4.2
+  rendering remains unverified.
+
+## 2026-11-23 - Workbench 0.4.3 source candidate
+
+- Sample optional log inode and size boundaries immediately before the
+  IVI foreground request and at `reason11` failure.
+- Report the furthest ordered native phase from complete records inside the
+  sampled boundaries. The fixed label records observed activity. Reply delivery
+  and causality remain unresolved.
+- Preserve the foreground request, deadline, acquisition result, and
+  frame and input checks. The private source passed all 19 Workbench suites.
+  Live 0.4.3 rendering and physical behavior remain unverified.
+
+## 2026-11-23 - Workbench 0.4.4 source candidate
+
+- Require one complete, canonical, nonce-bound producer-failure envelope and
+  retain a fixed typed timeout summary only after receipt and diagnostic-range
+  validation.
+- Reject malformed, duplicate, truncated, oversized, noncanonical and
+  context-mismatched evidence without replacing the original acquisition
+  failure or converting, publishing or accepting anything on the failure path.
+- Preserve both strict deadlines and the 0.4.3 foreground behavior. The shared
+  private source passed all 19 Workbench suites and the native producer receipt
+  suite. Live 0.4.4 rendering and physical behavior remain unverified; the
+  retained Linux foreground transcript is a 0.4.3 artifact.
+
+## 2026-11-23 - Workbench 0.4.4 public archive Linux ARM64 evidence
+
+- Run the exact 0.4.4 public archive with SHA-256
+  95607cafb96e147c330c0101eb8a056fed2cfcd0b852752ea42d776517d458c4
+  from source commit ca7d6f0c72a340a50412d8ca645c3442992d7571 in a
+  disposable Ubuntu 24.04 ARM64 Lima guest.
+- All eight compatible assets passed their manifest and SHA-256 checks. Browser
+  and API bootstrap, authentication refusal, asset admission, QEMU TCG launch,
+  receipt validation and cleanup worked. Acquisition reached 78 percent and
+  stopped with typed guestacquisitionerror / native_timeout; it published no
+  fresh frame and admitted zero input.
+- Stop returned its exact acknowledgement and the run removed all owned
+  listeners, sockets and processes after 223.499 seconds. The native timeout is
+  failure evidence, not a rendering qualification.
+
+## 2026-11-23 - Workbench 0.4.5 public source snapshot
+
+- Distinguish a complete component timeout that occurs strictly after a valid
+  capture from a timeout that can invalidate acquisition. Pre-capture,
+  equal-time, malformed, undated, out-of-range and unbound evidence remains
+  fatal.
+- Add synthetic post-capture success, equal-time failure and malformed-time
+  end-to-end cases. The source's consolidated 19-suite gate and the extracted
+  package's 124 tests passed, with one explicit skip.
+- Publish a parentless sanitized snapshot and deterministic 50-file source
+  archive from commit 7a38b3421f52880f4069c100dba34c49f914f475.
+  Successful 0.4.5 live rendering, Windows native deployment, and every
+  physical installation, recovery, restoration and radio behavior remain
+  unqualified. SCOURGE remains 0/6.

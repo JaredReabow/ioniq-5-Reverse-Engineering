@@ -1,0 +1,127 @@
+# Execute launcher decisions in PowerShell without WSL, elevation or downloads.
+$ErrorActionPreference = 'Stop'
+$testRoot = Split-Path -Parent $PSScriptRoot
+$temporary = Join-Path ([IO.Path]::GetTempPath()) ('gen5w-windows-' + [Guid]::NewGuid().ToString('N'))
+[void][IO.Directory]::CreateDirectory($temporary)
+$originalSystemRoot = $env:SystemRoot
+$count = 0
+
+function Assert-Gen5WEqual($Actual, $Expected, [string] $Label) {
+    if ($Actual -cne $Expected) { throw "$Label expected '$Expected', received '$Actual'" }
+    $script:count++
+}
+
+try {
+    # Supply a harmless path on non-Windows PowerShell hosts as well.
+    if (!$env:SystemRoot) { $env:SystemRoot = $temporary }
+    . (Join-Path $testRoot 'launchers/Gen5W.ps1') -Plan -NoBrowser -Yes
+    Assert-Gen5WEqual (Get-Gen5WHostsMapping -Lines @('127.0.0.1 localhost # gen5w.local')) 'missing' 'comment'
+    Assert-Gen5WEqual (Get-Gen5WHostsMapping -Lines @('127.0.0.1 Gen5W.LOCAL.', '::1 gen5w.local')) 'loopback' 'dual loopback'
+    Assert-Gen5WEqual (Get-Gen5WHostsMapping -Lines @('::1 gen5w.local')) 'loopback' 'IPv6 mapping'
+    Assert-Gen5WEqual (Get-Gen5WHostsMapping -Lines @('127.0.0.1 gen5w.local', '192.0.2.5 gen5w.local')) 'conflict' 'conflict'
+    Assert-Gen5WEqual (Test-Gen5WResolvedAddresses -Addresses @([Net.IPAddress]::Parse('127.0.0.1'), [Net.IPAddress]::IPv6Loopback)) $true 'dual resolution'
+    Assert-Gen5WEqual (Test-Gen5WResolvedAddresses -Addresses @([Net.IPAddress]::IPv6Loopback)) $false 'IPv6-only fallback'
+    Assert-Gen5WEqual (Test-Gen5WResolvedAddresses -Addresses @([Net.IPAddress]::Parse('192.0.2.5'))) $false 'external fallback'
+    Assert-Gen5WEqual (Get-Gen5WDistributionVersion "* Ubuntu    Stopped    2`r`n  Ubuntu-24.04 Running 1" 'Ubuntu') '2' 'exact distro'
+    Assert-Gen5WEqual (Get-Gen5WDistributionVersion '* Ubuntu-24.04 Stopped 2' 'Ubuntu') $null 'missing distro'
+    Assert-Gen5WEqual (Get-Gen5WDistributionVersion "* Ubuntu`0 Stopped`0 2`0" 'Ubuntu') '2' 'UTF16 console output'
+    Assert-Gen5WEqual (ConvertTo-Gen5WBrowserPath '/mnt/c/Windows/explorer.exe' 0) '/mnt/c/Windows/explorer.exe' 'browser path'
+    Assert-Gen5WEqual (ConvertTo-Gen5WLinuxPath '/mnt/c/assets' 0 'asset') '/mnt/c/assets' 'asset path'
+    $rejected = $false
+    try { [void](ConvertTo-Gen5WLinuxPath 'C:\assets' 0 'asset') } catch { $rejected = $true }
+    Assert-Gen5WEqual $rejected $true 'invalid Linux asset path'
+    foreach ($value in @($null, '', ' ', '/mnt/c/Windows/notepad.exe', "/mnt/c/Windows/explorer.exe`nother")) {
+        $rejected = $false
+        try { [void](ConvertTo-Gen5WBrowserPath $value 0) } catch { $rejected = $true }
+        Assert-Gen5WEqual $rejected $true 'invalid browser output'
+    }
+    $rejected = $false
+    try { [void](ConvertTo-Gen5WBrowserPath '/mnt/c/Windows/explorer.exe' 1) } catch { $rejected = $true }
+    Assert-Gen5WEqual $rejected $true 'failed wslpath'
+    Assert-Gen5WEqual (Test-Gen5WConsent 'Fixture consent') $true 'explicit consent'
+
+    # Invoke the actual launcher in plan mode with bounded WSL/hosts fixtures.
+    # No mocks replace distribution parsing or argument construction.
+    $script:root = Join-Path $temporary 'checkout with spaces'
+    $script:windowsHosts = Join-Path $temporary 'hosts'
+    [IO.File]::WriteAllText($windowsHosts, '127.0.0.1 localhost')
+    $script:wsl = Join-Path $temporary 'fixture-wsl'
+    $script:captured = @()
+    $script:messages = @()
+    $script:browserPath = '/mnt/c/Windows/explorer.exe'
+    $script:browserPathExit = 0
+    $script:distributionVersion = '2'
+    function Write-Gen5WSetup([string] $Message) { $script:messages += $Message }
+    function Invoke-Gen5WWsl([string[]] $Arguments) {
+        $script:captured += ,$Arguments
+        $global:LASTEXITCODE = 0
+        if ($Arguments[0] -eq '--list') { return "* Ubuntu Stopped $script:distributionVersion" }
+        if ($Arguments -contains '/usr/bin/wslpath') {
+            $global:LASTEXITCODE = $script:browserPathExit
+            if ($Arguments[-1] -match 'assets') { return '/mnt/c/assets with spaces' }
+            return $script:browserPath
+        }
+    }
+    Assert-Gen5WEqual (Invoke-Gen5WLauncher) 0 'absent WSL plan'
+    Assert-Gen5WEqual $captured.Count 0 'absent WSL no launch'
+    Assert-Gen5WEqual ($messages -join "`n").Contains('7. Ctrl+C') $true 'complete deferred plan'
+    Assert-Gen5WEqual ($messages -join "`n").Contains('checks have not run') $true 'deferred disclosure'
+    [IO.File]::WriteAllText($wsl, 'fixture')
+    Assert-Gen5WEqual (Invoke-Gen5WLauncher) 0 'available WSL plan'
+    Assert-Gen5WEqual $captured.Count 2 'list and handoff'
+    $handoff = $captured[1]
+    foreach ($expected in @('--plan', '--yes', '--no-pause', '--no-browser', $root, './launchers/start.sh')) {
+        Assert-Gen5WEqual ($handoff -contains $expected) $true "handoff $expected"
+    }
+    Assert-Gen5WEqual ($messages -join "`n").Contains('browser handoff is unavailable') $false 'explicit no browser'
+    $script:Assets = 'C:\assets with spaces'
+    $script:captured = @()
+    Assert-Gen5WEqual (Invoke-Gen5WLauncher) 0 'explicit asset directory'
+    Assert-Gen5WEqual $captured.Count 3 'asset translation and handoff'
+    Assert-Gen5WEqual ($captured[2] -contains '--assets') $true 'asset flag'
+    Assert-Gen5WEqual ($captured[2] -contains '/mnt/c/assets with spaces') $true 'translated asset path'
+    $script:Assets = '/mnt/direct assets'
+    $script:captured = @()
+    Assert-Gen5WEqual (Invoke-Gen5WLauncher) 0 'direct Linux asset directory'
+    Assert-Gen5WEqual $captured.Count 2 'direct Linux asset list and handoff'
+    Assert-Gen5WEqual ($captured[1] -contains '--assets') $true 'direct Linux asset flag'
+    Assert-Gen5WEqual ($captured[1] -contains '/mnt/direct assets') $true 'direct Linux asset path'
+    $script:Assets = $null
+    $script:distributionVersion = '1'
+    $script:captured = @()
+    $script:messages = @()
+    Assert-Gen5WEqual (Invoke-Gen5WLauncher) 0 'WSL1 software fallback'
+    Assert-Gen5WEqual $captured.Count 2 'WSL1 list and handoff'
+    Assert-Gen5WEqual ($captured[1] -contains './launchers/start.sh') $true 'WSL1 reaches setup'
+    Assert-Gen5WEqual ($messages -join "`n").Contains('QEMU TCG software emulation') $true 'WSL1 emulation disclosure'
+    $script:distributionVersion = '2'
+    $script:NoBrowser = $false
+    $script:captured = @()
+    Assert-Gen5WEqual (Invoke-Gen5WLauncher) 0 'available browser plan'
+    Assert-Gen5WEqual $captured.Count 3 'list, path translation and handoff'
+    Assert-Gen5WEqual ($captured[2] -contains "GEN5W_WINDOWS_BROWSER=$browserPath") $true 'verified browser forwarding'
+    Assert-Gen5WEqual ($captured[2] -contains '--no-browser') $false 'automatic browser enabled'
+    foreach ($fixture in @(
+        @{ Path = ''; ExitCode = 0; Label = 'missing wslpath output' },
+        @{ Path = '/mnt/c/Windows/notepad.exe'; ExitCode = 0; Label = 'unexpected browser path' },
+        @{ Path = '/mnt/c/Windows/explorer.exe'; ExitCode = 1; Label = 'wslpath failure' }
+    )) {
+        $script:browserPath = $fixture.Path
+        $script:browserPathExit = $fixture.ExitCode
+        $script:captured = @()
+        $script:messages = @()
+        $label = $fixture.Label
+        Assert-Gen5WEqual (Invoke-Gen5WLauncher) 0 "$label keeps launcher available"
+        Assert-Gen5WEqual $captured.Count 3 "$label reaches WSL handoff"
+        Assert-Gen5WEqual ($captured[2] -contains '--no-browser') $true "$label manual browser"
+        Assert-Gen5WEqual ($captured[2] -contains './launchers/start.sh') $true "$label starts setup"
+        Assert-Gen5WEqual ($captured[2] -contains '/usr/bin/env') $false "$label drops browser override"
+        Assert-Gen5WEqual ($messages -join "`n").Contains('Open the URL printed by the server') $true "$label guidance"
+    }
+    Assert-Gen5WEqual ([IO.Directory]::Exists($root)) $false 'plan does not create state'
+    Write-Output "GEN5W_WINDOWS_LAUNCHER_TESTS_PASS assertions=$count"
+} finally {
+    $env:SystemRoot = $originalSystemRoot
+    # This exact GUID-created fixture directory contains only this test's data.
+    [IO.Directory]::Delete($temporary, $true)
+}

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Gen5W Preview
+Comment=Open the asset-free synthetic Gen5W preview
+Exec=/bin/sh -c "case \\"\\$1\\" in /*) exec /bin/sh \\"\\$(dirname -- \\"\\$1\\")/Gen5W-Preview.command\\" ;; *) echo 'Open a terminal in the checkout and run sh launchers/start.sh --terminal --preview'; read answer; exit 1 ;; esac" Gen5W-Preview %k
+Terminal=true
+Categories=System;Emulator;

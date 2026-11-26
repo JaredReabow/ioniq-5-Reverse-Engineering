@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gen5W VM Workbench</title>
+  <style>
+    :root {
+      color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #090e14; color: #e6edf5; --gold: #d8ad54; --blue: #77c2ff;
+      --panel: #131e2a; --panel-deep: #0d1620; --line: #31465a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #090e14; }
+    header {
+      position: sticky; top: 0; z-index: 30; display: flex; align-items: center; flex-wrap: wrap;
+      gap: .65rem; min-height: 4rem; padding: .7rem 1rem; background: #111b26;
+      border-bottom: 2px solid var(--gold); box-shadow: 0 .4rem 1.2rem #0007;
+    }
+    h1 { font-size: 1.1rem; line-height: 1.25; margin: 0 auto 0 0; letter-spacing: 0; }
+    h2 { font-size: 1rem; line-height: 1.3; margin: 0 0 .7rem; }
+    h3 { letter-spacing: 0; }
+    .shell {
+      display: grid; grid-template-columns: 220px minmax(0, 1fr) 300px;
+      gap: 1rem; padding: 1rem; align-items: start;
+    }
+    .shell.left-collapsed { grid-template-columns: minmax(0, 1fr) 300px; }
+    .shell.right-collapsed { grid-template-columns: 220px minmax(0, 1fr); }
+    .shell.left-collapsed.right-collapsed { grid-template-columns: minmax(0, 1fr); }
+    aside {
+      position: sticky; top: 4.8rem; min-width: 0; max-height: calc(100vh - 5.8rem);
+      overflow: auto; background: var(--panel); border: 1px solid var(--line);
+      border-radius: .5rem; padding: .85rem;
+    }
+    .panel-heading { color: var(--gold); font-size: .78rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    .nav-list { display: grid; gap: .3rem; margin: .8rem 0 1rem; }
+    .nav-list a { display: block; padding: .55rem .65rem; color: #dce9f5; border-left: 3px solid transparent; border-radius: .25rem; text-decoration: none; }
+    .nav-list a:hover, .nav-list a:focus-visible { background: #21364a; border-left-color: var(--gold); }
+    .scope-note { display: grid; gap: .2rem; padding-top: .8rem; border-top: 1px solid var(--line); font-size: .82rem; color: #b8c9d9; }
+    .scope-note strong { color: var(--blue); }
+    main { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr); gap: 1rem; min-width: 0; }
+    section { background: #172534; border: 1px solid var(--line); border-radius: .5rem; padding: .9rem; min-width: 0; }
+    .control-group { display: grid; gap: .55rem; padding: .75rem 0; border-bottom: 1px solid var(--line); }
+    .control-group:last-child { border-bottom: 0; padding-bottom: 0; }
+    .control-group > label { color: #dce9f5; font-weight: 650; }
+    .preview-banner {
+      position: relative; z-index: 20; display: flex; flex-wrap: wrap; gap: .35rem .7rem;
+      padding: .7rem 1rem; color: #fff1c2; background: #593f15; border-bottom: 1px solid #9e742d;
+    }
+    .preview-banner strong { color: #ffd477; text-transform: uppercase; letter-spacing: .06em; }
+    .screen-wrap { background: #080d14; text-align: center; min-height: 8rem; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    #screen { display: block; width: 100%; max-width: 100%; height: auto; touch-action: none; cursor: crosshair; outline: 0; user-select: none; -webkit-user-drag: none; }
+    #screen:focus-visible { outline: 3px solid var(--blue); outline-offset: -3px; }
+    .meta { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .85rem; margin-top: .65rem; color: #c3d2e1; }
+    .badge { border-radius: 2rem; padding: .15rem .6rem; background: #37566a; }
+    .warning { background: #6d4f1e; color: #fff1c2; }
+    .error { background: #783541; color: #fff; }
+    .startup { grid-column: 1 / -1; padding: .8rem 1rem; }
+    .startup progress { width: 100%; height: 1rem; accent-color: var(--blue); }
+    .startup-line { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .45rem; font: .85rem/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    p, label { line-height: 1.4; font-size: .9rem; }
+    button, input, select { font: inherit; color: #edf6ff; background: #263d52; border: 1px solid #7190aa; border-radius: .3rem; padding: .4rem .55rem; }
+    button { min-height: 2.15rem; cursor: pointer; }
+    button:hover:not(:disabled) { background: #365770; border-color: var(--blue); }
+    button.primary { color: #21180a; background: var(--gold); border-color: #f2ca73; font-weight: 750; }
+    button.primary:hover:not(:disabled) { background: #ecc46c; }
+    button:disabled { cursor: default; opacity: .55; }
+    input:focus, select:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .module { border-top: 1px solid #405468; padding: .7rem 0; }
+    .module h3 { font-size: .95rem; margin: 0 0 .25rem; }
+    .module small { color: #bbcad9; }
+    .field { display: grid; grid-template-columns: minmax(90px,1fr) minmax(90px,1fr) auto; align-items: center; gap: .4rem; padding-top: .6rem; }
+    .field small { grid-column: 1 / -1; }
+    .logs { grid-column: 1 / -1; }
+    #events { max-height: 22rem; overflow: auto; font: .8rem/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+    #message { min-height: 1.4em; color: #ffd891; }
+    [hidden] { display: none !important; }
+    @media (max-width: 1120px) {
+      .shell { grid-template-columns: 190px minmax(0, 1fr) 260px; }
+      .shell.left-collapsed { grid-template-columns: minmax(0, 1fr) 260px; }
+      .shell.right-collapsed { grid-template-columns: 190px minmax(0, 1fr); }
+    }
+    @media (max-width: 850px) {
+      header { align-items: stretch; }
+      h1 { flex-basis: 100%; }
+      header button { flex: 1; }
+      .shell, .shell.left-collapsed, .shell.right-collapsed, .shell.left-collapsed.right-collapsed {
+        grid-template-columns: minmax(0, 1fr); padding: .7rem;
+      }
+      aside { position: static; max-height: none; }
+      main { grid-template-columns: 1fr; }
+      .startup, .logs { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header><h1>Gen5W VM Workbench __WORKBENCH_VERSION__</h1><button id="toggleLeft" type="button" aria-controls="leftPanel" aria-expanded="true">Hide navigation</button><button id="toggleRight" type="button" aria-controls="rightPanel" aria-expanded="true">Hide controls</button><span id="session" class="badge warning">Connecting</span><button id="shutdown" class="primary" type="button">Stop VM</button></header>
+  <div id="syntheticBanner" class="preview-banner" role="note" hidden><strong>Synthetic preview</strong><span>Host fixture data only. Every frame, value, event, and control shown here is simulated.</span></div>
+  <div id="shell" class="shell" aria-describedby="syntheticBanner">
+    <aside id="leftPanel" aria-label="Workbench navigation">
+      <div class="panel-heading">Workbench</div>
+      <nav class="nav-list" aria-label="Sections">
+        <a href="#displaySection">Guest display</a>
+        <a href="#modulesSection">Modules</a>
+        <a href="#logsSection">Event log</a>
+      </nav>
+      <div class="scope-note"><span>Runtime scope</span><strong id="scopeLabel">Service connecting</strong></div>
+    </aside>
+    <main>
+      <section class="startup" aria-labelledby="startupTitle">
+        <div class="startup-line"><strong id="startupTitle">Startup progress</strong><span id="startupPercent">0%</span></div>
+        <progress id="startupProgress" max="100" value="0">0%</progress>
+        <p id="startupMessage" role="status" aria-live="polite">Connecting to the local service…</p>
+        <small id="startupDetail">The browser remains available while assets, workspace and VM admission are checked.</small>
+      </section>
+      <section id="displaySection">
+        <h2>Guest display</h2>
+        <div class="screen-wrap"><img id="screen" tabindex="0" alt="Guest display; click to focus and send keyboard input" draggable="false"></div>
+        <p>Click or drag on the display. Focus it to send keyboard input. Input acceptance, guest acknowledgement, and visible response are separate events.</p>
+        <div id="message" role="status" aria-live="polite"></div>
+      </section>
+      <section id="modulesSection"><h2>Simulated modules</h2><p>Each field shows its evidence and integration level.</p><div id="modules">Loading modules…</div></section>
+      <section id="logsSection" class="logs"><h2>Event log</h2><pre id="events"></pre></section>
+    </main>
+    <aside id="rightPanel" aria-label="Display controls">
+      <h2>Display controls</h2>
+      <div class="control-group">
+        <div class="meta"><span id="frameSource" class="badge warning">No frame</span><span id="frameInfo">Waiting for a frame</span></div>
+        <button id="confirmOnce" type="button" disabled>Observe and Confirm once</button>
+        <p>Only use this after visually approving the current Confirm frame. A fresh observation and matching frame are required.</p>
+      </div>
+      <div class="control-group"><label for="filter">Filter events</label><input id="filter" type="search" placeholder="Command, component or ID"></div>
+    </aside>
+  </div>
+  <script>
+  (() => {
+    'use strict';
+    const token = '__WORKBENCH_SESSION_TOKEN__';
+    const api = '/api/v1';
+    const screen = document.getElementById('screen');
+    const source = document.getElementById('frameSource');
+    const info = document.getElementById('frameInfo');
+    const session = document.getElementById('session');
+    const message = document.getElementById('message');
+    const modules = document.getElementById('modules');
+    const log = document.getElementById('events');
+    const filter = document.getElementById('filter');
+    const confirmOnce = document.getElementById('confirmOnce');
+    const shell = document.getElementById('shell');
+    const leftPanel = document.getElementById('leftPanel');
+    const rightPanel = document.getElementById('rightPanel');
+    const toggleLeft = document.getElementById('toggleLeft');
+    const toggleRight = document.getElementById('toggleRight');
+    const syntheticBanner = document.getElementById('syntheticBanner');
+    const scopeLabel = document.getElementById('scopeLabel');
+    const startupProgress = document.getElementById('startupProgress');
+    const startupPercent = document.getElementById('startupPercent');
+    const startupMessage = document.getElementById('startupMessage');
+    const startupDetail = document.getElementById('startupDetail');
+    let frameUrl = null, lastFrame = null, displayedFrame = null, confirming = false, lastEvent = 0, events = [], pointerStart = null;
+    let vmReady = false;
+    let previewInput = false;
+    let pendingFrameCommands = 0;
+    let commandQueue = Promise.resolve();
+    const held = new Set();
+    const panelDefaults = Object.freeze({left: true, right: true});
+    const panelStorage = (() => {
+      try { return globalThis.localStorage || null; } catch (_) { return null; }
+    })();
+    const currentOrigin = (() => {
+      try {
+        const value = globalThis.location && globalThis.location.origin;
+        return typeof value === 'string' && value ? value : null;
+      } catch (_) { return null; }
+    })();
+    const panelStorageKey = currentOrigin ? `gen5w-workbench:panels:v1:${encodeURIComponent(currentOrigin)}` : null;
+    const readPanelPreferences = () => {
+      if (!panelStorage || !panelStorageKey) return {...panelDefaults};
+      try {
+        const value = JSON.parse(panelStorage.getItem(panelStorageKey));
+        const keys = value && typeof value === 'object' && !Array.isArray(value) ? Object.keys(value) : [];
+        if (keys.length !== 2 || !keys.includes('left') || !keys.includes('right') ||
+            typeof value.left !== 'boolean' || typeof value.right !== 'boolean') return {...panelDefaults};
+        return {left: value.left, right: value.right};
+      } catch (_) { return {...panelDefaults}; }
+    };
+    const panelState = readPanelPreferences();
+    const persistPanelPreferences = () => {
+      if (!panelStorage || !panelStorageKey) return;
+      try {
+        panelStorage.setItem(panelStorageKey, JSON.stringify({left: panelState.left, right: panelState.right}));
+      } catch (_) { /* Layout preferences are optional. */ }
+    };
+    const renderPanels = () => {
+      leftPanel.hidden = !panelState.left;
+      rightPanel.hidden = !panelState.right;
+      toggleLeft.setAttribute('aria-expanded', String(panelState.left));
+      toggleRight.setAttribute('aria-expanded', String(panelState.right));
+      toggleLeft.textContent = panelState.left ? 'Hide navigation' : 'Show navigation';
+      toggleRight.textContent = panelState.right ? 'Hide controls' : 'Show controls';
+      shell.className = `shell${panelState.left ? '' : ' left-collapsed'}${panelState.right ? '' : ' right-collapsed'}`;
+    };
+    const togglePanel = (name) => {
+      panelState[name] = !panelState[name];
+      renderPanels();
+      persistPanelPreferences();
+    };
+    toggleLeft.addEventListener('click', () => togglePanel('left'));
+    toggleRight.addEventListener('click', () => togglePanel('right'));
+    renderPanels();
+    const request = async (path, options = {}) => {
+      const headers = {'X-Workbench-Token': token};
+      if (options.method === 'POST') headers['Content-Type'] = 'application/json';
+      const response = await fetch(api + path, {...options, headers, cache: 'no-store'});
+      if (!response.ok) {
+        let problem = `HTTP ${response.status}`;
+        try { const body = await response.json(); problem = body.error.message || problem; } catch (_) { /* keep HTTP status */ }
+        throw new Error(problem);
+      }
+      return response;
+    };
+    const command = (path, body) => {
+      const run = async () => {
+        try {
+          const receipt = await (await request(path, {method: 'POST', body: JSON.stringify(body)})).json();
+          message.textContent = `${receipt.state}: ${receipt.message} (${receipt.command_id})`;
+          return receipt;
+        } catch (error) { message.textContent = `Command failed: ${error.message}`; return null; }
+      };
+      commandQueue = commandQueue.then(run, run);
+      return commandQueue;
+    };
+    confirmOnce.addEventListener('click', async () => {
+      if (confirming || !displayedFrame || displayedFrame !== lastFrame || displayedFrame.stale ||
+          displayedFrame.source !== 'guest-compositor' || Date.now() - displayedFrame.capturedMs > 3000) return;
+      const sequence = displayedFrame.sequence;
+      confirming = true; confirmOnce.disabled = true;
+      try {
+        const receipt = await (await request('/input/confirm-once', {method: 'POST', body: JSON.stringify({frame_sequence: sequence})})).json();
+        message.textContent = `${receipt.state}: ${receipt.message} (${receipt.command_id})`;
+      } catch (error) { message.textContent = `Confirm outcome uncertain: ${error.message}`; }
+      finally { confirming = false; renderFrameInfo(); }
+    });
+    const wifiSimulation = __WORKBENCH_WIFI_SIM__;
+    const sequenceBoundInput = () => wifiSimulation || previewInput;
+    const point = (event) => {
+      const rect = screen.getBoundingClientRect();
+      if (!rect.width || !rect.height) return null;
+      return {
+        x: Math.max(0, Math.min(1919, Math.floor((event.clientX - rect.left) * 1920 / rect.width))),
+        y: Math.max(0, Math.min(719, Math.floor((event.clientY - rect.top) * 720 / rect.height)))
+      };
+    };
+    const inputFrameRejection = (frame = lastFrame) => {
+      if (!frame || frame !== lastFrame || frame !== displayedFrame || frame.stale ||
+          !Number.isInteger(frame.sequence) || !Number.isFinite(frame.capturedMs) ||
+          !Number.isInteger(frame.width) || frame.width < 1 ||
+          !Number.isInteger(frame.height) || frame.height < 1 ||
+          typeof frame.source !== 'string' || !/^[A-Za-z0-9._-]+$/.test(frame.source) ||
+          Date.now() - frame.capturedMs > 3000) return true;
+      return wifiSimulation && frame.source !== 'guest-compositor';
+    };
+    const cancelPointerGesture = (pointerId) => {
+      if (pointerStart && pointerId !== undefined && pointerStart.pointerId !== pointerId) return;
+      pointerStart = null;
+    };
+    screen.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || event.isPrimary === false || pointerStart || inputFrameRejection()) return;
+      const start = point(event);
+      if (!start) return;
+      event.preventDefault(); screen.focus();
+      if (typeof screen.setPointerCapture === 'function') {
+        try { screen.setPointerCapture(event.pointerId); } catch (_) { /* Capture is an ordering aid. */ }
+      }
+      pointerStart = {...start, pointerId: event.pointerId, frameSequence: lastFrame.sequence};
+    });
+    screen.addEventListener('pointerup', event => {
+      if (!pointerStart || pointerStart.pointerId !== event.pointerId) return;
+      const start = pointerStart, end = point(event); pointerStart = null;
+      if (!end || inputFrameRejection() || lastFrame.sequence !== start.frameSequence) return;
+      const drag = Math.abs(start.x - end.x) + Math.abs(start.y - end.y) > 8;
+      if (wifiSimulation && drag) return;
+      const body = {action: drag ? 'drag' : 'click', x1: start.x, y1: start.y};
+      if (drag) { body.x2 = end.x; body.y2 = end.y; }
+      const holdsFrameSequence = sequenceBoundInput();
+      if (holdsFrameSequence) {
+        body.frame_sequence = start.frameSequence;
+        pendingFrameCommands += 1;
+      }
+      const pending = command('/input/pointer', body);
+      if (holdsFrameSequence) pending.finally(() => { pendingFrameCommands -= 1; });
+    });
+    screen.addEventListener('pointercancel', event => cancelPointerGesture(event.pointerId));
+    screen.addEventListener('lostpointercapture', event => cancelPointerGesture(event.pointerId));
+    screen.addEventListener('keydown', event => {
+      if (event.code === 'Tab') { held.delete('Tab'); return; }
+      if (wifiSimulation) { event.preventDefault(); return; }
+      if (event.repeat || held.has(event.code) || !/^(?:Key[A-Z]|Digit[0-9]|Arrow(?:Left|Right|Up|Down)|Enter|Escape|Space|Backspace)$/.test(event.code)) return;
+      event.preventDefault(); held.add(event.code); command('/input/key', {action: 'tap', key: event.code});
+    });
+    screen.addEventListener('keyup', event => {
+      if (!held.has(event.code)) return;
+      event.preventDefault(); held.delete(event.code);
+    });
+    screen.addEventListener('blur', () => {
+      held.clear();
+      pointerStart = null;
+    });
+    function renderFrameInfo() {
+      if (!lastFrame) return;
+      const age = Math.max(0, (Date.now() - lastFrame.capturedMs) / 1000);
+      const stale = lastFrame.stale || age > 3;
+      confirmOnce.disabled = confirming || displayedFrame !== lastFrame || stale || lastFrame.source !== 'guest-compositor';
+      source.textContent = `${lastFrame.source}${stale ? ' · stale' : ' · live'}`;
+      source.className = `badge ${stale || /fixture|replay/i.test(lastFrame.source) ? 'warning' : ''}`;
+      info.textContent = `Frame ${lastFrame.sequence} · ${lastFrame.width} × ${lastFrame.height} · ${age.toFixed(1)} s old`;
+    }
+    async function refreshFrame() {
+      if (!vmReady) {
+        setTimeout(refreshFrame, 400);
+        return;
+      }
+      if (pointerStart || (sequenceBoundInput() && pendingFrameCommands > 0)) {
+        setTimeout(refreshFrame, 100);
+        return;
+      }
+      try {
+        const response = await request('/frame');
+        const meta = {
+          sequence: Number(response.headers.get('X-Frame-Sequence')),
+          capturedMs: Number(response.headers.get('X-Frame-Captured-Ns')) / 1e6,
+          width: Number(response.headers.get('X-Frame-Width')), height: Number(response.headers.get('X-Frame-Height')),
+          source: response.headers.get('X-Frame-Source'), stale: response.headers.get('X-Frame-Stale') === 'true'
+        };
+        const blob = await response.blob();
+        const next = URL.createObjectURL(blob), previous = frameUrl;
+        displayedFrame = null; confirmOnce.disabled = true;
+        screen.onload = () => { if (frameUrl === next) { displayedFrame = meta; renderFrameInfo(); } };
+        screen.onerror = () => { if (frameUrl === next) { displayedFrame = null; confirmOnce.disabled = true; } };
+        screen.src = next; frameUrl = next; lastFrame = meta;
+        if (previous) URL.revokeObjectURL(previous);
+        renderFrameInfo();
+      } catch (error) {
+        if (lastFrame) { lastFrame.stale = true; renderFrameInfo(); }
+        else { source.textContent = 'Disconnected / no frame'; source.className = 'badge error'; }
+      }
+      setTimeout(refreshFrame, 800);
+    }
+    function text(tag, value) { const element = document.createElement(tag); element.textContent = value; return element; }
+    function renderModules(items) {
+      modules.replaceChildren();
+      if (!items.length) { modules.textContent = 'No simulator modules available.'; return; }
+      for (const module of items) {
+        const box = document.createElement('div'); box.className = 'module';
+        box.append(text('h3', module.label), text('small', `${module.integration} · ${module.transport}`));
+        if (module.observe_label) {
+          const observe = text('button', module.observe_label); observe.type = 'button';
+          observe.addEventListener('click', async () => {
+            observe.disabled = true;
+            try {
+              await command(`/modules/${encodeURIComponent(module.module_id)}/observe`, {});
+              await refreshModules();
+            } finally { observe.disabled = false; }
+          });
+          box.append(observe);
+        }
+        if (module.diagnose_label) {
+          const diagnose = text('button', module.diagnose_label); diagnose.type = 'button';
+          diagnose.addEventListener('click', async () => {
+            diagnose.disabled = true;
+            try { await command(`/modules/${encodeURIComponent(module.module_id)}/diagnose`, {}); await refreshModules(); }
+            finally { diagnose.disabled = false; }
+          });
+          box.append(diagnose);
+        }
+        for (const field of module.fields) {
+          const row = document.createElement('div'); row.className = 'field';
+          const observationLabels = {
+            debug_count: 'Mailbox-acknowledged',
+            debug_count_configured: 'Configured',
+            debug_count_dbus_observed: 'Last successful guest D-Bus observation',
+            parking_status: 'IHU parking status (simulated)',
+            parking_status_configured: 'IHU parking status requested'
+          };
+          const label = module.module_id === 'micom' ? (observationLabels[field.name] || field.name) : field.name;
+          row.append(text('label', label));
+          let input;
+          if (Array.isArray(field.choices)) {
+            input = document.createElement('select');
+            field.choices.forEach((choice, index) => { const option = text('option', String(choice)); option.value = String(index); input.append(option); if (Object.is(choice, field.value)) input.value = String(index); });
+          } else if (field.value_type === 'boolean' || field.value_type === 'bool') {
+            input = document.createElement('input'); input.type = 'checkbox'; input.checked = field.value === true;
+          } else {
+            input = document.createElement('input'); input.type = ['integer', 'int', 'number'].includes(field.value_type) ? 'number' : 'text'; input.value = String(field.value ?? '');
+          }
+          input.disabled = !field.writable;
+          const save = text('button', field.writable ? 'Set' : 'Read only'); save.type = 'button'; save.disabled = !field.writable;
+          save.addEventListener('click', async () => {
+            let value;
+            if (Array.isArray(field.choices)) value = field.choices[Number(input.value)];
+            else if (input.type === 'checkbox') value = input.checked;
+            else if (input.type === 'number') {
+              if (input.value.trim() === '') { message.textContent = 'Enter a value before setting this field.'; return; }
+              value = Number(input.value);
+            }
+            else value = input.value;
+            const result = await command(`/modules/${encodeURIComponent(module.module_id)}/${encodeURIComponent(field.name)}`, {value});
+            if (result) await refreshModules();
+          });
+          const displayValue = field.value === null ? 'not yet available' :
+            (typeof field.value === 'object' ? JSON.stringify(field.value) : String(field.value));
+          row.append(input, save, text('small', `${label}: ${displayValue} · Evidence: ${field.evidence}`)); box.append(row);
+        }
+        modules.append(box);
+      }
+    }
+    async function refreshModules() {
+      if (!vmReady) { modules.textContent = 'Waiting for VM admission…'; return; }
+      try { renderModules((await (await request('/modules')).json()).modules); }
+      catch (_) { modules.textContent = 'Simulator modules unavailable.'; }
+    }
+    function renderEvents() {
+      const query = filter.value.toLowerCase();
+      log.textContent = events.filter(line => line.toLowerCase().includes(query)).join('\n');
+    }
+    filter.addEventListener('input', renderEvents);
+    async function refreshStatus() {
+      try {
+        const status = await (await request('/status')).json();
+        const hostFixture = status.scope === 'host-fixture';
+        previewInput = hostFixture;
+        syntheticBanner.hidden = !hostFixture;
+        scopeLabel.textContent = hostFixture ? 'Host fixture · synthetic preview' : String(status.scope || status.state || 'unknown');
+        session.textContent = String(status.state || 'connected'); session.className = 'badge';
+        const serviceState = String(status.service_state || 'ready');
+        const progress = Number.isInteger(status.progress) ? Math.max(0, Math.min(100, status.progress)) : (serviceState === 'ready' ? 100 : 0);
+        vmReady = serviceState === 'ready';
+        startupProgress.value = progress; startupProgress.textContent = `${progress}%`; startupPercent.textContent = `${progress}%`;
+        startupMessage.textContent = String(status.message || (vmReady ? 'VM browser is ready' : 'Starting VM'));
+        const elapsed = Number.isFinite(status.elapsed_ms) ? ` · ${(status.elapsed_ms / 1000).toFixed(1)} s elapsed` : '';
+        startupDetail.textContent = `${String(status.stage || serviceState)}${elapsed} · snapshot=${status.snapshot === true} · guest network=${status.guest_network === true ? 'enabled' : 'disabled'}`;
+        session.className = `badge ${serviceState === 'failed' ? 'error' : (vmReady ? '' : 'warning')}`;
+        if (vmReady && modules.textContent === 'Waiting for VM admission…') refreshModules();
+        const batch = await (await request(`/events?after=${lastEvent}&limit=100`)).json();
+        for (const event of batch.events) { lastEvent = Math.max(lastEvent, event.event_id); events.push(JSON.stringify(event)); }
+        events = events.slice(-500); renderEvents();
+      } catch (_) {
+        vmReady = false; syntheticBanner.hidden = true; scopeLabel.textContent = 'Service unavailable';
+        session.textContent = 'Disconnected'; session.className = 'badge error'; startupMessage.textContent = 'Local service disconnected';
+      }
+      setTimeout(refreshStatus, 1200);
+    }
+    document.getElementById('shutdown').addEventListener('click', () => command('/shutdown', {}));
+    setInterval(renderFrameInfo, 1000);
+    refreshFrame(); refreshStatus(); refreshModules();
+  })();
+  </script>
+</body>
+</html>

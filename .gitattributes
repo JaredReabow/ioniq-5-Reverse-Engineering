@@ -1,0 +1,30 @@
+# Preserve authoritative upstream patch bytes; nested unified-diff context lines
+# intentionally contain leading space+tab and otherwise trip `git diff --check`.
+evidence/artifacts/kernel-candidates/*.patch -diff
+evidence/artifacts/media-candidates/*.patch -diff
+evidence/artifacts/network-candidates/*.patch -diff
+tools/uk_fw/ioniq-nbdfuse-direct.patch -diff
+evidence/controlled-run-*/serial-head.log -diff
+
+# Portable Gen5W server inputs are executed or hash-pinned inside macOS/Linux
+# and WSL. Keep their repository bytes stable even when Windows Git enables
+# automatic CRLF conversion.
+launchers/*.sh text eol=lf
+launchers/*.command text eol=lf
+launchers/*.desktop text eol=lf
+launchers/*.ps1 text eol=lf
+launchers/*.cmd text eol=crlf
+LICENSES/*.txt text eol=lf
+tools/uk_fw/vm_workbench/*.py text eol=lf
+tools/uk_fw/vm_workbench/*.html text eol=lf
+tools/uk_fw/vm_workbench/wifi_sim/*.py text eol=lf
+tools/uk_fw/vm_workbench/wifi_sim/*.c text eol=lf
+tools/uk_fw/vm_workbench/wifi_sim/*.patch text eol=lf
+tools/uk_fw/guest/build-eng-data-sim.sh text eol=lf
+tools/uk_fw/guest/build-weston-vm-input.sh text eol=lf
+tools/uk_fw/guest/build-weston-ivi-frame-probe.sh text eol=lf
+tools/uk_fw/guest/launch-vm-workbench.sh text eol=lf
+tools/uk_fw/guest/eng_data_sim.c text eol=lf
+tools/uk_fw/guest/weston_vm_input.c text eol=lf
+tools/uk_fw/guest/weston_ivi_frame_probe.c text eol=lf
+tools/uk_fw/vm_boot.py text eol=lf
